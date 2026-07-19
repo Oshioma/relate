@@ -9,7 +9,9 @@ import { getCommunityInvites } from "@/lib/data/invites";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
+import { SpaceNavToggle } from "./space-nav-toggle";
 import { CommunityBrandingForm } from "./community-branding-form";
+import { CommunityDetailsForm } from "./community-details-form";
 import { NewInviteForm } from "./new-invite-form";
 import { NewEmailInviteForm } from "./new-email-invite-form";
 import { InvitesList } from "./invites-list";
@@ -57,8 +59,9 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
         </Card>
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Branding</h2>
-      <div className="mb-8">
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
+      <div className="mb-8 space-y-4">
+        <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
       </div>
 
@@ -77,7 +80,23 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
         <InvitesList invites={invites} communitySlug={community.slug} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Create a space</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
+      {spaces.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {spaces.map((space) => (
+            <div
+              key={space.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
+                <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
+              </div>
+              <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
+            </div>
+          ))}
+        </div>
+      )}
       <div className="mb-8">
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} />
       </div>

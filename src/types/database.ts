@@ -66,6 +66,7 @@ export type Space = {
   description: string | null;
   visibility: SpaceVisibility;
   sort_order: number;
+  show_in_nav: boolean;
   created_at: string;
 };
 

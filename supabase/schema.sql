@@ -86,6 +86,7 @@ create table if not exists public.spaces (
   description text,
   visibility public.space_visibility not null default 'members',
   sort_order integer not null default 0,
+  show_in_nav boolean not null default true,
   created_at timestamptz not null default now(),
   unique (community_id, slug),
   constraint space_slug_format check (slug ~ '^[a-z0-9-]{2,60}$')
@@ -374,6 +375,13 @@ create policy "communities_select_visible" on public.communities
     or owner_id = auth.uid()
     or public.is_community_member(id, auth.uid())
   );
+
+-- Signed-out visitors can see public communities so the marketing landing
+-- page can showcase real communities instead of static placeholders.
+drop policy if exists "communities_select_public_anon" on public.communities;
+create policy "communities_select_public_anon" on public.communities
+  for select to anon
+  using (is_public = true);
 
 drop policy if exists "communities_insert_own" on public.communities;
 create policy "communities_insert_own" on public.communities

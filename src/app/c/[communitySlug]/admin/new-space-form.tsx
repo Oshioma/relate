@@ -44,6 +44,11 @@ export function NewSpaceForm({ communityId, communitySlug }: { communityId: stri
         </select>
       </div>
 
+      <label className="flex items-center gap-2 text-sm text-foreground">
+        <input type="checkbox" name="show_in_nav" defaultChecked className="h-4 w-4 rounded border-border" />
+        Show in left navigation
+      </label>
+
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Creating…" className="w-auto">
