@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
@@ -31,10 +32,11 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount] = await Promise.all([
+  const [profile, membership, unreadCount, spaces] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
     getUnreadNotificationCount(supabase, user.id),
+    getCommunitySpaces(supabase, community.id),
   ]);
 
   if (!membership && !community.is_public) {
@@ -47,10 +49,16 @@ export default async function CommunityLayout({
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   const base = `/c/${community.slug}`;
+  const navSpaces = spaces.filter((space) => space.show_in_nav);
 
   const navItems = [
     { href: base, label: "Overview", icon: <LayoutGrid className="h-4 w-4" /> },
-    { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-4 w-4" /> },
+    ...navSpaces.map((space) => ({
+      href: `${base}/spaces/${space.slug}`,
+      label: space.name,
+      icon: <Layers className="h-4 w-4" />,
+    })),
+    { href: `${base}/spaces`, label: "All spaces", icon: <LayoutGrid className="h-4 w-4" /> },
     { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
     { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
     { href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> },
@@ -73,7 +81,12 @@ export default async function CommunityLayout({
         <div className="flex-1 overflow-y-auto px-3 py-4">
           <div className="space-y-1">
             {navItems.map((item) => (
-              <NavLink key={item.href} href={item.href} icon={item.icon} exact={item.href === base}>
+              <NavLink
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                exact={item.href === base || item.href === `${base}/spaces`}
+              >
                 {item.label}
               </NavLink>
             ))}

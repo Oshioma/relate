@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
+import type { Community } from "@/types/database";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -15,6 +17,13 @@ export default async function LandingPage() {
   if (user) {
     redirect("/dashboard");
   }
+
+  const { data: featuredCommunities } = await supabase
+    .from("communities")
+    .select("*")
+    .eq("is_public", true)
+    .order("created_at", { ascending: true })
+    .limit(3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,16 +101,18 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl px-6 pb-24">
-          <h2 className="text-center text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            A few communities already at home here
-          </h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <CommunityPreview name="Kushukuru Community" description="A home for the Kushukuru family." />
-            <CommunityPreview name="Zanzibar Community" description="Connecting people building in Zanzibar." />
-            <CommunityPreview name="Farming Community" description="Growers sharing knowledge and harvests." />
-          </div>
-        </section>
+        {featuredCommunities && featuredCommunities.length > 0 && (
+          <section className="mx-auto max-w-5xl px-6 pb-24">
+            <h2 className="text-center text-sm font-medium uppercase tracking-wide text-muted-foreground">
+              A few communities already at home here
+            </h2>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {featuredCommunities.map((community) => (
+                <CommunityPreview key={community.id} community={community} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="border-t border-border px-6 py-8 text-center text-sm text-muted-foreground">
@@ -125,13 +136,13 @@ function Feature({ icon, title, description }: { icon: ReactNode; title: string;
   );
 }
 
-function CommunityPreview({ name, description }: { name: string; description: string }) {
+function CommunityPreview({ community }: { community: Community }) {
   return (
     <Card className="text-left">
       <CardContent className="pt-6">
-        <div className="mb-3 h-9 w-9 rounded-full bg-muted" />
-        <h3 className="text-sm font-semibold text-foreground">{name}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <Avatar src={community.logo_url} name={community.name} size={36} className="mb-3" />
+        <h3 className="text-sm font-semibold text-foreground">{community.name}</h3>
+        {community.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>}
       </CardContent>
     </Card>
   );

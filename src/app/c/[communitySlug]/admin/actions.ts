@@ -16,6 +16,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
   const description = String(formData.get("description") ?? "").trim();
   const visibilityRaw = String(formData.get("visibility") ?? "members");
   const visibility = VISIBILITIES.includes(visibilityRaw as SpaceVisibility) ? (visibilityRaw as SpaceVisibility) : "members";
+  const showInNav = formData.get("show_in_nav") === "on";
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -61,6 +62,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
     description: description || null,
     visibility,
     sort_order: (maxSort?.sort_order ?? -1) + 1,
+    show_in_nav: showInNav,
   });
 
   if (error) {
@@ -69,5 +71,37 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+export type CommunityDetailsState = { error: string } | undefined;
+
+export async function updateCommunityDetails(
+  _prevState: CommunityDetailsState,
+  formData: FormData
+): Promise<CommunityDetailsState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+
+  if (!name) {
+    return { error: "Give your community a name." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ name, description: description || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  revalidatePath("/dashboard");
   return undefined;
 }
