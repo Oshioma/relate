@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getCommunityMembers } from "@/lib/data/community";
+import { getCommunityBySlug, getCommunityMembers, getMembership } from "@/lib/data/community";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MemberRoleSelect } from "./member-role-select";
 
 const roleTone = {
   owner: "accent",
@@ -23,7 +24,12 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community || !user) notFound();
 
-  const members = await getCommunityMembers(supabase, community.id);
+  const [members, membership] = await Promise.all([
+    getCommunityMembers(supabase, community.id),
+    getMembership(supabase, community.id, user.id),
+  ]);
+
+  const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -36,20 +42,28 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
       ) : (
         <Card>
           <CardContent className="divide-y divide-border p-0">
-            {members.map((member) => (
-              <div key={member.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
-                <div className="flex min-w-0 items-center gap-3">
-                  <Avatar src={member.profile?.avatar_url} name={member.profile?.full_name || member.profile?.username} size={36} />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {member.profile?.full_name || member.profile?.username}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">@{member.profile?.username}</p>
+            {members.map((member) => {
+              const canEditRole = isAdmin && member.role !== "owner" && member.user_id !== user.id;
+
+              return (
+                <div key={member.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar src={member.profile?.avatar_url} name={member.profile?.full_name || member.profile?.username} size={36} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {member.profile?.full_name || member.profile?.username}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">@{member.profile?.username}</p>
+                    </div>
                   </div>
+                  {canEditRole ? (
+                    <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={community.slug} />
+                  ) : (
+                    <Badge tone={roleTone[member.role]}>{member.role}</Badge>
+                  )}
                 </div>
-                <Badge tone={roleTone[member.role]}>{member.role}</Badge>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       )}
