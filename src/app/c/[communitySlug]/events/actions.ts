@@ -1,0 +1,48 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+
+export type EventFormState = { error: string } | undefined;
+
+export async function createEvent(_prevState: EventFormState, formData: FormData): Promise<EventFormState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const startTime = String(formData.get("start_time") ?? "");
+  const endTime = String(formData.get("end_time") ?? "");
+  const location = String(formData.get("location") ?? "").trim();
+  const onlineUrl = String(formData.get("online_url") ?? "").trim();
+
+  if (!title || !startTime) {
+    return { error: "Give the event a title and a start time." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { error } = await supabase.from("events").insert({
+    community_id: communityId,
+    title,
+    description: description || null,
+    start_time: new Date(startTime).toISOString(),
+    end_time: endTime ? new Date(endTime).toISOString() : null,
+    location: location || null,
+    online_url: onlineUrl || null,
+    created_by: user.id,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/events`);
+  return undefined;
+}

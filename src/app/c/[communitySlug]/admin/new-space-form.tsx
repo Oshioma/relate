@@ -1,0 +1,54 @@
+"use client";
+
+import { useActionState, useRef, useEffect } from "react";
+import { createSpace, type SpaceFormState } from "./actions";
+import { Input, Textarea, Label } from "@/components/ui/input";
+import { SubmitButton } from "@/components/ui/submit-button";
+
+export function NewSpaceForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
+  const [state, formAction] = useActionState<SpaceFormState, FormData>(createSpace, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state === undefined) {
+      formRef.current?.reset();
+    }
+  }, [state]);
+
+  return (
+    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+      <input type="hidden" name="community_id" value={communityId} />
+      <input type="hidden" name="community_slug" value={communitySlug} />
+
+      <div>
+        <Label htmlFor="space_name">Name</Label>
+        <Input id="space_name" name="name" placeholder="Announcements" required />
+      </div>
+
+      <div>
+        <Label htmlFor="space_description">Description (optional)</Label>
+        <Textarea id="space_description" name="description" rows={2} />
+      </div>
+
+      <div>
+        <Label htmlFor="visibility">Who can see it</Label>
+        <select
+          id="visibility"
+          name="visibility"
+          defaultValue="members"
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="public">Public — anyone, even non-members</option>
+          <option value="members">Members — active members only</option>
+          <option value="private">Private — owners, admins &amp; moderators only</option>
+        </select>
+      </div>
+
+      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+
+      <SubmitButton pendingText="Creating…" className="w-auto">
+        Create space
+      </SubmitButton>
+    </form>
+  );
+}
