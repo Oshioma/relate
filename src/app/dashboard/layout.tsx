@@ -53,7 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </p>
               <div className="space-y-1">
                 {communities.map((community) => (
-                  <NavLink key={community.id} href={`/c/${community.slug}`} icon={<Avatar src={community.logo_url} name={community.name} size={20} />}>
+                  <NavLink key={community.id} href={`/c/${community.slug}`} icon={<Avatar src={community.logo_url} name={community.name} size={24} />}>
                     {community.name}
                   </NavLink>
                 ))}

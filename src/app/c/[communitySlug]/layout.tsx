@@ -76,7 +76,7 @@ export default async function CommunityLayout({
             All communities
           </Link>
           <div className="mt-3 flex items-center gap-2.5">
-            <Avatar src={community.logo_url} name={community.name} size={32} />
+            <Avatar src={community.logo_url} name={community.name} size={40} />
             <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
           </div>
         </div>

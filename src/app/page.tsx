@@ -140,7 +140,7 @@ function CommunityPreview({ community }: { community: Community }) {
   return (
     <Card className="text-left">
       <CardContent className="pt-6">
-        <Avatar src={community.logo_url} name={community.name} size={36} className="mb-3" />
+        <Avatar src={community.logo_url} name={community.name} size={56} className="mb-3" />
         <h3 className="text-sm font-semibold text-foreground">{community.name}</h3>
         {community.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>}
       </CardContent>

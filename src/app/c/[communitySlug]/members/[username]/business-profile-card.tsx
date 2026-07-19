@@ -17,7 +17,7 @@ export function BusinessProfileCard({ business }: { business: BusinessProfile })
   return (
     <div>
       <div className="flex items-start gap-3">
-        <Avatar src={business.logo_url} name={business.business_name} size={48} />
+        <Avatar src={business.logo_url} name={business.business_name} size={64} />
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-foreground">{business.business_name}</h3>
           {business.industry && <p className="text-xs text-muted-foreground">{business.industry}</p>}
