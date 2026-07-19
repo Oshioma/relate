@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getMemberInterests, getMemberSkills, getMemberHelpTopics } from "@/lib/data/member-profile";
+import { getMemberInterests, getMemberSkills, getMemberHelpTopics, getMemberLocation } from "@/lib/data/member-profile";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfileForm } from "./profile-form";
 import { ProfileTagsSection } from "./profile-tags-section";
+import { LocationForm } from "./location-form";
+import { PrivacyForm } from "./privacy-form";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -21,11 +23,12 @@ export default async function SettingsPage() {
     redirect("/dashboard");
   }
 
-  const [interests, skills, needsHelpWith, canHelpWith] = await Promise.all([
+  const [interests, skills, needsHelpWith, canHelpWith, location] = await Promise.all([
     getMemberInterests(supabase, user.id),
     getMemberSkills(supabase, user.id),
     getMemberHelpTopics(supabase, user.id, "needs_help"),
     getMemberHelpTopics(supabase, user.id, "can_help"),
+    getMemberLocation(supabase, user.id),
   ]);
 
   return (
@@ -53,6 +56,22 @@ export default async function SettingsPage() {
               needsHelpWith={needsHelpWith}
               canHelpWith={canHelpWith}
             />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardContent className="pt-6">
+            <LocationForm location={location} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardContent className="pt-6">
+            <PrivacyForm profile={profile} />
           </CardContent>
         </Card>
       </div>

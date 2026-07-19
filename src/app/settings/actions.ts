@@ -172,3 +172,50 @@ export async function addCanHelpTopic(topic: string): Promise<ActionResult> {
 export async function removeCanHelpTopic(topic: string): Promise<ActionResult> {
   return removeHelpTopic("can_help", topic);
 }
+
+export type LocationFormState = { error: string } | undefined;
+
+export async function updateLocation(_prevState: LocationFormState, formData: FormData): Promise<LocationFormState> {
+  const city = String(formData.get("city") ?? "").trim();
+  const region = String(formData.get("region") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+  const isVisible = formData.get("is_visible") === "on";
+
+  const auth = await requireUserId();
+  if ("error" in auth) return auth;
+
+  const { error } = await auth.supabase
+    .from("member_locations")
+    .upsert(
+      { profile_id: auth.userId, city: city || null, region: region || null, country: country || null, is_visible: isVisible },
+      { onConflict: "profile_id" }
+    );
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}
+
+export type PrivacyFormState = { error: string } | undefined;
+
+export async function updatePrivacy(_prevState: PrivacyFormState, formData: FormData): Promise<PrivacyFormState> {
+  const auth = await requireUserId();
+  if ("error" in auth) return auth;
+
+  const { error } = await auth.supabase
+    .from("profiles")
+    .update({
+      hide_profile: formData.get("hide_profile") === "on",
+      hide_online_status: formData.get("hide_online_status") === "on",
+      hide_communities: formData.get("hide_communities") === "on",
+      hide_social_links: formData.get("hide_social_links") === "on",
+      hide_business_profile: formData.get("hide_business_profile") === "on",
+      is_discoverable: formData.get("is_discoverable") === "on",
+    })
+    .eq("id", auth.userId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}
