@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -49,7 +50,10 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
 
               return (
                 <div key={member.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
-                  <div className="flex min-w-0 items-center gap-3">
+                  <Link
+                    href={`/c/${community.slug}/members/${member.profile?.username}`}
+                    className="flex min-w-0 items-center gap-3 hover:opacity-80"
+                  >
                     <Avatar src={member.profile?.avatar_url} name={member.profile?.full_name || member.profile?.username} size={36} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">
@@ -57,7 +61,7 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
                       </p>
                       <p className="truncate text-xs text-muted-foreground">@{member.profile?.username}</p>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex items-center gap-3">
                     {canManage ? (
                       <>
