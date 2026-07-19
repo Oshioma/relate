@@ -7,6 +7,7 @@ import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/da
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
+import { CommunityBrandingForm } from "./community-branding-form";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -46,6 +47,11 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
             <p className="text-xs text-muted-foreground">Spaces</p>
           </CardContent>
         </Card>
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Branding</h2>
+      <div className="mb-8">
+        <CommunityBrandingForm community={community} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Create a space</h2>
