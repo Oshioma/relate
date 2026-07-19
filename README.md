@@ -150,6 +150,15 @@ are only ever created by `SECURITY DEFINER` trigger functions, fired on:
 Open the bell (`/notifications`) and everything currently unread is
 marked read as you view it.
 
+## Event RSVPs
+
+Run `supabase/event-rsvps.sql` too. Attending is just row presence in
+`event_rsvps` — RSVPing inserts a row, canceling deletes it (no separate
+going/interested/declined states). Any active member can RSVP to an
+event in their community; the events page shows an attendee avatar
+stack + count per event, and a toggle button on upcoming events (past
+events show who attended but drop the button).
+
 ### Email confirmation redirect (if enabled)
 
 New Supabase projects require email confirmation by default. In
@@ -225,6 +234,7 @@ supabase/
   invites.sql                       Invite links table, RLS, and redemption functions
   email-invites.sql                 Adds the `email` column used by email invites
   notifications.sql                 Notifications table, RLS, and trigger functions
+  event-rsvps.sql                   Event RSVPs table + RLS
 ```
 
 ## Notes on Next.js 16

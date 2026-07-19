@@ -133,6 +133,13 @@ export type Notification = {
   created_at: string;
 };
 
+export type EventRsvp = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -182,6 +189,12 @@ export type Database = {
         Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
         Update: Partial<Notification>;
         Relationships: [FKey<"actor_id", "profiles">];
+      };
+      event_rsvps: {
+        Row: EventRsvp;
+        Insert: Partial<EventRsvp> & { event_id: string; user_id: string };
+        Update: Partial<EventRsvp>;
+        Relationships: [FKey<"user_id", "profiles">];
       };
     };
     Views: Record<string, never>;
