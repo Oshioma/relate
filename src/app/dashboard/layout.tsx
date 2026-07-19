@@ -6,7 +6,7 @@ import { getUserCommunities } from "@/lib/data/community";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Settings } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -52,7 +52,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
 
         <div className="border-t border-border p-3">
-          <div className="flex items-center gap-2.5 px-3 py-2">
+          <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">
@@ -60,7 +60,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </p>
               <p className="truncate text-xs text-muted-foreground">@{profile?.username}</p>
             </div>
-          </div>
+          </Link>
+          <NavLink href="/settings" icon={<Settings className="h-4 w-4" />}>
+            Settings
+          </NavLink>
           <LogoutButton />
         </div>
       </aside>
@@ -70,7 +73,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Link href="/dashboard" className="text-base font-semibold tracking-tight text-foreground">
             Relate
           </Link>
-          <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={30} />
+          <Link href="/settings">
+            <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={30} />
+          </Link>
         </header>
 
         <main className="flex-1">{children}</main>

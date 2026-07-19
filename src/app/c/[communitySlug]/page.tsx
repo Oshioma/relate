@@ -34,6 +34,15 @@ export default async function CommunityOverviewPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+      {community.cover_image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={community.cover_image_url}
+          alt=""
+          className="mb-6 h-40 w-full rounded-lg border border-border object-cover sm:h-56"
+        />
+      )}
+
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{community.name}</h1>

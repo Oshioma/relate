@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, CalendarDays, BookOpen, Users, Shield, ArrowLeft } from "lucide-react";
+import { LayoutGrid, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -83,7 +83,7 @@ export default async function CommunityLayout({
         </div>
 
         <div className="border-t border-border p-3">
-          <div className="flex items-center gap-2.5 px-3 py-2">
+          <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">
@@ -91,7 +91,10 @@ export default async function CommunityLayout({
               </p>
               <p className="truncate text-xs text-muted-foreground">@{profile?.username}</p>
             </div>
-          </div>
+          </Link>
+          <NavLink href="/settings" icon={<Settings className="h-4 w-4" />}>
+            Settings
+          </NavLink>
           <LogoutButton />
         </div>
       </aside>
@@ -102,7 +105,9 @@ export default async function CommunityLayout({
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
-          <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
+          <Link href="/settings">
+            <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
+          </Link>
         </header>
 
         <main className="flex-1">

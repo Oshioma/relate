@@ -3,7 +3,7 @@
 A multi-tenant community platform — one app, many communities. Each
 community has its own spaces, members, posts, events, and resources.
 Built with Next.js (App Router), Tailwind CSS, and Supabase (Auth +
-Postgres, with Storage planned for a later milestone).
+Postgres + Storage).
 
 ## Stack
 
@@ -55,6 +55,28 @@ Open the Supabase SQL editor for your project and run, in order:
    event, and a resource in each.
 
 Both SQL files are safe to re-run.
+
+## Storage (avatars, community logos & covers)
+
+Run `supabase/storage.sql` in the SQL editor too. It creates two public
+buckets and locks writes down by path, reusing the same RLS approach as
+the rest of the schema:
+
+- `avatars` — one image per user at `<user_id>/avatar.<ext>`. A user can
+  only write to their own folder (checked via `auth.uid()`).
+- `community-assets` — logos and covers at `<community_id>/logo.<ext>` and
+  `<community_id>/cover.<ext>`. Only that community's owner/admin can
+  write (checked via the same `is_community_admin()` helper used
+  elsewhere).
+
+Both buckets are public for reads, so `<img>` tags load straight from the
+Storage CDN URL with no signed-URL step. Uploads happen directly from the
+browser to Supabase Storage (see `src/components/ui/image-upload.tsx`),
+not through a Vercel serverless function, so there's no request-body size
+limit to worry about beyond the bucket's own `file_size_limit` (8MB).
+
+Profile avatars are managed at `/settings`; community logo/cover images
+are managed from a community's `/admin` page (owners/admins only).
 
 ### Email confirmation redirect (if enabled)
 
@@ -110,11 +132,12 @@ src/
     login/, signup/                 Auth pages (Supabase email/password)
     auth/                           Server actions + email confirmation route
     dashboard/                      Logged-in home: your communities + discovery
+    settings/                       Profile settings (avatar, name, username, bio)
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
-      events/, resources/, members/, admin/
+      events/, resources/, members/, admin/  Admin also handles logo/cover upload
   components/
-    ui/                             Shared primitives (Button, Card, Avatar, …)
+    ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout
   lib/
     supabase/                       Browser/server/proxy Supabase clients
@@ -123,6 +146,7 @@ src/
 supabase/
   schema.sql                        Tables, enums, triggers, RLS policies
   seed.sql                          Starter communities, spaces, sample content
+  storage.sql                       Storage buckets + RLS (avatars, community-assets)
 ```
 
 ## Notes on Next.js 16
