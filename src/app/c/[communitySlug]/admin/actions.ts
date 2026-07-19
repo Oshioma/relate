@@ -2,20 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { slugify } from "@/lib/utils";
 import type { SpaceVisibility } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
 const VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
-
-function slugify(input: string) {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-}
 
 export async function createSpace(_prevState: SpaceFormState, formData: FormData): Promise<SpaceFormState> {
   const communityId = String(formData.get("community_id") ?? "");

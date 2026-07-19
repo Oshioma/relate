@@ -8,7 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { NotificationsNavLink, NotificationsIconLink } from "@/components/layout/notification-bell";
-import { LayoutGrid, Settings } from "lucide-react";
+import { LayoutGrid, Settings, Plus } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -36,6 +36,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="flex-1 overflow-y-auto px-3 py-4">
           <NavLink href="/dashboard" icon={<LayoutGrid className="h-4 w-4" />} exact>
             Your communities
+          </NavLink>
+          <NavLink href="/communities/new" icon={<Plus className="h-4 w-4" />}>
+            New community
           </NavLink>
           <NotificationsNavLink count={unreadCount} />
 
