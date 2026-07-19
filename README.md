@@ -253,8 +253,36 @@ members list):
   profile that isn't visible to you at all 404s before any of this
   renders.
 
-No directory, discovery sections, messaging UI, or contribution-score
-*sourcing* yet — those are later stages (5-7 per the build plan).
+**Stage 5** turns the community's `/members` page into the Member
+Directory itself:
+
+- **Discovery sections** (each a horizontal row of cards, hidden
+  entirely when empty): Recommended for you (shared interests/skills/
+  profession, scored and ranked), New members, Members near you (only
+  when *you* have an approximate location set and visible — matches
+  others in the same country), Recently active, Top contributors
+  (sorted by `contribution_score` — still just a number, never a
+  "level"), and Businesses.
+- **Searchable, filterable, sortable roster** below the discovery
+  sections: instant client-side search across name/username/bio/
+  profession/company/interests/skills/needs-help/can-help, a role
+  filter, and a sort dropdown (recently active / top contributors /
+  newest / name).
+- `is_discoverable` (Stage 2) governs the **discovery sections only** —
+  a member who opts out disappears from all six of them. It does
+  *not* remove them from the plain searchable roster below: that list
+  doubles as the admin member-management view (role changes, removal,
+  blocking), and hiding a member from it would break moderation, not
+  just discovery. This is a deliberate scope decision, not an
+  oversight.
+- New `src/lib/data/member-directory.ts`: `getDirectoryMembers` batch-
+  fetches each member's interests/skills/help-topics/location/business
+  profile alongside their membership row (a handful of `.in(...)`
+  queries, not N+1), plus the pure ranking/filtering functions behind
+  each section and the search match.
+
+No messaging UI or contribution-score *sourcing* yet — those are
+Stages 6 and 7.
 
 ### Email confirmation redirect (if enabled)
 
@@ -322,7 +350,9 @@ src/
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
       events/, resources/, admin/     Admin also handles branding, invites,
                                        and custom profile fields
-      members/, members/[username]/  Member list + enhanced member profile page
+      members/                       Member Directory: search/filter/sort + discovery
+                                      sections (new/recommended/near you/active/top/business)
+      members/[username]/            Enhanced member profile page
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
