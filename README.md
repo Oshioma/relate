@@ -159,6 +159,46 @@ event in their community; the events page shows an attendee avatar
 stack + count per event, and a toggle button on upcoming events (past
 events show who attended but drop the button).
 
+## Member Directory (in progress)
+
+This is being built in stages; **Stage 1 (schema + RLS only, no UI yet)**
+is in place. Run these four files, in this order, after
+`supabase/schema.sql`:
+
+1. `supabase/member-profile-extensions.sql` — adds professional fields
+   (profession, company, website, social links) and privacy switches
+   (`hide_profile`, `hide_online_status`, `hide_communities`,
+   `hide_social_links`, `hide_business_profile`, `is_discoverable`) to
+   `profiles`; adds `business_profiles` (one optional business profile per
+   user), `member_interests`, `member_skills`, `member_help_requests`
+   ("needs help with" / "available to help with", distinguished by
+   `kind`), and `member_locations` (opt-in, approximate only — city/
+   region/country text, never a precise address or geocoding).
+2. `supabase/community-custom-fields.sql` — lets a community owner/admin
+   define unlimited custom profile fields scoped to their community
+   (`community_profile_fields`: text/textarea/number/date/dropdown/
+   multiselect/checkbox/url) and stores each member's answers
+   (`community_profile_values`).
+3. `supabase/member-contribution.sql` — `member_contribution_scores` is
+   an append-only points ledger; a trigger keeps a fast-sortable running
+   total in `profiles.contribution_score`. Nothing awards points yet —
+   that's wired up once the directory that displays the score exists.
+4. `supabase/direct-messages.sql` — simple 1:1 `conversations` +
+   `direct_messages` (no group chat), plus `member_blocks` (also used to
+   stop blocked members from messaging each other).
+5. `supabase/member-connections.sql` — depends on `direct-messages.sql`
+   (uses its `is_blocked_between()` helper). LinkedIn-style connection
+   requests; schema + RLS only, no UI yet — explicitly future-ready per
+   the spec this was built against.
+
+A key privacy design decision worth knowing: `hide_profile` doesn't
+block the existing `profiles_select_authenticated` policy outright
+(that would break showing post/comment authors and member lists across
+the app) — instead, a `shares_active_community()` helper lets anyone who
+already shares an active community membership with you still see your
+profile, while non-community strangers can't, once `hide_profile` is
+set.
+
 ### Email confirmation redirect (if enabled)
 
 New Supabase projects require email confirmation by default. In
@@ -235,6 +275,12 @@ supabase/
   email-invites.sql                 Adds the `email` column used by email invites
   notifications.sql                 Notifications table, RLS, and trigger functions
   event-rsvps.sql                   Event RSVPs table + RLS
+  member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
+                                     skills, help requests, locations (Member Directory Stage 1)
+  community-custom-fields.sql       Per-community custom profile fields + values
+  member-contribution.sql           Contribution score ledger + running-total trigger
+  direct-messages.sql               1:1 messaging + blocking
+  member-connections.sql            Connection requests (future-ready, no UI yet)
 ```
 
 ## Notes on Next.js 16

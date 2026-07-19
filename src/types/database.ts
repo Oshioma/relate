@@ -20,6 +20,18 @@ export type Profile = {
   username: string;
   avatar_url: string | null;
   bio: string | null;
+  profession: string | null;
+  company: string | null;
+  website: string | null;
+  social_links: Record<string, string>;
+  contribution_score: number;
+  last_active_at: string | null;
+  hide_profile: boolean;
+  hide_online_status: boolean;
+  hide_communities: boolean;
+  hide_social_links: boolean;
+  hide_business_profile: boolean;
+  is_discoverable: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -140,6 +152,127 @@ export type EventRsvp = {
   created_at: string;
 };
 
+export type BusinessProfile = {
+  id: string;
+  profile_id: string;
+  business_name: string;
+  logo_url: string | null;
+  description: string | null;
+  website: string | null;
+  industry: string | null;
+  services: string[];
+  products: string[];
+  location: string | null;
+  contact_links: Record<string, string>;
+  social_links: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MemberInterest = {
+  id: string;
+  profile_id: string;
+  interest: string;
+  created_at: string;
+};
+
+export type MemberSkill = {
+  id: string;
+  profile_id: string;
+  skill: string;
+  created_at: string;
+};
+
+export type HelpRequestKind = "needs_help" | "can_help";
+
+export type MemberHelpRequest = {
+  id: string;
+  profile_id: string;
+  kind: HelpRequestKind;
+  topic: string;
+  created_at: string;
+};
+
+export type MemberLocation = {
+  id: string;
+  profile_id: string;
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  is_visible: boolean;
+  updated_at: string;
+};
+
+export type ProfileFieldType = "text" | "textarea" | "number" | "date" | "dropdown" | "multiselect" | "checkbox" | "url";
+
+export type CommunityProfileField = {
+  id: string;
+  community_id: string;
+  label: string;
+  field_type: ProfileFieldType;
+  options: string[];
+  is_required: boolean;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CommunityProfileValue = {
+  id: string;
+  field_id: string;
+  profile_id: string;
+  community_id: string;
+  value: string | number | boolean | string[] | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MemberContributionScore = {
+  id: string;
+  profile_id: string;
+  points: number;
+  reason: string;
+  source_type: string | null;
+  source_id: string | null;
+  created_at: string;
+};
+
+export type MemberBlock = {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  created_at: string;
+};
+
+export type Conversation = {
+  id: string;
+  user_one_id: string;
+  user_two_id: string;
+  last_message_at: string | null;
+  created_at: string;
+};
+
+export type DirectMessage = {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  read: boolean;
+  created_at: string;
+};
+
+export type ConnectionStatus = "pending" | "accepted" | "declined";
+
+export type MemberConnection = {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: ConnectionStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -196,6 +329,68 @@ export type Database = {
         Update: Partial<EventRsvp>;
         Relationships: [FKey<"user_id", "profiles">];
       };
+      business_profiles: {
+        Row: BusinessProfile;
+        Insert: Partial<BusinessProfile> & { profile_id: string; business_name: string };
+        Update: Partial<BusinessProfile>;
+      } & NoRel;
+      member_interests: {
+        Row: MemberInterest;
+        Insert: Partial<MemberInterest> & { profile_id: string; interest: string };
+        Update: Partial<MemberInterest>;
+      } & NoRel;
+      member_skills: {
+        Row: MemberSkill;
+        Insert: Partial<MemberSkill> & { profile_id: string; skill: string };
+        Update: Partial<MemberSkill>;
+      } & NoRel;
+      member_help_requests: {
+        Row: MemberHelpRequest;
+        Insert: Partial<MemberHelpRequest> & { profile_id: string; kind: HelpRequestKind; topic: string };
+        Update: Partial<MemberHelpRequest>;
+      } & NoRel;
+      member_locations: {
+        Row: MemberLocation;
+        Insert: Partial<MemberLocation> & { profile_id: string };
+        Update: Partial<MemberLocation>;
+      } & NoRel;
+      community_profile_fields: {
+        Row: CommunityProfileField;
+        Insert: Partial<CommunityProfileField> & { community_id: string; label: string };
+        Update: Partial<CommunityProfileField>;
+      } & NoRel;
+      community_profile_values: {
+        Row: CommunityProfileValue;
+        Insert: Partial<CommunityProfileValue> & { field_id: string; profile_id: string; community_id: string };
+        Update: Partial<CommunityProfileValue>;
+        Relationships: [FKey<"field_id", "community_profile_fields">];
+      };
+      member_contribution_scores: {
+        Row: MemberContributionScore;
+        Insert: Partial<MemberContributionScore> & { profile_id: string; points: number; reason: string };
+        Update: Partial<MemberContributionScore>;
+      } & NoRel;
+      member_blocks: {
+        Row: MemberBlock;
+        Insert: Partial<MemberBlock> & { blocker_id: string; blocked_id: string };
+        Update: Partial<MemberBlock>;
+      } & NoRel;
+      conversations: {
+        Row: Conversation;
+        Insert: Partial<Conversation> & { user_one_id: string; user_two_id: string };
+        Update: Partial<Conversation>;
+      } & NoRel;
+      direct_messages: {
+        Row: DirectMessage;
+        Insert: Partial<DirectMessage> & { conversation_id: string; sender_id: string; body: string };
+        Update: Partial<DirectMessage>;
+        Relationships: [FKey<"sender_id", "profiles">];
+      };
+      member_connections: {
+        Row: MemberConnection;
+        Insert: Partial<MemberConnection> & { requester_id: string; addressee_id: string };
+        Update: Partial<MemberConnection>;
+      } & NoRel;
     };
     Views: Record<string, never>;
     Functions: {
