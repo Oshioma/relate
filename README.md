@@ -161,9 +161,11 @@ events show who attended but drop the button).
 
 ## Member Directory (in progress)
 
-This is being built in stages. **Stage 1 (schema + RLS)** and **Stage 2
-(settings UI for the new profile data)** are in place. Run these five
-files, in this order, after `supabase/schema.sql`:
+This has been built in stages — **Stages 1 through 7** are all in
+place (schema/RLS, settings UI, community admin custom fields, the
+enhanced member profile page, the Member Directory itself, 1:1
+messaging, and contribution-score triggers). Run these six files, in
+this order, after `supabase/schema.sql`:
 
 1. `supabase/member-profile-extensions.sql` — adds professional fields
    (profession, company, website, social links) and privacy switches
@@ -190,6 +192,10 @@ files, in this order, after `supabase/schema.sql`:
    (uses its `is_blocked_between()` helper). LinkedIn-style connection
    requests; schema + RLS only, no UI yet — explicitly future-ready per
    the spec this was built against.
+6. `supabase/contribution-triggers.sql` — depends on
+   `member-contribution.sql`. Awards real points for creating a post,
+   leaving a comment, sharing a resource, hosting an event, and
+   RSVPing to one — see the Stage 7 section below for details.
 
 A key privacy design decision worth knowing: `hide_profile` doesn't
 block the existing `profiles_select_authenticated` policy outright
@@ -308,7 +314,20 @@ Directory itself:
   notification bell) shows an unread-DM badge in both the dashboard and
   community sidebars.
 
-No contribution-score *sourcing* yet — that's Stage 7.
+**Stage 7** wires real point-earning events into the contribution score
+ledger built in Stage 1c. Run `supabase/contribution-triggers.sql`
+after `member-contribution.sql` — it adds `SECURITY DEFINER` triggers
+so that creating a post (+5), leaving a comment (+2), sharing a
+resource (+5), hosting an event (+5), or RSVPing to one (+2) each
+insert a row into `member_contribution_scores`, which the existing
+Stage 1c trigger folds into `profiles.contribution_score`. No app code
+changes needed — every page that already reads `contribution_score`
+(the member profile page, Top Contributors) picks these up
+automatically. Deliberately append-only: deleting the underlying post/
+comment/resource/event/RSVP does not claw back points, consistent with
+the ledger's own append-only design. Reactions and accepted-answers
+are still future scoring sources per the original spec — this app has
+no reactions/likes feature yet to hang a trigger off of.
 
 ### Email confirmation redirect (if enabled)
 
@@ -402,6 +421,7 @@ supabase/
   member-contribution.sql           Contribution score ledger + running-total trigger
   direct-messages.sql               1:1 messaging + blocking
   member-connections.sql            Connection requests (future-ready, no UI yet)
+  contribution-triggers.sql         Awards real contribution-score points
 ```
 
 ## Notes on Next.js 16
