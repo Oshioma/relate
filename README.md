@@ -216,8 +216,20 @@ introduced:
   members page (not just admins) via a new "block" icon next to each
   other member, calling straight into `member_blocks`.
 
+**Stage 3** adds the community admin UI for custom profile fields, on
+the community's `/admin` page under "Custom profile fields":
+
+- Owners/admins can define unlimited fields scoped to their community
+  (label, type — text/textarea/number/date/dropdown/multiselect/
+  checkbox/url — options for dropdown/multiselect, required toggle),
+  reorder them, and delete them. RLS (`is_community_admin`) is the only
+  enforcement — the server actions don't duplicate the admin check.
+- Members filling in answers to these fields, and displaying them on a
+  member's profile, comes with Stage 4's enhanced profile page —
+  fields without a UI to answer them yet is expected at this stage.
+
 No directory, discovery sections, messaging UI, or contribution-score
-UI yet — those are later stages (3-7 per the build plan).
+UI yet — those are later stages (4-7 per the build plan).
 
 ### Email confirmation redirect (if enabled)
 
@@ -283,7 +295,8 @@ src/
     notifications/                  In-app notifications list
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
-      events/, resources/, members/, admin/  Admin also handles branding + invites
+      events/, resources/, members/, admin/  Admin also handles branding, invites,
+                                             and custom profile fields
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
