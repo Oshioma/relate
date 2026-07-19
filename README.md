@@ -184,7 +184,7 @@ functions (`is_community_member`, `is_community_admin`,
 This means:
 
 - Anyone can create a community and becomes its `owner` automatically
-  (see the `on_community_created` trigger).
+  (see the `on_community_created` trigger) — try it at `/communities/new`.
 - Membership `role` (`owner` / `admin` / `moderator` / `member`) and
   `status` (`active` / `invited` / `banned`) gate what a user can do
   inside a given community.
@@ -205,6 +205,7 @@ src/
     auth/                           Server actions + email confirmation route
     dashboard/                      Logged-in home: your communities + discovery
     settings/                       Profile settings (avatar, name, username, bio)
+    communities/new/                Create a community (you become its owner)
     invite/[code]/                  Invite link preview + auto-redemption
     notifications/                  In-app notifications list
     c/[communitySlug]/              Everything scoped to one community

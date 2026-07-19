@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Users } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getUserCommunities, getDiscoverableCommunities } from "@/lib/data/community";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LinkButton } from "@/components/ui/button";
 import Link from "next/link";
 import { JoinButton } from "./join-button";
 
@@ -25,9 +26,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Your communities</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Your communities</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
+        </div>
+        <LinkButton href="/communities/new" size="sm" variant="secondary" className="shrink-0">
+          <Plus className="h-4 w-4" />
+          New community
+        </LinkButton>
       </div>
 
       {communities.length === 0 ? (
