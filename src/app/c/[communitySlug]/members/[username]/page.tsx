@@ -137,7 +137,7 @@ export default async function MemberProfilePage({
                   href={`/c/${c.slug}`}
                   className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted"
                 >
-                  <Avatar src={c.logo_url} name={c.name} size={20} />
+                  <Avatar src={c.logo_url} name={c.name} size={24} />
                   {c.name}
                 </Link>
               ))}
