@@ -4,10 +4,12 @@ import { LayoutGrid, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings 
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { NotificationsNavLink, NotificationsIconLink } from "@/components/layout/notification-bell";
 
 export default async function CommunityLayout({
   children,
@@ -29,9 +31,10 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership] = await Promise.all([
+  const [profile, membership, unreadCount] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
+    getUnreadNotificationCount(supabase, user.id),
   ]);
 
   if (!membership && !community.is_public) {
@@ -79,6 +82,7 @@ export default async function CommunityLayout({
                 Admin
               </NavLink>
             )}
+            <NotificationsNavLink count={unreadCount} />
           </div>
         </div>
 
@@ -105,9 +109,12 @@ export default async function CommunityLayout({
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
-          <Link href="/settings">
-            <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
-          </Link>
+          <div className="flex items-center gap-4">
+            <NotificationsIconLink count={unreadCount} />
+            <Link href="/settings">
+              <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1">

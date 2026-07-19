@@ -101,6 +101,24 @@ run through two `SECURITY DEFINER` functions
 (`get_invite_preview`/`redeem_invite`) so a not-yet-a-member visitor can
 validate and redeem a code without needing broader table access.
 
+## Notifications
+
+Run `supabase/notifications.sql` too. Delivery is in-app only (a bell
+icon with an unread count, refreshed on page load/navigation — not real
+time, no email). The `notifications` table has no `INSERT` policy at
+all, so nothing client-side can write into someone else's list — rows
+are only ever created by `SECURITY DEFINER` trigger functions, fired on:
+
+- a comment on a post you authored
+- a new post (discussion, announcement, or resource) in any space you
+  can currently view, from anyone else in that community
+- you being added to a community (skips the owner row created alongside
+  a brand new community — you know you just made it)
+- your role in a community changing
+
+Open the bell (`/notifications`) and everything currently unread is
+marked read as you view it.
+
 ### Email confirmation redirect (if enabled)
 
 New Supabase projects require email confirmation by default. In
@@ -157,12 +175,13 @@ src/
     dashboard/                      Logged-in home: your communities + discovery
     settings/                       Profile settings (avatar, name, username, bio)
     invite/[code]/                  Invite link preview + auto-redemption
+    notifications/                  In-app notifications list
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
       events/, resources/, members/, admin/  Admin also handles branding + invites
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
-    layout/                         Nav, sidebar links, mobile tab bar, logout
+    layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
   lib/
     supabase/                       Browser/server/proxy Supabase clients
     data/                           Typed data-access functions per domain
@@ -172,6 +191,7 @@ supabase/
   seed.sql                          Starter communities, spaces, sample content
   storage.sql                       Storage buckets + RLS (avatars, community-assets)
   invites.sql                       Invite links table, RLS, and redemption functions
+  notifications.sql                 Notifications table, RLS, and trigger functions
 ```
 
 ## Notes on Next.js 16
