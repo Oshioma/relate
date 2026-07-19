@@ -52,3 +52,41 @@ export async function updateMemberRole(membershipId: string, newRole: string, co
   revalidatePath(`/c/${communitySlug}/members`);
   return undefined;
 }
+
+export async function removeMember(membershipId: string, communitySlug: string): Promise<MemberActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: target, error: fetchError } = await supabase
+    .from("community_memberships")
+    .select("role, user_id")
+    .eq("id", membershipId)
+    .maybeSingle();
+
+  if (fetchError || !target) {
+    return { error: "That member couldn't be found." };
+  }
+
+  if (target.role === "owner") {
+    return { error: "The community owner can't be removed." };
+  }
+
+  if (target.user_id === user.id) {
+    return { error: "You can't remove yourself here." };
+  }
+
+  const { error } = await supabase.from("community_memberships").delete().eq("id", membershipId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/members`);
+  return undefined;
+}
