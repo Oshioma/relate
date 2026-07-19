@@ -46,3 +46,43 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
   revalidatePath(`/c/${communitySlug}/events`);
   return undefined;
 }
+
+export async function rsvpToEvent(eventId: string, communitySlug: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { error } = await supabase.from("event_rsvps").insert({ event_id: eventId, user_id: user.id });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/events`);
+  return { error: null };
+}
+
+export async function cancelRsvp(eventId: string, communitySlug: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { error } = await supabase.from("event_rsvps").delete().eq("event_id", eventId).eq("user_id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/events`);
+  return { error: null };
+}
