@@ -31,17 +31,18 @@ export default async function LandingPage() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-3xl px-6 pb-20 pt-16 text-center sm:pt-24">
+        <section className="mx-auto max-w-3xl px-6 pb-16 pt-16 text-center sm:pt-24">
           <span className="inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            One platform. Many communities.
+            Built for community hosts
           </span>
           <h1 className="mt-6 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            A calm, private home for the communities you belong to.
+            A calm, private home for your community.
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Spaces, discussions, events, and resources — without the noise of a
-            corporate feed. Relate keeps every community you&apos;re part of in
-            one clean, quiet place.
+            Whether you run a networking group, mastermind, co-working space,
+            membership, or local community, Relate helps your audience connect
+            like never before — creating stronger relationships that keep
+            people coming back.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <LinkButton href="/signup" size="lg">
@@ -51,6 +52,19 @@ export default async function LandingPage() {
               Sign in
             </LinkButton>
           </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Spend less time managing your community and more time growing it.
+          </p>
+        </section>
+
+        <section className="mx-auto max-w-2xl px-6 pb-16 text-center">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Turn members into a thriving community.
+          </h2>
+          <p className="mx-auto mt-3 max-w-lg text-base text-muted-foreground">
+            Communities grow because people build relationships. Relate helps
+            community hosts make those connections happen.
+          </p>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 pb-24">

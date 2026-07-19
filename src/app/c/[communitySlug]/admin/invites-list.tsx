@@ -39,6 +39,7 @@ function InviteRow({ invite, communitySlug }: { invite: CommunityInvite; communi
           <Badge tone="neutral">{invite.role}</Badge>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
+          {invite.email ? `Sent to ${invite.email} · ` : ""}
           {invite.uses_count} use{invite.uses_count === 1 ? "" : "s"}
           {invite.max_uses !== null ? ` of ${invite.max_uses}` : ""}
           {invite.expires_at ? ` · expires ${formatDate(invite.expires_at)}` : ""}
@@ -72,7 +73,7 @@ function InviteRow({ invite, communitySlug }: { invite: CommunityInvite; communi
 
 export function InvitesList({ invites, communitySlug }: { invites: CommunityInvite[]; communitySlug: string }) {
   if (invites.length === 0) {
-    return <p className="text-sm text-muted-foreground">No invite links yet.</p>;
+    return <p className="text-sm text-muted-foreground">No invites yet.</p>;
   }
 
   return (
