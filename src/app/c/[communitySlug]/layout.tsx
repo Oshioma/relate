@@ -6,11 +6,13 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
+import { getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { NotificationsNavLink, NotificationsIconLink } from "@/components/layout/notification-bell";
+import { MessagesNavLink, MessagesIconLink } from "@/components/layout/messages-bell";
 
 export default async function CommunityLayout({
   children,
@@ -32,10 +34,11 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, spaces] = await Promise.all([
+  const [profile, membership, unreadCount, unreadMessageCount, spaces] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
     getUnreadNotificationCount(supabase, user.id),
+    getUnreadMessageCount(supabase, user.id),
     getCommunitySpaces(supabase, community.id),
   ]);
 
@@ -96,6 +99,7 @@ export default async function CommunityLayout({
               </NavLink>
             )}
             <NotificationsNavLink count={unreadCount} />
+            <MessagesNavLink count={unreadMessageCount} />
           </div>
         </div>
 
@@ -124,6 +128,7 @@ export default async function CommunityLayout({
           <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
           <div className="flex items-center gap-4">
             <NotificationsIconLink count={unreadCount} />
+            <MessagesIconLink count={unreadMessageCount} />
             <Link href="/settings">
               <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
             </Link>

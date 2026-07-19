@@ -4,10 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getUserCommunities } from "@/lib/data/community";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
+import { getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { NotificationsNavLink, NotificationsIconLink } from "@/components/layout/notification-bell";
+import { MessagesNavLink, MessagesIconLink } from "@/components/layout/messages-bell";
 import { LayoutGrid, Settings, Plus } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,10 +20,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login?next=/dashboard");
   }
 
-  const [profile, communities, unreadCount] = await Promise.all([
+  const [profile, communities, unreadCount, unreadMessageCount] = await Promise.all([
     getProfile(supabase, user.id),
     getUserCommunities(supabase, user.id),
     getUnreadNotificationCount(supabase, user.id),
+    getUnreadMessageCount(supabase, user.id),
   ]);
 
   return (
@@ -41,6 +44,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             New community
           </NavLink>
           <NotificationsNavLink count={unreadCount} />
+          <MessagesNavLink count={unreadMessageCount} />
 
           {communities.length > 0 && (
             <div className="mt-5">
@@ -82,6 +86,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
           <div className="flex items-center gap-4">
             <NotificationsIconLink count={unreadCount} />
+            <MessagesIconLink count={unreadMessageCount} />
             <Link href="/settings">
               <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={30} />
             </Link>
