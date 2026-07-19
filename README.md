@@ -80,11 +80,12 @@ are managed from a community's `/admin` page (owners/admins only).
 
 ## Invitations
 
-Run `supabase/invites.sql` too. There's no email-sending involved — an
-owner/admin generates a shareable link from a community's `/admin` page
-(optionally capping it to N uses and/or an expiry, and choosing whether
-it grants `member` or `moderator`), and copies the link out to share
-however they like (DM, group chat, email themselves, etc).
+Run `supabase/invites.sql` too. An owner/admin generates a shareable
+link from a community's `/admin` page (optionally capping it to N uses
+and/or an expiry, and choosing whether it grants `member` or
+`moderator`), and copies the link out to share however they like (DM,
+group chat, email themselves, etc) — no email-sending required for this
+path.
 
 Anyone who opens `/invite/<code>`:
 
@@ -100,6 +101,36 @@ community's admins via RLS — the preview and redemption logic instead
 run through two `SECURITY DEFINER` functions
 (`get_invite_preview`/`redeem_invite`) so a not-yet-a-member visitor can
 validate and redeem a code without needing broader table access.
+
+### Email invites
+
+Run `supabase/email-invites.sql` too (adds an `email` column to
+`community_invites`). This is a second, optional invite path — from the
+same `/admin` page, an owner/admin can type an email address and Relate
+sends an actual invite email via Supabase Auth's admin API
+(`auth.admin.inviteUserByEmail`), pre-scoped to one use.
+
+This path needs a secret the other invite features don't:
+
+1. In your Supabase project, go to **Project Settings → API → Project
+   API keys** and copy the **`service_role`** key (not the `anon` key).
+2. Set it as `SUPABASE_SERVICE_ROLE_KEY` — locally in `.env.local`, and
+   in Vercel's Project → Environment Variables for production. **Never**
+   prefix it with `NEXT_PUBLIC_` and never commit a real value — it
+   bypasses Row Level Security entirely. It's only ever read server-side,
+   from `src/lib/supabase/admin.ts`, and only after the caller has
+   already been authorized by a normal RLS-protected insert (see
+   `sendEmailInvite` in `src/app/c/[communitySlug]/admin/invites-actions.ts`).
+3. The email itself uses Supabase's built-in "Invite user" template —
+   customize it under **Authentication → Email Templates** if you want
+   different branding/copy. On Supabase's default shared email service
+   there are low hourly sending limits; for real usage, configure a
+   custom SMTP provider under **Project Settings → Auth → SMTP Settings**.
+
+If the target email already has an account, `inviteUserByEmail` fails
+(Supabase won't re-invite an existing user) — the invite link is still
+created either way, so you can copy it from the list and share it
+directly as a fallback.
 
 ## Notifications
 
@@ -183,7 +214,7 @@ src/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
   lib/
-    supabase/                       Browser/server/proxy Supabase clients
+    supabase/                       Browser/server/proxy/admin (service-role) Supabase clients
     data/                           Typed data-access functions per domain
   types/database.ts                 Hand-written types mirroring schema.sql
 supabase/
@@ -191,6 +222,7 @@ supabase/
   seed.sql                          Starter communities, spaces, sample content
   storage.sql                       Storage buckets + RLS (avatars, community-assets)
   invites.sql                       Invite links table, RLS, and redemption functions
+  email-invites.sql                 Adds the `email` column used by email invites
   notifications.sql                 Notifications table, RLS, and trigger functions
 ```
 

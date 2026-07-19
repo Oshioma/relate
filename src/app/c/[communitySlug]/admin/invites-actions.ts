@@ -1,13 +1,20 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
 
 const INVITE_ROLES: Extract<MembershipRole, "member" | "moderator">[] = ["member", "moderator"];
+
+async function getSiteOrigin() {
+  const headerList = await headers();
+  return headerList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+}
 
 export async function createInvite(_prevState: InviteFormState, formData: FormData): Promise<InviteFormState> {
   const communityId = String(formData.get("community_id") ?? "");
@@ -50,6 +57,71 @@ export async function createInvite(_prevState: InviteFormState, formData: FormDa
 
   if (error) {
     return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return undefined;
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function sendEmailInvite(_prevState: InviteFormState, formData: FormData): Promise<InviteFormState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const roleRaw = String(formData.get("role") ?? "member");
+  const role = INVITE_ROLES.includes(roleRaw as (typeof INVITE_ROLES)[number]) ? (roleRaw as (typeof INVITE_ROLES)[number]) : "member";
+
+  if (!EMAIL_PATTERN.test(email)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const code = randomBytes(8).toString("base64url");
+
+  // Inserting through the normal RLS-protected client is what actually
+  // authorizes this action — "invites_insert_admin" only allows it when the
+  // caller is this community's owner/admin. Only after that succeeds do we
+  // touch the privileged admin client below.
+  const { error: insertError } = await supabase.from("community_invites").insert({
+    community_id: communityId,
+    code,
+    role,
+    max_uses: 1,
+    email,
+    created_by: user.id,
+  });
+
+  if (insertError) {
+    return { error: insertError.message };
+  }
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Email invites aren't configured yet." };
+  }
+
+  const origin = await getSiteOrigin();
+  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(`/invite/${code}`)}`,
+  });
+
+  if (inviteError) {
+    // The invite link itself was still created and is visible/copyable from
+    // the list below, so this isn't a dead end even if the email didn't go out.
+    return {
+      error: `Invite link created, but the email couldn't be sent: ${inviteError.message}`,
+    };
   }
 
   revalidatePath(`/c/${communitySlug}/admin`);

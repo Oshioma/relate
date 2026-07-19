@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { NewInviteForm } from "./new-invite-form";
+import { NewEmailInviteForm } from "./new-email-invite-form";
 import { InvitesList } from "./invites-list";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
@@ -59,8 +60,15 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
-      <div className="mb-4">
-        <NewInviteForm communityId={community.id} communitySlug={community.slug} />
+      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Shareable link</p>
+          <NewInviteForm communityId={community.id} communitySlug={community.slug} />
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Invite by email</p>
+          <NewEmailInviteForm communityId={community.id} communitySlug={community.slug} />
+        </div>
       </div>
       <div className="mb-8">
         <InvitesList invites={invites} communitySlug={community.slug} />

@@ -115,6 +115,7 @@ export type CommunityInvite = {
   revoked: boolean;
   created_by: string;
   created_at: string;
+  email: string | null;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
