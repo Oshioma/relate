@@ -302,13 +302,13 @@ export type Database = {
         Row: Post;
         Insert: Partial<Post> & { community_id: string; space_id: string; author_id: string; title: string };
         Update: Partial<Post>;
-        Relationships: [FKey<"author_id", "profiles">];
+        Relationships: [FKey<"author_id", "profiles">, FKey<"space_id", "spaces">];
       };
       comments: {
         Row: Comment;
         Insert: Partial<Comment> & { post_id: string; author_id: string; body: string };
         Update: Partial<Comment>;
-        Relationships: [FKey<"author_id", "profiles">];
+        Relationships: [FKey<"author_id", "profiles">, FKey<"post_id", "posts">];
       };
       events: { Row: Event; Insert: Partial<Event> & { community_id: string; title: string; start_time: string; created_by: string }; Update: Partial<Event> } & NoRel;
       resources: { Row: Resource; Insert: Partial<Resource> & { community_id: string; space_id: string; title: string; url: string; created_by: string }; Update: Partial<Resource> } & NoRel;
@@ -327,7 +327,7 @@ export type Database = {
         Row: EventRsvp;
         Insert: Partial<EventRsvp> & { event_id: string; user_id: string };
         Update: Partial<EventRsvp>;
-        Relationships: [FKey<"user_id", "profiles">];
+        Relationships: [FKey<"user_id", "profiles">, FKey<"event_id", "events">];
       };
       business_profiles: {
         Row: BusinessProfile;

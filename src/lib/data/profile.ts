@@ -15,3 +15,9 @@ export async function getProfile(supabase: Client, userId: string): Promise<Prof
   if (error) throw error;
   return data;
 }
+
+export async function getProfileByUsername(supabase: Client, username: string): Promise<Profile | null> {
+  const { data, error } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
+  if (error) throw error;
+  return data;
+}

@@ -228,8 +228,33 @@ the community's `/admin` page under "Custom profile fields":
   member's profile, comes with Stage 4's enhanced profile page —
   fields without a UI to answer them yet is expected at this stage.
 
+**Stage 4** adds the enhanced member profile page, at
+`/c/[communitySlug]/members/[username]` (linked from each row on the
+members list):
+
+- Header: avatar, name, username, profession/company, approximate
+  location (only if `is_visible`), bio, contribution score (just the
+  number — never a "level"), online status, website, and social links.
+- Interests, skills, needs-help-with, and can-help-with, read from
+  Stage 1's tag tables.
+- That community's custom profile fields (Stage 3): if it's your own
+  profile, an editable form (backed by a new `saveProfileFieldValues`
+  action that re-fetches the field definitions server-side rather than
+  trusting the client); otherwise a read-only view that skips any
+  field the member hasn't answered.
+- Business profile summary, communities in common, recent activity
+  (posts/comments in this community), resources shared, and events
+  hosted/attended — each scoped to the current community.
+- Every `hide_*` privacy toggle from Stage 2 gates its corresponding
+  section for other viewers (never for your own profile): social
+  links, online status, business profile, and communities. The
+  underlying `profiles` row visibility itself is still governed by
+  `hide_profile` + `shares_active_community()` from Stage 1 — a
+  profile that isn't visible to you at all 404s before any of this
+  renders.
+
 No directory, discovery sections, messaging UI, or contribution-score
-UI yet — those are later stages (4-7 per the build plan).
+*sourcing* yet — those are later stages (5-7 per the build plan).
 
 ### Email confirmation redirect (if enabled)
 
@@ -295,8 +320,9 @@ src/
     notifications/                  In-app notifications list
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
-      events/, resources/, members/, admin/  Admin also handles branding, invites,
-                                             and custom profile fields
+      events/, resources/, admin/     Admin also handles branding, invites,
+                                       and custom profile fields
+      members/, members/[username]/  Member list + enhanced member profile page
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
