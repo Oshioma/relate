@@ -39,6 +39,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "").trim();
+  const next = safeNextPath(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Enter your email and password." };
@@ -56,7 +57,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${origin}/auth/confirm?next=/dashboard`,
+      emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -67,10 +68,10 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   // If email confirmation is turned off in the Supabase project, signUp
   // already returns an active session — skip straight to the app.
   if (data.session) {
-    redirect("/dashboard");
+    redirect(next);
   }
 
-  redirect("/signup/check-email");
+  redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
 }
 
 export async function logout() {

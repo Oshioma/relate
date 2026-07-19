@@ -6,11 +6,13 @@ import { signup, type AuthFormState } from "@/app/auth/actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-export function SignupForm() {
+export function SignupForm({ next }: { next: string }) {
   const [state, formAction] = useActionState<AuthFormState, FormData>(signup, undefined);
 
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
+
       <div>
         <Label htmlFor="full_name">Full name</Label>
         <Input id="full_name" name="full_name" type="text" autoComplete="name" required placeholder="Jane Doe" />
@@ -42,7 +44,7 @@ export function SignupForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-accent hover:underline">
+        <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-medium text-accent hover:underline">
           Sign in
         </Link>
       </p>

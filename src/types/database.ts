@@ -104,6 +104,19 @@ export type Resource = {
   created_at: string;
 };
 
+export type CommunityInvite = {
+  id: string;
+  community_id: string;
+  code: string;
+  role: Extract<MembershipRole, "member" | "moderator">;
+  max_uses: number | null;
+  uses_count: number;
+  expires_at: string | null;
+  revoked: boolean;
+  created_by: string;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -143,8 +156,22 @@ export type Database = {
       };
       events: { Row: Event; Insert: Partial<Event> & { community_id: string; title: string; start_time: string; created_by: string }; Update: Partial<Event> } & NoRel;
       resources: { Row: Resource; Insert: Partial<Resource> & { community_id: string; space_id: string; title: string; url: string; created_by: string }; Update: Partial<Resource> } & NoRel;
+      community_invites: {
+        Row: CommunityInvite;
+        Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
+        Update: Partial<CommunityInvite>;
+      } & NoRel;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_invite_preview: {
+        Args: { p_code: string };
+        Returns: { community_name: string | null; community_slug: string | null; valid: boolean; reason: string | null }[];
+      };
+      redeem_invite: {
+        Args: { p_code: string };
+        Returns: { community_slug: string | null; error: string | null }[];
+      };
+    };
   };
 };

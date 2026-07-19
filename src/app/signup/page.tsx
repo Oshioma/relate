@@ -2,7 +2,14 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { SignupForm } from "./signup-form";
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const params = await searchParams;
+  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
@@ -16,7 +23,7 @@ export default function SignupPage() {
 
         <Card>
           <CardContent className="pt-6">
-            <SignupForm />
+            <SignupForm next={next} />
           </CardContent>
         </Card>
       </div>
