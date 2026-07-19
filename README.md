@@ -281,8 +281,34 @@ Directory itself:
   queries, not N+1), plus the pure ranking/filtering functions behind
   each section and the search match.
 
-No messaging UI or contribution-score *sourcing* yet — those are
-Stages 6 and 7.
+**Stage 6** adds simple 1:1 direct messaging on top of Stage 1's
+`conversations`/`direct_messages`/`member_blocks` schema:
+
+- `/messages` — conversation list, most recent first, with an unread
+  count badge per conversation.
+- `/messages/[conversationId]` — the thread: messages bubble by
+  sender, a composer at the bottom, and unread messages from the other
+  participant are marked read server-side on render (same
+  mark-as-read-on-view pattern as `/notifications`).
+- A **Message** button on the enhanced member profile page (Stage 4)
+  calls a new `startConversation` action that finds or creates the
+  canonical `conversations` row for the two participants
+  (`user_one_id < user_two_id`, enforced by both the DB check
+  constraint and the action). If the two members have blocked each
+  other, RLS rejects the insert and the button surfaces that as an
+  error instead of a silent failure.
+- No group chat, no read receipts beyond the unread badge, and no
+  attachments yet — the schema was built future-ready for attachments
+  but this stage only sends plain text. No realtime: sending or
+  reading a message calls a server action and then `router.refresh()`,
+  the same pattern used everywhere else in this app; a websocket/
+  Realtime-subscription upgrade is a possible future enhancement, not
+  part of this stage.
+- A `MessagesNavLink`/`MessagesIconLink` pair (mirroring the existing
+  notification bell) shows an unread-DM badge in both the dashboard and
+  community sidebars.
+
+No contribution-score *sourcing* yet — that's Stage 7.
 
 ### Email confirmation redirect (if enabled)
 
@@ -346,6 +372,7 @@ src/
     communities/new/                Create a community (you become its owner)
     invite/[code]/                  Invite link preview + auto-redemption
     notifications/                  In-app notifications list
+    messages/                       Conversation list; messages/[conversationId]/ is the thread
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
       events/, resources/, admin/     Admin also handles branding, invites,
@@ -355,7 +382,8 @@ src/
       members/[username]/            Enhanced member profile page
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
-    layout/                         Nav, sidebar links, mobile tab bar, logout, notification bell
+    layout/                         Nav, sidebar links, mobile tab bar, logout, notification +
+                                     message unread bells
   lib/
     supabase/                       Browser/server/proxy/admin (service-role) Supabase clients
     data/                           Typed data-access functions per domain

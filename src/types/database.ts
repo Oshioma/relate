@@ -381,7 +381,8 @@ export type Database = {
         Row: Conversation;
         Insert: Partial<Conversation> & { user_one_id: string; user_two_id: string };
         Update: Partial<Conversation>;
-      } & NoRel;
+        Relationships: [FKey<"user_one_id", "profiles">, FKey<"user_two_id", "profiles">];
+      };
       direct_messages: {
         Row: DirectMessage;
         Insert: Partial<DirectMessage> & { conversation_id: string; sender_id: string; body: string };

@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime } from "@/lib/utils";
 import type { MemberLocation, Profile } from "@/types/database";
+import { MessageButton } from "./message-button";
 
 const SOCIAL_LABELS: Record<string, string> = {
   linkedin: "LinkedIn",
@@ -80,10 +81,14 @@ export function ProfileHeader({
         </div>
       </div>
 
-      {isOwnProfile && (
+      {isOwnProfile ? (
         <Link href="/settings" className="shrink-0 text-sm font-medium text-accent hover:underline">
           Edit profile
         </Link>
+      ) : (
+        <div className="shrink-0">
+          <MessageButton profileId={profile.id} />
+        </div>
       )}
     </div>
   );
