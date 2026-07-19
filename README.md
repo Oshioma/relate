@@ -78,6 +78,29 @@ limit to worry about beyond the bucket's own `file_size_limit` (8MB).
 Profile avatars are managed at `/settings`; community logo/cover images
 are managed from a community's `/admin` page (owners/admins only).
 
+## Invitations
+
+Run `supabase/invites.sql` too. There's no email-sending involved — an
+owner/admin generates a shareable link from a community's `/admin` page
+(optionally capping it to N uses and/or an expiry, and choosing whether
+it grants `member` or `moderator`), and copies the link out to share
+however they like (DM, group chat, email themselves, etc).
+
+Anyone who opens `/invite/<code>`:
+
+- while **signed in** is added to the community immediately and
+  redirected there.
+- while **signed out** sees a "You're invited to &lt;community&gt;" preview
+  with sign-in/sign-up buttons; both carry the invite link forward as a
+  `next` param (including through email confirmation) so they land back
+  on the invite and get redeemed automatically once authenticated.
+
+The `community_invites` table itself is only readable by that
+community's admins via RLS — the preview and redemption logic instead
+run through two `SECURITY DEFINER` functions
+(`get_invite_preview`/`redeem_invite`) so a not-yet-a-member visitor can
+validate and redeem a code without needing broader table access.
+
 ### Email confirmation redirect (if enabled)
 
 New Supabase projects require email confirmation by default. In
@@ -133,9 +156,10 @@ src/
     auth/                           Server actions + email confirmation route
     dashboard/                      Logged-in home: your communities + discovery
     settings/                       Profile settings (avatar, name, username, bio)
+    invite/[code]/                  Invite link preview + auto-redemption
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
-      events/, resources/, members/, admin/  Admin also handles logo/cover upload
+      events/, resources/, members/, admin/  Admin also handles branding + invites
   components/
     ui/                             Shared primitives (Button, Card, Avatar, ImageUpload, …)
     layout/                         Nav, sidebar links, mobile tab bar, logout
@@ -147,6 +171,7 @@ supabase/
   schema.sql                        Tables, enums, triggers, RLS policies
   seed.sql                          Starter communities, spaces, sample content
   storage.sql                       Storage buckets + RLS (avatars, community-assets)
+  invites.sql                       Invite links table, RLS, and redemption functions
 ```
 
 ## Notes on Next.js 16

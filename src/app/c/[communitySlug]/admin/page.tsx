@@ -5,9 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunityInvites } from "@/lib/data/invites";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
 import { CommunityBrandingForm } from "./community-branding-form";
+import { NewInviteForm } from "./new-invite-form";
+import { InvitesList } from "./invites-list";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -24,9 +27,10 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members] = await Promise.all([
+  const [spaces, members, invites] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
+    getCommunityInvites(supabase, community.id),
   ]);
 
   return (
@@ -52,6 +56,14 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Branding</h2>
       <div className="mb-8">
         <CommunityBrandingForm community={community} />
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
+      <div className="mb-4">
+        <NewInviteForm communityId={community.id} communitySlug={community.slug} />
+      </div>
+      <div className="mb-8">
+        <InvitesList invites={invites} communitySlug={community.slug} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Create a space</h2>

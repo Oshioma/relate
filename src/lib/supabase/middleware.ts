@@ -5,7 +5,11 @@ import type { Database } from "@/types/database";
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth/confirm"];
 
 function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.includes(pathname);
+  if (PUBLIC_PATHS.includes(pathname)) return true;
+  // Invite links show a "you're invited" preview before asking someone to
+  // sign in or sign up, so logged-out visitors need to reach the page.
+  if (pathname.startsWith("/invite/")) return true;
+  return false;
 }
 
 // Refreshes the Supabase auth session on every request and redirects

@@ -31,7 +31,7 @@ export function LoginForm({ next }: { next: string }) {
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-accent hover:underline">
+        <Link href={`/signup?next=${encodeURIComponent(next)}`} className="font-medium text-accent hover:underline">
           Create one
         </Link>
       </p>
