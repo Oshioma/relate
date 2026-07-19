@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MemberRoleSelect } from "./member-role-select";
+import { RemoveMemberButton } from "./remove-member-button";
 
 const roleTone = {
   owner: "accent",
@@ -43,7 +44,7 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
         <Card>
           <CardContent className="divide-y divide-border p-0">
             {members.map((member) => {
-              const canEditRole = isAdmin && member.role !== "owner" && member.user_id !== user.id;
+              const canManage = isAdmin && member.role !== "owner" && member.user_id !== user.id;
 
               return (
                 <div key={member.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
@@ -56,8 +57,11 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
                       <p className="truncate text-xs text-muted-foreground">@{member.profile?.username}</p>
                     </div>
                   </div>
-                  {canEditRole ? (
-                    <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={community.slug} />
+                  {canManage ? (
+                    <div className="flex items-center gap-3">
+                      <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={community.slug} />
+                      <RemoveMemberButton membershipId={member.id} communitySlug={community.slug} />
+                    </div>
                   ) : (
                     <Badge tone={roleTone[member.role]}>{member.role}</Badge>
                   )}

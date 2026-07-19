@@ -76,3 +76,69 @@ export async function createComment(
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
   return undefined;
 }
+
+export async function updatePost(
+  postId: string,
+  communitySlug: string,
+  spaceSlug: string,
+  _prevState: PostFormState,
+  formData: FormData
+): Promise<PostFormState> {
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!title) {
+    return { error: "Give your post a title." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("posts")
+    .update({ title, body: body || null })
+    .eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
+  return undefined;
+}
+
+export async function deletePost(postId: string, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { error: null };
+}
+
+export async function updateComment(
+  commentId: string,
+  communitySlug: string,
+  spaceSlug: string,
+  postId: string,
+  _prevState: PostFormState,
+  formData: FormData
+): Promise<PostFormState> {
+  const body = String(formData.get("body") ?? "").trim();
+  if (!body) return { error: "Comment can't be empty." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("comments").update({ body }).eq("id", commentId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
+  return undefined;
+}
+
+export async function deleteComment(commentId: string, communitySlug: string, spaceSlug: string, postId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("comments").delete().eq("id", commentId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
+  return { error: null };
+}
