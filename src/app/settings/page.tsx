@@ -75,6 +75,20 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardContent className="flex items-center justify-between gap-4 pt-6">
+            <div>
+              <p className="text-sm font-medium text-foreground">Business profile</p>
+              <p className="text-sm text-muted-foreground">Add a business alongside your personal profile.</p>
+            </div>
+            <Link href="/settings/business" className="text-sm font-medium text-accent hover:underline">
+              Manage
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
