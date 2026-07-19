@@ -6,12 +6,14 @@ import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityInvites } from "@/lib/data/invites";
+import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { NewInviteForm } from "./new-invite-form";
 import { NewEmailInviteForm } from "./new-email-invite-form";
 import { InvitesList } from "./invites-list";
+import { ProfileFieldsSection } from "./profile-fields-section";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -28,10 +30,11 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members, invites] = await Promise.all([
+  const [spaces, members, invites, profileFields] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
     getCommunityInvites(supabase, community.id),
+    getCommunityProfileFields(supabase, community.id),
   ]);
 
   return (
@@ -77,6 +80,14 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Create a space</h2>
       <div className="mb-8">
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} />
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom profile fields</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Ask members questions specific to {community.name} — answers show up on their member profile within this community.
+      </p>
+      <div className="mb-8">
+        <ProfileFieldsSection communityId={community.id} communitySlug={community.slug} fields={profileFields} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">More</h2>
