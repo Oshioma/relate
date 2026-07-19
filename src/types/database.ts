@@ -117,6 +117,21 @@ export type CommunityInvite = {
   created_at: string;
 };
 
+export type NotificationType = "comment" | "post" | "membership";
+
+export type Notification = {
+  id: string;
+  user_id: string;
+  community_id: string | null;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  actor_id: string | null;
+  read: boolean;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -161,6 +176,12 @@ export type Database = {
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
       } & NoRel;
+      notifications: {
+        Row: Notification;
+        Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
+        Update: Partial<Notification>;
+        Relationships: [FKey<"actor_id", "profiles">];
+      };
     };
     Views: Record<string, never>;
     Functions: {
