@@ -374,7 +374,8 @@ export type Database = {
         Row: MemberBlock;
         Insert: Partial<MemberBlock> & { blocker_id: string; blocked_id: string };
         Update: Partial<MemberBlock>;
-      } & NoRel;
+        Relationships: [FKey<"blocked_id", "profiles">];
+      };
       conversations: {
         Row: Conversation;
         Insert: Partial<Conversation> & { user_one_id: string; user_two_id: string };

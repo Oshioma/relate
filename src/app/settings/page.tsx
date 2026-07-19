@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
+import { getMemberInterests, getMemberSkills, getMemberHelpTopics } from "@/lib/data/member-profile";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfileForm } from "./profile-form";
+import { ProfileTagsSection } from "./profile-tags-section";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -18,6 +20,13 @@ export default async function SettingsPage() {
   if (!profile) {
     redirect("/dashboard");
   }
+
+  const [interests, skills, needsHelpWith, canHelpWith] = await Promise.all([
+    getMemberInterests(supabase, user.id),
+    getMemberSkills(supabase, user.id),
+    getMemberHelpTopics(supabase, user.id, "needs_help"),
+    getMemberHelpTopics(supabase, user.id, "can_help"),
+  ]);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-10">
@@ -34,6 +43,19 @@ export default async function SettingsPage() {
           <ProfileForm profile={profile} />
         </CardContent>
       </Card>
+
+      <div className="mt-6">
+        <Card>
+          <CardContent className="pt-6">
+            <ProfileTagsSection
+              interests={interests}
+              skills={skills}
+              needsHelpWith={needsHelpWith}
+              canHelpWith={canHelpWith}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
