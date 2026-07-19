@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MemberRoleSelect } from "./member-role-select";
 import { RemoveMemberButton } from "./remove-member-button";
+import { BlockMemberButton } from "./block-member-button";
 
 const roleTone = {
   owner: "accent",
@@ -57,14 +58,19 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
                       <p className="truncate text-xs text-muted-foreground">@{member.profile?.username}</p>
                     </div>
                   </div>
-                  {canManage ? (
-                    <div className="flex items-center gap-3">
-                      <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={community.slug} />
-                      <RemoveMemberButton membershipId={member.id} communitySlug={community.slug} />
-                    </div>
-                  ) : (
-                    <Badge tone={roleTone[member.role]}>{member.role}</Badge>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {canManage ? (
+                      <>
+                        <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={community.slug} />
+                        <RemoveMemberButton membershipId={member.id} communitySlug={community.slug} />
+                      </>
+                    ) : (
+                      <Badge tone={roleTone[member.role]}>{member.role}</Badge>
+                    )}
+                    {member.user_id !== user.id && (
+                      <BlockMemberButton profileId={member.user_id} communitySlug={community.slug} />
+                    )}
+                  </div>
                 </div>
               );
             })}

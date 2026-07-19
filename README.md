@@ -161,9 +161,9 @@ events show who attended but drop the button).
 
 ## Member Directory (in progress)
 
-This is being built in stages; **Stage 1 (schema + RLS only, no UI yet)**
-is in place. Run these four files, in this order, after
-`supabase/schema.sql`:
+This is being built in stages. **Stage 1 (schema + RLS)** and **Stage 2
+(settings UI for the new profile data)** are in place. Run these five
+files, in this order, after `supabase/schema.sql`:
 
 1. `supabase/member-profile-extensions.sql` — adds professional fields
    (profession, company, website, social links) and privacy switches
@@ -198,6 +198,26 @@ the app) — instead, a `shares_active_community()` helper lets anyone who
 already shares an active community membership with you still see your
 profile, while non-community strangers can't, once `hide_profile` is
 set.
+
+**Stage 2** adds a settings UI for everything Stage 1's schema
+introduced:
+
+- `/settings` — professional info (profession, company, website, social
+  links), tag editors for interests/skills/needs-help-with/can-help-with
+  (backed by `member_interests`/`member_skills`/`member_help_requests`),
+  an approximate-location opt-in form (`member_locations`), and privacy
+  toggles for every `hide_*`/`is_discoverable` column on `profiles`.
+- `/settings/business` — create, edit, or remove your one optional
+  `business_profiles` row: logo (reuses the `avatars` storage bucket),
+  description, website, industry, location, comma-separated services/
+  products, and contact/social links.
+- `/settings/blocked` — lists everyone you've blocked with an unblock
+  action. Blocking itself is available to any member from a community's
+  members page (not just admins) via a new "block" icon next to each
+  other member, calling straight into `member_blocks`.
+
+No directory, discovery sections, messaging UI, or contribution-score
+UI yet — those are later stages (3-7 per the build plan).
 
 ### Email confirmation redirect (if enabled)
 
@@ -253,7 +273,11 @@ src/
     login/, signup/                 Auth pages (Supabase email/password)
     auth/                           Server actions + email confirmation route
     dashboard/                      Logged-in home: your communities + discovery
-    settings/                       Profile settings (avatar, name, username, bio)
+    settings/                       Profile settings: identity, professional info, social
+                                     links, interests/skills/help topics, location opt-in,
+                                     privacy toggles
+    settings/business/              Optional business profile (create/edit/remove)
+    settings/blocked/               Blocked members list + unblock
     communities/new/                Create a community (you become its owner)
     invite/[code]/                  Invite link preview + auto-redemption
     notifications/                  In-app notifications list

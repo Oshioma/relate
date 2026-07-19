@@ -50,6 +50,44 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <Textarea id="bio" name="bio" rows={3} defaultValue={profile.bio ?? ""} placeholder="A little about you…" />
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="profession">Profession</Label>
+            <Input id="profession" name="profession" defaultValue={profile.profession ?? ""} placeholder="Architect" />
+          </div>
+          <div>
+            <Label htmlFor="company">Company</Label>
+            <Input id="company" name="company" defaultValue={profile.company ?? ""} placeholder="Acme Studio" />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="website">Website</Label>
+          <Input id="website" name="website" type="url" defaultValue={profile.website ?? ""} placeholder="https://…" />
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium text-foreground">Social links</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="linkedin">LinkedIn</Label>
+              <Input id="linkedin" name="linkedin" type="url" defaultValue={profile.social_links.linkedin ?? ""} placeholder="https://linkedin.com/in/…" />
+            </div>
+            <div>
+              <Label htmlFor="twitter">Twitter / X</Label>
+              <Input id="twitter" name="twitter" type="url" defaultValue={profile.social_links.twitter ?? ""} placeholder="https://x.com/…" />
+            </div>
+            <div>
+              <Label htmlFor="instagram">Instagram</Label>
+              <Input id="instagram" name="instagram" type="url" defaultValue={profile.social_links.instagram ?? ""} placeholder="https://instagram.com/…" />
+            </div>
+            <div>
+              <Label htmlFor="facebook">Facebook</Label>
+              <Input id="facebook" name="facebook" type="url" defaultValue={profile.social_links.facebook ?? ""} placeholder="https://facebook.com/…" />
+            </div>
+          </div>
+        </div>
+
         {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
         <SubmitButton pendingText="Saving…" className="w-auto">

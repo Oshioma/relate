@@ -53,6 +53,31 @@ export async function updateMemberRole(membershipId: string, newRole: string, co
   return undefined;
 }
 
+export async function blockMember(profileId: string, communitySlug: string): Promise<MemberActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  if (profileId === user.id) {
+    return { error: "You can't block yourself." };
+  }
+
+  const { error } = await supabase.from("member_blocks").insert({ blocker_id: user.id, blocked_id: profileId });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/members`);
+  revalidatePath("/settings/blocked");
+  return undefined;
+}
+
 export async function removeMember(membershipId: string, communitySlug: string): Promise<MemberActionState> {
   const supabase = await createClient();
   const {
