@@ -13,6 +13,14 @@ export function slugify(input: string) {
     .slice(0, 60);
 }
 
+// Lets people type "example.com" or "www.example.com" instead of requiring
+// a scheme — prepends https:// unless one's already present.
+export function normalizeUrl(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed) return trimmed;
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export function initials(name: string | null | undefined, fallback = "?") {
   if (!name || !name.trim()) return fallback;
   const parts = name.trim().split(/\s+/);

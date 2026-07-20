@@ -64,7 +64,7 @@ export function BusinessForm({ profileId, business }: { profileId: string; busin
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="website">Website</Label>
-            <Input id="website" name="website" type="url" defaultValue={business?.website ?? ""} placeholder="https://…" />
+            <Input id="website" name="website" type="text" defaultValue={business?.website ?? ""} placeholder="example.com" />
           </div>
           <div>
             <Label htmlFor="industry">Industry</Label>
@@ -106,19 +106,19 @@ export function BusinessForm({ profileId, business }: { profileId: string; busin
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="social_linkedin">LinkedIn</Label>
-              <Input id="social_linkedin" name="social_linkedin" type="url" defaultValue={business?.social_links.linkedin ?? ""} placeholder="https://linkedin.com/company/…" />
+              <Input id="social_linkedin" name="social_linkedin" type="text" defaultValue={business?.social_links.linkedin ?? ""} placeholder="linkedin.com/company/…" />
             </div>
             <div>
               <Label htmlFor="social_twitter">Twitter / X</Label>
-              <Input id="social_twitter" name="social_twitter" type="url" defaultValue={business?.social_links.twitter ?? ""} placeholder="https://x.com/…" />
+              <Input id="social_twitter" name="social_twitter" type="text" defaultValue={business?.social_links.twitter ?? ""} placeholder="x.com/…" />
             </div>
             <div>
               <Label htmlFor="social_instagram">Instagram</Label>
-              <Input id="social_instagram" name="social_instagram" type="url" defaultValue={business?.social_links.instagram ?? ""} placeholder="https://instagram.com/…" />
+              <Input id="social_instagram" name="social_instagram" type="text" defaultValue={business?.social_links.instagram ?? ""} placeholder="instagram.com/…" />
             </div>
             <div>
               <Label htmlFor="social_facebook">Facebook</Label>
-              <Input id="social_facebook" name="social_facebook" type="url" defaultValue={business?.social_links.facebook ?? ""} placeholder="https://facebook.com/…" />
+              <Input id="social_facebook" name="social_facebook" type="text" defaultValue={business?.social_links.facebook ?? ""} placeholder="facebook.com/…" />
             </div>
           </div>
         </div>

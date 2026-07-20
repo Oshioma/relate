@@ -127,7 +127,7 @@ function JournalFieldInput({ field }: { field: SpaceJournalField }) {
     );
   }
 
-  const inputType = field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : field.field_type === "url" ? "url" : "text";
+  const inputType = field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text";
 
   return (
     <div>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 
 export type BusinessFormState = { error: string } | undefined;
 
@@ -22,7 +23,7 @@ export async function upsertBusinessProfile(_prevState: BusinessFormState, formD
   }
 
   const description = String(formData.get("description") ?? "").trim();
-  const website = String(formData.get("website") ?? "").trim();
+  const website = normalizeUrl(String(formData.get("website") ?? ""));
   const industry = String(formData.get("industry") ?? "").trim();
   const location = String(formData.get("location") ?? "").trim();
   const services = parseList(formData.get("services"));
@@ -36,7 +37,7 @@ export async function upsertBusinessProfile(_prevState: BusinessFormState, formD
 
   const socialLinks: Record<string, string> = {};
   for (const key of SOCIAL_KEYS) {
-    const value = String(formData.get(`social_${key}`) ?? "").trim();
+    const value = normalizeUrl(String(formData.get(`social_${key}`) ?? ""));
     if (value) socialLinks[key] = value;
   }
 

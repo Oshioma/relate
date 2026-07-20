@@ -48,7 +48,7 @@ export function NewEventForm({ communityId, communitySlug }: { communityId: stri
         </div>
         <div>
           <Label htmlFor="online_url">Online link (optional)</Label>
-          <Input id="online_url" name="online_url" type="url" placeholder="https://…" />
+          <Input id="online_url" name="online_url" type="text" placeholder="example.com/meeting" />
         </div>
       </div>
 

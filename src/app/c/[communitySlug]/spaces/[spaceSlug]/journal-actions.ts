@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 import type { SpaceJournalEntryData } from "@/types/database";
 
 export type JournalEntryFormState = { error: string } | undefined;
@@ -44,6 +45,9 @@ export async function createJournalEntry(_prevState: JournalEntryFormState, form
     } else if (field.field_type === "number") {
       const value = String(raw[0] ?? "").trim();
       data[field.id] = value ? Number(value) : null;
+    } else if (field.field_type === "url") {
+      const value = normalizeUrl(String(raw[0] ?? ""));
+      data[field.id] = value || null;
     } else {
       const value = String(raw[0] ?? "").trim();
       data[field.id] = value || null;

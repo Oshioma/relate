@@ -63,7 +63,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
 
         <div>
           <Label htmlFor="website">Website</Label>
-          <Input id="website" name="website" type="url" defaultValue={profile.website ?? ""} placeholder="https://…" />
+          <Input id="website" name="website" type="text" defaultValue={profile.website ?? ""} placeholder="example.com" />
         </div>
 
         <div>
@@ -71,19 +71,19 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input id="linkedin" name="linkedin" type="url" defaultValue={profile.social_links.linkedin ?? ""} placeholder="https://linkedin.com/in/…" />
+              <Input id="linkedin" name="linkedin" type="text" defaultValue={profile.social_links.linkedin ?? ""} placeholder="linkedin.com/in/…" />
             </div>
             <div>
               <Label htmlFor="twitter">Twitter / X</Label>
-              <Input id="twitter" name="twitter" type="url" defaultValue={profile.social_links.twitter ?? ""} placeholder="https://x.com/…" />
+              <Input id="twitter" name="twitter" type="text" defaultValue={profile.social_links.twitter ?? ""} placeholder="x.com/…" />
             </div>
             <div>
               <Label htmlFor="instagram">Instagram</Label>
-              <Input id="instagram" name="instagram" type="url" defaultValue={profile.social_links.instagram ?? ""} placeholder="https://instagram.com/…" />
+              <Input id="instagram" name="instagram" type="text" defaultValue={profile.social_links.instagram ?? ""} placeholder="instagram.com/…" />
             </div>
             <div>
               <Label htmlFor="facebook">Facebook</Label>
-              <Input id="facebook" name="facebook" type="url" defaultValue={profile.social_links.facebook ?? ""} placeholder="https://facebook.com/…" />
+              <Input id="facebook" name="facebook" type="text" defaultValue={profile.social_links.facebook ?? ""} placeholder="facebook.com/…" />
             </div>
           </div>
         </div>

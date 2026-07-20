@@ -71,13 +71,9 @@ export default async function CommunityLayout({
     <div className="min-h-screen bg-background md:flex">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="border-b border-border px-5 py-5">
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            All communities
-          </Link>
-          <div className="mt-3 flex items-center gap-2.5">
-            <Avatar src={community.logo_url} name={community.name} size={40} />
-            <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
+          <div className="flex flex-col items-center text-center">
+            <Avatar src={community.logo_url} name={community.name} size={96} />
+            <span className="mt-3 truncate text-base font-semibold text-foreground">{community.name}</span>
           </div>
         </div>
 
@@ -104,6 +100,10 @@ export default async function CommunityLayout({
         </div>
 
         <div className="border-t border-border p-3">
+          <Link href="/dashboard" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
+            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">All communities</span>
+          </Link>
           <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">

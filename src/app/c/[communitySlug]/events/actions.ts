@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 
 export type EventFormState = { error: string } | undefined;
 
@@ -13,7 +14,7 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
   const startTime = String(formData.get("start_time") ?? "");
   const endTime = String(formData.get("end_time") ?? "");
   const location = String(formData.get("location") ?? "").trim();
-  const onlineUrl = String(formData.get("online_url") ?? "").trim();
+  const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
 
   if (!title || !startTime) {
     return { error: "Give the event a title and a start time." };
