@@ -3,20 +3,53 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
+import type { ProfileFieldType } from "@/types/database";
 
-export type CommunityFormState = { error: string } | undefined;
+export interface WizardSpaceInput {
+  name: string;
+  description: string;
+  show_in_nav: boolean;
+}
 
-export async function createCommunity(_prevState: CommunityFormState, formData: FormData): Promise<CommunityFormState> {
-  const name = String(formData.get("name") ?? "").trim();
-  const slugInput = String(formData.get("slug") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const isPublic = formData.get("is_public") === "on";
+export interface WizardProfileFieldInput {
+  label: string;
+  field_type: ProfileFieldType;
+  options?: string[];
+}
 
+export interface WizardPayload {
+  name: string;
+  slug: string;
+  description: string;
+  isPublic: boolean;
+  spaces: WizardSpaceInput[];
+  profileFields: WizardProfileFieldInput[];
+}
+
+export type WizardResult = { error: string };
+
+function uniqueSlugs(names: string[]): string[] {
+  const used = new Set<string>();
+  return names.map((name, i) => {
+    const root = slugify(name) || `space-${i + 1}`;
+    let candidate = root;
+    let n = 2;
+    while (used.has(candidate)) {
+      candidate = `${root}-${n}`;
+      n += 1;
+    }
+    used.add(candidate);
+    return candidate;
+  });
+}
+
+export async function createCommunityFromWizard(payload: WizardPayload): Promise<WizardResult> {
+  const name = payload.name.trim();
   if (!name) {
     return { error: "Give your community a name." };
   }
 
-  const slug = slugify(slugInput || name);
+  const slug = slugify(payload.slug || name);
   if (!slug || slug.length < 2) {
     return { error: "That URL can't be used — try adding some letters or numbers." };
   }
@@ -30,23 +63,61 @@ export async function createCommunity(_prevState: CommunityFormState, formData: 
     return { error: "You need to be signed in." };
   }
 
-  const { data: community, error } = await supabase
+  const { data: community, error: communityError } = await supabase
     .from("communities")
     .insert({
       name,
       slug,
-      description: description || null,
+      description: payload.description.trim() || null,
       owner_id: user.id,
-      is_public: isPublic,
+      is_public: payload.isPublic,
     })
-    .select("slug")
+    .select("id, slug")
     .single();
 
-  if (error) {
-    if (error.code === "23505") {
+  if (communityError) {
+    if (communityError.code === "23505") {
       return { error: "That URL is already taken — try a different one." };
     }
-    return { error: error.message };
+    return { error: communityError.message };
+  }
+
+  const spaces = payload.spaces.filter((s) => s.name.trim());
+  if (spaces.length) {
+    const slugs = uniqueSlugs(spaces.map((s) => s.name));
+    const { error: spacesError } = await supabase.from("spaces").insert(
+      spaces.map((s, i) => ({
+        community_id: community.id,
+        name: s.name.trim(),
+        slug: slugs[i],
+        description: s.description.trim() || null,
+        visibility: "members" as const,
+        sort_order: i,
+        show_in_nav: s.show_in_nav,
+      }))
+    );
+    if (spacesError) {
+      await supabase.from("communities").delete().eq("id", community.id);
+      return { error: "Couldn't set up your spaces — try again." };
+    }
+  }
+
+  const fields = payload.profileFields.filter((f) => f.label.trim());
+  if (fields.length) {
+    const { error: fieldsError } = await supabase.from("community_profile_fields").insert(
+      fields.map((f, i) => ({
+        community_id: community.id,
+        label: f.label.trim(),
+        field_type: f.field_type,
+        options: f.options ?? [],
+        sort_order: i,
+        created_by: user.id,
+      }))
+    );
+    if (fieldsError) {
+      await supabase.from("communities").delete().eq("id", community.id);
+      return { error: "Couldn't set up your profile fields — try again." };
+    }
   }
 
   redirect(`/c/${community.slug}/admin`);
