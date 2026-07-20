@@ -260,6 +260,26 @@ export type SpaceJournalEntry = {
   updated_at: string;
 };
 
+export type Challenge = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  title: string;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChallengeParticipant = {
+  id: string;
+  challenge_id: string;
+  user_id: string;
+  joined_at: string;
+};
+
 export type MemberContributionScore = {
   id: string;
   profile_id: string;
@@ -415,6 +435,18 @@ export type Database = {
         Insert: Partial<SpaceJournalEntry> & { space_id: string; community_id: string; author_id: string };
         Update: Partial<SpaceJournalEntry>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"author_id", "profiles">];
+      };
+      challenges: {
+        Row: Challenge;
+        Insert: Partial<Challenge> & { space_id: string; community_id: string; title: string; start_date: string; end_date: string };
+        Update: Partial<Challenge>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      challenge_participants: {
+        Row: ChallengeParticipant;
+        Insert: Partial<ChallengeParticipant> & { challenge_id: string; user_id: string };
+        Update: Partial<ChallengeParticipant>;
+        Relationships: [FKey<"challenge_id", "challenges">, FKey<"user_id", "profiles">];
       };
       member_contribution_scores: {
         Row: MemberContributionScore;

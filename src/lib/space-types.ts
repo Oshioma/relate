@@ -19,10 +19,9 @@ export interface SpaceTypeMeta {
   description: string;
 }
 
-// Every type renders the plain discussion feed today except 'resources'
-// (see src/app/c/[communitySlug]/spaces/[spaceSlug]/page.tsx). The rest are
-// real, admin-choosable categories — dedicated rendering per type lands in
-// follow-up rounds (Journal, Directory, Growth Journey, Challenges).
+// All types except 'gallery', 'qa', and 'custom' have dedicated rendering
+// (see src/app/c/[communitySlug]/spaces/[spaceSlug]/page.tsx); the rest
+// still fall back to the plain discussion feed.
 export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   discussion: { type: "discussion", label: "Discussion", icon: MessageSquare, description: "An open feed where members post and comment." },
   journal: { type: "journal", label: "Journal", icon: NotebookPen, description: "Members log entries over time." },

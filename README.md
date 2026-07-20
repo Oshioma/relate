@@ -207,6 +207,24 @@ entry, closing a gap left before Journal spaces existed — the four
 other content types (posts, comments, resources, events) already had
 this from `contribution-triggers.sql`.
 
+## Directory spaces
+
+No SQL to run — a `directory`-type space reuses the existing member
+directory data layer and components as-is (`getDirectoryMembers`,
+`DiscoverySection`, `MemberDirectoryList`), just rendered inside a
+space instead of only at `/c/[slug]/members`. Gives admins a way to
+put member search/discovery in their space navigation.
+
+## Challenges
+
+Run `supabase/challenges.sql` after `space-types.sql`. A
+`challenges`-type space hosts one or more time-boxed programs
+(`challenges`) that members can join (`challenge_participants`, a
+plain join table — no daily check-ins/progress tracking yet).
+Community admins create challenges from the space; any member can
+join/leave. Status (Upcoming / In progress / Ended) is derived from
+`start_date`/`end_date`, nothing stored.
+
 ## Member Directory (in progress)
 
 This has been built in stages — **Stages 1 through 7** are all in
@@ -466,6 +484,7 @@ supabase/
   space-types.sql                   Adds space_type to spaces (Space Builder)
   space-journal.sql                 Journal fields + entries for journal-type spaces
   growth-journey.sql                Journal-entry contribution-score trigger (Growth Journey)
+  challenges.sql                    Challenges + challenge_participants for challenges-type spaces
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values
