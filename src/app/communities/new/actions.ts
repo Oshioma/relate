@@ -98,6 +98,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         visibility: "members" as const,
         sort_order: i,
         show_in_nav: s.show_in_nav,
+        space_type: "discussion" as const,
       }))
     );
     if (spacesError) {
