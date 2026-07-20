@@ -9,7 +9,7 @@ import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
 
-const INVITE_ROLES: Extract<MembershipRole, "member" | "moderator">[] = ["member", "moderator"];
+const INVITE_ROLES: Extract<MembershipRole, "member" | "moderator" | "admin">[] = ["member", "moderator", "admin"];
 
 async function getSiteOrigin() {
   const headerList = await headers();
@@ -117,6 +117,24 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
   });
 
   if (inviteError) {
+    // inviteUserByEmail only works for brand-new addresses — it fails with
+    // email_exists when the address already has an auth.users account (e.g.
+    // a former member). In that case, add them to the community directly
+    // instead of dead-ending on an unsendable invite email.
+    if (inviteError.code === "email_exists") {
+      const { data: existingUserId } = await admin.rpc("find_user_id_by_email", { p_email: email });
+      if (existingUserId) {
+        const { error: membershipError } = await admin
+          .from("community_memberships")
+          .upsert({ user_id: existingUserId, community_id: communityId, role, status: "active" }, { onConflict: "user_id,community_id" });
+
+        if (!membershipError) {
+          revalidatePath(`/c/${communitySlug}/admin`);
+          return undefined;
+        }
+      }
+    }
+
     // The invite link itself was still created and is visible/copyable from
     // the list below, so this isn't a dead end even if the email didn't go out.
     return {
