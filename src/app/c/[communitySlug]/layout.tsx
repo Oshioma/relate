@@ -55,7 +55,7 @@ export default async function CommunityLayout({
   const navSpaces = spaces.filter((space) => space.show_in_nav);
 
   const navItems = [
-    { href: base, label: "Overview", icon: <LayoutGrid className="h-4 w-4" /> },
+    { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
     ...navSpaces.map((space) => ({
       href: `${base}/spaces/${space.slug}`,
       label: space.name,
@@ -147,7 +147,7 @@ export default async function CommunityLayout({
 
       <MobileTabBar
         tabs={[
-          { href: base, label: "Overview", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
+          { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
           { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> },
           { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-5 w-5" /> },
