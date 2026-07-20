@@ -9,7 +9,16 @@ import { getSpacePosts } from "@/lib/data/posts";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
-import { getDirectoryMembers } from "@/lib/data/member-directory";
+import {
+  getDirectoryMembers,
+  isDiscoverable,
+  getNewMembers,
+  getRecommendedMembers,
+  getMembersNearYou,
+  getRecentlyActiveMembers,
+  getTopContributors,
+  getBusinesses,
+} from "@/lib/data/member-directory";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +30,7 @@ import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
+import { DiscoverySection } from "../../members/discovery-section";
 
 export default async function SpaceDetailPage({
   params,
@@ -56,6 +66,23 @@ export default async function SpaceDetailPage({
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
+
+  const discoverableMembers = directoryMembers.filter(isDiscoverable);
+  const viewerDirectoryEntry = directoryMembers.find((m) => m.profile.id === user.id);
+  const recommendedMembers = isDirectorySpace
+    ? getRecommendedMembers(
+        discoverableMembers,
+        user.id,
+        viewerDirectoryEntry?.interests ?? [],
+        viewerDirectoryEntry?.skills ?? [],
+        viewerDirectoryEntry?.profile.profession ?? null
+      )
+    : [];
+  const newMembers = isDirectorySpace ? getNewMembers(discoverableMembers) : [];
+  const nearYouMembers = isDirectorySpace ? getMembersNearYou(discoverableMembers, viewerDirectoryEntry?.location ?? null) : [];
+  const recentlyActiveMembers = isDirectorySpace ? getRecentlyActiveMembers(discoverableMembers) : [];
+  const topContributorMembers = isDirectorySpace ? getTopContributors(discoverableMembers) : [];
+  const businessMembers = isDirectorySpace ? getBusinesses(discoverableMembers) : [];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -157,7 +184,17 @@ export default async function SpaceDetailPage({
       ) : isGrowthJourneySpace ? (
         <GrowthJourneyView events={timeline} />
       ) : isDirectorySpace ? (
-        <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
+        <>
+          <DiscoverySection title="Recommended for you" members={recommendedMembers} communitySlug={community.slug} />
+          <DiscoverySection title="New members" members={newMembers} communitySlug={community.slug} />
+          <DiscoverySection title="Members near you" members={nearYouMembers} communitySlug={community.slug} />
+          <DiscoverySection title="Recently active" members={recentlyActiveMembers} communitySlug={community.slug} />
+          <DiscoverySection title="Top contributors" members={topContributorMembers} communitySlug={community.slug} />
+          <DiscoverySection title="Businesses" members={businessMembers} communitySlug={community.slug} />
+
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">All members</h2>
+          <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
+        </>
       ) : (
         <>
           {canPost && (
