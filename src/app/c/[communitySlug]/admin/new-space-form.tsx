@@ -4,6 +4,7 @@ import { useActionState, useRef, useEffect } from "react";
 import { createSpace, type SpaceFormState } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { SPACE_TYPE_LIST } from "@/lib/space-types";
 
 export function NewSpaceForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
   const [state, formAction] = useActionState<SpaceFormState, FormData>(createSpace, undefined);
@@ -28,6 +29,22 @@ export function NewSpaceForm({ communityId, communitySlug }: { communityId: stri
       <div>
         <Label htmlFor="space_description">Description (optional)</Label>
         <Textarea id="space_description" name="description" rows={2} />
+      </div>
+
+      <div>
+        <Label htmlFor="space_type">Type</Label>
+        <select
+          id="space_type"
+          name="space_type"
+          defaultValue="discussion"
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {SPACE_TYPE_LIST.map((t) => (
+            <option key={t.type} value={t.type}>
+              {t.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

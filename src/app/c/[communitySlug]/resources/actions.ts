@@ -11,6 +11,7 @@ const RESOURCE_TYPES: ResourceType[] = ["link", "file", "video", "document"];
 export async function createResource(_prevState: ResourceFormState, formData: FormData): Promise<ResourceFormState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = formData.get("space_slug") ? String(formData.get("space_slug")) : null;
   const spaceId = String(formData.get("space_id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -46,5 +47,8 @@ export async function createResource(_prevState: ResourceFormState, formData: Fo
   }
 
   revalidatePath(`/c/${communitySlug}/resources`);
+  if (spaceSlug) {
+    revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  }
   return undefined;
 }
