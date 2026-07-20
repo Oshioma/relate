@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
 import { formatRelativeTime, formatDateTime } from "@/lib/utils";
 
-export default async function CommunityOverviewPage({
+export default async function CommunityFeedPage({
   params,
 }: {
   params: Promise<{ communitySlug: string }>;
