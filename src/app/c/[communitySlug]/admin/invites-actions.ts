@@ -117,11 +117,13 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
   });
 
   if (inviteError) {
-    // inviteUserByEmail only works for brand-new addresses — it fails with
-    // email_exists when the address already has an auth.users account (e.g.
-    // a former member). In that case, add them to the community directly
-    // instead of dead-ending on an unsendable invite email.
-    if (inviteError.code === "email_exists") {
+    // inviteUserByEmail only works for brand-new addresses — it fails when
+    // the address already has an auth.users account (e.g. a former member).
+    // Newer GoTrue versions set code "email_exists"; this project's server
+    // only sends a message, so match on that too. In that case, add them to
+    // the community directly instead of dead-ending on an unsendable invite.
+    const alreadyRegistered = inviteError.code === "email_exists" || /already.*(registered|exists)/i.test(inviteError.message);
+    if (alreadyRegistered) {
       const { data: existingUserId } = await admin.rpc("find_user_id_by_email", { p_email: email });
       if (existingUserId) {
         const { error: membershipError } = await admin
