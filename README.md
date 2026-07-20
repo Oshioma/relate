@@ -190,6 +190,23 @@ past entries. Entries are visible to anyone who can see the space
 (same `can_view_space` rule as posts); editing/deleting an entry is
 limited to its author or community staff.
 
+## Growth Journey
+
+Run `supabase/growth-journey.sql` too, after `space-journal.sql` and
+`contribution-triggers.sql`. Unlike the other space types, this one
+needed no new table: a `growth_journey`-type space renders the
+**viewing member's own** activity in that community — posts, journal
+entries, and events they've RSVPed to — fetched from those existing
+tables in parallel and merged chronologically
+(`src/lib/data/growth-journey.ts`), grouped by month/year, with an
+on-demand Annual Recap (counts per activity type, longest daily
+streak, most active month) computed from the same data on request,
+nothing stored. The one schema change is additive: a trigger that
+awards `member_contribution_scores` points for logging a journal
+entry, closing a gap left before Journal spaces existed — the four
+other content types (posts, comments, resources, events) already had
+this from `contribution-triggers.sql`.
+
 ## Member Directory (in progress)
 
 This has been built in stages — **Stages 1 through 7** are all in
@@ -448,6 +465,7 @@ supabase/
   event-rsvps.sql                   Event RSVPs table + RLS
   space-types.sql                   Adds space_type to spaces (Space Builder)
   space-journal.sql                 Journal fields + entries for journal-type spaces
+  growth-journey.sql                Journal-entry contribution-score trigger (Growth Journey)
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values
