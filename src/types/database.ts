@@ -12,9 +12,28 @@ export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 export type MembershipStatus = "active" | "invited" | "banned";
 export type CommunityPrivacy = "public" | "private" | "invite_only";
 export type SpaceVisibility = "public" | "members" | "private";
-export type SpaceType = "discussion" | "journal" | "gallery" | "resources" | "directory" | "challenges" | "growth_journey" | "qa" | "custom";
+export type SpaceType =
+  | "discussion"
+  | "journal"
+  | "gallery"
+  | "resources"
+  | "directory"
+  | "challenges"
+  | "growth_journey"
+  | "qa"
+  | "custom"
+  | "map"
+  | "marketplace"
+  | "business_directory"
+  | "guides"
+  | "clubs"
+  | "volunteer_hub"
+  | "jobs"
+  | "accommodation"
+  | "recommendations";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
+export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "other";
 
 export type Profile = {
   id: string;
@@ -38,6 +57,12 @@ export type Profile = {
   updated_at: string;
 };
 
+// location_type/location_name back the Place-Based Community blueprint's
+// "what kind of place is this?" wizard step (see src/lib/community-templates.ts).
+// Both are free text rather than a DB enum: location_type is validated
+// against PLACE_LOCATION_TYPES at the application layer, which keeps adding
+// new place kinds a code-only change. Both stay null for every non-place
+// template.
 export type Community = {
   id: string;
   name: string;
@@ -47,6 +72,8 @@ export type Community = {
   cover_image_url: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  location_type: string | null;
+  location_name: string | null;
   // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
   // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
@@ -76,6 +103,10 @@ export type Space = {
   created_at: string;
 };
 
+// A post can optionally be pinned to a place on the community's Explore Map
+// (a beach, a landmark, a neighbourhood) — the start of the "Living Map":
+// the map isn't a separate page, it's another way to browse anything that
+// has a location. Both lat and lng are set together, or both are null.
 export type Post = {
   id: string;
   community_id: string;
@@ -85,6 +116,9 @@ export type Post = {
   body: string | null;
   post_type: PostType;
   is_pinned: boolean;
+  lat: number | null;
+  lng: number | null;
+  location_label: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -98,6 +132,9 @@ export type Comment = {
   updated_at: string;
 };
 
+// `location` remains the free-text venue name/address; lat/lng/location_label
+// are the optional map pin — an event appears on the Explore Map at its venue
+// without requiring the venue to exist as a separate Landmark/Place record.
 export type Event = {
   id: string;
   community_id: string;
@@ -107,6 +144,9 @@ export type Event = {
   end_time: string | null;
   location: string | null;
   online_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  location_label: string | null;
   created_by: string;
   created_at: string;
 };
@@ -144,6 +184,31 @@ export type CommunityNavLink = {
   url: string;
   sort_order: number;
   created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A listing in a 'business_directory' space (see space-types.ts). Distinct
+// from BusinessProfile below, which is a member's own business profile page —
+// a Business here is scoped to one place community's directory, addable by
+// any member regardless of who (if anyone) owns it.
+export type Business = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  name: string;
+  category: BusinessCategory;
+  description: string | null;
+  website: string | null;
+  phone: string | null;
+  address: string | null;
+  opening_hours: string | null;
+  lat: number | null;
+  lng: number | null;
+  location_label: string | null;
+  verified: boolean;
+  featured: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -409,6 +474,12 @@ export type Database = {
         Insert: Partial<BusinessProfile> & { profile_id: string; business_name: string };
         Update: Partial<BusinessProfile>;
       } & NoRel;
+      businesses: {
+        Row: Business;
+        Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
+        Update: Partial<Business>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
       member_interests: {
         Row: MemberInterest;
         Insert: Partial<MemberInterest> & { profile_id: string; interest: string };

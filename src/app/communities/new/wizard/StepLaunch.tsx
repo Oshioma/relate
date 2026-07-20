@@ -5,7 +5,7 @@ import { Sparkles, Rocket } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCommunityTemplate } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
 import { TEMPLATE_ICONS } from "@/lib/template-icons";
 import { createCommunityFromWizard } from "../actions";
 import type { WizardState } from "./types";
@@ -15,6 +15,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
   const [error, setError] = useState<string | null>(null);
   const template = getCommunityTemplate(state.templateKey || "custom");
   const Icon = template ? (TEMPLATE_ICONS[template.icon] ?? Sparkles) : Sparkles;
+  const locationType = state.templateKey === "place" ? getPlaceLocationType(state.locationType) : undefined;
 
   async function submit() {
     setSubmitting(true);
@@ -24,7 +25,9 @@ export function StepLaunch({ state }: { state: WizardState }) {
       slug: state.slug,
       description: state.description,
       privacy: state.privacy,
-      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav })),
+      locationType: state.templateKey === "place" ? state.locationType : "",
+      locationName: state.templateKey === "place" ? state.locationName : "",
+      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type })),
       profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
     });
     // Only reached on error — success redirects server-side.
@@ -49,6 +52,12 @@ export function StepLaunch({ state }: { state: WizardState }) {
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-foreground">{state.name || "Untitled community"}</h2>
             <p className="text-sm text-muted-foreground">/c/{state.slug}</p>
+            {state.locationName && (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {state.locationName}
+                {locationType ? ` · ${locationType.label}` : ""}
+              </p>
+            )}
             {state.description && <p className="mt-1 text-sm text-foreground">{state.description}</p>}
           </div>
         </div>

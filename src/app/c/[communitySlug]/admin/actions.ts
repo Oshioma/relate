@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
+import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import type { SpaceVisibility, SpaceType } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
 const VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
-const SPACE_TYPES: SpaceType[] = ["discussion", "journal", "gallery", "resources", "directory", "challenges", "growth_journey", "qa", "custom"];
+const SPACE_TYPES: SpaceType[] = SPACE_TYPE_LIST.map((t) => t.type);
 
 function parseVisibility(raw: FormDataEntryValue | null): SpaceVisibility {
   const value = String(raw ?? "members");

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -10,6 +10,7 @@ import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
+import { getSpaceBusinesses } from "@/lib/data/businesses";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -31,6 +32,8 @@ import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { NewChallengeForm } from "./new-challenge-form";
 import { ChallengeCard } from "./challenge-card";
+import { NewBusinessForm } from "./new-business-form";
+import { BusinessCard } from "./business-card";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -55,9 +58,11 @@ export default async function SpaceDetailPage({
   const isGrowthJourneySpace = space.space_type === "growth_journey";
   const isDirectorySpace = space.space_type === "directory";
   const isChallengeSpace = space.space_type === "challenges";
-  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace && !isChallengeSpace;
+  const isBusinessDirectorySpace = space.space_type === "business_directory";
+  const isDiscussionLike =
+    !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace && !isChallengeSpace && !isBusinessDirectorySpace;
 
-  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges] = await Promise.all([
+  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges, businesses] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
@@ -66,10 +71,14 @@ export default async function SpaceDetailPage({
     isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
     isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
     isChallengeSpace ? getSpaceChallenges(supabase, space.id, user.id) : Promise.resolve([]),
+    isBusinessDirectorySpace ? getSpaceBusinesses(supabase, space.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
+  // businesses table lets staff, not just admins, grant verified/featured.
+  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
   const discoverableMembers = directoryMembers.filter(isDiscoverable);
@@ -219,6 +228,31 @@ export default async function SpaceDetailPage({
                   communitySlug={community.slug}
                   spaceSlug={space.slug}
                   canManage={Boolean(isAdmin)}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      ) : isBusinessDirectorySpace ? (
+        <>
+          {canPost && (
+            <div className="mb-6">
+              <NewBusinessForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />
+            </div>
+          )}
+
+          {businesses.length === 0 ? (
+            <EmptyState icon={<Building2 className="h-6 w-6" />} title="No businesses yet" description="Restaurants, cafes, shops and services members add will show up here." />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {businesses.map((business) => (
+                <BusinessCard
+                  key={business.id}
+                  business={business}
+                  communitySlug={community.slug}
+                  spaceSlug={space.slug}
+                  canDelete={Boolean(isStaff) || business.created_by === user.id}
+                  isStaff={Boolean(isStaff)}
                 />
               ))}
             </div>

@@ -5,7 +5,8 @@ import { GripVertical, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { ProfileFieldType } from "@/types/database";
+import type { ProfileFieldType, SpaceType } from "@/types/database";
+import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { reorder, nextId } from "./types";
 import type { WizardState, WizardProfileField } from "./types";
 
@@ -23,7 +24,7 @@ export function StepCustomize({ state, update }: { state: WizardState; update: (
   }
 
   function addSpace() {
-    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true }] });
+    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: "discussion" as SpaceType }] });
   }
 
   function handleDrop(targetIndex: number) {
@@ -74,6 +75,17 @@ export function StepCustomize({ state, update }: { state: WizardState; update: (
                     placeholder="Short description (optional)"
                     className="text-xs"
                   />
+                  <select
+                    value={space.space_type}
+                    onChange={(e) => patchSpace(space.id, { space_type: e.target.value as SpaceType })}
+                    className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {SPACE_TYPE_LIST.map((t) => (
+                      <option key={t.type} value={t.type}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <button
                   type="button"

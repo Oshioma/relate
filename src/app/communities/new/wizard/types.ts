@@ -1,10 +1,11 @@
-import type { ProfileFieldType, CommunityPrivacy } from "@/types/database";
+import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
 
 export interface WizardSpace {
   id: string;
   name: string;
   description: string;
   show_in_nav: boolean;
+  space_type: SpaceType;
 }
 
 export interface WizardProfileField {
@@ -22,6 +23,12 @@ export interface WizardState {
   privacy: CommunityPrivacy;
   templateKey: string;
   transformationGoal: string;
+  // Place-Based Community only: "what kind of place is this?" plus the name
+  // of the place itself (e.g. "Zanzibar, Tanzania"). Both stay empty for
+  // every other template.
+  locationType: string;
+  locationName: string;
+  mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
   profileFields: WizardProfileField[];
@@ -35,6 +42,9 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   privacy: "public",
   templateKey: "",
   transformationGoal: "",
+  locationType: "",
+  locationName: "",
+  mapLayers: [],
   rationale: [],
   spaces: [],
   profileFields: [],

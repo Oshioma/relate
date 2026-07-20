@@ -1,8 +1,6 @@
-import type { ProfileFieldType } from "@/types/database";
+import type { ProfileFieldType, SpaceType } from "@/types/database";
 
-// Curated content behind the Community Builder wizard. Deliberately shaped
-// around what the schema already supports today: spaces are plain named
-// containers (no space_type/component system), and "profile fields" here
+// Curated content behind the Community Builder wizard. "Profile fields" here
 // means community_profile_fields — custom, community-scoped attributes.
 // Structured member data that already has its own dedicated tables (skills,
 // interests, help requests, location) is intentionally NOT duplicated here.
@@ -10,6 +8,9 @@ import type { ProfileFieldType } from "@/types/database";
 export interface TemplateSpace {
   name: string;
   description: string;
+  // Defaults to 'discussion' when omitted — every non-place template relies
+  // on that default rather than setting this explicitly.
+  space_type?: SpaceType;
 }
 
 export interface TemplateProfileField {
@@ -145,19 +146,26 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     defaultProfileFields: [{ label: "Small Group", field_type: "text" }],
   },
   {
-    key: "local",
-    label: "Local",
+    key: "place",
+    label: "Place-Based Community",
     icon: "MapPin",
-    tagline: "Neighborhood announcements and events",
-    description: "For neighborhoods, towns and local interest groups.",
+    tagline: "The digital operating system for a place",
+    description:
+      "For any place — an island, city, town, village, neighbourhood, campus or region. Residents, businesses, visitors, organisations and volunteers share one ecosystem: a living map, marketplace, business directory, events, guides and more, tailored to what kind of place this is.",
     defaultSpaces: [
-      { name: "Discussion", description: "General conversation." },
-      { name: "Announcements", description: "Official updates." },
-      { name: "Marketplace", description: "Buy, sell and give away locally." },
-      { name: "Volunteer Opportunities", description: "Sign up to help out." },
-      { name: "Resources", description: "Local services and contacts." },
+      { name: "Announcements", description: "Official updates for the whole community." },
+      { name: "Explore Map", description: "An interactive map of everything in this place.", space_type: "map" },
+      { name: "Marketplace", description: "Buy, sell, give away and find locally.", space_type: "marketplace" },
+      { name: "Business Directory", description: "Local businesses with profiles, hours and reviews.", space_type: "business_directory" },
+      { name: "Community Guides", description: "Best coffee, hidden gems, first week here — written by members.", space_type: "guides" },
+      { name: "Clubs & Groups", description: "Subcommunities around shared interests, from running to book club.", space_type: "clubs" },
+      { name: "Volunteer Hub", description: "Projects, cleanups and causes members can help with.", space_type: "volunteer_hub" },
+      { name: "Local Recommendations", description: "Restaurants, services and professionals members vouch for.", space_type: "recommendations" },
     ],
-    defaultProfileFields: [{ label: "Neighborhood / Block", field_type: "text" }],
+    defaultProfileFields: [
+      { label: "Neighbourhood / Area", field_type: "text" },
+      { label: "I am a…", field_type: "dropdown", options: ["Resident", "Visitor", "Business Owner", "Organisation", "Volunteer"] },
+    ],
   },
   {
     key: "farming",
@@ -368,5 +376,181 @@ export function recommendSetup(templateKey: string, transformationGoal: string):
     spaces: dedupeByName([...template.defaultSpaces, ...(overlay?.extraSpaces ?? [])]),
     profileFields: [...template.defaultProfileFields, ...(overlay?.extraProfileFields ?? [])],
     rationale,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Place-Based Community: "what kind of place is this?"
+//
+// A place's needs scale with what it is — a village needs a notice board and
+// neighbour help, a city needs districts and traffic, an island needs tides
+// and ferry schedules. Each location type below contributes the spaces that
+// are actually worth a container of their own, plus a documented set of map
+// layers: the Explore Map doesn't exist as a built feature yet, but every
+// place community should already know which layers it'll want enabled the
+// day it does. This is deliberately a flat, code-only list (not a DB table)
+// so adding a new kind of place is a one-entry change, same reasoning as
+// GOAL_OVERLAYS above.
+// ---------------------------------------------------------------------------
+
+export interface PlaceLocationType {
+  key: string;
+  label: string;
+  description: string;
+  mapLayers: string[];
+  extraSpaces: TemplateSpace[];
+  extraProfileFields?: TemplateProfileField[];
+}
+
+export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
+  {
+    key: "island",
+    label: "Island",
+    description: "Zanzibar, Bali, a Greek island — surrounded by water, tide- and ferry-dependent.",
+    mapLayers: ["Beaches", "Marine Life", "Boat & Ferry Schedules", "Weather & Tides", "Dive Sites", "Fishing Spots", "Surf Breaks", "Marine Conservation Areas"],
+    extraSpaces: [
+      { name: "Boat & Ferry Schedules", description: "Departure times, routes and disruptions.", space_type: "resources" },
+      { name: "Tides & Weather", description: "Daily tide charts and forecasts.", space_type: "resources" },
+    ],
+  },
+  {
+    key: "city",
+    label: "City",
+    description: "Lisbon, New York — dense, multi-district, public-transport-first.",
+    mapLayers: ["Districts", "Public Transport", "Nightlife", "Neighbourhoods", "Public Services", "Traffic & Roadworks"],
+    extraSpaces: [
+      { name: "Neighbourhoods", description: "Conversations organised by district." },
+      { name: "Jobs Board", description: "Openings from employers across the city.", space_type: "jobs" },
+      { name: "Transport & Traffic", description: "Live disruptions, routes and roadworks.", space_type: "resources" },
+    ],
+  },
+  {
+    key: "town",
+    label: "Town",
+    description: "A market town — smaller than a city, with its own centre and services.",
+    mapLayers: ["Shops", "Markets", "Parking", "Schools", "Public Transport"],
+    extraSpaces: [
+      { name: "Jobs Board", description: "Local job openings and hiring.", space_type: "jobs" },
+      { name: "Markets", description: "Market days, stalls and traders." },
+    ],
+  },
+  {
+    key: "village",
+    label: "Village",
+    description: "A small, tight-knit settlement where everyone knows everyone.",
+    mapLayers: ["Village Hall", "Community Garden", "Local Trades", "Footpaths", "Bus Stops"],
+    extraSpaces: [
+      { name: "Notice Board", description: "Official parish and village notices." },
+      { name: "Neighbour Help", description: "Ask for, or offer, a hand nearby.", space_type: "volunteer_hub" },
+      { name: "Local Trades", description: "Trusted local tradespeople and services.", space_type: "business_directory" },
+    ],
+  },
+  {
+    key: "neighbourhood",
+    label: "Neighbourhood",
+    description: "A district or block within a larger city, run at street level.",
+    mapLayers: ["Streets", "Parks", "Schools", "Local Businesses"],
+    extraSpaces: [
+      { name: "Neighbour Help", description: "Borrow, lend and lend a hand nearby.", space_type: "volunteer_hub" },
+      { name: "Street Watch", description: "Safety updates and local alerts." },
+    ],
+  },
+  {
+    key: "region",
+    label: "Region",
+    description: "A county, province or multi-town area with shared identity.",
+    mapLayers: ["Towns & Villages", "Attractions", "Regional Transport", "Protected Areas"],
+    extraSpaces: [
+      { name: "Towns & Villages", description: "Explore every settlement in the region.", space_type: "guides" },
+      { name: "Regional Transport", description: "Trains, buses and routes across the region.", space_type: "resources" },
+    ],
+  },
+  {
+    key: "campus",
+    label: "Campus",
+    description: "A university or college campus — students, faculty and campus life.",
+    mapLayers: ["Lecture Halls", "Dorms", "Dining Halls", "Libraries", "Sports Facilities", "Study Spots"],
+    extraSpaces: [
+      { name: "Class & Study Groups", description: "Find classmates and study partners.", space_type: "clubs" },
+      { name: "Campus Jobs & Internships", description: "On-campus jobs and internships.", space_type: "jobs" },
+      { name: "Housing & Roommates", description: "Find a room or a roommate.", space_type: "accommodation" },
+    ],
+  },
+  {
+    key: "housing_estate",
+    label: "Housing Estate",
+    description: "A managed residential development with shared amenities.",
+    mapLayers: ["Amenities", "Play Areas", "Parking", "Bin Collection Points"],
+    extraSpaces: [
+      { name: "Estate Notices", description: "Management and resident association updates." },
+      { name: "Neighbour Help", description: "Ask for, or offer, a hand nearby.", space_type: "volunteer_hub" },
+    ],
+  },
+  {
+    key: "country",
+    label: "Country",
+    description: "A whole nation — the broadest scale a place community can operate at.",
+    mapLayers: ["Regions", "Cities", "National Parks", "Transport Networks", "Emergency Services"],
+    extraSpaces: [
+      { name: "Regions & Cities", description: "Explore every region and city.", space_type: "guides" },
+      { name: "National News", description: "Country-wide announcements and news." },
+    ],
+  },
+  {
+    key: "tourist_destination",
+    label: "Tourist Destination",
+    description: "A place defined by visitors as much as residents.",
+    mapLayers: ["Attractions", "Tours", "Accommodation", "Restaurants", "Transport"],
+    extraSpaces: [
+      { name: "Accommodation", description: "Hotels, guesthouses, hostels and rentals.", space_type: "accommodation" },
+      { name: "Tours & Experiences", description: "Guided tours and bookable experiences.", space_type: "marketplace" },
+    ],
+    extraProfileFields: [{ label: "Visiting or Living Here?", field_type: "dropdown", options: ["Visiting", "Living Here"] }],
+  },
+  {
+    key: "business_district",
+    label: "Business District",
+    description: "An office/commercial district, active on weekdays.",
+    mapLayers: ["Offices", "Coworking", "Restaurants", "Parking", "Transport Links"],
+    extraSpaces: [
+      { name: "Business Networking", description: "Connect with other businesses nearby.", space_type: "clubs" },
+      { name: "Jobs Board", description: "Openings from businesses in the district.", space_type: "jobs" },
+    ],
+  },
+  {
+    key: "retirement_community",
+    label: "Retirement Community",
+    description: "A community organised around later-life living and care.",
+    mapLayers: ["Amenities", "Care Services", "Activity Rooms", "Transport & Shuttles"],
+    extraSpaces: [
+      { name: "Activities & Clubs", description: "Classes, hobbies and social clubs.", space_type: "clubs" },
+      { name: "Care & Support", description: "Health, care and support services.", space_type: "resources" },
+    ],
+  },
+];
+
+export function getPlaceLocationType(key: string): PlaceLocationType | undefined {
+  return PLACE_LOCATION_TYPES.find((t) => t.key === key);
+}
+
+export interface PlaceSetupRecommendation extends SetupRecommendation {
+  mapLayers: string[];
+}
+
+export function recommendPlaceSetup(locationTypeKey: string): PlaceSetupRecommendation {
+  const template = getCommunityTemplate("place")!;
+  const locationType = getPlaceLocationType(locationTypeKey);
+
+  const rationale = [`Started from the Place-Based Community template's default spaces.`];
+  if (locationType) {
+    rationale.push(`Added what a ${locationType.label.toLowerCase()} typically needs.`);
+    rationale.push(`Suggested Explore Map layers: ${locationType.mapLayers.join(", ")}.`);
+  }
+
+  return {
+    spaces: dedupeByName([...template.defaultSpaces, ...(locationType?.extraSpaces ?? [])]),
+    profileFields: [...template.defaultProfileFields, ...(locationType?.extraProfileFields ?? [])],
+    rationale,
+    mapLayers: locationType?.mapLayers ?? [],
   };
 }
