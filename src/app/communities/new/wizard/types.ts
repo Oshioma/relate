@@ -1,4 +1,4 @@
-import type { ProfileFieldType } from "@/types/database";
+import type { ProfileFieldType, CommunityPrivacy } from "@/types/database";
 
 export interface WizardSpace {
   id: string;
@@ -19,7 +19,7 @@ export interface WizardState {
   slug: string;
   slugTouched: boolean;
   description: string;
-  isPublic: boolean;
+  privacy: CommunityPrivacy;
   templateKey: string;
   transformationGoal: string;
   rationale: string[];
@@ -32,7 +32,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   slug: "",
   slugTouched: false,
   description: "",
-  isPublic: true,
+  privacy: "public",
   templateKey: "",
   transformationGoal: "",
   rationale: [],

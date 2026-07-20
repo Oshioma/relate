@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
-import type { ProfileFieldType } from "@/types/database";
+import type { ProfileFieldType, CommunityPrivacy } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -21,12 +21,14 @@ export interface WizardPayload {
   name: string;
   slug: string;
   description: string;
-  isPublic: boolean;
+  privacy: CommunityPrivacy;
   spaces: WizardSpaceInput[];
   profileFields: WizardProfileFieldInput[];
 }
 
 export type WizardResult = { error: string };
+
+const PRIVACY_LEVELS: CommunityPrivacy[] = ["public", "private", "invite_only"];
 
 function uniqueSlugs(names: string[]): string[] {
   const used = new Set<string>();
@@ -54,6 +56,8 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: "That URL can't be used — try adding some letters or numbers." };
   }
 
+  const privacy = PRIVACY_LEVELS.includes(payload.privacy) ? payload.privacy : "public";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -70,7 +74,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       slug,
       description: payload.description.trim() || null,
       owner_id: user.id,
-      is_public: payload.isPublic,
+      privacy,
     })
     .select("id, slug")
     .single();
