@@ -37,6 +37,7 @@ export function NewEmailInviteForm({ communityId, communitySlug }: { communityId
           >
             <option value="member">Member</option>
             <option value="moderator">Moderator</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
       </div>

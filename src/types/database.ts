@@ -127,7 +127,7 @@ export type CommunityInvite = {
   id: string;
   community_id: string;
   code: string;
-  role: Extract<MembershipRole, "member" | "moderator">;
+  role: Extract<MembershipRole, "member" | "moderator" | "admin">;
   max_uses: number | null;
   uses_count: number;
   expires_at: string | null;
@@ -454,6 +454,10 @@ export type Database = {
       redeem_invite: {
         Args: { p_code: string };
         Returns: { community_slug: string | null; error: string | null }[];
+      };
+      find_user_id_by_email: {
+        Args: { p_email: string };
+        Returns: string | null;
       };
     };
   };
