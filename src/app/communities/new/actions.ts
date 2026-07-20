@@ -102,7 +102,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     );
     if (spacesError) {
       await supabase.from("communities").delete().eq("id", community.id);
-      return { error: "Couldn't set up your spaces — try again." };
+      return { error: `Couldn't set up your spaces: ${spacesError.message}` };
     }
   }
 
@@ -120,7 +120,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     );
     if (fieldsError) {
       await supabase.from("communities").delete().eq("id", community.id);
-      return { error: "Couldn't set up your profile fields — try again." };
+      return { error: `Couldn't set up your profile fields: ${fieldsError.message}` };
     }
   }
 
