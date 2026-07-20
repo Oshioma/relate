@@ -165,16 +165,30 @@ Run `supabase/space-types.sql` too. Adds a `space_type` column to
 `spaces` (Discussion, Journal, Gallery, Resources, Directory,
 Challenges, Growth Journey, Q&A, Custom), chosen when a space is
 created and editable afterward from Admin. Every type still renders
-the plain discussion feed today except **Resources**, which renders
-that space's own resources (via the existing `resources.space_id`)
-instead of posts. The rest are real, admin-choosable categories with
-their own icon — dedicated behavior per type (dynamic Journal fields,
-member Directory search, a Growth Journey timeline, Challenges) is
-being built out in follow-up rounds.
+the plain discussion feed today except **Resources** and **Journal**
+(below) — the rest are real, admin-choosable categories with their
+own icon, and get dedicated behavior (member Directory search, a
+Growth Journey timeline, Challenges) in follow-up rounds.
 
 The Admin page's Spaces section is now a real builder: rename,
 change type/visibility, duplicate, delete, drag to reorder, or hide
 from navigation.
+
+## Journal spaces
+
+Run `supabase/space-journal.sql` too, after `space-types.sql` and
+`community-custom-fields.sql` (it reuses that migration's
+`profile_field_type` enum). A `journal`-type space no longer shows the
+posts feed: from Admin (expand a Journal space in the Spaces list),
+owners/admins define the fields every entry should ask for — same
+field types as custom profile fields (text, long text, number, date,
+dropdown, multi-select, checkbox, URL), reorderable and deletable.
+Members then log entries against those fields on the space's own
+page; each entry stores its answers as jsonb keyed by field id
+(`space_journal_entries.data`) so renaming a field doesn't orphan
+past entries. Entries are visible to anyone who can see the space
+(same `can_view_space` rule as posts); editing/deleting an entry is
+limited to its author or community staff.
 
 ## Member Directory (in progress)
 
@@ -433,6 +447,7 @@ supabase/
   notifications.sql                 Notifications table, RLS, and trigger functions
   event-rsvps.sql                   Event RSVPs table + RLS
   space-types.sql                   Adds space_type to spaces (Space Builder)
+  space-journal.sql                 Journal fields + entries for journal-type spaces
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values

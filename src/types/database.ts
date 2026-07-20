@@ -231,6 +231,31 @@ export type CommunityProfileValue = {
   updated_at: string;
 };
 
+export type SpaceJournalField = {
+  id: string;
+  space_id: string;
+  label: string;
+  field_type: ProfileFieldType;
+  options: string[];
+  is_required: boolean;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SpaceJournalEntryData = Record<string, string | number | boolean | string[] | null>;
+
+export type SpaceJournalEntry = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  author_id: string;
+  data: SpaceJournalEntryData;
+  created_at: string;
+  updated_at: string;
+};
+
 export type MemberContributionScore = {
   id: string;
   profile_id: string;
@@ -367,6 +392,18 @@ export type Database = {
         Insert: Partial<CommunityProfileValue> & { field_id: string; profile_id: string; community_id: string };
         Update: Partial<CommunityProfileValue>;
         Relationships: [FKey<"field_id", "community_profile_fields">];
+      };
+      space_journal_fields: {
+        Row: SpaceJournalField;
+        Insert: Partial<SpaceJournalField> & { space_id: string; label: string };
+        Update: Partial<SpaceJournalField>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      space_journal_entries: {
+        Row: SpaceJournalEntry;
+        Insert: Partial<SpaceJournalEntry> & { space_id: string; community_id: string; author_id: string };
+        Update: Partial<SpaceJournalEntry>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"author_id", "profiles">];
       };
       member_contribution_scores: {
         Row: MemberContributionScore;

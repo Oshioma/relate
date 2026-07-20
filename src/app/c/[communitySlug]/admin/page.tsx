@@ -7,6 +7,7 @@ import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/da
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityInvites } from "@/lib/data/invites";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
+import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager } from "./spaces-manager";
@@ -38,6 +39,9 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     getCommunityInvites(supabase, community.id),
     getCommunityProfileFields(supabase, community.id),
   ]);
+
+  const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
+  const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -83,7 +87,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
       {spaces.length > 0 && (
         <div className="mb-4">
-          <SpacesManager spaces={spaces} communitySlug={community.slug} />
+          <SpacesManager spaces={spaces} communitySlug={community.slug} journalFieldsBySpaceId={journalFieldsBySpaceId} />
         </div>
       )}
       <div className="mb-8">

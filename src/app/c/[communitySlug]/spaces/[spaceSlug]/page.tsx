@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getSpacePosts } from "@/lib/data/posts";
 import { getSpaceResources } from "@/lib/data/resources";
+import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatRelativeTime } from "@/lib/utils";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
+import { JournalEntryForm } from "./journal-entry-form";
 import { SPACE_TYPES } from "@/lib/space-types";
 
 export default async function SpaceDetailPage({
@@ -32,11 +34,14 @@ export default async function SpaceDetailPage({
   if (!space) notFound();
 
   const isResourceSpace = space.space_type === "resources";
+  const isJournalSpace = space.space_type === "journal";
 
-  const [membership, posts, resources] = await Promise.all([
+  const [membership, posts, resources, journalFields, journalEntries] = await Promise.all([
     getMembership(supabase, community.id, user.id),
-    isResourceSpace ? Promise.resolve([]) : getSpacePosts(supabase, space.id),
+    isResourceSpace || isJournalSpace ? Promise.resolve([]) : getSpacePosts(supabase, space.id),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
+    isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
+    isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -86,6 +91,55 @@ export default async function SpaceDetailPage({
                     </CardContent>
                   </Card>
                 </a>
+              ))}
+            </div>
+          )}
+        </>
+      ) : isJournalSpace ? (
+        <>
+          {canPost && (
+            <div className="mb-6">
+              <JournalEntryForm
+                communityId={community.id}
+                communitySlug={community.slug}
+                spaceId={space.id}
+                spaceSlug={space.slug}
+                fields={journalFields}
+              />
+            </div>
+          )}
+
+          {journalEntries.length === 0 ? (
+            <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="No entries yet" description="Log the first entry above to start this journal." />
+          ) : (
+            <div className="space-y-3">
+              {journalEntries.map((entry) => (
+                <Card key={entry.id}>
+                  <CardContent className="pt-5">
+                    <div className="flex items-start gap-3">
+                      <Avatar src={entry.author?.avatar_url} name={entry.author?.full_name || entry.author?.username} size={32} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-muted-foreground">
+                          {entry.author?.full_name || entry.author?.username} · {formatRelativeTime(entry.created_at)}
+                        </p>
+                        <div className="mt-2 space-y-1.5">
+                          {journalFields.map((field) => {
+                            const value = entry.data[field.id];
+                            if (value === null || value === undefined || value === "" || (Array.isArray(value) && value.length === 0)) {
+                              return null;
+                            }
+                            return (
+                              <p key={field.id} className="text-sm text-foreground">
+                                <span className="font-medium text-muted-foreground">{field.label}: </span>
+                                {typeof value === "boolean" ? (value ? "Yes" : "No") : Array.isArray(value) ? value.join(", ") : String(value)}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
