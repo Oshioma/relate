@@ -2,24 +2,27 @@
 
 import { useActionState, useEffect, useRef, useState, type DragEventHandler } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, Pencil, Copy, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ChevronDown, ChevronUp } from "lucide-react";
 import { updateSpace, deleteSpace, duplicateSpace, type SpaceFormState } from "./actions";
 import { SpaceNavToggle } from "./space-nav-toggle";
+import { JournalFieldsSection } from "./journal-fields-section";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { SPACE_TYPE_LIST, SPACE_TYPES } from "@/lib/space-types";
-import type { Space, SpaceVisibility } from "@/types/database";
+import type { Space, SpaceVisibility, SpaceJournalField } from "@/types/database";
 
 export function SpaceCard({
   space,
   communitySlug,
+  journalFields,
   dragHandlers,
   isDragging,
 }: {
   space: Space;
   communitySlug: string;
+  journalFields: SpaceJournalField[];
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -32,6 +35,7 @@ export function SpaceCard({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showJournalFields, setShowJournalFields] = useState(false);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
   const Icon = meta.icon;
@@ -128,31 +132,42 @@ export function SpaceCard({
   }
 
   return (
-    <div
-      className={`flex items-center gap-3 rounded-lg border p-3 ${isDragging ? "border-accent" : "border-border"} bg-card`}
-      {...dragHandlers}
-    >
-      <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
-          <Badge>{meta.label}</Badge>
+    <div className={`rounded-lg border ${isDragging ? "border-accent" : "border-border"} bg-card`} {...dragHandlers}>
+      <div className="flex items-center gap-3 p-3">
+        <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+          <Icon className="h-4 w-4" />
         </div>
-        <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
+            <Badge>{meta.label}</Badge>
+          </div>
+          <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
+        </div>
+        <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
+        {space.space_type === "journal" && (
+          <button type="button" onClick={() => setShowJournalFields((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Journal fields">
+            <NotebookPen className="h-4 w-4" />
+            {showJournalFields ? <ChevronUp className="ml-0.5 inline h-3 w-3" /> : <ChevronDown className="ml-0.5 inline h-3 w-3" />}
+          </button>
+        )}
+        <button type="button" onClick={() => setEditing(true)} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button type="button" onClick={handleDuplicate} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
+          <Copy className="h-4 w-4" />
+        </button>
+        <button type="button" onClick={handleDelete} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger">
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
-      <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
-      <button type="button" onClick={() => setEditing(true)} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
-        <Pencil className="h-4 w-4" />
-      </button>
-      <button type="button" onClick={handleDuplicate} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
-        <Copy className="h-4 w-4" />
-      </button>
-      <button type="button" onClick={handleDelete} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger">
-        <Trash2 className="h-4 w-4" />
-      </button>
+
+      {showJournalFields && (
+        <div className="border-t border-border p-3">
+          <JournalFieldsSection spaceId={space.id} communitySlug={communitySlug} spaceSlug={space.slug} fields={journalFields} />
+        </div>
+      )}
     </div>
   );
 }

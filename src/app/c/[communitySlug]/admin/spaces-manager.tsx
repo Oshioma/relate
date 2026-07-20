@@ -4,9 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SpaceCard } from "./space-card";
 import { reorderSpaces } from "./actions";
-import type { Space } from "@/types/database";
+import type { Space, SpaceJournalField } from "@/types/database";
 
-export function SpacesManager({ spaces, communitySlug }: { spaces: Space[]; communitySlug: string }) {
+export function SpacesManager({
+  spaces,
+  communitySlug,
+  journalFieldsBySpaceId,
+}: {
+  spaces: Space[];
+  communitySlug: string;
+  journalFieldsBySpaceId: Record<string, SpaceJournalField[]>;
+}) {
   const router = useRouter();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -33,6 +41,7 @@ export function SpacesManager({ spaces, communitySlug }: { spaces: Space[]; comm
           key={space.id}
           space={space}
           communitySlug={communitySlug}
+          journalFields={journalFieldsBySpaceId[space.id] ?? []}
           isDragging={dragIndex === i}
           dragHandlers={{
             draggable: true,
