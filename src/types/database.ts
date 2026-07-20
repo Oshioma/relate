@@ -11,6 +11,7 @@
 export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 export type MembershipStatus = "active" | "invited" | "banned";
 export type SpaceVisibility = "public" | "members" | "private";
+export type SpaceType = "discussion" | "journal" | "gallery" | "resources" | "directory" | "challenges" | "growth_journey" | "qa" | "custom";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 
@@ -65,6 +66,7 @@ export type Space = {
   slug: string;
   description: string | null;
   visibility: SpaceVisibility;
+  space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
   created_at: string;

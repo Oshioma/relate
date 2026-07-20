@@ -159,6 +159,23 @@ event in their community; the events page shows an attendee avatar
 stack + count per event, and a toggle button on upcoming events (past
 events show who attended but drop the button).
 
+## Space types
+
+Run `supabase/space-types.sql` too. Adds a `space_type` column to
+`spaces` (Discussion, Journal, Gallery, Resources, Directory,
+Challenges, Growth Journey, Q&A, Custom), chosen when a space is
+created and editable afterward from Admin. Every type still renders
+the plain discussion feed today except **Resources**, which renders
+that space's own resources (via the existing `resources.space_id`)
+instead of posts. The rest are real, admin-choosable categories with
+their own icon — dedicated behavior per type (dynamic Journal fields,
+member Directory search, a Growth Journey timeline, Challenges) is
+being built out in follow-up rounds.
+
+The Admin page's Spaces section is now a real builder: rename,
+change type/visibility, duplicate, delete, drag to reorder, or hide
+from navigation.
+
 ## Member Directory (in progress)
 
 This has been built in stages — **Stages 1 through 7** are all in
@@ -415,6 +432,7 @@ supabase/
   email-invites.sql                 Adds the `email` column used by email invites
   notifications.sql                 Notifications table, RLS, and trigger functions
   event-rsvps.sql                   Event RSVPs table + RLS
+  space-types.sql                   Adds space_type to spaces (Space Builder)
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values

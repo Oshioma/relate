@@ -8,6 +8,7 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
+import { SPACE_TYPES } from "@/lib/space-types";
 
 const visibilityIcon = {
   public: <Globe className="h-3.5 w-3.5" />,
@@ -45,24 +46,30 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
         <EmptyState icon={<Layers className="h-6 w-6" />} title="No spaces yet" description="Spaces will show up here once they're created." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {spaces.map((space) => (
-            <Link key={space.id} href={`/c/${community.slug}/spaces/${space.slug}`} className="group">
-              <Card className="h-full transition-shadow group-hover:shadow-sm">
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">{space.name}</h3>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      {visibilityIcon[space.visibility]}
-                      {space.visibility}
-                    </span>
-                  </div>
-                  {space.description && (
-                    <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{space.description}</p>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {spaces.map((space) => {
+            const TypeIcon = SPACE_TYPES[space.space_type].icon;
+            return (
+              <Link key={space.id} href={`/c/${community.slug}/spaces/${space.slug}`} className="group">
+                <Card className="h-full transition-shadow group-hover:shadow-sm">
+                  <CardContent className="pt-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <TypeIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <h3 className="truncate text-sm font-semibold text-foreground">{space.name}</h3>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                        {visibilityIcon[space.visibility]}
+                        {space.visibility}
+                      </span>
+                    </div>
+                    {space.description && (
+                      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{space.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
