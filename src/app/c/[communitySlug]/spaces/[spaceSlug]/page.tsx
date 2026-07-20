@@ -8,6 +8,7 @@ import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getSpacePosts } from "@/lib/data/posts";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
+import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
 import { JournalEntryForm } from "./journal-entry-form";
+import { GrowthJourneyView } from "./growth-journey-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 
 export default async function SpaceDetailPage({
@@ -35,13 +37,16 @@ export default async function SpaceDetailPage({
 
   const isResourceSpace = space.space_type === "resources";
   const isJournalSpace = space.space_type === "journal";
+  const isGrowthJourneySpace = space.space_type === "growth_journey";
+  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace;
 
-  const [membership, posts, resources, journalFields, journalEntries] = await Promise.all([
+  const [membership, posts, resources, journalFields, journalEntries, timeline] = await Promise.all([
     getMembership(supabase, community.id, user.id),
-    isResourceSpace || isJournalSpace ? Promise.resolve([]) : getSpacePosts(supabase, space.id),
+    isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
+    isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -144,6 +149,8 @@ export default async function SpaceDetailPage({
             </div>
           )}
         </>
+      ) : isGrowthJourneySpace ? (
+        <GrowthJourneyView events={timeline} />
       ) : (
         <>
           {canPost && (

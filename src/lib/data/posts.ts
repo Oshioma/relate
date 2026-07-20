@@ -1,10 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Post, Comment, Profile } from "@/types/database";
+import type { Database, Post, Comment, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
 export type PostWithAuthor = Post & { author: Profile };
 export type CommentWithAuthor = Comment & { author: Profile };
+export type PostWithSpace = Post & { space: Pick<Space, "id" | "name" | "slug"> };
 
 export async function getSpacePosts(supabase: Client, spaceId: string): Promise<PostWithAuthor[]> {
   const { data, error } = await supabase
@@ -29,6 +30,18 @@ export async function getCommunityPosts(supabase: Client, communityId: string, l
 
   if (error) throw error;
   return (data ?? []) as unknown as PostWithAuthor[];
+}
+
+export async function getMemberPosts(supabase: Client, communityId: string, authorId: string): Promise<PostWithSpace[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*, space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .eq("author_id", authorId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as PostWithSpace[];
 }
 
 export async function getPostById(supabase: Client, postId: string): Promise<PostWithAuthor | null> {

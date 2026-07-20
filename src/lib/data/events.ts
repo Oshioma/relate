@@ -29,6 +29,24 @@ export async function getRsvpsForEvents(supabase: Client, eventIds: string[]): P
   return (data ?? []) as unknown as EventRsvpWithAttendee[];
 }
 
+export type EventRsvpWithEvent = EventRsvp & { event: Event };
+
+// Every event a member has RSVPed to within a community, for the Growth
+// Journey timeline. `!inner` makes the embedded `event` filterable — it
+// turns the left join into an inner join so `.eq("event.community_id", …)`
+// actually restricts rows instead of being silently ignored by PostgREST.
+export async function getMemberEventAttendance(supabase: Client, communityId: string, userId: string): Promise<EventRsvpWithEvent[]> {
+  const { data, error } = await supabase
+    .from("event_rsvps")
+    .select("*, event:event_id!inner (*)")
+    .eq("user_id", userId)
+    .eq("event.community_id", communityId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as EventRsvpWithEvent[];
+}
+
 export function groupRsvpsByEvent(rsvps: EventRsvpWithAttendee[]): Map<string, EventRsvpWithAttendee[]> {
   const map = new Map<string, EventRsvpWithAttendee[]>();
   for (const rsvp of rsvps) {

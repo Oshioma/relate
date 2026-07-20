@@ -1,9 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, SpaceJournalField, SpaceJournalEntry, Profile } from "@/types/database";
+import type { Database, SpaceJournalField, SpaceJournalEntry, Space, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
 export type JournalEntryWithAuthor = SpaceJournalEntry & { author: Profile };
+export type JournalEntryWithSpace = SpaceJournalEntry & { space: Pick<Space, "id" | "name" | "slug"> };
 
 export async function getSpaceJournalFields(supabase: Client, spaceId: string): Promise<SpaceJournalField[]> {
   const { data, error } = await supabase
@@ -45,4 +46,18 @@ export async function getSpaceJournalEntries(supabase: Client, spaceId: string):
 
   if (error) throw error;
   return (data ?? []) as unknown as JournalEntryWithAuthor[];
+}
+
+// Every entry a member has logged across ALL journal spaces in a community
+// (not just one), for the Growth Journey timeline.
+export async function getMemberJournalEntries(supabase: Client, communityId: string, authorId: string): Promise<JournalEntryWithSpace[]> {
+  const { data, error } = await supabase
+    .from("space_journal_entries")
+    .select("*, space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .eq("author_id", authorId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as JournalEntryWithSpace[];
 }
