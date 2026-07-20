@@ -137,6 +137,17 @@ export type CommunityInvite = {
   email: string | null;
 };
 
+export type CommunityNavLink = {
+  id: string;
+  community_id: string;
+  label: string;
+  url: string;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -375,6 +386,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_nav_links: {
+        Row: CommunityNavLink;
+        Insert: Partial<CommunityNavLink> & { community_id: string; label: string; url: string };
+        Update: Partial<CommunityNavLink>;
       } & NoRel;
       notifications: {
         Row: Notification;

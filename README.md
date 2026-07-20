@@ -219,11 +219,23 @@ put member search/discovery in their space navigation.
 
 Run `supabase/challenges.sql` after `space-types.sql`. A
 `challenges`-type space hosts one or more time-boxed programs
-(`challenges`) that members can join (`challenge_participants`, a
-plain join table — no daily check-ins/progress tracking yet).
-Community admins create challenges from the space; any member can
-join/leave. Status (Upcoming / In progress / Ended) is derived from
-`start_date`/`end_date`, nothing stored.
+(`space_challenges` — named that instead of `challenges` to avoid
+colliding with an unrelated pre-existing table of that name) that
+members can join (`space_challenge_participants`, a plain join table
+— no daily check-ins/progress tracking yet). Community admins create
+challenges from the space; any member can join/leave. Status
+(Upcoming / In progress / Ended) is derived from `start_date`/
+`end_date`, nothing stored.
+
+## Sidebar links
+
+Run `supabase/community-nav-links.sql`. Lets a community's
+owner/admins add arbitrary external links (e.g. a link to another
+app) to that community's sidebar from Admin → Sidebar links — each
+opens in a new tab. Visible to anyone who can already view the
+community (members, or anyone if the community is public), managed
+only by owner/admin (`community_nav_links`, RLS-gated the same way as
+the rest of the admin-managed tables).
 
 ## Member Directory (in progress)
 
@@ -484,7 +496,8 @@ supabase/
   space-types.sql                   Adds space_type to spaces (Space Builder)
   space-journal.sql                 Journal fields + entries for journal-type spaces
   growth-journey.sql                Journal-entry contribution-score trigger (Growth Journey)
-  challenges.sql                    Challenges + challenge_participants for challenges-type spaces
+  challenges.sql                    space_challenges + space_challenge_participants for challenges-type spaces
+  community-nav-links.sql           Custom external sidebar links, managed by community admins
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values

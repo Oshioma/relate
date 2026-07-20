@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
@@ -34,12 +35,13 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, spaces] = await Promise.all([
+  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
     getUnreadNotificationCount(supabase, user.id),
     getUnreadMessageCount(supabase, user.id),
     getCommunitySpaces(supabase, community.id),
+    getCommunityNavLinks(supabase, community.id),
   ]);
 
   if (!membership && !community.is_public) {
@@ -97,6 +99,23 @@ export default async function CommunityLayout({
             <NotificationsNavLink count={unreadCount} />
             <MessagesNavLink count={unreadMessageCount} />
           </div>
+
+          {navLinks.length > 0 && (
+            <div className="mt-4 space-y-1 border-t border-border pt-4">
+              {navLinks.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="truncate">{link.label}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border p-3">

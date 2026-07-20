@@ -8,6 +8,7 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityInvites } from "@/lib/data/invites";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
+import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager } from "./spaces-manager";
@@ -17,6 +18,8 @@ import { NewInviteForm } from "./new-invite-form";
 import { NewEmailInviteForm } from "./new-email-invite-form";
 import { InvitesList } from "./invites-list";
 import { ProfileFieldsSection } from "./profile-fields-section";
+import { NewNavLinkForm } from "./new-nav-link-form";
+import { NavLinksList } from "./nav-links-list";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -33,11 +36,12 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members, invites, profileFields] = await Promise.all([
+  const [spaces, members, invites, profileFields, navLinks] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
     getCommunityInvites(supabase, community.id),
     getCommunityProfileFields(supabase, community.id),
+    getCommunityNavLinks(supabase, community.id),
   ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
@@ -100,6 +104,17 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       </p>
       <div className="mb-8">
         <ProfileFieldsSection communityId={community.id} communitySlug={community.slug} fields={profileFields} />
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Sidebar links</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Add external links to {community.name}&apos;s sidebar — each opens in a new tab.
+      </p>
+      <div className="mb-4">
+        <NewNavLinkForm communityId={community.id} communitySlug={community.slug} />
+      </div>
+      <div className="mb-8">
+        <NavLinksList links={navLinks} communitySlug={community.slug} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">More</h2>
