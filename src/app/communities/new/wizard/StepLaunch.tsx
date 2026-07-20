@@ -23,7 +23,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       name: state.name,
       slug: state.slug,
       description: state.description,
-      isPublic: state.isPublic,
+      privacy: state.privacy,
       spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav })),
       profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
     });
@@ -55,7 +55,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
 
         <div className="mt-4 flex flex-wrap gap-1.5">
           <Badge tone="accent">{template?.label ?? "Custom"}</Badge>
-          <Badge>{state.isPublic ? "public" : "private"}</Badge>
+          <Badge>{state.privacy.replace("_", " ")}</Badge>
           <Badge>{state.spaces.length} spaces</Badge>
           {state.profileFields.length > 0 && <Badge>{state.profileFields.length} profile fields</Badge>}
         </div>

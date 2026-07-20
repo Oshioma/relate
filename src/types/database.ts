@@ -10,6 +10,7 @@
 
 export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 export type MembershipStatus = "active" | "invited" | "banned";
+export type CommunityPrivacy = "public" | "private" | "invite_only";
 export type SpaceVisibility = "public" | "members" | "private";
 export type SpaceType = "discussion" | "journal" | "gallery" | "resources" | "directory" | "challenges" | "growth_journey" | "qa" | "custom";
 export type PostType = "discussion" | "announcement" | "resource";
@@ -45,6 +46,9 @@ export type Community = {
   logo_url: string | null;
   cover_image_url: string | null;
   owner_id: string;
+  privacy: CommunityPrivacy;
+  // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
+  // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
   created_at: string;
   updated_at: string;
@@ -318,7 +322,14 @@ export type Database = {
   public: {
     Tables: {
       profiles: { Row: Profile; Insert: Partial<Profile> & { id: string }; Update: Partial<Profile> } & NoRel;
-      communities: { Row: Community; Insert: Partial<Community> & { name: string; slug: string; owner_id: string }; Update: Partial<Community> } & NoRel;
+      communities: {
+        Row: Community;
+        // is_public is a generated column (derived from privacy) — omitted
+        // here so TypeScript itself rejects any attempt to set it directly,
+        // not just convention.
+        Insert: Partial<Omit<Community, "is_public">> & { name: string; slug: string; owner_id: string };
+        Update: Partial<Omit<Community, "is_public">>;
+      } & NoRel;
       community_memberships: {
         Row: CommunityMembership;
         Insert: Partial<CommunityMembership> & { user_id: string; community_id: string };
