@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 import type { CommunityProfileField } from "@/types/database";
 
 export type ProfileFieldValuesFormState = { error: string } | undefined;
@@ -23,6 +24,10 @@ function parseValue(field: CommunityProfileField, formData: FormData): string | 
       if (!raw) return null;
       const parsed = Number(raw);
       return Number.isFinite(parsed) ? parsed : null;
+    }
+    case "url": {
+      const raw = normalizeUrl(String(formData.get(name) ?? ""));
+      return raw || null;
     }
     default: {
       const raw = String(formData.get(name) ?? "").trim();

@@ -24,7 +24,7 @@ function FieldInput({ field }: { field: ProfileFieldWithValue }) {
     case "date":
       return <Input id={name} name={name} type="date" defaultValue={typeof field.value === "string" ? field.value : ""} />;
     case "url":
-      return <Input id={name} name={name} type="url" defaultValue={typeof field.value === "string" ? field.value : ""} placeholder="https://…" />;
+      return <Input id={name} name={name} type="text" defaultValue={typeof field.value === "string" ? field.value : ""} placeholder="example.com" />;
     case "checkbox":
       return (
         <label className="flex items-center gap-2 text-sm text-foreground">

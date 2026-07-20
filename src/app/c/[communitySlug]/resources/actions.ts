@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 import type { ResourceType } from "@/types/database";
 
 export type ResourceFormState = { error: string } | undefined;
@@ -15,7 +16,7 @@ export async function createResource(_prevState: ResourceFormState, formData: Fo
   const spaceId = String(formData.get("space_id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const url = String(formData.get("url") ?? "").trim();
+  const url = normalizeUrl(String(formData.get("url") ?? ""));
   const typeRaw = String(formData.get("resource_type") ?? "link");
   const resourceType = RESOURCE_TYPES.includes(typeRaw as ResourceType) ? (typeRaw as ResourceType) : "link";
 

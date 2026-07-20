@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeUrl } from "@/lib/utils";
 import type { HelpRequestKind } from "@/types/database";
 
 export type ProfileFormState = { error: string } | undefined;
@@ -16,7 +17,7 @@ export async function updateProfile(_prevState: ProfileFormState, formData: Form
   const bio = String(formData.get("bio") ?? "").trim();
   const profession = String(formData.get("profession") ?? "").trim();
   const company = String(formData.get("company") ?? "").trim();
-  const website = String(formData.get("website") ?? "").trim();
+  const website = normalizeUrl(String(formData.get("website") ?? ""));
 
   if (!USERNAME_PATTERN.test(username)) {
     return { error: "Username must be 3-30 characters: lowercase letters, numbers, and underscores only." };
@@ -24,7 +25,7 @@ export async function updateProfile(_prevState: ProfileFormState, formData: Form
 
   const socialLinks: Record<string, string> = {};
   for (const key of SOCIAL_KEYS) {
-    const value = String(formData.get(key) ?? "").trim();
+    const value = normalizeUrl(String(formData.get(key) ?? ""));
     if (value) socialLinks[key] = value;
   }
 

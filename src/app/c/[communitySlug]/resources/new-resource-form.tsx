@@ -48,7 +48,7 @@ export function NewResourceForm({ communityId, communitySlug, spaces }: NewResou
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="url">URL</Label>
-          <Input id="url" name="url" type="url" placeholder="https://…" required />
+          <Input id="url" name="url" type="text" placeholder="example.com" required />
         </div>
         <div>
           <Label htmlFor="resource_type">Type</Label>
