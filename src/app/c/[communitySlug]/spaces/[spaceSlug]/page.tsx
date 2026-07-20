@@ -9,6 +9,7 @@ import { getSpacePosts } from "@/lib/data/posts";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
+import { getDirectoryMembers } from "@/lib/data/member-directory";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import { SpaceResourceForm } from "./space-resource-form";
 import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { SPACE_TYPES } from "@/lib/space-types";
+import { MemberDirectoryList } from "../../members/member-directory-list";
 
 export default async function SpaceDetailPage({
   params,
@@ -38,18 +40,21 @@ export default async function SpaceDetailPage({
   const isResourceSpace = space.space_type === "resources";
   const isJournalSpace = space.space_type === "journal";
   const isGrowthJourneySpace = space.space_type === "growth_journey";
-  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace;
+  const isDirectorySpace = space.space_type === "directory";
+  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace;
 
-  const [membership, posts, resources, journalFields, journalEntries, timeline] = await Promise.all([
+  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
     isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
+    isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
+  const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
   return (
@@ -151,6 +156,8 @@ export default async function SpaceDetailPage({
         </>
       ) : isGrowthJourneySpace ? (
         <GrowthJourneyView events={timeline} />
+      ) : isDirectorySpace ? (
+        <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
       ) : (
         <>
           {canPost && (
