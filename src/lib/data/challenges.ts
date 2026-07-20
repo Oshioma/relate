@@ -16,7 +16,7 @@ export async function getSpaceChallenges(
   viewerId: string
 ): Promise<ChallengeWithParticipants[]> {
   const { data: challenges, error } = await supabase
-    .from("challenges")
+    .from("space_challenges")
     .select("*")
     .eq("space_id", spaceId)
     .order("start_date", { ascending: false });
@@ -27,7 +27,7 @@ export async function getSpaceChallenges(
   const challengeIds = challenges.map((c) => c.id);
 
   const { data: participants, error: participantsError } = await supabase
-    .from("challenge_participants")
+    .from("space_challenge_participants")
     .select("challenge_id, user_id, profile:user_id (*)")
     .in("challenge_id", challengeIds);
 

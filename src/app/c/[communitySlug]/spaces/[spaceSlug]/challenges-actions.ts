@@ -31,7 +31,7 @@ export async function createChallenge(_prevState: ChallengeFormState, formData: 
     return { error: "You need to be signed in." };
   }
 
-  const { error } = await supabase.from("challenges").insert({
+  const { error } = await supabase.from("space_challenges").insert({
     space_id: spaceId,
     community_id: communityId,
     title,
@@ -51,7 +51,7 @@ export async function createChallenge(_prevState: ChallengeFormState, formData: 
 
 export async function deleteChallenge(challengeId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("challenges").delete().eq("id", challengeId);
+  const { error } = await supabase.from("space_challenges").delete().eq("id", challengeId);
 
   if (error) {
     return { error: error.message };
@@ -71,7 +71,7 @@ export async function joinChallenge(challengeId: string, communitySlug: string, 
     return { error: "You need to be signed in." };
   }
 
-  const { error } = await supabase.from("challenge_participants").insert({ challenge_id: challengeId, user_id: user.id });
+  const { error } = await supabase.from("space_challenge_participants").insert({ challenge_id: challengeId, user_id: user.id });
 
   if (error) {
     return { error: error.message };
@@ -92,7 +92,7 @@ export async function leaveChallenge(challengeId: string, communitySlug: string,
   }
 
   const { error } = await supabase
-    .from("challenge_participants")
+    .from("space_challenge_participants")
     .delete()
     .eq("challenge_id", challengeId)
     .eq("user_id", user.id);

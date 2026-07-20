@@ -436,17 +436,21 @@ export type Database = {
         Update: Partial<SpaceJournalEntry>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"author_id", "profiles">];
       };
-      challenges: {
+      // Named space_challenges/space_challenge_participants (not challenges/
+      // challenge_participants) — a `challenges` table with an unrelated
+      // shape already exists in this database, leftover from an earlier
+      // migration on a different codebase.
+      space_challenges: {
         Row: Challenge;
         Insert: Partial<Challenge> & { space_id: string; community_id: string; title: string; start_date: string; end_date: string };
         Update: Partial<Challenge>;
         Relationships: [FKey<"space_id", "spaces">];
       };
-      challenge_participants: {
+      space_challenge_participants: {
         Row: ChallengeParticipant;
         Insert: Partial<ChallengeParticipant> & { challenge_id: string; user_id: string };
         Update: Partial<ChallengeParticipant>;
-        Relationships: [FKey<"challenge_id", "challenges">, FKey<"user_id", "profiles">];
+        Relationships: [FKey<"challenge_id", "space_challenges">, FKey<"user_id", "profiles">];
       };
       member_contribution_scores: {
         Row: MemberContributionScore;
