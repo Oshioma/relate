@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -9,6 +9,7 @@ import { getSpacePosts } from "@/lib/data/posts";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
+import { getSpaceChallenges } from "@/lib/data/challenges";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -28,6 +29,8 @@ import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
 import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
+import { NewChallengeForm } from "./new-challenge-form";
+import { ChallengeCard } from "./challenge-card";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -51,9 +54,10 @@ export default async function SpaceDetailPage({
   const isJournalSpace = space.space_type === "journal";
   const isGrowthJourneySpace = space.space_type === "growth_journey";
   const isDirectorySpace = space.space_type === "directory";
-  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace;
+  const isChallengeSpace = space.space_type === "challenges";
+  const isDiscussionLike = !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace && !isChallengeSpace;
 
-  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers] = await Promise.all([
+  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
@@ -61,6 +65,7 @@ export default async function SpaceDetailPage({
     isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
     isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
     isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
+    isChallengeSpace ? getSpaceChallenges(supabase, space.id, user.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -194,6 +199,30 @@ export default async function SpaceDetailPage({
 
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">All members</h2>
           <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
+        </>
+      ) : isChallengeSpace ? (
+        <>
+          {isAdmin && (
+            <div className="mb-6">
+              <NewChallengeForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />
+            </div>
+          )}
+
+          {challenges.length === 0 ? (
+            <EmptyState icon={<Flag className="h-6 w-6" />} title="No challenges yet" description="Time-boxed programs members can join together will show up here." />
+          ) : (
+            <div className="space-y-3">
+              {challenges.map((data) => (
+                <ChallengeCard
+                  key={data.challenge.id}
+                  data={data}
+                  communitySlug={community.slug}
+                  spaceSlug={space.slug}
+                  canManage={Boolean(isAdmin)}
+                />
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <>
