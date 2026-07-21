@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, Building2 } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -18,6 +18,7 @@ import { getSpaceAccommodationListings } from "@/lib/data/accommodation";
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
+import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -40,8 +41,7 @@ import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { NewChallengeForm } from "./new-challenge-form";
 import { ChallengeCard } from "./challenge-card";
-import { NewBusinessForm } from "./new-business-form";
-import { BusinessCard } from "./business-card";
+import { BusinessDirectoryView } from "./business-directory-view";
 import { ExploreMapLoader } from "./explore-map-loader";
 import { MarketplaceView } from "./marketplace-view";
 import { JobsBoardView } from "./jobs-board-view";
@@ -49,6 +49,7 @@ import { AccommodationView } from "./accommodation-view";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { GuidesView } from "./guides-view";
+import { VolunteerHubView } from "./volunteer-hub-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -81,6 +82,7 @@ export default async function SpaceDetailPage({
   const isRecommendationsSpace = space.space_type === "recommendations";
   const isClubsSpace = space.space_type === "clubs";
   const isGuidesSpace = space.space_type === "guides";
+  const isVolunteerHubSpace = space.space_type === "volunteer_hub";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -94,7 +96,8 @@ export default async function SpaceDetailPage({
     !isAccommodationSpace &&
     !isRecommendationsSpace &&
     !isClubsSpace &&
-    !isGuidesSpace;
+    !isGuidesSpace &&
+    !isVolunteerHubSpace;
 
   const [
     membership,
@@ -115,6 +118,7 @@ export default async function SpaceDetailPage({
     recommendations,
     clubs,
     guides,
+    volunteerProjects,
   ] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
@@ -134,6 +138,7 @@ export default async function SpaceDetailPage({
     isRecommendationsSpace ? getSpaceRecommendations(supabase, space.id, user.id) : Promise.resolve([]),
     isClubsSpace ? getSpaceClubs(supabase, space.id, user.id) : Promise.resolve([]),
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
+    isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, user.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -312,31 +317,16 @@ export default async function SpaceDetailPage({
           )}
         </>
       ) : isBusinessDirectorySpace ? (
-        <>
-          {canPost && (
-            <div className="mb-6">
-              <NewBusinessForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} userId={user.id} />
-            </div>
-          )}
-
-          {businesses.length === 0 ? (
-            <EmptyState icon={<Building2 className="h-6 w-6" />} title="No businesses yet" description="Restaurants, cafes, shops and services members add will show up here." />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {businesses.map((business) => (
-                <BusinessCard
-                  key={business.id}
-                  business={business}
-                  communitySlug={community.slug}
-                  spaceSlug={space.slug}
-                  canManage={Boolean(isStaff) || business.created_by === user.id}
-                  isStaff={Boolean(isStaff)}
-                  userId={user.id}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <BusinessDirectoryView
+          businesses={businesses}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={user.id}
+        />
       ) : isMapSpace ? (
         <ExploreMapLoader
           communityId={community.id}
@@ -407,6 +397,17 @@ export default async function SpaceDetailPage({
         />
       ) : isGuidesSpace ? (
         <GuidesView guides={guides} communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} canPost={canPost} />
+      ) : isVolunteerHubSpace ? (
+        <VolunteerHubView
+          projects={volunteerProjects}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={user.id}
+        />
       ) : (
         <>
           {canPost && (

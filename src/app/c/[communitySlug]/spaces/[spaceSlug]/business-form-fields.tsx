@@ -78,13 +78,24 @@ export function BusinessFormFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
+          <Label htmlFor={`${idPrefix}_location_label`}>Area (optional)</Label>
+          <Input
+            id={`${idPrefix}_location_label`}
+            name="location_label"
+            placeholder="Kendwa"
+            defaultValue={business?.location_label ?? ""}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">The village or neighbourhood — used to filter the directory.</p>
+        </div>
+        <div>
           <Label htmlFor={`${idPrefix}_address`}>Address (optional)</Label>
           <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Jambiani" defaultValue={business?.address ?? ""} />
         </div>
-        <div>
-          <Label htmlFor={`${idPrefix}_opening_hours`}>Opening hours (optional)</Label>
-          <Input id={`${idPrefix}_opening_hours`} name="opening_hours" placeholder="Daily, 8am – 10pm" defaultValue={business?.opening_hours ?? ""} />
-        </div>
+      </div>
+
+      <div>
+        <Label htmlFor={`${idPrefix}_opening_hours`}>Opening hours (optional)</Label>
+        <Input id={`${idPrefix}_opening_hours`} name="opening_hours" placeholder="Daily, 8am – 10pm" defaultValue={business?.opening_hours ?? ""} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

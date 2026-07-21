@@ -41,6 +41,7 @@ export type JobListingStatus = "open" | "closed";
 export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
 export type AccommodationStatus = "available" | "unavailable";
 export type RecommendationCategory = "restaurant" | "cafe" | "activity" | "service" | "professional" | "walk" | "viewpoint" | "contractor" | "other";
+export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
 
 export type Profile = {
   id: string;
@@ -433,6 +434,34 @@ export type GuideComment = {
   updated_at: string;
 };
 
+// A project/cause in a 'volunteer_hub' space (see space-types.ts). category
+// is free text, same reasoning as Club — the set of causes (beach cleanups,
+// fundraising, tree planting, animal rescue, …) is unbounded.
+// volunteer_signups is "volunteer matching": who's signed up to help.
+export type VolunteerProject = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  organiser_id: string;
+  title: string;
+  category: string | null;
+  description: string;
+  status: VolunteerProjectStatus;
+  volunteers_needed: number | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VolunteerSignup = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  signed_up_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -783,6 +812,18 @@ export type Database = {
         Insert: Partial<GuideComment> & { guide_id: string; author_id: string; body: string };
         Update: Partial<GuideComment>;
         Relationships: [FKey<"guide_id", "guides">, FKey<"author_id", "profiles">];
+      };
+      volunteer_projects: {
+        Row: VolunteerProject;
+        Insert: Partial<VolunteerProject> & { space_id: string; community_id: string; organiser_id: string; title: string; description: string };
+        Update: Partial<VolunteerProject>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"organiser_id", "profiles">];
+      };
+      volunteer_signups: {
+        Row: VolunteerSignup;
+        Insert: Partial<VolunteerSignup> & { project_id: string; user_id: string };
+        Update: Partial<VolunteerSignup>;
+        Relationships: [FKey<"project_id", "volunteer_projects">, FKey<"user_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;
