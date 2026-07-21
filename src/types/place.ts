@@ -21,6 +21,7 @@
 //                           community's togglable Explore Map layers)
 //   - Landmark            → src/types/database.ts (landmarks table — a pin
 //                           on the Explore Map that isn't already a Business)
+//   - MarketplaceListing  → src/types/database.ts (marketplace_listings table)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -53,24 +54,6 @@ export interface Route {
   points: GeoLocation[];
   distance_meters: number | null;
   created_by: string;
-  created_at: string;
-}
-
-export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
-
-/** One item in the Marketplace space. */
-export interface MarketplaceListing extends MapPinnable {
-  id: string;
-  community_id: string;
-  space_id: string;
-  seller_id: string;
-  listing_type: MarketplaceListingType;
-  title: string;
-  description: string | null;
-  price: number | null;
-  currency: string | null;
-  photo_urls: string[];
-  status: "active" | "sold" | "expired";
   created_at: string;
 }
 
