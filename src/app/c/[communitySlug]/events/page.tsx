@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatDateTime } from "@/lib/utils";
 import { NewEventForm } from "./new-event-form";
+import { DiscoverEventsPanel } from "./discover-events-panel";
 import { EventRsvpButton } from "./event-rsvp-button";
 import type { Event } from "@/types/database";
 
@@ -37,8 +38,9 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
       <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">Events</h1>
 
       {isStaff && (
-        <div className="mb-8">
+        <div className="mb-8 space-y-4">
           <NewEventForm communityId={community.id} communitySlug={community.slug} />
+          <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />
         </div>
       )}
 
