@@ -10,7 +10,8 @@ import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
-import { getSpaceBusinesses } from "@/lib/data/businesses";
+import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import { getSpaceListings } from "@/lib/data/marketplace";
 import { getSpaceJobListings } from "@/lib/data/jobs";
@@ -56,10 +57,14 @@ import { DiscoverySection } from "../../members/discovery-section";
 
 export default async function SpaceDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
+  searchParams: Promise<{ category?: string | string[] }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
+  const { category: rawCategory } = await searchParams;
+  const initialCategory = BUSINESS_CATEGORIES.find((c) => c.value === rawCategory)?.value;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -140,6 +145,10 @@ export default async function SpaceDetailPage({
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
     isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, user.id) : Promise.resolve([]),
   ]);
+
+  const featuredBusinessCategories = isBusinessDirectorySpace
+    ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
+    : [];
 
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
@@ -318,6 +327,9 @@ export default async function SpaceDetailPage({
         </>
       ) : isBusinessDirectorySpace ? (
         <BusinessDirectoryView
+          // Remount when a nav sub-link changes the category param, so the
+          // view picks up the new initial filter.
+          key={initialCategory ?? "all"}
           businesses={businesses}
           communityId={community.id}
           communitySlug={community.slug}
@@ -326,6 +338,8 @@ export default async function SpaceDetailPage({
           canPost={canPost}
           isStaff={Boolean(isStaff)}
           userId={user.id}
+          initialCategory={initialCategory}
+          featuredCategories={featuredBusinessCategories}
         />
       ) : isMapSpace ? (
         <ExploreMapLoader

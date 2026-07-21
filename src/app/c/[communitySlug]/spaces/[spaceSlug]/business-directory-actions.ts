@@ -249,3 +249,37 @@ export async function setBusinessBadge(
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
 }
+
+// Staff-only (enforced by RLS on featured_business_categories): feature a
+// category so it appears as a nav sub-link under the directory, or remove it.
+export async function setCategoryFeatured(
+  spaceId: string,
+  communityId: string,
+  category: BusinessCategory,
+  featured: boolean,
+  communitySlug: string
+) {
+  if (!BUSINESS_CATEGORIES.some((c) => c.value === category)) {
+    return { error: "Unknown category." };
+  }
+
+  const supabase = await createClient();
+
+  if (featured) {
+    const { error } = await supabase
+      .from("featured_business_categories")
+      .upsert({ space_id: spaceId, community_id: communityId, category }, { onConflict: "space_id,category" });
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase
+      .from("featured_business_categories")
+      .delete()
+      .eq("space_id", spaceId)
+      .eq("category", category);
+    if (error) return { error: error.message };
+  }
+
+  // The sub-links live in the community layout's nav, so revalidate the layout.
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { error: null };
+}

@@ -15,9 +15,12 @@
 
 do $$ begin
   create type public.business_category as enum (
-    'restaurant', 'cafe', 'shop', 'accommodation', 'service', 'health', 'fitness', 'coworking', 'other'
+    'restaurant', 'cafe', 'shop', 'accommodation', 'service', 'health', 'fitness', 'coworking', 'activity', 'other'
   );
 exception when duplicate_object then null; end $$;
+
+-- Added after the initial enum shipped; no-op on fresh installs.
+alter type public.business_category add value if not exists 'activity';
 
 create table if not exists public.businesses (
   id uuid primary key default gen_random_uuid(),
@@ -101,3 +104,33 @@ drop policy if exists "businesses_delete_author_or_staff" on public.businesses;
 create policy "businesses_delete_author_or_staff" on public.businesses
   for delete to authenticated
   using (created_by = auth.uid() or public.is_community_staff(community_id, auth.uid()));
+
+-- Featured categories ---------------------------------------------------------
+-- Staff can feature a category so it appears as a sub-link under the Business
+-- Directory in the community's left nav, deep-linking to the directory
+-- pre-filtered to that category (?category=...).
+create table if not exists public.featured_business_categories (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.spaces (id) on delete cascade,
+  community_id uuid not null references public.communities (id) on delete cascade,
+  category public.business_category not null,
+  created_at timestamptz not null default now(),
+  unique (space_id, category)
+);
+
+alter table public.featured_business_categories enable row level security;
+
+drop policy if exists "featured_business_categories_select" on public.featured_business_categories;
+create policy "featured_business_categories_select" on public.featured_business_categories
+  for select to authenticated
+  using (public.can_view_space(space_id, auth.uid()));
+
+drop policy if exists "featured_business_categories_insert_staff" on public.featured_business_categories;
+create policy "featured_business_categories_insert_staff" on public.featured_business_categories
+  for insert to authenticated
+  with check (public.is_community_staff(community_id, auth.uid()));
+
+drop policy if exists "featured_business_categories_delete_staff" on public.featured_business_categories;
+create policy "featured_business_categories_delete_staff" on public.featured_business_categories
+  for delete to authenticated
+  using (public.is_community_staff(community_id, auth.uid()));
