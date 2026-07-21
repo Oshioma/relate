@@ -29,6 +29,7 @@ export function BusinessDirectoryView({
   userId: string;
 }) {
   const [category, setCategory] = useState<BusinessCategory | "all">("all");
+  const [location, setLocation] = useState<string | "all">("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
 
@@ -36,10 +37,11 @@ export function BusinessDirectoryView({
     const q = query.trim().toLowerCase();
     return businesses.filter((b) => {
       if (category !== "all" && b.category !== category) return false;
+      if (location !== "all" && b.location_label !== location) return false;
       if (q && !b.name.toLowerCase().includes(q) && !(b.description ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [businesses, category, query]);
+  }, [businesses, category, location, query]);
 
   const countByCategory = useMemo(() => {
     const counts = new Map<string, number>();
@@ -48,6 +50,32 @@ export function BusinessDirectoryView({
     }
     return counts;
   }, [businesses]);
+
+  const locations = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const b of businesses) {
+      if (!b.location_label) continue;
+      counts.set(b.location_label, (counts.get(b.location_label) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [businesses]);
+
+  const groups = useMemo(() => {
+    const byLocation = new Map<string, Business[]>();
+    const unlabeled: Business[] = [];
+    for (const b of filtered) {
+      if (!b.location_label) {
+        unlabeled.push(b);
+        continue;
+      }
+      const list = byLocation.get(b.location_label) ?? [];
+      list.push(b);
+      byLocation.set(b.location_label, list);
+    }
+    const sorted = [...byLocation.entries()].sort(([a], [b]) => a.localeCompare(b));
+    if (unlabeled.length > 0) sorted.push(["Other", unlabeled]);
+    return sorted;
+  }, [filtered]);
 
   return (
     <div>
@@ -94,6 +122,31 @@ export function BusinessDirectoryView({
         })}
       </div>
 
+      {locations.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setLocation("all")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            All locations
+          </button>
+          {locations.map(([label, count]) => {
+            const isActive = location === label;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setLocation(isActive ? "all" : label)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+              >
+                {label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {showForm && (
         <div className="mb-5">
           <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} onDone={() => setShowForm(false)} />
@@ -107,17 +160,24 @@ export function BusinessDirectoryView({
           description={businesses.length === 0 ? "Restaurants, cafes, shops and services members add will show up here." : "Try a different search or category."}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {filtered.map((business) => (
-            <BusinessCard
-              key={business.id}
-              business={business}
-              communitySlug={communitySlug}
-              spaceSlug={spaceSlug}
-              canManage={isStaff || business.created_by === userId}
-              isStaff={isStaff}
-              userId={userId}
-            />
+        <div className="space-y-6">
+          {groups.map(([label, group]) => (
+            <div key={label}>
+              {groups.length > 1 && <h3 className="mb-3 text-sm font-semibold text-foreground">{label}</h3>}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {group.map((business) => (
+                  <BusinessCard
+                    key={business.id}
+                    business={business}
+                    communitySlug={communitySlug}
+                    spaceSlug={spaceSlug}
+                    canManage={isStaff || business.created_by === userId}
+                    isStaff={isStaff}
+                    userId={userId}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
