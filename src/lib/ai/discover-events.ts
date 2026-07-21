@@ -1,7 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const MODEL = "claude-opus-4-8";
-const MAX_WEB_SEARCHES = 6;
+// Sonnet + low effort keeps discovery interactive (well under a minute in
+// most cases) — Opus with default effort was taking several minutes per run.
+const MODEL = "claude-sonnet-5";
+const MAX_WEB_SEARCHES = 4;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
 const MAX_CONTINUATIONS = 4;
@@ -37,6 +39,7 @@ Respond with ONLY a JSON array — no prose, no markdown fences. Each element:
 }
 
 Rules:
+- Speed matters: start searching immediately, run a few broad searches against event calendars and listings sites, and extract from those results. Do not run extra searches to double-check individual events.
 - Only include events you found via web search, with a concrete future date. Never invent events. If a listing gives only a date with no time, use a sensible local time for that kind of event.
 - Skip anything that matches an existing event title you are given.
 - Return at most ${MAX_RESULTS} events, soonest first. If you find nothing verifiable, return [].`;
@@ -72,6 +75,9 @@ export async function discoverEventsWithAI(opts: {
       anthropic.messages.create({
         model: MODEL,
         max_tokens: 8000,
+        // Low effort minimizes thinking between search rounds; the task is
+        // extraction, not deep reasoning, so latency wins here.
+        output_config: { effort: "low" },
         system: SYSTEM_PROMPT,
         tools: [{ type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES }],
         messages,
