@@ -34,6 +34,8 @@ export type SpaceType =
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "other";
+export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
+export type MarketplaceListingStatus = "active" | "sold" | "expired";
 
 export type Profile = {
   id: string;
@@ -241,6 +243,29 @@ export type Landmark = {
   description: string | null;
   lat: number;
   lng: number;
+  location_label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// One listing in a 'marketplace' space (see space-types.ts). photo_url is a
+// single external URL (same reasoning as Avatar's src — arbitrary
+// user-supplied hosts, no fixed remotePatterns to allowlist ahead of time),
+// not a Storage upload — that's follow-up work.
+export type MarketplaceListing = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  seller_id: string;
+  listing_type: MarketplaceListingType;
+  title: string;
+  description: string | null;
+  price: number | null;
+  currency: string | null;
+  photo_url: string | null;
+  status: MarketplaceListingStatus;
+  lat: number | null;
+  lng: number | null;
   location_label: string | null;
   created_at: string;
   updated_at: string;
@@ -524,6 +549,12 @@ export type Database = {
         Insert: Partial<Landmark> & { space_id: string; community_id: string; created_by: string; name: string; lat: number; lng: number };
         Update: Partial<Landmark>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"category_id", "map_categories">, FKey<"created_by", "profiles">];
+      };
+      marketplace_listings: {
+        Row: MarketplaceListing;
+        Insert: Partial<MarketplaceListing> & { space_id: string; community_id: string; seller_id: string; title: string };
+        Update: Partial<MarketplaceListing>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"seller_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;

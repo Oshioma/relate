@@ -12,6 +12,7 @@ import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
 import { getSpaceBusinesses } from "@/lib/data/businesses";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
+import { getSpaceListings } from "@/lib/data/marketplace";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -36,6 +37,7 @@ import { ChallengeCard } from "./challenge-card";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
 import { ExploreMapLoader } from "./explore-map-loader";
+import { MarketplaceView } from "./marketplace-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -62,6 +64,7 @@ export default async function SpaceDetailPage({
   const isChallengeSpace = space.space_type === "challenges";
   const isBusinessDirectorySpace = space.space_type === "business_directory";
   const isMapSpace = space.space_type === "map";
+  const isMarketplaceSpace = space.space_type === "marketplace";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -69,9 +72,10 @@ export default async function SpaceDetailPage({
     !isDirectorySpace &&
     !isChallengeSpace &&
     !isBusinessDirectorySpace &&
-    !isMapSpace;
+    !isMapSpace &&
+    !isMarketplaceSpace;
 
-  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges, businesses, mapCategories, landmarks, mapBusinesses] =
+  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges, businesses, mapCategories, landmarks, mapBusinesses, listings] =
     await Promise.all([
       getMembership(supabase, community.id, user.id),
       isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
@@ -85,6 +89,7 @@ export default async function SpaceDetailPage({
       isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
       isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
       isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),
+      isMarketplaceSpace ? getSpaceListings(supabase, space.id) : Promise.resolve([]),
     ]);
 
   const canPost = membership?.status === "active";
@@ -282,6 +287,17 @@ export default async function SpaceDetailPage({
           businesses={mapBusinesses}
           canPost={canPost}
           isAdmin={Boolean(isAdmin)}
+          userId={user.id}
+        />
+      ) : isMarketplaceSpace ? (
+        <MarketplaceView
+          listings={listings}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
           userId={user.id}
         />
       ) : (
