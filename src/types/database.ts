@@ -379,6 +379,57 @@ export type ClubMember = {
   joined_at: string;
 };
 
+// A wiki-style document in a 'guides' space (see space-types.ts). Any
+// active member can edit it — not just the creator or staff — which is
+// what "contributors" (GuideContributor) means: everyone who's ever saved
+// an edit. GuideRevision snapshots the previous title/body before each
+// edit, so there's a real revision history.
+export type Guide = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  title: string;
+  body: string;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GuideContributor = {
+  id: string;
+  guide_id: string;
+  user_id: string;
+  first_contributed_at: string;
+};
+
+export type GuideRevision = {
+  id: string;
+  guide_id: string;
+  title: string;
+  body: string;
+  edited_by: string | null;
+  created_at: string;
+};
+
+export type GuideRating = {
+  id: string;
+  guide_id: string;
+  user_id: string;
+  rating: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GuideComment = {
+  id: string;
+  guide_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -699,6 +750,36 @@ export type Database = {
         Insert: Partial<ClubMember> & { club_id: string; user_id: string };
         Update: Partial<ClubMember>;
         Relationships: [FKey<"club_id", "clubs">, FKey<"user_id", "profiles">];
+      };
+      guides: {
+        Row: Guide;
+        Insert: Partial<Guide> & { space_id: string; community_id: string; created_by: string; title: string; body: string };
+        Update: Partial<Guide>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      guide_contributors: {
+        Row: GuideContributor;
+        Insert: Partial<GuideContributor> & { guide_id: string; user_id: string };
+        Update: Partial<GuideContributor>;
+        Relationships: [FKey<"guide_id", "guides">, FKey<"user_id", "profiles">];
+      };
+      guide_revisions: {
+        Row: GuideRevision;
+        Insert: Partial<GuideRevision> & { guide_id: string; title: string; body: string };
+        Update: Partial<GuideRevision>;
+        Relationships: [FKey<"guide_id", "guides">, FKey<"edited_by", "profiles">];
+      };
+      guide_ratings: {
+        Row: GuideRating;
+        Insert: Partial<GuideRating> & { guide_id: string; user_id: string; rating: number };
+        Update: Partial<GuideRating>;
+        Relationships: [FKey<"guide_id", "guides">, FKey<"user_id", "profiles">];
+      };
+      guide_comments: {
+        Row: GuideComment;
+        Insert: Partial<GuideComment> & { guide_id: string; author_id: string; body: string };
+        Update: Partial<GuideComment>;
+        Relationships: [FKey<"guide_id", "guides">, FKey<"author_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;

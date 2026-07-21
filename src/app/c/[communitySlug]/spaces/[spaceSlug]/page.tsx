@@ -17,6 +17,7 @@ import { getSpaceJobListings } from "@/lib/data/jobs";
 import { getSpaceAccommodationListings } from "@/lib/data/accommodation";
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
+import { getSpaceGuides } from "@/lib/data/guides";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -46,6 +47,7 @@ import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
+import { GuidesView } from "./guides-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -77,6 +79,7 @@ export default async function SpaceDetailPage({
   const isAccommodationSpace = space.space_type === "accommodation";
   const isRecommendationsSpace = space.space_type === "recommendations";
   const isClubsSpace = space.space_type === "clubs";
+  const isGuidesSpace = space.space_type === "guides";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -89,7 +92,8 @@ export default async function SpaceDetailPage({
     !isJobsSpace &&
     !isAccommodationSpace &&
     !isRecommendationsSpace &&
-    !isClubsSpace;
+    !isClubsSpace &&
+    !isGuidesSpace;
 
   const [
     membership,
@@ -109,6 +113,7 @@ export default async function SpaceDetailPage({
     accommodationListings,
     recommendations,
     clubs,
+    guides,
   ] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
@@ -127,6 +132,7 @@ export default async function SpaceDetailPage({
     isAccommodationSpace ? getSpaceAccommodationListings(supabase, space.id) : Promise.resolve([]),
     isRecommendationsSpace ? getSpaceRecommendations(supabase, space.id, user.id) : Promise.resolve([]),
     isClubsSpace ? getSpaceClubs(supabase, space.id, user.id) : Promise.resolve([]),
+    isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -381,6 +387,8 @@ export default async function SpaceDetailPage({
           isStaff={Boolean(isStaff)}
           userId={user.id}
         />
+      ) : isGuidesSpace ? (
+        <GuidesView guides={guides} communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} canPost={canPost} />
       ) : (
         <>
           {canPost && (

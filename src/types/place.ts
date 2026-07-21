@@ -29,6 +29,8 @@
 //   - Club                → src/types/database.ts (clubs + club_members —
 //                           not the nested sub-community the brief
 //                           describes; see the comment in clubs.sql)
+//   - Guide               → src/types/database.ts (guides + guide_contributors
+//                           + guide_revisions + guide_ratings + guide_comments)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -62,22 +64,6 @@ export interface Route {
   distance_meters: number | null;
   created_by: string;
   created_at: string;
-}
-
-/** A member-written guide (Best Coffee, Hidden Gems, Moving Here, …) in the Guides space. Highlights zero or more places it references. */
-export interface Guide {
-  id: string;
-  community_id: string;
-  space_id: string;
-  title: string;
-  body: string;
-  featured: boolean;
-  landmark_ids: string[];
-  business_ids: string[];
-  contributor_ids: string[];
-  created_by: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
