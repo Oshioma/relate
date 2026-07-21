@@ -14,6 +14,7 @@ import { getSpaceBusinesses } from "@/lib/data/businesses";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import { getSpaceListings } from "@/lib/data/marketplace";
 import { getSpaceJobListings } from "@/lib/data/jobs";
+import { getSpaceAccommodationListings } from "@/lib/data/accommodation";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -40,6 +41,7 @@ import { BusinessCard } from "./business-card";
 import { ExploreMapLoader } from "./explore-map-loader";
 import { MarketplaceView } from "./marketplace-view";
 import { JobsBoardView } from "./jobs-board-view";
+import { AccommodationView } from "./accommodation-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -68,6 +70,7 @@ export default async function SpaceDetailPage({
   const isMapSpace = space.space_type === "map";
   const isMarketplaceSpace = space.space_type === "marketplace";
   const isJobsSpace = space.space_type === "jobs";
+  const isAccommodationSpace = space.space_type === "accommodation";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -77,7 +80,8 @@ export default async function SpaceDetailPage({
     !isBusinessDirectorySpace &&
     !isMapSpace &&
     !isMarketplaceSpace &&
-    !isJobsSpace;
+    !isJobsSpace &&
+    !isAccommodationSpace;
 
   const [
     membership,
@@ -94,6 +98,7 @@ export default async function SpaceDetailPage({
     mapBusinesses,
     listings,
     jobs,
+    accommodationListings,
   ] = await Promise.all([
     getMembership(supabase, community.id, user.id),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
@@ -109,6 +114,7 @@ export default async function SpaceDetailPage({
     isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),
     isMarketplaceSpace ? getSpaceListings(supabase, space.id) : Promise.resolve([]),
     isJobsSpace ? getSpaceJobListings(supabase, space.id) : Promise.resolve([]),
+    isAccommodationSpace ? getSpaceAccommodationListings(supabase, space.id) : Promise.resolve([]),
   ]);
 
   const canPost = membership?.status === "active";
@@ -322,6 +328,17 @@ export default async function SpaceDetailPage({
       ) : isJobsSpace ? (
         <JobsBoardView
           jobs={jobs}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={user.id}
+        />
+      ) : isAccommodationSpace ? (
+        <AccommodationView
+          listings={accommodationListings}
           communityId={community.id}
           communitySlug={community.slug}
           spaceId={space.id}

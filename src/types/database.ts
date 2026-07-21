@@ -38,6 +38,8 @@ export type MarketplaceListingType = "goods" | "services" | "property" | "vehicl
 export type MarketplaceListingStatus = "active" | "sold" | "expired";
 export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
 export type JobListingStatus = "open" | "closed";
+export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
+export type AccommodationStatus = "available" | "unavailable";
 
 export type Profile = {
   id: string;
@@ -292,6 +294,30 @@ export type JobListing = {
   lng: number | null;
   apply_url: string | null;
   status: JobListingStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+// One listing in an 'accommodation' space (see space-types.ts). business_id
+// is optional, same reasoning as JobListing — a hotel already in the
+// Business Directory can link here instead of duplicating its details.
+export type AccommodationListing = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  listed_by: string;
+  business_id: string | null;
+  name: string;
+  accommodation_type: AccommodationType;
+  description: string | null;
+  photo_url: string | null;
+  price_per_night: number | null;
+  currency: string | null;
+  booking_url: string | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  status: AccommodationStatus;
   created_at: string;
   updated_at: string;
 };
@@ -586,6 +612,12 @@ export type Database = {
         Insert: Partial<JobListing> & { space_id: string; community_id: string; posted_by: string; title: string; description: string };
         Update: Partial<JobListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"posted_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      accommodation_listings: {
+        Row: AccommodationListing;
+        Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
+        Update: Partial<AccommodationListing>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
       };
       member_interests: {
         Row: MemberInterest;
