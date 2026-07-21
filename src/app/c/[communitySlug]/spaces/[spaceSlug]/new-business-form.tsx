@@ -12,12 +12,14 @@ export function NewBusinessForm({
   spaceId,
   spaceSlug,
   userId,
+  onDone,
 }: {
   communityId: string;
   communitySlug: string;
   spaceId: string;
   spaceSlug: string;
   userId: string;
+  onDone?: () => void;
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function NewBusinessForm({
       setPin(null);
       setImageUrl(null);
       setImagePosition(null);
+      onDone?.();
     }
   }
 
