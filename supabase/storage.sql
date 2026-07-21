@@ -114,10 +114,18 @@ create policy "business_images_delete_own" on storage.objects
   using (bucket_id = 'business-images' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- uploads --------------------------------------------------------------------
--- General member uploads: post images, journal entry images, and any future
--- in-app media. Same per-user path scheme as avatars: `<user-id>/<file>`.
+-- General member uploads: post attachments, journal entry media, and any
+-- future in-app files. Same per-user path scheme as avatars: `<user-id>/<file>`.
+-- Images, videos and common documents, up to 50MB.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('uploads', 'uploads', true, 10485760, array['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
+values ('uploads', 'uploads', true, 52428800, array[
+  'image/png', 'image/jpeg', 'image/webp', 'image/gif',
+  'video/mp4', 'video/webm', 'video/quicktime',
+  'application/pdf', 'application/zip', 'text/plain', 'text/csv',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+])
 on conflict (id) do update set
   public = excluded.public,
   file_size_limit = excluded.file_size_limit,

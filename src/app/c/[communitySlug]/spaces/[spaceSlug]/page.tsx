@@ -32,7 +32,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatRelativeTime, isImageUrl } from "@/lib/utils";
+import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { MediaAttachment } from "@/components/ui/media-attachment";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
 import { JournalEntryForm } from "./journal-entry-form";
@@ -244,9 +245,10 @@ export default async function SpaceDetailPage({
                               return (
                                 <div key={field.id} className="text-sm text-foreground">
                                   <span className="font-medium text-muted-foreground">{field.label}: </span>
-                                  {isImageUrl(value) ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={value} alt={field.label} className="mt-1 max-h-48 rounded-md border border-border" />
+                                  {isImageUrl(value) || isVideoUrl(value) ? (
+                                    <div className="mt-1">
+                                      <MediaAttachment url={value} className="max-h-48" />
+                                    </div>
                                   ) : (
                                     <a href={value} target="_blank" rel="noreferrer" className="text-accent hover:underline">
                                       {value}
@@ -433,9 +435,10 @@ export default async function SpaceDetailPage({
                             {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
                           </p>
                           {post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{post.body}</p>}
-                          {post.image_url && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={post.image_url} alt="" className="mt-2 max-h-48 w-full rounded-md border border-border object-cover" />
+                          {post.media_url && (
+                            <div className="mt-2">
+                              <MediaAttachment url={post.media_url} className="max-h-48" />
+                            </div>
                           )}
                         </div>
                       </div>

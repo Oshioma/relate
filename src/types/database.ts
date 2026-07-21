@@ -121,7 +121,7 @@ export type Post = {
   author_id: string;
   title: string;
   body: string | null;
-  image_url: string | null;
+  media_url: string | null;
   post_type: PostType;
   is_pinned: boolean;
   lat: number | null;

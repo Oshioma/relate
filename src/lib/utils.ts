@@ -21,10 +21,21 @@ export function normalizeUrl(input: string): string {
   return /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
-// Whether a URL is worth rendering as an <img>: a common image extension, or
-// anything in our public 'uploads' storage bucket (see supabase/storage.sql).
+// Uploads to our storage buckets keep their file extension, so extension
+// sniffing covers both member uploads and pasted external links.
 export function isImageUrl(url: string): boolean {
-  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(url) || url.includes("/storage/v1/object/public/uploads/");
+  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(url);
+}
+
+export function isVideoUrl(url: string): boolean {
+  return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url);
+}
+
+// Display name for an uploaded file: last path segment, minus the random
+// UUID prefix UploadButton adds to prevent collisions.
+export function fileNameFromUrl(url: string): string {
+  const last = url.split("/").pop()?.split("?")[0] ?? "file";
+  return decodeURIComponent(last).replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i, "");
 }
 
 export function initials(name: string | null | undefined, fallback = "?") {

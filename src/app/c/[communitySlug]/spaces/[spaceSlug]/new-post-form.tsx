@@ -6,6 +6,7 @@ import { createPost } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { UploadButton } from "@/components/ui/upload-button";
+import { MediaAttachment } from "@/components/ui/media-attachment";
 
 interface NewPostFormProps {
   communityId: string;
@@ -15,7 +16,7 @@ interface NewPostFormProps {
 }
 
 export function NewPostForm({ communityId, spaceId, communitySlug, spaceSlug }: NewPostFormProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -26,7 +27,7 @@ export function NewPostForm({ communityId, spaceId, communitySlug, spaceSlug }: 
       setError(result.error);
     } else {
       formRef.current?.reset();
-      setImageUrl(null);
+      setMediaUrl(null);
     }
   }
 
@@ -36,7 +37,7 @@ export function NewPostForm({ communityId, spaceId, communitySlug, spaceSlug }: 
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
-      <input type="hidden" name="image_url" value={imageUrl ?? ""} />
+      <input type="hidden" name="media_url" value={mediaUrl ?? ""} />
 
       <div>
         <Label htmlFor="title">Title</Label>
@@ -48,17 +49,16 @@ export function NewPostForm({ communityId, spaceId, communitySlug, spaceSlug }: 
         <Textarea id="body" name="body" rows={3} placeholder="Say more…" />
       </div>
 
-      {imageUrl && (
-        <div className="relative w-fit">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="Attachment" className="max-h-40 rounded-md border border-border" />
+      {mediaUrl && (
+        <div className="flex items-start gap-2">
+          <MediaAttachment url={mediaUrl} className="max-h-40" />
           <button
             type="button"
-            title="Remove image"
-            onClick={() => setImageUrl(null)}
-            className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white hover:bg-black/70"
+            title="Remove attachment"
+            onClick={() => setMediaUrl(null)}
+            className="mt-1 shrink-0 text-muted-foreground hover:text-danger"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -74,7 +74,7 @@ export function NewPostForm({ communityId, spaceId, communitySlug, spaceSlug }: 
             <option value="announcement">Announcement</option>
             <option value="resource">Resource</option>
           </select>
-          <UploadButton label={imageUrl ? "Change image" : "Attach image"} onUploaded={setImageUrl} />
+          <UploadButton kind="any" label={mediaUrl ? "Change attachment" : "Attach"} onUploaded={setMediaUrl} />
         </div>
         <SubmitButton pendingText="Posting…" className="w-auto">
           Post
