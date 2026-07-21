@@ -132,6 +132,12 @@ export function BusinessCard({
         {business.description && <p className="mt-2 text-sm text-foreground">{business.description}</p>}
 
         <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+          {business.location_label && (
+            <p className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {business.location_label}
+            </p>
+          )}
           {business.address && (
             <p className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
