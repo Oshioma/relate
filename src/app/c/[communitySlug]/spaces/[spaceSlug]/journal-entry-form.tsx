@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
-import { createJournalEntry, type JournalEntryFormState } from "./journal-actions";
+import { useRef, useState } from "react";
+import { createJournalEntry } from "./journal-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { UploadButton } from "@/components/ui/upload-button";
@@ -20,14 +20,18 @@ export function JournalEntryForm({
   spaceSlug: string;
   fields: SpaceJournalField[];
 }) {
-  const [state, formAction] = useActionState<JournalEntryFormState, FormData>(createJournalEntry, undefined);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createJournalEntry(undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
     }
-  }, [state]);
+  }
 
   if (fields.length === 0) {
     return (
@@ -38,7 +42,7 @@ export function JournalEntryForm({
   }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
@@ -48,7 +52,7 @@ export function JournalEntryForm({
         <JournalFieldInput key={field.id} field={field} />
       ))}
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <SubmitButton pendingText="Logging…" className="w-auto">
         Log entry

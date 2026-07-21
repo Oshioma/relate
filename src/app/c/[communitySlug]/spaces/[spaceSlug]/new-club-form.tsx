@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
-import { createClub, type ClubFormState } from "./clubs-actions";
+import { useRef, useState } from "react";
+import { createClub } from "./clubs-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { CLUB_CATEGORY_PRESETS } from "@/lib/club-categories";
@@ -19,20 +19,23 @@ export function NewClubForm({
   spaceSlug: string;
   onDone?: () => void;
 }) {
-  const [state, formAction] = useActionState<ClubFormState, FormData>(createClub, undefined);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const categoryInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createClub(undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
       onDone?.();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-3 rounded-xl border border-border bg-card p-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-xl border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_id" value={spaceId} />
@@ -91,7 +94,7 @@ export function NewClubForm({
       </div>
       <p className="-mt-1.5 text-xs text-muted-foreground">Set both to show this club&apos;s meeting place on the Explore Map.</p>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <SubmitButton pendingText="Creating…" className="w-auto">
         Start a club

@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
-import { createComment, type PostFormState } from "../../actions";
+import { useRef, useState } from "react";
+import { createComment } from "../../actions";
 import { Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -12,20 +12,23 @@ interface CommentFormProps {
 }
 
 export function CommentForm({ postId, communitySlug, spaceSlug }: CommentFormProps) {
-  const boundAction = createComment.bind(null, postId, communitySlug, spaceSlug);
-  const [state, formAction] = useActionState<PostFormState, FormData>(boundAction, undefined);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createComment(postId, communitySlug, spaceSlug, undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
     }
-  }, [state]);
+  }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-2">
+    <form ref={formRef} action={handleSubmit} className="space-y-2">
       <Textarea name="body" rows={2} placeholder="Write a comment…" required />
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex justify-end">
         <SubmitButton pendingText="Posting…" className="w-auto">
           Comment

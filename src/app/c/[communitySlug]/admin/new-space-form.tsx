@@ -1,23 +1,27 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
-import { createSpace, type SpaceFormState } from "./actions";
+import { useRef, useState } from "react";
+import { createSpace } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
 
 export function NewSpaceForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
-  const [state, formAction] = useActionState<SpaceFormState, FormData>(createSpace, undefined);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createSpace(undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
     }
-  }, [state]);
+  }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
 
@@ -66,7 +70,7 @@ export function NewSpaceForm({ communityId, communitySlug }: { communityId: stri
         Show in left navigation
       </label>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <SubmitButton pendingText="Creating…" className="w-auto">
         Create space
