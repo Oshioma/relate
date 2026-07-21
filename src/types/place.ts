@@ -23,6 +23,7 @@
 //                           on the Explore Map that isn't already a Business)
 //   - MarketplaceListing  → src/types/database.ts (marketplace_listings table)
 //   - JobListing          → src/types/database.ts (job_listings table)
+//   - AccommodationListing → src/types/database.ts (accommodation_listings table)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -55,24 +56,6 @@ export interface Route {
   points: GeoLocation[];
   distance_meters: number | null;
   created_by: string;
-  created_at: string;
-}
-
-export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
-
-/** One listing in the Accommodation space. */
-export interface Accommodation extends MapPinnable {
-  id: string;
-  community_id: string;
-  space_id: string;
-  listed_by: string;
-  accommodation_type: AccommodationType;
-  name: string;
-  description: string | null;
-  photo_urls: string[];
-  price_per_night: number | null;
-  currency: string | null;
-  booking_url: string | null;
   created_at: string;
 }
 
