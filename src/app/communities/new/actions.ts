@@ -3,12 +3,14 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
-import type { ProfileFieldType, CommunityPrivacy } from "@/types/database";
+import { getPlaceLocationType } from "@/lib/community-templates";
+import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
   description: string;
   show_in_nav: boolean;
+  space_type: SpaceType;
 }
 
 export interface WizardProfileFieldInput {
@@ -22,6 +24,10 @@ export interface WizardPayload {
   slug: string;
   description: string;
   privacy: CommunityPrivacy;
+  // Place-Based Community only — validated against PLACE_LOCATION_TYPES
+  // below and dropped (not just left blank) for every other template.
+  locationType?: string;
+  locationName?: string;
   spaces: WizardSpaceInput[];
   profileFields: WizardProfileFieldInput[];
 }
@@ -57,6 +63,8 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   }
 
   const privacy = PRIVACY_LEVELS.includes(payload.privacy) ? payload.privacy : "public";
+  const locationType = payload.locationType && getPlaceLocationType(payload.locationType) ? payload.locationType : null;
+  const locationName = locationType && payload.locationName?.trim() ? payload.locationName.trim() : null;
 
   const supabase = await createClient();
   const {
@@ -75,6 +83,8 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       description: payload.description.trim() || null,
       owner_id: user.id,
       privacy,
+      location_type: locationType,
+      location_name: locationName,
     })
     .select("id, slug")
     .single();
@@ -98,7 +108,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         visibility: "members" as const,
         sort_order: i,
         show_in_nav: s.show_in_nav,
-        space_type: "discussion" as const,
+        space_type: s.space_type,
       }))
     );
     if (spacesError) {
