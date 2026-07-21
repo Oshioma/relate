@@ -7,7 +7,7 @@ import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
-import { businessCategoryLabel } from "@/lib/business-categories";
+import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
@@ -73,7 +73,7 @@ export default async function CommunityLayout({
         .filter((f) => f.space_id === space.id)
         .map((f) => ({
           href: `${base}/spaces/${space.slug}?category=${f.category}`,
-          label: businessCategoryLabel(f.category),
+          label: businessCategoryPluralLabel(f.category),
           icon: <Tag className="h-3.5 w-3.5" />,
           sub: true,
         })),
