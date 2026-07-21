@@ -33,7 +33,7 @@ export type SpaceType =
   | "recommendations";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
-export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "other";
+export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
 export type MarketplaceListingStatus = "active" | "sold" | "expired";
 export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
