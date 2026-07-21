@@ -313,7 +313,7 @@ export default function ExploreMap({
 
       {addMode && <p className="mb-2 text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
 
-      <div className={`overflow-hidden rounded-lg border border-border ${addMode ? "cursor-crosshair" : ""}`} style={{ height: 560 }}>
+      <div className={`overflow-hidden rounded-lg border border-border ${addMode ? "cursor-crosshair" : ""}`} style={{ height: 600 }}>
         <MapContainer bounds={UNGUJA_BOUNDS} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapClickHandler active={addMode} onPick={(lat, lng) => setPending({ lat, lng })} />

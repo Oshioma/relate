@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, Building2 } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -40,8 +40,7 @@ import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { NewChallengeForm } from "./new-challenge-form";
 import { ChallengeCard } from "./challenge-card";
-import { NewBusinessForm } from "./new-business-form";
-import { BusinessCard } from "./business-card";
+import { BusinessDirectoryView } from "./business-directory-view";
 import { ExploreMapLoader } from "./explore-map-loader";
 import { MarketplaceView } from "./marketplace-view";
 import { JobsBoardView } from "./jobs-board-view";
@@ -312,31 +311,16 @@ export default async function SpaceDetailPage({
           )}
         </>
       ) : isBusinessDirectorySpace ? (
-        <>
-          {canPost && (
-            <div className="mb-6">
-              <NewBusinessForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} userId={user.id} />
-            </div>
-          )}
-
-          {businesses.length === 0 ? (
-            <EmptyState icon={<Building2 className="h-6 w-6" />} title="No businesses yet" description="Restaurants, cafes, shops and services members add will show up here." />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {businesses.map((business) => (
-                <BusinessCard
-                  key={business.id}
-                  business={business}
-                  communitySlug={community.slug}
-                  spaceSlug={space.slug}
-                  canManage={Boolean(isStaff) || business.created_by === user.id}
-                  isStaff={Boolean(isStaff)}
-                  userId={user.id}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <BusinessDirectoryView
+          businesses={businesses}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={user.id}
+        />
       ) : isMapSpace ? (
         <ExploreMapLoader
           communityId={community.id}
