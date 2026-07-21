@@ -213,6 +213,39 @@ export type Business = {
   updated_at: string;
 };
 
+// A togglable layer on a community's Explore Map (Restaurants, Beaches, …).
+// Community-scoped rather than space-scoped — one community has one shared
+// map, same reasoning as community_profile_fields. Seeded from a place
+// community's chosen location type (see recommendPlaceSetup's mapLayers in
+// community-templates.ts) but freely editable afterward.
+export type MapCategory = {
+  id: string;
+  community_id: string;
+  name: string;
+  icon: string | null;
+  enabled: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+// A pin a member adds directly to a 'map' space — a beach, a viewpoint, a
+// trailhead, anything that isn't already a Business (businesses with
+// lat/lng set appear on the same map without being duplicated here).
+export type Landmark = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  category_id: string | null;
+  created_by: string;
+  name: string;
+  description: string | null;
+  lat: number;
+  lng: number;
+  location_label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -479,6 +512,18 @@ export type Database = {
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
         Update: Partial<Business>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      map_categories: {
+        Row: MapCategory;
+        Insert: Partial<MapCategory> & { community_id: string; name: string };
+        Update: Partial<MapCategory>;
+        Relationships: [FKey<"community_id", "communities">];
+      };
+      landmarks: {
+        Row: Landmark;
+        Insert: Partial<Landmark> & { space_id: string; community_id: string; created_by: string; name: string; lat: number; lng: number };
+        Update: Partial<Landmark>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"category_id", "map_categories">, FKey<"created_by", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;

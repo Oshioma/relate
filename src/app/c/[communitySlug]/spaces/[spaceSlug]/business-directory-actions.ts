@@ -12,6 +12,13 @@ function parseCategory(raw: FormDataEntryValue | null): BusinessCategory {
   return BUSINESS_CATEGORIES.some((c) => c.value === value) ? (value as BusinessCategory) : "other";
 }
 
+function parseCoordinate(raw: FormDataEntryValue | null, min: number, max: number): number | null {
+  const value = String(raw ?? "").trim();
+  if (!value) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
+
 export async function createBusiness(_prevState: BusinessFormState, formData: FormData): Promise<BusinessFormState> {
   const spaceId = String(formData.get("space_id") ?? "");
   const communityId = String(formData.get("community_id") ?? "");
@@ -24,9 +31,14 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
   const phone = String(formData.get("phone") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const openingHours = String(formData.get("opening_hours") ?? "").trim();
+  const lat = parseCoordinate(formData.get("lat"), -90, 90);
+  const lng = parseCoordinate(formData.get("lng"), -180, 180);
 
   if (!name) {
     return { error: "Give the business a name." };
+  }
+  if ((lat === null) !== (lng === null)) {
+    return { error: "Set both latitude and longitude, or leave both blank." };
   }
 
   const supabase = await createClient();
@@ -49,6 +61,8 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
     phone: phone || null,
     address: address || null,
     opening_hours: openingHours || null,
+    lat,
+    lng,
   });
 
   if (error) {

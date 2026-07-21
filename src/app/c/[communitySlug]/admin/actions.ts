@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
@@ -223,4 +224,42 @@ export async function updateCommunityDetails(
   revalidatePath(`/c/${communitySlug}`, "layout");
   revalidatePath("/dashboard");
   return undefined;
+}
+
+export type DeleteCommunityState = { error: string } | undefined;
+
+// Owner-only — mirrors the communities_delete_owner RLS policy in
+// schema.sql (owner_id = auth.uid()), which is the real enforcement; this
+// check just turns "the delete silently did nothing" into a clear error.
+// Requires retyping the community's slug so this can't be a misclick.
+export async function deleteCommunity(_prevState: DeleteCommunityState, formData: FormData): Promise<DeleteCommunityState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const confirmSlug = String(formData.get("confirm_slug") ?? "").trim();
+
+  if (confirmSlug !== communitySlug) {
+    return { error: "Type the community's URL exactly to confirm." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: community } = await supabase.from("communities").select("owner_id").eq("id", communityId).single();
+  if (!community || community.owner_id !== user.id) {
+    return { error: "Only the owner can delete this community." };
+  }
+
+  const { error } = await supabase.from("communities").delete().eq("id", communityId);
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }

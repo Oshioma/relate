@@ -17,6 +17,10 @@
 //                           profile page; distinct from `Business`, which is
 //                           a place-scoped directory/map listing any member
 //                           can add, with or without being the owner)
+//   - MapCategory         → src/types/database.ts (map_categories table — a
+//                           community's togglable Explore Map layers)
+//   - Landmark            → src/types/database.ts (landmarks table — a pin
+//                           on the Explore Map that isn't already a Business)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -38,38 +42,6 @@ export interface GeoLocation {
 export interface MapPinnable {
   location: GeoLocation | null;
   location_label: string | null;
-}
-
-/** A creator-defined or built-in category of pin shown on the Explore Map (Restaurants, Beaches, Hidden Gems, …). */
-export interface MapCategory {
-  id: string;
-  community_id: string;
-  name: string;
-  icon: string | null;
-  sort_order: number;
-  created_at: string;
-}
-
-/** One togglable layer on the Explore Map — a community enables/disables layers independently of the categories that populate them. */
-export interface MapLayer {
-  id: string;
-  community_id: string;
-  category_id: string;
-  label: string;
-  enabled: boolean;
-  sort_order: number;
-}
-
-/** A durable point of interest on the map: a landmark, viewpoint, dive site, trailhead — anything worth pinning that isn't a Business, Event or Accommodation. */
-export interface Landmark extends MapPinnable {
-  id: string;
-  community_id: string;
-  category_id: string | null;
-  name: string;
-  description: string | null;
-  photo_urls: string[];
-  created_by: string;
-  created_at: string;
 }
 
 /** A walking trail, boat route, transit line or similar path — a Route is a sequence of GeoLocation points rather than a single pin. */

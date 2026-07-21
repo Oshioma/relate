@@ -82,6 +82,18 @@ export function NewBusinessForm({
         </div>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="business_lat">Latitude (optional)</Label>
+          <Input id="business_lat" name="lat" type="number" step="any" placeholder="-6.1462" />
+        </div>
+        <div>
+          <Label htmlFor="business_lng">Longitude (optional)</Label>
+          <Input id="business_lng" name="lng" type="number" step="any" placeholder="39.3621" />
+        </div>
+      </div>
+      <p className="-mt-1.5 text-xs text-muted-foreground">Set both to show this business on the Explore Map.</p>
+
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Adding…" className="w-auto">
