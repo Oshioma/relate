@@ -10,6 +10,13 @@ import type { Community, Database } from "@/types/database";
 
 const STAFF_ROLES = new Set(["owner", "admin", "moderator"]);
 
+const DISCOVERY_ERRORS: Record<string, string> = {
+  unconfigured: "AI discovery isn't configured — set a valid ANTHROPIC_API_KEY, then try again.",
+  billing:
+    "Your Anthropic account is out of API credit. Add funds at console.anthropic.com (Plans & Billing), then try again.",
+  error: "AI discovery hit a temporary error. Wait a minute and try again.",
+};
+
 type StaffContext = {
   supabase: SupabaseClient<Database>;
   user: User;
@@ -53,16 +60,14 @@ export async function discoverEvents(
   const existingTitles = (upcoming ?? []).map((e) => e.title);
   const locationName = community.location_name || community.name;
 
-  const found = await discoverEventsWithAI({ locationName, existingTitles });
-  if (found === null) {
-    return {
-      error: "AI discovery is unavailable right now. Check that ANTHROPIC_API_KEY is configured, then try again.",
-    };
+  const result = await discoverEventsWithAI({ locationName, existingTitles });
+  if (result.status !== "ok") {
+    return { error: DISCOVERY_ERRORS[result.status] };
   }
 
   // Belt-and-braces dedupe in case the model ignored the skip list.
   const seen = new Set(existingTitles.map((t) => t.toLowerCase()));
-  return { events: found.filter((e) => !seen.has(e.title.toLowerCase())) };
+  return { events: result.events.filter((e) => !seen.has(e.title.toLowerCase())) };
 }
 
 // Inserts the staff-approved subset of discovered events. RLS
