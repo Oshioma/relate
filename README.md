@@ -237,6 +237,37 @@ community (members, or anyone if the community is public), managed
 only by owner/admin (`community_nav_links`, RLS-gated the same way as
 the rest of the admin-managed tables).
 
+## Place-Based Community
+
+The setup wizard's "Place-Based Community" template creates spaces with
+types (Explore Map, Marketplace, Business Directory, Guides, Clubs &
+Groups, Volunteer Hub, Jobs Board, Accommodation, Local
+Recommendations) that don't exist until you run these — skipping them
+is why community setup can fail with `new row for relation "spaces"
+violates check constraint "spaces_space_type_check"` the moment that
+template is picked. Run, in this order, after `supabase/schema.sql`
+and `supabase/space-types.sql`:
+
+1. `supabase/place-community.sql` — adds `location_type`/`location_name`
+   to `communities`, the nine space types above, and optional
+   `lat`/`lng`/`location_label` on `posts` and `events` (the start of a
+   "Living Map" — any post or event can optionally carry a place).
+2. `supabase/business-directory.sql` — depends on `place-community.sql`
+   (`business_directory` space type). Local businesses — restaurants,
+   cafes, shops, accommodation, services, and a local-trades catch-all.
+3. `supabase/marketplace.sql` — depends on `place-community.sql`
+   (`marketplace` space type). Goods, services, property, vehicles,
+   jobs, free items, wanted posts, experiences and tickets.
+4. `supabase/jobs-board.sql` — depends on `place-community.sql` (`jobs`
+   space type) and `business-directory.sql` (a posting can optionally
+   link to a business listing).
+5. `supabase/accommodation.sql` — depends on `place-community.sql`
+   (`accommodation` space type) and `business-directory.sql` (a listing
+   can optionally link to a business).
+6. `supabase/explore-map.sql` — depends on `place-community.sql` (`map`
+   space type). Togglable map layers (Restaurants, Beaches, Parks, …)
+   the wizard seeds from a place community's chosen location type.
+
 ## Member Directory (in progress)
 
 This has been built in stages — **Stages 1 through 7** are all in
@@ -498,6 +529,12 @@ supabase/
   growth-journey.sql                Journal-entry contribution-score trigger (Growth Journey)
   challenges.sql                    space_challenges + space_challenge_participants for challenges-type spaces
   community-nav-links.sql           Custom external sidebar links, managed by community admins
+  place-community.sql               Place-based location fields, nine place space types, post/event geo
+  business-directory.sql            businesses table for business_directory-type spaces
+  marketplace.sql                   marketplace_listings table for marketplace-type spaces
+  jobs-board.sql                    job_listings table for jobs-type spaces
+  accommodation.sql                 accommodation_listings table for accommodation-type spaces
+  explore-map.sql                   map_categories + landmarks (map pins) for map-type spaces
   member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
                                      skills, help requests, locations (Member Directory Stage 1)
   community-custom-fields.sql       Per-community custom profile fields + values
