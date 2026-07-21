@@ -22,6 +22,7 @@
 //   - Landmark            → src/types/database.ts (landmarks table — a pin
 //                           on the Explore Map that isn't already a Business)
 //   - MarketplaceListing  → src/types/database.ts (marketplace_listings table)
+//   - JobListing          → src/types/database.ts (job_listings table)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -54,23 +55,6 @@ export interface Route {
   points: GeoLocation[];
   distance_meters: number | null;
   created_by: string;
-  created_at: string;
-}
-
-export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
-
-/** One posting in the Jobs Board space. */
-export interface Job {
-  id: string;
-  community_id: string;
-  space_id: string;
-  posted_by: string;
-  business_id: string | null;
-  title: string;
-  description: string;
-  job_type: JobType;
-  location_label: string | null;
-  apply_url: string | null;
   created_at: string;
 }
 

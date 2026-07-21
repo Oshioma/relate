@@ -36,6 +36,8 @@ export type ResourceType = "link" | "file" | "video" | "document";
 export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "other";
 export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
 export type MarketplaceListingStatus = "active" | "sold" | "expired";
+export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
+export type JobListingStatus = "open" | "closed";
 
 export type Profile = {
   id: string;
@@ -267,6 +269,29 @@ export type MarketplaceListing = {
   lat: number | null;
   lng: number | null;
   location_label: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// One posting in a 'jobs' space (see space-types.ts). business_id is
+// optional — a posting can link to an existing Business Directory listing
+// (the employer) or stand alone. salary is free text (not numeric): real
+// postings say "negotiable" or "$18-22/hr" as often as a clean number.
+export type JobListing = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  posted_by: string;
+  business_id: string | null;
+  title: string;
+  description: string;
+  job_type: JobType;
+  salary: string | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  apply_url: string | null;
+  status: JobListingStatus;
   created_at: string;
   updated_at: string;
 };
@@ -555,6 +580,12 @@ export type Database = {
         Insert: Partial<MarketplaceListing> & { space_id: string; community_id: string; seller_id: string; title: string };
         Update: Partial<MarketplaceListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"seller_id", "profiles">];
+      };
+      job_listings: {
+        Row: JobListing;
+        Insert: Partial<JobListing> & { space_id: string; community_id: string; posted_by: string; title: string; description: string };
+        Update: Partial<JobListing>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"posted_by", "profiles">, FKey<"business_id", "businesses">];
       };
       member_interests: {
         Row: MemberInterest;
