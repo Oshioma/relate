@@ -24,6 +24,8 @@
 //   - MarketplaceListing  → src/types/database.ts (marketplace_listings table)
 //   - JobListing          → src/types/database.ts (job_listings table)
 //   - AccommodationListing → src/types/database.ts (accommodation_listings table)
+//   - Recommendation      → src/types/database.ts (recommendations table +
+//                           recommendation_votes for "agree" co-signing)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -100,20 +102,6 @@ export interface VolunteerProject extends MapPinnable {
   description: string;
   status: VolunteerProjectStatus;
   volunteers_needed: number | null;
-  created_at: string;
-}
-
-/** A member recommendation for a restaurant, activity, service, professional, walk, viewpoint, or contractor — searchable across the whole community. */
-export interface Recommendation extends MapPinnable {
-  id: string;
-  community_id: string;
-  space_id: string;
-  recommended_by: string;
-  category: string;
-  title: string;
-  note: string;
-  business_id: string | null;
-  landmark_id: string | null;
   created_at: string;
 }
 

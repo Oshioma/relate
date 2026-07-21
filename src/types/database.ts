@@ -40,6 +40,7 @@ export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "inte
 export type JobListingStatus = "open" | "closed";
 export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
 export type AccommodationStatus = "available" | "unavailable";
+export type RecommendationCategory = "restaurant" | "cafe" | "activity" | "service" | "professional" | "walk" | "viewpoint" | "contractor" | "other";
 
 export type Profile = {
   id: string;
@@ -320,6 +321,34 @@ export type AccommodationListing = {
   status: AccommodationStatus;
   created_at: string;
   updated_at: string;
+};
+
+// A member's recommendation in a 'recommendations' space (see
+// space-types.ts). business_id/landmark_id optionally link to an existing
+// Business Directory listing or Explore Map pin; both stay null for a
+// recommendation that isn't tied to either (a walk, a general tip).
+export type Recommendation = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  recommended_by: string;
+  category: RecommendationCategory;
+  title: string;
+  note: string | null;
+  business_id: string | null;
+  landmark_id: string | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RecommendationVote = {
+  id: string;
+  recommendation_id: string;
+  user_id: string;
+  created_at: string;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
@@ -618,6 +647,18 @@ export type Database = {
         Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
         Update: Partial<AccommodationListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      recommendations: {
+        Row: Recommendation;
+        Insert: Partial<Recommendation> & { space_id: string; community_id: string; recommended_by: string; title: string };
+        Update: Partial<Recommendation>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"recommended_by", "profiles">, FKey<"business_id", "businesses">, FKey<"landmark_id", "landmarks">];
+      };
+      recommendation_votes: {
+        Row: RecommendationVote;
+        Insert: Partial<RecommendationVote> & { recommendation_id: string; user_id: string };
+        Update: Partial<RecommendationVote>;
+        Relationships: [FKey<"recommendation_id", "recommendations">, FKey<"user_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;
