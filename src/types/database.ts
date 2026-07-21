@@ -33,7 +33,7 @@ export type SpaceType =
   | "recommendations";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
-export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "other";
+export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "other";
 export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
 export type MarketplaceListingStatus = "active" | "sold" | "expired";
 export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
@@ -222,6 +222,17 @@ export type Business = {
   featured: boolean;
   created_at: string;
   updated_at: string;
+};
+
+// A business category staff have featured for a directory space — surfaced as
+// a sub-link under that space in the left nav, deep-linking to the directory
+// pre-filtered to the category.
+export type FeaturedBusinessCategory = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  category: BusinessCategory;
+  created_at: string;
 };
 
 // A togglable layer on a community's Explore Map (Restaurants, Beaches, …).
@@ -738,6 +749,12 @@ export type Database = {
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
         Update: Partial<Business>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      featured_business_categories: {
+        Row: FeaturedBusinessCategory;
+        Insert: Partial<FeaturedBusinessCategory> & { space_id: string; community_id: string; category: BusinessCategory };
+        Update: Partial<FeaturedBusinessCategory>;
+        Relationships: [FKey<"space_id", "spaces">];
       };
       map_categories: {
         Row: MapCategory;

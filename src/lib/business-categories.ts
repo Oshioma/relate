@@ -9,6 +9,7 @@ export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] =
   { value: "health", label: "Health" },
   { value: "fitness", label: "Fitness" },
   { value: "coworking", label: "Coworking" },
+  { value: "activity", label: "Activity" },
   { value: "other", label: "Other" },
 ];
 

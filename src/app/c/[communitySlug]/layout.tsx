@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Sparkles } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Sparkles, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { businessCategoryLabel } from "@/lib/business-categories";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
@@ -35,13 +37,14 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks] = await Promise.all([
+  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks, featuredCategories] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
     getUnreadNotificationCount(supabase, user.id),
     getUnreadMessageCount(supabase, user.id),
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
+    getCommunityFeaturedBusinessCategories(supabase, community.id),
   ]);
 
   if (!membership && !community.is_public) {
@@ -58,11 +61,23 @@ export default async function CommunityLayout({
 
   const navItems = [
     { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
-    ...navSpaces.map((space) => ({
-      href: `${base}/spaces/${space.slug}`,
-      label: space.name,
-      icon: <Layers className="h-4 w-4" />,
-    })),
+    // Featured business categories render as indented sub-links right under
+    // their directory space, deep-linking to the pre-filtered directory.
+    ...navSpaces.flatMap((space) => [
+      {
+        href: `${base}/spaces/${space.slug}`,
+        label: space.name,
+        icon: <Layers className="h-4 w-4" />,
+      },
+      ...featuredCategories
+        .filter((f) => f.space_id === space.id)
+        .map((f) => ({
+          href: `${base}/spaces/${space.slug}?category=${f.category}`,
+          label: businessCategoryLabel(f.category),
+          icon: <Tag className="h-3.5 w-3.5" />,
+          sub: true,
+        })),
+    ]),
     { href: `${base}/spaces`, label: "All spaces", icon: <LayoutGrid className="h-4 w-4" /> },
     { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
     { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
@@ -87,6 +102,7 @@ export default async function CommunityLayout({
                 href={item.href}
                 icon={item.icon}
                 exact={item.href === base || item.href === `${base}/spaces`}
+                className={"sub" in item && item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
               >
                 {item.label}
               </NavLink>

@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus, Search, X, Building2 } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Search, X, Building2, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BUSINESS_CATEGORIES, businessCategoryLabel } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
+import { setCategoryFeatured } from "./business-directory-actions";
 import type { Business, BusinessCategory } from "@/types/database";
 
 export function BusinessDirectoryView({
@@ -18,6 +20,8 @@ export function BusinessDirectoryView({
   canPost,
   isStaff,
   userId,
+  initialCategory,
+  featuredCategories,
 }: {
   businesses: Business[];
   communityId: string;
@@ -27,11 +31,33 @@ export function BusinessDirectoryView({
   canPost: boolean;
   isStaff: boolean;
   userId: string;
+  // Pre-selected category from a ?category= nav sub-link.
+  initialCategory?: BusinessCategory;
+  // Categories staff have pinned as nav sub-links for this space.
+  featuredCategories: BusinessCategory[];
 }) {
-  const [category, setCategory] = useState<BusinessCategory | "all">("all");
+  const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [featured, setFeatured] = useState<BusinessCategory[]>(featuredCategories);
+  const [featuredError, setFeaturedError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  function toggleFeatured(target: BusinessCategory) {
+    const makeFeatured = !featured.includes(target);
+    setFeaturedError(null);
+    startTransition(async () => {
+      const result = await setCategoryFeatured(spaceId, communityId, target, makeFeatured, communitySlug);
+      if (result?.error) {
+        setFeaturedError(result.error);
+      } else {
+        setFeatured((prev) => (makeFeatured ? [...prev, target] : prev.filter((c) => c !== target)));
+        router.refresh();
+      }
+    });
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -114,13 +140,28 @@ export function BusinessDirectoryView({
               key={c.value}
               type="button"
               onClick={() => setCategory(isActive ? "all" : c.value)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
             >
+              {featured.includes(c.value) && <Pin className="h-3 w-3" />}
               {businessCategoryLabel(c.value)} ({count})
             </button>
           );
         })}
+        {isStaff && category !== "all" && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => toggleFeatured(category)}
+            title="Featured categories appear as links under this directory in the left nav"
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
+          >
+            {featured.includes(category) ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+            {featured.includes(category) ? "Remove nav link" : "Add to nav"}
+          </button>
+        )}
       </div>
+
+      {featuredError && <p className="-mt-3 mb-3 text-xs text-danger">{featuredError}</p>}
 
       {locations.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
