@@ -60,7 +60,6 @@ export function groupRsvpsByEvent(rsvps: EventRsvpWithAttendee[]): Map<string, E
 
 // Shapes AI-discovered event candidates into rows ready for insertion into
 // public.events, dropping anything without a title or parseable start time.
-// Shared by the staff-facing import action and the scheduled cron import.
 export function buildDiscoveredEventRows(
   events: DiscoveredEvent[],
   opts: { communityId: string; createdBy: string; max?: number },

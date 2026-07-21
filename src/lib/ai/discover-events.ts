@@ -48,7 +48,8 @@ Rules:
 - Speed matters: start searching immediately, run a few broad searches against event calendars and listings sites, and extract from those results. Do not run extra searches to double-check individual events.
 - Only include events you found via web search, with a concrete future date. Never invent events. If a listing gives only a date with no time, use a sensible local time for that kind of event.
 - Skip anything that matches an existing event title you are given.
-- Return at most ${MAX_RESULTS} events, soonest first. If you find nothing verifiable, return [].`;
+- Return at most ${MAX_RESULTS} events, soonest first. If you find nothing verifiable, return [].
+- Your final message must be exactly the JSON array — starting with "[" and ending with "]".`;
 
 // Searches the web for upcoming events near `locationName` and returns
 // structured candidates, or a status describing why the call couldn't run.
@@ -78,10 +79,12 @@ export async function discoverEventsWithAI(opts: {
     const send = () =>
       anthropic.messages.create({
         model: MODEL,
-        max_tokens: 8000,
-        // Low effort minimizes thinking between search rounds; the task is
-        // extraction, not deep reasoning, so latency wins here.
-        output_config: { effort: "low" },
+        // Thinking (on by default) shares this budget with the final answer;
+        // too small a cap truncates the JSON mid-array and yields no events.
+        max_tokens: 16000,
+        // "low" proved too shallow — the model sometimes skipped searching
+        // or gave up early. "medium" still keeps runs well under a minute.
+        output_config: { effort: "medium" },
         system: SYSTEM_PROMPT,
         tools: [{ type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES }],
         messages,
@@ -94,7 +97,29 @@ export async function discoverEventsWithAI(opts: {
     }
 
     const text = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
-    return { status: "ok", events: parseEvents(text) };
+
+    if (response.stop_reason === "max_tokens") {
+      console.error("[discover-events] output truncated at max_tokens; usage:", response.usage);
+      return { status: "error" };
+    }
+
+    const events = parseEvents(text);
+    if (events === null) {
+      // The model produced prose instead of JSON — surface it as an error
+      // (not "no events found") and leave a trail in the server logs.
+      console.error(
+        `[discover-events] no JSON array in model output (stop_reason=${response.stop_reason}); text starts: ${text.slice(0, 300)}`,
+      );
+      return { status: "error" };
+    }
+
+    if (events.length === 0) {
+      console.log(
+        `[discover-events] genuine empty result for "${opts.locationName}" (stop_reason=${response.stop_reason}); text starts: ${text.slice(0, 300)}`,
+      );
+    }
+
+    return { status: "ok", events };
   } catch (error) {
     console.error("[discover-events] Anthropic API call failed:", error);
     if (error instanceof Anthropic.AuthenticationError) return { status: "unconfigured" };
@@ -107,19 +132,21 @@ export async function discoverEventsWithAI(opts: {
 }
 
 // The model is told to emit bare JSON, but tolerate stray prose or fences by
-// slicing from the first "[" to the last "]".
-function parseEvents(text: string): DiscoveredEvent[] {
+// slicing from the first "[" to the last "]". Returns null when no JSON
+// array could be recovered at all — callers treat that as a failed run,
+// distinct from a genuine empty result.
+function parseEvents(text: string): DiscoveredEvent[] | null {
   const start = text.indexOf("[");
   const end = text.lastIndexOf("]");
-  if (start === -1 || end <= start) return [];
+  if (start === -1 || end <= start) return null;
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(text.slice(start, end + 1));
   } catch {
-    return [];
+    return null;
   }
-  if (!Array.isArray(parsed)) return [];
+  if (!Array.isArray(parsed)) return null;
 
   const now = Date.now();
   const events: DiscoveredEvent[] = [];
