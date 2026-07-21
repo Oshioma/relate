@@ -25,6 +25,8 @@ export function BusinessFormFields({
   onPinChange,
   imageUrl,
   onImageChange,
+  imagePosition,
+  onImagePositionChange,
   userId,
 }: {
   idPrefix: string;
@@ -33,6 +35,8 @@ export function BusinessFormFields({
   onPinChange: (pin: PickedLocation | null) => void;
   imageUrl: string | null;
   onImageChange: (url: string | null) => void;
+  imagePosition: string | null;
+  onImagePositionChange: (position: string | null) => void;
   userId: string;
 }) {
   const websiteRef = useRef<HTMLInputElement>(null);
@@ -96,7 +100,14 @@ export function BusinessFormFields({
 
       <div>
         <Label>Image (optional)</Label>
-        <BusinessImageInput value={imageUrl} onChange={onImageChange} getWebsite={() => websiteRef.current?.value ?? ""} userId={userId} />
+        <BusinessImageInput
+          value={imageUrl}
+          onChange={onImageChange}
+          position={imagePosition}
+          onPositionChange={onImagePositionChange}
+          getWebsite={() => websiteRef.current?.value ?? ""}
+          userId={userId}
+        />
         <p className="mt-1.5 text-xs text-muted-foreground">Leave empty and we&apos;ll try to pull one from the website automatically.</p>
       </div>
 
