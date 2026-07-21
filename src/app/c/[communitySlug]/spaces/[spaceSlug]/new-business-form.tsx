@@ -1,10 +1,19 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
-import { createBusiness, type BusinessFormState } from "./business-directory-actions";
+import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { createBusiness } from "./business-directory-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import type { PickedLocation } from "./location-picker";
+
+// Leaflet touches `window` at import time, so the picker can only load in the
+// browser — same pattern as explore-map-loader.tsx.
+const LocationPicker = dynamic(() => import("./location-picker"), {
+  ssr: false,
+  loading: () => <div className="flex h-[240px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
+});
 
 export function NewBusinessForm({
   communityId,
@@ -17,17 +26,23 @@ export function NewBusinessForm({
   spaceId: string;
   spaceSlug: string;
 }) {
-  const [state, formAction] = useActionState<BusinessFormState, FormData>(createBusiness, undefined);
+  const [pin, setPin] = useState<PickedLocation | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createBusiness(undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
+      setPin(null);
     }
-  }, [state]);
+  }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_id" value={spaceId} />
@@ -82,19 +97,15 @@ export function NewBusinessForm({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label htmlFor="business_lat">Latitude (optional)</Label>
-          <Input id="business_lat" name="lat" type="number" step="any" placeholder="-6.1462" />
-        </div>
-        <div>
-          <Label htmlFor="business_lng">Longitude (optional)</Label>
-          <Input id="business_lng" name="lng" type="number" step="any" placeholder="39.3621" />
-        </div>
+      <div>
+        <Label>Location (optional)</Label>
+        <LocationPicker value={pin} onChange={setPin} />
+        <input type="hidden" name="lat" value={pin?.lat ?? ""} />
+        <input type="hidden" name="lng" value={pin?.lng ?? ""} />
+        <p className="mt-1.5 text-xs text-muted-foreground">Drop a pin to show this business on the Explore Map.</p>
       </div>
-      <p className="-mt-1.5 text-xs text-muted-foreground">Set both to show this business on the Explore Map.</p>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <SubmitButton pendingText="Adding…" className="w-auto">
         Add business
