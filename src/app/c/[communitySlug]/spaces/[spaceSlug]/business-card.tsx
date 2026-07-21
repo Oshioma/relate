@@ -76,10 +76,15 @@ export function BusinessCard({
 
   return (
     <Card className="overflow-hidden">
-      <div className="h-36 w-full bg-muted">
+      <div className="h-44 w-full bg-muted">
         {business.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={business.image_url} alt={business.name} className="h-full w-full object-cover" />
+          <img
+            src={business.image_url}
+            alt={business.name}
+            className="h-full w-full object-cover"
+            style={{ objectPosition: business.image_position ?? "50% 50%" }}
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             <Store className="h-8 w-8" />

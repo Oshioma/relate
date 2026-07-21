@@ -216,6 +216,7 @@ export type Business = {
   lng: number | null;
   location_label: string | null;
   image_url: string | null;
+  image_position: string | null;
   verified: boolean;
   featured: boolean;
   created_at: string;

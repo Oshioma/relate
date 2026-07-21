@@ -21,6 +21,7 @@ export function NewBusinessForm({
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imagePosition, setImagePosition] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -33,6 +34,7 @@ export function NewBusinessForm({
       formRef.current?.reset();
       setPin(null);
       setImageUrl(null);
+      setImagePosition(null);
     }
   }
 
@@ -49,6 +51,8 @@ export function NewBusinessForm({
         onPinChange={setPin}
         imageUrl={imageUrl}
         onImageChange={setImageUrl}
+        imagePosition={imagePosition}
+        onImagePositionChange={setImagePosition}
         userId={userId}
       />
 

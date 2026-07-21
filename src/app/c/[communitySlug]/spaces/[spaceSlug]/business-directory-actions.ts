@@ -24,7 +24,15 @@ function parseImageUrl(raw: FormDataEntryValue | null): string | null {
   return /^https?:\/\//.test(value) ? value : null;
 }
 
+// How the image is panned inside its crop box, as a CSS object-position
+// value like "50% 25%" — set by dragging the preview in the form.
+function parseImagePosition(raw: FormDataEntryValue | null): string | null {
+  const value = String(raw ?? "").trim();
+  return /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/.test(value) ? value : null;
+}
+
 function parseBusinessFields(formData: FormData) {
+  const imageUrl = parseImageUrl(formData.get("image_url"));
   return {
     name: String(formData.get("name") ?? "").trim(),
     category: parseCategory(formData.get("category")),
@@ -35,7 +43,8 @@ function parseBusinessFields(formData: FormData) {
     openingHours: String(formData.get("opening_hours") ?? "").trim(),
     lat: parseCoordinate(formData.get("lat"), -90, 90),
     lng: parseCoordinate(formData.get("lng"), -180, 180),
-    imageUrl: parseImageUrl(formData.get("image_url")),
+    imageUrl,
+    imagePosition: imageUrl ? parseImagePosition(formData.get("image_position")) : null,
   };
 }
 
@@ -45,55 +54,71 @@ function validateBusinessFields(f: ReturnType<typeof parseBusinessFields>): stri
   return null;
 }
 
-// og:image / twitter:image in either attribute order.
+// og:image / twitter:image in either attribute order, then plain <img> tags.
 const META_IMAGE_PATTERNS = [
-  /<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']/i,
-  /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["']/i,
+  /<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']/gi,
+  /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["']/gi,
+  /<img[^>]+src=["']([^"']+)["']/gi,
 ];
 
-// Best-effort scrape of the social-share image from a business's website.
-// Returns null rather than throwing — an unreachable or imageless site just
-// means the listing has no image until the member uploads one.
-async function scrapeWebsiteImage(website: string): Promise<string | null> {
+const MAX_CANDIDATES = 12;
+
+// Best-effort scrape of candidate images from a business's website: share
+// images first (usually the best), then images on the page. Returns [] rather
+// than throwing — an unreachable or imageless site just means the listing has
+// no image until the member uploads one.
+async function scrapeWebsiteImages(website: string): Promise<string[]> {
   let url: URL;
   try {
     url = new URL(website);
   } catch {
-    return null;
+    return [];
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.protocol !== "http:" && url.protocol !== "https:") return [];
 
   try {
     const response = await fetch(url, {
       signal: AbortSignal.timeout(6000),
       headers: { "user-agent": "Mozilla/5.0 (compatible; RelateBot/1.0; +https://relate.app)", accept: "text/html" },
     });
-    if (!response.ok) return null;
+    if (!response.ok) return [];
     const html = (await response.text()).slice(0, 500_000);
+    const base = response.url || url;
+
+    const found: string[] = [];
     for (const pattern of META_IMAGE_PATTERNS) {
-      const match = html.match(pattern);
-      if (match) {
-        const resolved = new URL(match[1].replace(/&amp;/g, "&"), response.url || url).toString();
-        if (/^https?:\/\//.test(resolved)) return resolved;
+      for (const match of html.matchAll(pattern)) {
+        const raw = match[1].replace(/&amp;/g, "&");
+        if (raw.startsWith("data:") || /\.svg(\?|$)/i.test(raw)) continue;
+        try {
+          const resolved = new URL(raw, base).toString();
+          if (/^https?:\/\//.test(resolved) && !found.includes(resolved)) {
+            found.push(resolved);
+            if (found.length >= MAX_CANDIDATES) return found;
+          }
+        } catch {
+          // Malformed src attribute — skip it.
+        }
       }
     }
+    return found;
   } catch {
     // Timeout, DNS failure, TLS error — treat all as "no image found".
+    return [];
   }
-  return null;
 }
 
-export async function fetchWebsiteImage(website: string): Promise<{ imageUrl: string | null; error?: string }> {
+export async function fetchWebsiteImages(website: string): Promise<{ images: string[]; error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { imageUrl: null, error: "You need to be signed in." };
+    return { images: [], error: "You need to be signed in." };
   }
 
-  const imageUrl = await scrapeWebsiteImage(website);
-  return imageUrl ? { imageUrl } : { imageUrl: null, error: "Couldn't find an image on that website." };
+  const images = await scrapeWebsiteImages(website);
+  return images.length > 0 ? { images } : { images: [], error: "Couldn't find an image on that website." };
 }
 
 export async function createBusiness(_prevState: BusinessFormState, formData: FormData): Promise<BusinessFormState> {
@@ -116,7 +141,7 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
   }
 
   // No image picked? Pull the website's share image so every listing gets one.
-  const imageUrl = f.imageUrl ?? (f.website ? await scrapeWebsiteImage(f.website) : null);
+  const imageUrl = f.imageUrl ?? (f.website ? (await scrapeWebsiteImages(f.website))[0] ?? null : null);
 
   const { error } = await supabase.from("businesses").insert({
     space_id: spaceId,
@@ -132,6 +157,7 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
     lat: f.lat,
     lng: f.lng,
     image_url: imageUrl,
+    image_position: f.imagePosition,
   });
 
   if (error) {
@@ -175,6 +201,7 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
       lat: f.lat,
       lng: f.lng,
       image_url: f.imageUrl,
+      image_position: f.imagePosition,
     })
     .eq("id", businessId);
 

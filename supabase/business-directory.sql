@@ -35,6 +35,7 @@ create table if not exists public.businesses (
   lng double precision,
   location_label text,
   image_url text,
+  image_position text,
   verified boolean not null default false,
   featured boolean not null default false,
   created_at timestamptz not null default now(),
@@ -43,7 +44,10 @@ create table if not exists public.businesses (
 
 -- Either a URL scraped from the business's website (og:image) or an upload in
 -- the 'business-images' storage bucket (see supabase/storage.sql).
+-- image_position is a CSS object-position value ("50% 25%") chosen by
+-- dragging the image preview, so the card crop shows the right part.
 alter table public.businesses add column if not exists image_url text;
+alter table public.businesses add column if not exists image_position text;
 
 drop trigger if exists set_updated_at on public.businesses;
 create trigger set_updated_at before update on public.businesses

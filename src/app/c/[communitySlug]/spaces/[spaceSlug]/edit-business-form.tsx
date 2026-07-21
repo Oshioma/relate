@@ -27,6 +27,7 @@ export function EditBusinessForm({
     business.lat !== null && business.lng !== null ? { lat: business.lat, lng: business.lng } : null
   );
   const [imageUrl, setImageUrl] = useState<string | null>(business.image_url);
+  const [imagePosition, setImagePosition] = useState<string | null>(business.image_position);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -59,6 +60,8 @@ export function EditBusinessForm({
         onPinChange={setPin}
         imageUrl={imageUrl}
         onImageChange={setImageUrl}
+        imagePosition={imagePosition}
+        onImagePositionChange={setImagePosition}
         userId={userId}
       />
 
