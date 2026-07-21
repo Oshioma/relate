@@ -1,23 +1,26 @@
 "use client";
 
-import { useActionState, useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 import { sendEmailInvite } from "./invites-actions";
-import type { InviteFormState } from "./invites-actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 export function NewEmailInviteForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
-  const [state, formAction] = useActionState<InviteFormState, FormData>(sendEmailInvite, undefined);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state === undefined) {
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await sendEmailInvite(undefined, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
       formRef.current?.reset();
     }
-  }, [state]);
+  }
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
 
@@ -42,7 +45,7 @@ export function NewEmailInviteForm({ communityId, communitySlug }: { communityId
         </div>
       </div>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <SubmitButton pendingText="Sending…" className="w-auto">
         Send email invite
