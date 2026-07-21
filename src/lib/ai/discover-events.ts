@@ -26,6 +26,12 @@ export type DiscoveredEvent = {
   source_url: string | null;
 };
 
+// Distinguishes failure causes so the UI can say "out of credit" instead of
+// a generic "check your API key" when the account balance is the problem.
+export type DiscoveryResult =
+  | { status: "ok"; events: DiscoveredEvent[] }
+  | { status: "unconfigured" | "billing" | "error" };
+
 const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Use web search to find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions) in the location you are given.
 
 Respond with ONLY a JSON array — no prose, no markdown fences. Each element:
@@ -45,15 +51,13 @@ Rules:
 - Return at most ${MAX_RESULTS} events, soonest first. If you find nothing verifiable, return [].`;
 
 // Searches the web for upcoming events near `locationName` and returns
-// structured candidates. Follows the concierge pattern: returns null when
-// ANTHROPIC_API_KEY isn't configured or the API call fails, so callers can
-// degrade gracefully.
+// structured candidates, or a status describing why the call couldn't run.
 export async function discoverEventsWithAI(opts: {
   locationName: string;
   existingTitles: string[];
-}): Promise<DiscoveredEvent[] | null> {
+}): Promise<DiscoveryResult> {
   const anthropic = getClient();
-  if (!anthropic) return null;
+  if (!anthropic) return { status: "unconfigured" };
 
   const today = new Date().toISOString().slice(0, 10);
   const existing = opts.existingTitles
@@ -90,9 +94,15 @@ export async function discoverEventsWithAI(opts: {
     }
 
     const text = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
-    return parseEvents(text);
-  } catch {
-    return null;
+    return { status: "ok", events: parseEvents(text) };
+  } catch (error) {
+    console.error("[discover-events] Anthropic API call failed:", error);
+    if (error instanceof Anthropic.AuthenticationError) return { status: "unconfigured" };
+    // Out-of-credit surfaces as a 400 whose message mentions the credit balance.
+    if (error instanceof Anthropic.APIError && /credit balance/i.test(error.message)) {
+      return { status: "billing" };
+    }
+    return { status: "error" };
   }
 }
 

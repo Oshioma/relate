@@ -52,20 +52,21 @@ export async function GET(request: Request) {
     }
 
     const existingTitles = (upcoming ?? []).map((e) => e.title);
-    const found = await discoverEventsWithAI({ locationName: community.location_name, existingTitles });
+    const result = await discoverEventsWithAI({ locationName: community.location_name, existingTitles });
 
-    if (found === null) {
-      // Missing API key or API failure affects every community — stop early.
-      results.push({ community: community.slug, error: "AI discovery unavailable" });
+    if (result.status !== "ok") {
+      // Missing key, exhausted credit, or API failure affects every
+      // community — record the cause and stop early.
+      results.push({ community: community.slug, error: `AI discovery unavailable: ${result.status}` });
       break;
     }
 
     const seen = new Set(existingTitles.map((t) => t.toLowerCase()));
-    const fresh = found.filter((e) => !seen.has(e.title.toLowerCase()));
+    const fresh = result.events.filter((e) => !seen.has(e.title.toLowerCase()));
     const rows = buildDiscoveredEventRows(fresh, { communityId: community.id, createdBy: community.owner_id });
 
     if (rows.length === 0) {
-      results.push({ community: community.slug, found: found.length, imported: 0 });
+      results.push({ community: community.slug, found: result.events.length, imported: 0 });
       continue;
     }
 
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
     results.push(
       insertError
         ? { community: community.slug, error: insertError.message }
-        : { community: community.slug, found: found.length, imported: rows.length },
+        : { community: community.slug, found: result.events.length, imported: rows.length },
     );
   }
 
