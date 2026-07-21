@@ -30,6 +30,9 @@ export interface ConciergeResults {
   query: string;
   resultsByType: Partial<Record<ConciergeResultType, ConciergeResult[]>>;
   totalCount: number;
+  // Layer 2 (AI synthesis) fills this in after searchCommunity returns —
+  // always null here since this module is DB-only.
+  answer: string | null;
 }
 
 const RESULTS_PER_TYPE = 5;
@@ -58,7 +61,7 @@ function truncate(text: string | null, length = 140): string | null {
 export async function searchCommunity(supabase: Client, communityId: string, communitySlug: string, query: string): Promise<ConciergeResults> {
   const q = query.trim();
   if (!q) {
-    return { query: q, resultsByType: {}, totalCount: 0 };
+    return { query: q, resultsByType: {}, totalCount: 0, answer: null };
   }
 
   const base = `/c/${communitySlug}`;
@@ -259,5 +262,5 @@ export async function searchCommunity(supabase: Client, communityId: string, com
 
   const totalCount = Object.values(resultsByType).reduce((sum, list) => sum + (list?.length ?? 0), 0);
 
-  return { query: q, resultsByType, totalCount };
+  return { query: q, resultsByType, totalCount, answer: null };
 }

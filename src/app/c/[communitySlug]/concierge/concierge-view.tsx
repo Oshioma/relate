@@ -74,6 +74,16 @@ export function ConciergeView({ communityId, communitySlug }: { communityId: str
 
       {results && (
         <div className="mt-6">
+          {results.answer && (
+            <Card className="mb-6 border-accent/30 bg-accent-soft">
+              <CardContent className="flex items-start gap-3 py-4">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </div>
+                <p className="text-sm leading-relaxed text-foreground">{results.answer}</p>
+              </CardContent>
+            </Card>
+          )}
           {results.totalCount === 0 ? (
             <EmptyState
               icon={<Search className="h-6 w-6" />}
