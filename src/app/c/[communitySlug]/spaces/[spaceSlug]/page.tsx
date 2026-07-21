@@ -11,6 +11,7 @@ import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journa
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
 import { getSpaceBusinesses } from "@/lib/data/businesses";
+import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -34,6 +35,7 @@ import { NewChallengeForm } from "./new-challenge-form";
 import { ChallengeCard } from "./challenge-card";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
+import { ExploreMapLoader } from "./explore-map-loader";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -59,20 +61,31 @@ export default async function SpaceDetailPage({
   const isDirectorySpace = space.space_type === "directory";
   const isChallengeSpace = space.space_type === "challenges";
   const isBusinessDirectorySpace = space.space_type === "business_directory";
+  const isMapSpace = space.space_type === "map";
   const isDiscussionLike =
-    !isResourceSpace && !isJournalSpace && !isGrowthJourneySpace && !isDirectorySpace && !isChallengeSpace && !isBusinessDirectorySpace;
+    !isResourceSpace &&
+    !isJournalSpace &&
+    !isGrowthJourneySpace &&
+    !isDirectorySpace &&
+    !isChallengeSpace &&
+    !isBusinessDirectorySpace &&
+    !isMapSpace;
 
-  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges, businesses] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
-    isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
-    isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
-    isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
-    isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
-    isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
-    isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
-    isChallengeSpace ? getSpaceChallenges(supabase, space.id, user.id) : Promise.resolve([]),
-    isBusinessDirectorySpace ? getSpaceBusinesses(supabase, space.id) : Promise.resolve([]),
-  ]);
+  const [membership, posts, resources, journalFields, journalEntries, timeline, directoryMembers, challenges, businesses, mapCategories, landmarks, mapBusinesses] =
+    await Promise.all([
+      getMembership(supabase, community.id, user.id),
+      isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
+      isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
+      isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
+      isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
+      isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
+      isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
+      isChallengeSpace ? getSpaceChallenges(supabase, space.id, user.id) : Promise.resolve([]),
+      isBusinessDirectorySpace ? getSpaceBusinesses(supabase, space.id) : Promise.resolve([]),
+      isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
+      isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
+      isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),
+    ]);
 
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
@@ -258,6 +271,19 @@ export default async function SpaceDetailPage({
             </div>
           )}
         </>
+      ) : isMapSpace ? (
+        <ExploreMapLoader
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          categories={mapCategories}
+          landmarks={landmarks}
+          businesses={mapBusinesses}
+          canPost={canPost}
+          isAdmin={Boolean(isAdmin)}
+          userId={user.id}
+        />
       ) : (
         <>
           {canPost && (

@@ -28,6 +28,10 @@ export interface WizardPayload {
   // below and dropped (not just left blank) for every other template.
   locationType?: string;
   locationName?: string;
+  // Seeds map_categories (the Explore Map's togglable layers) so a place
+  // community's map isn't empty on day one. Dropped unless locationType is
+  // also set and valid.
+  mapLayers?: string[];
   spaces: WizardSpaceInput[];
   profileFields: WizardProfileFieldInput[];
 }
@@ -132,6 +136,23 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     if (fieldsError) {
       await supabase.from("communities").delete().eq("id", community.id);
       return { error: `Couldn't set up your profile fields: ${fieldsError.message}` };
+    }
+  }
+
+  const mapLayers = locationType ? (payload.mapLayers ?? []).filter((label) => label.trim()) : [];
+  if (mapLayers.length) {
+    const { error: mapCategoriesError } = await supabase.from("map_categories").insert(
+      mapLayers.map((name, i) => ({
+        community_id: community.id,
+        name: name.trim(),
+        sort_order: i,
+      }))
+    );
+    // Non-fatal: the Explore Map just starts with no preset layers if this
+    // fails (e.g. supabase/explore-map.sql hasn't been applied yet) — an
+    // admin can still add layers manually, so this shouldn't block launch.
+    if (mapCategoriesError) {
+      console.error("Failed to seed map categories:", mapCategoriesError.message);
     }
   }
 

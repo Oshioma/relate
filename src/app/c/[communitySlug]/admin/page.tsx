@@ -20,6 +20,7 @@ import { InvitesList } from "./invites-list";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
+import { DeleteCommunitySection } from "./delete-community-section";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -144,6 +145,13 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
           </Card>
         </Link>
       </div>
+
+      {membership?.role === "owner" && (
+        <>
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
+          <DeleteCommunitySection community={community} />
+        </>
+      )}
     </div>
   );
 }
