@@ -31,6 +31,8 @@
 //                           describes; see the comment in clubs.sql)
 //   - Guide               → src/types/database.ts (guides + guide_contributors
 //                           + guide_revisions + guide_ratings + guide_comments)
+//   - VolunteerProject    → src/types/database.ts (volunteer_projects +
+//                           volunteer_signups for "volunteer matching")
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -66,22 +68,6 @@ export interface Route {
   created_at: string;
 }
 
-export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
-
-/** A project, cause or one-off request in the Volunteer Hub space. */
-export interface VolunteerProject extends MapPinnable {
-  id: string;
-  community_id: string;
-  space_id: string;
-  organiser_id: string;
-  organisation_id: string | null;
-  title: string;
-  description: string;
-  status: VolunteerProjectStatus;
-  volunteers_needed: number | null;
-  created_at: string;
-}
-
 /** A star rating + comment against a Business, Guide, Accommodation or MarketplaceListing. One `target_type`/`target_id` pair, rather than a table per entity. */
 export interface Review {
   id: string;
@@ -94,7 +80,7 @@ export interface Review {
   created_at: string;
 }
 
-/** A non-profit, club, government body or similar organisation operating in the community — the entity Volunteer Projects and some Business listings can belong to. */
+/** A non-profit, club, government body or similar organisation operating in the community. Not yet linked from VolunteerProject/Business — those shipped without an organiser_id/organisation_id relationship to keep the first round scoped. */
 export interface Organisation {
   id: string;
   community_id: string;
