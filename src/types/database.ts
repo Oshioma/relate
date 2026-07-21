@@ -121,6 +121,7 @@ export type Post = {
   author_id: string;
   title: string;
   body: string | null;
+  media_url: string | null;
   post_type: PostType;
   is_pinned: boolean;
   lat: number | null;
@@ -214,6 +215,7 @@ export type Business = {
   lat: number | null;
   lng: number | null;
   location_label: string | null;
+  image_url: string | null;
   verified: boolean;
   featured: boolean;
   created_at: string;

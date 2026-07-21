@@ -15,6 +15,8 @@ export async function createPost(_prevState: PostFormState, formData: FormData):
   const spaceSlug = String(formData.get("space_slug") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
+  const mediaUrlRaw = String(formData.get("media_url") ?? "").trim();
+  const mediaUrl = /^https?:\/\//.test(mediaUrlRaw) ? mediaUrlRaw : null;
   const postTypeRaw = String(formData.get("post_type") ?? "discussion");
   const postType = POST_TYPES.includes(postTypeRaw as PostType) ? (postTypeRaw as PostType) : "discussion";
 
@@ -37,6 +39,7 @@ export async function createPost(_prevState: PostFormState, formData: FormData):
     author_id: user.id,
     title,
     body: body || null,
+    media_url: mediaUrl,
     post_type: postType,
   });
 

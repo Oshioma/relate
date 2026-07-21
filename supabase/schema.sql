@@ -99,11 +99,15 @@ create table if not exists public.posts (
   author_id uuid not null references public.profiles (id) on delete cascade,
   title text not null,
   body text,
+  media_url text,
   post_type public.post_type not null default 'discussion',
   is_pinned boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Attached image/video/file: an upload in the 'uploads' bucket (storage.sql).
+alter table public.posts add column if not exists media_url text;
 
 create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),

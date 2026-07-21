@@ -32,7 +32,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { MediaAttachment } from "@/components/ui/media-attachment";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
 import { JournalEntryForm } from "./journal-entry-form";
@@ -240,6 +241,22 @@ export default async function SpaceDetailPage({
                             if (value === null || value === undefined || value === "" || (Array.isArray(value) && value.length === 0)) {
                               return null;
                             }
+                            if (field.field_type === "url" && typeof value === "string") {
+                              return (
+                                <div key={field.id} className="text-sm text-foreground">
+                                  <span className="font-medium text-muted-foreground">{field.label}: </span>
+                                  {isImageUrl(value) || isVideoUrl(value) ? (
+                                    <div className="mt-1">
+                                      <MediaAttachment url={value} className="max-h-48" />
+                                    </div>
+                                  ) : (
+                                    <a href={value} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                                      {value}
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            }
                             return (
                               <p key={field.id} className="text-sm text-foreground">
                                 <span className="font-medium text-muted-foreground">{field.label}: </span>
@@ -298,7 +315,7 @@ export default async function SpaceDetailPage({
         <>
           {canPost && (
             <div className="mb-6">
-              <NewBusinessForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />
+              <NewBusinessForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} userId={user.id} />
             </div>
           )}
 
@@ -312,8 +329,9 @@ export default async function SpaceDetailPage({
                   business={business}
                   communitySlug={community.slug}
                   spaceSlug={space.slug}
-                  canDelete={Boolean(isStaff) || business.created_by === user.id}
+                  canManage={Boolean(isStaff) || business.created_by === user.id}
                   isStaff={Boolean(isStaff)}
+                  userId={user.id}
                 />
               ))}
             </div>
@@ -417,6 +435,11 @@ export default async function SpaceDetailPage({
                             {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
                           </p>
                           {post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{post.body}</p>}
+                          {post.media_url && (
+                            <div className="mt-2">
+                              <MediaAttachment url={post.media_url} className="max-h-48" />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

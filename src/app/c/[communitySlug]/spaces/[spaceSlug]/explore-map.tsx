@@ -11,12 +11,8 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { colorForCategory } from "@/lib/map-pin-colors";
 import { createLandmark, deleteLandmark, createMapCategory, toggleMapCategory, deleteMapCategory } from "./map-actions";
+import { UNGUJA_BOUNDS } from "@/lib/map-bounds";
 import type { MapCategory, Landmark, Business } from "@/types/database";
-
-// Africa-centred default so a brand-new map (no pins yet) doesn't open on
-// (0, 0) in the ocean — the first pin/business added recenters it in
-// practice, this is only what renders before anything exists.
-const DEFAULT_CENTER: [number, number] = [-6.1659, 39.2026];
 
 function dotIcon(color: string): L.DivIcon {
   return L.divIcon({
@@ -277,9 +273,6 @@ export default function ExploreMap({
   const visibleLandmarks = landmarks.filter((l) => !hiddenKeys.has(l.category_id ?? "uncategorized") && categories.some((c) => c.id === l.category_id ? c.enabled : true));
   const visibleBusinesses = hiddenKeys.has("__businesses") ? [] : businesses;
 
-  const firstPin = visibleLandmarks[0] ?? visibleBusinesses.find((b) => b.lat !== null && b.lng !== null);
-  const center: [number, number] = firstPin && firstPin.lat !== null && firstPin.lng !== null ? [firstPin.lat, firstPin.lng] : DEFAULT_CENTER;
-
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-1.5">
@@ -320,8 +313,8 @@ export default function ExploreMap({
 
       {addMode && <p className="mb-2 text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
 
-      <div className={`overflow-hidden rounded-lg border border-border ${addMode ? "cursor-crosshair" : ""}`} style={{ height: 420 }}>
-        <MapContainer center={center} zoom={visibleLandmarks.length || visibleBusinesses.length ? 13 : 6} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
+      <div className={`overflow-hidden rounded-lg border border-border ${addMode ? "cursor-crosshair" : ""}`} style={{ height: 560 }}>
+        <MapContainer bounds={UNGUJA_BOUNDS} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapClickHandler active={addMode} onPick={(lat, lng) => setPending({ lat, lng })} />
 

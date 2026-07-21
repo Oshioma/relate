@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import type { InputHTMLAttributes, LabelHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { ComponentProps } from "react";
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       className={cn(
@@ -14,7 +14,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   );
 }
 
-export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea
       className={cn(
@@ -27,6 +27,6 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
   );
 }
 
-export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
+export function Label({ className, ...props }: ComponentProps<"label">) {
   return <label className={cn("mb-1.5 block text-sm font-medium text-foreground", className)} {...props} />;
 }
