@@ -15,12 +15,13 @@
 
 do $$ begin
   create type public.business_category as enum (
-    'restaurant', 'cafe', 'shop', 'accommodation', 'service', 'health', 'fitness', 'coworking', 'activity', 'other'
+    'restaurant', 'cafe', 'shop', 'accommodation', 'service', 'health', 'fitness', 'coworking', 'activity', 'taxi', 'other'
   );
 exception when duplicate_object then null; end $$;
 
 -- Added after the initial enum shipped; no-op on fresh installs.
 alter type public.business_category add value if not exists 'activity';
+alter type public.business_category add value if not exists 'taxi';
 
 create table if not exists public.businesses (
   id uuid primary key default gen_random_uuid(),

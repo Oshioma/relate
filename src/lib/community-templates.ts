@@ -153,10 +153,10 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description:
       "For any place — an island, city, town, village, neighbourhood, campus or region. Residents, businesses, visitors, organisations and volunteers share one ecosystem: a living map, marketplace, business directory, events, guides and more, tailored to what kind of place this is.",
     defaultSpaces: [
-      { name: "Announcements", description: "Official updates for the whole community." },
+      { name: "Chat", description: "General conversation for the whole community." },
+      { name: "Business Directory", description: "Local businesses with profiles, hours and reviews.", space_type: "business_directory" },
       { name: "Explore Map", description: "An interactive map of everything in this place.", space_type: "map" },
       { name: "Marketplace", description: "Buy, sell, give away and find locally.", space_type: "marketplace" },
-      { name: "Business Directory", description: "Local businesses with profiles, hours and reviews.", space_type: "business_directory" },
       { name: "Community Guides", description: "Best coffee, hidden gems, first week here — written by members.", space_type: "guides" },
       { name: "Clubs & Groups", description: "Subcommunities around shared interests, from running to book club.", space_type: "clubs" },
       { name: "Volunteer Hub", description: "Projects, cleanups and causes members can help with.", space_type: "volunteer_hub" },
