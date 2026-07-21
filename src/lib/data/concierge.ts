@@ -4,6 +4,58 @@ import { formatDate } from "@/lib/utils";
 
 type Client = SupabaseClient<Database>;
 
+export interface ConciergeQueryLogEntry {
+  id: string;
+  query: string;
+  resultCount: number;
+  hadAnswer: boolean;
+  createdAt: string;
+  user: { username: string; fullName: string | null; avatarUrl: string | null } | null;
+}
+
+// Fire-and-forget logging so a DB hiccup never blocks a member's search —
+// swallow errors rather than surfacing them to the searcher.
+export async function logConciergeQuery(
+  supabase: Client,
+  communityId: string,
+  userId: string | null,
+  query: string,
+  resultCount: number,
+  hadAnswer: boolean,
+): Promise<void> {
+  try {
+    await supabase.from("concierge_queries").insert({
+      community_id: communityId,
+      user_id: userId,
+      query,
+      result_count: resultCount,
+      had_answer: hadAnswer,
+    });
+  } catch {
+    // best-effort logging only
+  }
+}
+
+export async function getConciergeQueries(supabase: Client, communityId: string, limit = 100): Promise<ConciergeQueryLogEntry[]> {
+  const { data, error } = await supabase
+    .from("concierge_queries")
+    .select("id, query, result_count, had_answer, created_at, user:user_id (username, full_name, avatar_url)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    query: row.query,
+    resultCount: row.result_count,
+    hadAnswer: row.had_answer,
+    createdAt: row.created_at,
+    user: row.user ? { username: row.user.username, fullName: row.user.full_name, avatarUrl: row.user.avatar_url } : null,
+  }));
+}
+
 export type ConciergeResultType =
   | "business"
   | "event"
