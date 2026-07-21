@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Event, EventRsvp, Profile } from "@/types/database";
+import type { DiscoveredEvent } from "@/lib/ai/discover-events";
 
 type Client = SupabaseClient<Database>;
 
@@ -55,6 +56,37 @@ export function groupRsvpsByEvent(rsvps: EventRsvpWithAttendee[]): Map<string, E
     map.set(rsvp.event_id, list);
   }
   return map;
+}
+
+// Shapes AI-discovered event candidates into rows ready for insertion into
+// public.events, dropping anything without a title or parseable start time.
+// Shared by the staff-facing import action and the scheduled cron import.
+export function buildDiscoveredEventRows(
+  events: DiscoveredEvent[],
+  opts: { communityId: string; createdBy: string; max?: number },
+) {
+  return events
+    .filter((e) => e.title?.trim() && !Number.isNaN(Date.parse(e.start_time)))
+    .slice(0, opts.max ?? 20)
+    .map((e) => {
+      const startTime = new Date(e.start_time).toISOString();
+      const endMs = e.end_time ? Date.parse(e.end_time) : NaN;
+      const endTime = !Number.isNaN(endMs) && endMs > Date.parse(startTime) ? new Date(endMs).toISOString() : null;
+      const description = [e.description?.trim(), e.source_url ? `Source: ${e.source_url}` : null]
+        .filter(Boolean)
+        .join("\n\n");
+
+      return {
+        community_id: opts.communityId,
+        title: e.title.trim().slice(0, 200),
+        description: description || null,
+        start_time: startTime,
+        end_time: endTime,
+        location: e.location?.trim().slice(0, 300) || null,
+        online_url: null,
+        created_by: opts.createdBy,
+      };
+    });
 }
 
 export function splitUpcomingPast(events: Event[]) {

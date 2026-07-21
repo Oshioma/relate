@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { buildDiscoveredEventRows } from "@/lib/data/events";
 import { discoverEventsWithAI, type DiscoveredEvent } from "@/lib/ai/discover-events";
 import type { Community, Database } from "@/types/database";
 
@@ -74,28 +75,7 @@ export async function importDiscoveredEvents(
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
-  const rows = events
-    .filter((e) => e.title?.trim() && !Number.isNaN(Date.parse(e.start_time)))
-    .slice(0, 20)
-    .map((e) => {
-      const startTime = new Date(e.start_time).toISOString();
-      const endMs = e.end_time ? Date.parse(e.end_time) : NaN;
-      const endTime = !Number.isNaN(endMs) && endMs > Date.parse(startTime) ? new Date(endMs).toISOString() : null;
-      const description = [e.description?.trim(), e.source_url ? `Source: ${e.source_url}` : null]
-        .filter(Boolean)
-        .join("\n\n");
-
-      return {
-        community_id: community.id,
-        title: e.title.trim().slice(0, 200),
-        description: description || null,
-        start_time: startTime,
-        end_time: endTime,
-        location: e.location?.trim().slice(0, 300) || null,
-        online_url: null,
-        created_by: user.id,
-      };
-    });
+  const rows = buildDiscoveredEventRows(events, { communityId: community.id, createdBy: user.id });
 
   if (rows.length === 0) return { error: "No valid events selected." };
 
