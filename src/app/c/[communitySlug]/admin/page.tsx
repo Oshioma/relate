@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, BookOpen, Users } from "lucide-react";
+import { CalendarDays, BookOpen, Users, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
@@ -141,6 +141,14 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
             <CardContent className="flex items-center gap-3 pt-5">
               <Users className="h-4 w-4 text-accent" />
               <span className="text-sm font-medium text-foreground">View members</span>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href={`/c/${community.slug}/admin/concierge`}>
+          <Card className="transition-shadow hover:shadow-sm">
+            <CardContent className="flex items-center gap-3 pt-5">
+              <Sparkles className="h-4 w-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">Concierge queries</span>
             </CardContent>
           </Card>
         </Link>

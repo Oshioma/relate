@@ -477,6 +477,16 @@ export type Notification = {
   created_at: string;
 };
 
+export type ConciergeQuery = {
+  id: string;
+  community_id: string;
+  user_id: string | null;
+  query: string;
+  result_count: number;
+  had_answer: boolean;
+  created_at: string;
+};
+
 export type EventRsvp = {
   id: string;
   event_id: string;
@@ -824,6 +834,12 @@ export type Database = {
         Insert: Partial<VolunteerSignup> & { project_id: string; user_id: string };
         Update: Partial<VolunteerSignup>;
         Relationships: [FKey<"project_id", "volunteer_projects">, FKey<"user_id", "profiles">];
+      };
+      concierge_queries: {
+        Row: ConciergeQuery;
+        Insert: Partial<ConciergeQuery> & { community_id: string; query: string };
+        Update: Partial<ConciergeQuery>;
+        Relationships: [FKey<"user_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;
