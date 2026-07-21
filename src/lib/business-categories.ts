@@ -10,6 +10,7 @@ export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] =
   { value: "fitness", label: "Fitness" },
   { value: "coworking", label: "Coworking" },
   { value: "activity", label: "Activity" },
+  { value: "taxi", label: "Taxi" },
   { value: "other", label: "Other" },
 ];
 
@@ -25,6 +26,7 @@ const PLURAL_LABELS: Partial<Record<BusinessCategory, string>> = {
   shop: "Shops",
   service: "Services",
   activity: "Activities",
+  taxi: "Taxis",
 };
 
 // For places the category names a group of listings — nav sub-links,
