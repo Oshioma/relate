@@ -4,6 +4,7 @@ import { useActionState, useRef, useEffect } from "react";
 import { createJournalEntry, type JournalEntryFormState } from "./journal-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { UploadButton } from "@/components/ui/upload-button";
 import type { SpaceJournalField } from "@/types/database";
 
 export function JournalEntryForm({
@@ -127,12 +128,41 @@ function JournalFieldInput({ field }: { field: SpaceJournalField }) {
     );
   }
 
+  if (field.field_type === "url") {
+    return (
+      <div>
+        {label}
+        <UrlOrUploadInput id={name} name={name} required={field.is_required} />
+      </div>
+    );
+  }
+
   const inputType = field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text";
 
   return (
     <div>
       {label}
       <Input id={name} name={name} type={inputType} required={field.is_required} />
+    </div>
+  );
+}
+
+// URL fields double as image fields: paste a link, or upload a file and the
+// input is filled with its public URL. The input stays uncontrolled so the
+// form's reset() clears it like every other field.
+function UrlOrUploadInput({ id, name, required }: { id: string; name: string; required: boolean }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="flex items-start gap-2">
+      <Input ref={inputRef} id={id} name={name} type="url" required={required} placeholder="https://… or upload an image" className="flex-1" />
+      <UploadButton
+        label="Upload"
+        className="shrink-0"
+        onUploaded={(url) => {
+          if (inputRef.current) inputRef.current.value = url;
+        }}
+      />
     </div>
   );
 }

@@ -21,6 +21,12 @@ export function normalizeUrl(input: string): string {
   return /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 
+// Whether a URL is worth rendering as an <img>: a common image extension, or
+// anything in our public 'uploads' storage bucket (see supabase/storage.sql).
+export function isImageUrl(url: string): boolean {
+  return /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(url) || url.includes("/storage/v1/object/public/uploads/");
+}
+
 export function initials(name: string | null | undefined, fallback = "?") {
   if (!name || !name.trim()) return fallback;
   const parts = name.trim().split(/\s+/);

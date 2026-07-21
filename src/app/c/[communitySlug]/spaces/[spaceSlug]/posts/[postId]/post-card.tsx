@@ -113,6 +113,10 @@ export function PostCard({
               {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
             </p>
             {post.body && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.body}</p>}
+            {post.image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={post.image_url} alt="" className="mt-3 max-h-96 rounded-md border border-border" />
+            )}
 
             {(canEdit || canDelete) && (
               <div className="mt-3 flex gap-3">

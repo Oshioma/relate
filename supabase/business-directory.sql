@@ -34,11 +34,16 @@ create table if not exists public.businesses (
   lat double precision,
   lng double precision,
   location_label text,
+  image_url text,
   verified boolean not null default false,
   featured boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Either a URL scraped from the business's website (og:image) or an upload in
+-- the 'business-images' storage bucket (see supabase/storage.sql).
+alter table public.businesses add column if not exists image_url text;
 
 drop trigger if exists set_updated_at on public.businesses;
 create trigger set_updated_at before update on public.businesses
