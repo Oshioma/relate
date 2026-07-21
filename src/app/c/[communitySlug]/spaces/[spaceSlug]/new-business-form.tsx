@@ -12,7 +12,7 @@ import type { PickedLocation } from "./location-picker";
 // browser — same pattern as explore-map-loader.tsx.
 const LocationPicker = dynamic(() => import("./location-picker"), {
   ssr: false,
-  loading: () => <div className="flex h-[240px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
+  loading: () => <div className="flex h-[360px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
 });
 
 export function NewBusinessForm({

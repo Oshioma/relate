@@ -3,10 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-
-// Same Africa-centred default as the Explore Map (see explore-map.tsx) so a
-// blank picker opens roughly where the community's pins will live.
-const DEFAULT_CENTER: [number, number] = [-6.1659, 39.2026];
+import { UNGUJA_BOUNDS } from "@/lib/map-bounds";
 
 // Matches the business marker on the Explore Map so the pin previews the way
 // it will actually render there.
@@ -39,10 +36,9 @@ export default function LocationPicker({
 }) {
   return (
     <div>
-      <div className="cursor-crosshair overflow-hidden rounded-md border border-border" style={{ height: 240 }}>
+      <div className="cursor-crosshair overflow-hidden rounded-md border border-border" style={{ height: 360 }}>
         <MapContainer
-          center={value ? [value.lat, value.lng] : DEFAULT_CENTER}
-          zoom={value ? 13 : 6}
+          {...(value ? { center: [value.lat, value.lng] as [number, number], zoom: 13 } : { bounds: UNGUJA_BOUNDS })}
           scrollWheelZoom
           style={{ height: "100%", width: "100%" }}
         >
