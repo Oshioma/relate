@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -66,6 +66,7 @@ export default async function CommunityLayout({
     { href: `${base}/spaces`, label: "All spaces", icon: <LayoutGrid className="h-4 w-4" /> },
     { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
     { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
+    { href: `${base}/concierge`, label: "Concierge", icon: <Sparkles className="h-4 w-4" /> },
   ];
 
   return (
@@ -173,6 +174,7 @@ export default async function CommunityLayout({
           { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> },
           { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-5 w-5" /> },
           { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
+          { href: `${base}/concierge`, label: "Concierge", icon: <Sparkles className="h-5 w-5" /> },
         ]}
       />
     </div>
