@@ -351,6 +351,34 @@ export type RecommendationVote = {
   created_at: string;
 };
 
+// A club/group in a 'clubs' space (see space-types.ts). Unlike the brief's
+// "full community-within-a-community" description, this mirrors
+// space_challenges/space_challenge_participants — a club is something
+// members join (ClubMember), not its own nested discussion feed. category
+// is free text: a club's topic is genuinely unbounded, unlike a bounded set
+// like BusinessCategory.
+export type Club = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  name: string;
+  category: string | null;
+  description: string | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ClubMember = {
+  id: string;
+  club_id: string;
+  user_id: string;
+  joined_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -659,6 +687,18 @@ export type Database = {
         Insert: Partial<RecommendationVote> & { recommendation_id: string; user_id: string };
         Update: Partial<RecommendationVote>;
         Relationships: [FKey<"recommendation_id", "recommendations">, FKey<"user_id", "profiles">];
+      };
+      clubs: {
+        Row: Club;
+        Insert: Partial<Club> & { space_id: string; community_id: string; created_by: string; name: string };
+        Update: Partial<Club>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      club_members: {
+        Row: ClubMember;
+        Insert: Partial<ClubMember> & { club_id: string; user_id: string };
+        Update: Partial<ClubMember>;
+        Relationships: [FKey<"club_id", "clubs">, FKey<"user_id", "profiles">];
       };
       member_interests: {
         Row: MemberInterest;

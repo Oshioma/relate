@@ -26,6 +26,9 @@
 //   - AccommodationListing → src/types/database.ts (accommodation_listings table)
 //   - Recommendation      → src/types/database.ts (recommendations table +
 //                           recommendation_votes for "agree" co-signing)
+//   - Club                → src/types/database.ts (clubs + club_members —
+//                           not the nested sub-community the brief
+//                           describes; see the comment in clubs.sql)
 //
 // When a feature here actually gets built, move its type into database.ts
 // alongside a real migration and delete it from this file.
@@ -75,18 +78,6 @@ export interface Guide {
   created_by: string;
   created_at: string;
   updated_at: string;
-}
-
-/** A subcommunity in the Clubs & Groups space — a full community-within-a-community with its own members and a usual meeting location. */
-export interface Club extends MapPinnable {
-  id: string;
-  community_id: string;
-  space_id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  created_by: string;
-  created_at: string;
 }
 
 export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
