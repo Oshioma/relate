@@ -162,8 +162,61 @@ body {
   color: var(--danger);
 }
 
-/* Pulsing halo behind a map pin — events starting within 24h (see
-   itemIcon in explore-map.tsx). */
+/* Teardrop map pins (see pinIcon in explore-map.tsx). Scale from the tip so
+   a hovered pin grows without drifting off its coordinate. */
+.map-pin {
+  display: block;
+  position: relative;
+  width: 30px;
+  height: 40px;
+  transform-origin: 50% 100%;
+  transition: transform 0.12s ease;
+}
+
+.map-pin:hover {
+  transform: scale(1.12);
+}
+
+.map-pin-inner {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 30px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Cluster bubble — conic-gradient ring (per-pin colors) around a count. */
+.map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.map-cluster-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72%;
+  height: 72%;
+  border-radius: 9999px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Pulsing halo behind a pin's head — events starting within 24h (see
+   pinIcon in explore-map.tsx; position/size are set inline). */
 @keyframes map-pin-pulse {
   0% {
     transform: scale(1);
@@ -181,8 +234,42 @@ body {
 
 .map-pin-pulse {
   position: absolute;
-  inset: -2px;
   border-radius: 9999px;
   animation: map-pin-pulse 1.8s ease-out infinite;
   pointer-events: none;
+}
+
+/* Leaflet zoom + attribution chrome, restyled to the app's tokens. The
+   .leaflet-container prefix outranks leaflet.css's own rules. */
+.leaflet-container .leaflet-bar,
+.leaflet-touch .leaflet-bar {
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 0.25rem);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.leaflet-container .leaflet-bar a {
+  background: var(--card);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.leaflet-container .leaflet-bar a:last-child {
+  border-bottom: none;
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--card) 75%, transparent);
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: inherit;
 }
