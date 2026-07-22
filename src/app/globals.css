@@ -145,6 +145,12 @@ body {
   color: inherit;
 }
 
+/* Leaflet adds this class when a popup hits its maxHeight and scrolls. */
+.leaflet-popup .leaflet-popup-content.leaflet-popup-scrolled {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
 .leaflet-popup a.leaflet-popup-close-button {
   top: 6px;
   right: 6px;
