@@ -14,6 +14,8 @@ const DISCOVERY_ERRORS: Record<string, string> = {
   unconfigured: "AI discovery isn't configured — set a valid ANTHROPIC_API_KEY, then try again.",
   billing:
     "Your Anthropic account is out of API credit. Add funds at console.anthropic.com (Plans & Billing), then try again.",
+  search_limited:
+    "Anthropic rejected the web searches (rate limit on your account tier). Wait 5-10 minutes and try once — repeated rapid attempts keep the limit tripped.",
   error: "AI discovery hit a temporary error. Wait a minute and try again.",
 };
 

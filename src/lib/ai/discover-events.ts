@@ -28,9 +28,11 @@ export type DiscoveredEvent = {
 
 // Distinguishes failure causes so the UI can say "out of credit" instead of
 // a generic "check your API key" when the account balance is the problem.
+// "search_limited" means Anthropic rejected the web searches themselves
+// (server tool rate limit) — the model ran but couldn't look anything up.
 export type DiscoveryResult =
   | { status: "ok"; events: DiscoveredEvent[] }
-  | { status: "unconfigured" | "billing" | "error" };
+  | { status: "unconfigured" | "billing" | "search_limited" | "error" };
 
 const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Use web search to find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions) in the location you are given.
 
@@ -91,17 +93,37 @@ export async function discoverEventsWithAI(opts: {
         messages,
       });
 
+    // Web search failures don't raise — they come back as tool-result blocks
+    // whose content is an error object instead of a results array. Tally them
+    // so "the searches were rejected" isn't reported as "no events exist".
+    let searchOk = 0;
+    let searchFailed = 0;
+    const tallySearches = (content: Anthropic.ContentBlock[]) => {
+      for (const block of content) {
+        if (block.type === "web_search_tool_result") {
+          if (Array.isArray(block.content)) searchOk++;
+          else searchFailed++;
+        }
+      }
+    };
+
     let response = await send();
+    tallySearches(response.content);
     for (let i = 0; i < MAX_CONTINUATIONS && response.stop_reason === "pause_turn"; i++) {
       messages.push({ role: "assistant", content: response.content });
       response = await send();
+      tallySearches(response.content);
     }
 
     // Always leave a usage trail so hosting logs show which model/config is
     // actually deployed and what each run cost.
     console.log(
-      `[discover-events] ${MODEL} run for "${opts.locationName}" finished in ${Math.round((Date.now() - startedAt) / 1000)}s; stop_reason=${response.stop_reason}; usage=${JSON.stringify(response.usage)}`,
+      `[discover-events] ${MODEL} run for "${opts.locationName}" finished in ${Math.round((Date.now() - startedAt) / 1000)}s; stop_reason=${response.stop_reason}; searches ok=${searchOk} failed=${searchFailed}; usage=${JSON.stringify(response.usage)}`,
     );
+
+    if (searchFailed > 0 && searchOk === 0) {
+      return { status: "search_limited" };
+    }
 
     const text = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
 
