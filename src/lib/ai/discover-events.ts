@@ -6,14 +6,22 @@ const MODEL = "claude-sonnet-5";
 const MAX_WEB_SEARCHES = 4;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
-const MAX_CONTINUATIONS = 4;
+const MAX_CONTINUATIONS = 2;
 const MAX_RESULTS = 8;
+// Hosting kills the whole request at its max duration (300s on Vercel with
+// Fluid Compute), which reaches the browser as a dead connection with no
+// error message. Keep our own budget comfortably below that so every run
+// ends with an explicit status instead.
+const REQUEST_TIMEOUT_MS = 60_000;
+const RUN_BUDGET_MS = 150_000;
 
 let client: Anthropic | null = null;
 
 function getClient(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
-  if (!client) client = new Anthropic();
+  // The SDK defaults (10-minute timeout, 2 silent retries with backoff) can
+  // hold a stalled or rate-limited call far past the hosting limit.
+  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 });
   return client;
 }
 
@@ -107,9 +115,15 @@ export async function discoverEventsWithAI(opts: {
       }
     };
 
+    console.log(`[discover-events] starting ${MODEL} run for "${opts.locationName}"`);
+
     let response = await send();
     tallySearches(response.content);
     for (let i = 0; i < MAX_CONTINUATIONS && response.stop_reason === "pause_turn"; i++) {
+      if (Date.now() - startedAt > RUN_BUDGET_MS) {
+        console.error(`[discover-events] run exceeded ${RUN_BUDGET_MS / 1000}s budget while paused; giving up`);
+        return { status: "error" };
+      }
       messages.push({ role: "assistant", content: response.content });
       response = await send();
       tallySearches(response.content);
@@ -152,6 +166,8 @@ export async function discoverEventsWithAI(opts: {
   } catch (error) {
     console.error("[discover-events] Anthropic API call failed:", error);
     if (error instanceof Anthropic.AuthenticationError) return { status: "unconfigured" };
+    // Request-level 429s get the same "wait it out" guidance as rejected searches.
+    if (error instanceof Anthropic.RateLimitError) return { status: "search_limited" };
     // Out-of-credit surfaces as a 400 whose message mentions the credit balance.
     if (error instanceof Anthropic.APIError && /credit balance/i.test(error.message)) {
       return { status: "billing" };
