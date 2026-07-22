@@ -9,7 +9,7 @@ import type { MapItem } from "@/lib/map-item-kinds";
 // thin wrapper around the real map in explore-map.tsx.
 const ExploreMap = dynamic(() => import("./explore-map"), {
   ssr: false,
-  loading: () => <div className="flex h-[560px] items-center justify-center rounded-lg border border-border bg-muted text-sm text-muted-foreground">Loading map…</div>,
+  loading: () => <div className="flex h-[65vh] min-h-[420px] items-center justify-center rounded-lg border border-border bg-muted text-sm text-muted-foreground">Loading map…</div>,
 });
 
 export function ExploreMapLoader(props: {
