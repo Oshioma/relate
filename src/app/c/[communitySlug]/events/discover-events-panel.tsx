@@ -19,13 +19,21 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
     setError(null);
     setNotice(null);
     startSearch(async () => {
-      const result = await discoverEvents(communitySlug);
-      if ("error" in result) {
-        setError(result.error);
-        return;
+      try {
+        const result = await discoverEvents(communitySlug);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+        setCandidates(result.events);
+        setSelected(new Set(result.events.map((_, i) => i)));
+      } catch {
+        // The server action never returned — usually the hosting platform
+        // killed the function at its time limit mid-search.
+        setError(
+          "The search didn't complete — the server request failed or timed out. Check the function logs (and the function max duration) in your hosting dashboard.",
+        );
       }
-      setCandidates(result.events);
-      setSelected(new Set(result.events.map((_, i) => i)));
     });
   }
 
@@ -41,16 +49,20 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
   function handleImport() {
     if (!candidates) return;
     setError(null);
+    const picked = candidates.filter((_, i) => selected.has(i));
     startImport(async () => {
-      const picked = candidates.filter((_, i) => selected.has(i));
-      const result = await importDiscoveredEvents(communitySlug, picked);
-      if ("error" in result) {
-        setError(result.error);
-        return;
+      try {
+        const result = await importDiscoveredEvents(communitySlug, picked);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+        setCandidates(null);
+        setSelected(new Set());
+        setNotice(`Added ${result.imported} event${result.imported === 1 ? "" : "s"} to the calendar.`);
+      } catch {
+        setError("Adding events failed — the server request didn't complete. Try again.");
       }
-      setCandidates(null);
-      setSelected(new Set());
-      setNotice(`Added ${result.imported} event${result.imported === 1 ? "" : "s"} to the calendar.`);
     });
   }
 

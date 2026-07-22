@@ -66,6 +66,7 @@ export async function discoverEventsWithAI(opts: {
     .map((t) => `- ${t}`)
     .join("\n");
 
+  const startedAt = Date.now();
   const messages: Anthropic.MessageParam[] = [
     {
       role: "user",
@@ -95,6 +96,12 @@ export async function discoverEventsWithAI(opts: {
       messages.push({ role: "assistant", content: response.content });
       response = await send();
     }
+
+    // Always leave a usage trail so hosting logs show which model/config is
+    // actually deployed and what each run cost.
+    console.log(
+      `[discover-events] ${MODEL} run for "${opts.locationName}" finished in ${Math.round((Date.now() - startedAt) / 1000)}s; stop_reason=${response.stop_reason}; usage=${JSON.stringify(response.usage)}`,
+    );
 
     const text = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
 
