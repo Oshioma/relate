@@ -8,11 +8,11 @@ import L from "leaflet";
 import { Plus, Settings, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { businessCategoryLabel } from "@/lib/business-categories";
 import { colorForCategory } from "@/lib/map-pin-colors";
 import { createLandmark, deleteLandmark, createMapCategory, toggleMapCategory, deleteMapCategory } from "./map-actions";
+import { BusinessMapPopup } from "./business-map-popup";
 import { UNGUJA_BOUNDS } from "@/lib/map-bounds";
-import type { MapCategory, Landmark, Business } from "@/types/database";
+import type { MapCategory, Landmark, Business, BusinessCategory } from "@/types/database";
 
 function dotIcon(color: string): L.DivIcon {
   return L.divIcon({
@@ -23,12 +23,26 @@ function dotIcon(color: string): L.DivIcon {
   });
 }
 
-function businessIcon(): L.DivIcon {
+const BUSINESS_CATEGORY_EMOJI: Record<BusinessCategory, string> = {
+  restaurant: "🍽️",
+  cafe: "☕",
+  shop: "🛍️",
+  accommodation: "🛏️",
+  service: "🛠️",
+  health: "🩺",
+  fitness: "🏋️",
+  coworking: "💻",
+  activity: "🏄",
+  taxi: "🚕",
+  other: "🏪",
+};
+
+function businessIcon(category: BusinessCategory): L.DivIcon {
   return L.divIcon({
     className: "",
-    html: `<span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:9999px;background:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.4);font-size:12px">🏪</span>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:#0f172a;border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,.4);font-size:13px">${BUSINESS_CATEGORY_EMOJI[category] ?? "🏪"}</span>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
   });
 }
 
@@ -64,7 +78,7 @@ function LandmarkPopup({
   }
 
   return (
-    <div className="min-w-[160px]">
+    <div className="min-w-[180px] p-3">
       <p className="text-sm font-semibold text-foreground">{landmark.name}</p>
       {landmark.description && <p className="mt-1 text-xs text-muted-foreground">{landmark.description}</p>}
       {canDelete && (
@@ -330,13 +344,9 @@ export default function ExploreMap({
             (business) =>
               business.lat !== null &&
               business.lng !== null && (
-                <Marker key={business.id} position={[business.lat, business.lng]} icon={businessIcon()}>
-                  <Popup>
-                    <div className="min-w-[160px]">
-                      <p className="text-sm font-semibold text-foreground">{business.name}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{businessCategoryLabel(business.category)}</p>
-                      {business.address && <p className="mt-1 text-xs text-muted-foreground">{business.address}</p>}
-                    </div>
+                <Marker key={business.id} position={[business.lat, business.lng]} icon={businessIcon(business.category)}>
+                  <Popup maxWidth={300}>
+                    <BusinessMapPopup business={business} />
                   </Popup>
                 </Marker>
               )

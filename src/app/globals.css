@@ -109,3 +109,55 @@ body {
   background: var(--accent-soft);
   color: var(--foreground);
 }
+
+/* Leaflet popup chrome — restyle the stock white bubble to match the app's
+   cards and follow the theme tokens (see explore-map.tsx). Content padding
+   lives in the popup components so image headers can sit flush. These rules
+   are deliberately unlayered: leaflet.css is unlayered too, so they must win
+   on specificity, and Tailwind's layered utilities can't beat either. */
+.leaflet-popup .leaflet-popup-content-wrapper {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaflet-popup .leaflet-popup-content {
+  margin: 0;
+}
+
+.leaflet-popup .leaflet-popup-content p {
+  margin: 0;
+}
+
+.leaflet-popup .leaflet-popup-tip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+/* Leaflet's own link color; components set accent colors inline where needed
+   since utility classes can't outrank leaflet's unlayered rule. */
+.leaflet-popup .leaflet-popup-content a {
+  color: inherit;
+}
+
+.leaflet-popup a.leaflet-popup-close-button {
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--background) 78%, transparent);
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.leaflet-popup a.leaflet-popup-close-button:hover {
+  color: var(--danger);
+}
