@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -39,6 +40,7 @@ import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
+import { TidesWeatherPanel } from "./tides-weather-panel";
 import { JournalEntryForm } from "./journal-entry-form";
 import { GrowthJourneyView } from "./growth-journey-view";
 import { NewChallengeForm } from "./new-challenge-form";
@@ -157,6 +159,12 @@ export default async function SpaceDetailPage({
   // Only honour a ?category= the directory actually has — built-in or custom.
   const initialCategory = businessCategoryOptions(businessCustomCategories).find((c) => c.value === rawCategory)?.value;
 
+  // The island/coastal templates create a "Tides & Weather" resources space;
+  // matching on the name (rather than a dedicated space_type) keeps renamed
+  // copies and hand-made "Weather" spaces working too. The panel itself
+  // decides what it can show — tides only for tidal location types.
+  const showLiveConditions = isResourceSpace && Boolean(community.location_name) && /tide|weather/i.test(space.name);
+
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
@@ -198,6 +206,12 @@ export default async function SpaceDetailPage({
 
       {isResourceSpace ? (
         <>
+          {showLiveConditions && (
+            <Suspense fallback={null}>
+              <TidesWeatherPanel community={community} />
+            </Suspense>
+          )}
+
           {canPost && (
             <div className="mb-6">
               <SpaceResourceForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />

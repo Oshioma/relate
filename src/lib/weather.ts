@@ -48,6 +48,8 @@ export interface TideEvent {
   time: string;
   /** Sea level height above mean sea level, metres. */
   height: number;
+  /** Minutes from now (community-local) until this tide; negative = already turned. */
+  minutesUntil: number;
 }
 
 export interface CommunityWeather {
@@ -124,11 +126,29 @@ async function fetchForecast(coords: Coordinates): Promise<Pick<CommunityWeather
   };
 }
 
+/** One point on the sea-level curve, for charting. */
+export interface TidePoint {
+  time: string;
+  height: number;
+}
+
+export interface TideOutlook {
+  resolvedName: string;
+  /** Every high/low across today and tomorrow (community-local), past included. */
+  events: TideEvent[];
+  /** The next tide still to come — the headline number. */
+  next: TideEvent | null;
+  /** Hourly sea-level curve across the same window, for the chart. */
+  curve: TidePoint[];
+  /** Where "now" falls along the curve, 0..1 — the chart's now-marker. */
+  nowFraction: number;
+}
+
 // The marine API has no high/low-tide endpoint, but hourly sea-level height
 // carries the tidal signal — each local extremum of the curve is a high or
 // low tide. Hourly samples put the reported time within ±30min of the true
 // turn, which is plenty for "when's low tide?" on a community page.
-async function fetchTides(coords: Coordinates): Promise<TideEvent[] | null> {
+async function fetchTideOutlook(coords: Coordinates): Promise<TideOutlook | null> {
   const url =
     `https://marine-api.open-meteo.com/v1/marine?latitude=${coords.lat}&longitude=${coords.lng}` +
     `&hourly=sea_level_height_msl&timezone=auto&forecast_days=2`;
@@ -147,6 +167,7 @@ async function fetchTides(coords: Coordinates): Promise<TideEvent[] | null> {
   // compared without any timezone-database work.
   const offsetMs = (data?.utc_offset_seconds ?? 0) * 1000;
   const localNow = Date.now() + offsetMs;
+  const asMs = (time: string) => Date.parse(`${time}:00Z`);
 
   const events: TideEvent[] = [];
   for (let i = 1; i < times.length - 1; i++) {
@@ -154,16 +175,43 @@ async function fetchTides(coords: Coordinates): Promise<TideEvent[] | null> {
     const here = heights[i];
     const next = heights[i + 1];
     if (prev === null || here === null || next === null) continue;
-    if (Date.parse(`${times[i]}:00Z`) < localNow) continue;
 
-    if (here >= prev && here > next) {
-      events.push({ kind: "high", time: times[i], height: here });
-    } else if (here <= prev && here < next) {
-      events.push({ kind: "low", time: times[i], height: here });
+    const kind = here >= prev && here > next ? "high" : here <= prev && here < next ? "low" : null;
+    if (kind) {
+      events.push({ kind, time: times[i], height: here, minutesUntil: Math.round((asMs(times[i]) - localNow) / 60000) });
     }
   }
+  if (!events.length) return null;
 
-  return events.length ? events.slice(0, 4) : null;
+  const curve: TidePoint[] = times.flatMap((time, i) => (heights[i] === null ? [] : [{ time, height: heights[i]! }]));
+  const first = asMs(curve[0].time);
+  const last = asMs(curve[curve.length - 1].time);
+  const nowFraction = Math.min(1, Math.max(0, (localNow - first) / Math.max(1, last - first)));
+
+  return {
+    resolvedName: coords.resolvedName,
+    events,
+    next: events.find((e) => e.minutesUntil >= 0) ?? null,
+    curve,
+    nowFraction,
+  };
+}
+
+/**
+ * The full tide picture for a community's Tides & Weather space: every
+ * high/low today and tomorrow plus the sea-level curve behind them. Null for
+ * non-tidal communities (see isTidalLocationType), missing locations, and
+ * points the marine model has no sea-level data for.
+ */
+export async function getCommunityTides(community: {
+  location_type: string | null;
+  location_name: string | null;
+}): Promise<TideOutlook | null> {
+  if (!community.location_name || !isTidalLocationType(community.location_type)) return null;
+
+  const coords = await geocodeLocation(community.location_name);
+  if (!coords) return null;
+  return fetchTideOutlook(coords);
 }
 
 /**
@@ -181,13 +229,14 @@ export async function getCommunityWeather(community: {
   const coords = await geocodeLocation(community.location_name);
   if (!coords) return null;
 
-  const [forecast, tides] = await Promise.all([
+  const [forecast, outlook] = await Promise.all([
     fetchForecast(coords),
-    isTidalLocationType(community.location_type) ? fetchTides(coords) : Promise.resolve(null),
+    isTidalLocationType(community.location_type) ? fetchTideOutlook(coords) : Promise.resolve(null),
   ]);
   if (!forecast) return null;
 
-  return { resolvedName: coords.resolvedName, ...forecast, tides };
+  const upcoming = outlook?.events.filter((e) => e.minutesUntil >= 0).slice(0, 4) ?? null;
+  return { resolvedName: coords.resolvedName, ...forecast, tides: upcoming?.length ? upcoming : null };
 }
 
 // ---------------------------------------------------------------------------
@@ -202,6 +251,13 @@ export function formatLocalHour(localTime: string): string {
   const suffix = h < 12 ? "AM" : "PM";
   const hour12 = h % 12 === 0 ? 12 : h % 12;
   return `${hour12}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+/** Rough countdown to a tide turn — hourly source data, so never over-precise. */
+export function formatMinutesUntil(minutes: number): string {
+  if (minutes < 45) return "about now";
+  const h = Math.round(minutes / 60);
+  return h <= 1 ? "in about 1 hour" : `in about ${h} hours`;
 }
 
 /** "2026-07-22" → "Wed" (weekday of a calendar date is timezone-independent). */
