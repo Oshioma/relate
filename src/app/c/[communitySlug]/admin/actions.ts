@@ -205,6 +205,7 @@ export async function updateCommunityDetails(
   const communitySlug = String(formData.get("community_slug") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const locationName = String(formData.get("location_name") ?? "").trim();
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -213,7 +214,7 @@ export async function updateCommunityDetails(
   const supabase = await createClient();
   const { error } = await supabase
     .from("communities")
-    .update({ name, description: description || null })
+    .update({ name, description: description || null, location_name: locationName.slice(0, 120) || null })
     .eq("id", communityId);
 
   if (error) {

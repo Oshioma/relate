@@ -24,6 +24,19 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
         <Textarea id="community_description" name="description" rows={2} defaultValue={community.description ?? ""} />
       </div>
 
+      <div>
+        <Label htmlFor="community_location">Location</Label>
+        <Input
+          id="community_location"
+          name="location_name"
+          defaultValue={community.location_name ?? ""}
+          placeholder="Zanzibar, Tanzania"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          The place this community is about. Used by AI event discovery and the map.
+        </p>
+      </div>
+
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Saving…" className="w-auto">
