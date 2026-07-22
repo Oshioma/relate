@@ -6,7 +6,7 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
-import { getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getUnreadMessageCount } from "@/lib/data/messages";
@@ -37,7 +37,7 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks, featuredCategories] = await Promise.all([
+  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks, featuredCategories, customCategories] = await Promise.all([
     getProfile(supabase, user.id),
     getMembership(supabase, community.id, user.id),
     getUnreadNotificationCount(supabase, user.id),
@@ -45,6 +45,7 @@ export default async function CommunityLayout({
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
+    getCommunityBusinessCustomCategories(supabase, community.id),
   ]);
 
   if (!membership && !community.is_public) {
@@ -73,7 +74,7 @@ export default async function CommunityLayout({
         .filter((f) => f.space_id === space.id)
         .map((f) => ({
           href: `${base}/spaces/${space.slug}?category=${f.category}`,
-          label: businessCategoryPluralLabel(f.category),
+          label: businessCategoryPluralLabel(f.category, customCategories),
           icon: <Tag className="h-3.5 w-3.5" />,
           sub: true,
         })),

@@ -10,8 +10,8 @@ import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
-import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
-import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { businessCategoryOptions } from "@/lib/business-categories";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import { getCommunityMapItems } from "@/lib/data/map-items";
 import { getSpaceListings } from "@/lib/data/marketplace";
@@ -65,7 +65,6 @@ export default async function SpaceDetailPage({
 }) {
   const { communitySlug, spaceSlug } = await params;
   const { category: rawCategory } = await searchParams;
-  const initialCategory = BUSINESS_CATEGORIES.find((c) => c.value === rawCategory)?.value;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -152,6 +151,11 @@ export default async function SpaceDetailPage({
   const featuredBusinessCategories = isBusinessDirectorySpace
     ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
     : [];
+  const businessCustomCategories = isBusinessDirectorySpace
+    ? (await getCommunityBusinessCustomCategories(supabase, community.id)).filter((c) => c.space_id === space.id)
+    : [];
+  // Only honour a ?category= the directory actually has — built-in or custom.
+  const initialCategory = businessCategoryOptions(businessCustomCategories).find((c) => c.value === rawCategory)?.value;
 
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
@@ -343,6 +347,7 @@ export default async function SpaceDetailPage({
           userId={user.id}
           initialCategory={initialCategory}
           featuredCategories={featuredBusinessCategories}
+          customCategories={businessCustomCategories}
         />
       ) : isMapSpace ? (
         <ExploreMapLoader

@@ -2,14 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { BUSINESS_CATEGORIES, businessCategoryLabel } from "@/lib/business-categories";
+import { businessCategoryOptions } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
-import { setCategoryFeatured } from "./business-directory-actions";
-import type { Business, BusinessCategory } from "@/types/database";
+import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory } from "./business-directory-actions";
+import type { Business, BusinessCategory, BusinessCustomCategory } from "@/types/database";
 
 export function BusinessDirectoryView({
   businesses,
@@ -22,6 +22,7 @@ export function BusinessDirectoryView({
   userId,
   initialCategory,
   featuredCategories,
+  customCategories,
 }: {
   businesses: Business[];
   communityId: string;
@@ -35,25 +36,59 @@ export function BusinessDirectoryView({
   initialCategory?: BusinessCategory;
   // Categories staff have pinned as nav sub-links for this space.
   featuredCategories: BusinessCategory[];
+  // Categories staff added beyond the built-ins, scoped to this space.
+  customCategories: BusinessCustomCategory[];
 }) {
   const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [featured, setFeatured] = useState<BusinessCategory[]>(featuredCategories);
-  const [featuredError, setFeaturedError] = useState<string | null>(null);
+  const [chipError, setChipError] = useState<string | null>(null);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   function toggleFeatured(target: BusinessCategory) {
     const makeFeatured = !featured.includes(target);
-    setFeaturedError(null);
+    setChipError(null);
     startTransition(async () => {
       const result = await setCategoryFeatured(spaceId, communityId, target, makeFeatured, communitySlug);
       if (result?.error) {
-        setFeaturedError(result.error);
+        setChipError(result.error);
       } else {
         setFeatured((prev) => (makeFeatured ? [...prev, target] : prev.filter((c) => c !== target)));
+        router.refresh();
+      }
+    });
+  }
+
+  function handleAddCategory() {
+    setChipError(null);
+    startTransition(async () => {
+      const result = await addBusinessCategory(spaceId, communityId, newCategoryLabel, communitySlug, spaceSlug);
+      if (result.error) {
+        setChipError(result.error);
+      } else {
+        setNewCategoryLabel("");
+        setAddingCategory(false);
+        if (result.slug) setCategory(result.slug);
+        router.refresh();
+      }
+    });
+  }
+
+  function handleDeleteCategory(target: BusinessCustomCategory) {
+    if (!window.confirm(`Delete "${target.label}"? Businesses in it move to Other.`)) return;
+    setChipError(null);
+    startTransition(async () => {
+      const result = await deleteBusinessCategory(target.id, communitySlug);
+      if (result.error) {
+        setChipError(result.error);
+      } else {
+        setCategory("all");
+        setFeatured((prev) => prev.filter((c) => c !== target.slug));
         router.refresh();
       }
     });
@@ -131,9 +166,12 @@ export function BusinessDirectoryView({
         >
           All ({businesses.length})
         </button>
-        {BUSINESS_CATEGORIES.map((c) => {
+        {businessCategoryOptions(customCategories).map((c) => {
           const count = countByCategory.get(c.value) ?? 0;
-          if (count === 0) return null;
+          const isCustom = customCategories.some((cc) => cc.slug === c.value);
+          // Built-ins only clutter the row once something uses them; customs
+          // were added deliberately, so they show right away.
+          if (count === 0 && !isCustom) return null;
           const isActive = category === c.value;
           return (
             <button
@@ -143,7 +181,7 @@ export function BusinessDirectoryView({
               className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
             >
               {featured.includes(c.value) && <Pin className="h-3 w-3" />}
-              {businessCategoryLabel(c.value)} ({count})
+              {c.label} ({count})
             </button>
           );
         })}
@@ -159,9 +197,78 @@ export function BusinessDirectoryView({
             {featured.includes(category) ? "Remove nav link" : "Add to nav"}
           </button>
         )}
+        {isStaff &&
+          category !== "all" &&
+          (() => {
+            const activeCustom = customCategories.find((cc) => cc.slug === category);
+            if (!activeCustom) return null;
+            return (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => handleDeleteCategory(activeCustom)}
+                title="Delete this category — its businesses move to Other"
+                className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-danger hover:text-danger disabled:opacity-60"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete category
+              </button>
+            );
+          })()}
+        {isStaff && !addingCategory && (
+          <button
+            type="button"
+            onClick={() => {
+              setChipError(null);
+              setAddingCategory(true);
+            }}
+            title="Add a category beyond the built-ins, e.g. Fundi"
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent"
+          >
+            <Plus className="h-3 w-3" />
+            New category
+          </button>
+        )}
+        {isStaff && addingCategory && (
+          <span className="inline-flex items-center gap-1.5">
+            <input
+              autoFocus
+              value={newCategoryLabel}
+              onChange={(e) => setNewCategoryLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddCategory();
+                }
+                if (e.key === "Escape") setAddingCategory(false);
+              }}
+              maxLength={40}
+              placeholder="Fundi"
+              className="w-32 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="button"
+              disabled={isPending || !newCategoryLabel.trim()}
+              onClick={handleAddCategory}
+              className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAddingCategory(false);
+                setNewCategoryLabel("");
+              }}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        )}
       </div>
 
-      {featuredError && <p className="-mt-3 mb-3 text-xs text-danger">{featuredError}</p>}
+      {chipError && <p className="-mt-3 mb-3 text-xs text-danger">{chipError}</p>}
 
       {locations.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
@@ -190,7 +297,7 @@ export function BusinessDirectoryView({
 
       {showForm && (
         <div className="mb-5">
-          <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} onDone={() => setShowForm(false)} />
+          <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} customCategories={customCategories} onDone={() => setShowForm(false)} />
         </div>
       )}
 
@@ -215,6 +322,7 @@ export function BusinessDirectoryView({
                     canManage={isStaff || business.created_by === userId}
                     isStaff={isStaff}
                     userId={userId}
+                    customCategories={customCategories}
                   />
                 ))}
               </div>
