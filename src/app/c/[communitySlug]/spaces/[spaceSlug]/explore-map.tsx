@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } f
 import { useRouter } from "next/navigation";
 import { Map as MapGL, Marker, Popup, NavigationControl, GeolocateControl, type MapRef } from "react-map-gl/maplibre";
 import type { Map as MaplibreMap, Offset, StyleSpecification } from "maplibre-gl";
-import { Plus, Search, Settings, Trash2, X, Maximize2, Minimize2, Satellite, Map as MapStyleIcon } from "lucide-react";
+import { MapPin, Plus, Search, Settings, Trash2, X, Maximize2, Minimize2, Satellite, Map as MapStyleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { colorForCategory } from "@/lib/map-pin-colors";
@@ -15,7 +15,7 @@ import { BusinessMapPopup } from "./business-map-popup";
 import { MapItemPopup, isEventSoon } from "./map-item-popup";
 import { MAP_ITEM_KINDS, MAP_ITEM_KIND_ORDER, type MapItem } from "@/lib/map-item-kinds";
 import { UNGUJA_BOUNDS_LNGLAT } from "@/lib/map-bounds";
-import type { MapCategory, Landmark, Business, BusinessCategory } from "@/types/database";
+import type { MapCategory, Landmark, Business } from "@/types/database";
 
 // Vector basemaps from OpenFreeMap — free, no API key, GPU-rendered by
 // MapLibre for fractional zoom, rotation and crisp labels. Both get
@@ -76,9 +76,9 @@ const BUSINESS_CATEGORY_EMOJI: Record<string, string> = {
 // center — markers anchor "bottom" so the tip sits on the coordinate.
 const PIN_PATH = "M12 .5C5.6.5.5 5.6.5 12c0 8.9 11.5 21.5 11.5 21.5S23.5 20.9 23.5 12C23.5 5.6 18.4.5 12 .5z";
 
-function Pin({ color, inner, pulseColor, delay }: { color: string; inner: ReactNode; pulseColor?: string; delay: number }) {
+function Pin({ color, inner, pulseColor, delay, highlight }: { color: string; inner: ReactNode; pulseColor?: string; delay: number; highlight?: boolean }) {
   return (
-    <span className="map-pin map-pin-enter" style={{ animationDelay: `${delay}ms` }}>
+    <span className={`map-pin map-pin-enter ${highlight ? "map-pin-highlight" : ""}`} style={{ animationDelay: `${delay}ms` }}>
       {pulseColor && <span className="map-pin-pulse" style={{ top: 2, left: 2, width: 26, height: 26, background: pulseColor }} />}
       <svg width="30" height="40" viewBox="0 0 24 34" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,.35))" }}>
         <path d={PIN_PATH} fill={color} stroke="#fff" strokeWidth="1.5" />
@@ -109,6 +109,23 @@ function ClusterBubble({ count, colors, delay }: { count: number; colors: string
       <span className="map-cluster-count">{count}</span>
     </span>
   );
+}
+
+// Below lg the list panel hides and pin taps open a bottom sheet instead of
+// an anchored popup — cramped popups are the fastest way to feel dated on
+// mobile.
+function useIsMobile(): boolean {
+  const [mobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const compute = () => setMobile(mq.matches);
+    compute();
+    mq.addEventListener("change", compute);
+    return () => mq.removeEventListener("change", compute);
+  }, []);
+
+  return mobile;
 }
 
 // The app's dual theme strategy (globals.css): explicit data-theme wins,
@@ -144,6 +161,11 @@ type PinDef = {
   inner: ReactNode;
   pulseColor?: string;
   searchText: string;
+  // For the synced list panel beside the map.
+  title: string;
+  subtitle: string;
+  thumbUrl: string | null;
+  thumbIcon: ReactNode;
   popup: ReactNode;
 };
 
@@ -429,6 +451,12 @@ export default function ExploreMap({
   const [zoom, setZoom] = useState(9.5);
   const [query, setQuery] = useState("");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
+  const [viewBounds, setViewBounds] = useState<[[number, number], [number, number]] | null>(null);
+  const [sheetDragY, setSheetDragY] = useState(0);
+  const [sheetDragging, setSheetDragging] = useState(false);
+  const sheetStartY = useRef<number | null>(null);
+  const isMobile = useIsMobile();
   const isDark = useIsDarkTheme();
   const mapRef = useRef<MapRef>(null);
   // setPaintProperty itself fires styledata — remember what's applied so the
@@ -487,6 +515,10 @@ export default function ExploreMap({
         color: colorForCategory(landmark.category_id),
         inner: <span style={{ display: "block", width: 8, height: 8, borderRadius: 9999, background: "#fff" }} />,
         searchText: `${landmark.name} ${landmark.description ?? ""}`.toLowerCase(),
+        title: landmark.name,
+        subtitle: categories.find((c) => c.id === landmark.category_id)?.name ?? "Landmark",
+        thumbUrl: null,
+        thumbIcon: <MapPin className="h-4 w-4" style={{ color: colorForCategory(landmark.category_id) }} />,
         popup: <LandmarkPopup landmark={landmark} communitySlug={communitySlug} spaceSlug={spaceSlug} canDelete={isAdmin || landmark.created_by === userId} />,
       })),
       ...visibleBusinesses.flatMap((business) =>
@@ -498,6 +530,13 @@ export default function ExploreMap({
               color: "#0f172a",
               inner: BUSINESS_CATEGORY_EMOJI[business.category] ?? "🏪",
               searchText: `${business.name} ${businessCategoryLabel(business.category)} ${business.description ?? ""}`.toLowerCase(),
+              title: business.name,
+              subtitle:
+                business.google_rating !== null
+                  ? `★ ${Number(business.google_rating).toFixed(1)} · ${businessCategoryLabel(business.category)}`
+                  : businessCategoryLabel(business.category),
+              thumbUrl: business.image_url,
+              thumbIcon: BUSINESS_CATEGORY_EMOJI[business.category] ?? "🏪",
               popup: <BusinessMapPopup business={business} />,
             }]
           : []
@@ -510,6 +549,10 @@ export default function ExploreMap({
         inner: MAP_ITEM_KINDS[item.kind].emoji,
         pulseColor: isEventSoon(item) ? MAP_ITEM_KINDS[item.kind].color : undefined,
         searchText: `${item.title} ${MAP_ITEM_KINDS[item.kind].label} ${item.description ?? ""}`.toLowerCase(),
+        title: item.title,
+        subtitle: item.meta ? `${MAP_ITEM_KINDS[item.kind].label} · ${item.meta}` : MAP_ITEM_KINDS[item.kind].label,
+        thumbUrl: item.imageUrl,
+        thumbIcon: MAP_ITEM_KINDS[item.kind].emoji,
         popup: <MapItemPopup item={item} />,
       })),
     ];
@@ -519,6 +562,31 @@ export default function ExploreMap({
   const filteredPins = useMemo(() => (q ? pins.filter((p) => p.searchText.includes(q)) : pins), [pins, q]);
   const clusters = useMemo(() => clusterPins(filteredPins, zoom), [filteredPins, zoom]);
   const selected = filteredPins.find((p) => p.key === selectedKey) ?? null;
+
+  // The list panel mirrors the viewport — pan/zoom the map and the list
+  // follows, like map-first browsing surfaces do.
+  const inView = useMemo(() => {
+    const within = viewBounds
+      ? filteredPins.filter(
+          (p) => p.lng >= viewBounds[0][0] && p.lng <= viewBounds[1][0] && p.lat >= viewBounds[0][1] && p.lat <= viewBounds[1][1]
+        )
+      : filteredPins;
+    return [...within].sort((a, b) => a.title.localeCompare(b.title));
+  }, [filteredPins, viewBounds]);
+
+  // Selection and the sheet's drag state travel together — a fresh selection
+  // must never inherit a half-dragged sheet transform.
+  function selectPin(key: string | null) {
+    setSelectedKey(key);
+    setSheetDragY(0);
+    setSheetDragging(false);
+    sheetStartY.current = null;
+  }
+
+  function focusPin(pin: PinDef) {
+    selectPin(pin.key);
+    mapRef.current?.flyTo({ center: [pin.lng, pin.lat], zoom: Math.max(zoom, 14.5), duration: 650 });
+  }
 
   // Glide to the matching pins as the user types.
   useEffect(() => {
@@ -597,6 +665,7 @@ export default function ExploreMap({
 
       {addMode && <p className="mb-2 text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
 
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-3">
       <div
         className={
           fullscreen
@@ -612,10 +681,14 @@ export default function ExploreMap({
           cursor={addMode ? "crosshair" : "auto"}
           onLoad={(e) => {
             setZoom(e.target.getZoom());
+            setViewBounds(e.target.getBounds().toArray() as [[number, number], [number, number]]);
             handleStyleData();
           }}
           onStyleData={handleStyleData}
-          onZoomEnd={(e) => setZoom(e.viewState.zoom)}
+          onMoveEnd={(e) => {
+            setZoom(e.viewState.zoom);
+            setViewBounds(e.target.getBounds().toArray() as [[number, number], [number, number]]);
+          }}
           onClick={(e) => {
             if (addMode) setPending({ lat: e.lngLat.lat, lng: e.lngLat.lng });
           }}
@@ -628,18 +701,20 @@ export default function ExploreMap({
           {clusters.map((cluster, i) => {
             if (cluster.pins.length === 1) {
               const pin = cluster.pins[0];
+              const active = hoverKey === pin.key || selectedKey === pin.key;
               return (
                 <Marker
                   key={pin.key}
                   longitude={pin.lng}
                   latitude={pin.lat}
                   anchor="bottom"
+                  style={active ? { zIndex: 5 } : undefined}
                   onClick={(e) => {
                     e.originalEvent.stopPropagation();
-                    if (!addMode) setSelectedKey(pin.key);
+                    if (!addMode) selectPin(pin.key);
                   }}
                 >
-                  <Pin color={pin.color} inner={pin.inner} pulseColor={pin.pulseColor} delay={Math.min(i * 25, 500)} />
+                  <Pin color={pin.color} inner={pin.inner} pulseColor={pin.pulseColor} delay={Math.min(i * 25, 500)} highlight={active} />
                 </Marker>
               );
             }
@@ -659,19 +734,54 @@ export default function ExploreMap({
             );
           })}
 
-          {selected && (
+          {selected && !isMobile && (
             <Popup
               longitude={selected.lng}
               latitude={selected.lat}
               offset={POPUP_OFFSET}
               maxWidth="300px"
               closeOnClick
-              onClose={() => setSelectedKey(null)}
+              onClose={() => selectPin(null)}
             >
               <div className="max-h-[380px] overflow-y-auto">{selected.popup}</div>
             </Popup>
           )}
         </MapGL>
+
+        {/* On phones an anchored popup is cramped — pin taps open a bottom
+            sheet instead, swipe-down (or backdrop tap) to dismiss. */}
+        {isMobile && selected && (
+          <>
+            <button type="button" aria-label="Close" onClick={() => selectPin(null)} className="absolute inset-0 z-10 bg-black/25" />
+            <div
+              className={`map-sheet-enter absolute inset-x-0 bottom-0 z-20 rounded-t-2xl border-x border-t border-border bg-card shadow-2xl ${sheetDragging ? "" : "transition-transform duration-200"}`}
+              style={{ transform: sheetDragY ? `translateY(${sheetDragY}px)` : undefined }}
+            >
+              <div
+                className="flex touch-none justify-center py-2.5"
+                onTouchStart={(e) => {
+                  sheetStartY.current = e.touches[0].clientY;
+                  setSheetDragging(true);
+                }}
+                onTouchMove={(e) => {
+                  if (sheetStartY.current === null) return;
+                  const delta = e.touches[0].clientY - sheetStartY.current;
+                  if (delta > 0) setSheetDragY(delta);
+                }}
+                onTouchEnd={() => {
+                  const shouldClose = sheetDragY > 80;
+                  sheetStartY.current = null;
+                  setSheetDragging(false);
+                  setSheetDragY(0);
+                  if (shouldClose) selectPin(null);
+                }}
+              >
+                <span className="h-1 w-10 rounded-full bg-border" />
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))] [&>div]:w-full">{selected.popup}</div>
+            </div>
+          </>
+        )}
 
         <div className="absolute left-3 top-3 z-10">
           <div className="flex items-center gap-1.5 rounded-full border border-border bg-card/85 py-1.5 pl-3 pr-2 shadow-sm backdrop-blur">
@@ -703,6 +813,48 @@ export default function ExploreMap({
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
+      </div>
+
+      {/* Airbnb-style synced list: what's in the viewport, hover to spotlight
+          the pin, click to fly to it. Hidden below lg (the sheet covers
+          mobile). */}
+      <aside className="mt-3 hidden h-[65vh] min-h-[420px] flex-col overflow-hidden rounded-lg border border-border bg-card lg:mt-0 lg:flex">
+        <div className="border-b border-border px-3 py-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            {inView.length} {inView.length === 1 ? "place" : "places"} in view
+            {q && " · filtered"}
+          </p>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {inView.length === 0 ? (
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">Nothing in view — move the map or clear filters.</p>
+          ) : (
+            inView.map((pin) => (
+              <button
+                key={pin.key}
+                type="button"
+                onClick={() => focusPin(pin)}
+                onMouseEnter={() => setHoverKey(pin.key)}
+                onMouseLeave={() => setHoverKey(null)}
+                className={`flex w-full items-center gap-2.5 border-b border-border px-3 py-2.5 text-left last:border-b-0 hover:bg-muted ${selectedKey === pin.key ? "bg-muted" : ""}`}
+              >
+                {pin.thumbUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={pin.thumbUrl} alt="" className="h-9 w-9 shrink-0 rounded-md object-cover" />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm" style={{ background: `${pin.color}22` }}>
+                    {pin.thumbIcon}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-foreground">{pin.title}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{pin.subtitle}</span>
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
       </div>
 
       {pending && (

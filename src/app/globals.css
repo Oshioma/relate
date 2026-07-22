@@ -280,6 +280,25 @@ body {
   transform: scale(1.12);
 }
 
+/* Spotlighted from the list panel (hover/selection) — see explore-map.tsx. */
+.map-pin-highlight {
+  transform: scale(1.18);
+}
+
+/* Mobile bottom sheet sliding up when a pin is tapped. */
+@keyframes map-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.map-sheet-enter {
+  animation: map-sheet-up 0.28s cubic-bezier(0.32, 0.72, 0.33, 1);
+}
+
 .map-pin-inner {
   position: absolute;
   top: 3px;
