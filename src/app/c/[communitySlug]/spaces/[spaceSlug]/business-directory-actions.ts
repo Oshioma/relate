@@ -1,15 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
-import type { BusinessCategory } from "@/types/database";
+import { BUSINESS_CATEGORIES, slugifyBusinessCategory } from "@/lib/business-categories";
+import type { Database, BusinessCategory } from "@/types/database";
 
 export type BusinessFormState = { error: string } | undefined;
 
-function parseCategory(raw: FormDataEntryValue | null): BusinessCategory {
+// A valid category is a built-in value or a custom category slug staff added
+// to this space (business_custom_categories); anything else folds to 'other'.
+async function resolveCategory(
+  supabase: SupabaseClient<Database>,
+  spaceId: string,
+  raw: FormDataEntryValue | null
+): Promise<BusinessCategory> {
   const value = String(raw ?? "other");
-  return BUSINESS_CATEGORIES.some((c) => c.value === value) ? (value as BusinessCategory) : "other";
+  if (BUSINESS_CATEGORIES.some((c) => c.value === value)) return value;
+  if (!/^[a-z0-9][a-z0-9-]{0,39}$/.test(value)) return "other";
+  const { data } = await supabase
+    .from("business_custom_categories")
+    .select("slug")
+    .eq("space_id", spaceId)
+    .eq("slug", value)
+    .maybeSingle();
+  return data ? value : "other";
 }
 
 function parseCoordinate(raw: FormDataEntryValue | null, min: number, max: number): number | null {
@@ -35,7 +50,6 @@ function parseBusinessFields(formData: FormData) {
   const imageUrl = parseImageUrl(formData.get("image_url"));
   return {
     name: String(formData.get("name") ?? "").trim(),
-    category: parseCategory(formData.get("category")),
     description: String(formData.get("description") ?? "").trim(),
     website: String(formData.get("website") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
@@ -143,13 +157,14 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
 
   // No image picked? Pull the website's share image so every listing gets one.
   const imageUrl = f.imageUrl ?? (f.website ? (await scrapeWebsiteImages(f.website))[0] ?? null : null);
+  const category = await resolveCategory(supabase, spaceId, formData.get("category"));
 
   const { error } = await supabase.from("businesses").insert({
     space_id: spaceId,
     community_id: communityId,
     created_by: user.id,
     name: f.name,
-    category: f.category,
+    category,
     description: f.description || null,
     website: f.website || null,
     phone: f.phone || null,
@@ -174,6 +189,7 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
 // creator or community staff — anyone else's update matches zero rows.
 export async function updateBusiness(_prevState: BusinessFormState, formData: FormData): Promise<BusinessFormState> {
   const businessId = String(formData.get("business_id") ?? "");
+  const spaceId = String(formData.get("space_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const spaceSlug = String(formData.get("space_slug") ?? "");
   const f = parseBusinessFields(formData);
@@ -190,11 +206,13 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
     return { error: "You need to be signed in." };
   }
 
+  const category = await resolveCategory(supabase, spaceId, formData.get("category"));
+
   const { error } = await supabase
     .from("businesses")
     .update({
       name: f.name,
-      category: f.category,
+      category,
       description: f.description || null,
       website: f.website || null,
       phone: f.phone || null,
@@ -259,11 +277,11 @@ export async function setCategoryFeatured(
   featured: boolean,
   communitySlug: string
 ) {
-  if (!BUSINESS_CATEGORIES.some((c) => c.value === category)) {
+  const supabase = await createClient();
+
+  if ((await resolveCategory(supabase, spaceId, category)) !== category) {
     return { error: "Unknown category." };
   }
-
-  const supabase = await createClient();
 
   if (featured) {
     const { error } = await supabase
@@ -280,6 +298,63 @@ export async function setCategoryFeatured(
   }
 
   // The sub-links live in the community layout's nav, so revalidate the layout.
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { error: null };
+}
+
+// Staff-only (enforced by RLS on business_custom_categories): add a category
+// beyond the built-ins — "Fundi", "Boda Boda" — scoped to this directory space.
+export async function addBusinessCategory(
+  spaceId: string,
+  communityId: string,
+  label: string,
+  communitySlug: string,
+  spaceSlug: string
+) {
+  const trimmed = label.trim().slice(0, 40);
+  const slug = slugifyBusinessCategory(trimmed);
+  if (!trimmed || !slug) {
+    return { error: "Give the category a name." };
+  }
+  if (BUSINESS_CATEGORIES.some((c) => c.value === slug)) {
+    return { error: "That category already exists." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { error } = await supabase.from("business_custom_categories").insert({
+    space_id: spaceId,
+    community_id: communityId,
+    created_by: user.id,
+    slug,
+    label: trimmed,
+  });
+
+  if (error) {
+    // 23505 = the unique (space_id, slug) constraint.
+    return { error: error.code === "23505" ? "That category already exists." : error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { error: null, slug };
+}
+
+// Staff-only. A DB trigger folds the category's listings back into 'other'
+// and removes any nav sub-link featuring it, so revalidate the layout too.
+export async function deleteBusinessCategory(categoryId: string, communitySlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("business_custom_categories").delete().eq("id", categoryId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
   revalidatePath(`/c/${communitySlug}`, "layout");
   return { error: null };
 }

@@ -33,7 +33,11 @@ export type SpaceType =
   | "recommendations";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
-export type BusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
+export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
+// Stored as text: a built-in value above, or the slug of a per-space custom
+// category (business_custom_categories) staff added — e.g. "fundi". The
+// `string & {}` keeps built-in autocomplete while allowing any slug.
+export type BusinessCategory = BuiltInBusinessCategory | (string & {});
 export type MarketplaceListingType = "goods" | "services" | "property" | "vehicles" | "jobs" | "free" | "wanted" | "experiences" | "tickets";
 export type MarketplaceListingStatus = "active" | "sold" | "expired";
 export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "internship" | "seasonal";
@@ -248,6 +252,20 @@ export type FeaturedBusinessCategory = {
   space_id: string;
   community_id: string;
   category: BusinessCategory;
+  created_at: string;
+};
+
+// A category staff added to a directory space beyond the built-ins ("Fundi",
+// "Boda Boda", …). slug is what businesses.category stores; label is what
+// renders. Deleting one folds its listings back into 'other' (see
+// supabase/business-custom-categories.sql).
+export type BusinessCustomCategory = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  slug: string;
+  label: string;
   created_at: string;
 };
 
@@ -770,6 +788,12 @@ export type Database = {
         Row: FeaturedBusinessCategory;
         Insert: Partial<FeaturedBusinessCategory> & { space_id: string; community_id: string; category: BusinessCategory };
         Update: Partial<FeaturedBusinessCategory>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      business_custom_categories: {
+        Row: BusinessCustomCategory;
+        Insert: Partial<BusinessCustomCategory> & { space_id: string; community_id: string; created_by: string; slug: string; label: string };
+        Update: Partial<BusinessCustomCategory>;
         Relationships: [FKey<"space_id", "spaces">];
       };
       map_categories: {

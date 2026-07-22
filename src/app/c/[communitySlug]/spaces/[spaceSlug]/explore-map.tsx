@@ -36,7 +36,9 @@ const TILES = {
   },
 } as const;
 
-const BUSINESS_CATEGORY_EMOJI: Record<BusinessCategory, string> = {
+// Keyed by slug rather than the full BusinessCategory union — custom
+// categories fall through to the shopfront default in businessIcon.
+const BUSINESS_CATEGORY_EMOJI: Record<string, string> = {
   restaurant: "🍽️",
   cafe: "☕",
   shop: "🛍️",

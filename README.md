@@ -255,6 +255,9 @@ and `supabase/space-types.sql`:
 2. `supabase/business-directory.sql` — depends on `place-community.sql`
    (`business_directory` space type). Local businesses — restaurants,
    cafes, shops, accommodation, services, and a local-trades catch-all.
+   Then run `supabase/business-custom-categories.sql` — lets staff add
+   their own categories per directory ("Fundi", "Boda Boda", …) beyond
+   the built-ins, and converts the category columns from enum to text.
 3. `supabase/marketplace.sql` — depends on `place-community.sql`
    (`marketplace` space type). Goods, services, property, vehicles,
    jobs, free items, wanted posts, experiences and tickets.
@@ -531,6 +534,7 @@ supabase/
   community-nav-links.sql           Custom external sidebar links, managed by community admins
   place-community.sql               Place-based location fields, nine place space types, post/event geo
   business-directory.sql            businesses table for business_directory-type spaces
+  business-custom-categories.sql    Staff-added per-space business categories; category enum → text
   marketplace.sql                   marketplace_listings table for marketplace-type spaces
   jobs-board.sql                    job_listings table for jobs-type spaces
   accommodation.sql                 accommodation_listings table for accommodation-type spaces

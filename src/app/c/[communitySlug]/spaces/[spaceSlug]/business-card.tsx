@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { deleteBusiness, setBusinessBadge } from "./business-directory-actions";
 import { EditBusinessForm } from "./edit-business-form";
-import type { Business } from "@/types/database";
+import type { Business, BusinessCustomCategory } from "@/types/database";
 
 export function BusinessCard({
   business,
@@ -17,10 +17,12 @@ export function BusinessCard({
   canManage,
   isStaff,
   userId,
+  customCategories,
 }: {
   business: Business;
   communitySlug: string;
   spaceSlug: string;
+  customCategories: BusinessCustomCategory[];
   // Whoever added the listing (or staff) can edit or remove it; only staff can
   // grant the verified/featured badges — see enforce_business_privileged_fields
   // in supabase/business-directory.sql, which enforces the same split in the DB.
@@ -65,6 +67,7 @@ export function BusinessCard({
         communitySlug={communitySlug}
         spaceSlug={spaceSlug}
         userId={userId}
+        customCategories={customCategories}
         onDone={() => {
           setIsEditing(false);
           router.refresh();
@@ -103,7 +106,7 @@ export function BusinessCard({
               )}
               {business.featured && <Badge tone="accent">Featured</Badge>}
             </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">{businessCategoryLabel(business.category)}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{businessCategoryLabel(business.category, customCategories)}</p>
           </div>
           {canManage && (
             <div className="flex shrink-0 items-center gap-2">

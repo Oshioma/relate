@@ -3,10 +3,10 @@
 import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import { businessCategoryOptions } from "@/lib/business-categories";
 import { BusinessImageInput } from "./business-image-input";
 import type { PickedLocation } from "./location-picker";
-import type { Business } from "@/types/database";
+import type { Business, BusinessCustomCategory } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
 // browser — same pattern as explore-map-loader.tsx.
@@ -28,9 +28,12 @@ export function BusinessFormFields({
   imagePosition,
   onImagePositionChange,
   userId,
+  customCategories,
 }: {
   idPrefix: string;
   business?: Business;
+  // Staff-added categories for this space, merged into the category select.
+  customCategories: BusinessCustomCategory[];
   pin: PickedLocation | null;
   onPinChange: (pin: PickedLocation | null) => void;
   imageUrl: string | null;
@@ -56,7 +59,7 @@ export function BusinessFormFields({
             defaultValue={business?.category ?? "restaurant"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {BUSINESS_CATEGORIES.map((c) => (
+            {businessCategoryOptions(customCategories).map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>

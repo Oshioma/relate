@@ -6,13 +6,14 @@ import { updateBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import type { PickedLocation } from "./location-picker";
-import type { Business } from "@/types/database";
+import type { Business, BusinessCustomCategory } from "@/types/database";
 
 export function EditBusinessForm({
   business,
   communitySlug,
   spaceSlug,
   userId,
+  customCategories,
   onDone,
   onCancel,
 }: {
@@ -20,6 +21,7 @@ export function EditBusinessForm({
   communitySlug: string;
   spaceSlug: string;
   userId: string;
+  customCategories: BusinessCustomCategory[];
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -43,6 +45,8 @@ export function EditBusinessForm({
   return (
     <form action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="business_id" value={business.id} />
+      {/* Scopes custom-category validation in updateBusiness to this space. */}
+      <input type="hidden" name="space_id" value={business.space_id} />
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
 
@@ -56,6 +60,7 @@ export function EditBusinessForm({
       <BusinessFormFields
         idPrefix={`edit_business_${business.id}`}
         business={business}
+        customCategories={customCategories}
         pin={pin}
         onPinChange={setPin}
         imageUrl={imageUrl}
