@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { MapCategory, Landmark, Business } from "@/types/database";
+import type { MapItem } from "@/lib/map-item-kinds";
 
 // Leaflet touches `window` at import time, so it can only load in the
 // browser — ssr: false is only valid inside a Client Component, hence this
@@ -19,6 +20,7 @@ export function ExploreMapLoader(props: {
   categories: MapCategory[];
   landmarks: Landmark[];
   businesses: Business[];
+  items: MapItem[];
   canPost: boolean;
   isAdmin: boolean;
   userId: string;

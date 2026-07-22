@@ -197,6 +197,16 @@ export type CommunityNavLink = {
   updated_at: string;
 };
 
+// A review snippet cached from Google Places (businesses.google_reviews).
+// Always rendered with Google attribution — see supabase/business-google-places.sql.
+export type BusinessGoogleReview = {
+  author: string;
+  author_photo_url: string | null;
+  rating: number;
+  text: string;
+  relative_time: string;
+};
+
 // A listing in a 'business_directory' space (see space-types.ts). Distinct
 // from BusinessProfile below, which is a member's own business profile page —
 // a Business here is scoped to one place community's directory, addable by
@@ -218,6 +228,12 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
+  google_place_id: string | null;
+  google_rating: number | null;
+  google_review_count: number | null;
+  google_reviews: BusinessGoogleReview[] | null;
+  google_maps_url: string | null;
+  google_synced_at: string | null;
   verified: boolean;
   featured: boolean;
   created_at: string;

@@ -13,6 +13,7 @@ import { getSpaceChallenges } from "@/lib/data/challenges";
 import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
+import { getCommunityMapItems } from "@/lib/data/map-items";
 import { getSpaceListings } from "@/lib/data/marketplace";
 import { getSpaceJobListings } from "@/lib/data/jobs";
 import { getSpaceAccommodationListings } from "@/lib/data/accommodation";
@@ -117,6 +118,7 @@ export default async function SpaceDetailPage({
     mapCategories,
     landmarks,
     mapBusinesses,
+    mapItems,
     listings,
     jobs,
     accommodationListings,
@@ -137,6 +139,7 @@ export default async function SpaceDetailPage({
     isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
     isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
     isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),
+    isMapSpace ? getCommunityMapItems(supabase, community.id, community.slug) : Promise.resolve([]),
     isMarketplaceSpace ? getSpaceListings(supabase, space.id) : Promise.resolve([]),
     isJobsSpace ? getSpaceJobListings(supabase, space.id) : Promise.resolve([]),
     isAccommodationSpace ? getSpaceAccommodationListings(supabase, space.id) : Promise.resolve([]),
@@ -350,6 +353,7 @@ export default async function SpaceDetailPage({
           categories={mapCategories}
           landmarks={landmarks}
           businesses={mapBusinesses}
+          items={mapItems}
           canPost={canPost}
           isAdmin={Boolean(isAdmin)}
           userId={user.id}
