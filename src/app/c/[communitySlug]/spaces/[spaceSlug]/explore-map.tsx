@@ -180,7 +180,12 @@ function ClusterLayer({ pins }: { pins: PinDef[] }) {
           const pin = cluster.pins[0];
           return (
             <Marker key={pin.key} position={[pin.lat, pin.lng]} icon={pin.icon}>
-              <Popup maxWidth={300}>{pin.popup}</Popup>
+              {/* maxHeight scrolls tall popups (long Google reviews) instead
+                  of letting them tower past the canvas; autoPanPadding keeps
+                  them clear of the floating controls and rounded corners. */}
+              <Popup maxWidth={300} maxHeight={400} autoPanPadding={[24, 24]}>
+                {pin.popup}
+              </Popup>
             </Marker>
           );
         }
@@ -488,13 +493,47 @@ export default function ExploreMap({
 
   const tiles = satellite ? TILES.satellite : isDark ? TILES.dark : TILES.light;
   const glassButton = "rounded-md border border-border bg-card/85 p-2 text-foreground shadow-sm backdrop-blur hover:bg-card";
-  const pillBase = "rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur";
+  const pillBase = "rounded-full border px-2.5 py-1 text-xs font-medium";
 
   return (
     <div>
-      {(canPost || isAdmin) && (
-        <div className="mb-3 flex items-center justify-end gap-1.5">
-          {addMode && <p className="mr-auto text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => toggleKey("__businesses")}
+          className={`${pillBase} ${hiddenKeys.has("__businesses") ? "border-border text-muted-foreground" : "border-accent bg-accent-soft text-accent"}`}
+        >
+          🏪 Businesses
+        </button>
+        {presentKinds.map((kind) => {
+          const key = `__kind:${kind}`;
+          const cfg = MAP_ITEM_KINDS[kind];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => toggleKey(key)}
+              className={`${pillBase} ${hiddenKeys.has(key) ? "border-border text-muted-foreground" : ""}`}
+              style={hiddenKeys.has(key) ? undefined : { borderColor: cfg.color, color: cfg.color }}
+            >
+              {cfg.emoji} {cfg.label}
+            </button>
+          );
+        })}
+        {enabledCategories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => toggleKey(c.id)}
+            className={`${pillBase} ${hiddenKeys.has(c.id) ? "border-border text-muted-foreground" : ""}`}
+            style={hiddenKeys.has(c.id) ? undefined : { borderColor: colorForCategory(c.id), color: colorForCategory(c.id) }}
+          >
+            {c.enabled ? "" : "(hidden) "}
+            {c.name}
+          </button>
+        ))}
+
+        <div className="ml-auto flex items-center gap-1.5">
           {canPost && (
             <Button type="button" size="sm" variant={addMode ? "secondary" : "primary"} onClick={() => setAddMode((v) => !v)} className="w-auto">
               <Plus className="h-3.5 w-3.5" />
@@ -507,7 +546,9 @@ export default function ExploreMap({
             </button>
           )}
         </div>
-      )}
+      </div>
+
+      {addMode && <p className="mb-2 text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
 
       <div
         className={
@@ -522,45 +563,6 @@ export default function ExploreMap({
           <MapClickHandler active={addMode} onPick={(lat, lng) => setPending({ lat, lng })} />
           <ClusterLayer pins={pins} />
         </MapContainer>
-
-        {/* Floating filter pills — a glass panel over the map. z-[800] sits
-            with Leaflet's controls, above tiles/markers/popups. */}
-        <div className="absolute left-3 right-14 top-3 z-[800] flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => toggleKey("__businesses")}
-            className={`${pillBase} ${hiddenKeys.has("__businesses") ? "border-border bg-card/70 text-muted-foreground" : "border-accent bg-card/85 text-accent"}`}
-          >
-            🏪 Businesses
-          </button>
-          {presentKinds.map((kind) => {
-            const key = `__kind:${kind}`;
-            const cfg = MAP_ITEM_KINDS[kind];
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => toggleKey(key)}
-                className={`${pillBase} ${hiddenKeys.has(key) ? "border-border bg-card/70 text-muted-foreground" : "bg-card/85"}`}
-                style={hiddenKeys.has(key) ? undefined : { borderColor: cfg.color, color: cfg.color }}
-              >
-                {cfg.emoji} {cfg.label}
-              </button>
-            );
-          })}
-          {enabledCategories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => toggleKey(c.id)}
-              className={`${pillBase} ${hiddenKeys.has(c.id) ? "border-border bg-card/70 text-muted-foreground" : "bg-card/85"}`}
-              style={hiddenKeys.has(c.id) ? undefined : { borderColor: colorForCategory(c.id), color: colorForCategory(c.id) }}
-            >
-              {c.enabled ? "" : "(hidden) "}
-              {c.name}
-            </button>
-          ))}
-        </div>
 
         <div className="absolute right-3 top-3 z-[800] flex flex-col gap-1.5">
           <button type="button" onClick={() => setSatellite((v) => !v)} className={glassButton} title={satellite ? "Map view" : "Satellite view"}>
