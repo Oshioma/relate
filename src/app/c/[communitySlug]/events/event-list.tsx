@@ -14,14 +14,14 @@ export function EventList({
   communityId,
   communitySlug,
   canRsvp,
-  canDelete,
+  isStaff,
 }: {
   items: { event: Event; rsvps: EventRsvpWithAttendee[] }[];
   currentUserId: string;
   communityId: string;
   communitySlug: string;
   canRsvp: boolean;
-  canDelete: boolean;
+  isStaff: boolean;
 }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const visible = items.slice(0, visibleCount);
@@ -38,7 +38,7 @@ export function EventList({
           communityId={communityId}
           communitySlug={communitySlug}
           canRsvp={canRsvp}
-          canDelete={canDelete}
+          canManage={isStaff || event.created_by === currentUserId}
         />
       ))}
 

@@ -27,6 +27,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   const rsvpsByEvent = groupRsvpsByEvent(rsvps);
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  const isOwner = membership?.status === "active" && membership.role === "owner";
   const canRsvp = membership?.status === "active";
   const { upcoming, past } = splitUpcomingPast(events);
 
@@ -55,7 +56,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
             communityId={community.id}
             communitySlug={community.slug}
             canRsvp={canRsvp}
-            canDelete={isStaff}
+            isStaff={isStaff}
           />
         </div>
       )}
@@ -64,7 +65,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
         <div id="add-event" className="mb-8 scroll-mt-6 space-y-4">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Add an event</h2>
           <NewEventForm communityId={community.id} communitySlug={community.slug} />
-          <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />
+          {isOwner && <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />}
         </div>
       )}
 
@@ -78,7 +79,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
               communityId={community.id}
               communitySlug={community.slug}
               canRsvp={false}
-              canDelete={isStaff}
+              isStaff={isStaff}
             />
           </div>
         </>

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarDays, MapPin, Link as LinkIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, MapPin, Link as LinkIcon, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { formatDateTime } from "@/lib/utils";
 import { EventRsvpButton } from "./event-rsvp-button";
 import { DeleteEventButton } from "./delete-event-button";
+import { EditEventForm } from "./edit-event-form";
 import type { Event } from "@/types/database";
 import type { EventRsvpWithAttendee } from "@/lib/data/events";
 
@@ -17,7 +19,7 @@ export function EventCard({
   communityId,
   communitySlug,
   canRsvp,
-  canDelete,
+  canManage,
 }: {
   event: Event;
   rsvps: EventRsvpWithAttendee[];
@@ -25,15 +27,31 @@ export function EventCard({
   communityId: string;
   communitySlug: string;
   canRsvp: boolean;
-  canDelete: boolean;
+  canManage: boolean;
 }) {
   const isGoing = rsvps.some((r) => r.user_id === currentUserId);
   const visibleAttendees = rsvps.slice(0, 5);
   const [imageBroken, setImageBroken] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
   // Scraped image URLs sometimes 404 or reject hotlinking once loaded in a
   // browser even though the server-side scrape found them — fall back to
   // the placeholder instead of showing a broken-image icon.
   const showImage = Boolean(event.image_url) && !imageBroken;
+
+  if (isEditing) {
+    return (
+      <EditEventForm
+        event={event}
+        communitySlug={communitySlug}
+        onDone={() => {
+          setIsEditing(false);
+          router.refresh();
+        }}
+        onCancel={() => setIsEditing(false)}
+      />
+    );
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -52,14 +70,24 @@ export function EventCard({
             <span className="text-xs font-medium">Event</span>
           </div>
         )}
-        {canDelete && (
-          <DeleteEventButton
-            eventId={event.id}
-            eventTitle={event.title}
-            communityId={communityId}
-            communitySlug={communitySlug}
-            className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
-          />
+        {canManage && (
+          <div className="absolute right-2 top-2 flex items-center gap-1.5">
+            <button
+              type="button"
+              title="Edit event"
+              onClick={() => setIsEditing(true)}
+              className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <DeleteEventButton
+              eventId={event.id}
+              eventTitle={event.title}
+              communityId={communityId}
+              communitySlug={communitySlug}
+              className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+            />
+          </div>
         )}
       </div>
       <CardContent className="pt-5">
