@@ -29,6 +29,14 @@ export async function getUserCommunities(
     }));
 }
 
+// Every community, newest first — for the platform admin's community list.
+// Relies on communities_select_super_admin (RLS) to see private ones too.
+export async function getAllCommunities(supabase: Client): Promise<Community[]> {
+  const { data, error } = await supabase.from("communities").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getCommunityBySlug(supabase: Client, slug: string): Promise<Community | null> {
   const { data, error } = await supabase.from("communities").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { createResource } from "../../resources/actions";
+import { createResource } from "./resource-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 

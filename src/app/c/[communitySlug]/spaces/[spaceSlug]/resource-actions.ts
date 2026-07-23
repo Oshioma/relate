@@ -47,7 +47,6 @@ export async function createResource(_prevState: ResourceFormState, formData: Fo
     return { error: error.message };
   }
 
-  revalidatePath(`/c/${communitySlug}/resources`);
   if (spaceSlug) {
     revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   }

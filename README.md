@@ -264,6 +264,28 @@ community (members, or anyone if the community is public), managed
 only by owner/admin (`community_nav_links`, RLS-gated the same way as
 the rest of the admin-managed tables).
 
+## Platform admin & feature flags
+
+Run `supabase/platform-admin.sql`. There's no global "Resources" nav item
+anymore — resources are added scoped to a specific space (a `resources`-type
+space), not community-wide. What remains togglable — Events and the
+Concierge search — is now a **feature**, off/on per community, decided by a
+platform-wide super admin rather than a per-community setting: community
+owners/admins can't turn these on or off themselves.
+
+A super admin signs in and visits `/admin` (linked from the dashboard once
+they have the flag) to:
+
+- set the **default** feature state new communities are created with (`feature_defaults`)
+- **override** either feature for any specific existing community (`community_features`) — resolved as override-if-present, else the platform default, else enabled
+
+There's no UI to grant the first super admin — do it once by hand in the SQL
+editor after signing up:
+
+```sql
+update public.profiles set is_super_admin = true where username = 'you';
+```
+
 ## Place-Based Community
 
 The setup wizard's "Place-Based Community" template creates spaces with
@@ -613,8 +635,9 @@ src/
     messages/                       Conversation list; messages/[conversationId]/ is the thread
     c/[communitySlug]/              Everything scoped to one community
       spaces/, spaces/[spaceSlug]/  Spaces + posts + comments
-      events/, resources/, admin/     Admin also handles branding, invites,
-                                       and custom profile fields
+      events/, admin/                 Admin also handles branding, invites,
+                                       custom profile fields, and feature toggles
+    admin/                           Platform admin (super admin only) — feature flags
       members/                       Member Directory: search/filter/sort + discovery
                                       sections (new/recommended/near you/active/top/business)
       members/[username]/            Enhanced member profile page
@@ -629,8 +652,9 @@ src/
 supabase/
   migrations/                       Timestamp-ordered SQL migrations, applied automatically on push to
                                      main (see "Database migrations" above) — schema, storage, invites,
-                                     notifications, and every feature table (events, business directory,
-                                     marketplace, member directory, messaging, journals, etc.)
+                                     notifications, platform admin (feature flags), and every feature
+                                     table (events, business directory, marketplace, member directory,
+                                     messaging, journals, etc.)
   seed.sql                          Starter communities, spaces, sample content — manual only, not
                                      part of the automated migration pipeline
 ```

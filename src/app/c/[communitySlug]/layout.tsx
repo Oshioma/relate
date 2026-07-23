@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { getCommunityFeatures } from "@/lib/data/features";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -37,7 +38,7 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, featuredCategories, customCategories] =
+  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, featuredCategories, customCategories, features] =
     await Promise.all([
       getProfile(supabase, user.id),
       getMembership(supabase, community.id, user.id),
@@ -49,6 +50,7 @@ export default async function CommunityLayout({
       getCommunityNavLinks(supabase, community.id),
       getCommunityFeaturedBusinessCategories(supabase, community.id),
       getCommunityBusinessCustomCategories(supabase, community.id),
+      getCommunityFeatures(supabase, community.id),
     ]);
 
   if (!membership && !community.is_public) {
@@ -82,9 +84,8 @@ export default async function CommunityLayout({
           sub: true,
         })),
     ]),
-    { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
-    { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
-    { href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> },
+    ...(features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] : []),
+    ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] : []),
   ];
 
   return (
@@ -188,10 +189,9 @@ export default async function CommunityLayout({
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
-          { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> },
-          { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-5 w-5" /> },
+          ...(features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
-          { href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> },
+          ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
       />
     </div>
