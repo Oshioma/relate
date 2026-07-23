@@ -68,6 +68,20 @@ export async function rsvpToEvent(eventId: string, communitySlug: string) {
   return { error: null };
 }
 
+// RLS (events_delete_staff) restricts this to community staff — anyone
+// else's delete matches zero rows.
+export async function deleteEvent(eventId: string, communitySlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").delete().eq("id", eventId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/events`);
+  return { error: null };
+}
+
 export async function cancelRsvp(eventId: string, communitySlug: string) {
   const supabase = await createClient();
   const {

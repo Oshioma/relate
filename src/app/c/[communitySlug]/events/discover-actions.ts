@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { buildDiscoveredEventRows } from "@/lib/data/events";
+import { buildDiscoveredEventRows, type DiscoveredEventWithImage } from "@/lib/data/events";
 import { discoverEventsWithAI, type DiscoveredEvent } from "@/lib/ai/discover-events";
+import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Community, Database } from "@/types/database";
 
 const STAFF_ROLES = new Set(["owner", "admin", "moderator"]);
@@ -43,14 +44,29 @@ async function requireStaff(communitySlug: string): Promise<StaffContext | { err
   return { supabase, user, community };
 }
 
-// Asks the AI to web-search for upcoming events near the community's
-// location and returns candidates for staff review — nothing is saved yet.
-export async function discoverEvents(
+// Best-effort: try to find a cover image for each discovered event from its
+// source listing page, so events found by AI discovery show up with a photo
+// instead of a blank placeholder. Never throws — a failed scrape just leaves
+// that event without an image.
+async function attachImages(events: DiscoveredEvent[]): Promise<DiscoveredEventWithImage[]> {
+  return Promise.all(
+    events.map(async (event) => {
+      if (!event.source_url) return event;
+      const images = await scrapeWebsiteImages(event.source_url);
+      return { ...event, image_url: images[0] ?? null };
+    }),
+  );
+}
+
+// Searches the web for upcoming events near the community's location and
+// adds every new one straight to the calendar — no staff review step. RLS
+// (events_insert_staff) enforces the staff requirement on the insert too.
+export async function discoverAndAddEvents(
   communitySlug: string,
-): Promise<{ events: DiscoveredEvent[] } | { error: string }> {
+): Promise<{ imported: number; titles: string[] } | { error: string }> {
   const ctx = await requireStaff(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
-  const { supabase, community } = ctx;
+  const { supabase, user, community } = ctx;
 
   const { data: upcoming, error } = await supabase
     .from("events")
@@ -72,26 +88,16 @@ export async function discoverEvents(
 
   // Belt-and-braces dedupe in case the model ignored the skip list.
   const seen = new Set(existingTitles.map((t) => t.toLowerCase()));
-  return { events: result.events.filter((e) => !seen.has(e.title.toLowerCase())) };
-}
+  const found = result.events.filter((e) => !seen.has(e.title.toLowerCase()));
+  if (found.length === 0) return { imported: 0, titles: [] };
 
-// Inserts the staff-approved subset of discovered events. RLS
-// (events_insert_staff) enforces the staff requirement on each row too.
-export async function importDiscoveredEvents(
-  communitySlug: string,
-  events: DiscoveredEvent[],
-): Promise<{ imported: number } | { error: string }> {
-  const ctx = await requireStaff(communitySlug);
-  if ("error" in ctx) return { error: ctx.error };
-  const { supabase, user, community } = ctx;
+  const withImages = await attachImages(found);
+  const rows = buildDiscoveredEventRows(withImages, { communityId: community.id, createdBy: user.id });
+  if (rows.length === 0) return { imported: 0, titles: [] };
 
-  const rows = buildDiscoveredEventRows(events, { communityId: community.id, createdBy: user.id });
-
-  if (rows.length === 0) return { error: "No valid events selected." };
-
-  const { error } = await supabase.from("events").insert(rows);
-  if (error) return { error: error.message };
+  const { error: insertError } = await supabase.from("events").insert(rows);
+  if (insertError) return { error: insertError.message };
 
   revalidatePath(`/c/${communitySlug}/events`);
-  return { imported: rows.length };
+  return { imported: rows.length, titles: rows.map((r) => r.title) };
 }

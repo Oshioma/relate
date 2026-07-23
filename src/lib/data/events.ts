@@ -58,10 +58,12 @@ export function groupRsvpsByEvent(rsvps: EventRsvpWithAttendee[]): Map<string, E
   return map;
 }
 
+export type DiscoveredEventWithImage = DiscoveredEvent & { image_url?: string | null };
+
 // Shapes AI-discovered event candidates into rows ready for insertion into
 // public.events, dropping anything without a title or parseable start time.
 export function buildDiscoveredEventRows(
-  events: DiscoveredEvent[],
+  events: DiscoveredEventWithImage[],
   opts: { communityId: string; createdBy: string; max?: number },
 ) {
   return events
@@ -83,6 +85,7 @@ export function buildDiscoveredEventRows(
         end_time: endTime,
         location: e.location?.trim().slice(0, 300) || null,
         online_url: null,
+        image_url: e.image_url || null,
         created_by: opts.createdBy,
       };
     });

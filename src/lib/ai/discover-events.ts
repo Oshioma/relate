@@ -7,11 +7,11 @@ import Anthropic from "@anthropic-ai/sdk";
 // below work on every current model.
 const DEFAULT_MODEL = "claude-haiku-4-5";
 const MODEL = process.env.EVENT_DISCOVERY_MODEL || DEFAULT_MODEL;
-const MAX_WEB_SEARCHES = 3;
+const MAX_WEB_SEARCHES = 6;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
 const MAX_CONTINUATIONS = 2;
-const MAX_RESULTS = 8;
+const MAX_RESULTS = 15;
 // Hosting kills the whole request at its max duration (300s on Vercel with
 // Fluid Compute), which reaches the browser as a dead connection with no
 // error message. Keep our own budget comfortably below that so every run
@@ -54,12 +54,12 @@ export type DiscoveryResult =
   | { status: "ok"; events: DiscoveredEvent[] }
   | { status: "unconfigured" | "billing" | "search_limited" | "error"; detail?: string };
 
-const MAX_PAGE_FETCHES = 2;
+const MAX_PAGE_FETCHES = 5;
 const MAX_FETCH_TOKENS = 8_000;
 
 const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions, recurring nights) in the location you are given.
 
-Method: web_search for event calendars and listings for that location, then web_fetch the 1-2 most promising listing pages to read the actual event details — search snippets alone rarely contain dates.
+Method: web_search for event calendars and listings for that location, then web_fetch several of the most promising listing pages to read the actual event details — search snippets alone rarely contain dates. Cast a wide net: try multiple searches covering different event types and listing sites rather than stopping after the first one or two hits.
 
 Respond with ONLY a JSON array — no prose, no markdown fences. Each element:
 {
