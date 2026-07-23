@@ -119,6 +119,10 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // Overrides the community's location_name for this space's live data
+  // (today: the Tides & Weather panel). Null = use the community's location.
+  // See supabase/space-location.sql.
+  location_name: string | null;
   created_at: string;
 };
 
