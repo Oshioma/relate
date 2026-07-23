@@ -9,8 +9,6 @@ import { discoverEventsWithAI, type DiscoveredEvent } from "@/lib/ai/discover-ev
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Community, Database } from "@/types/database";
 
-const STAFF_ROLES = new Set(["owner", "admin", "moderator"]);
-
 const DISCOVERY_ERRORS: Record<string, string> = {
   unconfigured: "AI discovery isn't configured — set a valid ANTHROPIC_API_KEY, then try again.",
   billing:
@@ -26,7 +24,7 @@ type StaffContext = {
   community: Community;
 };
 
-async function requireStaff(communitySlug: string): Promise<StaffContext | { error: string }> {
+async function requireOwner(communitySlug: string): Promise<StaffContext | { error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,8 +35,8 @@ async function requireStaff(communitySlug: string): Promise<StaffContext | { err
   if (!community) return { error: "Community not found." };
 
   const membership = await getMembership(supabase, community.id, user.id);
-  if (!membership || membership.status !== "active" || !STAFF_ROLES.has(membership.role)) {
-    return { error: "Only community staff can discover and add events." };
+  if (!membership || membership.status !== "active" || membership.role !== "owner") {
+    return { error: "Only the community owner can discover and add events." };
   }
 
   return { supabase, user, community };
@@ -85,7 +83,7 @@ function candidateImageUrl(event: { description: string | null; online_url: stri
 export async function backfillEventImages(
   communitySlug: string,
 ): Promise<{ updated: number; checked: number } | { error: string }> {
-  const ctx = await requireStaff(communitySlug);
+  const ctx = await requireOwner(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, community } = ctx;
 
@@ -127,7 +125,7 @@ export type AddedEvent = { title: string; source_url: string | null };
 export async function discoverAndAddEvents(
   communitySlug: string,
 ): Promise<{ imported: number; added: AddedEvent[] } | { error: string }> {
-  const ctx = await requireStaff(communitySlug);
+  const ctx = await requireOwner(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
@@ -153,7 +151,7 @@ export async function discoverAndAddEvents(
 
   const result = await discoverEventsWithAI({ locationName, existingTitles });
   if (result.status !== "ok") {
-    // This panel is staff-only, so include the raw diagnostic — it saves a
+    // This panel is owner-only, so include the raw diagnostic — it saves a
     // round-trip through the hosting provider's logs.
     const detail = result.detail ? ` (detail: ${result.detail})` : "";
     return { error: DISCOVERY_ERRORS[result.status] + detail };
