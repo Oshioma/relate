@@ -36,7 +36,7 @@ export function SignupForm({ next }: { next: string }) {
         />
       </div>
 
-      {state?.error && (
+      {typeof state?.error === "string" && state.error.trim() !== "" && (
         <p className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>
       )}
 
