@@ -17,6 +17,10 @@ const PLATFORM_PATH_PREFIXES = [
   "/notifications",
   "/communities",
   "/invite",
+  // The platform super-admin page. It lives at /platform-admin (not /admin)
+  // precisely so it doesn't collide with a community's own /c/<slug>/admin
+  // page, which canonicalizes to a bare /admin on the community's host.
+  "/platform-admin",
 ];
 
 function isPlatformPath(pathname: string) {

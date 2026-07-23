@@ -215,7 +215,7 @@ export type CommunityNavLink = {
 };
 
 // Built-in, optional nav features a platform super admin can turn on/off —
-// see src/lib/features.ts for the labeled list shown in /admin.
+// see src/lib/features.ts for the labeled list shown in /platform-admin.
 export type FeatureKey = "events" | "concierge";
 
 // The feature state new communities start with, and the fallback for any
@@ -258,7 +258,7 @@ export type CommunityNavItemOrder = {
 };
 
 // A default space for the Place-Based Community template, editable by a super
-// admin at /admin. The creation wizard seeds a new place community's spaces
+// admin at /platform-admin. The creation wizard seeds a new place community's spaces
 // from these. space_type mirrors SpaceType. See the place_default_spaces
 // migration.
 export type PlaceDefaultSpace = {

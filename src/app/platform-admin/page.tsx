@@ -13,7 +13,7 @@ export default async function PlatformAdminPage() {
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
   if (!user) {
-    redirect("/login?next=/admin");
+    redirect("/login?next=/platform-admin");
   }
 
   const profile = await getProfile(supabase, user.id);

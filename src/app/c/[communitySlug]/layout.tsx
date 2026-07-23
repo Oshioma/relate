@@ -196,7 +196,7 @@ export default async function CommunityLayout({
             )}
             {profile?.is_super_admin && (
               <Link
-                href="/admin"
+                href="/platform-admin"
                 title="Super admin"
                 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
               >
