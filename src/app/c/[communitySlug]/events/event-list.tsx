@@ -11,14 +11,12 @@ const PAGE_SIZE = 10;
 export function EventList({
   items,
   currentUserId,
-  communityId,
   communitySlug,
   canRsvp,
   isStaff,
 }: {
   items: { event: Event; rsvps: EventRsvpWithAttendee[] }[];
   currentUserId: string;
-  communityId: string;
   communitySlug: string;
   canRsvp: boolean;
   isStaff: boolean;
@@ -35,7 +33,6 @@ export function EventList({
           event={event}
           rsvps={rsvps}
           currentUserId={currentUserId}
-          communityId={communityId}
           communitySlug={communitySlug}
           canRsvp={canRsvp}
           canManage={isStaff || event.created_by === currentUserId}

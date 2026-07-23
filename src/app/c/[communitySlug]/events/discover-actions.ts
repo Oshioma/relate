@@ -129,24 +129,18 @@ export async function discoverAndAddEvents(
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
-  const [{ data: upcoming, error }, { data: imaged, error: imagedError }, { data: dismissed, error: dismissedError }] =
-    await Promise.all([
-      supabase
-        .from("events")
-        .select("title")
-        .eq("community_id", community.id)
-        .gte("start_time", new Date().toISOString()),
-      supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
-      supabase.from("event_dismissals").select("title").eq("community_id", community.id),
-    ]);
+  const [{ data: upcoming, error }, { data: imaged, error: imagedError }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("title")
+      .eq("community_id", community.id)
+      .gte("start_time", new Date().toISOString()),
+    supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
+  ]);
   if (error) return { error: error.message };
   if (imagedError) return { error: imagedError.message };
-  if (dismissedError) return { error: dismissedError.message };
 
-  // Staff-deleted titles are included in the skip list the model sees, on
-  // top of what's currently on the calendar, so a deleted event doesn't
-  // quietly come back on the next run.
-  const existingTitles = [...(upcoming ?? []).map((e) => e.title), ...(dismissed ?? []).map((d) => d.title)];
+  const existingTitles = (upcoming ?? []).map((e) => e.title);
   const locationName = community.location_name || community.name;
 
   const result = await discoverEventsWithAI({ locationName, existingTitles });

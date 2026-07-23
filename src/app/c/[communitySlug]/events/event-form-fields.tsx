@@ -76,6 +76,17 @@ export function EventFormFields({
       </div>
 
       <div>
+        <Label htmlFor={`${idPrefix}_image_url`}>Image URL (optional)</Label>
+        <Input
+          id={`${idPrefix}_image_url`}
+          name="image_url"
+          type="text"
+          placeholder="https://example.com/photo.jpg"
+          defaultValue={event?.image_url ?? ""}
+        />
+      </div>
+
+      <div>
         <Label>Show on the Explore Map (optional)</Label>
         <LocationPicker value={pin} onChange={onPinChange} emoji="📅" helpText="Click the map to drop a pin — this puts the event on the Explore Map." />
         <input type="hidden" name="lat" value={pin?.lat ?? ""} />
