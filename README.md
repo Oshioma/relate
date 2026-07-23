@@ -12,6 +12,33 @@ Postgres + Storage).
 - **Supabase** — Postgres + Auth (`@supabase/ssr`, `@supabase/supabase-js`)
 - **Vercel** for deployment
 
+## Database migrations
+
+Every file under `supabase/migrations/` is a standard Supabase CLI
+migration — timestamp-prefixed, applied in filename order, each one
+idempotent (`if not exists` / `or replace` / `on conflict`) so re-running
+the full set against a database that already has some of them is safe.
+On every push to `main` that touches `supabase/migrations/**`,
+`.github/workflows/deploy-supabase-migrations.yml` runs `supabase link` +
+`supabase db push` automatically against production, using the
+`SUPABASE_ACCESS_TOKEN` / `SUPABASE_DB_PASSWORD` repo secrets — no manual
+SQL-editor step needed once that's set up.
+
+The sections below still refer to each migration by its old short name
+(e.g. `supabase/schema.sql`) since that's the stable, meaningful part —
+look for the file under `supabase/migrations/` ending in `_schema.sql`,
+`_notifications.sql`, etc. Adding a new migration: drop a new
+timestamp-prefixed file straight into `supabase/migrations/` (a later
+timestamp than anything already there) rather than a loose file at the
+`supabase/` root — anything not under `migrations/` is invisible to the
+pipeline.
+
+`supabase/seed.sql` is the one exception: it's demo/bootstrap data tied to
+a placeholder email you have to edit before running, and it raises an
+error if that email doesn't have an `auth.users` row yet — deliberately
+**not** part of the automated pipeline. Run it manually, once, per step 3
+below.
+
 ## 1. Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) and create a new project (this
@@ -600,32 +627,12 @@ src/
     data/                           Typed data-access functions per domain
   types/database.ts                 Hand-written types mirroring schema.sql
 supabase/
-  schema.sql                        Tables, enums, triggers, RLS policies
-  seed.sql                          Starter communities, spaces, sample content
-  storage.sql                       Storage buckets + RLS (avatars, community-assets)
-  invites.sql                       Invite links table, RLS, and redemption functions
-  email-invites.sql                 Adds the `email` column used by email invites
-  notifications.sql                 Notifications table, RLS, and trigger functions
-  event-rsvps.sql                   Event RSVPs table + RLS
-  space-types.sql                   Adds space_type to spaces (Space Builder)
-  space-journal.sql                 Journal fields + entries for journal-type spaces
-  growth-journey.sql                Journal-entry contribution-score trigger (Growth Journey)
-  challenges.sql                    space_challenges + space_challenge_participants for challenges-type spaces
-  community-nav-links.sql           Custom external sidebar links, managed by community admins
-  place-community.sql               Place-based location fields, nine place space types, post/event geo
-  business-directory.sql            businesses table for business_directory-type spaces
-  business-custom-categories.sql    Staff-added per-space business categories; category enum → text
-  marketplace.sql                   marketplace_listings table for marketplace-type spaces
-  jobs-board.sql                    job_listings table for jobs-type spaces
-  accommodation.sql                 accommodation_listings table for accommodation-type spaces
-  explore-map.sql                   map_categories + landmarks (map pins) for map-type spaces
-  member-profile-extensions.sql     Profile fields/privacy, business profiles, interests,
-                                     skills, help requests, locations (Member Directory Stage 1)
-  community-custom-fields.sql       Per-community custom profile fields + values
-  member-contribution.sql           Contribution score ledger + running-total trigger
-  direct-messages.sql               1:1 messaging + blocking
-  member-connections.sql            Connection requests (future-ready, no UI yet)
-  contribution-triggers.sql         Awards real contribution-score points
+  migrations/                       Timestamp-ordered SQL migrations, applied automatically on push to
+                                     main (see "Database migrations" above) — schema, storage, invites,
+                                     notifications, and every feature table (events, business directory,
+                                     marketplace, member directory, messaging, journals, etc.)
+  seed.sql                          Starter communities, spaces, sample content — manual only, not
+                                     part of the automated migration pipeline
 ```
 
 ## Notes on Next.js 16
