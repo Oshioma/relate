@@ -85,6 +85,9 @@ export default async function CommunityLayout({
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
+  // Guests only get the Events link when the community has opted its events
+  // into public view; signed-in visitors always do.
+  const canSeeEvents = Boolean(user) || community.events_public;
 
   // The sidebar interleaves spaces with the built-in feature links (Events,
   // Search): each is an "orderable unit" with a sort key. Spaces use their own
@@ -115,7 +118,7 @@ export default async function CommunityLayout({
           })),
       ],
     })),
-    ...(features.events && navItemOrder.events?.showInNav !== false
+    ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false
       ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
       : []),
     ...(features.concierge && navItemOrder.concierge?.showInNav !== false
@@ -292,7 +295,7 @@ export default async function CommunityLayout({
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
-          ...(features.events && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
+          ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           // Members is login-gated, so only show the tab to signed-in visitors.
           ...(user ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),

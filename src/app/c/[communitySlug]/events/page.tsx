@@ -18,6 +18,26 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) notFound();
 
+  // Events are public only when the admin has opted in. A signed-out visitor
+  // who arrives before that gets a prompt to log in rather than an empty page.
+  if (!user && !community.events_public) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">Events</h1>
+        <EmptyState
+          icon={<CalendarDays className="h-6 w-6" />}
+          title="Events are members only"
+          description="Log in or sign up to see this community's events."
+          action={
+            <LinkButton href={`/login?next=/c/${community.slug}/events`} size="sm">
+              Log in
+            </LinkButton>
+          }
+        />
+      </div>
+    );
+  }
+
   const [membership, events] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getCommunityEvents(supabase, community.id),

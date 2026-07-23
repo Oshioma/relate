@@ -97,6 +97,9 @@ export type Community = {
   // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
   // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
+  // Admin opt-in: show this community's events to signed-out visitors. Only
+  // takes effect for a community guests can already reach (is_public).
+  events_public: boolean;
   created_at: string;
   updated_at: string;
 };

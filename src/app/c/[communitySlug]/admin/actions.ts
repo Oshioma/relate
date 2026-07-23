@@ -289,6 +289,7 @@ export async function updateCommunityDetails(
   const locationName = String(formData.get("location_name") ?? "").trim();
   const rawLocationType = String(formData.get("location_type") ?? "");
   const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
+  const eventsPublic = formData.get("events_public") === "on";
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -302,6 +303,7 @@ export async function updateCommunityDetails(
       description: description || null,
       location_name: locationName.slice(0, 120) || null,
       location_type: locationType,
+      events_public: eventsPublic,
     })
     .eq("id", communityId);
 
