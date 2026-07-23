@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CONCIERGE_RESULT_META, CONCIERGE_EXAMPLE_QUESTIONS } from "@/lib/concierge-result-types";
 import { searchConcierge } from "./actions";
-import type { ConciergeResults, ConciergeResultType } from "@/lib/data/concierge";
+import type { ConciergeResults, ConciergeResult, ConciergeResultType } from "@/lib/data/concierge";
 
 export function ConciergeView({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
   const [query, setQuery] = useState("");
@@ -32,10 +32,10 @@ export function ConciergeView({ communityId, communitySlug }: { communityId: str
     <div>
       <div className="mb-6 flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-          <Sparkles className="h-5 w-5" />
+          <Search className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Concierge</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Search</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Ask a question — searches businesses, events, guides, the marketplace, recommendations, discussions and more at once.
           </p>
@@ -103,21 +103,29 @@ export function ConciergeView({ communityId, communitySlug }: { communityId: str
                       <Icon className="h-3.5 w-3.5" />
                       {meta.label}
                     </h2>
-                    <div className="space-y-2">
-                      {items.map((item) => (
-                        <Link key={item.id} href={item.href}>
-                          <Card className="transition-shadow hover:shadow-sm">
-                            <CardContent className="py-3">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
-                                {item.extra && <span className="shrink-0 text-xs text-muted-foreground">{item.extra}</span>}
-                              </div>
-                              {item.snippet && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.snippet}</p>}
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
-                    </div>
+                    {type === "business" ? (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {items.map((item) => (
+                          <BusinessResultCard key={item.id} item={item} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <Link key={item.id} href={item.href}>
+                            <Card className="transition-shadow hover:shadow-sm">
+                              <CardContent className="py-3">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
+                                  {item.extra && <span className="shrink-0 text-xs text-muted-foreground">{item.extra}</span>}
+                                </div>
+                                {item.snippet && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.snippet}</p>}
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -126,5 +134,33 @@ export function ConciergeView({ communityId, communitySlug }: { communityId: str
         </div>
       )}
     </div>
+  );
+}
+
+function BusinessResultCard({ item }: { item: ConciergeResult }) {
+  return (
+    <Link href={item.href}>
+      <Card className="overflow-hidden transition-shadow hover:shadow-sm">
+        <div className="h-40 w-full bg-muted">
+          {item.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="h-full w-full object-cover"
+              style={{ objectPosition: item.imagePosition ?? "50% 50%" }}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-muted-foreground">
+              <Store className="h-8 w-8" />
+            </div>
+          )}
+        </div>
+        <CardContent className="py-3">
+          <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
+          {item.snippet && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.snippet}</p>}
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
