@@ -1,8 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRef, useState } from "react";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import type { PickedLocation } from "@/components/map/location-picker";
+import { geocodeEventLocation } from "./actions";
+import type { FlyToTarget, PickedLocation } from "@/components/map/location-picker";
 import type { Event } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
@@ -29,12 +31,36 @@ export function EventFormFields({
   event,
   pin,
   onPinChange,
+  communityLocationName = null,
 }: {
   idPrefix: string;
   event?: Event;
   pin: PickedLocation | null;
   onPinChange: (pin: PickedLocation | null) => void;
+  // Biases geocoding a typed location (e.g. "Kendwa" → "Kendwa, Zanzibar")
+  // so the map recenters to the right place rather than a same-named one
+  // elsewhere in the world.
+  communityLocationName?: string | null;
 }) {
+  const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
+  const [locating, setLocating] = useState(false);
+  const lastQuery = useRef<string>("");
+
+  // Recenters the map toward what was typed, so dropping a precise pin
+  // doesn't require hunting across the whole island first. Only kicks in
+  // before a pin exists — once someone's placed one, typing in the location
+  // field shouldn't yank the map out from under them.
+  async function handleLocationBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const query = e.target.value.trim();
+    if (!query || query === lastQuery.current || pin) return;
+    lastQuery.current = query;
+
+    setLocating(true);
+    const result = await geocodeEventLocation(query, communityLocationName);
+    setLocating(false);
+    if (result) setFlyTo({ lat: result.lat, lng: result.lng, zoom: 14 });
+  }
+
   return (
     <>
       <div>
@@ -66,8 +92,16 @@ export function EventFormFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor={`${idPrefix}_location`}>Location (optional)</Label>
-          <Input id={`${idPrefix}_location`} name="location" placeholder="123 Main St, or leave blank" defaultValue={event?.location ?? ""} />
+          <Label htmlFor={`${idPrefix}_location`}>
+            Location (optional){locating && <span className="ml-1.5 font-normal text-muted-foreground">Locating…</span>}
+          </Label>
+          <Input
+            id={`${idPrefix}_location`}
+            name="location"
+            placeholder="123 Main St, or a place like Kendwa"
+            defaultValue={event?.location ?? ""}
+            onBlur={handleLocationBlur}
+          />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_online_url`}>Online link (optional)</Label>
@@ -88,7 +122,13 @@ export function EventFormFields({
 
       <div>
         <Label>Show on the Explore Map (optional)</Label>
-        <LocationPicker value={pin} onChange={onPinChange} emoji="📅" helpText="Click the map to drop a pin — this puts the event on the Explore Map." />
+        <LocationPicker
+          value={pin}
+          onChange={onPinChange}
+          emoji="📅"
+          helpText="Click the map to drop a pin — this puts the event on the Explore Map."
+          flyTo={flyTo}
+        />
         <input type="hidden" name="lat" value={pin?.lat ?? ""} />
         <input type="hidden" name="lng" value={pin?.lng ?? ""} />
       </div>

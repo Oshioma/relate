@@ -6,7 +6,15 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { EventFormFields } from "./event-form-fields";
 import type { PickedLocation } from "@/components/map/location-picker";
 
-export function NewEventForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
+export function NewEventForm({
+  communityId,
+  communitySlug,
+  communityLocationName = null,
+}: {
+  communityId: string;
+  communitySlug: string;
+  communityLocationName?: string | null;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -27,7 +35,7 @@ export function NewEventForm({ communityId, communitySlug }: { communityId: stri
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
 
-      <EventFormFields idPrefix="event" pin={pin} onPinChange={setPin} />
+      <EventFormFields idPrefix="event" pin={pin} onPinChange={setPin} communityLocationName={communityLocationName} />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

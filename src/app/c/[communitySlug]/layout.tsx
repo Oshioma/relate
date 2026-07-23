@@ -65,26 +65,40 @@ export default async function CommunityLayout({
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
 
+  // Events has a real 'events'-type space once a community has one (created
+  // via the admin Spaces panel, or backfilled — see
+  // 20260723130001_backfill_events_spaces.sql) — that space's position and
+  // show_in_nav toggle drive the nav from here on, same as any other space.
+  // The platform features.events flag only still matters as a fallback for
+  // communities that don't have that space yet, so Events keeps its old
+  // always-on-by-default behavior until one is created.
+  const hasEventsSpace = spaces.some((space) => space.space_type === "events");
+  const showEventsTab = hasEventsSpace ? navSpaces.some((space) => space.space_type === "events") : features.events;
+
   const navItems = [
     { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
     // Featured business categories render as indented sub-links right under
     // their directory space, deep-linking to the pre-filtered directory.
-    ...navSpaces.flatMap((space) => [
-      {
-        href: `${base}/spaces/${space.slug}`,
-        label: space.name,
-        icon: <Layers className="h-4 w-4" />,
-      },
-      ...featuredCategories
-        .filter((f) => f.space_id === space.id)
-        .map((f) => ({
-          href: `${base}/spaces/${space.slug}?category=${f.category}`,
-          label: businessCategoryPluralLabel(f.category, customCategories),
-          icon: <Tag className="h-3.5 w-3.5" />,
-          sub: true,
-        })),
-    ]),
-    ...(features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] : []),
+    ...navSpaces.flatMap((space) =>
+      space.space_type === "events"
+        ? [{ href: `${base}/events`, label: space.name, icon: <CalendarDays className="h-4 w-4" /> }]
+        : [
+            {
+              href: `${base}/spaces/${space.slug}`,
+              label: space.name,
+              icon: <Layers className="h-4 w-4" />,
+            },
+            ...featuredCategories
+              .filter((f) => f.space_id === space.id)
+              .map((f) => ({
+                href: `${base}/spaces/${space.slug}?category=${f.category}`,
+                label: businessCategoryPluralLabel(f.category, customCategories),
+                icon: <Tag className="h-3.5 w-3.5" />,
+                sub: true,
+              })),
+          ]
+    ),
+    ...(!hasEventsSpace && features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] : []),
     ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] : []),
   ];
 
@@ -197,7 +211,7 @@ export default async function CommunityLayout({
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
-          ...(features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
+          ...(showEventsTab ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
           ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}

@@ -55,6 +55,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
             currentUserId={user.id}
             communitySlug={community.slug}
             communityLogoUrl={community.logo_url}
+            communityLocationName={community.location_name}
             canRsvp={canRsvp}
             isStaff={isStaff}
           />
@@ -64,7 +65,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
       {isStaff && (
         <div id="add-event" className="mb-8 scroll-mt-6 space-y-4">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Add an event</h2>
-          <NewEventForm communityId={community.id} communitySlug={community.slug} />
+          <NewEventForm communityId={community.id} communitySlug={community.slug} communityLocationName={community.location_name} />
           {isOwner && <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />}
         </div>
       )}
@@ -78,6 +79,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
               currentUserId={user.id}
               communitySlug={community.slug}
               communityLogoUrl={community.logo_url}
+              communityLocationName={community.location_name}
               canRsvp={false}
               isStaff={isStaff}
             />

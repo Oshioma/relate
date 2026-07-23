@@ -19,6 +19,7 @@ export function EventCard({
   currentUserId,
   communitySlug,
   communityLogoUrl,
+  communityLocationName = null,
   canRsvp,
   canManage,
 }: {
@@ -27,6 +28,7 @@ export function EventCard({
   currentUserId: string;
   communitySlug: string;
   communityLogoUrl: string | null;
+  communityLocationName?: string | null;
   canRsvp: boolean;
   canManage: boolean;
 }) {
@@ -45,6 +47,7 @@ export function EventCard({
       <EditEventForm
         event={event}
         communitySlug={communitySlug}
+        communityLocationName={communityLocationName}
         onDone={() => {
           setIsEditing(false);
           router.refresh();

@@ -30,7 +30,8 @@ export type SpaceType =
   | "volunteer_hub"
   | "jobs"
   | "accommodation"
-  | "recommendations";
+  | "recommendations"
+  | "events";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";

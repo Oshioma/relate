@@ -26,6 +26,19 @@ function parseSpaceType(raw: FormDataEntryValue | null): SpaceType {
   return SPACE_TYPES.includes(value as SpaceType) ? (value as SpaceType) : "discussion";
 }
 
+// A community can only have one Events nav pointer — a second one would mean
+// two identical "Events" links in the sidebar, both pointing at /events.
+async function eventsSpaceExists(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  communityId: string,
+  excludeSpaceId?: string
+): Promise<boolean> {
+  let query = supabase.from("spaces").select("id").eq("community_id", communityId).eq("space_type", "events");
+  if (excludeSpaceId) query = query.neq("id", excludeSpaceId);
+  const { data } = await query.limit(1);
+  return Boolean(data && data.length > 0);
+}
+
 export async function createSpace(_prevState: SpaceFormState, formData: FormData): Promise<SpaceFormState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
@@ -62,6 +75,10 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   if (existing) {
     return { error: "A space with a similar name already exists." };
+  }
+
+  if (spaceType === "events" && (await eventsSpaceExists(supabase, communityId))) {
+    return { error: "This community already has an Events space." };
   }
 
   const { data: maxSort } = await supabase
@@ -110,6 +127,14 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   }
 
   const supabase = await createClient();
+
+  if (spaceType === "events") {
+    const { data: spaceRow } = await supabase.from("spaces").select("community_id").eq("id", spaceId).maybeSingle();
+    if (spaceRow && (await eventsSpaceExists(supabase, spaceRow.community_id, spaceId))) {
+      return { error: "This community already has an Events space." };
+    }
+  }
+
   const { error } = await supabase
     .from("spaces")
     .update({
@@ -151,6 +176,10 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
   const { data: original, error: fetchError } = await supabase.from("spaces").select("*").eq("id", spaceId).single();
   if (fetchError || !original) {
     return { error: fetchError?.message ?? "Space not found." };
+  }
+
+  if (original.space_type === "events") {
+    return { error: "This community already has an Events space." };
   }
 
   const { data: maxSort } = await supabase

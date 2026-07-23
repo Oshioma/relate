@@ -13,6 +13,7 @@ export function EventList({
   currentUserId,
   communitySlug,
   communityLogoUrl,
+  communityLocationName = null,
   canRsvp,
   isStaff,
 }: {
@@ -20,6 +21,7 @@ export function EventList({
   currentUserId: string;
   communitySlug: string;
   communityLogoUrl: string | null;
+  communityLocationName?: string | null;
   canRsvp: boolean;
   isStaff: boolean;
 }) {
@@ -37,6 +39,7 @@ export function EventList({
           currentUserId={currentUserId}
           communitySlug={communitySlug}
           communityLogoUrl={communityLogoUrl}
+          communityLocationName={communityLocationName}
           canRsvp={canRsvp}
           canManage={isStaff || event.created_by === currentUserId}
         />
