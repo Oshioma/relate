@@ -177,9 +177,6 @@ export default async function CommunityLayout({
         <div className="border-t border-border p-3">
           {user ? (
             <>
-              <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
-                Members
-              </NavLink>
               <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
                 <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
                 <div className="min-w-0">
@@ -189,9 +186,6 @@ export default async function CommunityLayout({
                   <p className="truncate text-xs text-muted-foreground">@{profile?.username}</p>
                 </div>
               </Link>
-              <NavLink href="/settings" icon={<Settings className="h-4 w-4" />}>
-                Settings
-              </NavLink>
               <Link href="/dashboard" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">All communities</span>
@@ -247,6 +241,11 @@ export default async function CommunityLayout({
                 <span className="hidden sm:inline">Super Admin</span>
               </Link>
             )}
+            {user && (
+              <Link href={`${base}/members`} aria-label="Members" className="text-muted-foreground hover:text-foreground">
+                <Users className="h-5 w-5" />
+              </Link>
+            )}
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
@@ -254,8 +253,8 @@ export default async function CommunityLayout({
               <>
                 <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
                 <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
-                <Link href="/settings" className="md:hidden">
-                  <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
+                <Link href="/settings" aria-label="Settings" className="text-muted-foreground hover:text-foreground">
+                  <Settings className="h-5 w-5" />
                 </Link>
               </>
             ) : (
