@@ -1,12 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { createEvent } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import type { PickedLocation } from "@/components/map/location-picker";
+
+// Leaflet touches `window` at import time, so the picker can only load in the
+// browser — same pattern as explore-map-loader.tsx.
+const LocationPicker = dynamic(() => import("@/components/map/location-picker"), {
+  ssr: false,
+  loading: () => <div className="flex h-[280px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
+});
 
 export function NewEventForm({ communityId, communitySlug }: { communityId: string; communitySlug: string }) {
   const [error, setError] = useState<string | null>(null);
+  const [pin, setPin] = useState<PickedLocation | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -16,6 +26,7 @@ export function NewEventForm({ communityId, communitySlug }: { communityId: stri
       setError(result.error);
     } else {
       formRef.current?.reset();
+      setPin(null);
     }
   }
 
@@ -54,6 +65,13 @@ export function NewEventForm({ communityId, communitySlug }: { communityId: stri
           <Label htmlFor="online_url">Online link (optional)</Label>
           <Input id="online_url" name="online_url" type="text" placeholder="example.com/meeting" />
         </div>
+      </div>
+
+      <div>
+        <Label>Show on the Explore Map (optional)</Label>
+        <LocationPicker value={pin} onChange={setPin} emoji="📅" helpText="Click the map to drop a pin — this puts the event on the Explore Map." />
+        <input type="hidden" name="lat" value={pin?.lat ?? ""} />
+        <input type="hidden" name="lng" value={pin?.lng ?? ""} />
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}

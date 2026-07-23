@@ -1,7 +1,23 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Club, Profile } from "@/types/database";
+import type { Database, Club, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
+
+export type ClubWithContext = Club & { creator: Profile; space: Pick<Space, "id" | "name" | "slug"> };
+
+// Newest clubs across the whole community, for the feed. Skips member counts
+// (unlike getSpaceClubs) — the feed just needs the club itself.
+export async function getCommunityRecentClubs(supabase: Client, communityId: string, limit = 6): Promise<ClubWithContext[]> {
+  const { data, error } = await supabase
+    .from("clubs")
+    .select("*, creator:created_by (*), space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as ClubWithContext[];
+}
 
 export type ClubWithMembers = {
   club: Club;

@@ -1,21 +1,40 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { MessageSquare, CalendarDays, Pin, Store } from "lucide-react";
+import {
+  MessageSquare,
+  CalendarDays,
+  Store,
+  ShoppingBag,
+  Briefcase,
+  BedDouble,
+  Star,
+  UsersRound,
+  HandHeart,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
-import { getCommunityEvents, splitUpcomingPast } from "@/lib/data/events";
+import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
+import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
+import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
+import { getCommunityRecentJobListings } from "@/lib/data/jobs";
+import { jobTypeLabel } from "@/lib/job-types";
+import { getCommunityRecentAccommodationListings } from "@/lib/data/accommodation";
+import { accommodationTypeLabel } from "@/lib/accommodation-types";
+import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
+import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
+import { getCommunityRecentClubs } from "@/lib/data/clubs";
+import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
 import { WeatherTidesCard } from "./weather-tides-card";
-import { formatRelativeTime, formatDateTime } from "@/lib/utils";
+import { FeedItemCard, type FeedItem } from "./feed-item-card";
+import { formatDateTime } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
   params,
@@ -30,25 +49,173 @@ export default async function CommunityFeedPage({
   if (!community || !user) notFound();
 
   const membership = await getMembership(supabase, community.id, user.id);
-  const [posts, events, recentBusinesses, customCategories] = await Promise.all([
+  const [
+    posts,
+    events,
+    recentBusinesses,
+    customCategories,
+    recentEvents,
+    recentListings,
+    recentJobs,
+    recentStays,
+    recentRecommendations,
+    recentClubs,
+    recentVolunteerProjects,
+  ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 6),
     getCommunityEvents(supabase, community.id),
     getCommunityRecentBusinesses(supabase, community.id, 6),
     getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityRecentEvents(supabase, community.id, 6),
+    getCommunityRecentMarketplaceListings(supabase, community.id, 6),
+    getCommunityRecentJobListings(supabase, community.id, 6),
+    getCommunityRecentAccommodationListings(supabase, community.id, 6),
+    getCommunityRecentRecommendations(supabase, community.id, 6),
+    getCommunityRecentClubs(supabase, community.id, 6),
+    getCommunityRecentVolunteerProjects(supabase, community.id, 6),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
-  // Recent activity mixes posts and new directory listings: pinned posts stay
-  // on top, everything else in reverse-chronological order.
-  type FeedItem =
-    | { kind: "post"; created_at: string; post: (typeof posts)[number] }
-    | { kind: "business"; created_at: string; business: (typeof recentBusinesses)[number] };
-  const pinnedItems: FeedItem[] = posts.filter((p) => p.is_pinned).map((p) => ({ kind: "post", created_at: p.created_at, post: p }));
-  const restItems: FeedItem[] = [
-    ...posts.filter((p) => !p.is_pinned).map((p): FeedItem => ({ kind: "post", created_at: p.created_at, post: p })),
-    ...recentBusinesses.map((b): FeedItem => ({ kind: "business", created_at: b.created_at, business: b })),
-  ].sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const activity = [...pinnedItems, ...restItems].slice(0, 10);
+  const base = `/c/${community.slug}`;
+
+  // Recent activity mixes posts with everything created anywhere in the
+  // community (businesses, events, marketplace, jobs, stays,
+  // recommendations, clubs, volunteer projects) into one normalized shape —
+  // pinned posts stay on top, everything else in reverse-chronological order.
+  const items: FeedItem[] = [
+    ...posts.map((p): FeedItem => ({
+      key: `post-${p.id}`,
+      createdAt: p.created_at,
+      isPinned: p.is_pinned,
+      icon: MessageSquare,
+      title: p.title,
+      description: p.body,
+      imageUrl: null,
+      typeBadge: p.post_type,
+      detail: null,
+      authorName: p.author?.full_name || p.author?.username || null,
+      authorAvatar: p.author?.avatar_url ?? null,
+      spaceName: p.space?.name ?? null,
+      href: p.space ? `${base}/spaces/${p.space.slug}/posts/${p.id}` : base,
+    })),
+    ...recentBusinesses.map((b): FeedItem => ({
+      key: `business-${b.id}`,
+      createdAt: b.created_at,
+      icon: Store,
+      title: b.name,
+      description: b.description,
+      imageUrl: b.image_url,
+      imagePosition: b.image_position,
+      typeBadge: businessCategoryLabel(b.category, customCategories),
+      detail: null,
+      authorName: b.creator?.full_name || b.creator?.username || null,
+      authorAvatar: b.creator?.avatar_url ?? null,
+      spaceName: b.space?.name ?? null,
+      href: b.space ? `${base}/spaces/${b.space.slug}?category=${b.category}` : base,
+    })),
+    ...recentEvents.map((e): FeedItem => ({
+      key: `event-${e.id}`,
+      createdAt: e.created_at,
+      icon: CalendarDays,
+      title: e.title,
+      description: e.description,
+      imageUrl: e.image_url,
+      typeBadge: "Event",
+      detail: `Starts ${formatDateTime(e.start_time)}`,
+      authorName: e.creator?.full_name || e.creator?.username || null,
+      authorAvatar: e.creator?.avatar_url ?? null,
+      spaceName: null,
+      href: `${base}/events`,
+    })),
+    ...recentListings.map((l): FeedItem => ({
+      key: `listing-${l.id}`,
+      createdAt: l.created_at,
+      icon: ShoppingBag,
+      title: l.title,
+      description: l.description,
+      imageUrl: l.photo_url,
+      typeBadge: marketplaceCategoryLabel(l.listing_type),
+      detail: l.price !== null ? `${l.currency ?? ""} ${l.price}`.trim() : null,
+      authorName: l.seller?.full_name || l.seller?.username || null,
+      authorAvatar: l.seller?.avatar_url ?? null,
+      spaceName: l.space?.name ?? null,
+      href: l.space ? `${base}/spaces/${l.space.slug}` : base,
+    })),
+    ...recentJobs.map((j): FeedItem => ({
+      key: `job-${j.id}`,
+      createdAt: j.created_at,
+      icon: Briefcase,
+      title: j.title,
+      description: j.description,
+      imageUrl: null,
+      typeBadge: jobTypeLabel(j.job_type),
+      detail: j.salary,
+      authorName: j.poster?.full_name || j.poster?.username || null,
+      authorAvatar: j.poster?.avatar_url ?? null,
+      spaceName: j.space?.name ?? null,
+      href: j.space ? `${base}/spaces/${j.space.slug}` : base,
+    })),
+    ...recentStays.map((a): FeedItem => ({
+      key: `stay-${a.id}`,
+      createdAt: a.created_at,
+      icon: BedDouble,
+      title: a.name,
+      description: a.description,
+      imageUrl: a.photo_url,
+      typeBadge: accommodationTypeLabel(a.accommodation_type),
+      detail: a.price_per_night !== null ? `${a.currency ?? ""} ${a.price_per_night}/night`.trim() : null,
+      authorName: a.lister?.full_name || a.lister?.username || null,
+      authorAvatar: a.lister?.avatar_url ?? null,
+      spaceName: a.space?.name ?? null,
+      href: a.space ? `${base}/spaces/${a.space.slug}` : base,
+    })),
+    ...recentRecommendations.map((r): FeedItem => ({
+      key: `recommendation-${r.id}`,
+      createdAt: r.created_at,
+      icon: Star,
+      title: r.title,
+      description: r.note,
+      imageUrl: null,
+      typeBadge: recommendationCategoryLabel(r.category),
+      detail: null,
+      authorName: r.recommendedBy?.full_name || r.recommendedBy?.username || null,
+      authorAvatar: r.recommendedBy?.avatar_url ?? null,
+      spaceName: r.space?.name ?? null,
+      href: r.space ? `${base}/spaces/${r.space.slug}` : base,
+    })),
+    ...recentClubs.map((c): FeedItem => ({
+      key: `club-${c.id}`,
+      createdAt: c.created_at,
+      icon: UsersRound,
+      title: c.name,
+      description: c.description,
+      imageUrl: null,
+      typeBadge: c.category,
+      detail: null,
+      authorName: c.creator?.full_name || c.creator?.username || null,
+      authorAvatar: c.creator?.avatar_url ?? null,
+      spaceName: c.space?.name ?? null,
+      href: c.space ? `${base}/spaces/${c.space.slug}` : base,
+    })),
+    ...recentVolunteerProjects.map((v): FeedItem => ({
+      key: `volunteer-${v.id}`,
+      createdAt: v.created_at,
+      icon: HandHeart,
+      title: v.title,
+      description: v.description,
+      imageUrl: null,
+      typeBadge: v.category,
+      detail: v.volunteers_needed ? `${v.volunteers_needed} volunteers needed` : null,
+      authorName: v.organiser?.full_name || v.organiser?.username || null,
+      authorAvatar: v.organiser?.avatar_url ?? null,
+      spaceName: v.space?.name ?? null,
+      href: v.space ? `${base}/spaces/${v.space.slug}` : base,
+    })),
+  ];
+
+  const pinned = items.filter((i) => i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const activity = [...pinned, ...rest].slice(0, 15);
 
   return (
     <div>
@@ -83,69 +250,9 @@ export default async function CommunityFeedPage({
               />
             ) : (
               <div className="space-y-3">
-                {activity.map((item) =>
-                  item.kind === "post" ? (
-                    <Card key={`post-${item.post.id}`}>
-                      <CardContent className="pt-5">
-                        <div className="flex items-start gap-3">
-                          <Avatar src={item.post.author?.avatar_url} name={item.post.author?.full_name || item.post.author?.username} size={32} />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              {item.post.is_pinned && <Pin className="h-3.5 w-3.5 text-accent" />}
-                              <h3 className="text-sm font-semibold text-foreground">{item.post.title}</h3>
-                              <Badge tone="neutral">{item.post.post_type}</Badge>
-                            </div>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {item.post.author?.full_name || item.post.author?.username} · {formatRelativeTime(item.post.created_at)}
-                            </p>
-                            {item.post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{item.post.body}</p>}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card key={`business-${item.business.id}`}>
-                      <CardContent className="pt-5">
-                        <div className="flex items-start gap-3">
-                          {item.business.image_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={item.business.image_url}
-                              alt={item.business.name}
-                              className="h-8 w-8 shrink-0 rounded-md object-cover"
-                              style={{ objectPosition: item.business.image_position ?? "50% 50%" }}
-                            />
-                          ) : (
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                              <Store className="h-4 w-4" />
-                            </span>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-sm font-semibold text-foreground">{item.business.name}</h3>
-                              <Badge tone="accent">{businessCategoryLabel(item.business.category, customCategories)}</Badge>
-                            </div>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Added by {item.business.creator?.full_name || item.business.creator?.username} ·{" "}
-                              {formatRelativeTime(item.business.created_at)}
-                            </p>
-                            {item.business.description && (
-                              <p className="mt-2 line-clamp-2 text-sm text-foreground">{item.business.description}</p>
-                            )}
-                            {item.business.space && (
-                              <Link
-                                href={`/c/${community.slug}/spaces/${item.business.space.slug}?category=${item.business.category}`}
-                                className="mt-2 inline-block text-xs font-medium text-accent hover:underline"
-                              >
-                                View in {item.business.space.name} →
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                )}
+                {activity.map((item) => (
+                  <FeedItemCard key={item.key} item={item} />
+                ))}
               </div>
             )}
           </div>

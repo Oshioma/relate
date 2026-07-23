@@ -1,7 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Recommendation, Profile } from "@/types/database";
+import type { Database, Recommendation, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
+
+export type RecommendationWithContext = Recommendation & { recommendedBy: Profile; space: Pick<Space, "id" | "name" | "slug"> };
+
+// Newest recommendations across the whole community, for the feed. Skips
+// vote counts (unlike getSpaceRecommendations) — the feed just needs the
+// recommendation itself, not its full space-page detail.
+export async function getCommunityRecentRecommendations(
+  supabase: Client,
+  communityId: string,
+  limit = 6
+): Promise<RecommendationWithContext[]> {
+  const { data, error } = await supabase
+    .from("recommendations")
+    .select("*, recommendedBy:recommended_by (*), space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as RecommendationWithContext[];
+}
 
 export type RecommendationWithVotes = {
   recommendation: Recommendation;

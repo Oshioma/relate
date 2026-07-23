@@ -5,12 +5,12 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { BusinessImageInput } from "./business-image-input";
-import type { PickedLocation } from "./location-picker";
+import type { PickedLocation } from "@/components/map/location-picker";
 import type { Business, BusinessCustomCategory } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
 // browser — same pattern as explore-map-loader.tsx.
-const LocationPicker = dynamic(() => import("./location-picker"), {
+const LocationPicker = dynamic(() => import("@/components/map/location-picker"), {
   ssr: false,
   loading: () => <div className="flex h-[360px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
 });
