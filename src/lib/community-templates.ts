@@ -556,8 +556,13 @@ export interface PlaceSetupRecommendation extends SetupRecommendation {
   mapLayers: string[];
 }
 
-export function recommendPlaceSetup(locationTypeKey: string): PlaceSetupRecommendation {
+// baseSpaces lets the caller substitute the super-admin-configured place
+// default spaces (from the place_default_spaces table) for the hard-coded
+// template defaults; the per-location-type extras are layered on top either
+// way. Omit it to use the code defaults.
+export function recommendPlaceSetup(locationTypeKey: string, baseSpaces?: TemplateSpace[]): PlaceSetupRecommendation {
   const template = getCommunityTemplate("place")!;
+  const base = baseSpaces ?? template.defaultSpaces;
   const locationType = getPlaceLocationType(locationTypeKey);
 
   const rationale = [`Started from the Place-Based Community template's default spaces.`];
@@ -567,7 +572,7 @@ export function recommendPlaceSetup(locationTypeKey: string): PlaceSetupRecommen
   }
 
   return {
-    spaces: dedupeByName([...template.defaultSpaces, ...(locationType?.extraSpaces ?? [])]),
+    spaces: dedupeByName([...base, ...(locationType?.extraSpaces ?? [])]),
     profileFields: [...template.defaultProfileFields, ...(locationType?.extraProfileFields ?? [])],
     rationale,
     mapLayers: locationType?.mapLayers ?? [],

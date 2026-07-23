@@ -257,6 +257,20 @@ export type CommunityNavItemOrder = {
   updated_at: string;
 };
 
+// A default space for the Place-Based Community template, editable by a super
+// admin at /admin. The creation wizard seeds a new place community's spaces
+// from these. space_type mirrors SpaceType. See the place_default_spaces
+// migration.
+export type PlaceDefaultSpace = {
+  id: string;
+  name: string;
+  description: string;
+  space_type: SpaceType;
+  show_in_nav: boolean;
+  sort_order: number;
+  updated_at: string;
+};
+
 // A review snippet cached from Google Places (businesses.google_reviews).
 // Always rendered with Google attribution — see supabase/business-google-places.sql.
 export type BusinessGoogleReview = {
@@ -836,6 +850,11 @@ export type Database = {
         Row: CommunityNavItemOrder;
         Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
         Update: Partial<CommunityNavItemOrder>;
+      } & NoRel;
+      place_default_spaces: {
+        Row: PlaceDefaultSpace;
+        Insert: Partial<PlaceDefaultSpace> & { name: string };
+        Update: Partial<PlaceDefaultSpace>;
       } & NoRel;
       notifications: {
         Row: Notification;
