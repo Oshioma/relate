@@ -6,8 +6,10 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -38,7 +40,7 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, featuredCategories, customCategories, features] =
+  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, navItemOrder, featuredCategories, customCategories, features] =
     await Promise.all([
       getProfile(supabase, user.id),
       getMembership(supabase, community.id, user.id),
@@ -48,6 +50,7 @@ export default async function CommunityLayout({
       getConversations(supabase, user.id),
       getCommunitySpaces(supabase, community.id),
       getCommunityNavLinks(supabase, community.id),
+      getCommunityNavItemOrder(supabase, community.id),
       getCommunityFeaturedBusinessCategories(supabase, community.id),
       getCommunityBusinessCustomCategories(supabase, community.id),
       getCommunityFeatures(supabase, community.id),
@@ -65,27 +68,46 @@ export default async function CommunityLayout({
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
 
+  // The sidebar interleaves spaces with the built-in feature links (Events,
+  // Search): each is an "orderable unit" with a sort key. Spaces use their own
+  // sort_order; a built-in link uses its saved position, or a large default
+  // (defaultNavItemSort) that keeps it after the spaces until an admin drags
+  // it. Feed stays pinned at the top and isn't part of the ordering.
+  type NavUnit = { sort: number; items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[] };
+
+  const orderedUnits: NavUnit[] = [
+    // Featured business categories render as indented sub-links right under
+    // their directory space, deep-linking to the pre-filtered directory — so
+    // they travel with their space as one unit.
+    ...navSpaces.map((space) => ({
+      sort: space.sort_order,
+      items: [
+        {
+          href: `${base}/spaces/${space.slug}`,
+          label: space.name,
+          icon: <Layers className="h-4 w-4" />,
+        },
+        ...featuredCategories
+          .filter((f) => f.space_id === space.id)
+          .map((f) => ({
+            href: `${base}/spaces/${space.slug}?category=${f.category}`,
+            label: businessCategoryPluralLabel(f.category, customCategories),
+            icon: <Tag className="h-3.5 w-3.5" />,
+            sub: true,
+          })),
+      ],
+    })),
+    ...(features.events
+      ? [{ sort: navItemOrder.events ?? defaultNavItemSort("events"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
+      : []),
+    ...(features.concierge
+      ? [{ sort: navItemOrder.concierge ?? defaultNavItemSort("concierge"), items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      : []),
+  ].sort((a, b) => a.sort - b.sort);
+
   const navItems = [
     { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
-    // Featured business categories render as indented sub-links right under
-    // their directory space, deep-linking to the pre-filtered directory.
-    ...navSpaces.flatMap((space) => [
-      {
-        href: `${base}/spaces/${space.slug}`,
-        label: space.name,
-        icon: <Layers className="h-4 w-4" />,
-      },
-      ...featuredCategories
-        .filter((f) => f.space_id === space.id)
-        .map((f) => ({
-          href: `${base}/spaces/${space.slug}?category=${f.category}`,
-          label: businessCategoryPluralLabel(f.category, customCategories),
-          icon: <Tag className="h-3.5 w-3.5" />,
-          sub: true,
-        })),
-    ]),
-    ...(features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] : []),
-    ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] : []),
+    ...orderedUnits.flatMap((unit) => unit.items),
   ];
 
   return (
