@@ -135,6 +135,16 @@ export default async function CommunityLayout({
           <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
             Members
           </NavLink>
+          {isStaff && (
+            <NavLink href={`${base}/admin`} icon={<Shield className="h-4 w-4" />}>
+              Admin
+            </NavLink>
+          )}
+          {profile?.is_super_admin && (
+            <NavLink href="/admin" icon={<BadgeCheck className="h-4 w-4" />}>
+              Super Admin
+            </NavLink>
+          )}
           <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">
@@ -165,26 +175,6 @@ export default async function CommunityLayout({
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
-            {isStaff && (
-              <Link
-                href={`${base}/admin`}
-                title="Community admin"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                <Shield className="h-5 w-5" />
-                <span className="hidden sm:inline">Admin</span>
-              </Link>
-            )}
-            {profile?.is_super_admin && (
-              <Link
-                href="/admin"
-                title="Super admin"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                <BadgeCheck className="h-5 w-5" />
-                <span className="hidden sm:inline">Super Admin</span>
-              </Link>
-            )}
             <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
             <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
             <Link href="/settings" className="md:hidden">
