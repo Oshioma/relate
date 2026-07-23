@@ -1,0 +1,47 @@
+name: Check migration timestamps
+
+# Two PRs opened in parallel can each pick the same migration timestamp
+# (e.g. both grab 20260723170000). Whichever merges second then fails to
+# deploy — `supabase db push` records the version in schema_migrations and
+# hits a duplicate-key error, rolling the migration back. This check fails
+# fast when the migrations directory contains two files sharing a timestamp
+# prefix, so the collision is caught in review instead of at deploy time.
+#
+# Note: on a pull_request the checkout is the PR merged into its base, so this
+# catches a new migration that reuses an ALREADY-MERGED timestamp. To also
+# catch two still-open PRs racing, require branches to be up to date with the
+# base before merging (branch protection) — then the loser re-runs this check
+# against the winner's migration and is blocked.
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+
+jobs:
+  unique-timestamps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure every migration timestamp is unique
+        run: |
+          cd supabase/migrations
+          # Each file is <14-digit-timestamp>_<name>.sql; the prefix before the
+          # first underscore is the version Supabase records.
+          dupes="$(ls *.sql | sed -E 's/_.*//' | sort | uniq -d)"
+          if [ -n "$dupes" ]; then
+            echo "::error::Duplicate migration timestamp(s) found — renumber one so each version is unique:"
+            for ts in $dupes; do
+              echo "  $ts is used by:"
+              ls "${ts}"_*.sql | sed 's/^/    /'
+            done
+            exit 1
+          fi
+          echo "All migration timestamps are unique."
