@@ -16,7 +16,6 @@ export function EventCard({
   event,
   rsvps,
   currentUserId,
-  communityId,
   communitySlug,
   canRsvp,
   canManage,
@@ -24,7 +23,6 @@ export function EventCard({
   event: Event;
   rsvps: EventRsvpWithAttendee[];
   currentUserId: string;
-  communityId: string;
   communitySlug: string;
   canRsvp: boolean;
   canManage: boolean;
@@ -83,7 +81,6 @@ export function EventCard({
             <DeleteEventButton
               eventId={event.id}
               eventTitle={event.title}
-              communityId={communityId}
               communitySlug={communitySlug}
               className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
             />

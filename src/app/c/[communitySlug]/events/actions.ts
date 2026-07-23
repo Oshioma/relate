@@ -6,6 +6,11 @@ import { normalizeUrl } from "@/lib/utils";
 
 export type EventFormState = { error: string } | undefined;
 
+function parseImageUrl(raw: FormDataEntryValue | null): string | null {
+  const value = String(raw ?? "").trim();
+  return /^https?:\/\//.test(value) ? value : null;
+}
+
 export async function createEvent(_prevState: EventFormState, formData: FormData): Promise<EventFormState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
@@ -15,6 +20,7 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
   const endTime = String(formData.get("end_time") ?? "");
   const location = String(formData.get("location") ?? "").trim();
   const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
+  const imageUrl = parseImageUrl(formData.get("image_url"));
   const latRaw = String(formData.get("lat") ?? "").trim();
   const lngRaw = String(formData.get("lng") ?? "").trim();
   const lat = latRaw ? Number(latRaw) : null;
@@ -41,6 +47,7 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
     end_time: endTime ? new Date(endTime).toISOString() : null,
     location: location || null,
     online_url: onlineUrl || null,
+    image_url: imageUrl,
     lat,
     lng,
     created_by: user.id,
@@ -65,6 +72,7 @@ export async function updateEvent(_prevState: EventFormState, formData: FormData
   const endTime = String(formData.get("end_time") ?? "");
   const location = String(formData.get("location") ?? "").trim();
   const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
+  const imageUrl = parseImageUrl(formData.get("image_url"));
   const latRaw = String(formData.get("lat") ?? "").trim();
   const lngRaw = String(formData.get("lng") ?? "").trim();
   const lat = latRaw ? Number(latRaw) : null;
@@ -92,6 +100,7 @@ export async function updateEvent(_prevState: EventFormState, formData: FormData
       end_time: endTime ? new Date(endTime).toISOString() : null,
       location: location || null,
       online_url: onlineUrl || null,
+      image_url: imageUrl,
       lat,
       lng,
     })
@@ -127,18 +136,13 @@ export async function rsvpToEvent(eventId: string, communitySlug: string) {
 
 // RLS (events_delete_creator_or_staff) restricts this to the event's
 // creator or community staff — anyone else's delete matches zero rows.
-export async function deleteEvent(eventId: string, communityId: string, communitySlug: string, eventTitle: string) {
+export async function deleteEvent(eventId: string, communitySlug: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("events").delete().eq("id", eventId);
 
   if (error) {
     return { error: error.message };
   }
-
-  // Best-effort: remember the title so AI discovery doesn't re-add the same
-  // event on a later run. A failure here (e.g. a duplicate) shouldn't undo
-  // the delete that already succeeded.
-  await supabase.from("event_dismissals").insert({ community_id: communityId, title: eventTitle.trim() });
 
   revalidatePath(`/c/${communitySlug}/events`);
   return { error: null };
