@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
@@ -75,13 +75,6 @@ export default async function SpaceDetailPage({
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
-
-  // An 'events' space is a nav pointer, not a content container — its actual
-  // content lives at the dedicated /events route (its own community-scoped
-  // table, RSVPs, etc.), same data regardless of which space slug points to it.
-  if (space.space_type === "events") {
-    redirect(`/c/${communitySlug}/events`);
-  }
 
   const isResourceSpace = space.space_type === "resources";
   const isJournalSpace = space.space_type === "journal";

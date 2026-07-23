@@ -17,7 +17,6 @@ import {
   Briefcase,
   BedDouble,
   Star,
-  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -35,10 +34,7 @@ export interface SpaceTypeMeta {
 // Community types below (map through recommendations) are new, real
 // categories admins can pick today — dedicated rendering (an actual map,
 // listing cards, etc.) is follow-up work, same as challenges/journal/etc.
-// were before they got their own views. 'events' is different again: it
-// isn't a content container at all, just a nav pointer — that page redirects
-// straight to /c/[slug]/events, which is its own route backed by the
-// community-scoped `events` table (see src/types/database.ts's Event type).
+// were before they got their own views.
 export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   discussion: { type: "discussion", label: "Discussion", icon: MessageSquare, description: "An open feed where members post and comment." },
   journal: { type: "journal", label: "Journal", icon: NotebookPen, description: "Members log entries over time." },
@@ -58,7 +54,6 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   jobs: { type: "jobs", label: "Jobs Board", icon: Briefcase, description: "Local job, volunteer and internship listings." },
   accommodation: { type: "accommodation", label: "Accommodation", icon: BedDouble, description: "Places to stay, from short lets to long-term rentals." },
   recommendations: { type: "recommendations", label: "Recommendations", icon: Star, description: "Member recommendations for restaurants, services and more." },
-  events: { type: "events", label: "Events", icon: CalendarDays, description: "Community-wide events calendar — links to the Events page." },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);

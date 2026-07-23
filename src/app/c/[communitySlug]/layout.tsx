@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -38,7 +40,7 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, featuredCategories, customCategories, features] =
+  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, navItemOrder, featuredCategories, customCategories, features] =
     await Promise.all([
       getProfile(supabase, user.id),
       getMembership(supabase, community.id, user.id),
@@ -48,6 +50,7 @@ export default async function CommunityLayout({
       getConversations(supabase, user.id),
       getCommunitySpaces(supabase, community.id),
       getCommunityNavLinks(supabase, community.id),
+      getCommunityNavItemOrder(supabase, community.id),
       getCommunityFeaturedBusinessCategories(supabase, community.id),
       getCommunityBusinessCustomCategories(supabase, community.id),
       getCommunityFeatures(supabase, community.id),
@@ -65,41 +68,46 @@ export default async function CommunityLayout({
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
 
-  // Events has a real 'events'-type space once a community has one (created
-  // via the admin Spaces panel, or backfilled — see
-  // 20260723130001_backfill_events_spaces.sql) — that space's position and
-  // show_in_nav toggle drive the nav from here on, same as any other space.
-  // The platform features.events flag only still matters as a fallback for
-  // communities that don't have that space yet, so Events keeps its old
-  // always-on-by-default behavior until one is created.
-  const hasEventsSpace = spaces.some((space) => space.space_type === "events");
-  const showEventsTab = hasEventsSpace ? navSpaces.some((space) => space.space_type === "events") : features.events;
+  // The sidebar interleaves spaces with the built-in feature links (Events,
+  // Search): each is an "orderable unit" with a sort key. Spaces use their own
+  // sort_order; a built-in link uses its saved position, or a large default
+  // (defaultNavItemSort) that keeps it after the spaces until an admin drags
+  // it. Feed stays pinned at the top and isn't part of the ordering.
+  type NavUnit = { sort: number; items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[] };
+
+  const orderedUnits: NavUnit[] = [
+    // Featured business categories render as indented sub-links right under
+    // their directory space, deep-linking to the pre-filtered directory — so
+    // they travel with their space as one unit.
+    ...navSpaces.map((space) => ({
+      sort: space.sort_order,
+      items: [
+        {
+          href: `${base}/spaces/${space.slug}`,
+          label: space.name,
+          icon: <Layers className="h-4 w-4" />,
+        },
+        ...featuredCategories
+          .filter((f) => f.space_id === space.id)
+          .map((f) => ({
+            href: `${base}/spaces/${space.slug}?category=${f.category}`,
+            label: businessCategoryPluralLabel(f.category, customCategories),
+            icon: <Tag className="h-3.5 w-3.5" />,
+            sub: true,
+          })),
+      ],
+    })),
+    ...(features.events && navItemOrder.events?.showInNav !== false
+      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
+      : []),
+    ...(features.concierge && navItemOrder.concierge?.showInNav !== false
+      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      : []),
+  ].sort((a, b) => a.sort - b.sort);
 
   const navItems = [
     { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
-    // Featured business categories render as indented sub-links right under
-    // their directory space, deep-linking to the pre-filtered directory.
-    ...navSpaces.flatMap((space) =>
-      space.space_type === "events"
-        ? [{ href: `${base}/events`, label: space.name, icon: <CalendarDays className="h-4 w-4" /> }]
-        : [
-            {
-              href: `${base}/spaces/${space.slug}`,
-              label: space.name,
-              icon: <Layers className="h-4 w-4" />,
-            },
-            ...featuredCategories
-              .filter((f) => f.space_id === space.id)
-              .map((f) => ({
-                href: `${base}/spaces/${space.slug}?category=${f.category}`,
-                label: businessCategoryPluralLabel(f.category, customCategories),
-                icon: <Tag className="h-3.5 w-3.5" />,
-                sub: true,
-              })),
-          ]
-    ),
-    ...(!hasEventsSpace && features.events ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] : []),
-    ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] : []),
+    ...orderedUnits.flatMap((unit) => unit.items),
   ];
 
   return (
@@ -107,7 +115,7 @@ export default async function CommunityLayout({
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="border-b border-border px-5 py-5">
           <div className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} size={112} />
+            <Avatar src={community.logo_url} name={community.name} size={140} />
             <span className="mt-3 truncate text-lg font-semibold text-foreground">{community.name}</span>
           </div>
         </div>
@@ -149,11 +157,6 @@ export default async function CommunityLayout({
           <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
             Members
           </NavLink>
-          {isStaff && (
-            <NavLink href={`${base}/admin`} icon={<Shield className="h-4 w-4" />}>
-              Admin
-            </NavLink>
-          )}
           <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">
@@ -181,14 +184,29 @@ export default async function CommunityLayout({
           </Link>
           <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
           <div className="flex items-center gap-4">
+            {isStaff && (
+              <Link
+                href={`${base}/admin`}
+                title="Community admin"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <Shield className="h-5 w-5" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
+            {profile?.is_super_admin && (
+              <Link
+                href="/admin"
+                title="Super admin"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <BadgeCheck className="h-5 w-5" />
+                <span className="hidden sm:inline">Super Admin</span>
+              </Link>
+            )}
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
-            {profile?.is_super_admin && (
-              <Link href="/admin" className="text-muted-foreground hover:text-foreground" title="Platform admin">
-                <Shield className="h-5 w-5" />
-              </Link>
-            )}
             <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
             <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
             <Link href="/settings" className="md:hidden">
@@ -211,9 +229,9 @@ export default async function CommunityLayout({
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
-          ...(showEventsTab ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
+          ...(features.events && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
-          ...(features.concierge ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
+          ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
       />
     </div>

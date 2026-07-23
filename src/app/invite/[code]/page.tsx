@@ -4,6 +4,16 @@ import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
+
+// The community whose invite this is — used to brand the page, because the
+// invitee is joining that community, not "Relate". Null when the code is
+// unrecognized and there is nothing to brand with.
+type InviteCommunity = {
+  name: string;
+  logo_url: string | null;
+  cover_image_url: string | null;
+} | null;
 
 export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -16,9 +26,19 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   const { data: previewRows } = await supabase.rpc("get_invite_preview", { p_code: code });
   const preview = previewRows?.[0];
 
+  // ?? null also covers a database that hasn't run invite-branding.sql yet,
+  // where the preview rows come back without the branding columns.
+  const community: InviteCommunity = preview?.community_name
+    ? {
+        name: preview.community_name,
+        logo_url: preview.community_logo_url ?? null,
+        cover_image_url: preview.community_cover_image_url ?? null,
+      }
+    : null;
+
   if (!preview || !preview.valid) {
     return (
-      <InviteShell>
+      <InviteShell community={community}>
         <p className="text-sm text-danger">{preview?.reason ?? "This invite link is invalid."}</p>
         <LinkButton href="/dashboard" variant="secondary" className="mt-6">
           Go to dashboard
@@ -30,13 +50,15 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!user) {
     const next = `/invite/${code}`;
     return (
-      <InviteShell>
+      <InviteShell community={community}>
         <h1 className="text-lg font-semibold text-foreground">You&apos;re invited to {preview.community_name}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Sign in or create an account to join.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Create a free account to join.</p>
+        {/* Create account leads: most invitees are new here, and pointing
+            them at Sign in first ends in "Invalid login credentials". */}
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <LinkButton href={`/login?next=${encodeURIComponent(next)}`}>Sign in</LinkButton>
-          <LinkButton href={`/signup?next=${encodeURIComponent(next)}`} variant="secondary">
-            Create account
+          <LinkButton href={`/signup?next=${encodeURIComponent(next)}`}>Create account</LinkButton>
+          <LinkButton href={`/login?next=${encodeURIComponent(next)}`} variant="secondary">
+            I already have one
           </LinkButton>
         </div>
       </InviteShell>
@@ -48,7 +70,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
 
   if (!result || result.error) {
     return (
-      <InviteShell>
+      <InviteShell community={community}>
         <p className="text-sm text-danger">{result?.error ?? "Something went wrong redeeming this invite."}</p>
         <LinkButton href="/dashboard" variant="secondary" className="mt-6">
           Go to dashboard
@@ -60,21 +82,40 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   redirect(`/c/${result.community_slug}`);
 }
 
-function InviteShell({ children }: { children: React.ReactNode }) {
+function InviteShell({ community, children }: { community: InviteCommunity; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm text-center">
-        <Link href="/" className="mb-8 inline-block text-lg font-semibold tracking-tight text-foreground">
-          Relate
-        </Link>
-        <Card>
-          <CardContent className="pt-8 pb-8">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
-              <Users className="h-6 w-6" />
-            </div>
+        <Card className="overflow-hidden">
+          {community?.cover_image_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={community.cover_image_url} alt="" className="h-28 w-full object-cover" />
+          )}
+          <CardContent className={community?.cover_image_url ? "pb-8" : "pt-8 pb-8"}>
+            {community ? (
+              <div className={community.cover_image_url ? "-mt-10 mb-4" : "mb-4"}>
+                <Avatar
+                  src={community.logo_url}
+                  name={community.name}
+                  size={80}
+                  className="mx-auto border-4 border-card bg-card"
+                />
+                <p className="mt-3 text-lg font-semibold tracking-tight text-foreground">{community.name}</p>
+              </div>
+            ) : (
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-accent">
+                <Users className="h-6 w-6" />
+              </div>
+            )}
             {children}
           </CardContent>
         </Card>
+        <p className="mt-6 text-xs text-muted-foreground">
+          Powered by{" "}
+          <Link href="/" className="font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+            Relate
+          </Link>
+        </p>
       </div>
     </div>
   );

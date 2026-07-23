@@ -7,9 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { getPlaceLocationType } from "@/lib/community-templates";
+import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
-import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
+import type { SpaceVisibility, SpaceType, Community, FeatureKey } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -24,19 +25,6 @@ function parseVisibility(raw: FormDataEntryValue | null): SpaceVisibility {
 function parseSpaceType(raw: FormDataEntryValue | null): SpaceType {
   const value = String(raw ?? "discussion");
   return SPACE_TYPES.includes(value as SpaceType) ? (value as SpaceType) : "discussion";
-}
-
-// A community can only have one Events nav pointer — a second one would mean
-// two identical "Events" links in the sidebar, both pointing at /events.
-async function eventsSpaceExists(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  communityId: string,
-  excludeSpaceId?: string
-): Promise<boolean> {
-  let query = supabase.from("spaces").select("id").eq("community_id", communityId).eq("space_type", "events");
-  if (excludeSpaceId) query = query.neq("id", excludeSpaceId);
-  const { data } = await query.limit(1);
-  return Boolean(data && data.length > 0);
 }
 
 export async function createSpace(_prevState: SpaceFormState, formData: FormData): Promise<SpaceFormState> {
@@ -75,10 +63,6 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   if (existing) {
     return { error: "A space with a similar name already exists." };
-  }
-
-  if (spaceType === "events" && (await eventsSpaceExists(supabase, communityId))) {
-    return { error: "This community already has an Events space." };
   }
 
   const { data: maxSort } = await supabase
@@ -127,14 +111,6 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   }
 
   const supabase = await createClient();
-
-  if (spaceType === "events") {
-    const { data: spaceRow } = await supabase.from("spaces").select("community_id").eq("id", spaceId).maybeSingle();
-    if (spaceRow && (await eventsSpaceExists(supabase, spaceRow.community_id, spaceId))) {
-      return { error: "This community already has an Events space." };
-    }
-  }
-
   const { error } = await supabase
     .from("spaces")
     .update({
@@ -178,10 +154,6 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     return { error: fetchError?.message ?? "Space not found." };
   }
 
-  if (original.space_type === "events") {
-    return { error: "This community already has an Events space." };
-  }
-
   const { data: maxSort } = await supabase
     .from("spaces")
     .select("sort_order")
@@ -221,16 +193,81 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
   return undefined;
 }
 
-export async function reorderSpaces(
-  order: { id: string; sort_order: number }[],
+// Reorders the sidebar as a single interleaved list of spaces and the
+// built-in feature links (Events, Search). Spaces write their sort_order to
+// the spaces table; built-in links upsert theirs into community_nav_item_order.
+// The caller assigns a contiguous 0..n-1 sequence across the whole list, so
+// after any drag both tables agree on one order (see src/lib/nav-items.ts and
+// the sidebar merge in the community layout).
+export async function reorderNavItems(
+  order: { kind: "space" | "builtin"; ref: string; sort_order: number }[],
+  communityId: string,
   communitySlug: string
 ): Promise<{ error: string } | undefined> {
   const supabase = await createClient();
 
-  const results = await Promise.all(order.map((s) => supabase.from("spaces").update({ sort_order: s.sort_order }).eq("id", s.id)));
+  const results = await Promise.all(
+    order.map((item) =>
+      item.kind === "space"
+        ? supabase.from("spaces").update({ sort_order: item.sort_order }).eq("id", item.ref)
+        : supabase
+            .from("community_nav_item_order")
+            .upsert(
+              { community_id: communityId, item_key: item.ref as FeatureKey, sort_order: item.sort_order },
+              { onConflict: "community_id,item_key" }
+            )
+    )
+  );
   const failed = results.find((r) => r.error);
   if (failed?.error) {
     return { error: failed.error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces`);
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// Shows or hides a built-in nav item (Events, Search) in the sidebar without
+// disabling the feature itself — the same as a space's show_in_nav toggle. The
+// item lives in community_nav_item_order; when no row exists yet we insert one
+// carrying its default sort position, so hiding an item never accidentally
+// moves it to the top (sort_order's column default is 0).
+export async function setNavItemVisibility(
+  itemKey: FeatureKey,
+  showInNav: boolean,
+  communityId: string,
+  communitySlug: string
+): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+
+  const { data: existing, error: readError } = await supabase
+    .from("community_nav_item_order")
+    .select("item_key")
+    .eq("community_id", communityId)
+    .eq("item_key", itemKey)
+    .maybeSingle();
+
+  if (readError) {
+    return { error: readError.message };
+  }
+
+  const result = existing
+    ? await supabase
+        .from("community_nav_item_order")
+        .update({ show_in_nav: showInNav })
+        .eq("community_id", communityId)
+        .eq("item_key", itemKey)
+    : await supabase.from("community_nav_item_order").insert({
+        community_id: communityId,
+        item_key: itemKey,
+        sort_order: defaultNavItemSort(itemKey),
+        show_in_nav: showInNav,
+      });
+
+  if (result.error) {
+    return { error: result.error.message };
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);

@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isResendConfigured, sendCommunityInviteEmail } from "@/lib/email";
 import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
@@ -104,14 +105,44 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     return { error: insertError.message };
   }
 
+  const origin = await getSiteOrigin();
+
+  // Preferred path: send our own community-branded email through Resend.
+  // The invitee gets "You're invited to <community>" from the community's
+  // name, and — unlike inviteUserByEmail below — no passwordless auth
+  // account is pre-created, so "Create account" on the invite page just
+  // works for them.
+  if (isResendConfigured()) {
+    const [{ data: community }, { data: inviter }] = await Promise.all([
+      supabase.from("communities").select("name, logo_url").eq("id", communityId).maybeSingle(),
+      supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle(),
+    ]);
+
+    const sent = await sendCommunityInviteEmail({
+      to: email,
+      communityName: community?.name ?? "our community",
+      communityLogoUrl: community?.logo_url ?? null,
+      inviterName: inviter?.full_name || inviter?.username || null,
+      inviteUrl: `${origin}/invite/${code}`,
+    });
+
+    if (!sent.ok) {
+      // The invite link exists and is copyable from the list either way.
+      return { error: `Invite link created, but the email couldn't be sent: ${sent.reason}` };
+    }
+
+    revalidatePath(`/c/${communitySlug}/members`);
+    return undefined;
+  }
+
+  // Fallback without Resend: Supabase Auth's invite email ("from Relate",
+  // global template — and it pre-creates a passwordless auth account).
   let admin;
   try {
     admin = createAdminClient();
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Email invites aren't configured yet." };
   }
-
-  const origin = await getSiteOrigin();
   const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(`/invite/${code}`)}`,
   });
@@ -137,6 +168,11 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       }
     }
 
+    // Surface the full error in the server logs — the client only ever sees a
+    // string, so without this an empty/opaque GoTrue body is impossible to
+    // diagnose after the fact.
+    console.error("[invites] inviteUserByEmail failed:", inviteError);
+
     // Supabase's built-in email service only sends a few emails per hour —
     // it's meant for development. Point admins at the two real ways forward
     // instead of echoing the raw "email rate limit exceeded".
@@ -148,10 +184,24 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       };
     }
 
+    // When email delivery fails without SMTP configured, GoTrue often replies
+    // with an error status but an empty body. auth-js then falls back to
+    // JSON.stringify(body), leaving message as the useless literal "{}" (or
+    // ""). Echoing that verbatim produced the confusing "…couldn't be sent: {}".
+    // Detect that case and give admins something actionable instead.
+    const rawMessage = inviteError.message?.trim() ?? "";
+    const hasUsefulMessage = rawMessage !== "" && rawMessage !== "{}" && rawMessage !== "[object Object]";
+    if (!hasUsefulMessage) {
+      return {
+        error:
+          "Invite link created, but the email couldn't be sent: the email service returned no details. This usually means transactional email isn't set up — connect a custom SMTP provider (Supabase → Authentication → Emails). In the meantime, copy the invite link from the list below and share it directly.",
+      };
+    }
+
     // The invite link itself was still created and is visible/copyable from
     // the list below, so this isn't a dead end even if the email didn't go out.
     return {
-      error: `Invite link created, but the email couldn't be sent: ${inviteError.message}`,
+      error: `Invite link created, but the email couldn't be sent: ${rawMessage}`,
     };
   }
 

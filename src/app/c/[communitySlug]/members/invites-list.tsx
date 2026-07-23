@@ -72,15 +72,41 @@ function InviteRow({ invite, communitySlug }: { invite: CommunityInvite; communi
 }
 
 export function InvitesList({ invites, communitySlug }: { invites: CommunityInvite[]; communitySlug: string }) {
+  const [showInactive, setShowInactive] = useState(false);
+
   if (invites.length === 0) {
     return <p className="text-sm text-muted-foreground">No invites yet.</p>;
   }
 
+  // Every email invite and every revoke leaves a row behind forever, so the
+  // default view keeps only links that can still be used — the dead ones
+  // stay one click away instead of burying the live ones.
+  const active = invites.filter((invite) => inviteStatusLabel(invite).label === "Active");
+  const inactiveCount = invites.length - active.length;
+  const visible = showInactive ? invites : active;
+
   return (
-    <div className="divide-y divide-border rounded-lg border border-border bg-card">
-      {invites.map((invite) => (
-        <InviteRow key={invite.id} invite={invite} communitySlug={communitySlug} />
-      ))}
+    <div>
+      {visible.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No active invites — create a new link above.</p>
+      ) : (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {visible.map((invite) => (
+            <InviteRow key={invite.id} invite={invite} communitySlug={communitySlug} />
+          ))}
+        </div>
+      )}
+      {inactiveCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowInactive((v) => !v)}
+          className="mt-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          {showInactive
+            ? "Hide revoked & used-up invites"
+            : `Show ${inactiveCount} revoked or used-up invite${inactiveCount === 1 ? "" : "s"}`}
+        </button>
+      )}
     </div>
   );
 }

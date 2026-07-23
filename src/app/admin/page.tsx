@@ -4,8 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getAllCommunities } from "@/lib/data/community";
 import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/features";
+import { getPlaceDefaultSpaces } from "@/lib/data/place-defaults";
 import { COMMUNITY_FEATURES } from "@/lib/features";
 import { DefaultFeatureToggle, CommunityFeatureToggle } from "./feature-toggle";
+import { PlaceSpacesManager } from "./place-spaces-manager";
 
 export default async function PlatformAdminPage() {
   const supabase = await createClient();
@@ -19,10 +21,11 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides] = await Promise.all([
+  const [communities, defaults, overrides, placeDefaultSpaces] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
+    getPlaceDefaultSpaces(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -48,6 +51,14 @@ export default async function PlatformAdminPage() {
             <p className="ml-6 mt-0.5 text-xs text-muted-foreground">{feature.description}</p>
           </div>
         ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Default spaces for Place-Based communities</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        The spaces a new place community is created with. Drag to reorder, edit names and types, or add your own — changes apply to place communities created from now on.
+      </p>
+      <div className="mb-10">
+        <PlaceSpacesManager spaces={placeDefaultSpaces} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Communities ({communities.length})</h2>

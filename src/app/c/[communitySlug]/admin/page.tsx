@@ -8,9 +8,13 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
+import { getCommunityFeatureControls, getCommunityFeatures } from "@/lib/data/features";
+import { BUILTIN_NAV_ITEMS, defaultNavItemSort } from "@/lib/nav-items";
 import { Card, CardContent } from "@/components/ui/card";
+import { CommunityFeaturesSection } from "./community-features-section";
 import { NewSpaceForm } from "./new-space-form";
-import { SpacesManager } from "./spaces-manager";
+import { SpacesManager, type NavManagerItem } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
@@ -35,15 +39,34 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members, profileFields, navLinks] = await Promise.all([
+  const isOwner = membership?.role === "owner";
+
+  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
     getCommunityProfileFields(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
+    getCommunityNavItemOrder(supabase, community.id),
+    getCommunityFeatures(supabase, community.id),
+    isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
   ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
+
+  // The sidebar order: spaces and the enabled built-in links (Events, Search)
+  // as one draggable list, pre-sorted the way the sidebar renders them.
+  const navManagerItems: NavManagerItem[] = [
+    ...spaces.map((s) => ({ kind: "space" as const, key: s.id, sort: s.sort_order, space: s })),
+    ...BUILTIN_NAV_ITEMS.filter((item) => features[item.key]).map((item) => ({
+      kind: "builtin" as const,
+      key: `builtin:${item.key}`,
+      sort: navItemOrder[item.key]?.sortOrder ?? defaultNavItemSort(item.key),
+      itemKey: item.key,
+      label: item.label,
+      showInNav: navItemOrder[item.key]?.showInNav ?? true,
+    })),
+  ].sort((a, b) => a.sort - b.sort);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -72,9 +95,17 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
-      {spaces.length > 0 && (
+      <p className="mb-3 text-sm text-muted-foreground">
+        Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top.
+      </p>
+      {navManagerItems.length > 0 && (
         <div className="mb-4">
-          <SpacesManager spaces={spaces} communitySlug={community.slug} journalFieldsBySpaceId={journalFieldsBySpaceId} />
+          <SpacesManager
+            items={navManagerItems}
+            communityId={community.id}
+            communitySlug={community.slug}
+            journalFieldsBySpaceId={journalFieldsBySpaceId}
+          />
         </div>
       )}
       <div className="mb-8">
@@ -128,7 +159,19 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
         </Link>
       </div>
 
-      {membership?.role === "owner" && (
+      {isOwner && featureControls.length > 0 && (
+        <>
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Features</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Turn optional sections of {community.name} on or off. The platform admin decides which are available to you.
+          </p>
+          <div className="mb-8">
+            <CommunityFeaturesSection communityId={community.id} controls={featureControls} />
+          </div>
+        </>
+      )}
+
+      {isOwner && (
         <>
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
           <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />

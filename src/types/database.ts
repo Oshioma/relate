@@ -30,8 +30,7 @@ export type SpaceType =
   | "volunteer_hub"
   | "jobs"
   | "accommodation"
-  | "recommendations"
-  | "events";
+  | "recommendations";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -227,11 +226,48 @@ export type FeatureDefault = {
   updated_at: string;
 };
 
-// Per-community override of a feature_defaults value.
+// Per-community override of a feature_defaults value. Set by the super
+// admin — the "availability" layer deciding which features a community may
+// use.
 export type CommunityFeature = {
   community_id: string;
   feature_key: FeatureKey;
   enabled: boolean;
+  updated_at: string;
+};
+
+// A community owner's own on/off preference for a feature, within what the
+// super admin has made available. A missing row means "on".
+export type CommunityFeaturePref = {
+  community_id: string;
+  feature_key: FeatureKey;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// Per-community position of a built-in nav item (Events, Search) within the
+// sidebar, interleaved with the spaces' own sort_order. A missing row means
+// "unpositioned" — the layout sorts it after the spaces by default. item_key
+// mirrors FeatureKey. See supabase migration community_nav_item_order.
+export type CommunityNavItemOrder = {
+  community_id: string;
+  item_key: FeatureKey;
+  sort_order: number;
+  show_in_nav: boolean;
+  updated_at: string;
+};
+
+// A default space for the Place-Based Community template, editable by a super
+// admin at /admin. The creation wizard seeds a new place community's spaces
+// from these. space_type mirrors SpaceType. See the place_default_spaces
+// migration.
+export type PlaceDefaultSpace = {
+  id: string;
+  name: string;
+  description: string;
+  space_type: SpaceType;
+  show_in_nav: boolean;
+  sort_order: number;
   updated_at: string;
 };
 
@@ -805,6 +841,21 @@ export type Database = {
         Insert: Partial<CommunityFeature> & { community_id: string; feature_key: FeatureKey };
         Update: Partial<CommunityFeature>;
       } & NoRel;
+      community_feature_prefs: {
+        Row: CommunityFeaturePref;
+        Insert: Partial<CommunityFeaturePref> & { community_id: string; feature_key: FeatureKey };
+        Update: Partial<CommunityFeaturePref>;
+      } & NoRel;
+      community_nav_item_order: {
+        Row: CommunityNavItemOrder;
+        Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
+        Update: Partial<CommunityNavItemOrder>;
+      } & NoRel;
+      place_default_spaces: {
+        Row: PlaceDefaultSpace;
+        Insert: Partial<PlaceDefaultSpace> & { name: string };
+        Update: Partial<PlaceDefaultSpace>;
+      } & NoRel;
       notifications: {
         Row: Notification;
         Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
@@ -1034,7 +1085,14 @@ export type Database = {
     Functions: {
       get_invite_preview: {
         Args: { p_code: string };
-        Returns: { community_name: string | null; community_slug: string | null; valid: boolean; reason: string | null }[];
+        Returns: {
+          community_name: string | null;
+          community_slug: string | null;
+          community_logo_url: string | null;
+          community_cover_image_url: string | null;
+          valid: boolean;
+          reason: string | null;
+        }[];
       };
       redeem_invite: {
         Args: { p_code: string };

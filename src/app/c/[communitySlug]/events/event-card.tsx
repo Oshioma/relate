@@ -69,14 +69,14 @@ export function EventCard({
             onError={() => setImageBroken(true)}
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-accent-soft to-muted text-muted-foreground">
+          <div className="flex h-full items-center justify-center gap-5 bg-gradient-to-br from-accent-soft to-muted text-foreground">
             {communityLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={communityLogoUrl} alt="" className="h-16 w-16 rounded-full object-cover shadow-sm" />
+              <img src={communityLogoUrl} alt="" className="h-24 w-24 rounded-full object-cover shadow-sm" />
             ) : (
-              <CalendarDays className="h-8 w-8 text-accent/50" />
+              <CalendarDays className="h-14 w-14 text-accent/50" />
             )}
-            <span className="text-xs font-medium">Event</span>
+            <span className="text-4xl font-bold tracking-tight">Event</span>
           </div>
         )}
         {canManage && (
