@@ -52,11 +52,13 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     return (
       <InviteShell community={community}>
         <h1 className="text-lg font-semibold text-foreground">You&apos;re invited to {preview.community_name}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Sign in or create an account to join.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Create a free account to join.</p>
+        {/* Create account leads: most invitees are new here, and pointing
+            them at Sign in first ends in "Invalid login credentials". */}
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <LinkButton href={`/login?next=${encodeURIComponent(next)}`}>Sign in</LinkButton>
-          <LinkButton href={`/signup?next=${encodeURIComponent(next)}`} variant="secondary">
-            Create account
+          <LinkButton href={`/signup?next=${encodeURIComponent(next)}`}>Create account</LinkButton>
+          <LinkButton href={`/login?next=${encodeURIComponent(next)}`} variant="secondary">
+            I already have one
           </LinkButton>
         </div>
       </InviteShell>
