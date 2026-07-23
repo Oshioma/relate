@@ -266,7 +266,7 @@ export default async function CommunityFeedPage({
                 description="Once members start posting, activity will show up here."
               />
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-8">
                 {activity.map((item) => (
                   <FeedItemCard key={item.key} item={item} />
                 ))}
