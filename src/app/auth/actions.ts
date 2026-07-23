@@ -117,6 +117,72 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
 }
 
+export type PasswordResetState = { error?: string; done?: boolean } | undefined;
+
+// The escape hatch for two kinds of stuck users: anyone who forgot their
+// password, and — more importantly — people invited via "Invite by email",
+// whose auth account was created by inviteUserByEmail with NO password at
+// all. For them "Create account" says already-registered and "Sign in" can
+// never succeed; this flow is the only way in.
+export async function requestPasswordReset(
+  _prevState: PasswordResetState,
+  formData: FormData
+): Promise<PasswordResetState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email || !email.includes("@")) {
+    return { error: "Enter your email address." };
+  }
+
+  // Same platform-origin routing as signup: the reset email always links to
+  // the platform host (no per-domain Supabase allowlist), and /auth/confirm
+  // forwards to the community domain the request came from.
+  const origin = await getSiteOrigin();
+  const customHost = customDomainHost(origin);
+  const platformOrigin = customHost ? (process.env.NEXT_PUBLIC_SITE_URL ?? origin) : origin;
+  const returnParam = customHost ? `&return_host=${encodeURIComponent(customHost)}` : "";
+
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${platformOrigin}/auth/confirm?next=${encodeURIComponent("/settings/password")}${returnParam}`,
+  });
+
+  // Always report success — the response must not reveal which emails have
+  // accounts. Supabase rate-limits the sends on its side.
+  return { done: true };
+}
+
+export type UpdatePasswordState = { error?: string; done?: boolean } | undefined;
+
+export async function updatePassword(
+  _prevState: UpdatePasswordState,
+  formData: FormData
+): Promise<UpdatePasswordState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+  if (password !== confirm) {
+    return { error: "Those passwords don't match — try again." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { done: true };
+}
+
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();

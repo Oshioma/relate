@@ -35,6 +35,11 @@ export function LoginForm({ next }: { next: string }) {
           Create one
         </Link>
       </p>
+      <p className="text-center text-sm text-muted-foreground">
+        <Link href="/forgot-password" className="font-medium text-accent hover:underline">
+          Forgot your password?
+        </Link>
+      </p>
     </form>
   );
 }
