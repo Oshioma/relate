@@ -34,7 +34,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {profile?.is_super_admin && (
-            <LinkButton href="/admin" size="sm" variant="secondary">
+            <LinkButton href="/platform-admin" size="sm" variant="secondary">
               <Shield className="h-4 w-4" />
               Platform admin
             </LinkButton>
