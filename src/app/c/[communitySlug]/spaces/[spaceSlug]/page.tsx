@@ -218,14 +218,19 @@ export default async function SpaceDetailPage({
             </Suspense>
           )}
 
-          {canPost && (
+          {/* A live-conditions space is a data page first: the live panel is
+              its content, so skip the add-resource form and the "no resources
+              yet" placeholder — any resources that do exist still render. */}
+          {canPost && !showLiveConditions && (
             <div className="mb-6">
               <SpaceResourceForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />
             </div>
           )}
 
           {resources.length === 0 ? (
-            <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="No resources yet" description="Links, files and guides added to this space will show up here." />
+            !showLiveConditions && (
+              <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="No resources yet" description="Links, files and guides added to this space will show up here." />
+            )
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {resources.map((resource) => (
