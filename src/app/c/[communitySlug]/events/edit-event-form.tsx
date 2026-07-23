@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import { updateEvent } from "./actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { EventFormFields } from "./event-form-fields";
-import type { PickedLocation } from "@/components/map/location-picker";
 import type { Event } from "@/types/database";
 
 export function EditEventForm({
@@ -21,9 +20,6 @@ export function EditEventForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
-  const [pin, setPin] = useState<PickedLocation | null>(
-    event.lat !== null && event.lng !== null ? { lat: event.lat, lng: event.lng } : null
-  );
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -40,6 +36,7 @@ export function EditEventForm({
     <form action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="event_id" value={event.id} />
       <input type="hidden" name="community_slug" value={communitySlug} />
+      <input type="hidden" name="community_location_name" value={communityLocationName ?? ""} />
 
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-foreground">Edit {event.title}</p>
@@ -48,13 +45,7 @@ export function EditEventForm({
         </button>
       </div>
 
-      <EventFormFields
-        idPrefix={`edit_event_${event.id}`}
-        event={event}
-        pin={pin}
-        onPinChange={setPin}
-        communityLocationName={communityLocationName}
-      />
+      <EventFormFields idPrefix={`edit_event_${event.id}`} event={event} />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
