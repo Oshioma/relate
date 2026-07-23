@@ -12,12 +12,12 @@ const MAX_RESULTS = 8;
 // Fluid Compute), which reaches the browser as a dead connection with no
 // error message. Keep our own budget comfortably below that so every run
 // ends with an explicit status instead.
-// One API request runs the web searches sequentially inside it, so 60s was
-// too tight — real runs timed out before finishing. 120s per request with no
-// retry keeps the worst case (~2 requests + parsing) under the 300s platform
-// limit while giving a healthy run plenty of room.
-const REQUEST_TIMEOUT_MS = 120_000;
-const RUN_BUDGET_MS = 150_000;
+// One API request runs the web searches AND page fetches sequentially inside
+// it, so it needs real room: 150s per request, no retry. A continuation is
+// only attempted while elapsed time leaves space for another full request,
+// keeping the worst case (~120s + 150s) under the 300s platform limit.
+const REQUEST_TIMEOUT_MS = 150_000;
+const CONTINUE_DEADLINE_MS = 120_000;
 
 let client: Anthropic | null = null;
 
@@ -44,9 +44,11 @@ export type DiscoveredEvent = {
 // a generic "check your API key" when the account balance is the problem.
 // "search_limited" means Anthropic rejected the web searches themselves
 // (server tool rate limit) — the model ran but couldn't look anything up.
+// `detail` is a short diagnostic shown to staff in the panel, so failures
+// self-explain without a trip to the hosting logs.
 export type DiscoveryResult =
   | { status: "ok"; events: DiscoveredEvent[] }
-  | { status: "unconfigured" | "billing" | "search_limited" | "error" };
+  | { status: "unconfigured" | "billing" | "search_limited" | "error"; detail?: string };
 
 const MAX_PAGE_FETCHES = 2;
 const MAX_FETCH_TOKENS = 12_000;
@@ -142,9 +144,10 @@ export async function discoverEventsWithAI(opts: {
     let response = await send();
     tallySearches(response.content);
     for (let i = 0; i < MAX_CONTINUATIONS && response.stop_reason === "pause_turn"; i++) {
-      if (Date.now() - startedAt > RUN_BUDGET_MS) {
-        console.error(`[discover-events] run exceeded ${RUN_BUDGET_MS / 1000}s budget while paused; giving up`);
-        return { status: "error" };
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > CONTINUE_DEADLINE_MS) {
+        console.error(`[discover-events] no time left to resume paused run (${Math.round(elapsed / 1000)}s elapsed)`);
+        return { status: "error", detail: `ran out of time after ${Math.round(elapsed / 1000)}s (paused mid-search)` };
       }
       messages.push({ role: "assistant", content: response.content });
       response = await send();
@@ -158,24 +161,24 @@ export async function discoverEventsWithAI(opts: {
     );
 
     if (searchFailed > 0 && searchOk === 0) {
-      return { status: "search_limited" };
+      return { status: "search_limited", detail: `${searchFailed} searches rejected, 0 succeeded` };
     }
 
     const text = response.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
 
     if (response.stop_reason === "max_tokens") {
       console.error("[discover-events] output truncated at max_tokens; usage:", response.usage);
-      return { status: "error" };
+      return { status: "error", detail: "model output was truncated at the token limit" };
     }
 
     const events = parseEvents(text);
     if (events === null) {
       // The model produced prose instead of JSON — surface it as an error
-      // (not "no events found") and leave a trail in the server logs.
+      // (not "no events found") with the start of what it actually said.
       console.error(
         `[discover-events] no JSON array in model output (stop_reason=${response.stop_reason}); text starts: ${text.slice(0, 300)}`,
       );
-      return { status: "error" };
+      return { status: "error", detail: `model returned prose instead of JSON: "${text.slice(0, 160)}"` };
     }
 
     if (events.length === 0) {
@@ -187,14 +190,15 @@ export async function discoverEventsWithAI(opts: {
     return { status: "ok", events };
   } catch (error) {
     console.error("[discover-events] Anthropic API call failed:", error);
-    if (error instanceof Anthropic.AuthenticationError) return { status: "unconfigured" };
+    const detail = error instanceof Error ? `${error.name}: ${error.message}`.slice(0, 200) : String(error).slice(0, 200);
+    if (error instanceof Anthropic.AuthenticationError) return { status: "unconfigured", detail };
     // Request-level 429s get the same "wait it out" guidance as rejected searches.
-    if (error instanceof Anthropic.RateLimitError) return { status: "search_limited" };
+    if (error instanceof Anthropic.RateLimitError) return { status: "search_limited", detail };
     // Out-of-credit surfaces as a 400 whose message mentions the credit balance.
     if (error instanceof Anthropic.APIError && /credit balance/i.test(error.message)) {
-      return { status: "billing" };
+      return { status: "billing", detail };
     }
-    return { status: "error" };
+    return { status: "error", detail };
   }
 }
 
