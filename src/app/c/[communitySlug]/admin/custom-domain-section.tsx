@@ -20,7 +20,11 @@ function RecordRow({ label, name, value }: { label: string; name: string; value:
   );
 }
 
-export function CustomDomainSection({ community }: { community: Community }) {
+// vercelAutomated: whether the server has Vercel API credentials, i.e.
+// whether verifying also registers the domain with the host automatically —
+// decides which instructions the owner sees. Comes from the server page
+// because env vars aren't readable in a client component.
+export function CustomDomainSection({ community, vercelAutomated }: { community: Community; vercelAutomated: boolean }) {
   const [connectState, connectAction] = useActionState<CustomDomainState, FormData>(setCustomDomain, undefined);
   const [verifyState, verifyAction] = useActionState<CustomDomainState, FormData>(verifyCustomDomain, undefined);
   const [removeState, removeAction] = useActionState<CustomDomainState, FormData>(removeCustomDomain, undefined);
@@ -77,10 +81,11 @@ export function CustomDomainSection({ community }: { community: Community }) {
             <RecordRow label="2. A record — points the domain at the platform" name={domain} value="76.76.21.21" />
             <p className="text-xs text-muted-foreground">
               For a www subdomain use a CNAME to <span className="font-mono">cname.vercel-dns.com</span> instead of the
-              A record. The platform operator also needs to add {domain} to the hosting project (Vercel → Settings →
-              Domains) so it gets an SSL certificate.
+              A record.{" "}
+              {vercelAutomated
+                ? "Verifying also registers the domain with the hosting platform and issues its SSL certificate automatically."
+                : `The platform operator also needs to add ${domain} to the hosting project (Vercel → Settings → Domains) so it gets an SSL certificate.`}
             </p>
-            {verifyState?.error && <p className="text-sm text-danger">{verifyState.error}</p>}
             <div className="flex flex-wrap items-center gap-2">
               <form action={verifyAction}>
                 {hiddenFields}
@@ -107,9 +112,19 @@ export function CustomDomainSection({ community }: { community: Community }) {
               </a>
               <span className="text-muted-foreground">is verified and serving this community.</span>
             </p>
+            <p className="text-xs text-muted-foreground">
+              {vercelAutomated
+                ? "The SSL certificate can take a minute or two to be issued right after verification."
+                : `If the domain doesn't load yet, the platform operator may still need to add ${domain} to the hosting project (Vercel → Settings → Domains).`}
+            </p>
             <RemoveForm action={removeAction} state={removeState} hiddenFields={hiddenFields} />
           </div>
         )}
+
+        {/* Outside the branches: verification can succeed (switching to the
+            verified card above) while hosting registration fails — this
+            error has to stay visible through that switch. */}
+        {verifyState?.error && <p className="mt-3 text-sm text-danger">{verifyState.error}</p>}
       </CardContent>
     </Card>
   );

@@ -504,16 +504,25 @@ registrar:
 2. an A record pointing the domain at Vercel (`76.76.21.21`), or a
    CNAME to `cname.vercel-dns.com` for a `www` subdomain.
 
-**Platform operator flow.** Two one-time steps per domain, both outside
-this codebase:
+**Platform operator flow.** With `VERCEL_TOKEN` + `VERCEL_PROJECT_ID`
+set (see `.env.local.example`), there is nothing to do per domain:
+"Check verification" also registers the domain on the Vercel project via
+the Domains API (routing + SSL), and removing the domain deregisters it.
+Without those env vars, the one manual step per domain is adding it in
+Vercel → Settings → Domains.
 
-1. add the domain to the Vercel project (Settings → Domains) so Vercel
-   routes its traffic here and issues an SSL certificate.
-2. add `https://<domain>/**` to the Supabase Auth redirect allowlist
-   (Authentication → URL Configuration) so email confirmation links
-   requested from that domain work. `getSiteOrigin()` in
-   `src/app/auth/actions.ts` already builds links from the request's
-   `Origin` header, so no code change is needed.
+The Supabase Auth redirect allowlist never needs per-domain entries:
+confirmation emails always link to the platform's own origin
+(`NEXT_PUBLIC_SITE_URL`). When a signup happened on a custom domain, the
+link carries a `return_host` param and `/auth/confirm` forwards the
+still-unverified token to that domain — after validating it against the
+verified `custom_domain` column via the same security-definer lookup the
+proxy uses, so tokens can only ever be forwarded to a verified community
+domain on this app, never an arbitrary site. The custom domain's own
+copy of the confirm route then verifies the token, which is what puts
+the session cookie on the host the member actually uses (auth cookies
+are host-scoped). Members who sign in or sign up on a custom domain
+land on that community's feed (`/`) instead of `/dashboard`.
 
 **How routing works.** `src/proxy.ts` inspects the `Host` header on
 every request. Platform hosts (`NEXT_PUBLIC_SITE_URL`'s host,
