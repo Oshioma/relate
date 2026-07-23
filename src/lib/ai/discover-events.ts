@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // Sonnet + low effort keeps discovery interactive (well under a minute in
 // most cases) — Opus with default effort was taking several minutes per run.
 const MODEL = "claude-sonnet-5";
-const MAX_WEB_SEARCHES = 4;
+const MAX_WEB_SEARCHES = 3;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
 const MAX_CONTINUATIONS = 2;
@@ -12,7 +12,11 @@ const MAX_RESULTS = 8;
 // Fluid Compute), which reaches the browser as a dead connection with no
 // error message. Keep our own budget comfortably below that so every run
 // ends with an explicit status instead.
-const REQUEST_TIMEOUT_MS = 60_000;
+// One API request runs the web searches sequentially inside it, so 60s was
+// too tight — real runs timed out before finishing. 120s per request with no
+// retry keeps the worst case (~2 requests + parsing) under the 300s platform
+// limit while giving a healthy run plenty of room.
+const REQUEST_TIMEOUT_MS = 120_000;
 const RUN_BUDGET_MS = 150_000;
 
 let client: Anthropic | null = null;
@@ -20,8 +24,10 @@ let client: Anthropic | null = null;
 function getClient(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   // The SDK defaults (10-minute timeout, 2 silent retries with backoff) can
-  // hold a stalled or rate-limited call far past the hosting limit.
-  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 });
+  // hold a stalled or rate-limited call far past the hosting limit; retries
+  // are off because retrying a timed-out 2-minute request doubles the bill
+  // for a run that's already doomed.
+  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS, maxRetries: 0 });
   return client;
 }
 
