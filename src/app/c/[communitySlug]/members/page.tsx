@@ -13,6 +13,7 @@ import {
   getTopContributors,
   getBusinesses,
 } from "@/lib/data/member-directory";
+import { Badge } from "@/components/ui/badge";
 import { DiscoverySection } from "./discovery-section";
 import { MemberDirectoryList } from "./member-directory-list";
 import { NewInviteForm } from "./new-invite-form";
@@ -57,8 +58,11 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
       </h1>
 
       {isAdmin && (
-        <>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
+        <section className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
+            <Badge tone="accent">Admin only</Badge>
+          </div>
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
             <div>
               <p className="mb-2 text-xs font-medium text-muted-foreground">Shareable link</p>
@@ -69,10 +73,16 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
               <NewEmailInviteForm communityId={community.id} communitySlug={community.slug} />
             </div>
           </div>
-          <div className="mb-8">
-            <InvitesList invites={invites} communitySlug={community.slug} />
+          <InvitesList invites={invites} communitySlug={community.slug} />
+
+          <div className="mt-8 flex items-center gap-3">
+            <div className="h-0.5 flex-1 rounded bg-border" />
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Members see everything below this line
+            </span>
+            <div className="h-0.5 flex-1 rounded bg-border" />
           </div>
-        </>
+        </section>
       )}
 
       <DiscoverySection title="Recommended for you" members={recommended} communitySlug={community.slug} />
