@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
+import { RESERVED_SUBDOMAIN_LABELS } from "@/lib/custom-domain";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
 
@@ -64,6 +65,11 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   const slug = slugify(payload.slug || name);
   if (!slug || slug.length < 2) {
     return { error: "That URL can't be used — try adding some letters or numbers." };
+  }
+  // The slug doubles as the community's <slug>.<platform-domain> subdomain,
+  // so labels the platform needs for itself can't be community URLs.
+  if (RESERVED_SUBDOMAIN_LABELS.has(slug)) {
+    return { error: "That URL is reserved — try a different one." };
   }
 
   const privacy = PRIVACY_LEVELS.includes(payload.privacy) ? payload.privacy : "public";

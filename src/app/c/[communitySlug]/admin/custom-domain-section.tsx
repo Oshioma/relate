@@ -6,7 +6,7 @@ import { setCustomDomain, verifyCustomDomain, removeCustomDomain, type CustomDom
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { verificationRecordName } from "@/lib/custom-domain";
+import { verificationRecordName, communitySubdomainUrl } from "@/lib/custom-domain";
 import type { Community } from "@/types/database";
 
 function RecordRow({ label, name, value }: { label: string; name: string; value: string }) {
@@ -31,6 +31,10 @@ export function CustomDomainSection({ community, vercelAutomated }: { community:
 
   const domain = community.custom_domain;
   const verified = Boolean(domain && community.custom_domain_verified_at);
+  // NEXT_PUBLIC_SITE_URL is inlined into the client bundle, so this works
+  // in a client component; null while the platform runs on localhost or a
+  // bare *.vercel.app host, where wildcard subdomains don't resolve.
+  const subdomainUrl = communitySubdomainUrl(community.slug);
 
   const hiddenFields = (
     <>
@@ -50,6 +54,19 @@ export function CustomDomainSection({ community, vercelAutomated }: { community:
               Serve {community.name} on a domain you own, like <span className="font-mono">mzunguzanzibar.com</span>,
               instead of /c/{community.slug}.
             </p>
+            {subdomainUrl && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Already included, no setup needed:{" "}
+                <a
+                  href={subdomainUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono underline decoration-dotted underline-offset-2"
+                >
+                  {subdomainUrl.replace(/^https?:\/\//, "")}
+                </a>
+              </p>
+            )}
           </div>
         </div>
 

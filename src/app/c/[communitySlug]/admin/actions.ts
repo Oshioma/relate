@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
-import { normalizeCustomDomain, isPlatformHost, verificationRecordName } from "@/lib/custom-domain";
+import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
 
@@ -309,8 +309,8 @@ export async function setCustomDomain(_prevState: CustomDomainState, formData: F
   if (!domain) {
     return { error: "Enter a bare domain like mzunguzanzibar.com — no https:// or slashes." };
   }
-  if (isPlatformHost(domain)) {
-    return { error: "That domain belongs to the platform itself and can't be claimed." };
+  if (isPlatformHost(domain) || isUnderPlatformApex(domain)) {
+    return { error: "That domain belongs to the platform itself and can't be claimed — every community already gets its own platform subdomain automatically." };
   }
 
   const owned = await requireOwnedCommunity(communityId);

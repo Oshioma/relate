@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
-import { isPlatformHost } from "@/lib/custom-domain";
+import { isPlatformHost, platformSubdomainSlug } from "@/lib/custom-domain";
 import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
 
 // Routes that keep their platform meaning even when served on a community's
@@ -24,36 +24,42 @@ function isPlatformPath(pathname: string) {
 }
 
 // Next.js 16 renamed `middleware` to `proxy`. This runs on every request to
-// (1) serve communities on their verified custom domains by rewriting
-// host-based requests onto the /c/[communitySlug] tree, and (2) refresh the
-// Supabase auth cookie and perform optimistic redirects for logged-out users
-// hitting protected routes. Real authorization for community-scoped data
-// always happens again via Postgres RLS.
+// (1) serve communities on their hosts — <slug>.<platform-apex> subdomains
+// (free, automatic, slug read straight from the hostname) and verified
+// custom domains (resolved via the database) — by rewriting host-based
+// requests onto the /c/[communitySlug] tree, and (2) refresh the Supabase
+// auth cookie and perform optimistic redirects for logged-out users hitting
+// protected routes. Real authorization for community-scoped data always
+// happens again via Postgres RLS.
 export async function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
 
-  if (host && !isPlatformHost(host)) {
-    const slug = await resolveCommunitySlugForHost(host);
-    if (slug) {
-      const { pathname } = request.nextUrl;
-      const base = `/c/${slug}`;
+  // Subdomains are checked before isPlatformHost: <slug>.localhost counts as
+  // a platform host (for auth purposes) but still routes as a tenant in dev.
+  let slug = platformSubdomainSlug(host);
+  if (!slug && host && !isPlatformHost(host)) {
+    slug = await resolveCommunitySlugForHost(host);
+  }
 
-      // Internal links are still written as /c/<slug>/… — canonicalize them
-      // to the bare path so the custom domain has one URL per page.
-      if (pathname === base || pathname.startsWith(`${base}/`)) {
-        const url = request.nextUrl.clone();
-        url.pathname = pathname.slice(base.length) || "/";
-        return NextResponse.redirect(url, 308);
-      }
+  if (slug) {
+    const { pathname } = request.nextUrl;
+    const base = `/c/${slug}`;
 
-      // Everything that isn't a platform page (or another community's /c/
-      // path) is this community's content: / becomes /c/<slug>, /events
-      // becomes /c/<slug>/events, and so on. The browser URL stays clean.
-      if (!isPlatformPath(pathname) && !pathname.startsWith("/c/")) {
-        const rewriteTo = request.nextUrl.clone();
-        rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
-        return updateSession(request, rewriteTo);
-      }
+    // Internal links are still written as /c/<slug>/… — canonicalize them
+    // to the bare path so the community host has one URL per page.
+    if (pathname === base || pathname.startsWith(`${base}/`)) {
+      const url = request.nextUrl.clone();
+      url.pathname = pathname.slice(base.length) || "/";
+      return NextResponse.redirect(url, 308);
+    }
+
+    // Everything that isn't a platform page (or another community's /c/
+    // path) is this community's content: / becomes /c/<slug>, /events
+    // becomes /c/<slug>/events, and so on. The browser URL stays clean.
+    if (!isPlatformPath(pathname) && !pathname.startsWith("/c/")) {
+      const rewriteTo = request.nextUrl.clone();
+      rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
+      return updateSession(request, rewriteTo);
     }
   }
 

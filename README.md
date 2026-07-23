@@ -486,6 +486,24 @@ This is the foundation for eventually letting other people create and
 sell their own communities on the same platform, without any schema
 changes.
 
+## Community subdomains
+
+Every community is automatically reachable at
+`<slug>.<platform-domain>` — e.g. `mzunguzanzibar.relate.click` — with
+the same clean URLs as custom domains (`/` is the feed,
+`/spaces/explore-map` is the map). The slug is read straight from the
+hostname in `src/proxy.ts` (`platformSubdomainSlug`), so there is no
+per-community setup, no database lookup, and no verification. Reserved
+labels (`www`, `api`, `admin`, … — see `RESERVED_SUBDOMAIN_LABELS` in
+`src/lib/custom-domain.ts`) never resolve to a community, and community
+creation refuses them as slugs.
+
+One-time ops setup: point the platform domain's nameservers at Vercel
+DNS (`ns1.vercel-dns.com` / `ns2.vercel-dns.com` — wildcard domains on
+Vercel require this), then add `*.<platform-domain>` in Vercel →
+Settings → Domains. Every subdomain then gets routing and SSL
+automatically. In dev, `<slug>.localhost:3000` works out of the box.
+
 ## Custom domains
 
 Run `supabase/custom-domains.sql` too, and make sure
