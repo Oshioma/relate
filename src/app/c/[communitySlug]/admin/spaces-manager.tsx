@@ -13,7 +13,7 @@ import type { Space, SpaceJournalField, FeatureKey } from "@/types/database";
 // key; `sort` is only used to pre-sort the incoming list.
 export type NavManagerItem =
   | { kind: "space"; key: string; sort: number; space: Space }
-  | { kind: "builtin"; key: string; sort: number; itemKey: FeatureKey; label: string };
+  | { kind: "builtin"; key: string; sort: number; itemKey: FeatureKey; label: string; showInNav: boolean };
 
 export function SpacesManager({
   items,
@@ -70,7 +70,16 @@ export function SpacesManager({
             dragHandlers={dragHandlers}
           />
         ) : (
-          <BuiltinNavRow key={item.key} label={item.label} isDragging={dragIndex === i} dragHandlers={dragHandlers} />
+          <BuiltinNavRow
+            key={item.key}
+            itemKey={item.itemKey}
+            label={item.label}
+            showInNav={item.showInNav}
+            communityId={communityId}
+            communitySlug={communitySlug}
+            isDragging={dragIndex === i}
+            dragHandlers={dragHandlers}
+          />
         );
       })}
     </div>

@@ -253,6 +253,7 @@ export type CommunityNavItemOrder = {
   community_id: string;
   item_key: FeatureKey;
   sort_order: number;
+  show_in_nav: boolean;
   updated_at: string;
 };
 
