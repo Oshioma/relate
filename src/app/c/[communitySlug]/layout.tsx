@@ -170,6 +170,11 @@ export default async function CommunityLayout({
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
+            {profile?.is_super_admin && (
+              <Link href="/admin" className="text-muted-foreground hover:text-foreground" title="Platform admin">
+                <Shield className="h-5 w-5" />
+              </Link>
+            )}
             <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
             <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
             <Link href="/settings" className="md:hidden">
