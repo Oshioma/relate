@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -135,11 +135,6 @@ export default async function CommunityLayout({
           <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
             Members
           </NavLink>
-          {isStaff && (
-            <NavLink href={`${base}/admin`} icon={<Shield className="h-4 w-4" />}>
-              Admin
-            </NavLink>
-          )}
           <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
             <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
             <div className="min-w-0">
@@ -170,9 +165,24 @@ export default async function CommunityLayout({
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
-            {profile?.is_super_admin && (
-              <Link href="/admin" className="text-muted-foreground hover:text-foreground" title="Platform admin">
+            {isStaff && (
+              <Link
+                href={`${base}/admin`}
+                title="Community admin"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
                 <Shield className="h-5 w-5" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
+            {profile?.is_super_admin && (
+              <Link
+                href="/admin"
+                title="Super admin"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <BadgeCheck className="h-5 w-5" />
+                <span className="hidden sm:inline">Super Admin</span>
               </Link>
             )}
             <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
