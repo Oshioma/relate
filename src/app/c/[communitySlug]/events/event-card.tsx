@@ -6,7 +6,7 @@ import { CalendarDays, MapPin, Link as LinkIcon, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Linkify } from "@/components/ui/linkify";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { EventRsvpButton } from "./event-rsvp-button";
 import { DeleteEventButton } from "./delete-event-button";
 import { EditEventForm } from "./edit-event-form";
@@ -22,6 +22,7 @@ export function EventCard({
   communityLocationName = null,
   canRsvp,
   canManage,
+  featured = false,
 }: {
   event: Event;
   rsvps: EventRsvpWithAttendee[];
@@ -31,6 +32,7 @@ export function EventCard({
   communityLocationName?: string | null;
   canRsvp: boolean;
   canManage: boolean;
+  featured?: boolean;
 }) {
   const isGoing = rsvps.some((r) => r.user_id === currentUserId);
   const visibleAttendees = rsvps.slice(0, 5);
@@ -59,7 +61,7 @@ export function EventCard({
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative h-40 w-full bg-muted">
+      <div className={cn("relative w-full bg-muted", featured ? "h-56 sm:h-72" : "h-40")}>
         {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -69,14 +71,18 @@ export function EventCard({
             onError={() => setImageBroken(true)}
           />
         ) : (
-          <div className="flex h-full items-center justify-center gap-5 bg-gradient-to-br from-accent-soft to-muted text-foreground">
+          <div className={cn("flex h-full items-center justify-center bg-gradient-to-br from-accent-soft to-muted text-foreground", featured ? "gap-5" : "gap-3")}>
             {communityLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={communityLogoUrl} alt="" className="h-24 w-24 rounded-full object-cover shadow-sm" />
+              <img
+                src={communityLogoUrl}
+                alt=""
+                className={cn("rounded-full object-cover shadow-sm", featured ? "h-24 w-24" : "h-12 w-12")}
+              />
             ) : (
-              <CalendarDays className="h-14 w-14 text-accent/50" />
+              <CalendarDays className={cn("text-accent/50", featured ? "h-14 w-14" : "h-8 w-8")} />
             )}
-            <span className="text-4xl font-bold tracking-tight">Event</span>
+            {featured && <span className="text-4xl font-bold tracking-tight">Event</span>}
           </div>
         )}
         {canManage && (
@@ -98,11 +104,11 @@ export function EventCard({
           </div>
         )}
       </div>
-      <CardContent className="pt-5">
+      <CardContent className={featured ? "p-5 sm:p-6" : "pt-5"}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">{event.title}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.start_time)}</p>
+            <h3 className={cn("font-semibold text-foreground", featured ? "text-xl" : "text-sm")}>{event.title}</h3>
+            <p className={cn("mt-1 text-muted-foreground", featured ? "text-sm" : "text-xs")}>{formatDateTime(event.start_time)}</p>
           </div>
           {canRsvp && (
             <div className="shrink-0">
