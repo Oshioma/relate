@@ -1,7 +1,31 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Business, FeaturedBusinessCategory, BusinessCustomCategory } from "@/types/database";
+import type { Database, Business, FeaturedBusinessCategory, BusinessCustomCategory, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
+
+export type BusinessWithContext = Business & {
+  creator: Profile;
+  space: Pick<Space, "id" | "name" | "slug">;
+};
+
+// Newest listings across the whole community, with who added them and which
+// directory space they live in — the feed interleaves these with posts.
+// RLS trims the result to spaces the viewer can see.
+export async function getCommunityRecentBusinesses(
+  supabase: Client,
+  communityId: string,
+  limit = 6
+): Promise<BusinessWithContext[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("*, creator:created_by (*), space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessWithContext[];
+}
 
 export async function getSpaceBusinesses(supabase: Client, spaceId: string): Promise<Business[]> {
   const { data, error } = await supabase
