@@ -3,12 +3,31 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeUrl } from "@/lib/utils";
+import { geocodeLocation } from "@/lib/geocode";
 
 export type EventFormState = { error: string } | undefined;
 
 function parseImageUrl(raw: FormDataEntryValue | null): string | null {
   const value = String(raw ?? "").trim();
   return /^https?:\/\//.test(value) ? value : null;
+}
+
+// Turns the event location text (e.g. "Kendwa") into map coordinates so the
+// picker can recenter/zoom there, making it easier to drop an exact pin —
+// it does not place the pin itself. Tries the text biased with the
+// community's location first (disambiguates a small place name like
+// "Kendwa" from anywhere else in the world called that), then falls back to
+// the bare text.
+export async function geocodeEventLocation(
+  query: string,
+  communityLocationName: string | null
+): Promise<{ lat: number; lng: number } | null> {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  const biased = communityLocationName ? await geocodeLocation(`${trimmed}, ${communityLocationName}`) : null;
+  const hit = biased ?? (await geocodeLocation(trimmed));
+  return hit ? { lat: hit.lat, lng: hit.lng } : null;
 }
 
 export async function createEvent(_prevState: EventFormState, formData: FormData): Promise<EventFormState> {
