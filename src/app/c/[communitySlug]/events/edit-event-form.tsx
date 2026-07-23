@@ -11,11 +11,13 @@ import type { Event } from "@/types/database";
 export function EditEventForm({
   event,
   communitySlug,
+  communityLocationName = null,
   onDone,
   onCancel,
 }: {
   event: Event;
   communitySlug: string;
+  communityLocationName?: string | null;
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -46,7 +48,13 @@ export function EditEventForm({
         </button>
       </div>
 
-      <EventFormFields idPrefix={`edit_event_${event.id}`} event={event} pin={pin} onPinChange={setPin} />
+      <EventFormFields
+        idPrefix={`edit_event_${event.id}`}
+        event={event}
+        pin={pin}
+        onPinChange={setPin}
+        communityLocationName={communityLocationName}
+      />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
