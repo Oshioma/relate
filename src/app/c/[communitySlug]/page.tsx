@@ -75,7 +75,8 @@ export default async function CommunityFeedPage({
     getCommunityRecentRecommendations(supabase, community.id, 6),
     getCommunityRecentClubs(supabase, community.id, 6),
     getCommunityRecentVolunteerProjects(supabase, community.id, 6),
-    getCommunityRecentMembers(supabase, community.id, 6),
+    // Member profiles stay login-gated, so guests don't get "new member" cards.
+    user ? getCommunityRecentMembers(supabase, community.id, 6) : Promise.resolve([]),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
