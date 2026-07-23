@@ -147,7 +147,7 @@ This path needs a secret the other invite features don't:
    bypasses Row Level Security entirely. It's only ever read server-side,
    from `src/lib/supabase/admin.ts`, and only after the caller has
    already been authorized by a normal RLS-protected insert (see
-   `sendEmailInvite` in `src/app/c/[communitySlug]/admin/invites-actions.ts`).
+   `sendEmailInvite` in `src/app/c/[communitySlug]/members/invites-actions.ts`).
 3. The email itself uses Supabase's built-in "Invite user" template —
    customize it under **Authentication → Email Templates** if you want
    different branding/copy. On Supabase's default shared email service
@@ -158,6 +158,43 @@ If the target email already has an account, `inviteUserByEmail` fails
 (Supabase won't re-invite an existing user) — the invite link is still
 created either way, so you can copy it from the list and share it
 directly as a fallback.
+
+### Sending real email (SMTP)
+
+Every email Relate sends — signup confirmations, password resets, and
+email invites — goes out through **Supabase Auth**, which relays via
+whatever SMTP provider you configure under **Authentication → Emails →
+SMTP Settings**. Supabase's built-in shared service is dev-only and
+rate-limited to a few messages an hour, so production needs your own
+provider. These settings are for [Resend](https://resend.com); other
+providers follow the same shape.
+
+| Field        | Value                                              |
+| ------------ | -------------------------------------------------- |
+| Host         | `smtp.resend.com`                                  |
+| Port         | `465` (SSL) — or `587` if `465` is blocked         |
+| Username     | the literal word `resend` (**not** your email)     |
+| Password     | a Resend **API key** (`re_…`), created under Resend → API Keys |
+| Sender email | an address on a domain you've **verified** in Resend (e.g. `noreply@yourdomain.com`) |
+
+Two gotchas cause almost every failure, and both surface as an opaque
+`500: Error sending confirmation email` in **Supabase → Logs → Auth
+Logs** (the app just shows a generic "please try again" message, since
+Supabase returns no useful detail to the client):
+
+- **`535 "Authentication credentials invalid"`** — the SMTP username or
+  password is wrong. The username must be exactly `resend`, and the
+  password must be a current, correctly-pasted API key (no stray spaces,
+  not a revoked key).
+- **Domain not verified** — Resend only sends from domains you've added
+  and verified (SPF/DKIM DNS records) under Resend → Domains. The
+  **Sender email** in Supabase must be on that verified domain;
+  verifying only a single address, or leaving the default sender, is not
+  enough to email arbitrary recipients.
+
+When email is misconfigured the account/invite is often still created —
+it's only the email that fails — so an admin can copy an invite link
+from the members list and share it directly as a stopgap.
 
 ## Notifications
 
