@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
-import { getCommunityInvites } from "@/lib/data/invites";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
@@ -14,9 +13,6 @@ import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
-import { NewInviteForm } from "./new-invite-form";
-import { NewEmailInviteForm } from "./new-email-invite-form";
-import { InvitesList } from "./invites-list";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
@@ -38,10 +34,9 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members, invites, profileFields, navLinks] = await Promise.all([
+  const [spaces, members, profileFields, navLinks] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
-    getCommunityInvites(supabase, community.id),
     getCommunityProfileFields(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
   ]);
@@ -73,21 +68,6 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       <div className="mb-8 space-y-4">
         <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
-      </div>
-
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
-      <div className="mb-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Shareable link</p>
-          <NewInviteForm communityId={community.id} communitySlug={community.slug} />
-        </div>
-        <div>
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Invite by email</p>
-          <NewEmailInviteForm communityId={community.id} communitySlug={community.slug} />
-        </div>
-      </div>
-      <div className="mb-8">
-        <InvitesList invites={invites} communitySlug={community.slug} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
