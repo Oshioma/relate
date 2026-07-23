@@ -2,13 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { discoverAndAddEvents, backfillEventImages } from "./discover-actions";
+import { discoverAndAddEvents, backfillEventImages, type AddedEvent } from "./discover-actions";
 
 export function DiscoverEventsPanel({ communitySlug, locationName }: { communitySlug: string; locationName: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [added, setAdded] = useState<AddedEvent[] | null>(null);
   const [isSearching, startSearch] = useTransition();
   const [isBackfilling, startBackfill] = useTransition();
   const router = useRouter();
@@ -16,6 +17,7 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
   function handleDiscover() {
     setError(null);
     setNotice(null);
+    setAdded(null);
     startSearch(async () => {
       try {
         const result = await discoverAndAddEvents(communitySlug);
@@ -26,9 +28,8 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
         if (result.imported === 0) {
           setNotice(`No new events found for ${locationName} right now.`);
         } else {
-          setNotice(
-            `Added ${result.imported} event${result.imported === 1 ? "" : "s"} to the calendar: ${result.titles.join(", ")}`,
-          );
+          setNotice(`Added ${result.imported} event${result.imported === 1 ? "" : "s"} to the calendar:`);
+          setAdded(result.added);
           router.refresh();
         }
       } catch {
@@ -44,6 +45,7 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
   function handleBackfill() {
     setError(null);
     setNotice(null);
+    setAdded(null);
     startBackfill(async () => {
       try {
         const result = await backfillEventImages(communitySlug);
@@ -95,6 +97,26 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       {notice && <p className="mt-3 text-sm text-foreground">{notice}</p>}
+      {added && added.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {added.map((event, index) => (
+            <li key={`${event.title}-${index}`} className="text-sm">
+              {event.source_url ? (
+                <a
+                  href={event.source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-accent hover:underline"
+                >
+                  {event.title} <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <span className="text-foreground">{event.title}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
