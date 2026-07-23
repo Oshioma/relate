@@ -57,6 +57,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
             communityLogoUrl={community.logo_url}
             canRsvp={canRsvp}
             isStaff={isStaff}
+            featureFirst
           />
         </div>
       )}
