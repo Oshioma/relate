@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { createEvent } from "./actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { EventFormFields } from "./event-form-fields";
-import type { PickedLocation } from "@/components/map/location-picker";
 
 export function NewEventForm({
   communityId,
@@ -16,7 +15,6 @@ export function NewEventForm({
   communityLocationName?: string | null;
 }) {
   const [error, setError] = useState<string | null>(null);
-  const [pin, setPin] = useState<PickedLocation | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -26,7 +24,6 @@ export function NewEventForm({
       setError(result.error);
     } else {
       formRef.current?.reset();
-      setPin(null);
     }
   }
 
@@ -34,8 +31,9 @@ export function NewEventForm({
     <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
+      <input type="hidden" name="community_location_name" value={communityLocationName ?? ""} />
 
-      <EventFormFields idPrefix="event" pin={pin} onPinChange={setPin} communityLocationName={communityLocationName} />
+      <EventFormFields idPrefix="event" />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

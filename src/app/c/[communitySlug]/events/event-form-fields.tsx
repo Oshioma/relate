@@ -1,18 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { geocodeEventLocation } from "./actions";
-import type { FlyToTarget, PickedLocation } from "@/components/map/location-picker";
 import type { Event } from "@/types/database";
-
-// Leaflet touches `window` at import time, so the picker can only load in the
-// browser — same pattern as explore-map-loader.tsx.
-const LocationPicker = dynamic(() => import("@/components/map/location-picker"), {
-  ssr: false,
-  loading: () => <div className="flex h-[280px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
-});
 
 // <input type="datetime-local"> needs "YYYY-MM-DDTHH:mm" in local time, not
 // an ISO string with a timezone offset.
@@ -23,44 +12,11 @@ function toDatetimeLocal(iso: string | null | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// The shared field set for creating and editing an event. The parent form
-// owns the pin state (so it can reset or prefill it) while uncontrolled text
-// fields take their defaults from `event` when editing.
-export function EventFormFields({
-  idPrefix,
-  event,
-  pin,
-  onPinChange,
-  communityLocationName = null,
-}: {
-  idPrefix: string;
-  event?: Event;
-  pin: PickedLocation | null;
-  onPinChange: (pin: PickedLocation | null) => void;
-  // Biases geocoding a typed location (e.g. "Kendwa" → "Kendwa, Zanzibar")
-  // so the map recenters to the right place rather than a same-named one
-  // elsewhere in the world.
-  communityLocationName?: string | null;
-}) {
-  const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null);
-  const [locating, setLocating] = useState(false);
-  const lastQuery = useRef<string>("");
-
-  // Recenters the map toward what was typed, so dropping a precise pin
-  // doesn't require hunting across the whole island first. Only kicks in
-  // before a pin exists — once someone's placed one, typing in the location
-  // field shouldn't yank the map out from under them.
-  async function handleLocationBlur(e: React.FocusEvent<HTMLInputElement>) {
-    const query = e.target.value.trim();
-    if (!query || query === lastQuery.current || pin) return;
-    lastQuery.current = query;
-
-    setLocating(true);
-    const result = await geocodeEventLocation(query, communityLocationName);
-    setLocating(false);
-    if (result) setFlyTo({ lat: result.lat, lng: result.lng, zoom: 14 });
-  }
-
+// The shared field set for creating and editing an event. Uncontrolled text
+// fields take their defaults from `event` when editing. Location is geocoded
+// server-side on submit (see actions.ts) — that's what puts the event on the
+// Explore Map, no separate pin-drop step.
+export function EventFormFields({ idPrefix, event }: { idPrefix: string; event?: Event }) {
   return (
     <>
       <div>
@@ -92,15 +48,12 @@ export function EventFormFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor={`${idPrefix}_location`}>
-            Location (optional){locating && <span className="ml-1.5 font-normal text-muted-foreground">Locating…</span>}
-          </Label>
+          <Label htmlFor={`${idPrefix}_location`}>Location</Label>
           <Input
             id={`${idPrefix}_location`}
             name="location"
             placeholder="123 Main St, or a place like Kendwa"
             defaultValue={event?.location ?? ""}
-            onBlur={handleLocationBlur}
           />
         </div>
         <div>
@@ -118,19 +71,6 @@ export function EventFormFields({
           placeholder="https://example.com/photo.jpg"
           defaultValue={event?.image_url ?? ""}
         />
-      </div>
-
-      <div>
-        <Label>Show on the Explore Map (optional)</Label>
-        <LocationPicker
-          value={pin}
-          onChange={onPinChange}
-          emoji="📅"
-          helpText="Click the map to drop a pin — this puts the event on the Explore Map."
-          flyTo={flyTo}
-        />
-        <input type="hidden" name="lat" value={pin?.lat ?? ""} />
-        <input type="hidden" name="lng" value={pin?.lng ?? ""} />
       </div>
     </>
   );
