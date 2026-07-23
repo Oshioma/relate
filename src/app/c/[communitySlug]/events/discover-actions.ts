@@ -58,6 +58,54 @@ async function attachImages(events: DiscoveredEvent[]): Promise<DiscoveredEventW
   );
 }
 
+// buildDiscoveredEventRows appends "Source: <url>" to the description, so
+// events imported before image_url existed can still be traced back to a
+// page worth scraping.
+const SOURCE_LINE = /Source:\s*(https?:\/\/\S+)/i;
+
+function candidateImageUrl(event: { description: string | null; online_url: string | null }): string | null {
+  const fromDescription = event.description?.match(SOURCE_LINE)?.[1];
+  return fromDescription ?? event.online_url ?? null;
+}
+
+// Finds this community's events that have no image yet but do have a
+// traceable source or online link, and best-effort scrapes one for each.
+// For events discovered before this feature existed, or added without a
+// picture. Never fails the whole run over one bad page — a scrape that
+// finds nothing just leaves that event as-is.
+export async function backfillEventImages(
+  communitySlug: string,
+): Promise<{ updated: number; checked: number } | { error: string }> {
+  const ctx = await requireStaff(communitySlug);
+  if ("error" in ctx) return { error: ctx.error };
+  const { supabase, community } = ctx;
+
+  const { data: events, error } = await supabase
+    .from("events")
+    .select("id, description, online_url")
+    .eq("community_id", community.id)
+    .is("image_url", null);
+  if (error) return { error: error.message };
+
+  const candidates = (events ?? [])
+    .map((event) => ({ id: event.id, url: candidateImageUrl(event) }))
+    .filter((e): e is { id: string; url: string } => e.url !== null);
+  if (candidates.length === 0) return { updated: 0, checked: events?.length ?? 0 };
+
+  let updated = 0;
+  await Promise.all(
+    candidates.map(async ({ id, url }) => {
+      const images = await scrapeWebsiteImages(url);
+      if (images.length === 0) return;
+      const { error: updateError } = await supabase.from("events").update({ image_url: images[0] }).eq("id", id);
+      if (!updateError) updated++;
+    }),
+  );
+
+  if (updated > 0) revalidatePath(`/c/${communitySlug}/events`);
+  return { updated, checked: events?.length ?? 0 };
+}
+
 // Searches the web for upcoming events near the community's location and
 // adds every new one straight to the calendar — no staff review step. RLS
 // (events_insert_staff) enforces the staff requirement on the insert too.
