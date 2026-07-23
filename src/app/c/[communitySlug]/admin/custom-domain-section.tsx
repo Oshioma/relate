@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
-import { Globe, CheckCircle2 } from "lucide-react";
+import { useActionState, useState } from "react";
+import { Globe, CheckCircle2, Copy, Check } from "lucide-react";
 import { setCustomDomain, verifyCustomDomain, removeCustomDomain, type CustomDomainState } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -9,9 +9,42 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { verificationRecordName, communitySubdomainUrl, VERIFICATION_RECORD_PREFIX } from "@/lib/custom-domain";
 import type { Community } from "@/types/database";
 
+// Click-to-copy for a single registrar field. The whole value is the button
+// (a fat, obvious target) and the icon flips to a check for a moment so the
+// owner knows the copy worked before switching tabs.
+function CopyableValue({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function copy() {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Click to copy"
+      className="group inline-flex max-w-full items-baseline gap-1.5 text-left"
+    >
+      <span className="break-all font-mono text-foreground underline decoration-dotted decoration-border underline-offset-2 group-hover:text-accent">
+        {value}
+      </span>
+      {copied ? (
+        <Check className="h-3 w-3 shrink-0 self-center text-accent" />
+      ) : (
+        <Copy className="h-3 w-3 shrink-0 self-center text-muted-foreground group-hover:text-accent" />
+      )}
+    </button>
+  );
+}
+
 // Laid out as Type / Name / Value because that's exactly the three boxes a
 // registrar's "add record" form shows — the owner copies field by field
-// instead of decoding an arrow diagram.
+// instead of decoding an arrow diagram. Name and Value are click-to-copy;
+// Type is a dropdown at every registrar, so there's nothing to paste.
 function RecordRow({ title, why, type, name, value }: { title: string; why: string; type: string; name: string; value: string }) {
   return (
     <div className="rounded-md bg-muted px-3 py-2.5 text-xs">
@@ -25,11 +58,11 @@ function RecordRow({ title, why, type, name, value }: { title: string; why: stri
         </p>
         <p>
           <span className="text-muted-foreground">Name (or Host): </span>
-          <span className="break-all font-mono text-foreground">{name}</span>
+          <CopyableValue value={name} />
         </p>
-        <p className="break-all">
+        <p>
           <span className="text-muted-foreground">Value: </span>
-          <span className="break-all font-mono text-foreground">{value}</span>
+          <CopyableValue value={value} />
         </p>
       </div>
     </div>

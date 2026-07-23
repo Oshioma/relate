@@ -43,10 +43,24 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: error.message };
+    return { error: friendlyLoginError(error.message) };
   }
 
   redirect(next);
+}
+
+// Supabase's auth errors are accurate but cryptic to someone who just
+// followed an invite link ("Invalid login credentials"). Translate the two
+// everyday ones; anything unusual passes through untouched.
+function friendlyLoginError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("invalid login credentials")) {
+    return "That email and password don't match an account. New here? Use \"Create account\" instead — or double-check your password.";
+  }
+  if (lower.includes("email not confirmed")) {
+    return "Almost there — we sent you a confirmation email when you signed up. Click the link in it, then sign in again.";
+  }
+  return message;
 }
 
 export async function signup(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -87,7 +101,11 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   });
 
   if (error) {
-    return { error: error.message };
+    return {
+      error: error.message.toLowerCase().includes("already registered")
+        ? "You already have an account with this email — go back and choose \"Sign in\" instead."
+        : error.message,
+    };
   }
 
   // If email confirmation is turned off in the Supabase project, signUp

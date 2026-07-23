@@ -1033,7 +1033,14 @@ export type Database = {
     Functions: {
       get_invite_preview: {
         Args: { p_code: string };
-        Returns: { community_name: string | null; community_slug: string | null; valid: boolean; reason: string | null }[];
+        Returns: {
+          community_name: string | null;
+          community_slug: string | null;
+          community_logo_url: string | null;
+          community_cover_image_url: string | null;
+          valid: boolean;
+          reason: string | null;
+        }[];
       };
       redeem_invite: {
         Args: { p_code: string };
