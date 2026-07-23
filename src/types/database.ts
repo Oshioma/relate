@@ -226,8 +226,19 @@ export type FeatureDefault = {
   updated_at: string;
 };
 
-// Per-community override of a feature_defaults value.
+// Per-community override of a feature_defaults value. Set by the super
+// admin — the "availability" layer deciding which features a community may
+// use.
 export type CommunityFeature = {
+  community_id: string;
+  feature_key: FeatureKey;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// A community owner's own on/off preference for a feature, within what the
+// super admin has made available. A missing row means "on".
+export type CommunityFeaturePref = {
   community_id: string;
   feature_key: FeatureKey;
   enabled: boolean;
@@ -803,6 +814,11 @@ export type Database = {
         Row: CommunityFeature;
         Insert: Partial<CommunityFeature> & { community_id: string; feature_key: FeatureKey };
         Update: Partial<CommunityFeature>;
+      } & NoRel;
+      community_feature_prefs: {
+        Row: CommunityFeaturePref;
+        Insert: Partial<CommunityFeaturePref> & { community_id: string; feature_key: FeatureKey };
+        Update: Partial<CommunityFeaturePref>;
       } & NoRel;
       notifications: {
         Row: Notification;

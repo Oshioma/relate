@@ -8,7 +8,9 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityFeatureControls } from "@/lib/data/features";
 import { Card, CardContent } from "@/components/ui/card";
+import { CommunityFeaturesSection } from "./community-features-section";
 import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
@@ -35,11 +37,14 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     redirect(`/c/${community.slug}`);
   }
 
-  const [spaces, members, profileFields, navLinks] = await Promise.all([
+  const isOwner = membership?.role === "owner";
+
+  const [spaces, members, profileFields, navLinks, featureControls] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityMembers(supabase, community.id),
     getCommunityProfileFields(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
+    isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
   ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
@@ -128,7 +133,19 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
         </Link>
       </div>
 
-      {membership?.role === "owner" && (
+      {isOwner && featureControls.length > 0 && (
+        <>
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Features</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Turn optional sections of {community.name} on or off. The platform admin decides which are available to you.
+          </p>
+          <div className="mb-8">
+            <CommunityFeaturesSection communityId={community.id} controls={featureControls} />
+          </div>
+        </>
+      )}
+
+      {isOwner && (
         <>
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
           <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />
