@@ -12,12 +12,14 @@ export function EventList({
   items,
   currentUserId,
   communitySlug,
+  communityLogoUrl,
   canRsvp,
   isStaff,
 }: {
   items: { event: Event; rsvps: EventRsvpWithAttendee[] }[];
   currentUserId: string;
   communitySlug: string;
+  communityLogoUrl: string | null;
   canRsvp: boolean;
   isStaff: boolean;
 }) {
@@ -34,6 +36,7 @@ export function EventList({
           rsvps={rsvps}
           currentUserId={currentUserId}
           communitySlug={communitySlug}
+          communityLogoUrl={communityLogoUrl}
           canRsvp={canRsvp}
           canManage={isStaff || event.created_by === currentUserId}
         />

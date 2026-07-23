@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Link as LinkIcon, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
+import { Linkify } from "@/components/ui/linkify";
 import { formatDateTime } from "@/lib/utils";
 import { EventRsvpButton } from "./event-rsvp-button";
 import { DeleteEventButton } from "./delete-event-button";
@@ -17,6 +18,7 @@ export function EventCard({
   rsvps,
   currentUserId,
   communitySlug,
+  communityLogoUrl,
   canRsvp,
   canManage,
 }: {
@@ -24,6 +26,7 @@ export function EventCard({
   rsvps: EventRsvpWithAttendee[];
   currentUserId: string;
   communitySlug: string;
+  communityLogoUrl: string | null;
   canRsvp: boolean;
   canManage: boolean;
 }) {
@@ -63,8 +66,13 @@ export function EventCard({
             onError={() => setImageBroken(true)}
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
-            <CalendarDays className="h-8 w-8" />
+          <div className="flex h-full flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-accent-soft to-muted text-muted-foreground">
+            {communityLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={communityLogoUrl} alt="" className="h-16 w-16 rounded-full object-cover shadow-sm" />
+            ) : (
+              <CalendarDays className="h-8 w-8 text-accent/50" />
+            )}
             <span className="text-xs font-medium">Event</span>
           </div>
         )}
@@ -100,7 +108,7 @@ export function EventCard({
           )}
         </div>
 
-        {event.description && <p className="mt-2 text-sm text-foreground">{event.description}</p>}
+        {event.description && <Linkify text={event.description} className="mt-2 text-sm text-foreground" />}
 
         <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           {event.location && (
