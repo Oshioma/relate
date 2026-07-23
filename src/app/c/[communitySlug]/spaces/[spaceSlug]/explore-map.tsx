@@ -685,6 +685,7 @@ export default function ExploreMap({
             handleStyleData();
           }}
           onStyleData={handleStyleData}
+          onError={(e) => console.error("Explore Map:", e.error)}
           onMoveEnd={(e) => {
             setZoom(e.viewState.zoom);
             setViewBounds(e.target.getBounds().toArray() as [[number, number], [number, number]]);
