@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { MapPin, Link as LinkIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -26,13 +27,23 @@ export function EventCard({
 }) {
   const isGoing = rsvps.some((r) => r.user_id === currentUserId);
   const visibleAttendees = rsvps.slice(0, 5);
+  const [imageBroken, setImageBroken] = useState(false);
+  // Scraped image URLs sometimes 404 or reject hotlinking once loaded in a
+  // browser even though the server-side scrape found them — fall back to
+  // the plain card instead of showing a broken-image icon.
+  const showImage = Boolean(event.image_url) && !imageBroken;
 
   return (
     <Card className="overflow-hidden">
-      {event.image_url && (
+      {showImage && (
         <div className="relative h-40 w-full bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={event.image_url} alt={event.title} className="h-full w-full object-cover" />
+          <img
+            src={event.image_url!}
+            alt={event.title}
+            className="h-full w-full object-cover"
+            onError={() => setImageBroken(true)}
+          />
           {canDelete && (
             <DeleteEventButton
               eventId={event.id}
@@ -51,7 +62,7 @@ export function EventCard({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {canRsvp && <EventRsvpButton eventId={event.id} communitySlug={communitySlug} initialGoing={isGoing} />}
-            {canDelete && !event.image_url && (
+            {canDelete && !showImage && (
               <DeleteEventButton eventId={event.id} eventTitle={event.title} communitySlug={communitySlug} />
             )}
           </div>
