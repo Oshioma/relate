@@ -9,7 +9,7 @@ import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
-import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
+import type { SpaceVisibility, SpaceType, Community, FeatureKey } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -192,13 +192,31 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
   return undefined;
 }
 
-export async function reorderSpaces(
-  order: { id: string; sort_order: number }[],
+// Reorders the sidebar as a single interleaved list of spaces and the
+// built-in feature links (Events, Search). Spaces write their sort_order to
+// the spaces table; built-in links upsert theirs into community_nav_item_order.
+// The caller assigns a contiguous 0..n-1 sequence across the whole list, so
+// after any drag both tables agree on one order (see src/lib/nav-items.ts and
+// the sidebar merge in the community layout).
+export async function reorderNavItems(
+  order: { kind: "space" | "builtin"; ref: string; sort_order: number }[],
+  communityId: string,
   communitySlug: string
 ): Promise<{ error: string } | undefined> {
   const supabase = await createClient();
 
-  const results = await Promise.all(order.map((s) => supabase.from("spaces").update({ sort_order: s.sort_order }).eq("id", s.id)));
+  const results = await Promise.all(
+    order.map((item) =>
+      item.kind === "space"
+        ? supabase.from("spaces").update({ sort_order: item.sort_order }).eq("id", item.ref)
+        : supabase
+            .from("community_nav_item_order")
+            .upsert(
+              { community_id: communityId, item_key: item.ref as FeatureKey, sort_order: item.sort_order },
+              { onConflict: "community_id,item_key" }
+            )
+    )
+  );
   const failed = results.find((r) => r.error);
   if (failed?.error) {
     return { error: failed.error.message };

@@ -52,7 +52,7 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
 
 // Supabase auth errors usually carry a helpful sentence, but auth-js falls
 // back to JSON.stringify(responseBody) when GoTrue answers with an opaque or
-// empty body (e.g. a 500 when the confirmation email can't be sent). That can
+// empty body (the same path that surfaced the "{}" invite error). That can
 // leave `message` as a meaningless token like "0", "{}", or "[object Object]".
 // Never show those to a user — swap in an actionable fallback instead.
 function usefulAuthMessage(message: string, fallback: string): string {
@@ -118,7 +118,6 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
     }
     // The client only ever sees a string, so log the full error (status,
     // code, opaque body) to make an unhelpful message like "0" diagnosable.
-    // A 500 here is most often a confirmation-email delivery failure (SMTP).
     console.error("[signup] signUp failed:", error);
     return {
       error: usefulAuthMessage(error.message, "We couldn't create your account just now. Please try again in a moment."),
