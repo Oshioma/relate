@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isPlatformHost } from "@/lib/custom-domain";
 
 export type AuthFormState = { error: string } | undefined;
 
@@ -11,15 +12,28 @@ async function getSiteOrigin() {
   return headerList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
-function safeNextPath(value: FormDataEntryValue | null) {
+// The host (with port) of the origin the form was submitted from, when that
+// origin is a community's custom domain rather than the platform itself.
+function customDomainHost(origin: string): string | null {
+  try {
+    const host = new URL(origin).host;
+    return isPlatformHost(host) ? null : host;
+  } catch {
+    return null;
+  }
+}
+
+function safeNextPath(value: FormDataEntryValue | null, fallback: string) {
   const path = typeof value === "string" ? value : "";
-  return path.startsWith("/") ? path : "/dashboard";
+  return path.startsWith("/") ? path : fallback;
 }
 
 export async function login(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = safeNextPath(formData.get("next"));
+  // On a custom domain the member is signing in to that one community, so
+  // land on its feed rather than the cross-community dashboard.
+  const next = safeNextPath(formData.get("next"), customDomainHost(await getSiteOrigin()) ? "/" : "/dashboard");
 
   if (!email || !password) {
     return { error: "Enter your email and password." };
@@ -39,7 +53,10 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("full_name") ?? "").trim();
-  const next = safeNextPath(formData.get("next"));
+
+  const origin = await getSiteOrigin();
+  const customHost = customDomainHost(origin);
+  const next = safeNextPath(formData.get("next"), customHost ? "/" : "/dashboard");
 
   if (!email || !password) {
     return { error: "Enter your email and password." };
@@ -49,7 +66,15 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
     return { error: "Password must be at least 8 characters." };
   }
 
-  const origin = await getSiteOrigin();
+  // Confirmation links always point at the platform's own origin so custom
+  // domains never need to be added to Supabase's redirect allowlist. For a
+  // signup that happened on a custom domain, `return_host` tells
+  // /auth/confirm to forward the (still unverified) token there, so the
+  // session cookie ends up on the domain the member actually uses — see
+  // src/app/auth/confirm/route.ts.
+  const platformOrigin = customHost ? (process.env.NEXT_PUBLIC_SITE_URL ?? origin) : origin;
+  const returnParam = customHost ? `&return_host=${encodeURIComponent(customHost)}` : "";
+
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signUp({
@@ -57,7 +82,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${platformOrigin}/auth/confirm?next=${encodeURIComponent(next)}${returnParam}`,
     },
   });
 

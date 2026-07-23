@@ -17,6 +17,7 @@ import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
 import { CustomDomainSection } from "./custom-domain-section";
+import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
 import { DeleteCommunitySection } from "./delete-community-section";
 
 export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
@@ -138,7 +139,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       {membership?.role === "owner" && (
         <>
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
-          <CustomDomainSection community={community} />
+          <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />
 
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
           <DeleteCommunitySection community={community} />

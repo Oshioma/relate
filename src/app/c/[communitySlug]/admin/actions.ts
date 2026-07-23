@@ -7,7 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { getPlaceLocationType } from "@/lib/community-templates";
-import { normalizeCustomDomain, isPlatformHost, verificationRecordName } from "@/lib/custom-domain";
+import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
+import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
@@ -327,8 +328,8 @@ export async function setCustomDomain(_prevState: CustomDomainState, formData: F
   if (!domain) {
     return { error: "Enter a bare domain like mzunguzanzibar.com — no https:// or slashes." };
   }
-  if (isPlatformHost(domain)) {
-    return { error: "That domain belongs to the platform itself and can't be claimed." };
+  if (isPlatformHost(domain) || isUnderPlatformApex(domain)) {
+    return { error: "That domain belongs to the platform itself and can't be claimed — every community already gets its own platform subdomain automatically." };
   }
 
   const owned = await requireOwnedCommunity(communityId);
@@ -403,6 +404,17 @@ export async function verifyCustomDomain(_prevState: CustomDomainState, formData
   }
 
   revalidatePath(`/c/${communitySlug}/admin`);
+
+  // Ownership is proven and recorded at this point regardless of what the
+  // hosting API says — a Vercel hiccup shouldn't force the owner to redo
+  // DNS verification, so this failure is reported but doesn't roll back.
+  const vercel = await addDomainToVercelProject(community.custom_domain);
+  if ("ok" in vercel && !vercel.ok) {
+    return {
+      error: `Your domain is verified, but registering it with the hosting platform failed (${vercel.reason}). The platform operator may need to add it manually.`,
+    };
+  }
+
   return undefined;
 }
 
@@ -423,6 +435,10 @@ export async function removeCustomDomain(_prevState: CustomDomainState, formData
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (owned.community.custom_domain) {
+    await removeDomainFromVercelProject(owned.community.custom_domain);
   }
 
   revalidatePath(`/c/${communitySlug}/admin`);
