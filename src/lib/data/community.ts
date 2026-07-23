@@ -3,6 +3,24 @@ import type { Database, Community, CommunityMembership, Profile } from "@/types/
 
 type Client = SupabaseClient<Database>;
 
+// Whether a signed-in viewer can see a community's Members list/page, per
+// its members_visibility setting: 'public' allows any signed-in viewer (incl.
+// guests who haven't joined), 'members' requires an active membership,
+// 'private' requires staff. Callers must separately require a signed-in user
+// — the Members page itself is never reachable by a signed-out visitor.
+export function canViewMembers(community: Community, membership: CommunityMembership | null): boolean {
+  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  switch (community.members_visibility) {
+    case "public":
+      return true;
+    case "private":
+      return isStaff;
+    case "members":
+    default:
+      return membership?.status === "active";
+  }
+}
+
 export type CommunityWithMembership = Community & {
   membership: Pick<CommunityMembership, "role" | "status">;
 };

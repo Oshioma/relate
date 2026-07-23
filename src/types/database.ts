@@ -85,6 +85,11 @@ export type Community = {
   cover_image_url: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // Who can see the Members list/page — independent of `privacy` above.
+  // The page always requires a signed-in user regardless of this setting.
+  // 'public' = any signed-in visitor (incl. guests who haven't joined),
+  // 'members' = active members only, 'private' = staff only.
+  members_visibility: SpaceVisibility;
   location_type: string | null;
   location_name: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through

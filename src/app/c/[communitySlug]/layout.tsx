@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -83,6 +83,9 @@ export default async function CommunityLayout({
   }
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  // Members is login-gated regardless of visibility (the page itself requires
+  // a signed-in user), then further narrowed by the community's setting.
+  const showMembersLink = Boolean(user) && canViewMembers(community, membership);
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
   // Guests only get the Events link when the community has opted its events
@@ -241,9 +244,9 @@ export default async function CommunityLayout({
                 <span className="hidden sm:inline">Super Admin</span>
               </Link>
             )}
-            {user && (
-              <Link href={`${base}/members`} aria-label="Members" className="text-muted-foreground hover:text-foreground">
-                <Users className="h-5 w-5" />
+            {showMembersLink && (
+              <Link href={`${base}/members`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Members
               </Link>
             )}
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
@@ -295,8 +298,7 @@ export default async function CommunityLayout({
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
           ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
-          // Members is login-gated, so only show the tab to signed-in visitors.
-          ...(user ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
+          ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
       />
