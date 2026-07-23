@@ -86,6 +86,13 @@ export type Community = {
   privacy: CommunityPrivacy;
   location_type: string | null;
   location_name: string | null;
+  // Custom-domain trio (supabase/custom-domains.sql). Only writable through
+  // the service-role client — a DB trigger rejects anon/authenticated writes
+  // to these columns, so include them in an Update payload only from the
+  // owner-checked server actions in the community admin page.
+  custom_domain: string | null;
+  custom_domain_token: string | null;
+  custom_domain_verified_at: string | null;
   // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
   // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
@@ -998,6 +1005,10 @@ export type Database = {
       };
       find_user_id_by_email: {
         Args: { p_email: string };
+        Returns: string | null;
+      };
+      community_slug_for_domain: {
+        Args: { p_domain: string };
         Returns: string | null;
       };
     };

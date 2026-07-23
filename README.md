@@ -486,6 +486,59 @@ This is the foundation for eventually letting other people create and
 sell their own communities on the same platform, without any schema
 changes.
 
+## Custom domains
+
+Run `supabase/custom-domains.sql` too, and make sure
+`SUPABASE_SERVICE_ROLE_KEY` is set. A community owner can then serve
+their community on a domain they own — `mzunguzanzibar.com` instead of
+`relate.example/c/mzungu-zanzibar` — from the **Custom domain** card on
+their `/admin` page (owner-only, not admins).
+
+**Owner flow.** Enter the bare domain, then add two DNS records at the
+registrar:
+
+1. a TXT record at `_relate-verify.<domain>` containing the token the
+   admin page displays — this proves control of the domain. "Check
+   verification" looks it up over DNS-over-HTTPS (Google, falling back
+   to Cloudflare) and marks the domain verified on a match.
+2. an A record pointing the domain at Vercel (`76.76.21.21`), or a
+   CNAME to `cname.vercel-dns.com` for a `www` subdomain.
+
+**Platform operator flow.** Two one-time steps per domain, both outside
+this codebase:
+
+1. add the domain to the Vercel project (Settings → Domains) so Vercel
+   routes its traffic here and issues an SSL certificate.
+2. add `https://<domain>/**` to the Supabase Auth redirect allowlist
+   (Authentication → URL Configuration) so email confirmation links
+   requested from that domain work. `getSiteOrigin()` in
+   `src/app/auth/actions.ts` already builds links from the request's
+   `Origin` header, so no code change is needed.
+
+**How routing works.** `src/proxy.ts` inspects the `Host` header on
+every request. Platform hosts (`NEXT_PUBLIC_SITE_URL`'s host,
+`*.vercel.app`, `localhost`) behave as before. Any other host is
+resolved to a community slug via the `community_slug_for_domain`
+security-definer function (only *verified* domains resolve; results are
+cached in-memory), and the request is rewritten onto the
+`/c/[communitySlug]` tree — `/` renders the community feed, `/events`
+renders its events, and the browser URL stays on the custom domain.
+Internal links still written as `/c/<slug>/…` get 308-redirected to the
+bare path, and platform routes (`/login`, `/dashboard`, `/settings`, …)
+keep their normal meaning on every host, so members sign in on the
+domain they're visiting (Supabase auth cookies are host-scoped).
+
+The three domain columns on `communities` can only be written through
+the service-role client: a database trigger rejects direct API writes,
+so the owner-checked server actions in
+`src/app/c/[communitySlug]/admin/actions.ts` are the only path — an
+admin can't mark a domain verified without the TXT record actually
+existing. To test locally, map a hostname in `/etc/hosts`
+(`127.0.0.1 mzunguzanzibar.test`), connect and verify it in the admin
+UI (local verification needs a real public DNS record, so for a quick
+test you can set `custom_domain_verified_at` by hand in the SQL
+editor), then browse `http://mzunguzanzibar.test:3000`.
+
 ## Project structure
 
 ```

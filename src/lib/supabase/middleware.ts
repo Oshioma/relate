@@ -13,9 +13,16 @@ function isPublicPath(pathname: string) {
 }
 
 // Refreshes the Supabase auth session on every request and redirects
-// unauthenticated users away from protected routes. Called from proxy.ts.
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+// unauthenticated users away from protected routes. Called from proxy.ts,
+// which passes `rewriteTo` when the request arrived on a community's custom
+// domain and should render a /c/[communitySlug] route instead of the literal
+// path. The rewrite has to be baked into every response built here (setAll
+// rebuilds the response to attach refreshed cookies), which is why it's a
+// parameter rather than something proxy.ts applies afterwards.
+export async function updateSession(request: NextRequest, rewriteTo?: URL) {
+  const makeResponse = () =>
+    rewriteTo ? NextResponse.rewrite(rewriteTo, { request }) : NextResponse.next({ request });
+  let response = makeResponse();
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,7 +34,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = makeResponse();
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         },
       },

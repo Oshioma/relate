@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
-import type { SpaceVisibility, SpaceType } from "@/types/database";
+import { normalizeCustomDomain, isPlatformHost, verificationRecordName } from "@/lib/custom-domain";
+import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -224,6 +226,187 @@ export async function updateCommunityDetails(
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
   revalidatePath("/dashboard");
+  return undefined;
+}
+
+export type CustomDomainState = { error: string } | undefined;
+
+type OwnedCommunity = Pick<Community, "id" | "slug" | "owner_id" | "custom_domain" | "custom_domain_token">;
+
+// The trigger in supabase/custom-domains.sql blocks anon/authenticated
+// writes to the domain columns, so every mutation below goes: verify the
+// caller is the community's owner with their own RLS-bound client, then
+// write with the service-role client. Owner-only (not admin) because a
+// domain change redirects the entire community.
+async function requireOwnedCommunity(
+  communityId: string
+): Promise<{ ok: false; error: string } | { ok: true; community: OwnedCommunity }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You need to be signed in." };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("id, slug, owner_id, custom_domain, custom_domain_token")
+    .eq("id", communityId)
+    .maybeSingle();
+
+  if (!community || community.owner_id !== user.id) {
+    return { ok: false, error: "Only the owner can manage this community's domain." };
+  }
+  return { ok: true, community };
+}
+
+function adminClientOrError():
+  | { ok: false; error: string }
+  | { ok: true; admin: ReturnType<typeof createAdminClient> } {
+  try {
+    return { ok: true, admin: createAdminClient() };
+  } catch {
+    return {
+      ok: false,
+      error: "Custom domains need SUPABASE_SERVICE_ROLE_KEY configured on the server — ask the platform operator.",
+    };
+  }
+}
+
+// Looks up TXT records over DNS-over-HTTPS (Google, then Cloudflare) so
+// verification behaves identically in dev and on any host, with no OS
+// resolver in the loop. Returns the decoded record values; [] when the
+// record doesn't exist; null when both resolvers were unreachable.
+async function lookupTxtRecords(name: string): Promise<string[] | null> {
+  const endpoints = [
+    `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=TXT`,
+    `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=TXT`,
+  ];
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: { Accept: "application/dns-json" },
+        cache: "no-store",
+      });
+      if (!res.ok) continue;
+      const body = (await res.json()) as { Answer?: { type: number; data: string }[] };
+      return (body.Answer ?? [])
+        .filter((a) => a.type === 16)
+        // Long TXT values arrive as multiple quoted chunks: "\"abc\" \"def\"".
+        .map((a) => a.data.replace(/"\s+"/g, "").replace(/^"|"$/g, ""));
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+export async function setCustomDomain(_prevState: CustomDomainState, formData: FormData): Promise<CustomDomainState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+
+  const domain = normalizeCustomDomain(String(formData.get("domain") ?? ""));
+  if (!domain) {
+    return { error: "Enter a bare domain like mzunguzanzibar.com — no https:// or slashes." };
+  }
+  if (isPlatformHost(domain)) {
+    return { error: "That domain belongs to the platform itself and can't be claimed." };
+  }
+
+  const owned = await requireOwnedCommunity(communityId);
+  if (!owned.ok) return { error: owned.error };
+
+  const clientResult = adminClientOrError();
+  if (!clientResult.ok) return { error: clientResult.error };
+  const { admin } = clientResult;
+
+  const { data: taken } = await admin
+    .from("communities")
+    .select("id")
+    .eq("custom_domain", domain)
+    .neq("id", communityId)
+    .maybeSingle();
+  if (taken) {
+    return { error: "That domain is already connected to another community." };
+  }
+
+  // Changing the domain always restarts verification — a token proven for
+  // one hostname says nothing about the next one.
+  const tokenBytes = new Uint8Array(16);
+  crypto.getRandomValues(tokenBytes);
+  const token = `relate-verify-${Array.from(tokenBytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+
+  const { error } = await admin
+    .from("communities")
+    .update({ custom_domain: domain, custom_domain_token: token, custom_domain_verified_at: null })
+    .eq("id", communityId);
+
+  if (error) {
+    // 23505 = unique_violation: someone claimed it between our check and now.
+    return { error: error.code === "23505" ? "That domain is already connected to another community." : error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return undefined;
+}
+
+export async function verifyCustomDomain(_prevState: CustomDomainState, formData: FormData): Promise<CustomDomainState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+
+  const owned = await requireOwnedCommunity(communityId);
+  if (!owned.ok) return { error: owned.error };
+  const { community } = owned;
+
+  if (!community.custom_domain || !community.custom_domain_token) {
+    return { error: "Connect a domain first." };
+  }
+
+  const records = await lookupTxtRecords(verificationRecordName(community.custom_domain));
+  if (records === null) {
+    return { error: "Couldn't reach a DNS resolver — try again in a moment." };
+  }
+  if (!records.includes(community.custom_domain_token)) {
+    return {
+      error: `No matching TXT record found on ${verificationRecordName(community.custom_domain)} yet. DNS changes can take a few minutes (sometimes hours) to propagate — double-check the record and try again.`,
+    };
+  }
+
+  const clientResult = adminClientOrError();
+  if (!clientResult.ok) return { error: clientResult.error };
+
+  const { error } = await clientResult.admin
+    .from("communities")
+    .update({ custom_domain_verified_at: new Date().toISOString() })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return undefined;
+}
+
+export async function removeCustomDomain(_prevState: CustomDomainState, formData: FormData): Promise<CustomDomainState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+
+  const owned = await requireOwnedCommunity(communityId);
+  if (!owned.ok) return { error: owned.error };
+
+  const clientResult = adminClientOrError();
+  if (!clientResult.ok) return { error: clientResult.error };
+
+  const { error } = await clientResult.admin
+    .from("communities")
+    .update({ custom_domain: null, custom_domain_token: null, custom_domain_verified_at: null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
   return undefined;
 }
 
