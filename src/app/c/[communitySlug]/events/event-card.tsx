@@ -10,6 +10,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { EventRsvpButton } from "./event-rsvp-button";
 import { DeleteEventButton } from "./delete-event-button";
 import { EditEventForm } from "./edit-event-form";
+import { EventImageQuickActions } from "./event-image-quick-actions";
 import type { Event } from "@/types/database";
 import type { EventRsvpWithAttendee } from "@/lib/data/events";
 
@@ -86,22 +87,30 @@ export function EventCard({
           </div>
         )}
         {canManage && (
-          <div className="absolute right-2 top-2 flex items-center gap-1.5">
-            <button
-              type="button"
-              title="Edit event"
-              onClick={() => setIsEditing(true)}
-              className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-            <DeleteEventButton
+          <>
+            <EventImageQuickActions
               eventId={event.id}
-              eventTitle={event.title}
               communitySlug={communitySlug}
-              className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+              hasImage={showImage}
+              className="absolute left-2 top-2"
             />
-          </div>
+            <div className="absolute right-2 top-2 flex items-center gap-1.5">
+              <button
+                type="button"
+                title="Edit event"
+                onClick={() => setIsEditing(true)}
+                className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <DeleteEventButton
+                eventId={event.id}
+                eventTitle={event.title}
+                communitySlug={communitySlug}
+                className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+              />
+            </div>
+          </>
         )}
       </div>
       <CardContent className={featured ? "p-5 sm:p-6" : "pt-5"}>
