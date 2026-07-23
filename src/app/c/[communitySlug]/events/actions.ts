@@ -133,6 +133,25 @@ export async function updateEvent(_prevState: EventFormState, formData: FormData
   return undefined;
 }
 
+// RLS (events_update_creator_or_staff) restricts this to the event's
+// creator or community staff. A quick way to set/replace/remove just the
+// photo without opening the full edit form. Pass null to remove the image.
+export async function updateEventImage(eventId: string, communitySlug: string, imageUrl: string | null) {
+  if (imageUrl && !/^https?:\/\//.test(imageUrl)) {
+    return { error: "Enter a valid image URL starting with http:// or https://" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").update({ image_url: imageUrl }).eq("id", eventId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/events`);
+  return { error: null };
+}
+
 export async function rsvpToEvent(eventId: string, communitySlug: string) {
   const supabase = await createClient();
   const {
