@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isResendConfigured, sendCommunityInviteEmail } from "@/lib/email";
 import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
@@ -104,14 +105,44 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     return { error: insertError.message };
   }
 
+  const origin = await getSiteOrigin();
+
+  // Preferred path: send our own community-branded email through Resend.
+  // The invitee gets "You're invited to <community>" from the community's
+  // name, and — unlike inviteUserByEmail below — no passwordless auth
+  // account is pre-created, so "Create account" on the invite page just
+  // works for them.
+  if (isResendConfigured()) {
+    const [{ data: community }, { data: inviter }] = await Promise.all([
+      supabase.from("communities").select("name, logo_url").eq("id", communityId).maybeSingle(),
+      supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle(),
+    ]);
+
+    const sent = await sendCommunityInviteEmail({
+      to: email,
+      communityName: community?.name ?? "our community",
+      communityLogoUrl: community?.logo_url ?? null,
+      inviterName: inviter?.full_name || inviter?.username || null,
+      inviteUrl: `${origin}/invite/${code}`,
+    });
+
+    if (!sent.ok) {
+      // The invite link exists and is copyable from the list either way.
+      return { error: `Invite link created, but the email couldn't be sent: ${sent.reason}` };
+    }
+
+    revalidatePath(`/c/${communitySlug}/members`);
+    return undefined;
+  }
+
+  // Fallback without Resend: Supabase Auth's invite email ("from Relate",
+  // global template — and it pre-creates a passwordless auth account).
   let admin;
   try {
     admin = createAdminClient();
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Email invites aren't configured yet." };
   }
-
-  const origin = await getSiteOrigin();
   const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(`/invite/${code}`)}`,
   });
