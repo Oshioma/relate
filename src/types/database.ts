@@ -245,6 +245,17 @@ export type CommunityFeaturePref = {
   updated_at: string;
 };
 
+// Per-community position of a built-in nav item (Events, Search) within the
+// sidebar, interleaved with the spaces' own sort_order. A missing row means
+// "unpositioned" — the layout sorts it after the spaces by default. item_key
+// mirrors FeatureKey. See supabase migration community_nav_item_order.
+export type CommunityNavItemOrder = {
+  community_id: string;
+  item_key: FeatureKey;
+  sort_order: number;
+  updated_at: string;
+};
+
 // A review snippet cached from Google Places (businesses.google_reviews).
 // Always rendered with Google attribution — see supabase/business-google-places.sql.
 export type BusinessGoogleReview = {
@@ -819,6 +830,11 @@ export type Database = {
         Row: CommunityFeaturePref;
         Insert: Partial<CommunityFeaturePref> & { community_id: string; feature_key: FeatureKey };
         Update: Partial<CommunityFeaturePref>;
+      } & NoRel;
+      community_nav_item_order: {
+        Row: CommunityNavItemOrder;
+        Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
+        Update: Partial<CommunityNavItemOrder>;
       } & NoRel;
       notifications: {
         Row: Notification;
