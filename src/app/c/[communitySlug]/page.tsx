@@ -11,10 +11,11 @@ import {
   Star,
   UsersRound,
   HandHeart,
+  UserPlus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, getCommunityRecentMembers } from "@/lib/data/community";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -61,6 +62,7 @@ export default async function CommunityFeedPage({
     recentRecommendations,
     recentClubs,
     recentVolunteerProjects,
+    recentMembers,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 6),
     getCommunityEvents(supabase, community.id),
@@ -73,6 +75,7 @@ export default async function CommunityFeedPage({
     getCommunityRecentRecommendations(supabase, community.id, 6),
     getCommunityRecentClubs(supabase, community.id, 6),
     getCommunityRecentVolunteerProjects(supabase, community.id, 6),
+    getCommunityRecentMembers(supabase, community.id, 6),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -210,6 +213,20 @@ export default async function CommunityFeedPage({
       authorAvatar: v.organiser?.avatar_url ?? null,
       spaceName: v.space?.name ?? null,
       href: v.space ? `${base}/spaces/${v.space.slug}` : base,
+    })),
+    ...recentMembers.map((m): FeedItem => ({
+      key: `member-${m.id}`,
+      createdAt: m.created_at,
+      icon: UserPlus,
+      title: m.profile.full_name || m.profile.username,
+      description: [m.profile.profession, m.profile.company].filter(Boolean).join(" · ") || m.profile.bio,
+      imageUrl: null,
+      typeBadge: "New Member",
+      detail: null,
+      authorName: null,
+      authorAvatar: null,
+      spaceName: null,
+      href: `${base}/members`,
     })),
   ];
 
