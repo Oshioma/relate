@@ -43,15 +43,27 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    console.error("[login] signInWithPassword failed:", error);
     return { error: friendlyLoginError(error.message) };
   }
 
   redirect(next);
 }
 
+// Supabase auth errors usually carry a helpful sentence, but auth-js falls
+// back to JSON.stringify(responseBody) when GoTrue answers with an opaque or
+// empty body (e.g. a 500 when the confirmation email can't be sent). That can
+// leave `message` as a meaningless token like "0", "{}", or "[object Object]".
+// Never show those to a user — swap in an actionable fallback instead.
+function usefulAuthMessage(message: string, fallback: string): string {
+  const trimmed = message?.trim() ?? "";
+  const opaque = trimmed === "" || /^(\{\}|\[object Object\]|null|undefined|-?\d+)$/.test(trimmed);
+  return opaque ? fallback : trimmed;
+}
+
 // Supabase's auth errors are accurate but cryptic to someone who just
 // followed an invite link ("Invalid login credentials"). Translate the two
-// everyday ones; anything unusual passes through untouched.
+// everyday ones; anything unusual passes through a sanity check.
 function friendlyLoginError(message: string): string {
   const lower = message.toLowerCase();
   if (lower.includes("invalid login credentials")) {
@@ -60,7 +72,7 @@ function friendlyLoginError(message: string): string {
   if (lower.includes("email not confirmed")) {
     return "Almost there — we sent you a confirmation email when you signed up. Click the link in it, then sign in again.";
   }
-  return message;
+  return usefulAuthMessage(message, "We couldn't sign you in just now. Please try again in a moment.");
 }
 
 export async function signup(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -101,10 +113,15 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   });
 
   if (error) {
+    if (error.message.toLowerCase().includes("already registered")) {
+      return { error: "You already have an account with this email — go back and choose \"Sign in\" instead." };
+    }
+    // The client only ever sees a string, so log the full error (status,
+    // code, opaque body) to make an unhelpful message like "0" diagnosable.
+    // A 500 here is most often a confirmation-email delivery failure (SMTP).
+    console.error("[signup] signUp failed:", error);
     return {
-      error: error.message.toLowerCase().includes("already registered")
-        ? "You already have an account with this email — go back and choose \"Sign in\" instead."
-        : error.message,
+      error: usefulAuthMessage(error.message, "We couldn't create your account just now. Please try again in a moment."),
     };
   }
 
