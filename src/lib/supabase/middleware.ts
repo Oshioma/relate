@@ -2,12 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth/confirm"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm"];
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   // Invite links show a "you're invited" preview before asking someone to
   // sign in or sign up, so logged-out visitors need to reach the page.
+  // /signup/check-email is where a just-signed-up (and therefore still
+  // signed-out) visitor lands — bouncing them to /login here hid the
+  // "confirm your email" step entirely and read as a login loop.
   if (pathname.startsWith("/invite/")) return true;
   return false;
 }
