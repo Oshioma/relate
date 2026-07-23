@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { discoverAndAddEvents } from "./discover-actions";
+import { discoverAndAddEvents, backfillEventImages } from "./discover-actions";
 
 export function DiscoverEventsPanel({ communitySlug, locationName }: { communitySlug: string; locationName: string }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSearching, startSearch] = useTransition();
+  const [isBackfilling, startBackfill] = useTransition();
   const router = useRouter();
 
   function handleDiscover() {
@@ -40,6 +41,32 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
     });
   }
 
+  function handleBackfill() {
+    setError(null);
+    setNotice(null);
+    startBackfill(async () => {
+      try {
+        const result = await backfillEventImages(communitySlug);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+        if (result.updated === 0) {
+          setNotice(
+            result.checked === 0
+              ? "Every event already has an image."
+              : "Couldn't find a usable image for any event missing one.",
+          );
+        } else {
+          setNotice(`Added images to ${result.updated} event${result.updated === 1 ? "" : "s"}.`);
+          router.refresh();
+        }
+      } catch {
+        setError("Fetching images failed — the server request didn't complete. Try again.");
+      }
+    });
+  }
+
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -52,9 +79,14 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
             with a photo where we can find one.
           </p>
         </div>
-        <Button size="sm" variant="secondary" onClick={handleDiscover} disabled={isSearching}>
-          {isSearching ? "Searching the web…" : "Discover events"}
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button size="sm" variant="ghost" onClick={handleBackfill} disabled={isSearching || isBackfilling}>
+            {isBackfilling ? "Fetching…" : "Fetch missing images"}
+          </Button>
+          <Button size="sm" variant="secondary" onClick={handleDiscover} disabled={isSearching || isBackfilling}>
+            {isSearching ? "Searching the web…" : "Discover events"}
+          </Button>
+        </div>
       </div>
 
       {isSearching && (
