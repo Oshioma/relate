@@ -65,6 +65,7 @@ export type Profile = {
   hide_social_links: boolean;
   hide_business_profile: boolean;
   is_discoverable: boolean;
+  is_super_admin: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -210,6 +211,26 @@ export type CommunityNavLink = {
   sort_order: number;
   created_by: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+// Built-in, optional nav features a platform super admin can turn on/off —
+// see src/lib/features.ts for the labeled list shown in /admin.
+export type FeatureKey = "events" | "concierge";
+
+// The feature state new communities start with, and the fallback for any
+// community without an explicit community_features override.
+export type FeatureDefault = {
+  feature_key: FeatureKey;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// Per-community override of a feature_defaults value.
+export type CommunityFeature = {
+  community_id: string;
+  feature_key: FeatureKey;
+  enabled: boolean;
   updated_at: string;
 };
 
@@ -772,6 +793,16 @@ export type Database = {
         Row: CommunityNavLink;
         Insert: Partial<CommunityNavLink> & { community_id: string; label: string; url: string };
         Update: Partial<CommunityNavLink>;
+      } & NoRel;
+      feature_defaults: {
+        Row: FeatureDefault;
+        Insert: Partial<FeatureDefault> & { feature_key: FeatureKey };
+        Update: Partial<FeatureDefault>;
+      } & NoRel;
+      community_features: {
+        Row: CommunityFeature;
+        Insert: Partial<CommunityFeature> & { community_id: string; feature_key: FeatureKey };
+        Update: Partial<CommunityFeature>;
       } & NoRel;
       notifications: {
         Row: Notification;
