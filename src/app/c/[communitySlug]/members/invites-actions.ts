@@ -137,6 +137,17 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       }
     }
 
+    // Supabase's built-in email service only sends a few emails per hour —
+    // it's meant for development. Point admins at the two real ways forward
+    // instead of echoing the raw "email rate limit exceeded".
+    const rateLimited = inviteError.code === "over_email_send_rate_limit" || /rate ?limit/i.test(inviteError.message);
+    if (rateLimited) {
+      return {
+        error:
+          "Invite link created, but the email was skipped: this project hit Supabase's hourly email limit. Copy the invite link from the list below and share it directly — or connect a custom SMTP provider (Supabase → Authentication → Emails) to send more.",
+      };
+    }
+
     // The invite link itself was still created and is visible/copyable from
     // the list below, so this isn't a dead end even if the email didn't go out.
     return {
