@@ -116,6 +116,22 @@ export function SpaceCard({
             </div>
           </div>
 
+          {(space.space_type === "resources" || space.location_name) && (
+            <div>
+              <Label htmlFor={`location-${space.id}`}>Location override (optional)</Label>
+              <Input
+                id={`location-${space.id}`}
+                name="location_name"
+                defaultValue={space.location_name ?? ""}
+                placeholder="e.g. Nungwi, Zanzibar"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Live tides &amp; weather in this space use this place instead of the community&apos;s location. Leave
+                blank to use the community&apos;s.
+              </p>
+            </div>
+          )}
+
           {updateState?.error && <p className="text-sm text-danger">{updateState.error}</p>}
 
           <div className="flex gap-2">

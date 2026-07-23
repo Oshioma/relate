@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
+import { getPlaceLocationType } from "@/lib/community-templates";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
@@ -99,6 +100,10 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const description = String(formData.get("description") ?? "").trim();
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
+  // Absent field ≠ empty field: only forms that render the location input
+  // (resources spaces) may change it, so other edits can't silently wipe it.
+  const rawLocationName = formData.get("location_name");
+  const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -107,7 +112,13 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const supabase = await createClient();
   const { error } = await supabase
     .from("spaces")
-    .update({ name, description: description || null, visibility, space_type: spaceType })
+    .update({
+      name,
+      description: description || null,
+      visibility,
+      space_type: spaceType,
+      ...(locationName !== undefined && { location_name: locationName }),
+    })
     .eq("id", spaceId);
 
   if (error) {
@@ -168,6 +179,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     space_type: original.space_type,
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: original.show_in_nav,
+    location_name: original.location_name,
   });
 
   if (error) {
@@ -209,6 +221,8 @@ export async function updateCommunityDetails(
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const locationName = String(formData.get("location_name") ?? "").trim();
+  const rawLocationType = String(formData.get("location_type") ?? "");
+  const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -217,7 +231,12 @@ export async function updateCommunityDetails(
   const supabase = await createClient();
   const { error } = await supabase
     .from("communities")
-    .update({ name, description: description || null, location_name: locationName.slice(0, 120) || null })
+    .update({
+      name,
+      description: description || null,
+      location_name: locationName.slice(0, 120) || null,
+      location_type: locationType,
+    })
     .eq("id", communityId);
 
   if (error) {

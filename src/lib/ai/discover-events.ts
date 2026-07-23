@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // Sonnet + low effort keeps discovery interactive (well under a minute in
 // most cases) — Opus with default effort was taking several minutes per run.
 const MODEL = "claude-sonnet-5";
-const MAX_WEB_SEARCHES = 4;
+const MAX_WEB_SEARCHES = 3;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
 const MAX_CONTINUATIONS = 2;
@@ -12,7 +12,11 @@ const MAX_RESULTS = 8;
 // Fluid Compute), which reaches the browser as a dead connection with no
 // error message. Keep our own budget comfortably below that so every run
 // ends with an explicit status instead.
-const REQUEST_TIMEOUT_MS = 60_000;
+// One API request runs the web searches sequentially inside it, so 60s was
+// too tight — real runs timed out before finishing. 120s per request with no
+// retry keeps the worst case (~2 requests + parsing) under the 300s platform
+// limit while giving a healthy run plenty of room.
+const REQUEST_TIMEOUT_MS = 120_000;
 const RUN_BUDGET_MS = 150_000;
 
 let client: Anthropic | null = null;
@@ -20,8 +24,10 @@ let client: Anthropic | null = null;
 function getClient(): Anthropic | null {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   // The SDK defaults (10-minute timeout, 2 silent retries with backoff) can
-  // hold a stalled or rate-limited call far past the hosting limit.
-  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 });
+  // hold a stalled or rate-limited call far past the hosting limit; retries
+  // are off because retrying a timed-out 2-minute request doubles the bill
+  // for a run that's already doomed.
+  if (!client) client = new Anthropic({ timeout: REQUEST_TIMEOUT_MS, maxRetries: 0 });
   return client;
 }
 
@@ -42,7 +48,12 @@ export type DiscoveryResult =
   | { status: "ok"; events: DiscoveredEvent[] }
   | { status: "unconfigured" | "billing" | "search_limited" | "error" };
 
-const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Use web search to find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions) in the location you are given.
+const MAX_PAGE_FETCHES = 2;
+const MAX_FETCH_TOKENS = 12_000;
+
+const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions, recurring nights) in the location you are given.
+
+Method: web_search for event calendars and listings for that location, then web_fetch the 1-2 most promising listing pages to read the actual event details — search snippets alone rarely contain dates.
 
 Respond with ONLY a JSON array — no prose, no markdown fences. Each element:
 {
@@ -56,7 +67,8 @@ Respond with ONLY a JSON array — no prose, no markdown fences. Each element:
 
 Rules:
 - Speed matters: start searching immediately, run a few broad searches against event calendars and listings sites, and extract from those results. Do not run extra searches to double-check individual events.
-- Only include events you found via web search, with a concrete future date. Never invent events. If a listing gives only a date with no time, use a sensible local time for that kind of event.
+- Only include events you actually saw in search results or fetched pages. Never invent events. If a listing gives only a date with no time, use a sensible local time for that kind of event; if it gives a day without a year, assume the next upcoming occurrence.
+- Regularly recurring public events (weekly markets, recurring live-music or club nights) count — list the next occurrence.
 - Skip anything that matches an existing event title you are given.
 - Return at most ${MAX_RESULTS} events, soonest first. If you find nothing verifiable, return [].
 - Your final message must be exactly the JSON array — starting with "[" and ending with "]".`;
@@ -97,7 +109,17 @@ export async function discoverEventsWithAI(opts: {
         // or gave up early. "medium" still keeps runs well under a minute.
         output_config: { effort: "medium" },
         system: SYSTEM_PROMPT,
-        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES }],
+        tools: [
+          { type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES },
+          // Fetch reads pages already surfaced by search — snippets alone
+          // rarely carry event dates. Token-capped to bound cost per run.
+          {
+            type: "web_fetch_20260209",
+            name: "web_fetch",
+            max_uses: MAX_PAGE_FETCHES,
+            max_content_tokens: MAX_FETCH_TOKENS,
+          },
+        ],
         messages,
       });
 
