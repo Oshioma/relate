@@ -79,7 +79,6 @@ export default async function CommunityLayout({
           sub: true,
         })),
     ]),
-    { href: `${base}/spaces`, label: "All spaces", icon: <LayoutGrid className="h-4 w-4" /> },
     { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
     { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
     { href: `${base}/concierge`, label: "Concierge", icon: <Sparkles className="h-4 w-4" /> },
@@ -102,7 +101,7 @@ export default async function CommunityLayout({
                 key={item.href}
                 href={item.href}
                 icon={item.icon}
-                exact={item.href === base || item.href === `${base}/spaces`}
+                exact={item.href === base}
                 className={"sub" in item && item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
               >
                 {item.label}
