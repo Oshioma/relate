@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Sparkles, Tag } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, BookOpen, Users, Shield, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -8,14 +8,14 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
-import { getUnreadNotificationCount } from "@/lib/data/notifications";
-import { getUnreadMessageCount } from "@/lib/data/messages";
+import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
+import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
-import { NotificationsNavLink, NotificationsIconLink } from "@/components/layout/notification-bell";
-import { MessagesNavLink, MessagesIconLink } from "@/components/layout/messages-bell";
+import { NotificationsPopover } from "@/components/layout/notifications-popover";
+import { MessagesPopover } from "@/components/layout/messages-popover";
 
 export default async function CommunityLayout({
   children,
@@ -37,16 +37,19 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, spaces, navLinks, featuredCategories, customCategories] = await Promise.all([
-    getProfile(supabase, user.id),
-    getMembership(supabase, community.id, user.id),
-    getUnreadNotificationCount(supabase, user.id),
-    getUnreadMessageCount(supabase, user.id),
-    getCommunitySpaces(supabase, community.id),
-    getCommunityNavLinks(supabase, community.id),
-    getCommunityFeaturedBusinessCategories(supabase, community.id),
-    getCommunityBusinessCustomCategories(supabase, community.id),
-  ]);
+  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, featuredCategories, customCategories] =
+    await Promise.all([
+      getProfile(supabase, user.id),
+      getMembership(supabase, community.id, user.id),
+      getUnreadNotificationCount(supabase, user.id),
+      getUnreadMessageCount(supabase, user.id),
+      getNotifications(supabase, user.id, 6),
+      getConversations(supabase, user.id),
+      getCommunitySpaces(supabase, community.id),
+      getCommunityNavLinks(supabase, community.id),
+      getCommunityFeaturedBusinessCategories(supabase, community.id),
+      getCommunityBusinessCustomCategories(supabase, community.id),
+    ]);
 
   if (!membership && !community.is_public) {
     notFound();
@@ -81,7 +84,7 @@ export default async function CommunityLayout({
     ]),
     { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> },
     { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-4 w-4" /> },
-    { href: `${base}/concierge`, label: "Concierge", icon: <Sparkles className="h-4 w-4" /> },
+    { href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> },
   ];
 
   return (
@@ -107,8 +110,6 @@ export default async function CommunityLayout({
                 {item.label}
               </NavLink>
             ))}
-            <NotificationsNavLink count={unreadCount} />
-            <MessagesNavLink count={unreadMessageCount} />
           </div>
 
           {navLinks.length > 0 && (
@@ -159,15 +160,15 @@ export default async function CommunityLayout({
       </aside>
 
       <div className="flex min-h-screen flex-1 flex-col pb-16 md:pb-0">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:hidden">
-          <Link href="/dashboard" className="text-muted-foreground">
+        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:justify-end md:px-6">
+          <Link href="/dashboard" className="text-muted-foreground md:hidden">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
+          <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
           <div className="flex items-center gap-4">
-            <NotificationsIconLink count={unreadCount} />
-            <MessagesIconLink count={unreadMessageCount} />
-            <Link href="/settings">
+            <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
+            <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
+            <Link href="/settings" className="md:hidden">
               <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
             </Link>
           </div>
@@ -190,7 +191,7 @@ export default async function CommunityLayout({
           { href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> },
           { href: `${base}/resources`, label: "Resources", icon: <BookOpen className="h-5 w-5" /> },
           { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
-          { href: `${base}/concierge`, label: "Concierge", icon: <Sparkles className="h-5 w-5" /> },
+          { href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> },
         ]}
       />
     </div>

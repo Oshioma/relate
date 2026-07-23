@@ -76,6 +76,9 @@ export interface ConciergeResult {
   snippet: string | null;
   extra: string | null;
   href: string;
+  // Only populated for business results, which render with a large photo.
+  imageUrl?: string | null;
+  imagePosition?: string | null;
 }
 
 export interface ConciergeResults {
@@ -121,7 +124,7 @@ export async function searchCommunity(supabase: Client, communityId: string, com
   const [businesses, events, guides, listings, jobs, accommodation, volunteerProjects, clubs, recommendations, landmarks, posts] = await Promise.all([
     supabase
       .from("businesses")
-      .select("id, name, description, space:space_id (slug)")
+      .select("id, name, description, image_url, image_position, space:space_id (slug)")
       .eq("community_id", communityId)
       .or(orIlike(["name", "description"], q))
       .limit(RESULTS_PER_TYPE),
@@ -199,6 +202,8 @@ export async function searchCommunity(supabase: Client, communityId: string, com
       snippet: truncate(b.description),
       extra: null,
       href: `${base}/spaces/${b.space?.slug ?? ""}`,
+      imageUrl: b.image_url,
+      imagePosition: b.image_position,
     }));
   }
 
