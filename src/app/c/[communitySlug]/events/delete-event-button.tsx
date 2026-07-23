@@ -8,11 +8,13 @@ import { deleteEvent } from "./actions";
 export function DeleteEventButton({
   eventId,
   eventTitle,
+  communityId,
   communitySlug,
   className,
 }: {
   eventId: string;
   eventTitle: string;
+  communityId: string;
   communitySlug: string;
   className?: string;
 }) {
@@ -30,7 +32,7 @@ export function DeleteEventButton({
           if (!window.confirm(`Delete "${eventTitle}"? This can't be undone.`)) return;
           setError(null);
           startTransition(async () => {
-            const result = await deleteEvent(eventId, communitySlug);
+            const result = await deleteEvent(eventId, communityId, communitySlug, eventTitle);
             if (result?.error) {
               setError(result.error);
             } else {

@@ -177,6 +177,16 @@ export type Event = {
   created_at: string;
 };
 
+// A title staff deleted from the calendar — AI discovery skips any future
+// find whose title matches one of these (case-insensitively) for the
+// community, so a deleted event doesn't quietly come back on a later run.
+export type EventDismissal = {
+  id: string;
+  community_id: string;
+  title: string;
+  created_at: string;
+};
+
 export type Resource = {
   id: string;
   community_id: string;
@@ -783,6 +793,7 @@ export type Database = {
         Relationships: [FKey<"author_id", "profiles">, FKey<"post_id", "posts">];
       };
       events: { Row: Event; Insert: Partial<Event> & { community_id: string; title: string; start_time: string; created_by: string }; Update: Partial<Event> } & NoRel;
+      event_dismissals: { Row: EventDismissal; Insert: Partial<EventDismissal> & { community_id: string; title: string }; Update: Partial<EventDismissal> } & NoRel;
       resources: { Row: Resource; Insert: Partial<Resource> & { community_id: string; space_id: string; title: string; url: string; created_by: string }; Update: Partial<Resource> } & NoRel;
       community_invites: {
         Row: CommunityInvite;

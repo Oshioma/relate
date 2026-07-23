@@ -76,13 +76,18 @@ export async function rsvpToEvent(eventId: string, communitySlug: string) {
 
 // RLS (events_delete_staff) restricts this to community staff — anyone
 // else's delete matches zero rows.
-export async function deleteEvent(eventId: string, communitySlug: string) {
+export async function deleteEvent(eventId: string, communityId: string, communitySlug: string, eventTitle: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("events").delete().eq("id", eventId);
 
   if (error) {
     return { error: error.message };
   }
+
+  // Best-effort: remember the title so AI discovery doesn't re-add the same
+  // event on a later run. A failure here (e.g. a duplicate) shouldn't undo
+  // the delete that already succeeded.
+  await supabase.from("event_dismissals").insert({ community_id: communityId, title: eventTitle.trim() });
 
   revalidatePath(`/c/${communitySlug}/events`);
   return { error: null };

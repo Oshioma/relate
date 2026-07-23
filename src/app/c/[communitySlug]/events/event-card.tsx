@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Link as LinkIcon } from "lucide-react";
+import { CalendarDays, MapPin, Link as LinkIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { formatDateTime } from "@/lib/utils";
@@ -14,6 +14,7 @@ export function EventCard({
   event,
   rsvps,
   currentUserId,
+  communityId,
   communitySlug,
   canRsvp,
   canDelete,
@@ -21,6 +22,7 @@ export function EventCard({
   event: Event;
   rsvps: EventRsvpWithAttendee[];
   currentUserId: string;
+  communityId: string;
   communitySlug: string;
   canRsvp: boolean;
   canDelete: boolean;
@@ -30,42 +32,47 @@ export function EventCard({
   const [imageBroken, setImageBroken] = useState(false);
   // Scraped image URLs sometimes 404 or reject hotlinking once loaded in a
   // browser even though the server-side scrape found them — fall back to
-  // the plain card instead of showing a broken-image icon.
+  // the placeholder instead of showing a broken-image icon.
   const showImage = Boolean(event.image_url) && !imageBroken;
 
   return (
     <Card className="overflow-hidden">
-      {showImage && (
-        <div className="relative h-40 w-full bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+      <div className="relative h-40 w-full bg-muted">
+        {showImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={event.image_url!}
             alt={event.title}
             className="h-full w-full object-cover"
             onError={() => setImageBroken(true)}
           />
-          {canDelete && (
-            <DeleteEventButton
-              eventId={event.id}
-              eventTitle={event.title}
-              communitySlug={communitySlug}
-              className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
-            />
-          )}
-        </div>
-      )}
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
+            <CalendarDays className="h-8 w-8" />
+            <span className="text-xs font-medium">Event</span>
+          </div>
+        )}
+        {canDelete && (
+          <DeleteEventButton
+            eventId={event.id}
+            eventTitle={event.title}
+            communityId={communityId}
+            communitySlug={communitySlug}
+            className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+          />
+        )}
+      </div>
       <CardContent className="pt-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">{event.title}</h3>
             <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.start_time)}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {canRsvp && <EventRsvpButton eventId={event.id} communitySlug={communitySlug} initialGoing={isGoing} />}
-            {canDelete && !showImage && (
-              <DeleteEventButton eventId={event.id} eventTitle={event.title} communitySlug={communitySlug} />
-            )}
-          </div>
+          {canRsvp && (
+            <div className="shrink-0">
+              <EventRsvpButton eventId={event.id} communitySlug={communitySlug} initialGoing={isGoing} />
+            </div>
+          )}
         </div>
 
         {event.description && <p className="mt-2 text-sm text-foreground">{event.description}</p>}
