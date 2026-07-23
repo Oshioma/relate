@@ -137,6 +137,11 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       }
     }
 
+    // Surface the full error in the server logs — the client only ever sees a
+    // string, so without this an empty/opaque GoTrue body is impossible to
+    // diagnose after the fact.
+    console.error("[invites] inviteUserByEmail failed:", inviteError);
+
     // Supabase's built-in email service only sends a few emails per hour —
     // it's meant for development. Point admins at the two real ways forward
     // instead of echoing the raw "email rate limit exceeded".
@@ -148,10 +153,24 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       };
     }
 
+    // When email delivery fails without SMTP configured, GoTrue often replies
+    // with an error status but an empty body. auth-js then falls back to
+    // JSON.stringify(body), leaving message as the useless literal "{}" (or
+    // ""). Echoing that verbatim produced the confusing "…couldn't be sent: {}".
+    // Detect that case and give admins something actionable instead.
+    const rawMessage = inviteError.message?.trim() ?? "";
+    const hasUsefulMessage = rawMessage !== "" && rawMessage !== "{}" && rawMessage !== "[object Object]";
+    if (!hasUsefulMessage) {
+      return {
+        error:
+          "Invite link created, but the email couldn't be sent: the email service returned no details. This usually means transactional email isn't set up — connect a custom SMTP provider (Supabase → Authentication → Emails). In the meantime, copy the invite link from the list below and share it directly.",
+      };
+    }
+
     // The invite link itself was still created and is visible/copyable from
     // the list below, so this isn't a dead end even if the email didn't go out.
     return {
-      error: `Invite link created, but the email couldn't be sent: ${inviteError.message}`,
+      error: `Invite link created, but the email couldn't be sent: ${rawMessage}`,
     };
   }
 
