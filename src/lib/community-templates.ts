@@ -414,6 +414,16 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     ],
   },
   {
+    key: "coastal",
+    label: "Coastal Area",
+    description: "A seaside town, fishing village or stretch of coast — life runs on the water.",
+    mapLayers: ["Beaches", "Harbours & Marinas", "Weather & Tides", "Surf Breaks", "Fishing Spots", "Coastal Walks", "Marine Conservation Areas"],
+    extraSpaces: [
+      { name: "Tides & Weather", description: "Daily tide charts and forecasts.", space_type: "resources" },
+      { name: "Harbour & Boating", description: "Moorings, launches and conditions on the water." },
+    ],
+  },
+  {
     key: "city",
     label: "City",
     description: "Lisbon, New York — dense, multi-district, public-transport-first.",
@@ -531,6 +541,15 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
 
 export function getPlaceLocationType(key: string): PlaceLocationType | undefined {
   return PLACE_LOCATION_TYPES.find((t) => t.key === key);
+}
+
+// Location types where daily life depends on the sea. These communities get
+// live tide times alongside their weather; every other place community gets
+// weather alone (see src/lib/weather.ts).
+const TIDAL_LOCATION_TYPES = ["island", "coastal"];
+
+export function isTidalLocationType(key: string | null | undefined): boolean {
+  return !!key && TIDAL_LOCATION_TYPES.includes(key);
 }
 
 export interface PlaceSetupRecommendation extends SetupRecommendation {

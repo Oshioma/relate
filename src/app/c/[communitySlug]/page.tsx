@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, CalendarDays, Pin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +12,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
+import { WeatherTidesCard } from "./weather-tides-card";
 import { formatRelativeTime, formatDateTime } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
@@ -90,6 +92,10 @@ export default async function CommunityFeedPage({
           </div>
 
           <div>
+            <Suspense fallback={null}>
+              <WeatherTidesCard community={community} />
+            </Suspense>
+
             <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Upcoming events
             </h2>
