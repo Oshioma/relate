@@ -6,16 +6,32 @@ import { setCustomDomain, verifyCustomDomain, removeCustomDomain, type CustomDom
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { verificationRecordName, communitySubdomainUrl } from "@/lib/custom-domain";
+import { verificationRecordName, communitySubdomainUrl, VERIFICATION_RECORD_PREFIX } from "@/lib/custom-domain";
 import type { Community } from "@/types/database";
 
-function RecordRow({ label, name, value }: { label: string; name: string; value: string }) {
+// Laid out as Type / Name / Value because that's exactly the three boxes a
+// registrar's "add record" form shows — the owner copies field by field
+// instead of decoding an arrow diagram.
+function RecordRow({ title, why, type, name, value }: { title: string; why: string; type: string; name: string; value: string }) {
   return (
-    <div className="rounded-md bg-muted px-3 py-2 text-xs">
-      <p className="mb-1 font-medium text-muted-foreground">{label}</p>
-      <p className="break-all font-mono text-foreground">
-        {name} → {value}
+    <div className="rounded-md bg-muted px-3 py-2.5 text-xs">
+      <p className="mb-1.5 font-medium text-foreground">
+        {title} <span className="font-normal text-muted-foreground">— {why}</span>
       </p>
+      <div className="space-y-0.5">
+        <p>
+          <span className="text-muted-foreground">Type: </span>
+          <span className="font-mono text-foreground">{type}</span>
+        </p>
+        <p>
+          <span className="text-muted-foreground">Name (or Host): </span>
+          <span className="break-all font-mono text-foreground">{name}</span>
+        </p>
+        <p className="break-all">
+          <span className="text-muted-foreground">Value: </span>
+          <span className="break-all font-mono text-foreground">{value}</span>
+        </p>
+      </div>
     </div>
   );
 }
@@ -87,21 +103,31 @@ export function CustomDomainSection({ community, vercelAutomated }: { community:
         {domain && !verified && (
           <div className="mt-4 space-y-3">
             <p className="text-sm text-foreground">
-              <span className="font-mono">{domain}</span> is connected but not verified yet. Add these DNS records at
-              your domain registrar:
+              One last step. Log in to the website where you bought <span className="font-mono">{domain}</span> (like
+              GoDaddy or Namecheap), open its <strong>DNS settings</strong>, and add these two records — copy each field
+              exactly:
             </p>
             <RecordRow
-              label="1. TXT record — proves you own the domain"
-              name={verificationRecordName(domain)}
+              title="Record 1"
+              why="a secret code that proves the domain is yours"
+              type="TXT"
+              name={VERIFICATION_RECORD_PREFIX}
               value={community.custom_domain_token ?? ""}
             />
-            <RecordRow label="2. A record — points the domain at the platform" name={domain} value="76.76.21.21" />
+            <RecordRow
+              title="Record 2"
+              why="sends visitors to your community"
+              type="A"
+              name="@"
+              value="76.76.21.21"
+            />
             <p className="text-xs text-muted-foreground">
-              For a www subdomain use a CNAME to <span className="font-mono">cname.vercel-dns.com</span> instead of the
-              A record.{" "}
+              &ldquo;@&rdquo; means the domain itself. If your provider wants a full name for record 1, use{" "}
+              <span className="font-mono">{verificationRecordName(domain)}</span>. Save, wait a few minutes (DNS changes
+              travel slowly — sometimes up to an hour), then press the button below.
               {vercelAutomated
-                ? "Verifying also registers the domain with the hosting platform and issues its SSL certificate automatically."
-                : `The platform operator also needs to add ${domain} to the hosting project (Vercel → Settings → Domains) so it gets an SSL certificate.`}
+                ? " Everything else, including the security certificate, happens automatically."
+                : ` After it verifies, the platform operator adds ${domain} in Vercel → Settings → Domains to switch it on.`}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <form action={verifyAction}>

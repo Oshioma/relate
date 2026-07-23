@@ -387,7 +387,7 @@ export async function verifyCustomDomain(_prevState: CustomDomainState, formData
   }
   if (!records.includes(community.custom_domain_token)) {
     return {
-      error: `No matching TXT record found on ${verificationRecordName(community.custom_domain)} yet. DNS changes can take a few minutes (sometimes hours) to propagate — double-check the record and try again.`,
+      error: `We couldn't find your secret code on ${community.custom_domain} yet. DNS changes can take a few minutes (sometimes up to an hour) to travel — double-check record 1 (the TXT record at ${verificationRecordName(community.custom_domain)}) and try again in a bit.`,
     };
   }
 
