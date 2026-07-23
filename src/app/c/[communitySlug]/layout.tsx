@@ -93,7 +93,7 @@ export default async function CommunityLayout({
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
         <div className="border-b border-border px-5 py-5">
           <div className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} size={112} />
+            <Avatar src={community.logo_url} name={community.name} size={140} />
             <span className="mt-3 truncate text-lg font-semibold text-foreground">{community.name}</span>
           </div>
         </div>
