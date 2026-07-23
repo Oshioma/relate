@@ -23,11 +23,13 @@ export function ChallengeCard({
   communitySlug,
   spaceSlug,
   canManage,
+  canInteract,
 }: {
   data: ChallengeWithParticipants;
   communitySlug: string;
   spaceSlug: string;
   canManage: boolean;
+  canInteract: boolean;
 }) {
   const { challenge, participants, participantCount, viewerJoined } = data;
   const [isPending, startTransition] = useTransition();
@@ -110,9 +112,11 @@ export function ChallengeCard({
             </span>
           </div>
 
-          <Button type="button" variant={viewerJoined ? "secondary" : "primary"} disabled={isPending} onClick={toggleParticipation}>
-            {viewerJoined ? "Leave" : "Join"}
-          </Button>
+          {canInteract && (
+            <Button type="button" variant={viewerJoined ? "secondary" : "primary"} disabled={isPending} onClick={toggleParticipation}>
+              {viewerJoined ? "Leave" : "Join"}
+            </Button>
+          )}
         </div>
 
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}

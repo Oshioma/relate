@@ -71,10 +71,16 @@ export default async function SpaceDetailPage({
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  // RLS only returns the space to a guest when it's public; members/private
+  // resolve to null here, so notFound doubles as the access gate.
   if (!space) notFound();
+
+  // Guests have no id; the personalized data helpers only use this to flag
+  // "you joined / you voted", so an empty id safely reads as "not yet".
+  const viewerId = user?.id ?? "";
 
   const isResourceSpace = space.space_type === "resources";
   const isJournalSpace = space.space_type === "journal";
@@ -128,14 +134,16 @@ export default async function SpaceDetailPage({
     guides,
     volunteerProjects,
   ] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
-    isGrowthJourneySpace ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
-    isDirectorySpace ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
-    isChallengeSpace ? getSpaceChallenges(supabase, space.id, user.id) : Promise.resolve([]),
+    // Growth journey is a personal timeline — only meaningful once signed in.
+    isGrowthJourneySpace && user ? getMemberTimeline(supabase, community.id, community.slug, user.id) : Promise.resolve([]),
+    // The member directory stays login-gated even inside a public space.
+    isDirectorySpace && user ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
+    isChallengeSpace ? getSpaceChallenges(supabase, space.id, viewerId) : Promise.resolve([]),
     isBusinessDirectorySpace ? getSpaceBusinesses(supabase, space.id) : Promise.resolve([]),
     isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
     isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
@@ -144,10 +152,10 @@ export default async function SpaceDetailPage({
     isMarketplaceSpace ? getSpaceListings(supabase, space.id) : Promise.resolve([]),
     isJobsSpace ? getSpaceJobListings(supabase, space.id) : Promise.resolve([]),
     isAccommodationSpace ? getSpaceAccommodationListings(supabase, space.id) : Promise.resolve([]),
-    isRecommendationsSpace ? getSpaceRecommendations(supabase, space.id, user.id) : Promise.resolve([]),
-    isClubsSpace ? getSpaceClubs(supabase, space.id, user.id) : Promise.resolve([]),
+    isRecommendationsSpace ? getSpaceRecommendations(supabase, space.id, viewerId) : Promise.resolve([]),
+    isClubsSpace ? getSpaceClubs(supabase, space.id, viewerId) : Promise.resolve([]),
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
-    isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, user.id) : Promise.resolve([]),
+    isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, viewerId) : Promise.resolve([]),
   ]);
 
   const featuredBusinessCategories = isBusinessDirectorySpace
@@ -174,11 +182,11 @@ export default async function SpaceDetailPage({
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
   const discoverableMembers = directoryMembers.filter(isDiscoverable);
-  const viewerDirectoryEntry = directoryMembers.find((m) => m.profile.id === user.id);
+  const viewerDirectoryEntry = directoryMembers.find((m) => m.profile.id === viewerId);
   const recommendedMembers = isDirectorySpace
     ? getRecommendedMembers(
         discoverableMembers,
-        user.id,
+        viewerId,
         viewerDirectoryEntry?.interests ?? [],
         viewerDirectoryEntry?.skills ?? [],
         viewerDirectoryEntry?.profile.profession ?? null
@@ -317,6 +325,13 @@ export default async function SpaceDetailPage({
       ) : isGrowthJourneySpace ? (
         <GrowthJourneyView events={timeline} />
       ) : isDirectorySpace ? (
+        !user ? (
+          <EmptyState
+            icon={<MessageSquare className="h-6 w-6" />}
+            title="Members only"
+            description="Log in or join this community to browse the member directory."
+          />
+        ) : (
         <>
           <DiscoverySection title="Recommended for you" members={recommendedMembers} communitySlug={community.slug} />
           <DiscoverySection title="New members" members={newMembers} communitySlug={community.slug} />
@@ -326,8 +341,9 @@ export default async function SpaceDetailPage({
           <DiscoverySection title="Businesses" members={businessMembers} communitySlug={community.slug} />
 
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">All members</h2>
-          <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
+          <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={viewerId} isAdmin={Boolean(isAdmin)} />
         </>
+        )
       ) : isChallengeSpace ? (
         <>
           {isAdmin && (
@@ -347,6 +363,7 @@ export default async function SpaceDetailPage({
                   communitySlug={community.slug}
                   spaceSlug={space.slug}
                   canManage={Boolean(isAdmin)}
+                  canInteract={canPost}
                 />
               ))}
             </div>
@@ -364,7 +381,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
           initialCategory={initialCategory}
           featuredCategories={featuredBusinessCategories}
           customCategories={businessCustomCategories}
@@ -381,7 +398,7 @@ export default async function SpaceDetailPage({
           items={mapItems}
           canPost={canPost}
           isAdmin={Boolean(isAdmin)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isMarketplaceSpace ? (
         <MarketplaceView
@@ -392,7 +409,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isJobsSpace ? (
         <JobsBoardView
@@ -403,7 +420,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isAccommodationSpace ? (
         <AccommodationView
@@ -414,7 +431,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isRecommendationsSpace ? (
         <RecommendationsView
@@ -425,7 +442,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isClubsSpace ? (
         <ClubsView
@@ -436,7 +453,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : isGuidesSpace ? (
         <GuidesView guides={guides} communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} canPost={canPost} />
@@ -449,7 +466,7 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
-          userId={user.id}
+          userId={viewerId}
         />
       ) : (
         <>

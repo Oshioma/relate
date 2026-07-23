@@ -130,6 +130,7 @@ export function RecommendationsView({
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
               canManage={isStaff || data.recommendation.recommended_by === userId}
+              canInteract={canPost}
             />
           ))}
         </div>

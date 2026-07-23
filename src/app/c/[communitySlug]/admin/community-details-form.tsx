@@ -58,6 +58,24 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
         </p>
       </div>
 
+      <div className="border-t border-border pt-3">
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            name="events_public"
+            defaultChecked={community.events_public}
+            className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--accent)]"
+          />
+          <span>
+            <span className="block font-medium text-foreground">Show events publicly</span>
+            <span className="block text-muted-foreground">
+              Let signed-out visitors see this community&apos;s events before logging in. They still
+              can&apos;t RSVP or add events without an account.
+            </span>
+          </span>
+        </label>
+      </div>
+
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Saving…" className="w-auto">

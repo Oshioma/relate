@@ -22,11 +22,13 @@ export function VolunteerProjectCard({
   communitySlug,
   spaceSlug,
   canManage,
+  canInteract,
 }: {
   data: VolunteerProjectWithSignups;
   communitySlug: string;
   spaceSlug: string;
   canManage: boolean;
+  canInteract: boolean;
 }) {
   const { project, volunteers, volunteerCount, viewerSignedUp } = data;
   const [isPending, startTransition] = useTransition();
@@ -130,9 +132,11 @@ export function VolunteerProjectCard({
             </span>
           </div>
 
-          <Button type="button" variant={viewerSignedUp ? "secondary" : "primary"} disabled={isPending} onClick={toggleSignup}>
-            {viewerSignedUp ? "Withdraw" : "Sign Up"}
-          </Button>
+          {canInteract && (
+            <Button type="button" variant={viewerSignedUp ? "secondary" : "primary"} disabled={isPending} onClick={toggleSignup}>
+              {viewerSignedUp ? "Withdraw" : "Sign Up"}
+            </Button>
+          )}
         </div>
 
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}

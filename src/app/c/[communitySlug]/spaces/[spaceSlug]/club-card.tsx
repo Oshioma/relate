@@ -15,11 +15,13 @@ export function ClubCard({
   communitySlug,
   spaceSlug,
   canManage,
+  canInteract,
 }: {
   data: ClubWithMembers;
   communitySlug: string;
   spaceSlug: string;
   canManage: boolean;
+  canInteract: boolean;
 }) {
   const { club, members, memberCount, viewerJoined } = data;
   const [isPending, startTransition] = useTransition();
@@ -96,9 +98,11 @@ export function ClubCard({
             </span>
           </div>
 
-          <Button type="button" variant={viewerJoined ? "secondary" : "primary"} disabled={isPending} onClick={toggleMembership}>
-            {viewerJoined ? "Leave" : "Join"}
-          </Button>
+          {canInteract && (
+            <Button type="button" variant={viewerJoined ? "secondary" : "primary"} disabled={isPending} onClick={toggleMembership}>
+              {viewerJoined ? "Leave" : "Join"}
+            </Button>
+          )}
         </div>
 
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}

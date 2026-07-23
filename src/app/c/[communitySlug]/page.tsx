@@ -47,9 +47,9 @@ export default async function CommunityFeedPage({
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
-  const membership = await getMembership(supabase, community.id, user.id);
+  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const [
     posts,
     events,
@@ -251,7 +251,7 @@ export default async function CommunityFeedPage({
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">{community.name}</h1>
             {community.description && <p className="mt-1 text-sm text-muted-foreground">{community.description}</p>}
           </div>
-          {!membership && <JoinCommunityButton communityId={community.id} />}
+          {user && !membership && <JoinCommunityButton communityId={community.id} />}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

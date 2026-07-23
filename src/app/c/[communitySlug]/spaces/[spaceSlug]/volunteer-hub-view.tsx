@@ -121,6 +121,7 @@ export function VolunteerHubView({
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
               canManage={isStaff || data.project.organiser_id === userId}
+              canInteract={canPost}
             />
           ))}
         </div>
