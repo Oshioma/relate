@@ -1,15 +1,17 @@
+import Link from "next/link";
 import {
   Waves,
   Wind,
   Droplets,
+  MapPin,
+  CloudOff,
   ArrowUpToLine,
   ArrowDownToLine,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
-  getCommunityWeather,
-  getCommunityTides,
+  getLiveConditions,
   describeWeatherCode,
   formatLocalHour,
   formatMinutesUntil,
@@ -19,49 +21,110 @@ import {
 
 // Live conditions panel at the top of a Tides & Weather resources space.
 // Tides lead (that's what people open this space for), current weather sits
-// underneath, and the whole thing renders nothing when neither is available —
-// the space then behaves like any other resources space. Both data calls hit
-// the same cached Open-Meteo fetches as the home-page sidebar card.
+// underneath. Every "no data" path renders a visible state instead of
+// vanishing: admins get told exactly what to fix (usually the community's
+// location in admin settings), everyone else sees at most a soft
+// "temporarily unavailable" note. Data calls share the home-page sidebar
+// card's cached Open-Meteo fetches.
 export async function TidesWeatherPanel({
   community,
+  communitySlug,
+  isAdmin,
 }: {
   community: { location_type: string | null; location_name: string | null };
+  communitySlug: string;
+  isAdmin: boolean;
 }) {
-  const [weather, tides] = await Promise.all([
-    getCommunityWeather(community),
-    getCommunityTides(community),
-  ]);
-  if (!weather && !tides) return null;
+  const live = await getLiveConditions(community);
+
+  if (live.status === "no_location" || live.status === "location_not_found") {
+    if (!isAdmin) return null;
+    return (
+      <AdminHint
+        title={
+          live.status === "no_location"
+            ? "Add a location to turn on live tides & weather"
+            : `We couldn't find "${live.locationName}" on the map`
+        }
+        body={
+          live.status === "no_location"
+            ? "Set your community's Location in the admin settings (e.g. “Zanzibar, Tanzania”) and live conditions will appear here for everyone."
+            : "Try a more specific or better-known place name in the admin settings — “Nungwi, Zanzibar” works better than a nickname."
+        }
+        communitySlug={communitySlug}
+      />
+    );
+  }
+
+  if (live.status === "unavailable") {
+    return (
+      <Card className="mb-6">
+        <CardContent className="flex items-center gap-3 pt-5 text-sm text-muted-foreground">
+          <CloudOff className="h-5 w-5 shrink-0" />
+          Live tides &amp; weather are temporarily unavailable — check back shortly.
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="mb-6 space-y-4">
-      {tides && <TideBoard tides={tides} />}
+      {live.tides && <TideBoard tides={live.tides} />}
 
-      {weather && (
+      {live.tidal && !live.tides && isAdmin && (
+        <AdminHint
+          title="No tide data for this exact spot"
+          body={`The marine model has no sea-level data where "${community.location_name}" landed on the map. A location name right on the coast usually fixes it.`}
+          communitySlug={communitySlug}
+        />
+      )}
+
+      {live.current && (
         <Card>
           <CardContent className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-5 text-sm text-foreground">
-            <span className="text-lg font-semibold">{Math.round(weather.current.temperature)}°C</span>
-            <span className="text-muted-foreground">{describeWeatherCode(weather.current.weatherCode).label}</span>
+            <span className="text-lg font-semibold">{Math.round(live.current.temperature)}°C</span>
+            <span className="text-muted-foreground">{describeWeatherCode(live.current.weatherCode).label}</span>
             <span className="flex items-center gap-1 text-muted-foreground">
               <Wind className="h-3.5 w-3.5" />
-              {Math.round(weather.current.windSpeed)} km/h
+              {Math.round(live.current.windSpeed)} km/h
             </span>
             <span className="flex items-center gap-1 text-muted-foreground">
               <Droplets className="h-3.5 w-3.5" />
-              {Math.round(weather.current.humidity)}%
+              {Math.round(live.current.humidity)}%
             </span>
           </CardContent>
         </Card>
       )}
 
       <p className="text-[10px] text-muted-foreground">
-        {(tides ?? weather)!.resolvedName} · Data by{" "}
+        {live.resolvedName} · Data by{" "}
         <a href="https://open-meteo.com/" target="_blank" rel="noreferrer" className="underline">
           Open-Meteo
         </a>
-        {tides && " · tide times are approximate (±30 min) — not for navigation"}
+        {live.tides && " · tide times are approximate (±30 min) — not for navigation"}
       </p>
     </div>
+  );
+}
+
+function AdminHint({ title, body, communitySlug }: { title: string; body: string; communitySlug: string }) {
+  return (
+    <Card className="mb-6 border-dashed">
+      <CardContent className="pt-5">
+        <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <MapPin className="h-4 w-4 text-accent" />
+          {title}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+        <Link
+          href={`/c/${communitySlug}/admin`}
+          className="mt-2 inline-block text-sm font-medium text-accent hover:underline"
+        >
+          Open admin settings
+        </Link>
+        <p className="mt-2 text-xs text-muted-foreground">Only admins see this note.</p>
+      </CardContent>
+    </Card>
   );
 }
 

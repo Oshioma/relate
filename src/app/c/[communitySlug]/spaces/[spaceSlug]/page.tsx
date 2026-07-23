@@ -162,8 +162,9 @@ export default async function SpaceDetailPage({
   // The island/coastal templates create a "Tides & Weather" resources space;
   // matching on the name (rather than a dedicated space_type) keeps renamed
   // copies and hand-made "Weather" spaces working too. The panel itself
-  // decides what it can show — tides only for tidal location types.
-  const showLiveConditions = isResourceSpace && Boolean(community.location_name) && /tide|weather/i.test(space.name);
+  // decides what it can show — tides only for tidal location types, and an
+  // admin-facing setup hint when the community has no usable location yet.
+  const showLiveConditions = isResourceSpace && /tide|weather/i.test(space.name);
 
   const canPost = membership?.status === "active";
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
@@ -208,7 +209,7 @@ export default async function SpaceDetailPage({
         <>
           {showLiveConditions && (
             <Suspense fallback={null}>
-              <TidesWeatherPanel community={community} />
+              <TidesWeatherPanel community={community} communitySlug={community.slug} isAdmin={Boolean(isAdmin)} />
             </Suspense>
           )}
 

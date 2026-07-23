@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
+import { getPlaceLocationType } from "@/lib/community-templates";
 import { normalizeCustomDomain, isPlatformHost, verificationRecordName } from "@/lib/custom-domain";
 import type { SpaceVisibility, SpaceType, Community } from "@/types/database";
 
@@ -208,6 +209,8 @@ export async function updateCommunityDetails(
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const locationName = String(formData.get("location_name") ?? "").trim();
+  const rawLocationType = String(formData.get("location_type") ?? "");
+  const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -216,7 +219,12 @@ export async function updateCommunityDetails(
   const supabase = await createClient();
   const { error } = await supabase
     .from("communities")
-    .update({ name, description: description || null, location_name: locationName.slice(0, 120) || null })
+    .update({
+      name,
+      description: description || null,
+      location_name: locationName.slice(0, 120) || null,
+      location_type: locationType,
+    })
     .eq("id", communityId);
 
   if (error) {

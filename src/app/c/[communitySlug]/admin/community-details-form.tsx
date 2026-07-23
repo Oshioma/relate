@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { updateCommunityDetails, type CommunityDetailsState } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { PLACE_LOCATION_TYPES } from "@/lib/community-templates";
 import type { Community } from "@/types/database";
 
 export function CommunityDetailsForm({ community }: { community: Community }) {
@@ -33,7 +34,27 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
           placeholder="Zanzibar, Tanzania"
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          The place this community is about. Used by AI event discovery and the map.
+          The place this community is about. Used by AI event discovery, the map, and live tides &amp; weather.
+        </p>
+      </div>
+
+      <div>
+        <Label htmlFor="community_location_type">Kind of place</Label>
+        <select
+          id="community_location_type"
+          name="location_type"
+          defaultValue={community.location_type ?? ""}
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">Not a specific place</option>
+          {PLACE_LOCATION_TYPES.map((lt) => (
+            <option key={lt.key} value={lt.key}>
+              {lt.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Islands and coastal areas get live tide times alongside their weather.
         </p>
       </div>
 
