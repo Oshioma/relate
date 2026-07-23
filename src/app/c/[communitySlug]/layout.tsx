@@ -162,9 +162,6 @@ export default async function CommunityLayout({
           </Link>
           <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
           <div className="flex items-center gap-4">
-            <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
-              <LayoutGrid className="h-5 w-5" />
-            </Link>
             {isStaff && (
               <Link
                 href={`${base}/admin`}
@@ -185,6 +182,9 @@ export default async function CommunityLayout({
                 <span className="hidden sm:inline">Super Admin</span>
               </Link>
             )}
+            <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
+              <LayoutGrid className="h-5 w-5" />
+            </Link>
             <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
             <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
             <Link href="/settings" className="md:hidden">
