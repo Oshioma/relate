@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -30,33 +30,51 @@ export default async function CommunityLayout({
   const { communitySlug } = await params;
   const supabase = await createClient();
 
+  // Signed-out visitors are allowed here (the proxy lets public community
+  // routes through). They get a read-only guest view: public spaces, events
+  // and search, with "log in" prompts in place of the member chrome.
   const user = await getCurrentUser(supabase);
-  if (!user) {
-    redirect(`/login?next=/c/${communitySlug}`);
-  }
 
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) {
+    // For a guest, getCommunityBySlug only ever resolves public communities
+    // (RLS), so a null here is either a private community or a bad slug —
+    // notFound is the right, non-revealing answer in both cases.
     notFound();
   }
 
-  const [profile, membership, unreadCount, unreadMessageCount, recentNotifications, conversations, spaces, navLinks, navItemOrder, featuredCategories, customCategories, features] =
-    await Promise.all([
-      getProfile(supabase, user.id),
-      getMembership(supabase, community.id, user.id),
-      getUnreadNotificationCount(supabase, user.id),
-      getUnreadMessageCount(supabase, user.id),
-      getNotifications(supabase, user.id, 6),
-      getConversations(supabase, user.id),
-      getCommunitySpaces(supabase, community.id),
-      getCommunityNavLinks(supabase, community.id),
-      getCommunityNavItemOrder(supabase, community.id),
-      getCommunityFeaturedBusinessCategories(supabase, community.id),
-      getCommunityBusinessCustomCategories(supabase, community.id),
-      getCommunityFeatures(supabase, community.id),
-    ]);
+  // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
+  // public ones for a guest.
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, features] = await Promise.all([
+    getCommunitySpaces(supabase, community.id),
+    getCommunityNavLinks(supabase, community.id),
+    getCommunityNavItemOrder(supabase, community.id),
+    getCommunityFeaturedBusinessCategories(supabase, community.id),
+    getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityFeatures(supabase, community.id),
+  ]);
 
-  if (!membership && !community.is_public) {
+  // Personal chrome (profile, membership, notifications, messages) only exists
+  // for a signed-in visitor.
+  const personal = user
+    ? await Promise.all([
+        getProfile(supabase, user.id),
+        getMembership(supabase, community.id, user.id),
+        getUnreadNotificationCount(supabase, user.id),
+        getUnreadMessageCount(supabase, user.id),
+        getNotifications(supabase, user.id, 6),
+        getConversations(supabase, user.id),
+      ])
+    : null;
+
+  const profile = personal?.[0] ?? null;
+  const membership = personal?.[1] ?? null;
+  const unreadCount = personal?.[2] ?? 0;
+  const unreadMessageCount = personal?.[3] ?? 0;
+  const recentNotifications = personal?.[4] ?? [];
+  const conversations = personal?.[5] ?? [];
+
+  if (user && !membership && !community.is_public) {
     notFound();
   }
 
@@ -154,26 +172,48 @@ export default async function CommunityLayout({
         </div>
 
         <div className="border-t border-border p-3">
-          <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
-            Members
-          </NavLink>
-          <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
-            <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
-                {profile?.full_name || profile?.username}
+          {user ? (
+            <>
+              <NavLink href={`${base}/members`} icon={<Users className="h-4 w-4" />}>
+                Members
+              </NavLink>
+              <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
+                <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={32} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {profile?.full_name || profile?.username}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">@{profile?.username}</p>
+                </div>
+              </Link>
+              <NavLink href="/settings" icon={<Settings className="h-4 w-4" />}>
+                Settings
+              </NavLink>
+              <Link href="/dashboard" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
+                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">All communities</span>
+              </Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <div className="space-y-2 px-1 py-1">
+              <p className="px-2 text-xs text-muted-foreground">
+                Browsing {community.name} as a guest.
               </p>
-              <p className="truncate text-xs text-muted-foreground">@{profile?.username}</p>
+              <Link
+                href={`/login?next=${encodeURIComponent(base)}`}
+                className="flex w-full items-center justify-center rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+              >
+                Log in
+              </Link>
+              <Link
+                href={`/signup?next=${encodeURIComponent(base)}`}
+                className="flex w-full items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              >
+                Sign up
+              </Link>
             </div>
-          </Link>
-          <NavLink href="/settings" icon={<Settings className="h-4 w-4" />}>
-            Settings
-          </NavLink>
-          <Link href="/dashboard" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
-            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">All communities</span>
-          </Link>
-          <LogoutButton />
+          )}
         </div>
       </aside>
 
@@ -207,20 +247,43 @@ export default async function CommunityLayout({
             <Link href={`${base}/spaces`} aria-label="Spaces" className="text-muted-foreground hover:text-foreground">
               <LayoutGrid className="h-5 w-5" />
             </Link>
-            <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
-            <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
-            <Link href="/settings" className="md:hidden">
-              <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
-            </Link>
+            {user ? (
+              <>
+                <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
+                <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
+                <Link href="/settings" className="md:hidden">
+                  <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={28} />
+                </Link>
+              </>
+            ) : (
+              <Link
+                href={`/login?next=${encodeURIComponent(base)}`}
+                className="text-sm font-medium text-accent hover:underline"
+              >
+                Log in
+              </Link>
+            )}
           </div>
         </header>
 
         <main className="flex-1">
-          {!membership && (
+          {!user ? (
+            <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
+              You&apos;re viewing the public parts of {community.name}.{" "}
+              <Link href={`/login?next=${encodeURIComponent(base)}`} className="font-medium underline">
+                Log in
+              </Link>{" "}
+              or{" "}
+              <Link href={`/signup?next=${encodeURIComponent(base)}`} className="font-medium underline">
+                sign up
+              </Link>{" "}
+              to post, review and join.
+            </div>
+          ) : !membership ? (
             <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               You&apos;re viewing {community.name} as a guest. Join to post and see member-only spaces.
             </div>
-          )}
+          ) : null}
           {children}
         </main>
       </div>
@@ -230,7 +293,8 @@ export default async function CommunityLayout({
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
           ...(features.events && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
-          { href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> },
+          // Members is login-gated, so only show the tab to signed-in visitors.
+          ...(user ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
       />

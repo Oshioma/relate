@@ -19,7 +19,7 @@ export default async function PostDetailPage({
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
@@ -28,13 +28,13 @@ export default async function PostDetailPage({
   if (!post || post.space_id !== space.id) notFound();
 
   const [membership, comments] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getPostComments(supabase, post.id),
   ]);
 
   const canComment = membership?.status === "active";
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
-  const isPostAuthor = post.author_id === user.id;
+  const isPostAuthor = post.author_id === user?.id;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -58,7 +58,7 @@ export default async function PostDetailPage({
 
       <div className="mb-4 space-y-3">
         {comments.map((comment) => {
-          const isCommentAuthor = comment.author_id === user.id;
+          const isCommentAuthor = comment.author_id === user?.id;
           return (
             <CommentItem
               key={comment.id}

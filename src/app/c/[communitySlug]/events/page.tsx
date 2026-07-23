@@ -16,14 +16,16 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
   const [membership, events] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getCommunityEvents(supabase, community.id),
   ]);
 
-  const rsvps = await getRsvpsForEvents(supabase, events.map((e) => e.id));
+  // Attendee lists (event_rsvps) stay members-only, so guests see the event
+  // schedule without who's going.
+  const rsvps = user ? await getRsvpsForEvents(supabase, events.map((e) => e.id)) : [];
   const rsvpsByEvent = groupRsvpsByEvent(rsvps);
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
@@ -52,7 +54,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
         <div className="mb-8">
           <EventList
             items={upcomingItems}
-            currentUserId={user.id}
+            currentUserId={user?.id ?? ""}
             communitySlug={community.slug}
             communityLogoUrl={community.logo_url}
             communityLocationName={community.location_name}
@@ -77,7 +79,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
           <div className="opacity-70">
             <EventList
               items={pastItems}
-              currentUserId={user.id}
+              currentUserId={user?.id ?? ""}
               communitySlug={community.slug}
               communityLogoUrl={community.logo_url}
               communityLocationName={community.location_name}
