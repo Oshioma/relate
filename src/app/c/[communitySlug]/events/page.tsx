@@ -54,6 +54,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
             items={upcomingItems}
             currentUserId={user.id}
             communitySlug={community.slug}
+            communityLogoUrl={community.logo_url}
             canRsvp={canRsvp}
             isStaff={isStaff}
           />
@@ -76,6 +77,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
               items={pastItems}
               currentUserId={user.id}
               communitySlug={community.slug}
+              communityLogoUrl={community.logo_url}
               canRsvp={false}
               isStaff={isStaff}
             />
