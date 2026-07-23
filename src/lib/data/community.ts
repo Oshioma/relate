@@ -93,3 +93,22 @@ export async function getCommunityMembers(supabase: Client, communityId: string)
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];
 }
+
+// The most recently joined active members, newest first — used to surface
+// "New Member" cards in the community feed alongside posts and other activity.
+export async function getCommunityRecentMembers(
+  supabase: Client,
+  communityId: string,
+  limit: number
+): Promise<MemberRow[]> {
+  const { data, error } = await supabase
+    .from("community_memberships")
+    .select("*, profile:user_id (*)")
+    .eq("community_id", communityId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as MemberRow[];
+}
