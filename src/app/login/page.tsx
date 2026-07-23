@@ -18,7 +18,9 @@ export default async function LoginPage({
             Relate
           </Link>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to your communities.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            One account, every community — sign in with the same details wherever you joined.
+          </p>
         </div>
 
         <Card>
