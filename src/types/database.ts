@@ -171,6 +171,7 @@ export type Event = {
   lat: number | null;
   lng: number | null;
   location_label: string | null;
+  image_url: string | null;
   created_by: string;
   created_at: string;
 };

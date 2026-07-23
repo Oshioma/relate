@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory } from "@/lib/business-categories";
+import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Database, BusinessCategory } from "@/types/database";
 
 export type BusinessFormState = { error: string } | undefined;
@@ -67,60 +68,6 @@ function validateBusinessFields(f: ReturnType<typeof parseBusinessFields>): stri
   if (!f.name) return "Give the business a name.";
   if ((f.lat === null) !== (f.lng === null)) return "Set both latitude and longitude, or leave both blank.";
   return null;
-}
-
-// og:image / twitter:image in either attribute order, then plain <img> tags.
-const META_IMAGE_PATTERNS = [
-  /<meta[^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["'][^>]+content=["']([^"']+)["']/gi,
-  /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image(?::secure_url)?|twitter:image)["']/gi,
-  /<img[^>]+src=["']([^"']+)["']/gi,
-];
-
-const MAX_CANDIDATES = 12;
-
-// Best-effort scrape of candidate images from a business's website: share
-// images first (usually the best), then images on the page. Returns [] rather
-// than throwing — an unreachable or imageless site just means the listing has
-// no image until the member uploads one.
-async function scrapeWebsiteImages(website: string): Promise<string[]> {
-  let url: URL;
-  try {
-    url = new URL(website);
-  } catch {
-    return [];
-  }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return [];
-
-  try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(6000),
-      headers: { "user-agent": "Mozilla/5.0 (compatible; RelateBot/1.0; +https://relate.app)", accept: "text/html" },
-    });
-    if (!response.ok) return [];
-    const html = (await response.text()).slice(0, 500_000);
-    const base = response.url || url;
-
-    const found: string[] = [];
-    for (const pattern of META_IMAGE_PATTERNS) {
-      for (const match of html.matchAll(pattern)) {
-        const raw = match[1].replace(/&amp;/g, "&");
-        if (raw.startsWith("data:") || /\.svg(\?|$)/i.test(raw)) continue;
-        try {
-          const resolved = new URL(raw, base).toString();
-          if (/^https?:\/\//.test(resolved) && !found.includes(resolved)) {
-            found.push(resolved);
-            if (found.length >= MAX_CANDIDATES) return found;
-          }
-        } catch {
-          // Malformed src attribute — skip it.
-        }
-      }
-    }
-    return found;
-  } catch {
-    // Timeout, DNS failure, TLS error — treat all as "no image found".
-    return [];
-  }
 }
 
 export async function fetchWebsiteImages(website: string): Promise<{ images: string[]; error?: string }> {
