@@ -64,7 +64,10 @@ export async function discoverEvents(
 
   const result = await discoverEventsWithAI({ locationName, existingTitles });
   if (result.status !== "ok") {
-    return { error: DISCOVERY_ERRORS[result.status] };
+    // This panel is staff-only, so include the raw diagnostic — it saves a
+    // round-trip through the hosting provider's logs.
+    const detail = result.detail ? ` (detail: ${result.detail})` : "";
+    return { error: DISCOVERY_ERRORS[result.status] + detail };
   }
 
   // Belt-and-braces dedupe in case the model ignored the skip list.

@@ -59,7 +59,7 @@ export async function createInvite(_prevState: InviteFormState, formData: FormDa
     return { error: error.message };
   }
 
-  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/members`);
   return undefined;
 }
 
@@ -131,7 +131,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
           .upsert({ user_id: existingUserId, community_id: communityId, role, status: "active" }, { onConflict: "user_id,community_id" });
 
         if (!membershipError) {
-          revalidatePath(`/c/${communitySlug}/admin`);
+          revalidatePath(`/c/${communitySlug}/members`);
           return undefined;
         }
       }
@@ -144,7 +144,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     };
   }
 
-  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/members`);
   return undefined;
 }
 
@@ -156,6 +156,6 @@ export async function revokeInvite(inviteId: string, communitySlug: string) {
     return { error: error.message };
   }
 
-  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/members`);
   return { error: null };
 }
