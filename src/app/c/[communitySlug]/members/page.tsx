@@ -33,8 +33,7 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
   ]);
 
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
-  const isOwner = membership?.status === "active" && membership.role === "owner";
-  const invites = isOwner ? await getCommunityInvites(supabase, community.id) : [];
+  const invites = isAdmin ? await getCommunityInvites(supabase, community.id) : [];
   const viewer = members.find((m) => m.profile.id === user.id);
   const discoverable = members.filter(isDiscoverable);
 
@@ -57,7 +56,7 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
         Members <span className="text-muted-foreground">({members.length})</span>
       </h1>
 
-      {isOwner && (
+      {isAdmin && (
         <>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Invite people</h2>
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
