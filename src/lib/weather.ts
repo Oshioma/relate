@@ -70,7 +70,7 @@ async function fetchJson(url: string, revalidate: number): Promise<unknown> {
   }
 }
 
-async function geocodeLocation(name: string): Promise<Coordinates | null> {
+async function geocodeOnce(name: string): Promise<Coordinates | null> {
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`;
   const data = (await fetchJson(url, GEOCODE_REVALIDATE)) as {
     results?: { latitude: number; longitude: number; name: string; country?: string }[];
@@ -83,6 +83,32 @@ async function geocodeLocation(name: string): Promise<Coordinates | null> {
     lng: hit.longitude,
     resolvedName: hit.country ? `${hit.name}, ${hit.country}` : hit.name,
   };
+}
+
+// Open-Meteo's geocoder matches bare place names — "Zanzibar Tanzania" or
+// "Nungwi, Zanzibar" as one string finds nothing even though "Zanzibar" and
+// "Nungwi" both exist. So fall back through progressively simpler variants:
+// the raw string, each comma segment in order, then the first segment with
+// trailing words dropped one at a time ("Zanzibar Tanzania" → "Zanzibar",
+// but "New York USA" → "New York" before "New"). Every attempt is cached
+// for ~30 days, so retries only cost anything the first time.
+function geocodeCandidates(raw: string): string[] {
+  const segments = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const candidates = [raw, ...segments];
+  let words = (segments[0] ?? "").split(/\s+/);
+  while (words.length > 1) {
+    words = words.slice(0, -1);
+    candidates.push(words.join(" "));
+  }
+  return [...new Set(candidates.filter(Boolean))].slice(0, 5);
+}
+
+async function geocodeLocation(name: string): Promise<Coordinates | null> {
+  for (const candidate of geocodeCandidates(name.trim())) {
+    const hit = await geocodeOnce(candidate);
+    if (hit) return hit;
+  }
+  return null;
 }
 
 async function fetchForecast(coords: Coordinates): Promise<Pick<CommunityWeather, "current" | "daily"> | null> {

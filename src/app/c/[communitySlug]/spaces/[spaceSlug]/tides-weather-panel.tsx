@@ -28,14 +28,20 @@ import {
 // card's cached Open-Meteo fetches.
 export async function TidesWeatherPanel({
   community,
+  spaceLocationName,
   communitySlug,
   isAdmin,
 }: {
   community: { location_type: string | null; location_name: string | null };
+  /** The space's own location override — takes precedence over the community's. */
+  spaceLocationName: string | null;
   communitySlug: string;
   isAdmin: boolean;
 }) {
-  const live = await getLiveConditions(community);
+  const live = await getLiveConditions({
+    location_type: community.location_type,
+    location_name: spaceLocationName?.trim() || community.location_name,
+  });
 
   if (live.status === "no_location" || live.status === "location_not_found") {
     if (!isAdmin) return null;
@@ -48,8 +54,8 @@ export async function TidesWeatherPanel({
         }
         body={
           live.status === "no_location"
-            ? "Set your community's Location in the admin settings (e.g. “Zanzibar, Tanzania”) and live conditions will appear here for everyone."
-            : "Try a more specific or better-known place name in the admin settings — “Nungwi, Zanzibar” works better than a nickname."
+            ? "Set a location for this space (Admin → Spaces → edit this space) or your community's Location in Community details, and live conditions will appear here for everyone."
+            : "Try a more specific or better-known place name — “Nungwi” or “Stone Town” work better than a full address. You can set it just for this space under Admin → Spaces → edit this space, without touching the community's location."
         }
         communitySlug={communitySlug}
       />
@@ -74,7 +80,7 @@ export async function TidesWeatherPanel({
       {live.tidal && !live.tides && isAdmin && (
         <AdminHint
           title="No tide data for this exact spot"
-          body={`The marine model has no sea-level data where "${community.location_name}" landed on the map. A location name right on the coast usually fixes it.`}
+          body={`The marine model has no sea-level data where "${spaceLocationName?.trim() || community.location_name}" landed on the map. Set a location right on the coast for this space (Admin → Spaces → edit this space) — the community's location can stay as it is.`}
           communitySlug={communitySlug}
         />
       )}

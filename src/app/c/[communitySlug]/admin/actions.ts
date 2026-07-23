@@ -99,6 +99,10 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const description = String(formData.get("description") ?? "").trim();
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
+  // Absent field ≠ empty field: only forms that render the location input
+  // (resources spaces) may change it, so other edits can't silently wipe it.
+  const rawLocationName = formData.get("location_name");
+  const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -107,7 +111,13 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const supabase = await createClient();
   const { error } = await supabase
     .from("spaces")
-    .update({ name, description: description || null, visibility, space_type: spaceType })
+    .update({
+      name,
+      description: description || null,
+      visibility,
+      space_type: spaceType,
+      ...(locationName !== undefined && { location_name: locationName }),
+    })
     .eq("id", spaceId);
 
   if (error) {
@@ -168,6 +178,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     space_type: original.space_type,
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: original.show_in_nav,
+    location_name: original.location_name,
   });
 
   if (error) {

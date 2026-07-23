@@ -209,7 +209,12 @@ export default async function SpaceDetailPage({
         <>
           {showLiveConditions && (
             <Suspense fallback={null}>
-              <TidesWeatherPanel community={community} communitySlug={community.slug} isAdmin={Boolean(isAdmin)} />
+              <TidesWeatherPanel
+                community={community}
+                spaceLocationName={space.location_name}
+                communitySlug={community.slug}
+                isAdmin={Boolean(isAdmin)}
+              />
             </Suspense>
           )}
 
