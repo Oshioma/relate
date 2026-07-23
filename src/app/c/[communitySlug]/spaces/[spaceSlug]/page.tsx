@@ -193,12 +193,7 @@ export default async function SpaceDetailPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          <Link href={`/c/${community.slug}/spaces`} className="hover:underline">
-            Spaces
-          </Link>
-        </p>
-        <h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
           <TypeIcon className="h-5 w-5 text-muted-foreground" />
           {space.name}
         </h1>

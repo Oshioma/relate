@@ -1,7 +1,29 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, VolunteerProject, Profile } from "@/types/database";
+import type { Database, VolunteerProject, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
+
+export type VolunteerProjectWithContext = VolunteerProject & { organiser: Profile; space: Pick<Space, "id" | "name" | "slug"> };
+
+// Newest open/in-progress projects across the whole community, for the feed.
+// Skips signup counts (unlike getSpaceVolunteerProjects) — the feed just
+// needs the project itself.
+export async function getCommunityRecentVolunteerProjects(
+  supabase: Client,
+  communityId: string,
+  limit = 6
+): Promise<VolunteerProjectWithContext[]> {
+  const { data, error } = await supabase
+    .from("volunteer_projects")
+    .select("*, organiser:organiser_id (*), space:space_id (id, name, slug)")
+    .eq("community_id", communityId)
+    .in("status", ["open", "in_progress"])
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as VolunteerProjectWithContext[];
+}
 
 export type VolunteerProjectWithSignups = {
   project: VolunteerProject;

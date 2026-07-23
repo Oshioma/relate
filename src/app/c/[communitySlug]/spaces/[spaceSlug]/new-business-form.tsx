@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { createBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
-import type { PickedLocation } from "./location-picker";
+import type { PickedLocation } from "@/components/map/location-picker";
 import type { BusinessCustomCategory } from "@/types/database";
 
 export function NewBusinessForm({

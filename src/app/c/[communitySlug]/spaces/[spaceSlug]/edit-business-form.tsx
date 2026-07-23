@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { updateBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
-import type { PickedLocation } from "./location-picker";
+import type { PickedLocation } from "@/components/map/location-picker";
 import type { Business, BusinessCustomCategory } from "@/types/database";
 
 export function EditBusinessForm({

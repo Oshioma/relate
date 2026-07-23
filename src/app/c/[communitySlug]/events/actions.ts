@@ -15,6 +15,10 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
   const endTime = String(formData.get("end_time") ?? "");
   const location = String(formData.get("location") ?? "").trim();
   const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
+  const latRaw = String(formData.get("lat") ?? "").trim();
+  const lngRaw = String(formData.get("lng") ?? "").trim();
+  const lat = latRaw ? Number(latRaw) : null;
+  const lng = lngRaw ? Number(lngRaw) : null;
 
   if (!title || !startTime) {
     return { error: "Give the event a title and a start time." };
@@ -37,6 +41,8 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
     end_time: endTime ? new Date(endTime).toISOString() : null,
     location: location || null,
     online_url: onlineUrl || null,
+    lat,
+    lng,
     created_by: user.id,
   });
 

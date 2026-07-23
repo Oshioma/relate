@@ -15,6 +15,22 @@ export async function getCommunityEvents(supabase: Client, communityId: string):
   return data ?? [];
 }
 
+export type EventWithCreator = Event & { creator: Profile };
+
+// Newest events across the whole community, with who created them — the feed
+// interleaves these with posts, businesses, and other space content.
+export async function getCommunityRecentEvents(supabase: Client, communityId: string, limit = 6): Promise<EventWithCreator[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, creator:created_by (*)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as EventWithCreator[];
+}
+
 export type EventRsvpWithAttendee = EventRsvp & { attendee: Profile };
 
 export async function getRsvpsForEvents(supabase: Client, eventIds: string[]): Promise<EventRsvpWithAttendee[]> {
