@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { getPlaceLocationType } from "@/lib/community-templates";
+import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import type { SpaceVisibility, SpaceType, Community, FeatureKey } from "@/types/database";
@@ -220,6 +221,53 @@ export async function reorderNavItems(
   const failed = results.find((r) => r.error);
   if (failed?.error) {
     return { error: failed.error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces`);
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// Shows or hides a built-in nav item (Events, Search) in the sidebar without
+// disabling the feature itself — the same as a space's show_in_nav toggle. The
+// item lives in community_nav_item_order; when no row exists yet we insert one
+// carrying its default sort position, so hiding an item never accidentally
+// moves it to the top (sort_order's column default is 0).
+export async function setNavItemVisibility(
+  itemKey: FeatureKey,
+  showInNav: boolean,
+  communityId: string,
+  communitySlug: string
+): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+
+  const { data: existing, error: readError } = await supabase
+    .from("community_nav_item_order")
+    .select("item_key")
+    .eq("community_id", communityId)
+    .eq("item_key", itemKey)
+    .maybeSingle();
+
+  if (readError) {
+    return { error: readError.message };
+  }
+
+  const result = existing
+    ? await supabase
+        .from("community_nav_item_order")
+        .update({ show_in_nav: showInNav })
+        .eq("community_id", communityId)
+        .eq("item_key", itemKey)
+    : await supabase.from("community_nav_item_order").insert({
+        community_id: communityId,
+        item_key: itemKey,
+        sort_order: defaultNavItemSort(itemKey),
+        show_in_nav: showInNav,
+      });
+
+  if (result.error) {
+    return { error: result.error.message };
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);

@@ -61,9 +61,10 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
     ...BUILTIN_NAV_ITEMS.filter((item) => features[item.key]).map((item) => ({
       kind: "builtin" as const,
       key: `builtin:${item.key}`,
-      sort: navItemOrder[item.key] ?? defaultNavItemSort(item.key),
+      sort: navItemOrder[item.key]?.sortOrder ?? defaultNavItemSort(item.key),
       itemKey: item.key,
       label: item.label,
+      showInNav: navItemOrder[item.key]?.showInNav ?? true,
     })),
   ].sort((a, b) => a.sort - b.sort);
 
