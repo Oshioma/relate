@@ -198,20 +198,48 @@ async function fetchTideOutlook(coords: Coordinates): Promise<TideOutlook | null
 }
 
 /**
- * The full tide picture for a community's Tides & Weather space: every
- * high/low today and tomorrow plus the sea-level curve behind them. Null for
- * non-tidal communities (see isTidalLocationType), missing locations, and
- * points the marine model has no sea-level data for.
+ * Everything a Tides & Weather space needs, with the failure mode spelled
+ * out instead of collapsed to null — the panel turns each status into a
+ * visible, fixable state (mostly admin-facing) rather than silently
+ * disappearing and leaving no clue why.
  */
-export async function getCommunityTides(community: {
+export type LiveConditions =
+  | { status: "no_location" }
+  | { status: "location_not_found"; locationName: string }
+  | { status: "unavailable" }
+  | {
+      status: "ok";
+      resolvedName: string;
+      /** Whether this community's location type calls for tides at all. */
+      tidal: boolean;
+      current: CurrentConditions | null;
+      /** Non-null only when tidal and the marine model covers the point. */
+      tides: TideOutlook | null;
+    };
+
+export async function getLiveConditions(community: {
   location_type: string | null;
   location_name: string | null;
-}): Promise<TideOutlook | null> {
-  if (!community.location_name || !isTidalLocationType(community.location_type)) return null;
+}): Promise<LiveConditions> {
+  if (!community.location_name) return { status: "no_location" };
 
   const coords = await geocodeLocation(community.location_name);
-  if (!coords) return null;
-  return fetchTideOutlook(coords);
+  if (!coords) return { status: "location_not_found", locationName: community.location_name };
+
+  const tidal = isTidalLocationType(community.location_type);
+  const [forecast, outlook] = await Promise.all([
+    fetchForecast(coords),
+    tidal ? fetchTideOutlook(coords) : Promise.resolve(null),
+  ]);
+  if (!forecast && !outlook) return { status: "unavailable" };
+
+  return {
+    status: "ok",
+    resolvedName: coords.resolvedName,
+    tidal,
+    current: forecast?.current ?? null,
+    tides: outlook,
+  };
 }
 
 /**
