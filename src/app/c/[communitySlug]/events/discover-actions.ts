@@ -48,14 +48,23 @@ async function requireStaff(communitySlug: string): Promise<StaffContext | { err
 // source listing page, so events found by AI discovery show up with a photo
 // instead of a blank placeholder. Never throws — a failed scrape just leaves
 // that event without an image.
-async function attachImages(events: DiscoveredEvent[]): Promise<DiscoveredEventWithImage[]> {
-  return Promise.all(
-    events.map(async (event) => {
-      if (!event.source_url) return event;
-      const images = await scrapeWebsiteImages(event.source_url);
-      return { ...event, image_url: images[0] ?? null };
-    }),
+//
+// Many listing sites share one og:image (a site logo or banner) across every
+// page, so naively taking the first candidate gives every event from that
+// site the same picture. `usedImages` is shared across the whole batch (and
+// seeded with the community's existing image_urls) so each event gets the
+// first candidate that isn't already claimed, falling back to no image
+// rather than a duplicate.
+async function attachImages(events: DiscoveredEvent[], usedImages: Set<string>): Promise<DiscoveredEventWithImage[]> {
+  const candidateLists = await Promise.all(
+    events.map((event) => (event.source_url ? scrapeWebsiteImages(event.source_url) : Promise.resolve([]))),
   );
+
+  return events.map((event, i) => {
+    const unique = candidateLists[i].find((img) => !usedImages.has(img)) ?? null;
+    if (unique) usedImages.add(unique);
+    return { ...event, image_url: unique };
+  });
 }
 
 // buildDiscoveredEventRows appends "Source: <url>" to the description, so
@@ -80,48 +89,58 @@ export async function backfillEventImages(
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, community } = ctx;
 
-  const { data: events, error } = await supabase
-    .from("events")
-    .select("id, description, online_url")
-    .eq("community_id", community.id)
-    .is("image_url", null);
+  const [{ data: events, error }, { data: imaged, error: imagedError }] = await Promise.all([
+    supabase.from("events").select("id, description, online_url").eq("community_id", community.id).is("image_url", null),
+    supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
+  ]);
   if (error) return { error: error.message };
+  if (imagedError) return { error: imagedError.message };
 
   const candidates = (events ?? [])
     .map((event) => ({ id: event.id, url: candidateImageUrl(event) }))
     .filter((e): e is { id: string; url: string } => e.url !== null);
   if (candidates.length === 0) return { updated: 0, checked: events?.length ?? 0 };
 
+  // Seeded with images already in use on this community's calendar so a
+  // backfilled event never duplicates a picture another event already has.
+  const usedImages = new Set((imaged ?? []).map((e) => e.image_url).filter((url): url is string => url !== null));
+  const candidateLists = await Promise.all(candidates.map(({ url }) => scrapeWebsiteImages(url)));
+
   let updated = 0;
-  await Promise.all(
-    candidates.map(async ({ id, url }) => {
-      const images = await scrapeWebsiteImages(url);
-      if (images.length === 0) return;
-      const { error: updateError } = await supabase.from("events").update({ image_url: images[0] }).eq("id", id);
-      if (!updateError) updated++;
-    }),
-  );
+  for (let i = 0; i < candidates.length; i++) {
+    const unique = candidateLists[i].find((img) => !usedImages.has(img));
+    if (!unique) continue;
+    usedImages.add(unique);
+    const { error: updateError } = await supabase.from("events").update({ image_url: unique }).eq("id", candidates[i].id);
+    if (!updateError) updated++;
+  }
 
   if (updated > 0) revalidatePath(`/c/${communitySlug}/events`);
   return { updated, checked: events?.length ?? 0 };
 }
+
+export type AddedEvent = { title: string; source_url: string | null };
 
 // Searches the web for upcoming events near the community's location and
 // adds every new one straight to the calendar — no staff review step. RLS
 // (events_insert_staff) enforces the staff requirement on the insert too.
 export async function discoverAndAddEvents(
   communitySlug: string,
-): Promise<{ imported: number; titles: string[] } | { error: string }> {
+): Promise<{ imported: number; added: AddedEvent[] } | { error: string }> {
   const ctx = await requireStaff(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
-  const { data: upcoming, error } = await supabase
-    .from("events")
-    .select("title")
-    .eq("community_id", community.id)
-    .gte("start_time", new Date().toISOString());
+  const [{ data: upcoming, error }, { data: imaged, error: imagedError }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("title")
+      .eq("community_id", community.id)
+      .gte("start_time", new Date().toISOString()),
+    supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
+  ]);
   if (error) return { error: error.message };
+  if (imagedError) return { error: imagedError.message };
 
   const existingTitles = (upcoming ?? []).map((e) => e.title);
   const locationName = community.location_name || community.name;
@@ -137,15 +156,21 @@ export async function discoverAndAddEvents(
   // Belt-and-braces dedupe in case the model ignored the skip list.
   const seen = new Set(existingTitles.map((t) => t.toLowerCase()));
   const found = result.events.filter((e) => !seen.has(e.title.toLowerCase()));
-  if (found.length === 0) return { imported: 0, titles: [] };
+  if (found.length === 0) return { imported: 0, added: [] };
 
-  const withImages = await attachImages(found);
+  // Seeded with images already on this community's calendar so a freshly
+  // discovered event never duplicates a picture another event already has.
+  const usedImages = new Set((imaged ?? []).map((e) => e.image_url).filter((url): url is string => url !== null));
+  const withImages = await attachImages(found, usedImages);
   const rows = buildDiscoveredEventRows(withImages, { communityId: community.id, createdBy: user.id });
-  if (rows.length === 0) return { imported: 0, titles: [] };
+  if (rows.length === 0) return { imported: 0, added: [] };
 
   const { error: insertError } = await supabase.from("events").insert(rows);
   if (insertError) return { error: insertError.message };
 
   revalidatePath(`/c/${communitySlug}/events`);
-  return { imported: rows.length, titles: rows.map((r) => r.title) };
+  return {
+    imported: rows.length,
+    added: rows.map((r) => ({ title: r.title, source_url: r.description?.match(SOURCE_LINE)?.[1] ?? null })),
+  };
 }
