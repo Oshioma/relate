@@ -1,8 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-// Sonnet + low effort keeps discovery interactive (well under a minute in
-// most cases) — Opus with default effort was taking several minutes per run.
-const MODEL = "claude-sonnet-5";
+// Cheap-and-fast configuration while the feature bakes: Haiku costs ~5x less
+// than Sonnet per token and finishes in well under a minute, which also
+// avoids hosting timeouts. Set EVENT_DISCOVERY_MODEL (e.g. "claude-sonnet-5")
+// to trade cost for extraction quality later — the basic web tool variants
+// below work on every current model.
+const DEFAULT_MODEL = "claude-haiku-4-5";
+const MODEL = process.env.EVENT_DISCOVERY_MODEL || DEFAULT_MODEL;
 const MAX_WEB_SEARCHES = 3;
 // Server-side web search runs in an API-side loop that can stop with
 // stop_reason "pause_turn"; re-sending the conversation resumes it.
@@ -51,7 +55,7 @@ export type DiscoveryResult =
   | { status: "unconfigured" | "billing" | "search_limited" | "error"; detail?: string };
 
 const MAX_PAGE_FETCHES = 2;
-const MAX_FETCH_TOKENS = 12_000;
+const MAX_FETCH_TOKENS = 8_000;
 
 const SYSTEM_PROMPT = `You are an event researcher for a local community platform. Find real, upcoming, public events (concerts, festivals, markets, sports, cultural events, meetups, exhibitions, recurring nights) in the location you are given.
 
@@ -104,19 +108,20 @@ export async function discoverEventsWithAI(opts: {
     const send = () =>
       anthropic.messages.create({
         model: MODEL,
-        // Thinking (on by default) shares this budget with the final answer;
-        // too small a cap truncates the JSON mid-array and yields no events.
-        max_tokens: 16000,
-        // "low" proved too shallow — the model sometimes skipped searching
-        // or gave up early. "medium" still keeps runs well under a minute.
-        output_config: { effort: "medium" },
+        // On models with default-on thinking (e.g. Sonnet 5 via the env
+        // override) this budget is shared with thinking; keep headroom so
+        // the JSON never truncates mid-array. No effort param — Haiku
+        // doesn't support it.
+        max_tokens: 8000,
         system: SYSTEM_PROMPT,
+        // Basic web tool variants: supported by Haiku and every current
+        // bigger model, so the EVENT_DISCOVERY_MODEL override stays safe.
         tools: [
-          { type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES },
+          { type: "web_search_20250305", name: "web_search", max_uses: MAX_WEB_SEARCHES },
           // Fetch reads pages already surfaced by search — snippets alone
           // rarely carry event dates. Token-capped to bound cost per run.
           {
-            type: "web_fetch_20260209",
+            type: "web_fetch_20250910",
             name: "web_fetch",
             max_uses: MAX_PAGE_FETCHES,
             max_content_tokens: MAX_FETCH_TOKENS,
