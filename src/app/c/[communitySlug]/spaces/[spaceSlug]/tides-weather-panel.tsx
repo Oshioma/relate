@@ -156,7 +156,7 @@ function TideBoard({ tides }: { tides: TideOutlook }) {
               {next.kind === "high" ? "High" : "Low"} tide · {formatLocalHour(next.time)}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {formatMinutesUntil(next.minutesUntil)} · {next.height.toFixed(1)} m
+              {formatMinutesUntil(next.minutesUntil)}
               {after && (
                 <>
                   {" "}
@@ -203,7 +203,6 @@ function TideBoard({ tides }: { tides: TideOutlook }) {
                         </span>
                       </span>
                       <span className="text-sm font-semibold tabular-nums text-foreground">{formatLocalHour(tide.time)}</span>
-                      <span className="w-12 text-right text-xs text-muted-foreground">{tide.height.toFixed(1)} m</span>
                     </li>
                   );
                 })}
