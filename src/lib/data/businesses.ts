@@ -66,6 +66,9 @@ export async function getCommunityFeaturedBusinessCategories(
     .from("featured_business_categories")
     .select("*")
     .eq("community_id", communityId)
+    // Staff-chosen order; category is a stable tiebreaker for rows that share a
+    // sort_order (all default to 0 until first reordered).
+    .order("sort_order", { ascending: true })
     .order("category", { ascending: true });
 
   if (error) throw error;

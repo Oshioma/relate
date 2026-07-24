@@ -330,6 +330,8 @@ export type FeaturedBusinessCategory = {
   space_id: string;
   community_id: string;
   category: BusinessCategory;
+  // Position among a directory space's nav sub-links; staff drag to reorder.
+  sort_order: number;
   created_at: string;
 };
 
