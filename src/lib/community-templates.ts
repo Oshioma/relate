@@ -557,7 +557,7 @@ export interface PlaceSetupRecommendation extends SetupRecommendation {
 }
 
 // baseSpaces lets the caller substitute the super-admin-configured place
-// default spaces (from the place_default_spaces table) for the hard-coded
+// default spaces (from the template_default_spaces table) for the hard-coded
 // template defaults; the per-location-type extras are layered on top either
 // way. Omit it to use the code defaults.
 export function recommendPlaceSetup(locationTypeKey: string, baseSpaces?: TemplateSpace[]): PlaceSetupRecommendation {

@@ -4,10 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getAllCommunities } from "@/lib/data/community";
 import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/features";
-import { getPlaceDefaultSpaces } from "@/lib/data/place-defaults";
+import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { COMMUNITY_FEATURES } from "@/lib/features";
-import { DefaultFeatureToggle, CommunityFeatureToggle } from "./feature-toggle";
-import { PlaceSpacesManager } from "./place-spaces-manager";
+import { COMMUNITY_TEMPLATES } from "@/lib/community-templates";
+import { CommunityFeatureToggle } from "./feature-toggle";
+import { TemplateSpacesManager } from "./template-spaces-manager";
 
 export default async function PlatformAdminPage() {
   const supabase = await createClient();
@@ -21,11 +22,11 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides, placeDefaultSpaces] = await Promise.all([
+  const [communities, defaults, overrides, defaultsByTemplate] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
-    getPlaceDefaultSpaces(supabase),
+    getTemplateDefaultsByTemplate(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -36,32 +37,27 @@ export default async function PlatformAdminPage() {
     overridesByCommunity.get(row.community_id)!.set(row.feature_key, row.enabled);
   }
 
+  const templateOptions = COMMUNITY_TEMPLATES.map((t) => ({ key: t.key, label: t.label }));
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Platform admin</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        Choose which features new communities start with, and override them for any specific community.
+        Set the default spaces each community type is created with, and override features for any specific community.
       </p>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Defaults for new communities</h2>
-      <div className="mb-10 space-y-4 rounded-lg border border-border p-4">
-        {COMMUNITY_FEATURES.map((feature) => (
-          <div key={feature.key}>
-            <DefaultFeatureToggle featureKey={feature.key} defaultChecked={defaults[feature.key]} />
-            <p className="ml-6 mt-0.5 text-xs text-muted-foreground">{feature.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Default spaces for Place-Based communities</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Default spaces by community type</h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        The spaces a new place community is created with. Drag to reorder, edit names and types, or add your own — changes apply to place communities created from now on.
+        Pick a community type, then edit the spaces a new community of that type starts with. Reorder to set the nav order,
+        toggle whether each shows in the nav, and add more from the pool. Events and Search appear here too. Changes apply to
+        communities created from now on.
       </p>
-      <div className="mb-10">
-        <PlaceSpacesManager spaces={placeDefaultSpaces} />
+      <div className="mb-10 rounded-lg border border-border p-4">
+        <TemplateSpacesManager templates={templateOptions} initialByTemplate={defaultsByTemplate} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Communities ({communities.length})</h2>
+      <p className="mb-3 text-sm text-muted-foreground">Turn built-in features on or off for one specific community.</p>
       <div className="space-y-3">
         {communities.map((community) => {
           const communityOverrides = overridesByCommunity.get(community.id);
