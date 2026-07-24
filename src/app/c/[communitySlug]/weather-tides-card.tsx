@@ -109,22 +109,19 @@ export async function WeatherTidesCard({
                   {weather.tides[0].kind === "high" ? "High" : "Low"} tide · {formatLocalHour(weather.tides[0].time)}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {formatMinutesUntil(weather.tides[0].minutesUntil)} · {weather.tides[0].height.toFixed(1)} m
+                  {formatMinutesUntil(weather.tides[0].minutesUntil)}
                 </p>
               </div>
               {weather.tides.length > 1 && (
                 <ul className="mt-2 space-y-1.5">
                   {weather.tides.slice(1).map((tide) => (
-                    <li key={tide.time} className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-1.5 text-foreground">
-                        {tide.kind === "high" ? (
-                          <ArrowUpToLine className="h-3.5 w-3.5 text-accent" />
-                        ) : (
-                          <ArrowDownToLine className="h-3.5 w-3.5 text-muted-foreground" />
-                        )}
-                        {tide.kind === "high" ? "High" : "Low"} · {formatLocalHour(tide.time)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{tide.height.toFixed(1)} m</span>
+                    <li key={tide.time} className="flex items-center gap-1.5 text-sm text-foreground">
+                      {tide.kind === "high" ? (
+                        <ArrowUpToLine className="h-3.5 w-3.5 text-accent" />
+                      ) : (
+                        <ArrowDownToLine className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                      {tide.kind === "high" ? "High" : "Low"} · {formatLocalHour(tide.time)}
                     </li>
                   ))}
                 </ul>
