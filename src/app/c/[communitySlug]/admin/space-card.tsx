@@ -2,10 +2,12 @@
 
 import { useActionState, useEffect, useRef, useState, type DragEventHandler } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ChevronDown, ChevronUp } from "lucide-react";
+import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ListTree, ChevronDown, ChevronUp } from "lucide-react";
 import { updateSpace, deleteSpace, duplicateSpace, type SpaceFormState } from "./actions";
 import { SpaceNavToggle } from "./space-nav-toggle";
 import { JournalFieldsSection } from "./journal-fields-section";
+import { SpaceSubNavList } from "./space-subnav-list";
+import type { NavSubItem } from "./spaces-manager";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -17,12 +19,15 @@ export function SpaceCard({
   space,
   communitySlug,
   journalFields,
+  subItems,
   dragHandlers,
   isDragging,
 }: {
   space: Space;
   communitySlug: string;
   journalFields: SpaceJournalField[];
+  // Nav sub-links shown, expandable and reorderable, under this space's row.
+  subItems: NavSubItem[];
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -36,6 +41,7 @@ export function SpaceCard({
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showJournalFields, setShowJournalFields] = useState(false);
+  const [showSubNav, setShowSubNav] = useState(false);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
   const Icon = meta.icon;
@@ -162,6 +168,12 @@ export function SpaceCard({
           <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
         </div>
         <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
+        {subItems.length > 0 && (
+          <button type="button" onClick={() => setShowSubNav((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Nav sub-links">
+            <ListTree className="h-4 w-4" />
+            {showSubNav ? <ChevronUp className="ml-0.5 inline h-3 w-3" /> : <ChevronDown className="ml-0.5 inline h-3 w-3" />}
+          </button>
+        )}
         {space.space_type === "journal" && (
           <button type="button" onClick={() => setShowJournalFields((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Journal fields">
             <NotebookPen className="h-4 w-4" />
@@ -178,6 +190,12 @@ export function SpaceCard({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+
+      {showSubNav && subItems.length > 0 && (
+        <div className="border-t border-border p-3">
+          <SpaceSubNavList spaceId={space.id} items={subItems} communitySlug={communitySlug} />
+        </div>
+      )}
 
       {showJournalFields && (
         <div className="border-t border-border p-3">

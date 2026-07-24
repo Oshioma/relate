@@ -10,7 +10,9 @@ import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
-import type { SpaceVisibility, SpaceType, Community, FeatureKey } from "@/types/database";
+import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
+import type { NavSubItemKind } from "./spaces-manager";
+import type { SpaceVisibility, SpaceType, Community, FeatureKey, BusinessCategory } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -227,6 +229,26 @@ export async function reorderNavItems(
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
   return undefined;
+}
+
+// Reorders one space's nav sub-links. Each sub-link kind persists its order
+// differently, so this dispatches on `kind` — `orderedRefs` is the full list of
+// that space's sub-links (by ref) in the desired order. Adding a new kind of
+// sub-link means adding a branch here; the manager UI needs no changes.
+export async function reorderSpaceSubNav(
+  spaceId: string,
+  kind: NavSubItemKind,
+  orderedRefs: string[],
+  communitySlug: string
+): Promise<{ error: string } | undefined> {
+  switch (kind) {
+    case "featured_category": {
+      const result = await reorderFeaturedCategories(spaceId, orderedRefs as BusinessCategory[], communitySlug);
+      return result?.error ? { error: result.error } : undefined;
+    }
+    default:
+      return { error: "Unknown nav sub-link type." };
+  }
 }
 
 // Shows or hides a built-in nav item (Events, Search) in the sidebar without
