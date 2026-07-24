@@ -290,6 +290,7 @@ export async function updateCommunityDetails(
   const rawLocationType = String(formData.get("location_type") ?? "");
   const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
   const eventsPublic = formData.get("events_public") === "on";
+  const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -304,6 +305,7 @@ export async function updateCommunityDetails(
       location_name: locationName.slice(0, 120) || null,
       location_type: locationType,
       events_public: eventsPublic,
+      members_visibility: membersVisibility,
     })
     .eq("id", communityId);
 

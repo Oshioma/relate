@@ -76,6 +76,24 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
         </label>
       </div>
 
+      <div>
+        <Label htmlFor="members_visibility">Members list visibility</Label>
+        <select
+          id="members_visibility"
+          name="members_visibility"
+          defaultValue={community.members_visibility}
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="public">Public — any signed-in visitor, including guests who haven&apos;t joined</option>
+          <option value="members">Members only — must have joined to see who else is in it</option>
+          <option value="private">Private — staff only</option>
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Controls who can see the Members list and link. Members always requires an account — signed-out visitors
+          never see it. A paid-members-only tier is planned for later, once the platform supports paid memberships.
+        </p>
+      </div>
+
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Saving…" className="w-auto">
