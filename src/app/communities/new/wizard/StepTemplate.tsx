@@ -28,18 +28,19 @@ function toWizardFields(fields: TemplateProfileField[]): WizardProfileField[] {
 export function StepTemplate({
   state,
   update,
-  placeDefaultSpaces,
+  defaultSpacesByTemplate,
 }: {
   state: WizardState;
   update: (patch: Partial<WizardState>) => void;
-  placeDefaultSpaces?: TemplateSpace[];
+  defaultSpacesByTemplate?: Record<string, TemplateSpace[]>;
 }) {
   const isPlace = state.templateKey === "place";
 
   function selectTemplate(key: string) {
     const template = COMMUNITY_TEMPLATES.find((t) => t.key === key)!;
-    // For the place template, prefer the super-admin-configured defaults.
-    const defaultSpaces = key === "place" && placeDefaultSpaces ? placeDefaultSpaces : template.defaultSpaces;
+    // Prefer the super-admin-configured defaults for this type; fall back to
+    // the template's code defaults.
+    const defaultSpaces = defaultSpacesByTemplate?.[key] ?? template.defaultSpaces;
     update({
       templateKey: key,
       spaces: toWizardSpaces(defaultSpaces),
@@ -61,7 +62,7 @@ export function StepTemplate({
   }
 
   function selectLocationType(key: string) {
-    const rec = recommendPlaceSetup(key, placeDefaultSpaces);
+    const rec = recommendPlaceSetup(key, defaultSpacesByTemplate?.["place"]);
     update({
       locationType: key,
       spaces: toWizardSpaces(rec.spaces),

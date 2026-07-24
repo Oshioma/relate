@@ -265,15 +265,18 @@ export type CommunityNavItemOrder = {
   updated_at: string;
 };
 
-// A default space for the Place-Based Community template, editable by a super
-// admin at /platform-admin. The creation wizard seeds a new place community's spaces
-// from these. space_type mirrors SpaceType. See the place_default_spaces
-// migration.
-export type PlaceDefaultSpace = {
+// A default item for a community type (template), editable by a super admin at
+// /platform-admin. Usually a space (space_type set, builtin_key null); when
+// builtin_key is 'events'/'concierge' it's a built-in nav feature shown in the
+// list so it can be ordered like a space. The creation wizard seeds a new
+// community's spaces from these. See the template_default_spaces migration.
+export type TemplateDefaultSpace = {
   id: string;
+  template_key: string;
   name: string;
   description: string;
   space_type: SpaceType;
+  builtin_key: FeatureKey | null;
   show_in_nav: boolean;
   sort_order: number;
   updated_at: string;
@@ -861,10 +864,10 @@ export type Database = {
         Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
         Update: Partial<CommunityNavItemOrder>;
       } & NoRel;
-      place_default_spaces: {
-        Row: PlaceDefaultSpace;
-        Insert: Partial<PlaceDefaultSpace> & { name: string };
-        Update: Partial<PlaceDefaultSpace>;
+      template_default_spaces: {
+        Row: TemplateDefaultSpace;
+        Insert: Partial<TemplateDefaultSpace> & { template_key: string; name: string };
+        Update: Partial<TemplateDefaultSpace>;
       } & NoRel;
       notifications: {
         Row: Notification;
