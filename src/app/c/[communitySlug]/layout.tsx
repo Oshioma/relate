@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
@@ -19,6 +20,23 @@ import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
+
+// Give each community its own tab title. `default` shows the community name on
+// the community's own pages; the template lets any child page that sets a title
+// render as "Page · Community" without repeating the community name everywhere.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ communitySlug: string }>;
+}): Promise<Metadata> {
+  const { communitySlug } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return {};
+  return {
+    title: { default: community.name, template: `%s · ${community.name}` },
+  };
+}
 
 export default async function CommunityLayout({
   children,
