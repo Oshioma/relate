@@ -2,13 +2,13 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, GripVertical } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { businessCategoryOptions, businessCategoryPluralLabel } from "@/lib/business-categories";
+import { businessCategoryOptions } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
-import { setCategoryFeatured, reorderFeaturedCategories, addBusinessCategory, deleteBusinessCategory } from "./business-directory-actions";
+import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory } from "./business-directory-actions";
 import type { Business, BusinessCategory, BusinessCustomCategory } from "@/types/database";
 
 export function BusinessDirectoryView({
@@ -47,7 +47,6 @@ export function BusinessDirectoryView({
   const [chipError, setChipError] = useState<string | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryLabel, setNewCategoryLabel] = useState("");
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -60,29 +59,6 @@ export function BusinessDirectoryView({
         setChipError(result.error);
       } else {
         setFeatured((prev) => (makeFeatured ? [...prev, target] : prev.filter((c) => c !== target)));
-        router.refresh();
-      }
-    });
-  }
-
-  // `featured` is kept in nav order (seeded from the sort_order-ordered prop),
-  // so reordering here maps straight onto the sub-links' sort_order.
-  function handleReorderDrop(targetIndex: number) {
-    if (dragIndex === null || dragIndex === targetIndex) {
-      setDragIndex(null);
-      return;
-    }
-    const reordered = [...featured];
-    const [moved] = reordered.splice(dragIndex, 1);
-    reordered.splice(targetIndex, 0, moved);
-    setDragIndex(null);
-    setFeatured(reordered);
-    setChipError(null);
-    startTransition(async () => {
-      const result = await reorderFeaturedCategories(spaceId, reordered, communitySlug);
-      if (result?.error) {
-        setChipError(result.error);
-      } else {
         router.refresh();
       }
     });
@@ -293,30 +269,6 @@ export function BusinessDirectoryView({
       </div>
 
       {chipError && <p className="-mt-3 mb-3 text-xs text-danger">{chipError}</p>}
-
-      {isStaff && featured.length > 1 && (
-        <div className="mb-5">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">
-            Drag to reorder these categories under the directory in the nav
-          </p>
-          <div className="max-w-xs space-y-1">
-            {featured.map((cat, i) => (
-              <div
-                key={cat}
-                draggable
-                onDragStart={() => setDragIndex(i)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleReorderDrop(i)}
-                onDragEnd={() => setDragIndex(null)}
-                className={`flex cursor-grab items-center gap-2 rounded-md border bg-card px-3 py-1.5 text-sm text-foreground ${dragIndex === i ? "border-accent opacity-60" : "border-border"} ${isPending ? "pointer-events-none opacity-60" : ""}`}
-              >
-                <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="truncate">{businessCategoryPluralLabel(cat, customCategories)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {locations.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
