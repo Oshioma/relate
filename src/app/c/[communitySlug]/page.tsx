@@ -266,7 +266,7 @@ export default async function CommunityFeedPage({
         <div
           className={cn(
             "relative mx-auto flex max-w-4xl flex-col gap-5 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-6",
-            community.cover_image_url ? "pb-8 pt-28 sm:pb-10 sm:pt-44" : "py-10 sm:py-14"
+            community.cover_image_url ? "pb-8 pt-40 sm:pb-10 sm:pt-60" : "py-10 sm:py-14"
           )}
         >
           <div>
