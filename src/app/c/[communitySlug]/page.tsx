@@ -249,8 +249,12 @@ export default async function CommunityFeedPage({
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{community.name}</h1>
-            {community.description && <p className="mt-1 text-sm text-muted-foreground">{community.description}</p>}
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
+            {community.description && (
+              <p className="mt-3 max-w-2xl text-lg font-medium leading-relaxed text-foreground/80 sm:text-xl">
+                {community.description}
+              </p>
+            )}
           </div>
           {user && !membership && <JoinCommunityButton communityId={community.id} />}
         </div>
