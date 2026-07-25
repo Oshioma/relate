@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
-import { RESERVED_SUBDOMAIN_LABELS } from "@/lib/custom-domain";
+import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
 
@@ -162,5 +162,11 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     }
   }
 
-  redirect(`/c/${community.slug}/admin`);
+  // Land the brand-new owner directly on their community's canonical
+  // subdomain address (the session survives — auth cookies span the apex
+  // and its subdomains). The path fallback covers dev and bare
+  // *.vercel.app, where wildcard subdomains don't resolve; in production
+  // the proxy would canonicalize the path form anyway.
+  const subdomainUrl = communitySubdomainUrl(community.slug);
+  redirect(subdomainUrl ? `${subdomainUrl}/admin` : `/c/${community.slug}/admin`);
 }

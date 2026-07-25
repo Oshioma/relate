@@ -599,6 +599,16 @@ Vercel require this), then add `*.<platform-domain>` in Vercel →
 Settings → Domains. Every subdomain then gets routing and SSL
 automatically. In dev, `<slug>.localhost:3000` works out of the box.
 
+Subdomains are each community's **canonical address**: any
+`/c/<slug>/…` URL — opened on the apex, or while browsing on another
+community's host — 308-redirects to `<slug>.<platform-domain>/…`. The
+session survives the hop because auth cookies are scoped to
+`.<platform-domain>` (`sharedCookieDomain` in
+`src/lib/custom-domain.ts`), so one sign-in works on the apex and every
+subdomain; custom domains keep their own host-scoped sign-in. The
+canonical redirect is skipped in dev and on bare `*.vercel.app`
+deployments, where wildcard subdomains don't resolve.
+
 ## Custom domains
 
 Run `supabase/custom-domains.sql` too, and make sure
