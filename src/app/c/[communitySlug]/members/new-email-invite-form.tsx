@@ -50,6 +50,11 @@ export function NewEmailInviteForm({ communityId, communitySlug }: { communityId
       <SubmitButton pendingText="Sending…" className="w-auto">
         Send email invite
       </SubmitButton>
+
+      <p className="text-xs text-muted-foreground">
+        The invite is single-use and expires after 14 days. If it lapses, the recipient can still tap the link and join
+        from the community&apos;s page (when it&apos;s public).
+      </p>
     </form>
   );
 }

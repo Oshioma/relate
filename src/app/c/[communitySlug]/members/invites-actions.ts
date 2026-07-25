@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isInviteActive } from "@/lib/data/invites";
 import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
@@ -65,6 +66,13 @@ export async function createInvite(_prevState: InviteFormState, formData: FormDa
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Emailed invites are point-to-point and single-use, so they should not linger
+// on the invite list forever when the recipient never clicks. Give them a
+// generous-but-finite window; once past it the row drops out of the "active"
+// view on its own, and an expired click is redirected toward joining instead
+// of dead-ending (see src/app/invite/[code]/page.tsx).
+export const EMAIL_INVITE_TTL_DAYS = 14;
+
 export async function sendEmailInvite(_prevState: InviteFormState, formData: FormData): Promise<InviteFormState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
@@ -86,6 +94,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
   }
 
   const code = randomBytes(8).toString("base64url");
+  const expiresAt = new Date(Date.now() + EMAIL_INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
   // Inserting through the normal RLS-protected client is what actually
   // authorizes this action — "invites_insert_admin" only allows it when the
@@ -97,6 +106,7 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
     role,
     max_uses: 1,
     email,
+    expires_at: expiresAt,
     created_by: user.id,
   });
 
@@ -188,4 +198,37 @@ export async function revokeInvite(inviteId: string, communitySlug: string) {
 
   revalidatePath(`/c/${communitySlug}/members`);
   return { error: null };
+}
+
+// Delete every dead invite for a community in one go: revoked, past its
+// expiry, or fully used up. Redeemed invites are safe to remove — the
+// membership they granted lives in community_memberships, not here. Deletes
+// run through the RLS-protected client, so "invites_delete_admin" still gates
+// this to the community's own owner/admins; we compute which rows are inactive
+// in JS (uses_count >= max_uses can't be expressed as a PostgREST filter) and
+// delete them by id.
+export async function clearInactiveInvites(communityId: string, communitySlug: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("community_invites")
+    .select("*")
+    .eq("community_id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  const inactiveIds = (data ?? []).filter((invite) => !isInviteActive(invite)).map((invite) => invite.id);
+  if (inactiveIds.length === 0) {
+    return { error: null, cleared: 0 };
+  }
+
+  const { error: deleteError } = await supabase.from("community_invites").delete().in("id", inactiveIds);
+  if (deleteError) {
+    return { error: deleteError.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/members`);
+  return { error: null, cleared: inactiveIds.length };
 }
