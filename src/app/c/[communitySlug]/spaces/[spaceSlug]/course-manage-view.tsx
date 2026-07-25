@@ -2,12 +2,13 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronUp, ChevronDown, Trash2, Plus, X, Pencil, GripVertical } from "lucide-react";
+import { ChevronUp, ChevronDown, Trash2, Plus, X, Pencil, GripVertical, Clock, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { formatDateTime } from "@/lib/utils";
 import {
   updateCourseSettings,
   updateCourseCover,
@@ -21,9 +22,21 @@ import {
   updateLesson,
   deleteLesson,
   moveLesson,
+  setModuleDrip,
+  setCertificateEnabled,
+  createAnnouncement,
+  deleteAnnouncement,
 } from "./courses-actions";
 import type { CourseDetail, CourseModuleWithLessons } from "@/lib/data/courses";
 import type { CourseLesson } from "@/types/database";
+
+// timestamptz ISO -> the local value a datetime-local input expects.
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export function CourseManageView({
   detail,
@@ -151,6 +164,20 @@ export function CourseManageView({
             {settingsSaved && <span className="text-xs text-emerald-600">Saved</span>}
           </div>
         </form>
+
+        <label className="flex items-start justify-between gap-4 border-t border-border pt-4">
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">Completion certificate</span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">Learners who finish every lesson can view and print a certificate.</span>
+          </span>
+          <input
+            type="checkbox"
+            defaultChecked={course.certificate_enabled}
+            disabled={isPending}
+            onChange={(e) => run(() => setCertificateEnabled(course.id, e.target.checked, communitySlug, spaceSlug))}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border"
+          />
+        </label>
       </section>
 
       {/* Curriculum */}
@@ -201,6 +228,9 @@ export function CourseManageView({
         </form>
       </section>
 
+      {/* Announcements */}
+      <AnnouncementsSection detail={detail} communityId={communityId} communitySlug={communitySlug} spaceSlug={spaceSlug} isPending={isPending} run={run} setError={setError} />
+
       {/* Danger zone */}
       <section className="rounded-xl border border-danger/30 bg-danger/5 p-4">
         <h2 className="text-sm font-semibold text-foreground">Delete course</h2>
@@ -242,6 +272,8 @@ function ModuleEditor({
   const [title, setTitle] = useState(module.title);
   const [addingLesson, setAddingLesson] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+  const [dripEditing, setDripEditing] = useState(false);
+  const [dripValue, setDripValue] = useState(toLocalInput(module.available_at));
 
   return (
     <div className="rounded-xl border border-border bg-card">
@@ -296,6 +328,55 @@ function ModuleEditor({
               className="text-muted-foreground hover:text-danger disabled:opacity-30"
             >
               <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Drip scheduling */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/30 px-4 py-2 text-xs">
+        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        {dripEditing ? (
+          <>
+            <input
+              type="datetime-local"
+              value={dripValue}
+              onChange={(e) => setDripValue(e.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <Button
+              type="button"
+              size="sm"
+              disabled={isPending}
+              className="w-auto"
+              onClick={() =>
+                run(() =>
+                  setModuleDrip(module.id, dripValue ? new Date(dripValue).toISOString() : null, communitySlug, spaceSlug).then((r) =>
+                    r?.error ? r : (setDripEditing(false), r)
+                  )
+                )
+              }
+            >
+              Save
+            </Button>
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => run(() => setModuleDrip(module.id, null, communitySlug, spaceSlug).then((r) => (r?.error ? r : (setDripValue(""), setDripEditing(false), r))))}
+            >
+              Clear
+            </button>
+            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => { setDripValue(toLocalInput(module.available_at)); setDripEditing(false); }}>
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-muted-foreground">
+              {module.available_at ? `Unlocks ${formatDateTime(module.available_at)}` : "Available immediately"}
+            </span>
+            <button type="button" className="font-medium text-accent hover:underline" onClick={() => setDripEditing(true)}>
+              {module.available_at ? "Change" : "Schedule"}
             </button>
           </>
         )}
@@ -471,5 +552,90 @@ function LessonForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function AnnouncementsSection({
+  detail,
+  communityId,
+  communitySlug,
+  spaceSlug,
+  isPending,
+  run,
+  setError,
+}: {
+  detail: CourseDetail;
+  communityId: string;
+  communitySlug: string;
+  spaceSlug: string;
+  isPending: boolean;
+  run: (action: () => Promise<{ error: string | null }>) => void;
+  setError: (message: string | null) => void;
+}) {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    const result = await createAnnouncement(undefined, formData);
+    if (result && "error" in result) {
+      setError(result.error);
+      return;
+    }
+    formRef.current?.reset();
+    router.refresh();
+  }
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Megaphone className="h-4 w-4" />
+          Announcements
+        </h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">Shown at the top of the course for everyone who can see it.</p>
+      </div>
+
+      <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-xl border border-border bg-card p-4">
+        <input type="hidden" name="course_id" value={detail.course.id} />
+        <input type="hidden" name="community_id" value={communityId} />
+        <input type="hidden" name="community_slug" value={communitySlug} />
+        <input type="hidden" name="space_slug" value={spaceSlug} />
+        <div>
+          <Label htmlFor="announcement_title">Title</Label>
+          <Input id="announcement_title" name="title" placeholder="e.g. Live Q&A this Friday" required />
+        </div>
+        <div>
+          <Label htmlFor="announcement_body">Message (optional)</Label>
+          <Textarea id="announcement_body" name="body" rows={2} placeholder="Add any details…" />
+        </div>
+        <SubmitButton pendingText="Posting…" className="w-auto">
+          Post announcement
+        </SubmitButton>
+      </form>
+
+      {detail.announcements.length > 0 && (
+        <div className="space-y-2">
+          {detail.announcements.map(({ announcement }) => (
+            <div key={announcement.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">{announcement.title}</p>
+                {announcement.body && <p className="mt-0.5 text-sm text-muted-foreground">{announcement.body}</p>}
+                <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(announcement.created_at)}</p>
+              </div>
+              <button
+                type="button"
+                title="Delete announcement"
+                disabled={isPending}
+                onClick={() => run(() => deleteAnnouncement(announcement.id, communitySlug, spaceSlug))}
+                className="shrink-0 text-muted-foreground hover:text-danger disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

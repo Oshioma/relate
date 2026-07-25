@@ -627,6 +627,8 @@ export type Course = {
   summary: string | null;
   cover_image_url: string | null;
   status: CourseStatus;
+  // v2: offer a completion certificate to learners who finish every lesson.
+  certificate_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -637,6 +639,9 @@ export type CourseModule = {
   community_id: string;
   title: string;
   sort_order: number;
+  // v2 drip: the module (and its lessons) unlock on/after this time. Null means
+  // available immediately. Enforced softly in the player, not RLS.
+  available_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -672,6 +677,30 @@ export type LessonCompletion = {
   community_id: string;
   user_id: string;
   completed_at: string;
+};
+
+// v2: per-lesson Q&A/discussion.
+export type LessonComment = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// v2: a staff broadcast pinned to the top of a course.
+export type CourseAnnouncement = {
+  id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string | null;
+  title: string;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
@@ -1119,6 +1148,18 @@ export type Database = {
         Insert: Partial<LessonCompletion> & { lesson_id: string; course_id: string; community_id: string; user_id: string };
         Update: Partial<LessonCompletion>;
         Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
+      };
+      lesson_comments: {
+        Row: LessonComment;
+        Insert: Partial<LessonComment> & { lesson_id: string; course_id: string; community_id: string; author_id: string; body: string };
+        Update: Partial<LessonComment>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
+      };
+      course_announcements: {
+        Row: CourseAnnouncement;
+        Insert: Partial<CourseAnnouncement> & { course_id: string; community_id: string; title: string };
+        Update: Partial<CourseAnnouncement>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
       };
       concierge_queries: {
         Row: ConciergeQuery;

@@ -33,6 +33,15 @@ export default async function CoursePage({
   const isMember = membership?.status === "active";
   const isStaff = isMember && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
 
+  // Drip lock is evaluated at request time on the server (staff preview past
+  // it), so the client player never has to call an impure clock during render.
+  const nowMs = new Date().getTime();
+  const lockedModuleIds = isStaff
+    ? []
+    : detail.modules
+        .filter((m) => m.module.available_at && new Date(m.module.available_at).getTime() > nowMs)
+        .map((m) => m.module.id);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <Link
@@ -48,8 +57,11 @@ export default async function CoursePage({
         communityId={community.id}
         communitySlug={community.slug}
         spaceSlug={space.slug}
+        viewerId={viewerId}
         canEnroll={Boolean(isMember)}
+        canComment={Boolean(isMember)}
         isStaff={Boolean(isStaff)}
+        lockedModuleIds={lockedModuleIds}
       />
     </div>
   );
