@@ -30,7 +30,8 @@ export type SpaceType =
   | "volunteer_hub"
   | "jobs"
   | "accommodation"
-  | "recommendations";
+  | "recommendations"
+  | "course";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -657,6 +658,70 @@ export type VolunteerSignup = {
   signed_up_at: string;
 };
 
+export type CourseStatus = "draft" | "published";
+
+// A course in a 'course' space (see space-types.ts). Deeper than
+// Challenges/Clubs: a course owns a content hierarchy (CourseModule ->
+// CourseLesson) and per-learner progress (LessonCompletion), and has a
+// draft/published status so staff can build it before members see it.
+// instructor_id defaults to the creator (no separate picker in the MVP).
+export type Course = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string | null;
+  instructor_id: string | null;
+  title: string;
+  summary: string | null;
+  cover_image_url: string | null;
+  status: CourseStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseModule = {
+  id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseLesson = {
+  id: string;
+  module_id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  body: string | null;
+  video_url: string | null;
+  duration_minutes: number | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseEnrollment = {
+  id: string;
+  course_id: string;
+  user_id: string;
+  enrolled_at: string;
+};
+
+// One learner has finished one lesson. course_id/community_id are denormalised
+// (see the courses migration) so progress and staff-visibility checks stay
+// single-hop.
+export type LessonCompletion = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  user_id: string;
+  completed_at: string;
+};
+
 export type NotificationType = "comment" | "post" | "membership";
 
 export type Notification = {
@@ -1096,6 +1161,36 @@ export type Database = {
         Insert: Partial<VolunteerSignup> & { project_id: string; user_id: string };
         Update: Partial<VolunteerSignup>;
         Relationships: [FKey<"project_id", "volunteer_projects">, FKey<"user_id", "profiles">];
+      };
+      courses: {
+        Row: Course;
+        Insert: Partial<Course> & { space_id: string; community_id: string; title: string };
+        Update: Partial<Course>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">, FKey<"instructor_id", "profiles">];
+      };
+      course_modules: {
+        Row: CourseModule;
+        Insert: Partial<CourseModule> & { course_id: string; community_id: string; title: string };
+        Update: Partial<CourseModule>;
+        Relationships: [FKey<"course_id", "courses">];
+      };
+      course_lessons: {
+        Row: CourseLesson;
+        Insert: Partial<CourseLesson> & { module_id: string; course_id: string; community_id: string; title: string };
+        Update: Partial<CourseLesson>;
+        Relationships: [FKey<"module_id", "course_modules">, FKey<"course_id", "courses">];
+      };
+      course_enrollments: {
+        Row: CourseEnrollment;
+        Insert: Partial<CourseEnrollment> & { course_id: string; user_id: string };
+        Update: Partial<CourseEnrollment>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
+      };
+      lesson_completions: {
+        Row: LessonCompletion;
+        Insert: Partial<LessonCompletion> & { lesson_id: string; course_id: string; community_id: string; user_id: string };
+        Update: Partial<LessonCompletion>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
       };
       concierge_queries: {
         Row: ConciergeQuery;
