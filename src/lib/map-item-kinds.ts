@@ -15,6 +15,12 @@ export type MapItem = {
   lat: number;
   lng: number;
   locationLabel: string | null;
+  // "exact" = a human placed this pin (map click, or a typed coordinate) —
+  // every kind except events. "approximate" = geocoded from free-text
+  // location, which only resolves to a general area, not the exact spot —
+  // currently only events, since typing a Location is what puts them on the
+  // map (see src/app/c/[communitySlug]/events/actions.ts).
+  locationPrecision: "exact" | "approximate";
   // Where "View" leads — a detail page when one exists (posts), otherwise
   // the owning space (or /events).
   href: string;

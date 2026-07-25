@@ -7,9 +7,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST } from "@/lib/space-types";
 import { getPlaceLocationType } from "@/lib/community-templates";
+import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
-import type { SpaceVisibility, SpaceType, Community, FeatureKey } from "@/types/database";
+import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
+import type { NavSubItemKind } from "./spaces-manager";
+import type { SpaceVisibility, SpaceType, Community, FeatureKey, BusinessCategory } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -228,6 +231,73 @@ export async function reorderNavItems(
   return undefined;
 }
 
+// Reorders one space's nav sub-links. Each sub-link kind persists its order
+// differently, so this dispatches on `kind` — `orderedRefs` is the full list of
+// that space's sub-links (by ref) in the desired order. Adding a new kind of
+// sub-link means adding a branch here; the manager UI needs no changes.
+export async function reorderSpaceSubNav(
+  spaceId: string,
+  kind: NavSubItemKind,
+  orderedRefs: string[],
+  communitySlug: string
+): Promise<{ error: string } | undefined> {
+  switch (kind) {
+    case "featured_category": {
+      const result = await reorderFeaturedCategories(spaceId, orderedRefs as BusinessCategory[], communitySlug);
+      return result?.error ? { error: result.error } : undefined;
+    }
+    default:
+      return { error: "Unknown nav sub-link type." };
+  }
+}
+
+// Shows or hides a built-in nav item (Events, Search) in the sidebar without
+// disabling the feature itself — the same as a space's show_in_nav toggle. The
+// item lives in community_nav_item_order; when no row exists yet we insert one
+// carrying its default sort position, so hiding an item never accidentally
+// moves it to the top (sort_order's column default is 0).
+export async function setNavItemVisibility(
+  itemKey: FeatureKey,
+  showInNav: boolean,
+  communityId: string,
+  communitySlug: string
+): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+
+  const { data: existing, error: readError } = await supabase
+    .from("community_nav_item_order")
+    .select("item_key")
+    .eq("community_id", communityId)
+    .eq("item_key", itemKey)
+    .maybeSingle();
+
+  if (readError) {
+    return { error: readError.message };
+  }
+
+  const result = existing
+    ? await supabase
+        .from("community_nav_item_order")
+        .update({ show_in_nav: showInNav })
+        .eq("community_id", communityId)
+        .eq("item_key", itemKey)
+    : await supabase.from("community_nav_item_order").insert({
+        community_id: communityId,
+        item_key: itemKey,
+        sort_order: defaultNavItemSort(itemKey),
+        show_in_nav: showInNav,
+      });
+
+  if (result.error) {
+    return { error: result.error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces`);
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
 export type CommunityDetailsState = { error: string } | undefined;
 
 export async function updateCommunityDetails(
@@ -264,6 +334,38 @@ export async function updateCommunityDetails(
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
   revalidatePath("/dashboard");
+  return undefined;
+}
+
+export type PublicAccessState = { error: string } | undefined;
+
+// The community's pre-login / public-access controls, grouped into one place:
+// whether guests see events, and who can see the members list. Both live on
+// the communities row and are admin-only via RLS (communities_update_admin).
+export async function updatePublicAccess(
+  _prevState: PublicAccessState,
+  formData: FormData
+): Promise<PublicAccessState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const eventsPublic = formData.get("events_public") === "on";
+  const membersVisibility = parseVisibility(formData.get("members_visibility"));
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({
+      events_public: eventsPublic,
+      members_visibility: membersVisibility,
+    })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
   return undefined;
 }
 

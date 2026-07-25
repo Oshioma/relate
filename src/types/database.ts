@@ -85,6 +85,15 @@ export type Community = {
   cover_image_url: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // Who can see the Members list/page — independent of `privacy` above.
+  // The page always requires a signed-in user regardless of this setting.
+  // 'public' = any signed-in visitor (incl. guests who haven't joined),
+  // 'members' = active members only, 'private' = staff only.
+  members_visibility: SpaceVisibility;
+  // The wizard template this community was created from (COMMUNITY_TEMPLATES
+  // key), or null for older communities. Gates type-specific features such as
+  // AI event discovery (place only).
+  template_key: string | null;
   location_type: string | null;
   location_name: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
@@ -97,6 +106,9 @@ export type Community = {
   // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
   // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
+  // Admin opt-in: show this community's events to signed-out visitors. Only
+  // takes effect for a community guests can already reach (is_public).
+  events_public: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -215,7 +227,7 @@ export type CommunityNavLink = {
 };
 
 // Built-in, optional nav features a platform super admin can turn on/off —
-// see src/lib/features.ts for the labeled list shown in /admin.
+// see src/lib/features.ts for the labeled list shown in /platform-admin.
 export type FeatureKey = "events" | "concierge";
 
 // The feature state new communities start with, and the fallback for any
@@ -252,6 +264,24 @@ export type CommunityFeaturePref = {
 export type CommunityNavItemOrder = {
   community_id: string;
   item_key: FeatureKey;
+  sort_order: number;
+  show_in_nav: boolean;
+  updated_at: string;
+};
+
+// A default item for a community type (template), editable by a super admin at
+// /platform-admin. Usually a space (space_type set, builtin_key null); when
+// builtin_key is 'events'/'concierge' it's a built-in nav feature shown in the
+// list so it can be ordered like a space. The creation wizard seeds a new
+// community's spaces from these. See the template_default_spaces migration.
+export type TemplateDefaultSpace = {
+  id: string;
+  template_key: string;
+  name: string;
+  description: string;
+  space_type: SpaceType;
+  builtin_key: FeatureKey | null;
+  show_in_nav: boolean;
   sort_order: number;
   updated_at: string;
 };
@@ -307,6 +337,8 @@ export type FeaturedBusinessCategory = {
   space_id: string;
   community_id: string;
   category: BusinessCategory;
+  // Position among a directory space's nav sub-links; staff drag to reorder.
+  sort_order: number;
   created_at: string;
 };
 
@@ -835,6 +867,11 @@ export type Database = {
         Row: CommunityNavItemOrder;
         Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
         Update: Partial<CommunityNavItemOrder>;
+      } & NoRel;
+      template_default_spaces: {
+        Row: TemplateDefaultSpace;
+        Insert: Partial<TemplateDefaultSpace> & { template_key: string; name: string };
+        Update: Partial<TemplateDefaultSpace>;
       } & NoRel;
       notifications: {
         Row: Notification;

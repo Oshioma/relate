@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
 import { getCommunityInvites } from "@/lib/data/invites";
 import {
   getDirectoryMembers,
@@ -32,6 +32,8 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
     getDirectoryMembers(supabase, community.id),
     getMembership(supabase, community.id, user.id),
   ]);
+
+  if (!canViewMembers(community, membership)) notFound();
 
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   const invites = isAdmin ? await getCommunityInvites(supabase, community.id) : [];

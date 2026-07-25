@@ -39,6 +39,12 @@ async function requireOwner(communitySlug: string): Promise<StaffContext | { err
     return { error: "Only the community owner can discover and add events." };
   }
 
+  // AI event discovery is a place-based feature — it searches the web for
+  // what's happening in a real place. Only offered to place communities.
+  if (community.template_key !== "place") {
+    return { error: "AI event discovery is only available for place-based communities." };
+  }
+
   return { supabase, user, community };
 }
 

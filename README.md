@@ -134,8 +134,17 @@ validate and redeem a code without needing broader table access.
 Run `supabase/email-invites.sql` too (adds an `email` column to
 `community_invites`). This is a second, optional invite path — from the
 same `/admin` page, an owner/admin can type an email address and Relate
-sends an actual invite email via Supabase Auth's admin API
-(`auth.admin.inviteUserByEmail`), pre-scoped to one use.
+sends an actual invite email, pre-scoped to one use.
+
+With `RESEND_API_KEY` set (see `.env.local.example`), the email goes out
+through Resend as a **community-branded** message — sender display name
+is the community ("Mzungu Zanzibar &lt;invites@relate.click&gt;"), the
+body carries the community's logo and name, and no auth account is
+pre-created, so the invitee's "Create account" flow just works. Requires
+the sending domain verified in Resend. Without the key, invites fall
+back to Supabase Auth's admin API (`auth.admin.inviteUserByEmail`),
+which uses the global "from Relate" template and pre-creates a
+passwordless account (see the note at the end of this section).
 
 This path needs a secret the other invite features don't:
 
@@ -161,13 +170,14 @@ directly as a fallback.
 
 ### Sending real email (SMTP)
 
-Every email Relate sends — signup confirmations, password resets, and
-email invites — goes out through **Supabase Auth**, which relays via
-whatever SMTP provider you configure under **Authentication → Emails →
-SMTP Settings**. Supabase's built-in shared service is dev-only and
-rate-limited to a few messages an hour, so production needs your own
-provider. These settings are for [Resend](https://resend.com); other
-providers follow the same shape.
+**Account emails** — signup confirmations and password resets — always go
+out through **Supabase Auth**, which relays via whatever SMTP provider you
+configure under **Authentication → Emails → SMTP Settings**. (Email invites
+take the direct-Resend path above when `RESEND_API_KEY` is set, and only
+fall back to this Supabase-Auth path when it isn't.) Supabase's built-in
+shared service is dev-only and rate-limited to a few messages an hour, so
+production needs your own provider. These settings are for
+[Resend](https://resend.com); other providers follow the same shape.
 
 | Field        | Value                                              |
 | ------------ | -------------------------------------------------- |

@@ -67,7 +67,7 @@ function usefulAuthMessage(message: string, fallback: string): string {
 function friendlyLoginError(message: string): string {
   const lower = message.toLowerCase();
   if (lower.includes("invalid login credentials")) {
-    return "That email and password don't match an account. New here? Use \"Create account\" instead — or double-check your password.";
+    return "That email and password don't match. It's one account for every community site and the main site — use the same details you first signed up with, or tap \"Forgot your password?\" below to reset it. New here? Use \"Create account\" instead.";
   }
   if (lower.includes("email not confirmed")) {
     return "Almost there — we sent you a confirmation email when you signed up. Click the link in it, then sign in again.";
@@ -114,7 +114,10 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
 
   if (error) {
     if (error.message.toLowerCase().includes("already registered")) {
-      return { error: "You already have an account with this email — go back and choose \"Sign in\" instead." };
+      return {
+        error:
+          "You already have an account with this email — maybe from joining on a community's own site. The same email and password work everywhere, so go back and sign in with those details, or use \"Forgot your password?\" on the sign-in page to reset them.",
+      };
     }
     // The client only ever sees a string, so log the full error (status,
     // code, opaque body) to make an unhelpful message like "0" diagnosable.

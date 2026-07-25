@@ -25,14 +25,25 @@ function toWizardFields(fields: TemplateProfileField[]): WizardProfileField[] {
   return fields.map((f) => ({ id: nextId("field"), label: f.label, field_type: f.field_type, options: f.options ?? [] }));
 }
 
-export function StepTemplate({ state, update }: { state: WizardState; update: (patch: Partial<WizardState>) => void }) {
+export function StepTemplate({
+  state,
+  update,
+  defaultSpacesByTemplate,
+}: {
+  state: WizardState;
+  update: (patch: Partial<WizardState>) => void;
+  defaultSpacesByTemplate?: Record<string, TemplateSpace[]>;
+}) {
   const isPlace = state.templateKey === "place";
 
   function selectTemplate(key: string) {
     const template = COMMUNITY_TEMPLATES.find((t) => t.key === key)!;
+    // Prefer the super-admin-configured defaults for this type; fall back to
+    // the template's code defaults.
+    const defaultSpaces = defaultSpacesByTemplate?.[key] ?? template.defaultSpaces;
     update({
       templateKey: key,
-      spaces: toWizardSpaces(template.defaultSpaces),
+      spaces: toWizardSpaces(defaultSpaces),
       profileFields: toWizardFields(template.defaultProfileFields),
       locationType: "",
       mapLayers: [],
@@ -51,7 +62,7 @@ export function StepTemplate({ state, update }: { state: WizardState; update: (p
   }
 
   function selectLocationType(key: string) {
-    const rec = recommendPlaceSetup(key);
+    const rec = recommendPlaceSetup(key, defaultSpacesByTemplate?.["place"]);
     update({
       locationType: key,
       spaces: toWizardSpaces(rec.spaces),

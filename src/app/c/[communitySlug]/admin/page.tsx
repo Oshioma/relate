@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Users, Sparkles } from "lucide-react";
+import { CalendarDays, Users, Sparkles, ListTree } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
@@ -10,13 +10,16 @@ import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeatureControls, getCommunityFeatures } from "@/lib/data/features";
+import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { BUILTIN_NAV_ITEMS, defaultNavItemSort } from "@/lib/nav-items";
+import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { Card, CardContent } from "@/components/ui/card";
 import { CommunityFeaturesSection } from "./community-features-section";
 import { NewSpaceForm } from "./new-space-form";
-import { SpacesManager, type NavManagerItem } from "./spaces-manager";
+import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
+import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
@@ -41,29 +44,46 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
 
   const isOwner = membership?.role === "owner";
 
-  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls] = await Promise.all([
-    getCommunitySpaces(supabase, community.id),
-    getCommunityMembers(supabase, community.id),
-    getCommunityProfileFields(supabase, community.id),
-    getCommunityNavLinks(supabase, community.id),
-    getCommunityNavItemOrder(supabase, community.id),
-    getCommunityFeatures(supabase, community.id),
-    isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
-  ]);
+  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories] =
+    await Promise.all([
+      getCommunitySpaces(supabase, community.id),
+      getCommunityMembers(supabase, community.id),
+      getCommunityProfileFields(supabase, community.id),
+      getCommunityNavLinks(supabase, community.id),
+      getCommunityNavItemOrder(supabase, community.id),
+      getCommunityFeatures(supabase, community.id),
+      isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
+      getCommunityFeaturedBusinessCategories(supabase, community.id),
+      getCommunityBusinessCustomCategories(supabase, community.id),
+    ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
 
+  // A space's nav sub-links, grouped by space and kept in nav order (the query
+  // returns featured categories already sorted by sort_order). Today only a
+  // business directory contributes them; a new source just adds to this map.
+  const subItemsBySpaceId: Record<string, NavSubItem[]> = {};
+  for (const f of featuredCategories) {
+    const customsForSpace = customCategories.filter((c) => c.space_id === f.space_id);
+    (subItemsBySpaceId[f.space_id] ??= []).push({
+      kind: "featured_category",
+      ref: f.category,
+      label: businessCategoryPluralLabel(f.category, customsForSpace),
+    });
+  }
+
   // The sidebar order: spaces and the enabled built-in links (Events, Search)
   // as one draggable list, pre-sorted the way the sidebar renders them.
   const navManagerItems: NavManagerItem[] = [
-    ...spaces.map((s) => ({ kind: "space" as const, key: s.id, sort: s.sort_order, space: s })),
+    ...spaces.map((s) => ({ kind: "space" as const, key: s.id, sort: s.sort_order, space: s, subItems: subItemsBySpaceId[s.id] ?? [] })),
     ...BUILTIN_NAV_ITEMS.filter((item) => features[item.key]).map((item) => ({
       kind: "builtin" as const,
       key: `builtin:${item.key}`,
-      sort: navItemOrder[item.key] ?? defaultNavItemSort(item.key),
+      sort: navItemOrder[item.key]?.sortOrder ?? defaultNavItemSort(item.key),
       itemKey: item.key,
       label: item.label,
+      showInNav: navItemOrder[item.key]?.showInNav ?? true,
     })),
   ].sort((a, b) => a.sort - b.sort);
 
@@ -93,9 +113,19 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
         <CommunityBrandingForm community={community} />
       </div>
 
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        What signed-out visitors can see before logging in. Individual spaces have their own visibility setting.
+      </p>
+      <div className="mb-8">
+        <PublicAccessForm community={community} />
+      </div>
+
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top.
+        Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top. A space with
+        nav sub-links (like a business directory&apos;s featured categories) shows a{" "}
+        <ListTree className="inline h-3.5 w-3.5 align-text-bottom" /> button to expand and reorder them.
       </p>
       {navManagerItems.length > 0 && (
         <div className="mb-4">

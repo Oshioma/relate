@@ -7,13 +7,23 @@ import { BuiltinNavRow } from "./builtin-nav-row";
 import { reorderNavItems } from "./actions";
 import type { Space, SpaceJournalField, FeatureKey } from "@/types/database";
 
+// A space's nav sub-links — the indented items that render under it in the
+// sidebar. Today the only source is a business directory's featured categories
+// (kind "featured_category", `ref` = the category value), but the shape is
+// deliberately generic: a new space type that grows sub-links just contributes
+// its own kind here and a matching branch in reorderSpaceSubNav (admin actions),
+// and the manager renders and reorders it with no further changes.
+export type NavSubItemKind = "featured_category";
+export type NavSubItem = { kind: NavSubItemKind; ref: string; label: string };
+
 // One draggable sidebar row: either a real space, or a built-in feature link
 // (Events, Search). Both live in the same ordered list so an admin can place
 // the built-in links anywhere among the spaces. `key` is a stable React/DnD
-// key; `sort` is only used to pre-sort the incoming list.
+// key; `sort` is only used to pre-sort the incoming list. A space carries its
+// nav sub-links so they can be expanded and reordered inline under its row.
 export type NavManagerItem =
-  | { kind: "space"; key: string; sort: number; space: Space }
-  | { kind: "builtin"; key: string; sort: number; itemKey: FeatureKey; label: string };
+  | { kind: "space"; key: string; sort: number; space: Space; subItems: NavSubItem[] }
+  | { kind: "builtin"; key: string; sort: number; itemKey: FeatureKey; label: string; showInNav: boolean };
 
 export function SpacesManager({
   items,
@@ -66,11 +76,21 @@ export function SpacesManager({
             space={item.space}
             communitySlug={communitySlug}
             journalFields={journalFieldsBySpaceId[item.space.id] ?? []}
+            subItems={item.subItems}
             isDragging={dragIndex === i}
             dragHandlers={dragHandlers}
           />
         ) : (
-          <BuiltinNavRow key={item.key} label={item.label} isDragging={dragIndex === i} dragHandlers={dragHandlers} />
+          <BuiltinNavRow
+            key={item.key}
+            itemKey={item.itemKey}
+            label={item.label}
+            showInNav={item.showInNav}
+            communityId={communityId}
+            communitySlug={communitySlug}
+            isDragging={dragIndex === i}
+            dragHandlers={dragHandlers}
+          />
         );
       })}
     </div>

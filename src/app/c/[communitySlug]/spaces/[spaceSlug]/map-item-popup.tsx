@@ -62,12 +62,13 @@ export function MapItemPopup({ item }: { item: MapItem }) {
         {meta && <p className="mt-0.5 text-xs font-medium text-foreground">{meta}</p>}
         {item.description && <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{item.description}</p>}
 
-        {item.locationLabel && (
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{item.locationLabel}</span>
-          </p>
-        )}
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <MapPin className="h-3.5 w-3.5 shrink-0" />
+          {item.locationLabel && <span className="truncate">{item.locationLabel}</span>}
+          <span className="ml-auto shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground/70">
+            {item.locationPrecision === "approximate" ? "Approximate" : "Exact"}
+          </span>
+        </p>
 
         <Link
           href={item.href}

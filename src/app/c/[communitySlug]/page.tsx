@@ -11,10 +11,11 @@ import {
   Star,
   UsersRound,
   HandHeart,
+  UserPlus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, getCommunityRecentMembers } from "@/lib/data/community";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -46,9 +47,9 @@ export default async function CommunityFeedPage({
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
-  const membership = await getMembership(supabase, community.id, user.id);
+  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const [
     posts,
     events,
@@ -61,18 +62,21 @@ export default async function CommunityFeedPage({
     recentRecommendations,
     recentClubs,
     recentVolunteerProjects,
+    recentMembers,
   ] = await Promise.all([
-    getCommunityPosts(supabase, community.id, 6),
+    getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
-    getCommunityRecentBusinesses(supabase, community.id, 6),
+    getCommunityRecentBusinesses(supabase, community.id, 12),
     getCommunityBusinessCustomCategories(supabase, community.id),
-    getCommunityRecentEvents(supabase, community.id, 6),
-    getCommunityRecentMarketplaceListings(supabase, community.id, 6),
-    getCommunityRecentJobListings(supabase, community.id, 6),
-    getCommunityRecentAccommodationListings(supabase, community.id, 6),
-    getCommunityRecentRecommendations(supabase, community.id, 6),
-    getCommunityRecentClubs(supabase, community.id, 6),
-    getCommunityRecentVolunteerProjects(supabase, community.id, 6),
+    getCommunityRecentEvents(supabase, community.id, 12),
+    getCommunityRecentMarketplaceListings(supabase, community.id, 12),
+    getCommunityRecentJobListings(supabase, community.id, 12),
+    getCommunityRecentAccommodationListings(supabase, community.id, 12),
+    getCommunityRecentRecommendations(supabase, community.id, 12),
+    getCommunityRecentClubs(supabase, community.id, 12),
+    getCommunityRecentVolunteerProjects(supabase, community.id, 12),
+    // Member profiles stay login-gated, so guests don't get "new member" cards.
+    user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -91,7 +95,7 @@ export default async function CommunityFeedPage({
       title: p.title,
       description: p.body,
       imageUrl: null,
-      typeBadge: p.post_type,
+      typeBadge: `${p.post_type} posted`,
       detail: null,
       authorName: p.author?.full_name || p.author?.username || null,
       authorAvatar: p.author?.avatar_url ?? null,
@@ -106,7 +110,7 @@ export default async function CommunityFeedPage({
       description: b.description,
       imageUrl: b.image_url,
       imagePosition: b.image_position,
-      typeBadge: businessCategoryLabel(b.category, customCategories),
+      typeBadge: `${businessCategoryLabel(b.category, customCategories)} added`,
       detail: null,
       authorName: b.creator?.full_name || b.creator?.username || null,
       authorAvatar: b.creator?.avatar_url ?? null,
@@ -120,7 +124,7 @@ export default async function CommunityFeedPage({
       title: e.title,
       description: e.description,
       imageUrl: e.image_url,
-      typeBadge: "Event",
+      typeBadge: "Event added",
       detail: `Starts ${formatDateTime(e.start_time)}`,
       authorName: e.creator?.full_name || e.creator?.username || null,
       authorAvatar: e.creator?.avatar_url ?? null,
@@ -134,7 +138,7 @@ export default async function CommunityFeedPage({
       title: l.title,
       description: l.description,
       imageUrl: l.photo_url,
-      typeBadge: marketplaceCategoryLabel(l.listing_type),
+      typeBadge: `${marketplaceCategoryLabel(l.listing_type)} added`,
       detail: l.price !== null ? `${l.currency ?? ""} ${l.price}`.trim() : null,
       authorName: l.seller?.full_name || l.seller?.username || null,
       authorAvatar: l.seller?.avatar_url ?? null,
@@ -148,7 +152,7 @@ export default async function CommunityFeedPage({
       title: j.title,
       description: j.description,
       imageUrl: null,
-      typeBadge: jobTypeLabel(j.job_type),
+      typeBadge: `${jobTypeLabel(j.job_type)} job added`,
       detail: j.salary,
       authorName: j.poster?.full_name || j.poster?.username || null,
       authorAvatar: j.poster?.avatar_url ?? null,
@@ -162,7 +166,7 @@ export default async function CommunityFeedPage({
       title: a.name,
       description: a.description,
       imageUrl: a.photo_url,
-      typeBadge: accommodationTypeLabel(a.accommodation_type),
+      typeBadge: `${accommodationTypeLabel(a.accommodation_type)} added`,
       detail: a.price_per_night !== null ? `${a.currency ?? ""} ${a.price_per_night}/night`.trim() : null,
       authorName: a.lister?.full_name || a.lister?.username || null,
       authorAvatar: a.lister?.avatar_url ?? null,
@@ -176,7 +180,7 @@ export default async function CommunityFeedPage({
       title: r.title,
       description: r.note,
       imageUrl: null,
-      typeBadge: recommendationCategoryLabel(r.category),
+      typeBadge: `${recommendationCategoryLabel(r.category)} recommendation added`,
       detail: null,
       authorName: r.recommendedBy?.full_name || r.recommendedBy?.username || null,
       authorAvatar: r.recommendedBy?.avatar_url ?? null,
@@ -190,7 +194,7 @@ export default async function CommunityFeedPage({
       title: c.name,
       description: c.description,
       imageUrl: null,
-      typeBadge: c.category,
+      typeBadge: "Club added",
       detail: null,
       authorName: c.creator?.full_name || c.creator?.username || null,
       authorAvatar: c.creator?.avatar_url ?? null,
@@ -204,18 +208,32 @@ export default async function CommunityFeedPage({
       title: v.title,
       description: v.description,
       imageUrl: null,
-      typeBadge: v.category,
+      typeBadge: "Volunteer project added",
       detail: v.volunteers_needed ? `${v.volunteers_needed} volunteers needed` : null,
       authorName: v.organiser?.full_name || v.organiser?.username || null,
       authorAvatar: v.organiser?.avatar_url ?? null,
       spaceName: v.space?.name ?? null,
       href: v.space ? `${base}/spaces/${v.space.slug}` : base,
     })),
+    ...recentMembers.map((m): FeedItem => ({
+      key: `member-${m.id}`,
+      createdAt: m.created_at,
+      icon: UserPlus,
+      title: m.profile.full_name || m.profile.username,
+      description: [m.profile.profession, m.profile.company].filter(Boolean).join(" · ") || m.profile.bio,
+      imageUrl: null,
+      typeBadge: "New Member",
+      detail: null,
+      authorName: null,
+      authorAvatar: null,
+      spaceName: null,
+      href: `${base}/members`,
+    })),
   ];
 
   const pinned = items.filter((i) => i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const activity = [...pinned, ...rest].slice(0, 15);
+  const activity = [...pinned, ...rest].slice(0, 40);
 
   return (
     <div>
@@ -234,7 +252,7 @@ export default async function CommunityFeedPage({
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">{community.name}</h1>
             {community.description && <p className="mt-1 text-sm text-muted-foreground">{community.description}</p>}
           </div>
-          {!membership && <JoinCommunityButton communityId={community.id} />}
+          {user && !membership && <JoinCommunityButton communityId={community.id} />}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -249,7 +267,7 @@ export default async function CommunityFeedPage({
                 description="Once members start posting, activity will show up here."
               />
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-8">
                 {activity.map((item) => (
                   <FeedItemCard key={item.key} item={item} />
                 ))}

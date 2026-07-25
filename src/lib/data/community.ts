@@ -3,6 +3,24 @@ import type { Database, Community, CommunityMembership, Profile } from "@/types/
 
 type Client = SupabaseClient<Database>;
 
+// Whether a signed-in viewer can see a community's Members list/page, per
+// its members_visibility setting: 'public' allows any signed-in viewer (incl.
+// guests who haven't joined), 'members' requires an active membership,
+// 'private' requires staff. Callers must separately require a signed-in user
+// — the Members page itself is never reachable by a signed-out visitor.
+export function canViewMembers(community: Community, membership: CommunityMembership | null): boolean {
+  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  switch (community.members_visibility) {
+    case "public":
+      return true;
+    case "private":
+      return isStaff;
+    case "members":
+    default:
+      return membership?.status === "active";
+  }
+}
+
 export type CommunityWithMembership = Community & {
   membership: Pick<CommunityMembership, "role" | "status">;
 };
@@ -89,6 +107,25 @@ export async function getCommunityMembers(supabase: Client, communityId: string)
     .eq("community_id", communityId)
     .eq("status", "active")
     .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as MemberRow[];
+}
+
+// The most recently joined active members, newest first — used to surface
+// "New Member" cards in the community feed alongside posts and other activity.
+export async function getCommunityRecentMembers(
+  supabase: Client,
+  communityId: string,
+  limit: number
+): Promise<MemberRow[]> {
+  const { data, error } = await supabase
+    .from("community_memberships")
+    .select("*, profile:user_id (*)")
+    .eq("community_id", communityId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];

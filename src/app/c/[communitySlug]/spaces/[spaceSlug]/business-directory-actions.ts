@@ -231,9 +231,23 @@ export async function setCategoryFeatured(
   }
 
   if (featured) {
+    // New sub-links append to the end of this space's nav order (mirrors how a
+    // new space picks up the next sort_order), so pinning never reshuffles the
+    // links staff have already arranged.
+    const { data: last } = await supabase
+      .from("featured_business_categories")
+      .select("sort_order")
+      .eq("space_id", spaceId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const sortOrder = (last?.sort_order ?? -1) + 1;
     const { error } = await supabase
       .from("featured_business_categories")
-      .upsert({ space_id: spaceId, community_id: communityId, category }, { onConflict: "space_id,category" });
+      .upsert(
+        { space_id: spaceId, community_id: communityId, category, sort_order: sortOrder },
+        { onConflict: "space_id,category" }
+      );
     if (error) return { error: error.message };
   } else {
     const { error } = await supabase
@@ -243,6 +257,34 @@ export async function setCategoryFeatured(
       .eq("category", category);
     if (error) return { error: error.message };
   }
+
+  // The sub-links live in the community layout's nav, so revalidate the layout.
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { error: null };
+}
+
+// Staff-only (enforced by RLS on featured_business_categories): write a new
+// order for a directory space's nav sub-links. `orderedCategories` is the full
+// list of that space's featured categories in the desired order; each row's
+// sort_order becomes its index, so the left nav renders them exactly this way.
+export async function reorderFeaturedCategories(
+  spaceId: string,
+  orderedCategories: BusinessCategory[],
+  communitySlug: string
+) {
+  const supabase = await createClient();
+
+  const results = await Promise.all(
+    orderedCategories.map((category, i) =>
+      supabase
+        .from("featured_business_categories")
+        .update({ sort_order: i })
+        .eq("space_id", spaceId)
+        .eq("category", category)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
 
   // The sub-links live in the community layout's nav, so revalidate the layout.
   revalidatePath(`/c/${communitySlug}`, "layout");

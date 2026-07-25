@@ -16,11 +16,13 @@ export function RecommendationCard({
   communitySlug,
   spaceSlug,
   canManage,
+  canInteract,
 }: {
   data: RecommendationWithVotes;
   communitySlug: string;
   spaceSlug: string;
   canManage: boolean;
+  canInteract: boolean;
 }) {
   const { recommendation, recommendedBy, voteCount, viewerVoted } = data;
   const [isPending, startTransition] = useTransition();
@@ -93,17 +95,24 @@ export function RecommendationCard({
             </p>
           </div>
 
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={toggleAgree}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-60 ${
-              viewerVoted ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"
-            }`}
-          >
-            <ThumbsUp className="h-3.5 w-3.5" />
-            {voteCount > 0 ? voteCount : ""} {viewerVoted ? "Agreed" : "Agree"}
-          </button>
+          {canInteract ? (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={toggleAgree}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium disabled:opacity-60 ${
+                viewerVoted ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"
+              }`}
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+              {voteCount > 0 ? voteCount : ""} {viewerVoted ? "Agreed" : "Agree"}
+            </button>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
+              <ThumbsUp className="h-3.5 w-3.5" />
+              {voteCount > 0 ? voteCount : ""} Agree
+            </span>
+          )}
         </div>
 
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}

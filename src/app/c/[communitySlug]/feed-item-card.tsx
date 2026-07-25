@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -28,7 +27,17 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
   const meta = [item.authorName, formatRelativeTime(item.createdAt), item.spaceName].filter(Boolean).join(" · ");
 
   return (
-    <Link href={item.href}>
+    <Link href={item.href} className="block">
+      {(item.typeBadge || item.isPinned) && (
+        <div className="mb-2 flex items-center gap-1.5">
+          {item.isPinned && <Pin className="h-3.5 w-3.5 text-muted-foreground" />}
+          {item.typeBadge && (
+            <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+              {item.typeBadge}
+            </span>
+          )}
+        </div>
+      )}
       <Card className="overflow-hidden transition-shadow hover:shadow-sm">
         {item.imageUrl && (
           <div className="h-40 w-full bg-muted">
@@ -51,11 +60,7 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
               </span>
             )}
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                {item.isPinned && <Pin className="h-3.5 w-3.5 text-accent" />}
-                <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-                {item.typeBadge && <Badge tone="accent">{item.typeBadge}</Badge>}
-              </div>
+              <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
               <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
               {item.description && <p className="mt-2 line-clamp-2 text-sm text-foreground">{item.description}</p>}
               {item.detail && <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>}
