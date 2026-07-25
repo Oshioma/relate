@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions } from "@/lib/business-categories";
@@ -58,6 +58,7 @@ export function BusinessDirectoryView({
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("featured");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [localOnly, setLocalOnly] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [featured, setFeatured] = useState<BusinessCategory[]>(featuredCategories);
   const [chipError, setChipError] = useState<string | null>(null);
@@ -141,17 +142,21 @@ export function BusinessDirectoryView({
   }
 
   const savedCount = useMemo(() => businesses.filter((b) => b.saved).length, [businesses]);
+  const localCount = useMemo(() => businesses.filter(({ business: b }) => b.is_local).length, [businesses]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return businesses.filter(({ business: b, saved }) => {
       if (savedOnly && !saved) return false;
+      // Local is a cross-cutting filter: it narrows whatever category is active
+      // rather than replacing it, so "Restaurant" + "Local" = local restaurants.
+      if (localOnly && !b.is_local) return false;
       if (category !== "all" && b.category !== category) return false;
       if (location !== "all" && b.location_label !== location) return false;
       if (q && !b.name.toLowerCase().includes(q) && !(b.description ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [businesses, category, location, query, savedOnly]);
+  }, [businesses, category, location, query, savedOnly, localOnly]);
 
   // Order within each location group by the chosen sort. "Featured" keeps the
   // server's featured-first, name order; the rest re-sort the whole group.
@@ -257,6 +262,16 @@ export function BusinessDirectoryView({
           >
             <Heart className={`h-3 w-3 ${savedOnly ? "fill-accent" : ""}`} />
             Saved ({savedCount})
+          </button>
+        )}
+        {localCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setLocalOnly((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${localOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            <MapPin className={`h-3 w-3 ${localOnly ? "fill-accent" : ""}`} />
+            Local ({localCount})
           </button>
         )}
         {categoryOptions.map((c) => {
