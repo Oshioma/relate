@@ -334,3 +334,95 @@ export async function unmarkLessonComplete(lessonId: string, communitySlug: stri
   revalidateSpace(communitySlug, spaceSlug);
   return { error: null };
 }
+
+// -----------------------------------------------------------------------------
+// v2 — Lesson Q&A
+// -----------------------------------------------------------------------------
+export async function addLessonComment(
+  lessonId: string,
+  courseId: string,
+  communityId: string,
+  body: string,
+  communitySlug: string,
+  spaceSlug: string
+) {
+  const trimmed = body.trim();
+  if (!trimmed) return { error: "Write something first." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { error } = await supabase
+    .from("lesson_comments")
+    .insert({ lesson_id: lessonId, course_id: courseId, community_id: communityId, author_id: user.id, body: trimmed });
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+export async function deleteLessonComment(commentId: string, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("lesson_comments").delete().eq("id", commentId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// -----------------------------------------------------------------------------
+// v2 — Drip scheduling & certificates (staff)
+// -----------------------------------------------------------------------------
+export async function setModuleDrip(moduleId: string, availableAt: string | null, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const value = availableAt && availableAt.trim() ? availableAt : null;
+  const { error } = await supabase.from("course_modules").update({ available_at: value }).eq("id", moduleId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+export async function setCertificateEnabled(courseId: string, enabled: boolean, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("courses").update({ certificate_enabled: enabled }).eq("id", courseId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
+
+// -----------------------------------------------------------------------------
+// v2 — Course announcements (staff)
+// -----------------------------------------------------------------------------
+export async function createAnnouncement(_prevState: CourseFormState, formData: FormData): Promise<CourseFormState> {
+  const courseId = String(formData.get("course_id") ?? "");
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!title) return { error: "Give the announcement a title." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { error } = await supabase
+    .from("course_announcements")
+    .insert({ course_id: courseId, community_id: communityId, author_id: user.id, title, body: body || null });
+  if (error) return { error: error.message };
+
+  revalidateSpace(communitySlug, spaceSlug);
+  return { ok: true };
+}
+
+export async function deleteAnnouncement(announcementId: string, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("course_announcements").delete().eq("id", announcementId);
+  if (error) return { error: error.message };
+  revalidateSpace(communitySlug, spaceSlug);
+  return { error: null };
+}
