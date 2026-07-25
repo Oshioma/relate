@@ -8,7 +8,7 @@ import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/co
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
-import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
@@ -63,12 +63,13 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, features] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
     getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeatures(supabase, community.id),
   ]);
 
@@ -133,7 +134,7 @@ export default async function CommunityLayout({
           .filter((f) => f.space_id === space.id)
           .map((f) => ({
             href: `${base}/spaces/${space.slug}?category=${f.category}`,
-            label: businessCategoryPluralLabel(f.category, customCategories),
+            label: businessCategoryPluralLabel(f.category, customCategories, labelOverrides.filter((o) => o.space_id === space.id)),
             icon: <Tag className="h-3.5 w-3.5" />,
             sub: true,
           })),

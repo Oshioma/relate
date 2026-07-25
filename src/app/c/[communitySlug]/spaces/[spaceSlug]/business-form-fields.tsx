@@ -6,7 +6,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { BusinessImageInput } from "./business-image-input";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessCustomCategory } from "@/types/database";
+import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
 // browser — same pattern as explore-map-loader.tsx.
@@ -29,11 +29,14 @@ export function BusinessFormFields({
   onImagePositionChange,
   userId,
   customCategories,
+  labelOverrides,
 }: {
   idPrefix: string;
   business?: Business;
   // Staff-added categories for this space, merged into the category select.
   customCategories: BusinessCustomCategory[];
+  // Staff relabellings of built-in categories, applied to the select options.
+  labelOverrides?: BusinessCategoryLabelOverride[];
   pin: PickedLocation | null;
   onPinChange: (pin: PickedLocation | null) => void;
   imageUrl: string | null;
@@ -59,7 +62,7 @@ export function BusinessFormFields({
             defaultValue={business?.category ?? "restaurant"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {businessCategoryOptions(customCategories).map((c) => (
+            {businessCategoryOptions(customCategories, labelOverrides).map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}
               </option>

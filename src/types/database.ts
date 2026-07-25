@@ -356,6 +356,21 @@ export type BusinessCustomCategory = {
   created_at: string;
 };
 
+// A per-space relabelling of a BUILT-IN business category — e.g. showing
+// "Activities" as "Experiences". `category` is the built-in value (unchanged
+// on the businesses themselves); `label` is what the nav sub-links, chips and
+// headings render. Custom categories rename via their own `label` instead, so
+// they never appear here (see supabase/business-category-label-overrides.sql).
+export type BusinessCategoryLabelOverride = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  category: BusinessCategory;
+  label: string;
+  created_at: string;
+  updated_at: string;
+};
+
 // A togglable layer on a community's Explore Map (Restaurants, Beaches, …).
 // Community-scoped rather than space-scoped — one community has one shared
 // map, same reasoning as community_profile_fields. Seeded from a place
@@ -906,6 +921,12 @@ export type Database = {
         Row: BusinessCustomCategory;
         Insert: Partial<BusinessCustomCategory> & { space_id: string; community_id: string; created_by: string; slug: string; label: string };
         Update: Partial<BusinessCustomCategory>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      business_category_label_overrides: {
+        Row: BusinessCategoryLabelOverride;
+        Insert: Partial<BusinessCategoryLabelOverride> & { space_id: string; community_id: string; category: BusinessCategory; label: string };
+        Update: Partial<BusinessCategoryLabelOverride>;
         Relationships: [FKey<"space_id", "spaces">];
       };
       map_categories: {

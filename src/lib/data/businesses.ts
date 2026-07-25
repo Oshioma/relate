@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Business, FeaturedBusinessCategory, BusinessCustomCategory, Profile, Space } from "@/types/database";
+import type { Database, Business, FeaturedBusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -51,6 +51,23 @@ export async function getCommunityBusinessCustomCategories(
     .select("*")
     .eq("community_id", communityId)
     .order("label", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Per-space label overrides for built-in categories across the community —
+// community-scoped like custom/featured categories so the same one query feeds
+// the left nav, the directory page and the admin nav manager, each filtering to
+// its own space_id.
+export async function getCommunityBusinessCategoryLabelOverrides(
+  supabase: Client,
+  communityId: string
+): Promise<BusinessCategoryLabelOverride[]> {
+  const { data, error } = await supabase
+    .from("business_category_label_overrides")
+    .select("*")
+    .eq("community_id", communityId);
 
   if (error) throw error;
   return data ?? [];

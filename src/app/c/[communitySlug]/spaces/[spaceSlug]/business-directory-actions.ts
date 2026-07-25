@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { BUSINESS_CATEGORIES, slugifyBusinessCategory } from "@/lib/business-categories";
+import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Database, BusinessCategory } from "@/types/database";
 
@@ -332,6 +332,58 @@ export async function addBusinessCategory(
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null, slug };
+}
+
+// Staff-only: rename a category's display label without touching the value
+// stored on businesses. A built-in (Activity → Experiences) gets a per-space
+// label override upserted into business_category_label_overrides; a custom
+// category renames its own row. Renaming a built-in back to its shipped label
+// clears the override. The labels live in the nav, so revalidate the layout.
+export async function renameBusinessCategory(
+  spaceId: string,
+  communityId: string,
+  category: BusinessCategory,
+  label: string,
+  communitySlug: string
+) {
+  const trimmed = label.trim().slice(0, 40);
+  if (!trimmed) {
+    return { error: "Give the category a name." };
+  }
+
+  const supabase = await createClient();
+
+  if (isBuiltInBusinessCategory(category)) {
+    const builtInDefault = BUSINESS_CATEGORIES.find((c) => c.value === category)?.label;
+    if (builtInDefault && trimmed === builtInDefault) {
+      // Back to the shipped label — drop the override rather than store a no-op.
+      const { error } = await supabase
+        .from("business_category_label_overrides")
+        .delete()
+        .eq("space_id", spaceId)
+        .eq("category", category);
+      if (error) return { error: error.message };
+    } else {
+      const { error } = await supabase
+        .from("business_category_label_overrides")
+        .upsert(
+          { space_id: spaceId, community_id: communityId, category, label: trimmed },
+          { onConflict: "space_id,category" }
+        );
+      if (error) return { error: error.message };
+    }
+  } else {
+    // Custom category: rename its own row (matched by its slug within the space).
+    const { error } = await supabase
+      .from("business_custom_categories")
+      .update({ label: trimmed })
+      .eq("space_id", spaceId)
+      .eq("slug", category);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { error: null };
 }
 
 // Staff-only. A DB trigger folds the category's listings back into 'other'
