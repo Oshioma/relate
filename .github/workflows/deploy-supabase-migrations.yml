@@ -6,9 +6,6 @@ on:
       - main
     paths:
       - "supabase/migrations/**"
-  # Manual trigger, used to run the one-time migration-history repair below.
-  # Actions tab → "Deploy Supabase Migrations" → "Run workflow" (on main).
-  workflow_dispatch:
 
 jobs:
   deploy:
@@ -34,23 +31,6 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase link --project-ref "${{ steps.project.outputs.ref }}"
-
-      # One-time repair. Production's schema_migrations has a ghost record for
-      # 20260725160000 (business_claims briefly held that version; space_type_pool
-      # then reused it and was skipped, so its tables were never created). The
-      # migration has since been renumbered to 20260725180000, which orphaned the
-      # 160000 record and makes `db push` fail with "Remote migration versions not
-      # found in local migrations directory". Marking 160000 as reverted clears the
-      # ghost so `db push` can apply 20260725180000_space_type_pool.sql.
-      #
-      # Runs on manual dispatch only, so automatic push deploys stay untouched.
-      # Safe to remove once the repair has run and the deploy is green again.
-      - name: Repair orphaned migration record (one-time, manual only)
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase migration repair --status reverted 20260725160000
 
       - name: Push database migrations
         env:
