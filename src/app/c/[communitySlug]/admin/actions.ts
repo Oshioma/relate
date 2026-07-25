@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
-import { SPACE_TYPE_LIST } from "@/lib/space-types";
+import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-types";
+import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
@@ -54,6 +55,14 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   if (!user) {
     return { error: "You need to be signed in." };
+  }
+
+  // The super admin can restrict which space types a community may add. Gate
+  // creation on the resolved pool so a disallowed type can't slip through even
+  // if the form is bypassed.
+  const pool = await getCommunitySpaceTypePool(supabase, communityId);
+  if (!pool[spaceType]) {
+    return { error: `The ${SPACE_TYPE_META[spaceType].label} space type isn't available to this community.` };
   }
 
   const { data: existing } = await supabase
@@ -113,6 +122,18 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   }
 
   const supabase = await createClient();
+
+  // Only enforce the pool when the type is actually changing — an existing
+  // space of a now-disallowed type can still be edited, it just can't be
+  // switched *into* a disallowed type.
+  const { data: current } = await supabase.from("spaces").select("community_id, space_type").eq("id", spaceId).maybeSingle();
+  if (current && spaceType !== current.space_type) {
+    const pool = await getCommunitySpaceTypePool(supabase, current.community_id);
+    if (!pool[spaceType]) {
+      return { error: `The ${SPACE_TYPE_META[spaceType].label} space type isn't available to this community.` };
+    }
+  }
+
   const { error } = await supabase
     .from("spaces")
     .update({

@@ -10,6 +10,7 @@ import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeatureControls, getCommunityFeatures } from "@/lib/data/features";
+import { getAllowedSpaceTypes } from "@/lib/data/space-type-pool";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { BUILTIN_NAV_ITEMS, defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
@@ -44,7 +45,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
 
   const isOwner = membership?.role === "owner";
 
-  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides] =
+  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
     await Promise.all([
       getCommunitySpaces(supabase, community.id),
       getCommunityMembers(supabase, community.id),
@@ -56,6 +57,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       getCommunityFeaturedBusinessCategories(supabase, community.id),
       getCommunityBusinessCustomCategories(supabase, community.id),
       getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
+      getAllowedSpaceTypes(supabase, community.id),
     ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
@@ -136,11 +138,12 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
             communityId={community.id}
             communitySlug={community.slug}
             journalFieldsBySpaceId={journalFieldsBySpaceId}
+            allowedTypes={allowedTypes}
           />
         </div>
       )}
       <div className="mb-8">
-        <NewSpaceForm communityId={community.id} communitySlug={community.slug} />
+        <NewSpaceForm communityId={community.id} communitySlug={community.slug} allowedTypes={allowedTypes} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom profile fields</h2>

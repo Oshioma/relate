@@ -12,14 +12,15 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
-import { SPACE_TYPE_LIST, SPACE_TYPES } from "@/lib/space-types";
-import type { Space, SpaceVisibility, SpaceJournalField } from "@/types/database";
+import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
+import type { Space, SpaceVisibility, SpaceJournalField, SpaceType } from "@/types/database";
 
 export function SpaceCard({
   space,
   communitySlug,
   journalFields,
   subItems,
+  allowedTypes,
   dragHandlers,
   isDragging,
 }: {
@@ -28,6 +29,10 @@ export function SpaceCard({
   journalFields: SpaceJournalField[];
   // Nav sub-links shown, expandable and reorderable, under this space's row.
   subItems: NavSubItem[];
+  // Space types the super admin permits for this community. The space's own
+  // current type is always kept selectable even if no longer in the pool, so
+  // an existing space can be edited without being forced to change type.
+  allowedTypes: SpaceType[];
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -45,6 +50,11 @@ export function SpaceCard({
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
   const Icon = meta.icon;
+
+  // Type choices: the allowed pool, plus this space's current type if the super
+  // admin has since removed it from the pool (so it stays selectable/keepable).
+  const typeChoices = allowedTypes.includes(space.space_type) ? allowedTypes : [space.space_type, ...allowedTypes];
+  const typeGroups = groupSpaceTypesByCategory(typeChoices.map((t) => SPACE_TYPES[t]));
 
   const wasUpdating = useRef(false);
   useEffect(() => {
@@ -98,10 +108,14 @@ export function SpaceCard({
                 defaultValue={space.space_type}
                 className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                {SPACE_TYPE_LIST.map((t) => (
-                  <option key={t.type} value={t.type}>
-                    {t.label}
-                  </option>
+                {typeGroups.map((group) => (
+                  <optgroup key={group.category.key} label={group.category.label}>
+                    {group.types.map((t) => (
+                      <option key={t.type} value={t.type}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
