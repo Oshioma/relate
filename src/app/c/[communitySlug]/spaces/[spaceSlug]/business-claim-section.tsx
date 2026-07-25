@@ -46,6 +46,10 @@ export function BusinessClaimSection({
   // (for staff) no pending claims to action.
   if (!canClaim && !showViewerPending && staffPending.length === 0) return null;
 
+  // When the only thing to show is the claim CTA, keep it to a single compact
+  // line instead of a full bordered card.
+  const isCompactCta = canClaim && !showForm && !showViewerPending && staffPending.length === 0;
+
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
@@ -78,7 +82,7 @@ export function BusinessClaimSection({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className={isCompactCta ? "mt-4" : "mt-4 rounded-lg border border-border bg-card p-4"}>
       {/* Staff: pending claims to action */}
       {staffPending.length > 0 && (
         <div className="space-y-3">
@@ -130,17 +134,13 @@ export function BusinessClaimSection({
 
       {/* Claim CTA / form */}
       {canClaim && !showForm && (
-        <div>
-          <p className="text-sm font-medium text-foreground">Own this business?</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">Claim the listing to manage its details, photos and replies once staff approve.</p>
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-accent"
-          >
+        <p className="text-sm text-muted-foreground">
+          Own this business?{" "}
+          <button type="button" onClick={() => setShowForm(true)} className="font-medium text-accent hover:underline">
             Claim this listing
-          </button>
-        </div>
+          </button>{" "}
+          to manage its details, photos and replies once staff approve.
+        </p>
       )}
 
       {canClaim && showForm && (
