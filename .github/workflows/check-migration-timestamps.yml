@@ -12,11 +12,17 @@ name: Check migration timestamps
 # catch two still-open PRs racing, require branches to be up to date with the
 # base before merging (branch protection) — then the loser re-runs this check
 # against the winner's migration and is blocked.
+#
+# The pull_request trigger is intentionally NOT path-filtered. This check is a
+# required status in branch protection, and a path-filtered required check that
+# gets skipped stays stuck in "Expected — waiting for status to be reported",
+# which permanently blocks any PR that doesn't touch supabase/migrations/**
+# (see GitHub's "Handling skipped but required checks"). Running it on every PR
+# is cheap (an `ls | uniq -d`) and guarantees the required status is always
+# reported. The push trigger keeps its path filter — it isn't a required check.
 
 on:
   pull_request:
-    paths:
-      - "supabase/migrations/**"
   push:
     branches:
       - main
