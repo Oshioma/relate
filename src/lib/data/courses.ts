@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Course, CourseModule, CourseLesson, Profile } from "@/types/database";
+import type { Database, Course, CourseModule, CourseLesson, LessonComment, CourseAnnouncement, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -21,6 +21,16 @@ export type CourseModuleWithLessons = {
   lessons: CourseLesson[];
 };
 
+export type LessonCommentWithAuthor = {
+  comment: LessonComment;
+  author: Profile | null;
+};
+
+export type AnnouncementWithAuthor = {
+  announcement: CourseAnnouncement;
+  author: Profile | null;
+};
+
 export type CourseDetail = {
   course: Course;
   instructor: Profile | null;
@@ -30,6 +40,9 @@ export type CourseDetail = {
   viewerEnrolled: boolean;
   // Lesson ids the viewer has marked complete.
   completedLessonIds: string[];
+  // v2:
+  announcements: AnnouncementWithAuthor[];
+  comments: LessonCommentWithAuthor[];
 };
 
 // RLS hides draft courses from non-staff, so this returns only what the viewer
@@ -100,23 +113,28 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
   if (error) throw error;
   if (!course) return null;
 
-  const [modulesResult, lessonsResult, enrollmentsResult, completionsResult, instructorResult] = await Promise.all([
-    supabase.from("course_modules").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
-    supabase.from("course_lessons").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
-    supabase.from("course_enrollments").select("course_id, user_id").eq("course_id", courseId),
-    viewerId
-      ? supabase.from("lesson_completions").select("lesson_id").eq("course_id", courseId).eq("user_id", viewerId)
-      : Promise.resolve({ data: [], error: null }),
-    course.instructor_id
-      ? supabase.from("profiles").select("*").eq("id", course.instructor_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
-  ]);
+  const [modulesResult, lessonsResult, enrollmentsResult, completionsResult, instructorResult, announcementsResult, commentsResult] =
+    await Promise.all([
+      supabase.from("course_modules").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
+      supabase.from("course_lessons").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
+      supabase.from("course_enrollments").select("course_id, user_id").eq("course_id", courseId),
+      viewerId
+        ? supabase.from("lesson_completions").select("lesson_id").eq("course_id", courseId).eq("user_id", viewerId)
+        : Promise.resolve({ data: [], error: null }),
+      course.instructor_id
+        ? supabase.from("profiles").select("*").eq("id", course.instructor_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      supabase.from("course_announcements").select("*, author:author_id (*)").eq("course_id", courseId).order("created_at", { ascending: false }),
+      supabase.from("lesson_comments").select("*, author:author_id (*)").eq("course_id", courseId).order("created_at", { ascending: true }),
+    ]);
 
   if (modulesResult.error) throw modulesResult.error;
   if (lessonsResult.error) throw lessonsResult.error;
   if (enrollmentsResult.error) throw enrollmentsResult.error;
   if (completionsResult.error) throw completionsResult.error;
   if (instructorResult.error) throw instructorResult.error;
+  if (announcementsResult.error) throw announcementsResult.error;
+  if (commentsResult.error) throw commentsResult.error;
 
   const lessonsByModule = new Map<string, CourseLesson[]>();
   for (const lesson of lessonsResult.data ?? []) {
@@ -132,6 +150,16 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
 
   const enrollments = enrollmentsResult.data ?? [];
 
+  const announcements: AnnouncementWithAuthor[] = (announcementsResult.data ?? []).map((row) => {
+    const { author, ...announcement } = row as CourseAnnouncement & { author: Profile | null };
+    return { announcement, author: author ?? null };
+  });
+
+  const comments: LessonCommentWithAuthor[] = (commentsResult.data ?? []).map((row) => {
+    const { author, ...comment } = row as LessonComment & { author: Profile | null };
+    return { comment, author: author ?? null };
+  });
+
   return {
     course,
     instructor: (instructorResult.data as Profile | null) ?? null,
@@ -140,5 +168,21 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     enrollmentCount: enrollments.length,
     viewerEnrolled: enrollments.some((e) => e.user_id === viewerId),
     completedLessonIds: (completionsResult.data ?? []).map((row) => row.lesson_id),
+    announcements,
+    comments,
   };
+}
+
+// The most recent lesson-completion time for a learner in a course — used as
+// the "completed on" date on the certificate. Null if they've completed none.
+export async function getCourseCompletionDate(supabase: Client, courseId: string, userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("lesson_completions")
+    .select("completed_at")
+    .eq("course_id", courseId)
+    .eq("user_id", userId)
+    .order("completed_at", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return data?.[0]?.completed_at ?? null;
 }

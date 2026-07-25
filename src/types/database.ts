@@ -337,6 +337,12 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
+  // Set once a member's claim is approved by staff; from then on the claimant
+  // counts as an owner alongside created_by. Null while unclaimed.
+  claimed_by: string | null;
+  // Optional per-day schedule powering a reliable "Open now"; keyed "0".."6"
+  // (Sun..Sat). opening_hours (text) stays the human-readable display value.
+  opening_hours_structured: BusinessHoursSchedule | null;
   google_place_id: string | null;
   google_rating: number | null;
   google_review_count: number | null;
@@ -359,6 +365,30 @@ export type FeaturedBusinessCategory = {
   category: BusinessCategory;
   // Position among a directory space's nav sub-links; staff drag to reorder.
   sort_order: number;
+  created_at: string;
+};
+
+// One day's opening hours in a structured schedule. A single open–close range
+// per day (kept simple; free-text opening_hours covers anything more elaborate).
+export type BusinessDayHours = {
+  closed: boolean;
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+};
+
+// Per-day schedule keyed by day-of-week "0".."6" (Sun..Sat), matching Date.getDay().
+export type BusinessHoursSchedule = Record<string, BusinessDayHours>;
+
+// A member's request to be recognised as a listing's owner, resolved by staff.
+export type BusinessClaim = {
+  id: string;
+  business_id: string;
+  community_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  resolved_by: string | null;
+  resolved_at: string | null;
   created_at: string;
 };
 
@@ -694,6 +724,8 @@ export type Course = {
   summary: string | null;
   cover_image_url: string | null;
   status: CourseStatus;
+  // v2: offer a completion certificate to learners who finish every lesson.
+  certificate_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -704,6 +736,9 @@ export type CourseModule = {
   community_id: string;
   title: string;
   sort_order: number;
+  // v2 drip: the module (and its lessons) unlock on/after this time. Null means
+  // available immediately. Enforced softly in the player, not RLS.
+  available_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -739,6 +774,30 @@ export type LessonCompletion = {
   community_id: string;
   user_id: string;
   completed_at: string;
+};
+
+// v2: per-lesson Q&A/discussion.
+export type LessonComment = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// v2: a staff broadcast pinned to the top of a course.
+export type CourseAnnouncement = {
+  id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string | null;
+  title: string;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
@@ -1077,6 +1136,12 @@ export type Database = {
         Update: Partial<BusinessSave>;
         Relationships: [FKey<"business_id", "businesses">, FKey<"user_id", "profiles">];
       };
+      business_claims: {
+        Row: BusinessClaim;
+        Insert: Partial<BusinessClaim> & { business_id: string; community_id: string; claimant_id: string };
+        Update: Partial<BusinessClaim>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"community_id", "communities">, FKey<"claimant_id", "profiles">, FKey<"resolved_by", "profiles">];
+      };
       featured_business_categories: {
         Row: FeaturedBusinessCategory;
         Insert: Partial<FeaturedBusinessCategory> & { space_id: string; community_id: string; category: BusinessCategory };
@@ -1220,6 +1285,18 @@ export type Database = {
         Insert: Partial<LessonCompletion> & { lesson_id: string; course_id: string; community_id: string; user_id: string };
         Update: Partial<LessonCompletion>;
         Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
+      };
+      lesson_comments: {
+        Row: LessonComment;
+        Insert: Partial<LessonComment> & { lesson_id: string; course_id: string; community_id: string; author_id: string; body: string };
+        Update: Partial<LessonComment>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
+      };
+      course_announcements: {
+        Row: CourseAnnouncement;
+        Insert: Partial<CourseAnnouncement> & { course_id: string; community_id: string; title: string };
+        Update: Partial<CourseAnnouncement>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
       };
       concierge_queries: {
         Row: ConciergeQuery;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
+import { ImageLightbox } from "./image-lightbox";
 import type { BusinessImage } from "@/types/database";
 
 // A lightweight, dependency-free photo carousel: a horizontal scroll-snap track
@@ -11,6 +12,7 @@ import type { BusinessImage } from "@/types/database";
 export function ImageCarousel({ images, alt }: { images: BusinessImage[]; alt: string }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const count = images.length;
 
   // Keep the active dot/counter in sync with wherever the user scrolls to.
@@ -66,7 +68,16 @@ export function ImageCarousel({ images, alt }: { images: BusinessImage[]; alt: s
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {images.map((image, i) => (
-          <div key={image.id} className="aspect-[16/10] w-full shrink-0 snap-center">
+          <button
+            key={image.id}
+            type="button"
+            onClick={() => {
+              setIndex(i);
+              setLightbox(true);
+            }}
+            aria-label="Open photo full screen"
+            className="aspect-[16/10] w-full shrink-0 cursor-zoom-in snap-center"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image.url}
@@ -75,9 +86,13 @@ export function ImageCarousel({ images, alt }: { images: BusinessImage[]; alt: s
               style={{ objectPosition: image.position ?? "50% 50%" }}
               draggable={false}
             />
-          </div>
+          </button>
         ))}
       </div>
+
+      <span className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+        <Expand className="h-3 w-3" /> Click to expand
+      </span>
 
       {count > 1 && (
         <>
@@ -118,6 +133,8 @@ export function ImageCarousel({ images, alt }: { images: BusinessImage[]; alt: s
           </div>
         </>
       )}
+
+      {lightbox && <ImageLightbox images={images} startIndex={index} alt={alt} onClose={() => setLightbox(false)} />}
     </div>
   );
 }
