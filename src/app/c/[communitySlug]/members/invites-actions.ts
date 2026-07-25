@@ -70,8 +70,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // on the invite list forever when the recipient never clicks. Give them a
 // generous-but-finite window; once past it the row drops out of the "active"
 // view on its own, and an expired click is redirected toward joining instead
-// of dead-ending (see src/app/invite/[code]/page.tsx).
-export const EMAIL_INVITE_TTL_DAYS = 14;
+// of dead-ending (see src/app/invite/[code]/page.tsx). Not exported: a
+// "use server" module may only export async functions.
+const EMAIL_INVITE_TTL_DAYS = 14;
 
 export async function sendEmailInvite(_prevState: InviteFormState, formData: FormData): Promise<InviteFormState> {
   const communityId = String(formData.get("community_id") ?? "");
