@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { sharedCookieDomain } from "@/lib/custom-domain";
 import type { Database } from "@/types/database";
 
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password"];
@@ -57,9 +58,15 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          // On the platform apex and its subdomains the session cookie is
+          // widened to `.${apex}` so one sign-in works across all of them;
+          // custom domains keep their default host-only cookie.
+          const domain = sharedCookieDomain(request.headers.get("host") ?? "");
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = makeResponse();
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, domain ? { ...options, domain } : options)
+          );
         },
       },
     }

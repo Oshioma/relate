@@ -1,12 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
-import { isPlatformHost, platformSubdomainSlug } from "@/lib/custom-domain";
+import {
+  isPlatformHost,
+  platformSubdomainSlug,
+  communitySubdomainUrl,
+  RESERVED_SUBDOMAIN_LABELS,
+} from "@/lib/custom-domain";
 import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
 
 // Routes that keep their platform meaning even when served on a community's
-// custom domain: auth has to work per-host (Supabase cookies are host-scoped,
-// so members sign in on the domain they're visiting), and the rest are
-// account-level pages that exist outside any one community.
+// host: auth has to work wherever the visitor is (auth cookies span the apex
+// and its subdomains via sharedCookieDomain; custom domains sign in on their
+// own host), and the rest are account-level pages that exist outside any one
+// community.
 const PLATFORM_PATH_PREFIXES = [
   "/login",
   "/signup",
@@ -73,6 +79,26 @@ export async function proxy(request: NextRequest) {
       const rewriteTo = request.nextUrl.clone();
       rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
       return updateSession(request, rewriteTo);
+    }
+  }
+
+  // Any /c/<slug> path that survives to here — on the platform apex, or a
+  // different community's path while on some community's host — redirects
+  // to that community's own subdomain, so every community is always seen at
+  // its canonical address. The session survives the hop because auth
+  // cookies are scoped to `.${apex}` (see sharedCookieDomain). Skipped in
+  // dev / on *.vercel.app, where wildcard subdomains don't resolve —
+  // communitySubdomainUrl returns null there.
+  const canonical = request.nextUrl.pathname.match(/^\/c\/([a-z0-9-]{2,60})(\/.*)?$/);
+  if (canonical && !RESERVED_SUBDOMAIN_LABELS.has(canonical[1])) {
+    const subdomainUrl = communitySubdomainUrl(canonical[1]);
+    if (subdomainUrl) {
+      const url = new URL(subdomainUrl);
+      url.pathname = canonical[2] ?? "/";
+      url.search = request.nextUrl.search;
+      if (url.host !== host) {
+        return NextResponse.redirect(url, 308);
+      }
     }
   }
 

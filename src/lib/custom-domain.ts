@@ -69,6 +69,19 @@ export function platformSubdomainSlug(host: string): string | null {
   return label;
 }
 
+// The Domain attribute for auth cookies, so one sign-in spans the platform
+// apex and every community subdomain (".relate.click" matches relate.click
+// AND escapespace.relate.click). Null on custom domains — those keep their
+// own host-scoped session — and in local dev, where a leading-dot domain on
+// "localhost" is unreliable across browsers.
+export function sharedCookieDomain(host: string): string | null {
+  const hostname = host.toLowerCase().replace(/:\d+$/, "");
+  const apex = platformApexHostname();
+  if (!apex || apex === "localhost" || apex === "127.0.0.1" || apex.endsWith(".localhost")) return null;
+  if (hostname === apex || hostname.endsWith(`.${apex}`)) return `.${apex}`;
+  return null;
+}
+
 // Anything at or under the platform apex — used to refuse such hostnames as
 // "custom domains": subdomains are automatic, and letting one community
 // claim another community's subdomain via the custom-domain path would
