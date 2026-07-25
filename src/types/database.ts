@@ -342,6 +342,54 @@ export type FeaturedBusinessCategory = {
   created_at: string;
 };
 
+// A gallery photo for a directory listing. The full set is the source of
+// truth for a listing's photos; businesses.image_url mirrors the first one
+// (sort_order 0) as a denormalised cover for cards, the feed and map popups.
+export type BusinessImage = {
+  id: string;
+  business_id: string;
+  url: string;
+  // CSS object-position ("50% 25%") for this photo's crop framing.
+  position: string | null;
+  sort_order: number;
+  created_by: string;
+  created_at: string;
+};
+
+// One member's review of a listing — a 1-5 star rating with optional text,
+// one per member per business. Combines what guides split across guide_ratings
+// and guide_comments into a single row the reviewer owns and can edit.
+export type BusinessReview = {
+  id: string;
+  business_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A public reply to a review from the listing's owner (businesses.created_by)
+// or community staff — one per review, like a Google Business response.
+export type BusinessReviewReply = {
+  id: string;
+  review_id: string;
+  business_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's bookmark of a listing. Visible only to the member who saved it,
+// so the directory's "Saved" filter reflects that viewer alone.
+export type BusinessSave = {
+  id: string;
+  business_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 // A category staff added to a directory space beyond the built-ins ("Fundi",
 // "Boda Boda", …). slug is what businesses.category stores; label is what
 // renders. Deleting one folds its listings back into 'other' (see
@@ -910,6 +958,30 @@ export type Database = {
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
         Update: Partial<Business>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      business_images: {
+        Row: BusinessImage;
+        Insert: Partial<BusinessImage> & { business_id: string; url: string; created_by: string };
+        Update: Partial<BusinessImage>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"created_by", "profiles">];
+      };
+      business_reviews: {
+        Row: BusinessReview;
+        Insert: Partial<BusinessReview> & { business_id: string; author_id: string; rating: number };
+        Update: Partial<BusinessReview>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_review_replies: {
+        Row: BusinessReviewReply;
+        Insert: Partial<BusinessReviewReply> & { review_id: string; business_id: string; author_id: string; body: string };
+        Update: Partial<BusinessReviewReply>;
+        Relationships: [FKey<"review_id", "business_reviews">, FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_saves: {
+        Row: BusinessSave;
+        Insert: Partial<BusinessSave> & { business_id: string; user_id: string };
+        Update: Partial<BusinessSave>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"user_id", "profiles">];
       };
       featured_business_categories: {
         Row: FeaturedBusinessCategory;

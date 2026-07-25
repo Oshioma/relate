@@ -11,7 +11,7 @@ import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
-import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
+import { getSpaceBusinessesWithStats, getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import { getCommunityMapItems } from "@/lib/data/map-items";
@@ -144,7 +144,7 @@ export default async function SpaceDetailPage({
     // The member directory stays login-gated even inside a public space.
     isDirectorySpace && user ? getDirectoryMembers(supabase, community.id) : Promise.resolve([]),
     isChallengeSpace ? getSpaceChallenges(supabase, space.id, viewerId) : Promise.resolve([]),
-    isBusinessDirectorySpace ? getSpaceBusinesses(supabase, space.id) : Promise.resolve([]),
+    isBusinessDirectorySpace ? getSpaceBusinessesWithStats(supabase, space.id, viewerId) : Promise.resolve([]),
     isMapSpace ? getMapCategories(supabase, community.id) : Promise.resolve([]),
     isMapSpace ? getSpaceLandmarks(supabase, space.id) : Promise.resolve([]),
     isMapSpace ? getCommunityMapPinnedBusinesses(supabase, community.id) : Promise.resolve([]),

@@ -2,14 +2,24 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
 import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory, renameBusinessCategory } from "./business-directory-actions";
-import type { Business, BusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+import type { BusinessWithStats } from "@/lib/data/businesses";
+import type { BusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+
+type SortKey = "featured" | "rating" | "newest" | "name";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "featured", label: "Featured" },
+  { value: "rating", label: "Top rated" },
+  { value: "newest", label: "Newest" },
+  { value: "name", label: "Name" },
+];
 
 export function BusinessDirectoryView({
   businesses,
@@ -25,7 +35,7 @@ export function BusinessDirectoryView({
   customCategories,
   labelOverrides,
 }: {
-  businesses: Business[];
+  businesses: BusinessWithStats[];
   communityId: string;
   communitySlug: string;
   spaceId: string;
@@ -46,6 +56,8 @@ export function BusinessDirectoryView({
   const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortKey>("featured");
+  const [savedOnly, setSavedOnly] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [featured, setFeatured] = useState<BusinessCategory[]>(featuredCategories);
   const [chipError, setChipError] = useState<string | null>(null);
@@ -128,19 +140,39 @@ export function BusinessDirectoryView({
     });
   }
 
+  const savedCount = useMemo(() => businesses.filter((b) => b.saved).length, [businesses]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return businesses.filter((b) => {
+    return businesses.filter(({ business: b, saved }) => {
+      if (savedOnly && !saved) return false;
       if (category !== "all" && b.category !== category) return false;
       if (location !== "all" && b.location_label !== location) return false;
       if (q && !b.name.toLowerCase().includes(q) && !(b.description ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [businesses, category, location, query]);
+  }, [businesses, category, location, query, savedOnly]);
+
+  // Order within each location group by the chosen sort. "Featured" keeps the
+  // server's featured-first, name order; the rest re-sort the whole group.
+  const sortItems = useMemo(() => {
+    return (items: BusinessWithStats[]): BusinessWithStats[] => {
+      const copy = [...items];
+      copy.sort((a, b) => {
+        if (sort === "rating") return (b.avgRating ?? -1) - (a.avgRating ?? -1) || a.business.name.localeCompare(b.business.name);
+        if (sort === "newest") return b.business.created_at.localeCompare(a.business.created_at);
+        if (sort === "name") return a.business.name.localeCompare(b.business.name);
+        // featured
+        if (a.business.featured !== b.business.featured) return a.business.featured ? -1 : 1;
+        return a.business.name.localeCompare(b.business.name);
+      });
+      return copy;
+    };
+  }, [sort]);
 
   const countByCategory = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const b of businesses) {
+    for (const { business: b } of businesses) {
       counts.set(b.category, (counts.get(b.category) ?? 0) + 1);
     }
     return counts;
@@ -148,7 +180,7 @@ export function BusinessDirectoryView({
 
   const locations = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const b of businesses) {
+    for (const { business: b } of businesses) {
       if (!b.location_label) continue;
       counts.set(b.location_label, (counts.get(b.location_label) ?? 0) + 1);
     }
@@ -156,33 +188,50 @@ export function BusinessDirectoryView({
   }, [businesses]);
 
   const groups = useMemo(() => {
-    const byLocation = new Map<string, Business[]>();
-    const unlabeled: Business[] = [];
-    for (const b of filtered) {
-      if (!b.location_label) {
-        unlabeled.push(b);
+    const byLocation = new Map<string, BusinessWithStats[]>();
+    const unlabeled: BusinessWithStats[] = [];
+    for (const item of filtered) {
+      if (!item.business.location_label) {
+        unlabeled.push(item);
         continue;
       }
-      const list = byLocation.get(b.location_label) ?? [];
-      list.push(b);
-      byLocation.set(b.location_label, list);
+      const list = byLocation.get(item.business.location_label) ?? [];
+      list.push(item);
+      byLocation.set(item.business.location_label, list);
     }
     const sorted = [...byLocation.entries()].sort(([a], [b]) => a.localeCompare(b));
     if (unlabeled.length > 0) sorted.push(["Other", unlabeled]);
-    return sorted;
-  }, [filtered]);
+    return sorted.map(([label, items]) => [label, sortItems(items)] as [string, BusinessWithStats[]]);
+  }, [filtered, sortItems]);
 
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search businesses…"
-            className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="relative max-w-xs flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search businesses…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <label className="sr-only" htmlFor="business_sort">
+            Sort businesses
+          </label>
+          <select
+            id="business_sort"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="shrink-0 rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
         {canPost && (
           <Button type="button" onClick={() => setShowForm((v) => !v)} className="w-auto shrink-0">
@@ -200,6 +249,16 @@ export function BusinessDirectoryView({
         >
           All ({businesses.length})
         </button>
+        {canPost && savedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setSavedOnly((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            <Heart className={`h-3 w-3 ${savedOnly ? "fill-accent" : ""}`} />
+            Saved ({savedCount})
+          </button>
+        )}
         {categoryOptions.map((c) => {
           const count = countByCategory.get(c.value) ?? 0;
           const isCustom = customCategories.some((cc) => cc.slug === c.value);
@@ -394,15 +453,13 @@ export function BusinessDirectoryView({
             <div key={label}>
               {groups.length > 1 && <h3 className="mb-3 text-sm font-semibold text-foreground">{label}</h3>}
               <div className="grid gap-4 sm:grid-cols-2">
-                {group.map((business) => (
+                {group.map((item) => (
                   <BusinessCard
-                    key={business.id}
-                    business={business}
+                    key={item.business.id}
+                    data={item}
                     communitySlug={communitySlug}
                     spaceSlug={spaceSlug}
-                    canManage={isStaff || business.created_by === userId}
-                    isStaff={isStaff}
-                    userId={userId}
+                    canSave={canPost}
                     customCategories={customCategories}
                     labelOverrides={labelOverrides}
                   />
