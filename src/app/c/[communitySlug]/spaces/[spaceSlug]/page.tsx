@@ -22,6 +22,7 @@ import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
+import { getSpaceCourses } from "@/lib/data/courses";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -54,6 +55,7 @@ import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { GuidesView } from "./guides-view";
 import { VolunteerHubView } from "./volunteer-hub-view";
+import { CoursesView } from "./courses-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -96,6 +98,7 @@ export default async function SpaceDetailPage({
   const isClubsSpace = space.space_type === "clubs";
   const isGuidesSpace = space.space_type === "guides";
   const isVolunteerHubSpace = space.space_type === "volunteer_hub";
+  const isCourseSpace = space.space_type === "course";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -110,7 +113,8 @@ export default async function SpaceDetailPage({
     !isRecommendationsSpace &&
     !isClubsSpace &&
     !isGuidesSpace &&
-    !isVolunteerHubSpace;
+    !isVolunteerHubSpace &&
+    !isCourseSpace;
 
   const [
     membership,
@@ -133,6 +137,7 @@ export default async function SpaceDetailPage({
     clubs,
     guides,
     volunteerProjects,
+    courses,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
@@ -156,6 +161,7 @@ export default async function SpaceDetailPage({
     isClubsSpace ? getSpaceClubs(supabase, space.id, viewerId) : Promise.resolve([]),
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
     isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, viewerId) : Promise.resolve([]),
+    isCourseSpace ? getSpaceCourses(supabase, space.id, viewerId) : Promise.resolve([]),
   ]);
 
   const featuredBusinessCategories = isBusinessDirectorySpace
@@ -471,6 +477,15 @@ export default async function SpaceDetailPage({
           canPost={canPost}
           isStaff={Boolean(isStaff)}
           userId={viewerId}
+        />
+      ) : isCourseSpace ? (
+        <CoursesView
+          courses={courses}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          isStaff={Boolean(isStaff)}
         />
       ) : (
         <>
