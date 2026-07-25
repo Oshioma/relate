@@ -90,6 +90,10 @@ export type Community = {
   // 'public' = any signed-in visitor (incl. guests who haven't joined),
   // 'members' = active members only, 'private' = staff only.
   members_visibility: SpaceVisibility;
+  // The wizard template this community was created from (COMMUNITY_TEMPLATES
+  // key), or null for older communities. Gates type-specific features such as
+  // AI event discovery (place only).
+  template_key: string | null;
   location_type: string | null;
   location_name: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
