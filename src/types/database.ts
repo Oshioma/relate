@@ -337,8 +337,9 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
-  // Set once a member's claim is approved by staff; from then on the claimant
-  // counts as an owner alongside created_by. Null while unclaimed.
+  // The listing's owner, set once staff approve a member's claim. This — not
+  // created_by (which is just who added the listing) — is who owns the business.
+  // Null while unclaimed. Owners manage the listing and reply to reviews.
   claimed_by: string | null;
   // Optional per-day schedule powering a reliable "Open now"; keyed "0".."6"
   // (Sun..Sat). opening_hours (text) stays the human-readable display value.
@@ -419,8 +420,9 @@ export type BusinessReview = {
   updated_at: string;
 };
 
-// A public reply to a review from the listing's owner (businesses.created_by)
-// or community staff — one per review, like a Google Business response.
+// A public reply to a review on the listing's behalf — from whoever manages it
+// (owner, or the adder while unclaimed, or staff) — one per review, like a
+// Google Business response.
 export type BusinessReviewReply = {
   id: string;
   review_id: string;
