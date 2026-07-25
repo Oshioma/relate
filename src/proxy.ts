@@ -52,9 +52,18 @@ export async function proxy(request: NextRequest) {
     // Internal links are still written as /c/<slug>/… — canonicalize them
     // to the bare path so the community host has one URL per page.
     if (pathname === base || pathname.startsWith(`${base}/`)) {
-      const url = request.nextUrl.clone();
-      url.pathname = pathname.slice(base.length) || "/";
-      return NextResponse.redirect(url, 308);
+      const rest = pathname.slice(base.length);
+      // The community's own metadata image routes (app/c/[communitySlug]/
+      // icon, apple-icon) are sub-resources, not navigable pages. Next emits
+      // them in the page head as /c/<slug>/icon; 308-redirecting that to the
+      // clean /icon would strip the slug and fall back to the platform's
+      // default icon, so the community's uploaded logo would never load as the
+      // tab icon on its subdomain/custom domain. Serve them in place instead.
+      if (!/^\/(icon|apple-icon)(\/|$)/.test(rest)) {
+        const url = request.nextUrl.clone();
+        url.pathname = rest || "/";
+        return NextResponse.redirect(url, 308);
+      }
     }
 
     // Everything that isn't a platform page (or another community's /c/
