@@ -33,13 +33,13 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     return { error: "You need to be signed in." };
   }
 
-  const { data: business, error: businessError } = await supabase.from("businesses").select("created_by").eq("id", businessId).maybeSingle();
+  const { data: business, error: businessError } = await supabase.from("businesses").select("created_by, claimed_by").eq("id", businessId).maybeSingle();
   if (businessError || !business) {
     return { error: businessError?.message ?? "Listing not found." };
   }
-  if (business.created_by === user.id) {
-    // Super admins may review their own listing (seeding/testing); everyone
-    // else is blocked here, matching the hidden review form in the UI.
+  // A member can't review a listing they added or one they own — matching the
+  // hidden review form in the UI. Super admins may (seeding/testing).
+  if (business.created_by === user.id || business.claimed_by === user.id) {
     const { data: profile } = await supabase.from("profiles").select("is_super_admin").eq("id", user.id).maybeSingle();
     if (!profile?.is_super_admin) {
       return { error: "You can't review your own listing." };
@@ -72,9 +72,9 @@ export async function deleteReview(reviewId: string, businessId: string, communi
   return { error: null };
 }
 
-// Post or update the listing owner's / staff reply to a review. One reply per
-// review (unique constraint), and the insert policy restricts the author to the
-// listing's creator or community staff.
+// Post or update a reply to a review on the listing's behalf. One reply per
+// review (unique constraint), and the insert policy restricts the author to
+// whoever manages the listing (owner, or adder while unclaimed, or staff).
 export async function replyToReview(_prevState: BusinessReviewFormState, formData: FormData): Promise<BusinessReviewFormState> {
   const reviewId = String(formData.get("review_id") ?? "");
   const businessId = String(formData.get("business_id") ?? "");

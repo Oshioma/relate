@@ -52,16 +52,17 @@ export function BusinessDetailView({
   communitySlug: string;
   spaceSlug: string;
   userId: string;
-  // The listing's creator or staff — may edit/delete and (staff only) verify/feature.
+  // May edit/delete and manage photos: the owner (claimed_by), or the adder
+  // while unclaimed, plus staff and super admins. Verify/feature stay staff-only.
   canManage: boolean;
   isStaff: boolean;
-  // An active member who isn't the listing's owner — may leave a review.
+  // An active member who didn't add and doesn't own the listing — may review.
   canReview: boolean;
-  // The listing's owner or staff — may reply to reviews.
+  // Whoever manages the listing — may reply to reviews on its behalf.
   canReply: boolean;
   // Any active member — may bookmark the listing.
   canSave: boolean;
-  // Active member, not already an owner, listing unclaimed and no existing claim.
+  // Active member, listing unclaimed, and no existing claim of their own.
   canClaim: boolean;
   customCategories: BusinessCustomCategory[];
   labelOverrides?: BusinessCategoryLabelOverride[];
