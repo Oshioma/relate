@@ -251,7 +251,7 @@ export default async function CommunityFeedPage({
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
             {community.description && (
-              <p className="mt-3 max-w-2xl text-lg font-medium leading-relaxed text-foreground/80 sm:text-xl">
+              <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
                 {community.description}
               </p>
             )}
@@ -261,9 +261,6 @@ export default async function CommunityFeedPage({
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              Recent activity
-            </h2>
             {activity.length === 0 ? (
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
