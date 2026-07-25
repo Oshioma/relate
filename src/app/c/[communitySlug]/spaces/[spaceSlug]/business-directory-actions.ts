@@ -243,8 +243,9 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
   return undefined;
 }
 
-// RLS (businesses_update_author_or_staff) restricts this to the listing's
-// creator or community staff — anyone else's update matches zero rows.
+// RLS (businesses_update_author_or_staff) restricts this to the owner
+// (claimed_by), the adder while the listing is unclaimed, or staff/super admin —
+// anyone else's update matches zero rows.
 export async function updateBusiness(_prevState: BusinessFormState, formData: FormData): Promise<BusinessFormState> {
   const businessId = String(formData.get("business_id") ?? "");
   const spaceId = String(formData.get("space_id") ?? "");
