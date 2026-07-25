@@ -30,18 +30,19 @@ begin
   -- ---------------------------------------------------------------------
   -- Communities
   -- ---------------------------------------------------------------------
-  insert into public.communities (name, slug, description, owner_id, is_public)
-  values ('Kushukuru Community', 'kushukuru', 'A home for the Kushukuru family — stories, updates, and support for one another.', admin_id, true)
+  -- is_public is a generated column (derived from privacy) — write privacy.
+  insert into public.communities (name, slug, description, owner_id, privacy)
+  values ('Kushukuru Community', 'kushukuru', 'A home for the Kushukuru family — stories, updates, and support for one another.', admin_id, 'public')
   on conflict (slug) do update set description = excluded.description
   returning id into v_kushukuru_id;
 
-  insert into public.communities (name, slug, description, owner_id, is_public)
-  values ('Zanzibar Community', 'zanzibar', 'Connecting people building and living in Zanzibar.', admin_id, true)
+  insert into public.communities (name, slug, description, owner_id, privacy)
+  values ('Zanzibar Community', 'zanzibar', 'Connecting people building and living in Zanzibar.', admin_id, 'public')
   on conflict (slug) do update set description = excluded.description
   returning id into v_zanzibar_id;
 
-  insert into public.communities (name, slug, description, owner_id, is_public)
-  values ('Farming Community', 'farming', 'A space for growers to share knowledge, seasons, and harvests.', admin_id, true)
+  insert into public.communities (name, slug, description, owner_id, privacy)
+  values ('Farming Community', 'farming', 'A space for growers to share knowledge, seasons, and harvests.', admin_id, 'public')
   on conflict (slug) do update set description = excluded.description
   returning id into v_farming_id;
 
