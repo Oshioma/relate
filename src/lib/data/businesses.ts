@@ -1,11 +1,26 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Business, FeaturedBusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride, Profile, Space } from "@/types/database";
+import type { Database, Business, BusinessImage, BusinessReview, BusinessReviewReply, FeaturedBusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
 export type BusinessWithContext = Business & {
   creator: Profile;
   space: Pick<Space, "id" | "name" | "slug">;
+};
+
+function average(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+// A directory listing plus the aggregates the card and sort controls need:
+// its review score, how many photos it has, and whether the viewer saved it.
+export type BusinessWithStats = {
+  business: Business;
+  avgRating: number | null;
+  ratingCount: number;
+  imageCount: number;
+  saved: boolean;
 };
 
 // Newest listings across the whole community, with who added them and which
@@ -37,6 +52,118 @@ export async function getSpaceBusinesses(supabase: Client, spaceId: string): Pro
 
   if (error) throw error;
   return data ?? [];
+}
+
+// The directory listing enriched with review scores, photo counts and the
+// viewer's saved state — one bulk query per aggregate, grouped in maps, mirroring
+// getSpaceGuides. Ordering here is just a stable default; the client view offers
+// Top rated / Newest / Name on top of it.
+export async function getSpaceBusinessesWithStats(
+  supabase: Client,
+  spaceId: string,
+  viewerId: string
+): Promise<BusinessWithStats[]> {
+  const businesses = await getSpaceBusinesses(supabase, spaceId);
+  if (businesses.length === 0) return [];
+
+  const ids = businesses.map((b) => b.id);
+
+  const [{ data: reviews, error: reviewsError }, { data: images, error: imagesError }, { data: saves, error: savesError }] = await Promise.all([
+    supabase.from("business_reviews").select("business_id, rating").in("business_id", ids),
+    supabase.from("business_images").select("business_id").in("business_id", ids),
+    viewerId
+      ? supabase.from("business_saves").select("business_id").in("business_id", ids).eq("user_id", viewerId)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (reviewsError) throw reviewsError;
+  if (imagesError) throw imagesError;
+  if (savesError) throw savesError;
+
+  const ratingsByBusiness = new Map<string, number[]>();
+  for (const row of reviews ?? []) {
+    const list = ratingsByBusiness.get(row.business_id) ?? [];
+    list.push(row.rating);
+    ratingsByBusiness.set(row.business_id, list);
+  }
+
+  const imageCountByBusiness = new Map<string, number>();
+  for (const row of images ?? []) {
+    imageCountByBusiness.set(row.business_id, (imageCountByBusiness.get(row.business_id) ?? 0) + 1);
+  }
+
+  const savedIds = new Set((saves ?? []).map((row) => row.business_id));
+
+  return businesses.map((business) => {
+    const ratings = ratingsByBusiness.get(business.id) ?? [];
+    return {
+      business,
+      avgRating: average(ratings),
+      ratingCount: ratings.length,
+      imageCount: imageCountByBusiness.get(business.id) ?? 0,
+      saved: savedIds.has(business.id),
+    };
+  });
+}
+
+export type BusinessReviewWithAuthor = BusinessReview & {
+  author: Profile;
+  reply: (BusinessReviewReply & { author: Profile }) | null;
+};
+
+export type BusinessDetail = {
+  business: Business;
+  images: BusinessImage[];
+  reviews: BusinessReviewWithAuthor[];
+  avgRating: number | null;
+  ratingCount: number;
+  viewerReview: BusinessReview | null;
+  saved: boolean;
+};
+
+export async function getBusinessDetail(supabase: Client, businessId: string, viewerId: string): Promise<BusinessDetail | null> {
+  const { data: business, error } = await supabase.from("businesses").select("*").eq("id", businessId).maybeSingle();
+  if (error) throw error;
+  if (!business) return null;
+
+  const [{ data: images, error: imagesError }, { data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }] =
+    await Promise.all([
+      supabase.from("business_images").select("*").eq("business_id", businessId).order("sort_order", { ascending: true }),
+      supabase.from("business_reviews").select("*, author:author_id (*)").eq("business_id", businessId).order("created_at", { ascending: false }),
+      supabase.from("business_review_replies").select("*, author:author_id (*)").eq("business_id", businessId),
+      viewerId
+        ? supabase.from("business_saves").select("id").eq("business_id", businessId).eq("user_id", viewerId).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+  if (imagesError) throw imagesError;
+  if (reviewsError) throw reviewsError;
+  if (repliesError) throw repliesError;
+  if (saveError) throw saveError;
+
+  const replyByReviewId = new Map<string, BusinessReviewReply & { author: Profile }>();
+  for (const reply of (replies ?? []) as unknown as (BusinessReviewReply & { author: Profile })[]) {
+    replyByReviewId.set(reply.review_id, reply);
+  }
+
+  const reviewRows = (reviews ?? []) as unknown as (BusinessReview & { author: Profile })[];
+  const withReplies: BusinessReviewWithAuthor[] = reviewRows.map((review) => ({
+    ...review,
+    reply: replyByReviewId.get(review.id) ?? null,
+  }));
+
+  const ratingValues = reviewRows.map((r) => r.rating);
+  const viewerReview = reviewRows.find((r) => r.author_id === viewerId) ?? null;
+
+  return {
+    business,
+    images: images ?? [],
+    reviews: withReplies,
+    avgRating: average(ratingValues),
+    ratingCount: ratingValues.length,
+    viewerReview: viewerReview ? { ...viewerReview } : null,
+    saved: Boolean(saveRow),
+  };
 }
 
 // All custom categories across a community's directory spaces — community-
