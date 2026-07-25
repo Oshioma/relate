@@ -58,42 +58,6 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
         </p>
       </div>
 
-      <div className="border-t border-border pt-3">
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            name="events_public"
-            defaultChecked={community.events_public}
-            className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--accent)]"
-          />
-          <span>
-            <span className="block font-medium text-foreground">Show events publicly</span>
-            <span className="block text-muted-foreground">
-              Let signed-out visitors see this community&apos;s events before logging in. They still
-              can&apos;t RSVP or add events without an account.
-            </span>
-          </span>
-        </label>
-      </div>
-
-      <div>
-        <Label htmlFor="members_visibility">Members list visibility</Label>
-        <select
-          id="members_visibility"
-          name="members_visibility"
-          defaultValue={community.members_visibility}
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="public">Public — any signed-in visitor, including guests who haven&apos;t joined</option>
-          <option value="members">Members only — must have joined to see who else is in it</option>
-          <option value="private">Private — staff only</option>
-        </select>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Controls who can see the Members list and link. Members always requires an account — signed-out visitors
-          never see it. A paid-members-only tier is planned for later, once the platform supports paid memberships.
-        </p>
-      </div>
-
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <SubmitButton pendingText="Saving…" className="w-auto">

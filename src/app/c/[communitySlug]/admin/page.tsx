@@ -19,6 +19,7 @@ import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
+import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
@@ -110,6 +111,14 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       <div className="mb-8 space-y-4">
         <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        What signed-out visitors can see before logging in. Individual spaces have their own visibility setting.
+      </p>
+      <div className="mb-8">
+        <PublicAccessForm community={community} />
       </div>
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>

@@ -311,8 +311,6 @@ export async function updateCommunityDetails(
   const locationName = String(formData.get("location_name") ?? "").trim();
   const rawLocationType = String(formData.get("location_type") ?? "");
   const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
-  const eventsPublic = formData.get("events_public") === "on";
-  const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -326,6 +324,37 @@ export async function updateCommunityDetails(
       description: description || null,
       location_name: locationName.slice(0, 120) || null,
       location_type: locationType,
+    })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  revalidatePath("/dashboard");
+  return undefined;
+}
+
+export type PublicAccessState = { error: string } | undefined;
+
+// The community's pre-login / public-access controls, grouped into one place:
+// whether guests see events, and who can see the members list. Both live on
+// the communities row and are admin-only via RLS (communities_update_admin).
+export async function updatePublicAccess(
+  _prevState: PublicAccessState,
+  formData: FormData
+): Promise<PublicAccessState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const eventsPublic = formData.get("events_public") === "on";
+  const membersVisibility = parseVisibility(formData.get("members_visibility"));
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({
       events_public: eventsPublic,
       members_visibility: membersVisibility,
     })
@@ -337,7 +366,6 @@ export async function updateCommunityDetails(
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
-  revalidatePath("/dashboard");
   return undefined;
 }
 
