@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { revokeInvite } from "./invites-actions";
+import { revokeInvite, clearInactiveInvites } from "./invites-actions";
 import { formatDate } from "@/lib/utils";
 import type { CommunityInvite } from "@/types/database";
 
@@ -71,41 +71,106 @@ function InviteRow({ invite, communitySlug }: { invite: CommunityInvite; communi
   );
 }
 
-export function InvitesList({ invites, communitySlug }: { invites: CommunityInvite[]; communitySlug: string }) {
+function InviteGroup({ invites, communitySlug }: { invites: CommunityInvite[]; communitySlug: string }) {
+  return (
+    <div className="divide-y divide-border rounded-lg border border-border bg-card">
+      {invites.map((invite) => (
+        <InviteRow key={invite.id} invite={invite} communitySlug={communitySlug} />
+      ))}
+    </div>
+  );
+}
+
+export function InvitesList({
+  invites,
+  communityId,
+  communitySlug,
+}: {
+  invites: CommunityInvite[];
+  communityId: string;
+  communitySlug: string;
+}) {
+  const [showEmail, setShowEmail] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const [isClearing, startClearing] = useTransition();
+  const router = useRouter();
 
   if (invites.length === 0) {
     return <p className="text-sm text-muted-foreground">No invites yet.</p>;
   }
 
-  // Every email invite and every revoke leaves a row behind forever, so the
-  // default view keeps only links that can still be used — the dead ones
-  // stay one click away instead of burying the live ones.
-  const active = invites.filter((invite) => inviteStatusLabel(invite).label === "Active");
-  const inactiveCount = invites.length - active.length;
-  const visible = showInactive ? invites : active;
+  const isActive = (invite: CommunityInvite) => inviteStatusLabel(invite).label === "Active";
+
+  // Reusable share-links are the ones worth seeing at a glance. Point-to-point
+  // email invites are fire-and-forget (the recipient already got the link in
+  // their inbox), so they fold into a collapsed group. Anything dead — revoked,
+  // expired, or used up — folds into a third group that can be cleared out.
+  const links = invites.filter((invite) => isActive(invite) && !invite.email);
+  const emailInvites = invites.filter((invite) => isActive(invite) && invite.email);
+  const inactive = invites.filter((invite) => !isActive(invite));
+
+  function clearInactive() {
+    startClearing(async () => {
+      await clearInactiveInvites(communityId, communitySlug);
+      setShowInactive(false);
+      router.refresh();
+    });
+  }
 
   return (
-    <div>
-      {visible.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No active invites — create a new link above.</p>
+    <div className="space-y-3">
+      {links.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No active invite links — create one above.</p>
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {visible.map((invite) => (
-            <InviteRow key={invite.id} invite={invite} communitySlug={communitySlug} />
-          ))}
+        <InviteGroup invites={links} communitySlug={communitySlug} />
+      )}
+
+      {emailInvites.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowEmail((v) => !v)}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            {showEmail
+              ? "Hide pending email invites"
+              : `Show ${emailInvites.length} pending email invite${emailInvites.length === 1 ? "" : "s"}`}
+          </button>
+          {showEmail && (
+            <div className="mt-2">
+              <InviteGroup invites={emailInvites} communitySlug={communitySlug} />
+            </div>
+          )}
         </div>
       )}
-      {inactiveCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowInactive((v) => !v)}
-          className="mt-2 text-xs font-medium text-muted-foreground hover:text-foreground"
-        >
-          {showInactive
-            ? "Hide revoked & used-up invites"
-            : `Show ${inactiveCount} revoked or used-up invite${inactiveCount === 1 ? "" : "s"}`}
-        </button>
+
+      {inactive.length > 0 && (
+        <div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <button
+              type="button"
+              onClick={() => setShowInactive((v) => !v)}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              {showInactive
+                ? "Hide revoked, expired & used-up invites"
+                : `Show ${inactive.length} revoked, expired or used-up invite${inactive.length === 1 ? "" : "s"}`}
+            </button>
+            <button
+              type="button"
+              onClick={clearInactive}
+              disabled={isClearing}
+              className="text-xs font-medium text-danger hover:underline disabled:opacity-60"
+            >
+              {isClearing ? "Clearing…" : `Clear ${inactive.length}`}
+            </button>
+          </div>
+          {showInactive && (
+            <div className="mt-2">
+              <InviteGroup invites={inactive} communitySlug={communitySlug} />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -1107,6 +1107,7 @@ export type Database = {
           community_slug: string | null;
           community_logo_url: string | null;
           community_cover_image_url: string | null;
+          community_is_public: boolean | null;
           valid: boolean;
           reason: string | null;
         }[];

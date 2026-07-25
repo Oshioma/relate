@@ -75,7 +75,7 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
               <NewEmailInviteForm communityId={community.id} communitySlug={community.slug} />
             </div>
           </div>
-          <InvitesList invites={invites} communitySlug={community.slug} />
+          <InvitesList invites={invites} communityId={community.id} communitySlug={community.slug} />
 
           <div className="mt-8 flex items-center gap-3">
             <div className="h-0.5 flex-1 rounded bg-border" />
