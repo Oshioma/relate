@@ -25,6 +25,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       slug: state.slug,
       description: state.description,
       privacy: state.privacy,
+      templateKey: state.templateKey,
       locationType: state.templateKey === "place" ? state.locationType : "",
       locationName: state.templateKey === "place" ? state.locationName : "",
       mapLayers: state.templateKey === "place" ? state.mapLayers : [],

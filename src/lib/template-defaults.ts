@@ -13,10 +13,14 @@ export interface TemplateDefaultItem {
   show_in_nav: boolean;
 }
 
-// Which built-in features are offered for a template. Events everywhere;
-// Search/Concierge only on the place template.
+// Which built-in features are offered as default nav items for a template.
+// Both Events and Search are offered everywhere — the place-only restriction
+// belongs to AI event discovery, not to Search (see the discover-events gate).
+// The parameter is kept so a type can add or drop built-ins later without
+// touching callers.
 export function builtinsForTemplate(templateKey: string): FeatureKey[] {
-  return templateKey === "place" ? ["events", "concierge"] : ["events"];
+  void templateKey;
+  return ["events", "concierge"];
 }
 
 function builtinDescription(key: FeatureKey): string {
