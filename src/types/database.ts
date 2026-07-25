@@ -327,6 +327,10 @@ export type Business = {
   created_by: string;
   name: string;
   category: BusinessCategory;
+  // Cross-cutting flag, independent of category: a locally owned/run business.
+  // A Restaurant can be local too, so this composes with category rather than
+  // replacing it — the directory offers a "Local" filter on top of the chips.
+  is_local: boolean;
   description: string | null;
   website: string | null;
   phone: string | null;
