@@ -35,9 +35,19 @@ export default async function BusinessDetailPage({
   // Platform super admins may review a listing they added themselves (handy for
   // seeding/testing); everyone else still can't review their own listing.
   const isSuperAdmin = Boolean(profile?.is_super_admin);
-  // "Owner" = the member who added the listing or a member whose claim was approved.
-  const isOwner = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
-  const canClaim = Boolean(isActive) && !isOwner && detail.business.claimed_by === null && detail.viewerClaim === null;
+  // Adding a listing is attribution, not ownership. The "owner" is only a member
+  // whose claim was approved (claimed_by); the adder (created_by) is a curator.
+  const isOwner = detail.business.claimed_by === viewerId;
+  // Hand-off: the adder maintains the listing until it's claimed, then the owner
+  // takes over. Staff and super admins can always manage.
+  const isCaretaker = detail.business.claimed_by === null && detail.business.created_by === viewerId;
+  const canManage = isOwner || isCaretaker || Boolean(isStaff) || isSuperAdmin;
+  // A self-listing (you added it or you own it) can't be reviewed by you — super
+  // admins excepted, for seeding.
+  const isSelfListing = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
+  // Anyone active may claim an unclaimed listing they don't already have a claim
+  // on — including the member who added it (a curator claiming a listing they own).
+  const canClaim = Boolean(isActive) && detail.business.claimed_by === null && detail.viewerClaim === null;
 
   const [customCategories, labelOverrides] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
@@ -58,13 +68,13 @@ export default async function BusinessDetailPage({
         communitySlug={community.slug}
         spaceSlug={space.slug}
         userId={viewerId}
-        canManage={isOwner || Boolean(isStaff)}
+        canManage={canManage}
         isStaff={Boolean(isStaff)}
-        // Any active member may review, except the listing's own owner — but a
+        // Any active member may review, except a listing they added or own — but a
         // super admin may review even their own listing.
-        canReview={Boolean(isActive) && (!isOwner || isSuperAdmin)}
-        // The owner or staff may reply to reviews.
-        canReply={isOwner || Boolean(isStaff)}
+        canReview={Boolean(isActive) && (!isSelfListing || isSuperAdmin)}
+        // Whoever manages the listing may reply to reviews on its behalf.
+        canReply={canManage}
         // Any active member may bookmark.
         canSave={Boolean(isActive)}
         canClaim={canClaim}
