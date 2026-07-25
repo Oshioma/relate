@@ -1,20 +1,29 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Store, BadgeCheck, Star, Pencil, Trash2, Globe, Phone, MapPin, Clock, Navigation, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
-import { getOpenState } from "@/lib/opening-hours";
+import { getListingOpenState } from "@/lib/opening-hours";
 import { StarRatingDisplay } from "./star-rating";
 import { ImageCarousel } from "./image-carousel";
 import { EditBusinessForm } from "./edit-business-form";
 import { BusinessReviewForm } from "./business-review-form";
 import { BusinessReviewItem } from "./business-review-item";
+import { BusinessClaimSection } from "./business-claim-section";
 import { deleteBusiness, setBusinessBadge, toggleSaveBusiness } from "./business-directory-actions";
 import type { BusinessDetail } from "@/lib/data/businesses";
 import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+
+// Leaflet touches `window` at import time, so the map only loads in the browser —
+// same pattern as the location picker in the form fields.
+const StaticMap = dynamic(() => import("@/components/map/static-map"), {
+  ssr: false,
+  loading: () => <div className="flex h-60 items-center justify-center rounded-lg border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
+});
 
 // Google Maps directions link — prefer precise coordinates, fall back to the
 // typed address so the button still works for listings without a pin.
@@ -25,6 +34,7 @@ function directionsUrl(lat: number | null, lng: number | null, address: string |
 
 export function BusinessDetailView({
   detail,
+  communityId,
   communitySlug,
   spaceSlug,
   userId,
@@ -33,10 +43,12 @@ export function BusinessDetailView({
   canReview,
   canReply,
   canSave,
+  canClaim,
   customCategories,
   labelOverrides,
 }: {
   detail: BusinessDetail;
+  communityId: string;
   communitySlug: string;
   spaceSlug: string;
   userId: string;
@@ -49,17 +61,19 @@ export function BusinessDetailView({
   canReply: boolean;
   // Any active member — may bookmark the listing.
   canSave: boolean;
+  // Active member, not already an owner, listing unclaimed and no existing claim.
+  canClaim: boolean;
   customCategories: BusinessCustomCategory[];
   labelOverrides?: BusinessCategoryLabelOverride[];
 }) {
-  const { business, images, reviews, avgRating, ratingCount, viewerReview } = detail;
+  const { business, images, reviews, avgRating, ratingCount, viewerReview, viewerClaim, pendingClaims } = detail;
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(detail.saved);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const openState = getOpenState(business.opening_hours);
+  const openState = getListingOpenState(business.opening_hours_structured, business.opening_hours);
 
   function toggleBadge(field: "verified" | "featured") {
     setError(null);
@@ -216,6 +230,12 @@ export function BusinessDetailView({
             )}
           </div>
 
+          {business.lat !== null && business.lng !== null && (
+            <div className="mt-4">
+              <StaticMap lat={business.lat} lng={business.lng} />
+            </div>
+          )}
+
           {isStaff && (
             <div className="mt-4 flex gap-2 border-t border-border pt-4">
               <button
@@ -242,6 +262,17 @@ export function BusinessDetailView({
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </CardContent>
       </Card>
+
+      <BusinessClaimSection
+        businessId={business.id}
+        communityId={communityId}
+        communitySlug={communitySlug}
+        spaceSlug={spaceSlug}
+        canClaim={canClaim}
+        isStaff={isStaff}
+        viewerClaim={viewerClaim}
+        pendingClaims={pendingClaims}
+      />
 
       {/* Reviews */}
       <div>

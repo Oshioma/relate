@@ -5,8 +5,9 @@ import dynamic from "next/dynamic";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { BusinessImagesInput, type GalleryImage } from "./business-images-input";
+import { OpeningHoursInput } from "./opening-hours-input";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
 // browser — same pattern as explore-map-loader.tsx.
@@ -25,6 +26,8 @@ export function BusinessFormFields({
   onPinChange,
   images,
   onImagesChange,
+  schedule,
+  onScheduleChange,
   userId,
   customCategories,
   labelOverrides,
@@ -39,6 +42,8 @@ export function BusinessFormFields({
   onPinChange: (pin: PickedLocation | null) => void;
   images: GalleryImage[];
   onImagesChange: (images: GalleryImage[]) => void;
+  schedule: BusinessHoursSchedule | null;
+  onScheduleChange: (schedule: BusinessHoursSchedule | null) => void;
   userId: string;
 }) {
   const websiteRef = useRef<HTMLInputElement>(null);
@@ -96,8 +101,9 @@ export function BusinessFormFields({
       </div>
 
       <div>
-        <Label htmlFor={`${idPrefix}_opening_hours`}>Opening hours (optional)</Label>
-        <Input id={`${idPrefix}_opening_hours`} name="opening_hours" placeholder="Daily, 8am – 10pm" defaultValue={business?.opening_hours ?? ""} />
+        <Label>Opening hours (optional)</Label>
+        <OpeningHoursInput value={schedule} onChange={onScheduleChange} />
+        <p className="mt-1.5 text-xs text-muted-foreground">Set weekly hours to show an accurate &ldquo;Open now&rdquo; badge on the listing.</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

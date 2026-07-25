@@ -29,7 +29,9 @@ export default async function BusinessDetailPage({
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const isActive = membership?.status === "active";
   const isStaff = isActive && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
-  const isOwner = detail.business.created_by === viewerId;
+  // "Owner" = the member who added the listing or a member whose claim was approved.
+  const isOwner = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
+  const canClaim = Boolean(isActive) && !isOwner && detail.business.claimed_by === null && detail.viewerClaim === null;
 
   const [customCategories, labelOverrides] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
@@ -46,6 +48,7 @@ export default async function BusinessDetailPage({
 
       <BusinessDetailView
         detail={detail}
+        communityId={community.id}
         communitySlug={community.slug}
         spaceSlug={space.slug}
         userId={viewerId}
@@ -57,6 +60,7 @@ export default async function BusinessDetailPage({
         canReply={isOwner || Boolean(isStaff)}
         // Any active member may bookmark.
         canSave={Boolean(isActive)}
+        canClaim={canClaim}
         customCategories={customCategories.filter((c) => c.space_id === space.id)}
         labelOverrides={labelOverrides.filter((o) => o.space_id === space.id)}
       />
