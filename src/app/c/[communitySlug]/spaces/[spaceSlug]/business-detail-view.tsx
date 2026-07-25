@@ -264,17 +264,6 @@ export function BusinessDetailView({
         </CardContent>
       </Card>
 
-      <BusinessClaimSection
-        businessId={business.id}
-        communityId={communityId}
-        communitySlug={communitySlug}
-        spaceSlug={spaceSlug}
-        canClaim={canClaim}
-        isStaff={isStaff}
-        viewerClaim={viewerClaim}
-        pendingClaims={pendingClaims}
-      />
-
       {/* Reviews */}
       <div>
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
@@ -301,6 +290,17 @@ export function BusinessDetailView({
           ))}
           {reviews.length === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Be the first to leave one.</p>}
         </div>
+
+        <BusinessClaimSection
+          businessId={business.id}
+          communityId={communityId}
+          communitySlug={communitySlug}
+          spaceSlug={spaceSlug}
+          canClaim={canClaim}
+          isStaff={isStaff}
+          viewerClaim={viewerClaim}
+          pendingClaims={pendingClaims}
+        />
       </div>
     </div>
   );
