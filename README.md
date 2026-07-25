@@ -170,13 +170,14 @@ directly as a fallback.
 
 ### Sending real email (SMTP)
 
-Every email Relate sends — signup confirmations, password resets, and
-email invites — goes out through **Supabase Auth**, which relays via
-whatever SMTP provider you configure under **Authentication → Emails →
-SMTP Settings**. Supabase's built-in shared service is dev-only and
-rate-limited to a few messages an hour, so production needs your own
-provider. These settings are for [Resend](https://resend.com); other
-providers follow the same shape.
+**Account emails** — signup confirmations and password resets — always go
+out through **Supabase Auth**, which relays via whatever SMTP provider you
+configure under **Authentication → Emails → SMTP Settings**. (Email invites
+take the direct-Resend path above when `RESEND_API_KEY` is set, and only
+fall back to this Supabase-Auth path when it isn't.) Supabase's built-in
+shared service is dev-only and rate-limited to a few messages an hour, so
+production needs your own provider. These settings are for
+[Resend](https://resend.com); other providers follow the same shape.
 
 | Field        | Value                                              |
 | ------------ | -------------------------------------------------- |

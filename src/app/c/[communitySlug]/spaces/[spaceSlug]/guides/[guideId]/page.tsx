@@ -17,18 +17,19 @@ export default async function GuideDetailPage({
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
 
-  const detail = await getGuideDetail(supabase, guideId, user.id);
+  const viewerId = user?.id ?? "";
+  const detail = await getGuideDetail(supabase, guideId, viewerId);
   if (!detail || detail.guide.space_id !== space.id) notFound();
 
-  const membership = await getMembership(supabase, community.id, user.id);
+  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const canComment = membership?.status === "active";
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
-  const isCreator = detail.guide.created_by === user.id;
+  const isCreator = detail.guide.created_by === viewerId;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -42,7 +43,7 @@ export default async function GuideDetailPage({
         detail={detail}
         communitySlug={community.slug}
         spaceSlug={space.slug}
-        userId={user.id}
+        userId={viewerId}
         canComment={Boolean(canComment)}
         canEdit={Boolean(canComment)}
         canDelete={isCreator || Boolean(isStaff)}

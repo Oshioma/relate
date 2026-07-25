@@ -22,10 +22,10 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
 
   const [membership, spaces] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getCommunitySpaces(supabase, community.id),
   ]);
 

@@ -36,7 +36,10 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
   };
 
   const items: MapItem[] = [];
-  const base: Pick<MapItem, "description" | "imageUrl" | "startTime" | "endTime" | "price" | "currency" | "meta"> = {
+  // Every kind here gets its pin from a human placing it (map click, or a
+  // typed coordinate) — "exact" by default. Events are the one exception,
+  // overridden below, since a typed Location is geocoded to a general area.
+  const base: Pick<MapItem, "description" | "imageUrl" | "startTime" | "endTime" | "price" | "currency" | "meta" | "locationPrecision"> = {
     description: null,
     imageUrl: null,
     startTime: null,
@@ -44,6 +47,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
     price: null,
     currency: null,
     meta: null,
+    locationPrecision: "exact",
   };
 
   const now = Date.now();
@@ -62,6 +66,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       href: `/c/${communitySlug}/events`,
       startTime: event.start_time,
       endTime: event.end_time,
+      locationPrecision: "approximate",
     });
   }
 

@@ -4,8 +4,9 @@ import { useRef, useState } from "react";
 import { createBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
+import type { GalleryImage } from "./business-images-input";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { BusinessCustomCategory } from "@/types/database";
+import type { BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 export function NewBusinessForm({
   communityId,
@@ -14,6 +15,7 @@ export function NewBusinessForm({
   spaceSlug,
   userId,
   customCategories,
+  labelOverrides,
   onDone,
 }: {
   communityId: string;
@@ -22,11 +24,12 @@ export function NewBusinessForm({
   spaceSlug: string;
   userId: string;
   customCategories: BusinessCustomCategory[];
+  labelOverrides?: BusinessCategoryLabelOverride[];
   onDone?: () => void;
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imagePosition, setImagePosition] = useState<string | null>(null);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [schedule, setSchedule] = useState<BusinessHoursSchedule | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -38,8 +41,8 @@ export function NewBusinessForm({
     } else {
       formRef.current?.reset();
       setPin(null);
-      setImageUrl(null);
-      setImagePosition(null);
+      setImages([]);
+      setSchedule(null);
       onDone?.();
     }
   }
@@ -54,12 +57,13 @@ export function NewBusinessForm({
       <BusinessFormFields
         idPrefix="business"
         customCategories={customCategories}
+        labelOverrides={labelOverrides}
         pin={pin}
         onPinChange={setPin}
-        imageUrl={imageUrl}
-        onImageChange={setImageUrl}
-        imagePosition={imagePosition}
-        onImagePositionChange={setImagePosition}
+        images={images}
+        onImagesChange={setImages}
+        schedule={schedule}
+        onScheduleChange={setSchedule}
         userId={userId}
       />
 

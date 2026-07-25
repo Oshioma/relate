@@ -1,16 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import type { PickedLocation } from "@/components/map/location-picker";
 import type { Event } from "@/types/database";
-
-// Leaflet touches `window` at import time, so the picker can only load in the
-// browser — same pattern as explore-map-loader.tsx.
-const LocationPicker = dynamic(() => import("@/components/map/location-picker"), {
-  ssr: false,
-  loading: () => <div className="flex h-[280px] items-center justify-center rounded-md border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
-});
 
 // <input type="datetime-local"> needs "YYYY-MM-DDTHH:mm" in local time, not
 // an ISO string with a timezone offset.
@@ -21,20 +12,11 @@ function toDatetimeLocal(iso: string | null | undefined): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// The shared field set for creating and editing an event. The parent form
-// owns the pin state (so it can reset or prefill it) while uncontrolled text
-// fields take their defaults from `event` when editing.
-export function EventFormFields({
-  idPrefix,
-  event,
-  pin,
-  onPinChange,
-}: {
-  idPrefix: string;
-  event?: Event;
-  pin: PickedLocation | null;
-  onPinChange: (pin: PickedLocation | null) => void;
-}) {
+// The shared field set for creating and editing an event. Uncontrolled text
+// fields take their defaults from `event` when editing. Location is geocoded
+// server-side on submit (see actions.ts) — that's what puts the event on the
+// Explore Map, no separate pin-drop step.
+export function EventFormFields({ idPrefix, event }: { idPrefix: string; event?: Event }) {
   return (
     <>
       <div>
@@ -66,8 +48,13 @@ export function EventFormFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor={`${idPrefix}_location`}>Location (optional)</Label>
-          <Input id={`${idPrefix}_location`} name="location" placeholder="123 Main St, or leave blank" defaultValue={event?.location ?? ""} />
+          <Label htmlFor={`${idPrefix}_location`}>Location</Label>
+          <Input
+            id={`${idPrefix}_location`}
+            name="location"
+            placeholder="123 Main St, or a place like Kendwa"
+            defaultValue={event?.location ?? ""}
+          />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_online_url`}>Online link (optional)</Label>
@@ -84,13 +71,6 @@ export function EventFormFields({
           placeholder="https://example.com/photo.jpg"
           defaultValue={event?.image_url ?? ""}
         />
-      </div>
-
-      <div>
-        <Label>Show on the Explore Map (optional)</Label>
-        <LocationPicker value={pin} onChange={onPinChange} emoji="📅" helpText="Click the map to drop a pin — this puts the event on the Explore Map." />
-        <input type="hidden" name="lat" value={pin?.lat ?? ""} />
-        <input type="hidden" name="lng" value={pin?.lng ?? ""} />
       </div>
     </>
   );

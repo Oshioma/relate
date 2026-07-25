@@ -16,23 +16,45 @@ import { cn } from "@/lib/utils";
 import { nextId } from "./types";
 import type { WizardState, WizardSpace, WizardProfileField } from "./types";
 import type { TemplateSpace, TemplateProfileField } from "@/lib/community-templates";
+import type { SpaceType } from "@/types/database";
 
-function toWizardSpaces(spaces: TemplateSpace[]): WizardSpace[] {
-  return spaces.map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion" }));
+// Turns a template's suggested spaces into wizard spaces, dropping any whose
+// type the super admin hasn't made available — the pool wins, so a banned type
+// never even reaches the starter box.
+function toWizardSpaces(spaces: TemplateSpace[], allowedTypes: SpaceType[]): WizardSpace[] {
+  const allowed = new Set(allowedTypes);
+  return spaces
+    .filter((s) => allowed.has(s.space_type ?? "discussion"))
+    .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion" }));
 }
 
 function toWizardFields(fields: TemplateProfileField[]): WizardProfileField[] {
   return fields.map((f) => ({ id: nextId("field"), label: f.label, field_type: f.field_type, options: f.options ?? [] }));
 }
 
-export function StepTemplate({ state, update }: { state: WizardState; update: (patch: Partial<WizardState>) => void }) {
+export function StepTemplate({
+  state,
+  update,
+  defaultSpacesByTemplate,
+  allowedTypes,
+}: {
+  state: WizardState;
+  update: (patch: Partial<WizardState>) => void;
+  defaultSpacesByTemplate?: Record<string, TemplateSpace[]>;
+  // Space types the platform makes available to new communities. Template
+  // suggestions of any other type are filtered out of the starter box.
+  allowedTypes: SpaceType[];
+}) {
   const isPlace = state.templateKey === "place";
 
   function selectTemplate(key: string) {
     const template = COMMUNITY_TEMPLATES.find((t) => t.key === key)!;
+    // Prefer the super-admin-configured defaults for this type; fall back to
+    // the template's code defaults.
+    const defaultSpaces = defaultSpacesByTemplate?.[key] ?? template.defaultSpaces;
     update({
       templateKey: key,
-      spaces: toWizardSpaces(template.defaultSpaces),
+      spaces: toWizardSpaces(defaultSpaces, allowedTypes),
       profileFields: toWizardFields(template.defaultProfileFields),
       locationType: "",
       mapLayers: [],
@@ -44,17 +66,17 @@ export function StepTemplate({ state, update }: { state: WizardState; update: (p
     if (!state.templateKey) return;
     const rec = recommendSetup(state.templateKey, state.transformationGoal);
     update({
-      spaces: toWizardSpaces(rec.spaces),
+      spaces: toWizardSpaces(rec.spaces, allowedTypes),
       profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
     });
   }
 
   function selectLocationType(key: string) {
-    const rec = recommendPlaceSetup(key);
+    const rec = recommendPlaceSetup(key, defaultSpacesByTemplate?.["place"]);
     update({
       locationType: key,
-      spaces: toWizardSpaces(rec.spaces),
+      spaces: toWizardSpaces(rec.spaces, allowedTypes),
       profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
       mapLayers: rec.mapLayers,

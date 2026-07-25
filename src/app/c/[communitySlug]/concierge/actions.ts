@@ -10,8 +10,10 @@ export async function searchConcierge(communityId: string, communitySlug: string
   const [user, results] = await Promise.all([getCurrentUser(supabase), searchCommunity(supabase, communityId, communitySlug, query)]);
   const answer = await synthesizeConciergeAnswer(results);
 
-  if (results.query) {
-    void logConciergeQuery(supabase, communityId, user?.id ?? null, results.query, results.totalCount, answer !== null);
+  // Only signed-in members can log a query (RLS blocks anon inserts); guests
+  // can still search, we just don't record it.
+  if (results.query && user) {
+    void logConciergeQuery(supabase, communityId, user.id, results.query, results.totalCount, answer !== null);
   }
 
   return { ...results, answer };

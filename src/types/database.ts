@@ -30,7 +30,8 @@ export type SpaceType =
   | "volunteer_hub"
   | "jobs"
   | "accommodation"
-  | "recommendations";
+  | "recommendations"
+  | "course";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -85,6 +86,15 @@ export type Community = {
   cover_image_url: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // Who can see the Members list/page — independent of `privacy` above.
+  // The page always requires a signed-in user regardless of this setting.
+  // 'public' = any signed-in visitor (incl. guests who haven't joined),
+  // 'members' = active members only, 'private' = staff only.
+  members_visibility: SpaceVisibility;
+  // The wizard template this community was created from (COMMUNITY_TEMPLATES
+  // key), or null for older communities. Gates type-specific features such as
+  // AI event discovery (place only).
+  template_key: string | null;
   location_type: string | null;
   location_name: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
@@ -97,6 +107,9 @@ export type Community = {
   // Generated column: `is_public = (privacy = 'public')`. Read-only — Postgres
   // rejects any insert/update that sets it directly. Write `privacy` instead.
   is_public: boolean;
+  // Admin opt-in: show this community's events to signed-out visitors. Only
+  // takes effect for a community guests can already reach (is_public).
+  events_public: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -215,7 +228,7 @@ export type CommunityNavLink = {
 };
 
 // Built-in, optional nav features a platform super admin can turn on/off —
-// see src/lib/features.ts for the labeled list shown in /admin.
+// see src/lib/features.ts for the labeled list shown in /platform-admin.
 export type FeatureKey = "events" | "concierge";
 
 // The feature state new communities start with, and the fallback for any
@@ -253,6 +266,43 @@ export type CommunityNavItemOrder = {
   community_id: string;
   item_key: FeatureKey;
   sort_order: number;
+  show_in_nav: boolean;
+  updated_at: string;
+};
+
+// The platform-wide default pool: whether a space type is available for new
+// (and un-overridden) communities to add. A missing row means "allowed".
+// Set by the super admin at /platform-admin.
+export type SpaceTypeDefault = {
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// Per-community override of the default pool, set by the super admin. Decides
+// whether this community's admins may add spaces of the given type. A missing
+// row falls back to space_type_defaults, then to "allowed".
+export type CommunitySpaceType = {
+  community_id: string;
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// A default item for a community type (template), editable by a super admin at
+// /platform-admin. Usually a space (space_type set, builtin_key null); when
+// builtin_key is 'events'/'concierge' it's a built-in nav feature shown in the
+// list so it can be ordered like a space. The creation wizard seeds a new
+// community's spaces from these. See the template_default_spaces migration.
+export type TemplateDefaultSpace = {
+  id: string;
+  template_key: string;
+  name: string;
+  description: string;
+  space_type: SpaceType;
+  builtin_key: FeatureKey | null;
+  show_in_nav: boolean;
+  sort_order: number;
   updated_at: string;
 };
 
@@ -287,6 +337,12 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
+  // Set once a member's claim is approved by staff; from then on the claimant
+  // counts as an owner alongside created_by. Null while unclaimed.
+  claimed_by: string | null;
+  // Optional per-day schedule powering a reliable "Open now"; keyed "0".."6"
+  // (Sun..Sat). opening_hours (text) stays the human-readable display value.
+  opening_hours_structured: BusinessHoursSchedule | null;
   google_place_id: string | null;
   google_rating: number | null;
   google_review_count: number | null;
@@ -307,6 +363,80 @@ export type FeaturedBusinessCategory = {
   space_id: string;
   community_id: string;
   category: BusinessCategory;
+  // Position among a directory space's nav sub-links; staff drag to reorder.
+  sort_order: number;
+  created_at: string;
+};
+
+// One day's opening hours in a structured schedule. A single open–close range
+// per day (kept simple; free-text opening_hours covers anything more elaborate).
+export type BusinessDayHours = {
+  closed: boolean;
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+};
+
+// Per-day schedule keyed by day-of-week "0".."6" (Sun..Sat), matching Date.getDay().
+export type BusinessHoursSchedule = Record<string, BusinessDayHours>;
+
+// A member's request to be recognised as a listing's owner, resolved by staff.
+export type BusinessClaim = {
+  id: string;
+  business_id: string;
+  community_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+};
+
+// A gallery photo for a directory listing. The full set is the source of
+// truth for a listing's photos; businesses.image_url mirrors the first one
+// (sort_order 0) as a denormalised cover for cards, the feed and map popups.
+export type BusinessImage = {
+  id: string;
+  business_id: string;
+  url: string;
+  // CSS object-position ("50% 25%") for this photo's crop framing.
+  position: string | null;
+  sort_order: number;
+  created_by: string;
+  created_at: string;
+};
+
+// One member's review of a listing — a 1-5 star rating with optional text,
+// one per member per business. Combines what guides split across guide_ratings
+// and guide_comments into a single row the reviewer owns and can edit.
+export type BusinessReview = {
+  id: string;
+  business_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A public reply to a review from the listing's owner (businesses.created_by)
+// or community staff — one per review, like a Google Business response.
+export type BusinessReviewReply = {
+  id: string;
+  review_id: string;
+  business_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's bookmark of a listing. Visible only to the member who saved it,
+// so the directory's "Saved" filter reflects that viewer alone.
+export type BusinessSave = {
+  id: string;
+  business_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -322,6 +452,21 @@ export type BusinessCustomCategory = {
   slug: string;
   label: string;
   created_at: string;
+};
+
+// A per-space relabelling of a BUILT-IN business category — e.g. showing
+// "Activities" as "Experiences". `category` is the built-in value (unchanged
+// on the businesses themselves); `label` is what the nav sub-links, chips and
+// headings render. Custom categories rename via their own `label` instead, so
+// they never appear here (see supabase/business-category-label-overrides.sql).
+export type BusinessCategoryLabelOverride = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  category: BusinessCategory;
+  label: string;
+  created_at: string;
+  updated_at: string;
 };
 
 // A togglable layer on a community's Explore Map (Restaurants, Beaches, …).
@@ -560,6 +705,158 @@ export type VolunteerSignup = {
   project_id: string;
   user_id: string;
   signed_up_at: string;
+};
+
+export type CourseStatus = "draft" | "published";
+
+// A course in a 'course' space (see space-types.ts). Deeper than
+// Challenges/Clubs: a course owns a content hierarchy (CourseModule ->
+// CourseLesson) and per-learner progress (LessonCompletion), and has a
+// draft/published status so staff can build it before members see it.
+// instructor_id defaults to the creator (no separate picker in the MVP).
+export type Course = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string | null;
+  instructor_id: string | null;
+  title: string;
+  summary: string | null;
+  cover_image_url: string | null;
+  status: CourseStatus;
+  // v2: offer a completion certificate to learners who finish every lesson.
+  certificate_enabled: boolean;
+  // v3 pricing: price_cents 0 = free (self-enrollable). Paid courses require a
+  // staff grant or a payment flow.
+  price_cents: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseModule = {
+  id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  sort_order: number;
+  // v2 drip: the module (and its lessons) unlock on/after this time. Null means
+  // available immediately. Enforced softly in the player, not RLS.
+  available_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseLesson = {
+  id: string;
+  module_id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  body: string | null;
+  video_url: string | null;
+  duration_minutes: number | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseEnrollment = {
+  id: string;
+  course_id: string;
+  user_id: string;
+  enrolled_at: string;
+  // v3: whether this enrolment was paid for (vs a free/granted enrolment).
+  paid: boolean;
+};
+
+// One learner has finished one lesson. course_id/community_id are denormalised
+// (see the courses migration) so progress and staff-visibility checks stay
+// single-hop.
+export type LessonCompletion = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  user_id: string;
+  completed_at: string;
+};
+
+// v2: per-lesson Q&A/discussion.
+export type LessonComment = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// v2: a staff broadcast pinned to the top of a course.
+export type CourseAnnouncement = {
+  id: string;
+  course_id: string;
+  community_id: string;
+  author_id: string | null;
+  title: string;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// v3: a course this course requires be completed first.
+export type CoursePrerequisite = {
+  id: string;
+  course_id: string;
+  prerequisite_course_id: string;
+  community_id: string;
+  created_at: string;
+};
+
+// v3: one quiz per lesson. Correct answers live in quiz_options.is_correct,
+// which is never exposed to learners (see the courses_v3 migration).
+export type CourseQuiz = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  pass_percent: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  quiz_id: string;
+  community_id: string;
+  prompt: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type QuizOption = {
+  id: string;
+  question_id: string;
+  community_id: string;
+  label: string;
+  is_correct: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type QuizAttempt = {
+  id: string;
+  quiz_id: string;
+  course_id: string;
+  community_id: string;
+  user_id: string;
+  score_percent: number;
+  passed: boolean;
+  answers: string[];
+  created_at: string;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
@@ -836,6 +1133,21 @@ export type Database = {
         Insert: Partial<CommunityNavItemOrder> & { community_id: string; item_key: FeatureKey; sort_order: number };
         Update: Partial<CommunityNavItemOrder>;
       } & NoRel;
+      template_default_spaces: {
+        Row: TemplateDefaultSpace;
+        Insert: Partial<TemplateDefaultSpace> & { template_key: string; name: string };
+        Update: Partial<TemplateDefaultSpace>;
+      } & NoRel;
+      space_type_defaults: {
+        Row: SpaceTypeDefault;
+        Insert: Partial<SpaceTypeDefault> & { space_type: SpaceType };
+        Update: Partial<SpaceTypeDefault>;
+      } & NoRel;
+      community_space_types: {
+        Row: CommunitySpaceType;
+        Insert: Partial<CommunitySpaceType> & { community_id: string; space_type: SpaceType };
+        Update: Partial<CommunitySpaceType>;
+      } & NoRel;
       notifications: {
         Row: Notification;
         Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
@@ -859,6 +1171,36 @@ export type Database = {
         Update: Partial<Business>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
+      business_images: {
+        Row: BusinessImage;
+        Insert: Partial<BusinessImage> & { business_id: string; url: string; created_by: string };
+        Update: Partial<BusinessImage>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"created_by", "profiles">];
+      };
+      business_reviews: {
+        Row: BusinessReview;
+        Insert: Partial<BusinessReview> & { business_id: string; author_id: string; rating: number };
+        Update: Partial<BusinessReview>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_review_replies: {
+        Row: BusinessReviewReply;
+        Insert: Partial<BusinessReviewReply> & { review_id: string; business_id: string; author_id: string; body: string };
+        Update: Partial<BusinessReviewReply>;
+        Relationships: [FKey<"review_id", "business_reviews">, FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_saves: {
+        Row: BusinessSave;
+        Insert: Partial<BusinessSave> & { business_id: string; user_id: string };
+        Update: Partial<BusinessSave>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"user_id", "profiles">];
+      };
+      business_claims: {
+        Row: BusinessClaim;
+        Insert: Partial<BusinessClaim> & { business_id: string; community_id: string; claimant_id: string };
+        Update: Partial<BusinessClaim>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"community_id", "communities">, FKey<"claimant_id", "profiles">, FKey<"resolved_by", "profiles">];
+      };
       featured_business_categories: {
         Row: FeaturedBusinessCategory;
         Insert: Partial<FeaturedBusinessCategory> & { space_id: string; community_id: string; category: BusinessCategory };
@@ -869,6 +1211,12 @@ export type Database = {
         Row: BusinessCustomCategory;
         Insert: Partial<BusinessCustomCategory> & { space_id: string; community_id: string; created_by: string; slug: string; label: string };
         Update: Partial<BusinessCustomCategory>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      business_category_label_overrides: {
+        Row: BusinessCategoryLabelOverride;
+        Insert: Partial<BusinessCategoryLabelOverride> & { space_id: string; community_id: string; category: BusinessCategory; label: string };
+        Update: Partial<BusinessCategoryLabelOverride>;
         Relationships: [FKey<"space_id", "spaces">];
       };
       map_categories: {
@@ -966,6 +1314,78 @@ export type Database = {
         Insert: Partial<VolunteerSignup> & { project_id: string; user_id: string };
         Update: Partial<VolunteerSignup>;
         Relationships: [FKey<"project_id", "volunteer_projects">, FKey<"user_id", "profiles">];
+      };
+      courses: {
+        Row: Course;
+        Insert: Partial<Course> & { space_id: string; community_id: string; title: string };
+        Update: Partial<Course>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">, FKey<"instructor_id", "profiles">];
+      };
+      course_modules: {
+        Row: CourseModule;
+        Insert: Partial<CourseModule> & { course_id: string; community_id: string; title: string };
+        Update: Partial<CourseModule>;
+        Relationships: [FKey<"course_id", "courses">];
+      };
+      course_lessons: {
+        Row: CourseLesson;
+        Insert: Partial<CourseLesson> & { module_id: string; course_id: string; community_id: string; title: string };
+        Update: Partial<CourseLesson>;
+        Relationships: [FKey<"module_id", "course_modules">, FKey<"course_id", "courses">];
+      };
+      course_enrollments: {
+        Row: CourseEnrollment;
+        Insert: Partial<CourseEnrollment> & { course_id: string; user_id: string };
+        Update: Partial<CourseEnrollment>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
+      };
+      lesson_completions: {
+        Row: LessonCompletion;
+        Insert: Partial<LessonCompletion> & { lesson_id: string; course_id: string; community_id: string; user_id: string };
+        Update: Partial<LessonCompletion>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"user_id", "profiles">];
+      };
+      lesson_comments: {
+        Row: LessonComment;
+        Insert: Partial<LessonComment> & { lesson_id: string; course_id: string; community_id: string; author_id: string; body: string };
+        Update: Partial<LessonComment>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
+      };
+      course_announcements: {
+        Row: CourseAnnouncement;
+        Insert: Partial<CourseAnnouncement> & { course_id: string; community_id: string; title: string };
+        Update: Partial<CourseAnnouncement>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
+      };
+      course_prerequisites: {
+        Row: CoursePrerequisite;
+        Insert: Partial<CoursePrerequisite> & { course_id: string; prerequisite_course_id: string; community_id: string };
+        Update: Partial<CoursePrerequisite>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"prerequisite_course_id", "courses">];
+      };
+      course_quizzes: {
+        Row: CourseQuiz;
+        Insert: Partial<CourseQuiz> & { lesson_id: string; course_id: string; community_id: string };
+        Update: Partial<CourseQuiz>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">];
+      };
+      quiz_questions: {
+        Row: QuizQuestion;
+        Insert: Partial<QuizQuestion> & { quiz_id: string; community_id: string; prompt: string };
+        Update: Partial<QuizQuestion>;
+        Relationships: [FKey<"quiz_id", "course_quizzes">];
+      };
+      quiz_options: {
+        Row: QuizOption;
+        Insert: Partial<QuizOption> & { question_id: string; community_id: string; label: string };
+        Update: Partial<QuizOption>;
+        Relationships: [FKey<"question_id", "quiz_questions">];
+      };
+      quiz_attempts: {
+        Row: QuizAttempt;
+        Insert: Partial<QuizAttempt> & { quiz_id: string; course_id: string; community_id: string; user_id: string; score_percent: number; passed: boolean };
+        Update: Partial<QuizAttempt>;
+        Relationships: [FKey<"quiz_id", "course_quizzes">, FKey<"user_id", "profiles">];
       };
       concierge_queries: {
         Row: ConciergeQuery;
@@ -1070,6 +1490,7 @@ export type Database = {
           community_slug: string | null;
           community_logo_url: string | null;
           community_cover_image_url: string | null;
+          community_is_public: boolean | null;
           valid: boolean;
           reason: string | null;
         }[];
@@ -1085,6 +1506,25 @@ export type Database = {
       community_slug_for_domain: {
         Args: { p_domain: string };
         Returns: string | null;
+      };
+      course_quiz_data: {
+        Args: { p_course_id: string };
+        Returns: {
+          quiz_id: string;
+          lesson_id: string;
+          quiz_title: string;
+          pass_percent: number;
+          question_id: string | null;
+          question_prompt: string | null;
+          question_sort: number | null;
+          option_id: string | null;
+          option_label: string | null;
+          option_sort: number | null;
+        }[];
+      };
+      grade_quiz: {
+        Args: { p_quiz_id: string; p_selected: string[] };
+        Returns: { score_percent: number; passed: boolean }[];
       };
     };
   };

@@ -1,0 +1,99 @@
+name: Check migration timestamps
+
+# Supabase records each migration by the 14-digit timestamp prefix of its
+# filename and applies them in ascending order. Two failure modes have bitten
+# this repo when several migration PRs are in flight at once:
+#
+#   1. Duplicate timestamp — two files share a prefix (e.g. both grab
+#      20260725160000). Whichever merges second is skipped or fails to deploy.
+#   2. Out-of-order timestamp — a PR adds a migration whose timestamp is LOWER
+#      than one already on the base branch. `supabase db push` then refuses to
+#      insert it "before the last migration on remote" and the deploy jams.
+#
+# Both are caught here in review instead of at deploy time:
+#   - "unique timestamps" runs on every event and rejects duplicate prefixes.
+#   - "newer than base" runs on pull_request and rejects any migration this PR
+#     adds whose timestamp isn't strictly greater than the newest one already
+#     on the base branch — so a stale branch must rebase + renumber before it
+#     can merge.
+#
+# The pull_request trigger is intentionally NOT path-filtered. This job is a
+# required status in branch protection, and a path-filtered required check that
+# gets skipped stays stuck in "Expected — waiting for status to be reported",
+# permanently blocking any PR that doesn't touch supabase/migrations/** (see
+# GitHub's "Handling skipped but required checks"). It's cheap, so it runs on
+# every PR and always reports. The push trigger keeps its path filter — it
+# isn't a required check.
+#
+# NOTE: the "newer than base" check only re-evaluates when the PR head changes.
+# To close the last gap — two open PRs that each pass against an OLD base, then
+# both merge — branch protection must also require "Require branches to be up to
+# date before merging". That forces the second PR to update onto the winner's
+# migration and re-run this check, which then blocks it.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+
+jobs:
+  unique-timestamps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure every migration timestamp is unique
+        run: |
+          cd supabase/migrations
+          # Each file is <14-digit-timestamp>_<name>.sql; the prefix before the
+          # first underscore is the version Supabase records.
+          dupes="$(ls *.sql | sed -E 's/_.*//' | sort | uniq -d)"
+          if [ -n "$dupes" ]; then
+            echo "::error::Duplicate migration timestamp(s) found — renumber one so each version is unique:"
+            for ts in $dupes; do
+              echo "  $ts is used by:"
+              ls "${ts}"_*.sql | sed 's/^/    /'
+            done
+            exit 1
+          fi
+          echo "All migration timestamps are unique."
+
+      - name: Ensure new migrations are newer than everything on the base branch
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+
+          extract='s#.*/\([0-9]\{14\}\)_.*#\1#p'
+          # Timestamps already present on the base branch.
+          base_list="$(git ls-tree -r --name-only FETCH_HEAD -- supabase/migrations \
+            | sed -n "$extract" | sort -u)"
+          # Timestamps present in this PR's tree.
+          head_list="$(ls supabase/migrations/*.sql | sed -n "$extract" | sort -u)"
+          # The newest timestamp already on base (0 if base has no migrations).
+          base_max="$(printf '%s\n' "$base_list" | tail -n1)"
+          base_max="${base_max:-0}"
+          # Migrations this PR adds: in the PR tree, not on base.
+          added="$(comm -13 <(printf '%s\n' "$base_list") <(printf '%s\n' "$head_list") | sed '/^$/d')"
+
+          if [ -z "$added" ]; then
+            echo "This PR adds no new migrations."
+            exit 0
+          fi
+
+          fail=0
+          for ts in $added; do
+            if [ "$ts" -le "$base_max" ]; then
+              echo "::error::Migration $ts is not newer than the latest migration on $BASE_REF ($base_max). Rebase on $BASE_REF and renumber it above $base_max so it applies in order."
+              fail=1
+            else
+              echo "OK: $ts is newer than base ($base_max)."
+            fi
+          done
+          exit $fail

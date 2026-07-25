@@ -3,6 +3,24 @@ import type { Database, Community, CommunityMembership, Profile } from "@/types/
 
 type Client = SupabaseClient<Database>;
 
+// Whether a signed-in viewer can see a community's Members list/page, per
+// its members_visibility setting: 'public' allows any signed-in viewer (incl.
+// guests who haven't joined), 'members' requires an active membership,
+// 'private' requires staff. Callers must separately require a signed-in user
+// — the Members page itself is never reachable by a signed-out visitor.
+export function canViewMembers(community: Community, membership: CommunityMembership | null): boolean {
+  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  switch (community.members_visibility) {
+    case "public":
+      return true;
+    case "private":
+      return isStaff;
+    case "members":
+    default:
+      return membership?.status === "active";
+  }
+}
+
 export type CommunityWithMembership = Community & {
   membership: Pick<CommunityMembership, "role" | "status">;
 };
@@ -80,6 +98,36 @@ export async function getDiscoverableCommunities(supabase: Client, userId: strin
   return data ?? [];
 }
 
+export interface CommunityStats {
+  members: number;
+  events: number;
+  businesses: number;
+  posts: number;
+}
+
+// Headline counts for the community landing page's stats strip. Each is a
+// head-only COUNT query (no rows fetched), run in parallel. A null count
+// (unexpected) collapses to 0 so the strip always renders.
+export async function getCommunityStats(supabase: Client, communityId: string): Promise<CommunityStats> {
+  const [members, events, businesses, posts] = await Promise.all([
+    supabase
+      .from("community_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .eq("status", "active"),
+    supabase.from("events").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+    supabase.from("businesses").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+  ]);
+
+  return {
+    members: members.count ?? 0,
+    events: events.count ?? 0,
+    businesses: businesses.count ?? 0,
+    posts: posts.count ?? 0,
+  };
+}
+
 export type MemberRow = CommunityMembership & { profile: Profile };
 
 export async function getCommunityMembers(supabase: Client, communityId: string): Promise<MemberRow[]> {
@@ -89,6 +137,25 @@ export async function getCommunityMembers(supabase: Client, communityId: string)
     .eq("community_id", communityId)
     .eq("status", "active")
     .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as MemberRow[];
+}
+
+// The most recently joined active members, newest first — used to surface
+// "New Member" cards in the community feed alongside posts and other activity.
+export async function getCommunityRecentMembers(
+  supabase: Client,
+  communityId: string,
+  limit: number
+): Promise<MemberRow[]> {
+  const { data, error } = await supabase
+    .from("community_memberships")
+    .select("*, profile:user_id (*)")
+    .eq("community_id", communityId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];

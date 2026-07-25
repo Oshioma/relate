@@ -37,12 +37,36 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     : null;
 
   if (!preview || !preview.valid) {
+    // A lapsed invite shouldn't be a dead end. When we still know the
+    // community and it's public, point the visitor at a way in: straight to
+    // the community if they're signed in, or to sign-up (which returns them
+    // there) if they're not. Private communities keep the plain message —
+    // there's no self-serve join, so they need a fresh invite.
+    const slug = preview?.community_slug ?? null;
+    const canJoin = Boolean(slug && preview?.community_is_public);
+    const joinHref = canJoin
+      ? user
+        ? `/c/${slug}`
+        : `/signup?next=${encodeURIComponent(`/c/${slug}`)}`
+      : null;
+
     return (
       <InviteShell community={community}>
         <p className="text-sm text-danger">{preview?.reason ?? "This invite link is invalid."}</p>
-        <LinkButton href="/dashboard" variant="secondary" className="mt-6">
-          Go to dashboard
-        </LinkButton>
+        {joinHref ? (
+          <>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Good news — {preview?.community_name} is open to everyone, so you can still join.
+            </p>
+            <LinkButton href={joinHref} className="mt-6">
+              {user ? `Go to ${preview?.community_name}` : "Create an account to join"}
+            </LinkButton>
+          </>
+        ) : (
+          <LinkButton href="/dashboard" variant="secondary" className="mt-6">
+            Go to dashboard
+          </LinkButton>
+        )}
       </InviteShell>
     );
   }

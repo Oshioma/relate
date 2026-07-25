@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
-import { getPlaceLocationType } from "@/lib/community-templates";
-import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
+import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
+import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
+import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
+import { builtinsForTemplate } from "@/lib/template-defaults";
+import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -25,6 +28,9 @@ export interface WizardPayload {
   slug: string;
   description: string;
   privacy: CommunityPrivacy;
+  // The chosen template's key (COMMUNITY_TEMPLATES). Stored on the community
+  // so type-specific features (e.g. AI event discovery) can gate on it.
+  templateKey?: string;
   // Place-Based Community only — validated against PLACE_LOCATION_TYPES
   // below and dropped (not just left blank) for every other template.
   locationType?: string;
@@ -73,6 +79,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   }
 
   const privacy = PRIVACY_LEVELS.includes(payload.privacy) ? payload.privacy : "public";
+  const templateKey = payload.templateKey && getCommunityTemplate(payload.templateKey) ? payload.templateKey : null;
   const locationType = payload.locationType && getPlaceLocationType(payload.locationType) ? payload.locationType : null;
   const locationName = locationType && payload.locationName?.trim() ? payload.locationName.trim() : null;
 
@@ -93,6 +100,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       description: payload.description.trim() || null,
       owner_id: user.id,
       privacy,
+      template_key: templateKey,
       location_type: locationType,
       location_name: locationName,
     })
@@ -106,7 +114,12 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: communityError.message };
   }
 
-  const spaces = payload.spaces.filter((s) => s.name.trim());
+  // Enforce the platform default pool server-side — a new community only
+  // starts with space types the super admin makes available. Banned types are
+  // stripped from the starter box automatically (the wizard already hides
+  // them; this keeps the rule airtight if the pool changes mid-setup).
+  const spaceTypeDefaults = await getSpaceTypeDefaults(supabase);
+  const spaces = payload.spaces.filter((s) => s.name.trim() && spaceTypeDefaults[s.space_type]);
   if (spaces.length) {
     const slugs = uniqueSlugs(spaces.map((s) => s.name));
     const { error: spacesError } = await supabase.from("spaces").insert(
@@ -159,6 +172,31 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     // admin can still add layers manually, so this shouldn't block launch.
     if (mapCategoriesError) {
       console.error("Failed to seed map categories:", mapCategoriesError.message);
+    }
+  }
+
+  // Seed the built-in nav items (Events, Search) from this template's
+  // configured defaults: ones present in the type's list get their saved
+  // position and nav visibility; ones a super admin removed from the type are
+  // turned off for this community. Non-fatal — without it a new community just
+  // keeps the default Events/Search behaviour.
+  if (templateKey) {
+    try {
+      const effective = (await getTemplateDefaultsByTemplate(supabase))[templateKey] ?? [];
+      const navRows: { community_id: string; item_key: FeatureKey; sort_order: number; show_in_nav: boolean }[] = [];
+      const prefRows: { community_id: string; feature_key: FeatureKey; enabled: boolean }[] = [];
+      for (const key of builtinsForTemplate(templateKey)) {
+        const idx = effective.findIndex((it) => it.builtin_key === key);
+        if (idx >= 0) {
+          navRows.push({ community_id: community.id, item_key: key, sort_order: idx, show_in_nav: effective[idx].show_in_nav });
+        } else {
+          prefRows.push({ community_id: community.id, feature_key: key, enabled: false });
+        }
+      }
+      if (navRows.length) await supabase.from("community_nav_item_order").insert(navRows);
+      if (prefRows.length) await supabase.from("community_feature_prefs").insert(prefRows);
+    } catch (e) {
+      console.error("Failed to seed built-in nav items:", e);
     }
   }
 

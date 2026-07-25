@@ -94,6 +94,7 @@ export function ClubsView({
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
               canManage={isStaff || data.club.created_by === userId}
+              canInteract={canPost}
             />
           ))}
         </div>

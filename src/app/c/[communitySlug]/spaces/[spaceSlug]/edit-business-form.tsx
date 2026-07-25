@@ -5,31 +5,49 @@ import { X } from "lucide-react";
 import { updateBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
+import type { GalleryImage } from "./business-images-input";
+import { parseScheduleFromText } from "@/lib/opening-hours";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessCustomCategory } from "@/types/database";
+import type { Business, BusinessImage, BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 export function EditBusinessForm({
   business,
+  images: initialImages,
   communitySlug,
   spaceSlug,
   userId,
   customCategories,
+  labelOverrides,
   onDone,
   onCancel,
 }: {
   business: Business;
+  // The listing's current gallery. Falls back to the denormalised cover for
+  // callers that don't load the gallery (e.g. before a page fetch).
+  images?: BusinessImage[];
   communitySlug: string;
   spaceSlug: string;
   userId: string;
   customCategories: BusinessCustomCategory[];
+  labelOverrides?: BusinessCategoryLabelOverride[];
   onDone: () => void;
   onCancel: () => void;
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(
     business.lat !== null && business.lng !== null ? { lat: business.lat, lng: business.lng } : null
   );
-  const [imageUrl, setImageUrl] = useState<string | null>(business.image_url);
-  const [imagePosition, setImagePosition] = useState<string | null>(business.image_position);
+  const [images, setImages] = useState<GalleryImage[]>(
+    initialImages && initialImages.length > 0
+      ? initialImages.map((i) => ({ url: i.url, position: i.position }))
+      : business.image_url
+        ? [{ url: business.image_url, position: business.image_position }]
+        : []
+  );
+  // Prefer the stored schedule; otherwise best-effort parse the legacy free text
+  // so editing a pre-structured listing still pre-fills the weekly editor.
+  const [schedule, setSchedule] = useState<BusinessHoursSchedule | null>(
+    business.opening_hours_structured ?? parseScheduleFromText(business.opening_hours)
+  );
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -61,12 +79,13 @@ export function EditBusinessForm({
         idPrefix={`edit_business_${business.id}`}
         business={business}
         customCategories={customCategories}
+        labelOverrides={labelOverrides}
         pin={pin}
         onPinChange={setPin}
-        imageUrl={imageUrl}
-        onImageChange={setImageUrl}
-        imagePosition={imagePosition}
-        onImagePositionChange={setImagePosition}
+        images={images}
+        onImagesChange={setImages}
+        schedule={schedule}
+        onScheduleChange={setSchedule}
         userId={userId}
       />
 

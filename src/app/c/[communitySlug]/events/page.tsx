@@ -16,14 +16,36 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
 
   const user = await getCurrentUser(supabase);
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community || !user) notFound();
+  if (!community) notFound();
+
+  // Events are public only when the admin has opted in. A signed-out visitor
+  // who arrives before that gets a prompt to log in rather than an empty page.
+  if (!user && !community.events_public) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">Events</h1>
+        <EmptyState
+          icon={<CalendarDays className="h-6 w-6" />}
+          title="Events are members only"
+          description="Log in or sign up to see this community's events."
+          action={
+            <LinkButton href={`/login?next=/c/${community.slug}/events`} size="sm">
+              Log in
+            </LinkButton>
+          }
+        />
+      </div>
+    );
+  }
 
   const [membership, events] = await Promise.all([
-    getMembership(supabase, community.id, user.id),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getCommunityEvents(supabase, community.id),
   ]);
 
-  const rsvps = await getRsvpsForEvents(supabase, events.map((e) => e.id));
+  // Attendee lists (event_rsvps) stay members-only, so guests see the event
+  // schedule without who's going.
+  const rsvps = user ? await getRsvpsForEvents(supabase, events.map((e) => e.id)) : [];
   const rsvpsByEvent = groupRsvpsByEvent(rsvps);
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
@@ -52,11 +74,13 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
         <div className="mb-8">
           <EventList
             items={upcomingItems}
-            currentUserId={user.id}
+            currentUserId={user?.id ?? ""}
             communitySlug={community.slug}
             communityLogoUrl={community.logo_url}
+            communityLocationName={community.location_name}
             canRsvp={canRsvp}
             isStaff={isStaff}
+            featureFirst
           />
         </div>
       )}
@@ -64,8 +88,10 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
       {isStaff && (
         <div id="add-event" className="mb-8 scroll-mt-6 space-y-4">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Add an event</h2>
-          <NewEventForm communityId={community.id} communitySlug={community.slug} />
-          {isOwner && <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />}
+          <NewEventForm communityId={community.id} communitySlug={community.slug} communityLocationName={community.location_name} />
+          {isOwner && community.template_key === "place" && (
+            <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />
+          )}
         </div>
       )}
 
@@ -75,9 +101,10 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
           <div className="opacity-70">
             <EventList
               items={pastItems}
-              currentUserId={user.id}
+              currentUserId={user?.id ?? ""}
               communitySlug={community.slug}
               communityLogoUrl={community.logo_url}
+              communityLocationName={community.location_name}
               canRsvp={false}
               isStaff={isStaff}
             />
