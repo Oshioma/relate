@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getCourseDetail } from "@/lib/data/courses";
+import { getCourseDetail, getSpaceCourses, getStaffQuizzes } from "@/lib/data/courses";
 import { CourseManageView } from "../../../course-manage-view";
 
 export default async function CourseManagePage({
@@ -32,6 +32,13 @@ export default async function CourseManagePage({
   const detail = await getCourseDetail(supabase, courseId, user?.id ?? "");
   if (!detail || detail.course.space_id !== space.id) notFound();
 
+  const [spaceCourses, staffQuizzes] = await Promise.all([
+    getSpaceCourses(supabase, space.id, user?.id ?? ""),
+    getStaffQuizzes(supabase, courseId),
+  ]);
+  // Candidate prerequisites: every other course in this space.
+  const siblingCourses = spaceCourses.filter((c) => c.course.id !== courseId).map((c) => ({ id: c.course.id, title: c.course.title }));
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <Link
@@ -42,7 +49,14 @@ export default async function CourseManagePage({
         Back to course
       </Link>
 
-      <CourseManageView detail={detail} communityId={community.id} communitySlug={community.slug} spaceSlug={space.slug} />
+      <CourseManageView
+        detail={detail}
+        communityId={community.id}
+        communitySlug={community.slug}
+        spaceSlug={space.slug}
+        siblingCourses={siblingCourses}
+        staffQuizzes={staffQuizzes}
+      />
     </div>
   );
 }
