@@ -17,7 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers } from "@/lib/data/community";
 import { getCommunityPosts } from "@/lib/data/posts";
-import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
@@ -55,6 +55,7 @@ export default async function CommunityFeedPage({
     events,
     recentBusinesses,
     customCategories,
+    labelOverrides,
     recentEvents,
     recentListings,
     recentJobs,
@@ -68,6 +69,7 @@ export default async function CommunityFeedPage({
     getCommunityEvents(supabase, community.id),
     getCommunityRecentBusinesses(supabase, community.id, 12),
     getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityRecentEvents(supabase, community.id, 12),
     getCommunityRecentMarketplaceListings(supabase, community.id, 12),
     getCommunityRecentJobListings(supabase, community.id, 12),
@@ -110,7 +112,7 @@ export default async function CommunityFeedPage({
       description: b.description,
       imageUrl: b.image_url,
       imagePosition: b.image_position,
-      typeBadge: `${businessCategoryLabel(b.category, customCategories)} added`,
+      typeBadge: `${businessCategoryLabel(b.category, customCategories, labelOverrides.filter((o) => o.space_id === b.space_id))} added`,
       detail: null,
       authorName: b.creator?.full_name || b.creator?.username || null,
       authorAvatar: b.creator?.avatar_url ?? null,

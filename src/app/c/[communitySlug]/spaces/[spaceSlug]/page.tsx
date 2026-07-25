@@ -11,7 +11,7 @@ import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
 import { getSpaceChallenges } from "@/lib/data/challenges";
-import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { getSpaceBusinesses, getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } from "@/lib/data/map";
 import { getCommunityMapItems } from "@/lib/data/map-items";
@@ -163,6 +163,9 @@ export default async function SpaceDetailPage({
     : [];
   const businessCustomCategories = isBusinessDirectorySpace
     ? (await getCommunityBusinessCustomCategories(supabase, community.id)).filter((c) => c.space_id === space.id)
+    : [];
+  const businessLabelOverrides = isBusinessDirectorySpace
+    ? (await getCommunityBusinessCategoryLabelOverrides(supabase, community.id)).filter((o) => o.space_id === space.id)
     : [];
   // Only honour a ?category= the directory actually has — built-in or custom.
   const initialCategory = businessCategoryOptions(businessCustomCategories).find((c) => c.value === rawCategory)?.value;
@@ -385,6 +388,7 @@ export default async function SpaceDetailPage({
           initialCategory={initialCategory}
           featuredCategories={featuredBusinessCategories}
           customCategories={businessCustomCategories}
+          labelOverrides={businessLabelOverrides}
         />
       ) : isMapSpace ? (
         <ExploreMapLoader

@@ -10,7 +10,7 @@ import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeatureControls, getCommunityFeatures } from "@/lib/data/features";
-import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories } from "@/lib/data/businesses";
+import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { BUILTIN_NAV_ITEMS, defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,7 +44,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
 
   const isOwner = membership?.role === "owner";
 
-  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories] =
+  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides] =
     await Promise.all([
       getCommunitySpaces(supabase, community.id),
       getCommunityMembers(supabase, community.id),
@@ -55,6 +55,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
       isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
       getCommunityFeaturedBusinessCategories(supabase, community.id),
       getCommunityBusinessCustomCategories(supabase, community.id),
+      getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     ]);
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
@@ -66,10 +67,11 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
   const subItemsBySpaceId: Record<string, NavSubItem[]> = {};
   for (const f of featuredCategories) {
     const customsForSpace = customCategories.filter((c) => c.space_id === f.space_id);
+    const overridesForSpace = labelOverrides.filter((o) => o.space_id === f.space_id);
     (subItemsBySpaceId[f.space_id] ??= []).push({
       kind: "featured_category",
       ref: f.category,
-      label: businessCategoryPluralLabel(f.category, customsForSpace),
+      label: businessCategoryPluralLabel(f.category, customsForSpace, overridesForSpace),
     });
   }
 

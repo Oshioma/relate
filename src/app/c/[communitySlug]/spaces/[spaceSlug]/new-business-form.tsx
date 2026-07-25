@@ -5,7 +5,7 @@ import { createBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { BusinessCustomCategory } from "@/types/database";
+import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 export function NewBusinessForm({
   communityId,
@@ -14,6 +14,7 @@ export function NewBusinessForm({
   spaceSlug,
   userId,
   customCategories,
+  labelOverrides,
   onDone,
 }: {
   communityId: string;
@@ -22,6 +23,7 @@ export function NewBusinessForm({
   spaceSlug: string;
   userId: string;
   customCategories: BusinessCustomCategory[];
+  labelOverrides?: BusinessCategoryLabelOverride[];
   onDone?: () => void;
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(null);
@@ -54,6 +56,7 @@ export function NewBusinessForm({
       <BusinessFormFields
         idPrefix="business"
         customCategories={customCategories}
+        labelOverrides={labelOverrides}
         pin={pin}
         onPinChange={setPin}
         imageUrl={imageUrl}

@@ -6,7 +6,7 @@ import { updateBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessCustomCategory } from "@/types/database";
+import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 export function EditBusinessForm({
   business,
@@ -14,6 +14,7 @@ export function EditBusinessForm({
   spaceSlug,
   userId,
   customCategories,
+  labelOverrides,
   onDone,
   onCancel,
 }: {
@@ -22,6 +23,7 @@ export function EditBusinessForm({
   spaceSlug: string;
   userId: string;
   customCategories: BusinessCustomCategory[];
+  labelOverrides?: BusinessCategoryLabelOverride[];
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -61,6 +63,7 @@ export function EditBusinessForm({
         idPrefix={`edit_business_${business.id}`}
         business={business}
         customCategories={customCategories}
+        labelOverrides={labelOverrides}
         pin={pin}
         onPinChange={setPin}
         imageUrl={imageUrl}

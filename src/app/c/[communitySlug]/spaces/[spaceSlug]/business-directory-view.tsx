@@ -2,14 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2 } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
-import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory } from "./business-directory-actions";
-import type { Business, BusinessCategory, BusinessCustomCategory } from "@/types/database";
+import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory, renameBusinessCategory } from "./business-directory-actions";
+import type { Business, BusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 export function BusinessDirectoryView({
   businesses,
@@ -23,6 +23,7 @@ export function BusinessDirectoryView({
   initialCategory,
   featuredCategories,
   customCategories,
+  labelOverrides,
 }: {
   businesses: Business[];
   communityId: string;
@@ -38,6 +39,9 @@ export function BusinessDirectoryView({
   featuredCategories: BusinessCategory[];
   // Categories staff added beyond the built-ins, scoped to this space.
   customCategories: BusinessCustomCategory[];
+  // Staff relabellings of built-in categories for this space (Activity →
+  // Experiences); applied to the chips, form and headings.
+  labelOverrides: BusinessCategoryLabelOverride[];
 }) {
   const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
@@ -47,8 +51,16 @@ export function BusinessDirectoryView({
   const [chipError, setChipError] = useState<string | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryLabel, setNewCategoryLabel] = useState("");
+  const [renamingCategory, setRenamingCategory] = useState<BusinessCategory | null>(null);
+  const [renameLabel, setRenameLabel] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Built-in categories (with staff relabellings applied) + this space's customs.
+  const categoryOptions = useMemo(
+    () => businessCategoryOptions(customCategories, labelOverrides),
+    [customCategories, labelOverrides]
+  );
 
   function toggleFeatured(target: BusinessCategory) {
     const makeFeatured = !featured.includes(target);
@@ -89,6 +101,28 @@ export function BusinessDirectoryView({
       } else {
         setCategory("all");
         setFeatured((prev) => prev.filter((c) => c !== target.slug));
+        router.refresh();
+      }
+    });
+  }
+
+  function startRename(target: BusinessCategory) {
+    setChipError(null);
+    setAddingCategory(false);
+    setRenameLabel(categoryOptions.find((o) => o.value === target)?.label ?? "");
+    setRenamingCategory(target);
+  }
+
+  function handleRename() {
+    if (renamingCategory === null) return;
+    const target = renamingCategory;
+    setChipError(null);
+    startTransition(async () => {
+      const result = await renameBusinessCategory(spaceId, communityId, target, renameLabel, communitySlug);
+      if (result.error) {
+        setChipError(result.error);
+      } else {
+        setRenamingCategory(null);
         router.refresh();
       }
     });
@@ -166,7 +200,7 @@ export function BusinessDirectoryView({
         >
           All ({businesses.length})
         </button>
-        {businessCategoryOptions(customCategories).map((c) => {
+        {categoryOptions.map((c) => {
           const count = countByCategory.get(c.value) ?? 0;
           const isCustom = customCategories.some((cc) => cc.slug === c.value);
           // Built-ins only clutter the row once something uses them; customs
@@ -185,7 +219,7 @@ export function BusinessDirectoryView({
             </button>
           );
         })}
-        {isStaff && category !== "all" && (
+        {isStaff && category !== "all" && renamingCategory === null && (
           <button
             type="button"
             disabled={isPending}
@@ -197,8 +231,55 @@ export function BusinessDirectoryView({
             {featured.includes(category) ? "Remove nav link" : "Add to nav"}
           </button>
         )}
+        {isStaff && category !== "all" && renamingCategory === null && (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => startRename(category)}
+            title="Rename how this category shows in the nav, chips and headings"
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
+          >
+            <Pencil className="h-3 w-3" />
+            Rename
+          </button>
+        )}
+        {isStaff && renamingCategory !== null && (
+          <span className="inline-flex items-center gap-1.5">
+            <input
+              autoFocus
+              value={renameLabel}
+              onChange={(e) => setRenameLabel(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleRename();
+                }
+                if (e.key === "Escape") setRenamingCategory(null);
+              }}
+              maxLength={40}
+              placeholder="Experiences"
+              className="w-36 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              type="button"
+              disabled={isPending || !renameLabel.trim()}
+              onClick={handleRename}
+              className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setRenamingCategory(null)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        )}
         {isStaff &&
           category !== "all" &&
+          renamingCategory === null &&
           (() => {
             const activeCustom = customCategories.find((cc) => cc.slug === category);
             if (!activeCustom) return null;
@@ -215,7 +296,7 @@ export function BusinessDirectoryView({
               </button>
             );
           })()}
-        {isStaff && !addingCategory && (
+        {isStaff && !addingCategory && renamingCategory === null && (
           <button
             type="button"
             onClick={() => {
@@ -297,7 +378,7 @@ export function BusinessDirectoryView({
 
       {showForm && (
         <div className="mb-5">
-          <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} customCategories={customCategories} onDone={() => setShowForm(false)} />
+          <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} customCategories={customCategories} labelOverrides={labelOverrides} onDone={() => setShowForm(false)} />
         </div>
       )}
 
@@ -323,6 +404,7 @@ export function BusinessDirectoryView({
                     isStaff={isStaff}
                     userId={userId}
                     customCategories={customCategories}
+                    labelOverrides={labelOverrides}
                   />
                 ))}
               </div>

@@ -1,5 +1,9 @@
 import type { BusinessCategory, BusinessCustomCategory } from "@/types/database";
 
+// A per-space relabelling of a built-in category. Only the fields the label
+// resolvers need — BusinessCategoryLabelOverride from the DB satisfies this.
+export type CategoryLabelOverride = { category: BusinessCategory; label: string };
+
 export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] = [
   { value: "restaurant", label: "Restaurant" },
   { value: "cafe", label: "Café" },
@@ -14,11 +18,28 @@ export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] =
   { value: "other", label: "Other" },
 ];
 
-// Built-ins plus the space's custom categories, ready for a <select> or
-// filter chips — customs slot in before the "Other" catch-all.
-export function businessCategoryOptions(custom: BusinessCustomCategory[]): { value: BusinessCategory; label: string }[] {
-  const builtIn = BUSINESS_CATEGORIES.filter((c) => c.value !== "other");
-  const other = BUSINESS_CATEGORIES.filter((c) => c.value === "other");
+// Whether a value is one of the built-in categories (vs a custom slug). Used to
+// route a rename to the right store: built-ins get a label override, customs
+// rename their own row.
+const BUILT_IN_CATEGORY_VALUES = new Set(BUSINESS_CATEGORIES.map((c) => c.value));
+export function isBuiltInBusinessCategory(value: BusinessCategory): boolean {
+  return BUILT_IN_CATEGORY_VALUES.has(value);
+}
+
+function overrideLabel(category: BusinessCategory, overrides?: CategoryLabelOverride[]): string | undefined {
+  return overrides?.find((o) => o.category === category)?.label;
+}
+
+// Built-ins (with any staff relabelling applied) plus the space's custom
+// categories, ready for a <select> or filter chips — customs slot in before the
+// "Other" catch-all.
+export function businessCategoryOptions(
+  custom: BusinessCustomCategory[],
+  overrides?: CategoryLabelOverride[]
+): { value: BusinessCategory; label: string }[] {
+  const withOverride = (c: { value: BusinessCategory; label: string }) => ({ value: c.value, label: overrideLabel(c.value, overrides) ?? c.label });
+  const builtIn = BUSINESS_CATEGORIES.filter((c) => c.value !== "other").map(withOverride);
+  const other = BUSINESS_CATEGORIES.filter((c) => c.value === "other").map(withOverride);
   return [...builtIn, ...custom.map((c) => ({ value: c.slug as BusinessCategory, label: c.label })), ...other];
 }
 
@@ -31,8 +52,13 @@ function humanizeSlug(slug: string): string {
     .join(" ");
 }
 
-export function businessCategoryLabel(category: BusinessCategory, custom?: BusinessCustomCategory[]): string {
+export function businessCategoryLabel(
+  category: BusinessCategory,
+  custom?: BusinessCustomCategory[],
+  overrides?: CategoryLabelOverride[]
+): string {
   return (
+    overrideLabel(category, overrides) ??
     custom?.find((c) => c.slug === category)?.label ??
     BUSINESS_CATEGORIES.find((c) => c.value === category)?.label ??
     humanizeSlug(category)
@@ -52,9 +78,14 @@ const PLURAL_LABELS: Partial<Record<BusinessCategory, string>> = {
 };
 
 // For places the category names a group of listings — nav sub-links,
-// headings — rather than labelling a single business.
-export function businessCategoryPluralLabel(category: BusinessCategory, custom?: BusinessCustomCategory[]): string {
-  return PLURAL_LABELS[category] ?? businessCategoryLabel(category, custom);
+// headings — rather than labelling a single business. A staff relabelling wins
+// over the canonical plural (the override is used verbatim, singular or not).
+export function businessCategoryPluralLabel(
+  category: BusinessCategory,
+  custom?: BusinessCustomCategory[],
+  overrides?: CategoryLabelOverride[]
+): string {
+  return overrideLabel(category, overrides) ?? PLURAL_LABELS[category] ?? businessCategoryLabel(category, custom, overrides);
 }
 
 // "Boda Boda" → "boda-boda". Mirrors the slug check constraint in
