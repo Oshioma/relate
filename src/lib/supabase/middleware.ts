@@ -17,6 +17,14 @@ const PUBLIC_COMMUNITY_PATH = new RegExp(
   `^/c/[^/]+(?:/(?:${PUBLIC_COMMUNITY_SECTIONS.join("|")})(?:/.*)?)?$`
 );
 
+// A community's generated metadata icons (app/c/[communitySlug]/icon,
+// apple-icon) are public sub-resources — the browser loads them for the tab
+// icon, routinely while signed out — so they must never bounce to /login, or
+// a public community's uploaded logo could never load as its favicon. RLS
+// still gates the logo itself: a private community a guest can't read just
+// falls back to the default mark.
+const COMMUNITY_ICON_PATH = new RegExp(`^/c/[^/]+/(?:icon|apple-icon)(?:/.*)?$`);
+
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   // Invite links show a "you're invited" preview before asking someone to
@@ -68,7 +76,12 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
   // same on custom domains as it does on /c/<slug> URLs.
   const communityPath = rewriteTo ? rewriteTo.pathname : pathname;
 
-  if (!user && !isPublicPath(pathname) && !PUBLIC_COMMUNITY_PATH.test(communityPath)) {
+  if (
+    !user &&
+    !isPublicPath(pathname) &&
+    !PUBLIC_COMMUNITY_PATH.test(communityPath) &&
+    !COMMUNITY_ICON_PATH.test(communityPath)
+  ) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
