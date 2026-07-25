@@ -6,7 +6,9 @@ import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS } from "@/lib/custom-domain";
 import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
+import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
+import { SPACE_TYPES } from "@/lib/space-types";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
@@ -115,6 +117,14 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
 
   const spaces = payload.spaces.filter((s) => s.name.trim());
   if (spaces.length) {
+    // Enforce the platform default pool server-side — a new community may only
+    // start with space types the super admin makes available.
+    const spaceTypeDefaults = await getSpaceTypeDefaults(supabase);
+    const disallowed = spaces.find((s) => !spaceTypeDefaults[s.space_type]);
+    if (disallowed) {
+      await supabase.from("communities").delete().eq("id", community.id);
+      return { error: `The ${SPACE_TYPES[disallowed.space_type].label} space type isn't available. Change it and try again.` };
+    }
     const slugs = uniqueSlugs(spaces.map((s) => s.name));
     const { error: spacesError } = await supabase.from("spaces").insert(
       spaces.map((s, i) => ({

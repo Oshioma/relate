@@ -270,6 +270,25 @@ export type CommunityNavItemOrder = {
   updated_at: string;
 };
 
+// The platform-wide default pool: whether a space type is available for new
+// (and un-overridden) communities to add. A missing row means "allowed".
+// Set by the super admin at /platform-admin.
+export type SpaceTypeDefault = {
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// Per-community override of the default pool, set by the super admin. Decides
+// whether this community's admins may add spaces of the given type. A missing
+// row falls back to space_type_defaults, then to "allowed".
+export type CommunitySpaceType = {
+  community_id: string;
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
 // A default item for a community type (template), editable by a super admin at
 // /platform-admin. Usually a space (space_type set, builtin_key null); when
 // builtin_key is 'events'/'concierge' it's a built-in nav feature shown in the
@@ -1000,6 +1019,16 @@ export type Database = {
         Row: TemplateDefaultSpace;
         Insert: Partial<TemplateDefaultSpace> & { template_key: string; name: string };
         Update: Partial<TemplateDefaultSpace>;
+      } & NoRel;
+      space_type_defaults: {
+        Row: SpaceTypeDefault;
+        Insert: Partial<SpaceTypeDefault> & { space_type: SpaceType };
+        Update: Partial<SpaceTypeDefault>;
+      } & NoRel;
+      community_space_types: {
+        Row: CommunitySpaceType;
+        Insert: Partial<CommunitySpaceType> & { community_id: string; space_type: SpaceType };
+        Update: Partial<CommunitySpaceType>;
       } & NoRel;
       notifications: {
         Row: Notification;

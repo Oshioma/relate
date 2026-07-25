@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { SpaceCard } from "./space-card";
 import { BuiltinNavRow } from "./builtin-nav-row";
 import { reorderNavItems } from "./actions";
-import type { Space, SpaceJournalField, FeatureKey } from "@/types/database";
+import type { Space, SpaceJournalField, FeatureKey, SpaceType } from "@/types/database";
 
 // A space's nav sub-links — the indented items that render under it in the
 // sidebar. Today the only source is a business directory's featured categories
@@ -30,11 +30,15 @@ export function SpacesManager({
   communityId,
   communitySlug,
   journalFieldsBySpaceId,
+  allowedTypes,
 }: {
   items: NavManagerItem[];
   communityId: string;
   communitySlug: string;
   journalFieldsBySpaceId: Record<string, SpaceJournalField[]>;
+  // Space types the super admin permits for this community — the choices in a
+  // space's Type dropdown.
+  allowedTypes: SpaceType[];
 }) {
   const router = useRouter();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -77,6 +81,7 @@ export function SpacesManager({
             communitySlug={communitySlug}
             journalFields={journalFieldsBySpaceId[item.space.id] ?? []}
             subItems={item.subItems}
+            allowedTypes={allowedTypes}
             isDragging={dragIndex === i}
             dragHandlers={dragHandlers}
           />
