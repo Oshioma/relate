@@ -8,7 +8,6 @@ import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-temp
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
-import { SPACE_TYPES } from "@/lib/space-types";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
@@ -115,16 +114,13 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: communityError.message };
   }
 
-  const spaces = payload.spaces.filter((s) => s.name.trim());
+  // Enforce the platform default pool server-side — a new community only
+  // starts with space types the super admin makes available. Banned types are
+  // stripped from the starter box automatically (the wizard already hides
+  // them; this keeps the rule airtight if the pool changes mid-setup).
+  const spaceTypeDefaults = await getSpaceTypeDefaults(supabase);
+  const spaces = payload.spaces.filter((s) => s.name.trim() && spaceTypeDefaults[s.space_type]);
   if (spaces.length) {
-    // Enforce the platform default pool server-side — a new community may only
-    // start with space types the super admin makes available.
-    const spaceTypeDefaults = await getSpaceTypeDefaults(supabase);
-    const disallowed = spaces.find((s) => !spaceTypeDefaults[s.space_type]);
-    if (disallowed) {
-      await supabase.from("communities").delete().eq("id", community.id);
-      return { error: `The ${SPACE_TYPES[disallowed.space_type].label} space type isn't available. Change it and try again.` };
-    }
     const slugs = uniqueSlugs(spaces.map((s) => s.name));
     const { error: spacesError } = await supabase.from("spaces").insert(
       spaces.map((s, i) => ({

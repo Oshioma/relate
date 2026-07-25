@@ -53,30 +53,24 @@ export default async function PlatformAdminPage() {
   }
 
   const spaceTypeGroups = groupSpaceTypesByCategory();
+  // The default pool as a flat list of allowed types — the master set the
+  // starter-box editor and every new community draw from.
+  const defaultAllowedTypes = spaceTypeGroups.flatMap((g) => g.types).filter((t) => spaceTypeDefaults[t.type]).map((t) => t.type);
   const templateOptions = COMMUNITY_TEMPLATES.map((t) => ({ key: t.key, label: t.label }));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Platform admin</h1>
       <p className="mb-8 text-sm text-muted-foreground">
-        Set the default spaces each community type is created with, and override features for any specific community.
+        Control the pool of space types communities can have, the spaces each community type starts with, and per-community
+        overrides.
       </p>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Default spaces by community type</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">1. Space types available by default</h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        Pick a community type, then edit the spaces a new community of that type starts with. Reorder to set the nav order,
-        toggle whether each shows in the nav, and add more from the pool. Events and Search appear here too. Changes apply to
-        communities created from now on.
-      </p>
-      <div className="mb-10 rounded-lg border border-border p-4">
-        <TemplateSpacesManager templates={templateOptions} initialByTemplate={defaultsByTemplate} />
-      </div>
-
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Space types available by default</h2>
-      <p className="mb-3 text-sm text-muted-foreground">
-        The pool of space types communities can add (Courses, Marketplace, Explore Map and more), grouped by category. Turn a
-        type off to keep it out of every community&apos;s &ldquo;add a space&rdquo; picker by default — you can still override this per
-        community below. Existing spaces of a type are never removed.
+        The master pool: which space types a community can have at all (Courses, Marketplace, Explore Map and more), grouped by
+        category. A type turned off here can&apos;t be put in a starter box below, added by a community manager, or seeded into a
+        new community — you can still override this per community further down. Existing spaces of a type are never removed.
       </p>
       <div className="mb-10 space-y-4 rounded-lg border border-border p-4">
         {spaceTypeGroups.map((group) => (
@@ -94,7 +88,17 @@ export default async function PlatformAdminPage() {
         ))}
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Communities ({communities.length})</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">2. Starter spaces by community type</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Pick a community type, then choose which spaces (from the pool above) a new community of that type starts with. Reorder
+        to set the nav order, toggle whether each shows in the nav, and add more. Everything else in the pool a manager can add
+        later. Events and Search appear here too. Changes apply to communities created from now on.
+      </p>
+      <div className="mb-10 rounded-lg border border-border p-4">
+        <TemplateSpacesManager templates={templateOptions} initialByTemplate={defaultsByTemplate} allowedTypes={defaultAllowedTypes} />
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">3. Communities ({communities.length})</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Turn built-in features on or off for one specific community, and regulate its space-type pool.
       </p>

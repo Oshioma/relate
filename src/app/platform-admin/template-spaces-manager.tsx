@@ -2,8 +2,8 @@
 
 import { useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, Trash2, Plus } from "lucide-react";
-import { SPACE_TYPES, SPACE_TYPE_LIST } from "@/lib/space-types";
+import { GripVertical, Trash2, Plus, TriangleAlert } from "lucide-react";
+import { SPACE_TYPES } from "@/lib/space-types";
 import { builtinsForTemplate, type TemplateDefaultItem } from "@/lib/template-defaults";
 import { BUILTIN_NAV_ITEMS } from "@/lib/nav-items";
 import { saveTemplateDefaultSpaces } from "./actions";
@@ -14,12 +14,19 @@ import type { SpaceType } from "@/types/database";
 // rename, retype, toggle "show in nav", remove, and add more from the pool of
 // space types (plus Events / Search where offered). Writes replace the whole
 // list for that type via a super-admin server action.
+//
+// The pool is the master list (see /platform-admin): only types that are
+// available by default can be put in a starter box, so this only offers
+// `allowedTypes`. An existing item whose type has since left the pool is
+// flagged so the super admin can fix it.
 export function TemplateSpacesManager({
   templates,
   initialByTemplate,
+  allowedTypes,
 }: {
   templates: { key: string; label: string }[];
   initialByTemplate: Record<string, TemplateDefaultItem[]>;
+  allowedTypes: SpaceType[];
 }) {
   const router = useRouter();
   const [selectedKey, setSelectedKey] = useState(templates[0]?.key ?? "");
@@ -29,6 +36,8 @@ export function TemplateSpacesManager({
   const [saving, setSaving] = useState(false);
 
   const items = byTemplate[selectedKey] ?? [];
+  const allowedSet = new Set(allowedTypes);
+  const allowedMetas = allowedTypes.map((t) => SPACE_TYPES[t]);
 
   async function persist(next: TemplateDefaultItem[]) {
     setByTemplate((prev) => ({ ...prev, [selectedKey]: next }));
@@ -105,6 +114,12 @@ export function TemplateSpacesManager({
         {items.map((item, i) => {
           const isBuiltin = item.builtin_key !== null;
           const Icon = isBuiltin ? null : SPACE_TYPES[item.space_type]?.icon;
+          // This item's type has been removed from the pool — a new community
+          // wouldn't get it. Flag it, and keep it selectable so it can be fixed.
+          const banned = !isBuiltin && !allowedSet.has(item.space_type);
+          // Types offered in the dropdown: the pool, plus this item's own type
+          // if it's no longer in the pool (so switching away is possible).
+          const typeOptions = banned ? [SPACE_TYPES[item.space_type], ...allowedMetas] : allowedMetas;
           return (
             <div
               key={`${selectedKey}:${i}`}
@@ -113,11 +128,15 @@ export function TemplateSpacesManager({
               onDragOver={(e: DragEvent) => e.preventDefault()}
               onDrop={() => handleDrop(i)}
               onDragEnd={() => setDragIndex(null)}
-              className={`rounded-lg border ${dragIndex === i ? "border-accent" : "border-border"} ${isBuiltin ? "bg-muted/40" : "bg-card"} p-3`}
+              className={`rounded-lg border ${dragIndex === i ? "border-accent" : banned ? "border-danger/50" : "border-border"} ${isBuiltin ? "bg-muted/40" : "bg-card"} p-3`}
             >
               <div className="flex items-center gap-2">
                 <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-                {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                {banned ? (
+                  <TriangleAlert className="h-4 w-4 shrink-0 text-danger" aria-label="This type isn't in the pool — it won't be created" />
+                ) : (
+                  Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
                 <input
                   defaultValue={item.name}
                   onBlur={(e) => {
@@ -134,9 +153,10 @@ export function TemplateSpacesManager({
                     onChange={(e) => patchItem(i, { space_type: e.target.value as SpaceType })}
                     className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {SPACE_TYPE_LIST.map((t) => (
+                    {typeOptions.map((t) => (
                       <option key={t.type} value={t.type}>
                         {t.label}
+                        {t.type === item.space_type && banned ? " (not in pool)" : ""}
                       </option>
                     ))}
                   </select>
@@ -178,7 +198,7 @@ export function TemplateSpacesManager({
             {BUILTIN_NAV_ITEMS.find((b) => b.key === key)?.label ?? key}
           </button>
         ))}
-        {SPACE_TYPE_LIST.map((t) => {
+        {allowedMetas.map((t) => {
           const Icon = t.icon;
           return (
             <button
@@ -194,6 +214,9 @@ export function TemplateSpacesManager({
           );
         })}
       </div>
+      {allowedMetas.length === 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">No space types are in the pool. Enable some above first.</p>
+      )}
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
     </div>

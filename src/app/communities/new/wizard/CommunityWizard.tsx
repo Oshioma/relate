@@ -34,7 +34,7 @@ export function CommunityWizard({
       <WizardProgress step={step} />
 
       {step === 1 && <StepBasics state={state} update={update} />}
-      {step === 2 && <StepTemplate state={state} update={update} defaultSpacesByTemplate={defaultSpacesByTemplate} />}
+      {step === 2 && <StepTemplate state={state} update={update} defaultSpacesByTemplate={defaultSpacesByTemplate} allowedTypes={allowedTypes} />}
       {step === 3 && <StepCustomize state={state} update={update} allowedTypes={allowedTypes} />}
       {step === 4 && <StepLaunch state={state} />}
 
