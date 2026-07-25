@@ -6,14 +6,24 @@ import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { ProfileFieldType, SpaceType } from "@/types/database";
-import { SPACE_TYPE_LIST } from "@/lib/space-types";
+import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { reorder, nextId } from "./types";
 import type { WizardState, WizardProfileField } from "./types";
 
 const FIELD_TYPES: ProfileFieldType[] = ["text", "textarea", "number", "date", "dropdown", "multiselect", "checkbox", "url"];
 
-export function StepCustomize({ state, update }: { state: WizardState; update: (patch: Partial<WizardState>) => void }) {
+export function StepCustomize({
+  state,
+  update,
+  allowedTypes,
+}: {
+  state: WizardState;
+  update: (patch: Partial<WizardState>) => void;
+  // Space types the platform makes available to new communities.
+  allowedTypes: SpaceType[];
+}) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const defaultType: SpaceType = allowedTypes.includes("discussion") ? "discussion" : (allowedTypes[0] ?? "discussion");
 
   function patchSpace(id: string, patch: Partial<WizardState["spaces"][number]>) {
     update({ spaces: state.spaces.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
@@ -24,7 +34,7 @@ export function StepCustomize({ state, update }: { state: WizardState; update: (
   }
 
   function addSpace() {
-    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: "discussion" as SpaceType }] });
+    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType }] });
   }
 
   function handleDrop(targetIndex: number) {
@@ -80,10 +90,18 @@ export function StepCustomize({ state, update }: { state: WizardState; update: (
                     onChange={(e) => patchSpace(space.id, { space_type: e.target.value as SpaceType })}
                     className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    {SPACE_TYPE_LIST.map((t) => (
-                      <option key={t.type} value={t.type}>
-                        {t.label}
-                      </option>
+                    {/* Allowed types, plus this space's own type if a template
+                        seeded one the platform no longer offers. */}
+                    {groupSpaceTypesByCategory(
+                      (allowedTypes.includes(space.space_type) ? allowedTypes : [space.space_type, ...allowedTypes]).map((t) => SPACE_TYPES[t])
+                    ).map((group) => (
+                      <optgroup key={group.category.key} label={group.category.label}>
+                        {group.types.map((t) => (
+                          <option key={t.type} value={t.type}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>

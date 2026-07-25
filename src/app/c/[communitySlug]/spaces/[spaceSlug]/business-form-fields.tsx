@@ -4,9 +4,10 @@ import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { businessCategoryOptions } from "@/lib/business-categories";
-import { BusinessImageInput } from "./business-image-input";
+import { BusinessImagesInput, type GalleryImage } from "./business-images-input";
+import { OpeningHoursInput } from "./opening-hours-input";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
 // browser — same pattern as explore-map-loader.tsx.
@@ -23,10 +24,10 @@ export function BusinessFormFields({
   business,
   pin,
   onPinChange,
-  imageUrl,
-  onImageChange,
-  imagePosition,
-  onImagePositionChange,
+  images,
+  onImagesChange,
+  schedule,
+  onScheduleChange,
   userId,
   customCategories,
   labelOverrides,
@@ -39,10 +40,10 @@ export function BusinessFormFields({
   labelOverrides?: BusinessCategoryLabelOverride[];
   pin: PickedLocation | null;
   onPinChange: (pin: PickedLocation | null) => void;
-  imageUrl: string | null;
-  onImageChange: (url: string | null) => void;
-  imagePosition: string | null;
-  onImagePositionChange: (position: string | null) => void;
+  images: GalleryImage[];
+  onImagesChange: (images: GalleryImage[]) => void;
+  schedule: BusinessHoursSchedule | null;
+  onScheduleChange: (schedule: BusinessHoursSchedule | null) => void;
   userId: string;
 }) {
   const websiteRef = useRef<HTMLInputElement>(null);
@@ -100,8 +101,9 @@ export function BusinessFormFields({
       </div>
 
       <div>
-        <Label htmlFor={`${idPrefix}_opening_hours`}>Opening hours (optional)</Label>
-        <Input id={`${idPrefix}_opening_hours`} name="opening_hours" placeholder="Daily, 8am – 10pm" defaultValue={business?.opening_hours ?? ""} />
+        <Label>Opening hours (optional)</Label>
+        <OpeningHoursInput value={schedule} onChange={onScheduleChange} />
+        <p className="mt-1.5 text-xs text-muted-foreground">Set weekly hours to show an accurate &ldquo;Open now&rdquo; badge on the listing.</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -116,16 +118,14 @@ export function BusinessFormFields({
       </div>
 
       <div>
-        <Label>Image (optional)</Label>
-        <BusinessImageInput
-          value={imageUrl}
-          onChange={onImageChange}
-          position={imagePosition}
-          onPositionChange={onImagePositionChange}
+        <Label>Photos (optional)</Label>
+        <BusinessImagesInput
+          images={images}
+          onChange={onImagesChange}
           getWebsite={() => websiteRef.current?.value ?? ""}
           userId={userId}
         />
-        <p className="mt-1.5 text-xs text-muted-foreground">Leave empty and we&apos;ll try to pull one from the website automatically.</p>
+        <p className="mt-1.5 text-xs text-muted-foreground">Add several — the first is the cover. Leave empty and we&apos;ll try to pull one from the website automatically.</p>
       </div>
 
       <div>

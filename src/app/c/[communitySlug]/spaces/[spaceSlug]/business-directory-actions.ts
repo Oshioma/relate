@@ -5,7 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
-import type { Database, BusinessCategory } from "@/types/database";
+import { scheduleToText } from "@/lib/opening-hours";
+import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
 
 export type BusinessFormState = { error: string } | undefined;
 
@@ -47,6 +48,100 @@ function parseImagePosition(raw: FormDataEntryValue | null): string | null {
   return /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/.test(value) ? value : null;
 }
 
+function isValidPosition(value: unknown): value is string {
+  return typeof value === "string" && /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/.test(value);
+}
+
+type ParsedImage = { url: string; position: string | null };
+
+// The gallery editor sends its photos as a JSON array of {url, position} in a
+// hidden `images` field. First entry is the cover. Bad rows are dropped and the
+// list is capped so a listing can't attach an unbounded number of photos.
+const MAX_IMAGES = 12;
+
+function parseImages(raw: FormDataEntryValue | null): ParsedImage[] {
+  const value = String(raw ?? "").trim();
+  if (!value) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  const seen = new Set<string>();
+  const images: ParsedImage[] = [];
+  for (const entry of parsed) {
+    if (images.length >= MAX_IMAGES) break;
+    const url = typeof entry?.url === "string" ? entry.url.trim() : "";
+    if (!/^https?:\/\//.test(url) || seen.has(url)) continue;
+    seen.add(url);
+    images.push({ url, position: isValidPosition(entry?.position) ? entry.position : null });
+  }
+  return images;
+}
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// The weekly hours editor sends a per-day schedule as JSON. We validate every
+// day, keep only well-formed entries, and regenerate the human-readable
+// opening_hours text from the schedule so legacy consumers keep a display value.
+// Returns nulls when nothing usable is provided.
+function parseSchedule(raw: FormDataEntryValue | null): { schedule: BusinessHoursSchedule | null; text: string | null } {
+  const value = String(raw ?? "").trim();
+  if (!value) return { schedule: null, text: null };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return { schedule: null, text: null };
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { schedule: null, text: null };
+
+  const source = parsed as Record<string, { closed?: unknown; open?: unknown; close?: unknown }>;
+  const schedule: BusinessHoursSchedule = {};
+  let hasOpen = false;
+  for (const key of ["0", "1", "2", "3", "4", "5", "6"]) {
+    const entry = source[key];
+    if (!entry || typeof entry !== "object") continue;
+    if (entry.closed) {
+      schedule[key] = { closed: true, open: "09:00", close: "17:00" };
+      continue;
+    }
+    const open = typeof entry.open === "string" && HHMM.test(entry.open) ? entry.open : null;
+    const close = typeof entry.close === "string" && HHMM.test(entry.close) ? entry.close : null;
+    if (!open || !close) continue;
+    schedule[key] = { closed: false, open, close };
+    hasOpen = true;
+  }
+
+  if (!hasOpen) return { schedule: null, text: null };
+  const text = scheduleToText(schedule);
+  return { schedule, text: text || null };
+}
+
+// Replace a listing's gallery with `images` (author/staff only, enforced by
+// business_images RLS). We clear and re-insert rather than diff — the list is
+// small and ordering is significant, so a rewrite keeps sort_order honest.
+async function syncBusinessImages(
+  supabase: SupabaseClient<Database>,
+  businessId: string,
+  userId: string,
+  images: ParsedImage[]
+) {
+  await supabase.from("business_images").delete().eq("business_id", businessId);
+  if (images.length === 0) return;
+  await supabase.from("business_images").insert(
+    images.map((image, index) => ({
+      business_id: businessId,
+      url: image.url,
+      position: image.position,
+      sort_order: index,
+      created_by: userId,
+    }))
+  );
+}
+
 function parseBusinessFields(formData: FormData) {
   const imageUrl = parseImageUrl(formData.get("image_url"));
   return {
@@ -56,7 +151,6 @@ function parseBusinessFields(formData: FormData) {
     phone: String(formData.get("phone") ?? "").trim(),
     address: String(formData.get("address") ?? "").trim(),
     locationLabel: String(formData.get("location_label") ?? "").trim(),
-    openingHours: String(formData.get("opening_hours") ?? "").trim(),
     lat: parseCoordinate(formData.get("lat"), -90, 90),
     lng: parseCoordinate(formData.get("lng"), -180, 180),
     imageUrl,
@@ -102,31 +196,45 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
     return { error: "You need to be signed in." };
   }
 
-  // No image picked? Pull the website's share image so every listing gets one.
-  const imageUrl = f.imageUrl ?? (f.website ? (await scrapeWebsiteImages(f.website))[0] ?? null : null);
+  // Gallery photos from the form. Empty? Pull the website's share image so
+  // every listing still gets a cover, matching the old single-image behaviour.
+  let images = parseImages(formData.get("images"));
+  if (images.length === 0 && f.website) {
+    const scraped = (await scrapeWebsiteImages(f.website))[0] ?? null;
+    if (scraped) images = [{ url: scraped, position: null }];
+  }
+  const cover = images[0] ?? null;
+  const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
 
-  const { error } = await supabase.from("businesses").insert({
-    space_id: spaceId,
-    community_id: communityId,
-    created_by: user.id,
-    name: f.name,
-    category,
-    description: f.description || null,
-    website: f.website || null,
-    phone: f.phone || null,
-    address: f.address || null,
-    location_label: f.locationLabel || null,
-    opening_hours: f.openingHours || null,
-    lat: f.lat,
-    lng: f.lng,
-    image_url: imageUrl,
-    image_position: f.imagePosition,
-  });
+  const { data: created, error } = await supabase
+    .from("businesses")
+    .insert({
+      space_id: spaceId,
+      community_id: communityId,
+      created_by: user.id,
+      name: f.name,
+      category,
+      description: f.description || null,
+      website: f.website || null,
+      phone: f.phone || null,
+      address: f.address || null,
+      location_label: f.locationLabel || null,
+      opening_hours: hoursText,
+      opening_hours_structured: hoursSchedule,
+      lat: f.lat,
+      lng: f.lng,
+      image_url: cover?.url ?? null,
+      image_position: cover?.position ?? null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await syncBusinessImages(supabase, created.id, user.id, images);
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return undefined;
@@ -154,6 +262,9 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   }
 
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
+  const images = parseImages(formData.get("images"));
+  const cover = images[0] ?? null;
+  const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
 
   const { error } = await supabase
     .from("businesses")
@@ -165,11 +276,12 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
       phone: f.phone || null,
       address: f.address || null,
       location_label: f.locationLabel || null,
-      opening_hours: f.openingHours || null,
+      opening_hours: hoursText,
+      opening_hours_structured: hoursSchedule,
       lat: f.lat,
       lng: f.lng,
-      image_url: f.imageUrl,
-      image_position: f.imagePosition,
+      image_url: cover?.url ?? null,
+      image_position: cover?.position ?? null,
     })
     .eq("id", businessId);
 
@@ -177,7 +289,10 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
     return { error: error.message };
   }
 
+  await syncBusinessImages(supabase, businessId, user.id, images);
+
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`);
   return undefined;
 }
 
@@ -212,7 +327,45 @@ export async function setBusinessBadge(
   }
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`);
   return { error: null };
+}
+
+// Bookmark or un-bookmark a listing for the current member. Returns the new
+// saved state so the button can update without a full refresh. business_saves
+// RLS scopes rows to auth.uid(), so a member only ever toggles their own.
+export async function toggleSaveBusiness(businessId: string, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("business_saves")
+    .select("id")
+    .eq("business_id", businessId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (existing) {
+    const { error } = await supabase.from("business_saves").delete().eq("id", existing.id);
+    if (error) return { error: error.message };
+    revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+    return { saved: false };
+  }
+
+  const { error } = await supabase.from("business_saves").insert({ business_id: businessId, user_id: user.id });
+  if (error) return { error: error.message };
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { saved: true };
 }
 
 // Staff-only (enforced by RLS on featured_business_categories): feature a

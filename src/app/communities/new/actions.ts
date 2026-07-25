@@ -6,6 +6,7 @@ import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS } from "@/lib/custom-domain";
 import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
+import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
 
@@ -113,7 +114,12 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: communityError.message };
   }
 
-  const spaces = payload.spaces.filter((s) => s.name.trim());
+  // Enforce the platform default pool server-side — a new community only
+  // starts with space types the super admin makes available. Banned types are
+  // stripped from the starter box automatically (the wizard already hides
+  // them; this keeps the rule airtight if the pool changes mid-setup).
+  const spaceTypeDefaults = await getSpaceTypeDefaults(supabase);
+  const spaces = payload.spaces.filter((s) => s.name.trim() && spaceTypeDefaults[s.space_type]);
   if (spaces.length) {
     const slugs = uniqueSlugs(spaces.map((s) => s.name));
     const { error: spacesError } = await supabase.from("spaces").insert(

@@ -270,6 +270,25 @@ export type CommunityNavItemOrder = {
   updated_at: string;
 };
 
+// The platform-wide default pool: whether a space type is available for new
+// (and un-overridden) communities to add. A missing row means "allowed".
+// Set by the super admin at /platform-admin.
+export type SpaceTypeDefault = {
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
+// Per-community override of the default pool, set by the super admin. Decides
+// whether this community's admins may add spaces of the given type. A missing
+// row falls back to space_type_defaults, then to "allowed".
+export type CommunitySpaceType = {
+  community_id: string;
+  space_type: SpaceType;
+  enabled: boolean;
+  updated_at: string;
+};
+
 // A default item for a community type (template), editable by a super admin at
 // /platform-admin. Usually a space (space_type set, builtin_key null); when
 // builtin_key is 'events'/'concierge' it's a built-in nav feature shown in the
@@ -318,6 +337,12 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
+  // Set once a member's claim is approved by staff; from then on the claimant
+  // counts as an owner alongside created_by. Null while unclaimed.
+  claimed_by: string | null;
+  // Optional per-day schedule powering a reliable "Open now"; keyed "0".."6"
+  // (Sun..Sat). opening_hours (text) stays the human-readable display value.
+  opening_hours_structured: BusinessHoursSchedule | null;
   google_place_id: string | null;
   google_rating: number | null;
   google_review_count: number | null;
@@ -340,6 +365,78 @@ export type FeaturedBusinessCategory = {
   category: BusinessCategory;
   // Position among a directory space's nav sub-links; staff drag to reorder.
   sort_order: number;
+  created_at: string;
+};
+
+// One day's opening hours in a structured schedule. A single open–close range
+// per day (kept simple; free-text opening_hours covers anything more elaborate).
+export type BusinessDayHours = {
+  closed: boolean;
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+};
+
+// Per-day schedule keyed by day-of-week "0".."6" (Sun..Sat), matching Date.getDay().
+export type BusinessHoursSchedule = Record<string, BusinessDayHours>;
+
+// A member's request to be recognised as a listing's owner, resolved by staff.
+export type BusinessClaim = {
+  id: string;
+  business_id: string;
+  community_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+};
+
+// A gallery photo for a directory listing. The full set is the source of
+// truth for a listing's photos; businesses.image_url mirrors the first one
+// (sort_order 0) as a denormalised cover for cards, the feed and map popups.
+export type BusinessImage = {
+  id: string;
+  business_id: string;
+  url: string;
+  // CSS object-position ("50% 25%") for this photo's crop framing.
+  position: string | null;
+  sort_order: number;
+  created_by: string;
+  created_at: string;
+};
+
+// One member's review of a listing — a 1-5 star rating with optional text,
+// one per member per business. Combines what guides split across guide_ratings
+// and guide_comments into a single row the reviewer owns and can edit.
+export type BusinessReview = {
+  id: string;
+  business_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A public reply to a review from the listing's owner (businesses.created_by)
+// or community staff — one per review, like a Google Business response.
+export type BusinessReviewReply = {
+  id: string;
+  review_id: string;
+  business_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's bookmark of a listing. Visible only to the member who saved it,
+// so the directory's "Saved" filter reflects that viewer alone.
+export type BusinessSave = {
+  id: string;
+  business_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -1041,6 +1138,16 @@ export type Database = {
         Insert: Partial<TemplateDefaultSpace> & { template_key: string; name: string };
         Update: Partial<TemplateDefaultSpace>;
       } & NoRel;
+      space_type_defaults: {
+        Row: SpaceTypeDefault;
+        Insert: Partial<SpaceTypeDefault> & { space_type: SpaceType };
+        Update: Partial<SpaceTypeDefault>;
+      } & NoRel;
+      community_space_types: {
+        Row: CommunitySpaceType;
+        Insert: Partial<CommunitySpaceType> & { community_id: string; space_type: SpaceType };
+        Update: Partial<CommunitySpaceType>;
+      } & NoRel;
       notifications: {
         Row: Notification;
         Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
@@ -1063,6 +1170,36 @@ export type Database = {
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
         Update: Partial<Business>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      business_images: {
+        Row: BusinessImage;
+        Insert: Partial<BusinessImage> & { business_id: string; url: string; created_by: string };
+        Update: Partial<BusinessImage>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"created_by", "profiles">];
+      };
+      business_reviews: {
+        Row: BusinessReview;
+        Insert: Partial<BusinessReview> & { business_id: string; author_id: string; rating: number };
+        Update: Partial<BusinessReview>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_review_replies: {
+        Row: BusinessReviewReply;
+        Insert: Partial<BusinessReviewReply> & { review_id: string; business_id: string; author_id: string; body: string };
+        Update: Partial<BusinessReviewReply>;
+        Relationships: [FKey<"review_id", "business_reviews">, FKey<"business_id", "businesses">, FKey<"author_id", "profiles">];
+      };
+      business_saves: {
+        Row: BusinessSave;
+        Insert: Partial<BusinessSave> & { business_id: string; user_id: string };
+        Update: Partial<BusinessSave>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"user_id", "profiles">];
+      };
+      business_claims: {
+        Row: BusinessClaim;
+        Insert: Partial<BusinessClaim> & { business_id: string; community_id: string; claimant_id: string };
+        Update: Partial<BusinessClaim>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"community_id", "communities">, FKey<"claimant_id", "profiles">, FKey<"resolved_by", "profiles">];
       };
       featured_business_categories: {
         Row: FeaturedBusinessCategory;

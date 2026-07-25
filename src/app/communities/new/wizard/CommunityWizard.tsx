@@ -10,8 +10,16 @@ import { StepCustomize } from "./StepCustomize";
 import { StepLaunch } from "./StepLaunch";
 import { INITIAL_WIZARD_STATE, type WizardState } from "./types";
 import type { TemplateSpace } from "@/lib/community-templates";
+import type { SpaceType } from "@/types/database";
 
-export function CommunityWizard({ defaultSpacesByTemplate }: { defaultSpacesByTemplate?: Record<string, TemplateSpace[]> }) {
+export function CommunityWizard({
+  defaultSpacesByTemplate,
+  allowedTypes,
+}: {
+  defaultSpacesByTemplate?: Record<string, TemplateSpace[]>;
+  // Space types available to a new community, from the platform default pool.
+  allowedTypes: SpaceType[];
+}) {
   const [step, setStep] = useState(1);
   const [state, setState] = useState<WizardState>(INITIAL_WIZARD_STATE);
 
@@ -26,8 +34,8 @@ export function CommunityWizard({ defaultSpacesByTemplate }: { defaultSpacesByTe
       <WizardProgress step={step} />
 
       {step === 1 && <StepBasics state={state} update={update} />}
-      {step === 2 && <StepTemplate state={state} update={update} defaultSpacesByTemplate={defaultSpacesByTemplate} />}
-      {step === 3 && <StepCustomize state={state} update={update} />}
+      {step === 2 && <StepTemplate state={state} update={update} defaultSpacesByTemplate={defaultSpacesByTemplate} allowedTypes={allowedTypes} />}
+      {step === 3 && <StepCustomize state={state} update={update} allowedTypes={allowedTypes} />}
       {step === 4 && <StepLaunch state={state} />}
 
       {step < 4 && (
