@@ -38,7 +38,12 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     return { error: businessError?.message ?? "Listing not found." };
   }
   if (business.created_by === user.id) {
-    return { error: "You can't review your own listing." };
+    // Super admins may review their own listing (seeding/testing); everyone
+    // else is blocked here, matching the hidden review form in the UI.
+    const { data: profile } = await supabase.from("profiles").select("is_super_admin").eq("id", user.id).maybeSingle();
+    if (!profile?.is_super_admin) {
+      return { error: "You can't review your own listing." };
+    }
   }
 
   const { error } = await supabase
