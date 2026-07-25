@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 export interface FeedItem {
   key: string;
@@ -20,6 +20,9 @@ export interface FeedItem {
   authorAvatar: string | null;
   spaceName: string | null;
   href: string;
+  // When set, tints the fallback icon badge (e.g. New Member cards) so
+  // different activity types are scannable at a glance.
+  iconClassName?: string;
 }
 
 export function FeedItemCard({ item }: { item: FeedItem }) {
@@ -55,7 +58,12 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
             {item.authorName !== null ? (
               <Avatar src={item.authorAvatar} name={item.authorName} size={32} />
             ) : (
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <span
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground",
+                  item.iconClassName
+                )}
+              >
                 <Icon className="h-4 w-4" />
               </span>
             )}

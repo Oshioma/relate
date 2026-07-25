@@ -98,6 +98,36 @@ export async function getDiscoverableCommunities(supabase: Client, userId: strin
   return data ?? [];
 }
 
+export interface CommunityStats {
+  members: number;
+  events: number;
+  businesses: number;
+  posts: number;
+}
+
+// Headline counts for the community landing page's stats strip. Each is a
+// head-only COUNT query (no rows fetched), run in parallel. A null count
+// (unexpected) collapses to 0 so the strip always renders.
+export async function getCommunityStats(supabase: Client, communityId: string): Promise<CommunityStats> {
+  const [members, events, businesses, posts] = await Promise.all([
+    supabase
+      .from("community_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .eq("status", "active"),
+    supabase.from("events").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+    supabase.from("businesses").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("community_id", communityId),
+  ]);
+
+  return {
+    members: members.count ?? 0,
+    events: events.count ?? 0,
+    businesses: businesses.count ?? 0,
+    posts: posts.count ?? 0,
+  };
+}
+
 export type MemberRow = CommunityMembership & { profile: Profile };
 
 export async function getCommunityMembers(supabase: Client, communityId: string): Promise<MemberRow[]> {
