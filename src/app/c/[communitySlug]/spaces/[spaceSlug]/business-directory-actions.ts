@@ -151,6 +151,8 @@ function parseBusinessFields(formData: FormData) {
     phone: String(formData.get("phone") ?? "").trim(),
     address: String(formData.get("address") ?? "").trim(),
     locationLabel: String(formData.get("location_label") ?? "").trim(),
+    // Native checkbox: present in the payload only when ticked.
+    isLocal: formData.get("is_local") != null,
     lat: parseCoordinate(formData.get("lat"), -90, 90),
     lng: parseCoordinate(formData.get("lng"), -180, 180),
     imageUrl,
@@ -215,6 +217,7 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
       created_by: user.id,
       name: f.name,
       category,
+      is_local: f.isLocal,
       description: f.description || null,
       website: f.website || null,
       phone: f.phone || null,
@@ -272,6 +275,7 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
     .update({
       name: f.name,
       category,
+      is_local: f.isLocal,
       description: f.description || null,
       website: f.website || null,
       phone: f.phone || null,

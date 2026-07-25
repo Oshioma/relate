@@ -72,6 +72,25 @@ export function BusinessFormFields({
         </div>
       </div>
 
+      <label
+        htmlFor={`${idPrefix}_is_local`}
+        className="flex cursor-pointer items-start gap-2.5 rounded-md border border-border bg-card px-3 py-2.5"
+      >
+        <input
+          id={`${idPrefix}_is_local`}
+          name="is_local"
+          type="checkbox"
+          defaultChecked={business?.is_local ?? false}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-accent focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <span className="text-sm">
+          <span className="font-medium text-foreground">Local business</span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Owned and run locally. It still lists under its category and also shows in the &ldquo;Local&rdquo; filter.
+          </span>
+        </span>
+      </label>
+
       <div>
         <Label htmlFor={`${idPrefix}_description`}>Description (optional)</Label>
         <Textarea
