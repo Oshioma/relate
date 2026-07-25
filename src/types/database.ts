@@ -726,6 +726,10 @@ export type Course = {
   status: CourseStatus;
   // v2: offer a completion certificate to learners who finish every lesson.
   certificate_enabled: boolean;
+  // v3 pricing: price_cents 0 = free (self-enrollable). Paid courses require a
+  // staff grant or a payment flow.
+  price_cents: number;
+  currency: string;
   created_at: string;
   updated_at: string;
 };
@@ -762,6 +766,8 @@ export type CourseEnrollment = {
   course_id: string;
   user_id: string;
   enrolled_at: string;
+  // v3: whether this enrolment was paid for (vs a free/granted enrolment).
+  paid: boolean;
 };
 
 // One learner has finished one lesson. course_id/community_id are denormalised
@@ -798,6 +804,59 @@ export type CourseAnnouncement = {
   body: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// v3: a course this course requires be completed first.
+export type CoursePrerequisite = {
+  id: string;
+  course_id: string;
+  prerequisite_course_id: string;
+  community_id: string;
+  created_at: string;
+};
+
+// v3: one quiz per lesson. Correct answers live in quiz_options.is_correct,
+// which is never exposed to learners (see the courses_v3 migration).
+export type CourseQuiz = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  title: string;
+  pass_percent: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  quiz_id: string;
+  community_id: string;
+  prompt: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type QuizOption = {
+  id: string;
+  question_id: string;
+  community_id: string;
+  label: string;
+  is_correct: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type QuizAttempt = {
+  id: string;
+  quiz_id: string;
+  course_id: string;
+  community_id: string;
+  user_id: string;
+  score_percent: number;
+  passed: boolean;
+  answers: string[];
+  created_at: string;
 };
 
 export type NotificationType = "comment" | "post" | "membership";
@@ -1298,6 +1357,36 @@ export type Database = {
         Update: Partial<CourseAnnouncement>;
         Relationships: [FKey<"course_id", "courses">, FKey<"author_id", "profiles">];
       };
+      course_prerequisites: {
+        Row: CoursePrerequisite;
+        Insert: Partial<CoursePrerequisite> & { course_id: string; prerequisite_course_id: string; community_id: string };
+        Update: Partial<CoursePrerequisite>;
+        Relationships: [FKey<"course_id", "courses">, FKey<"prerequisite_course_id", "courses">];
+      };
+      course_quizzes: {
+        Row: CourseQuiz;
+        Insert: Partial<CourseQuiz> & { lesson_id: string; course_id: string; community_id: string };
+        Update: Partial<CourseQuiz>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">];
+      };
+      quiz_questions: {
+        Row: QuizQuestion;
+        Insert: Partial<QuizQuestion> & { quiz_id: string; community_id: string; prompt: string };
+        Update: Partial<QuizQuestion>;
+        Relationships: [FKey<"quiz_id", "course_quizzes">];
+      };
+      quiz_options: {
+        Row: QuizOption;
+        Insert: Partial<QuizOption> & { question_id: string; community_id: string; label: string };
+        Update: Partial<QuizOption>;
+        Relationships: [FKey<"question_id", "quiz_questions">];
+      };
+      quiz_attempts: {
+        Row: QuizAttempt;
+        Insert: Partial<QuizAttempt> & { quiz_id: string; course_id: string; community_id: string; user_id: string; score_percent: number; passed: boolean };
+        Update: Partial<QuizAttempt>;
+        Relationships: [FKey<"quiz_id", "course_quizzes">, FKey<"user_id", "profiles">];
+      };
       concierge_queries: {
         Row: ConciergeQuery;
         Insert: Partial<ConciergeQuery> & { community_id: string; query: string };
@@ -1417,6 +1506,25 @@ export type Database = {
       community_slug_for_domain: {
         Args: { p_domain: string };
         Returns: string | null;
+      };
+      course_quiz_data: {
+        Args: { p_course_id: string };
+        Returns: {
+          quiz_id: string;
+          lesson_id: string;
+          quiz_title: string;
+          pass_percent: number;
+          question_id: string | null;
+          question_prompt: string | null;
+          question_sort: number | null;
+          option_id: string | null;
+          option_label: string | null;
+          option_sort: number | null;
+        }[];
+      };
+      grade_quiz: {
+        Args: { p_quiz_id: string; p_selected: string[] };
+        Returns: { score_percent: number; passed: boolean }[];
       };
     };
   };

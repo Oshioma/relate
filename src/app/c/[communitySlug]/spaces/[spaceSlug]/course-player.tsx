@@ -15,6 +15,8 @@ import {
   Award,
   Send,
   Trash2,
+  ListChecks,
+  CircleCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -30,9 +32,19 @@ import {
   unmarkLessonComplete,
   addLessonComment,
   deleteLessonComment,
+  purchaseCourse,
+  submitQuizAttempt,
 } from "./courses-actions";
-import type { CourseDetail, LessonCommentWithAuthor } from "@/lib/data/courses";
+import type { CourseDetail, LessonCommentWithAuthor, LessonQuiz, ViewerAttempt } from "@/lib/data/courses";
 import type { CourseLesson } from "@/types/database";
+
+function formatPrice(cents: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
+  }
+}
 
 export function CoursePlayer({
   detail,
@@ -143,6 +155,41 @@ export function CoursePlayer({
   const allDone = total > 0 && completedCount >= total;
   const certificateReady = enrolled && allDone && course.certificate_enabled;
 
+  const isPaid = course.price_cents > 0;
+  const { prerequisites, prerequisitesMet } = detail;
+  const showPrereqGate = !enrolled && !isStaff && prerequisites.length > 0;
+  const blockedByPrereqs = showPrereqGate && !prerequisitesMet;
+
+  function handlePurchase() {
+    setError(null);
+    startTransition(async () => {
+      const result = await purchaseCourse(course.id, communitySlug, spaceSlug);
+      if (result?.error) setError(result.error);
+      else router.refresh();
+    });
+  }
+
+  // A single enrol/buy control reused in the header and the locked-content box.
+  const enrollControl = !canEnroll ? null : enrolled ? (
+    <Button type="button" variant="secondary" disabled={isPending} onClick={toggleEnroll} className="w-auto">
+      Leave course
+    </Button>
+  ) : isPaid ? (
+    <Button type="button" disabled={isPending} onClick={handlePurchase} className="w-auto">
+      Buy {formatPrice(course.price_cents, course.currency)}
+    </Button>
+  ) : blockedByPrereqs ? (
+    <Button type="button" disabled title="Finish the prerequisites first" className="w-auto">
+      Enrol
+    </Button>
+  ) : (
+    <Button type="button" disabled={isPending} onClick={toggleEnroll} className="w-auto">
+      Enrol
+    </Button>
+  );
+
+  const selectedQuiz: LessonQuiz | undefined = selected && canAccess && !selectedLocked ? detail.quizzesByLesson[selected.id] : undefined;
+
   return (
     <div>
       {/* Header */}
@@ -172,11 +219,7 @@ export function CoursePlayer({
                 Manage
               </Link>
             )}
-            {canEnroll && (
-              <Button type="button" variant={enrolled ? "secondary" : "primary"} disabled={isPending} onClick={toggleEnroll} className="w-auto">
-                {enrolled ? "Leave course" : "Enrol"}
-              </Button>
-            )}
+            {enrollControl}
           </div>
         </div>
 
@@ -198,6 +241,24 @@ export function CoursePlayer({
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       </div>
+
+      {/* Prerequisites */}
+      {showPrereqGate && (
+        <div className={cn("mb-6 rounded-xl border p-4", blockedByPrereqs ? "border-amber-300 bg-amber-50/60 dark:bg-amber-950/20" : "border-border bg-card")}>
+          <p className="text-sm font-medium text-foreground">{blockedByPrereqs ? "Finish these first" : "Prerequisites"}</p>
+          <ul className="mt-2 space-y-1.5">
+            {prerequisites.map((p) => (
+              <li key={p.courseId} className="flex items-center gap-2 text-sm">
+                {p.completed ? <CircleCheck className="h-4 w-4 shrink-0 text-emerald-500" /> : <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/courses/${p.courseId}`} className="text-foreground hover:underline">
+                  {p.title}
+                </Link>
+                <span className="text-xs text-muted-foreground">{p.completed ? "Completed" : "Not yet completed"}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Announcements */}
       {announcements.length > 0 && (
@@ -289,11 +350,8 @@ export function CoursePlayer({
                 <p className="mt-1 text-sm text-muted-foreground">
                   {total} {total === 1 ? "lesson" : "lessons"} across {modules.length} {modules.length === 1 ? "module" : "modules"}.
                 </p>
-                {canEnroll && (
-                  <Button type="button" disabled={isPending} onClick={toggleEnroll} className="mt-4 w-auto">
-                    Enrol
-                  </Button>
-                )}
+                {isPaid && <p className="mt-2 text-sm font-medium text-foreground">{formatPrice(course.price_cents, course.currency)}</p>}
+                <div className="mt-4 flex justify-center">{enrollControl}</div>
               </div>
             ) : selected ? (
               <article className="rounded-xl border border-border bg-card p-6">
@@ -342,6 +400,15 @@ export function CoursePlayer({
                       <Linkify text={selected.body} className="mt-4 text-sm leading-relaxed text-foreground" />
                     ) : (
                       !selected.video_url && <p className="mt-4 text-sm text-muted-foreground">This lesson has no content yet.</p>
+                    )}
+
+                    {selectedQuiz && (
+                      <QuizTaker
+                        quiz={selectedQuiz}
+                        bestAttempt={detail.viewerAttempts[selectedQuiz.id]}
+                        communitySlug={communitySlug}
+                        spaceSlug={spaceSlug}
+                      />
                     )}
 
                     <LessonComments
@@ -482,6 +549,114 @@ function LessonComments({
             <Send className="h-4 w-4" />
           </Button>
         </div>
+      )}
+      {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
+function QuizTaker({
+  quiz,
+  bestAttempt,
+  communitySlug,
+  spaceSlug,
+}: {
+  quiz: LessonQuiz;
+  bestAttempt: ViewerAttempt | undefined;
+  communitySlug: string;
+  spaceSlug: string;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [result, setResult] = useState<ViewerAttempt | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function toggle(optionId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(optionId)) next.delete(optionId);
+      else next.add(optionId);
+      return next;
+    });
+  }
+
+  function submit() {
+    setError(null);
+    startTransition(async () => {
+      const res = await submitQuizAttempt(quiz.id, [...selected], communitySlug, spaceSlug);
+      if ("error" in res) {
+        setError(res.error);
+        return;
+      }
+      setResult({ scorePercent: res.scorePercent, passed: res.passed });
+      router.refresh();
+    });
+  }
+
+  function retry() {
+    setResult(null);
+    setSelected(new Set());
+  }
+
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-muted/20 p-4">
+      <div className="flex items-center gap-2">
+        <ListChecks className="h-4 w-4 text-accent" />
+        <p className="text-sm font-semibold text-foreground">{quiz.title}</p>
+        <span className="text-xs text-muted-foreground">Pass mark {quiz.passPercent}%</span>
+        {bestAttempt && !result && (
+          <span className={cn("ml-auto text-xs font-medium", bestAttempt.passed ? "text-emerald-600" : "text-muted-foreground")}>
+            Best: {bestAttempt.scorePercent}% {bestAttempt.passed ? "· Passed" : ""}
+          </span>
+        )}
+      </div>
+
+      {result ? (
+        <div className="mt-3">
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+              result.passed ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-danger/10 text-danger"
+            )}
+          >
+            {result.passed ? <Check className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+            You scored {result.scorePercent}% — {result.passed ? "passed!" : `you need ${quiz.passPercent}% to pass.`}
+          </div>
+          {!result.passed && (
+            <Button type="button" variant="secondary" onClick={retry} className="mt-3 w-auto">
+              Try again
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="mt-3 space-y-4">
+            {quiz.questions.map((q, qi) => (
+              <div key={q.id}>
+                <p className="text-sm font-medium text-foreground">
+                  {qi + 1}. {q.prompt}
+                </p>
+                <div className="mt-2 space-y-1.5">
+                  {q.options.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-2 text-sm text-foreground">
+                      <input type="checkbox" checked={selected.has(opt.id)} onChange={() => toggle(opt.id)} className="h-4 w-4 rounded border-border" />
+                      {opt.label}
+                    </label>
+                  ))}
+                  {q.options.length === 0 && <p className="text-xs text-muted-foreground">No options yet.</p>}
+                </div>
+              </div>
+            ))}
+            {quiz.questions.length === 0 && <p className="text-sm text-muted-foreground">This quiz has no questions yet.</p>}
+          </div>
+
+          {quiz.questions.length > 0 && (
+            <Button type="button" disabled={isPending || selected.size === 0} onClick={submit} className="mt-4 w-auto">
+              Submit quiz
+            </Button>
+          )}
+        </>
       )}
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
     </div>
