@@ -6,7 +6,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import type { GalleryImage } from "./business-images-input";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+import type { BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 export function NewBusinessForm({
   communityId,
@@ -29,6 +29,7 @@ export function NewBusinessForm({
 }) {
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [schedule, setSchedule] = useState<BusinessHoursSchedule | null>(null);
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -41,6 +42,7 @@ export function NewBusinessForm({
       formRef.current?.reset();
       setPin(null);
       setImages([]);
+      setSchedule(null);
       onDone?.();
     }
   }
@@ -60,6 +62,8 @@ export function NewBusinessForm({
         onPinChange={setPin}
         images={images}
         onImagesChange={setImages}
+        schedule={schedule}
+        onScheduleChange={setSchedule}
         userId={userId}
       />
 

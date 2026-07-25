@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Business, BusinessImage, BusinessReview, BusinessReviewReply, FeaturedBusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride, Profile, Space } from "@/types/database";
+import type { Database, Business, BusinessImage, BusinessReview, BusinessReviewReply, BusinessClaim, FeaturedBusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -111,6 +111,8 @@ export type BusinessReviewWithAuthor = BusinessReview & {
   reply: (BusinessReviewReply & { author: Profile }) | null;
 };
 
+export type BusinessClaimWithClaimant = BusinessClaim & { claimant: Profile };
+
 export type BusinessDetail = {
   business: Business;
   images: BusinessImage[];
@@ -119,6 +121,10 @@ export type BusinessDetail = {
   ratingCount: number;
   viewerReview: BusinessReview | null;
   saved: boolean;
+  // The viewer's own claim on this listing, if any (RLS shows a member only
+  // their own). Staff additionally see every pending claim in pendingClaims.
+  viewerClaim: BusinessClaim | null;
+  pendingClaims: BusinessClaimWithClaimant[];
 };
 
 export async function getBusinessDetail(supabase: Client, businessId: string, viewerId: string): Promise<BusinessDetail | null> {
@@ -126,7 +132,7 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
   if (error) throw error;
   if (!business) return null;
 
-  const [{ data: images, error: imagesError }, { data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }] =
+  const [{ data: images, error: imagesError }, { data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }, { data: claims, error: claimsError }] =
     await Promise.all([
       supabase.from("business_images").select("*").eq("business_id", businessId).order("sort_order", { ascending: true }),
       supabase.from("business_reviews").select("*, author:author_id (*)").eq("business_id", businessId).order("created_at", { ascending: false }),
@@ -134,12 +140,16 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
       viewerId
         ? supabase.from("business_saves").select("id").eq("business_id", businessId).eq("user_id", viewerId).maybeSingle()
         : Promise.resolve({ data: null, error: null }),
+      viewerId
+        ? supabase.from("business_claims").select("*, claimant:claimant_id (*)").eq("business_id", businessId)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
   if (imagesError) throw imagesError;
   if (reviewsError) throw reviewsError;
   if (repliesError) throw repliesError;
   if (saveError) throw saveError;
+  if (claimsError) throw claimsError;
 
   const replyByReviewId = new Map<string, BusinessReviewReply & { author: Profile }>();
   for (const reply of (replies ?? []) as unknown as (BusinessReviewReply & { author: Profile })[]) {
@@ -155,6 +165,10 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
   const ratingValues = reviewRows.map((r) => r.rating);
   const viewerReview = reviewRows.find((r) => r.author_id === viewerId) ?? null;
 
+  const claimRows = (claims ?? []) as unknown as BusinessClaimWithClaimant[];
+  const viewerClaim = claimRows.find((c) => c.claimant_id === viewerId) ?? null;
+  const pendingClaims = claimRows.filter((c) => c.status === "pending");
+
   return {
     business,
     images: images ?? [],
@@ -163,6 +177,8 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
     ratingCount: ratingValues.length,
     viewerReview: viewerReview ? { ...viewerReview } : null,
     saved: Boolean(saveRow),
+    viewerClaim: viewerClaim ? { ...viewerClaim } : null,
+    pendingClaims,
   };
 }
 

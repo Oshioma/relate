@@ -318,6 +318,12 @@ export type Business = {
   location_label: string | null;
   image_url: string | null;
   image_position: string | null;
+  // Set once a member's claim is approved by staff; from then on the claimant
+  // counts as an owner alongside created_by. Null while unclaimed.
+  claimed_by: string | null;
+  // Optional per-day schedule powering a reliable "Open now"; keyed "0".."6"
+  // (Sun..Sat). opening_hours (text) stays the human-readable display value.
+  opening_hours_structured: BusinessHoursSchedule | null;
   google_place_id: string | null;
   google_rating: number | null;
   google_review_count: number | null;
@@ -340,6 +346,30 @@ export type FeaturedBusinessCategory = {
   category: BusinessCategory;
   // Position among a directory space's nav sub-links; staff drag to reorder.
   sort_order: number;
+  created_at: string;
+};
+
+// One day's opening hours in a structured schedule. A single open–close range
+// per day (kept simple; free-text opening_hours covers anything more elaborate).
+export type BusinessDayHours = {
+  closed: boolean;
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+};
+
+// Per-day schedule keyed by day-of-week "0".."6" (Sun..Sat), matching Date.getDay().
+export type BusinessHoursSchedule = Record<string, BusinessDayHours>;
+
+// A member's request to be recognised as a listing's owner, resolved by staff.
+export type BusinessClaim = {
+  id: string;
+  business_id: string;
+  community_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  resolved_by: string | null;
+  resolved_at: string | null;
   created_at: string;
 };
 
@@ -1076,6 +1106,12 @@ export type Database = {
         Insert: Partial<BusinessSave> & { business_id: string; user_id: string };
         Update: Partial<BusinessSave>;
         Relationships: [FKey<"business_id", "businesses">, FKey<"user_id", "profiles">];
+      };
+      business_claims: {
+        Row: BusinessClaim;
+        Insert: Partial<BusinessClaim> & { business_id: string; community_id: string; claimant_id: string };
+        Update: Partial<BusinessClaim>;
+        Relationships: [FKey<"business_id", "businesses">, FKey<"community_id", "communities">, FKey<"claimant_id", "profiles">, FKey<"resolved_by", "profiles">];
       };
       featured_business_categories: {
         Row: FeaturedBusinessCategory;

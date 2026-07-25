@@ -5,7 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
-import type { Database, BusinessCategory } from "@/types/database";
+import { scheduleToText } from "@/lib/opening-hours";
+import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
 
 export type BusinessFormState = { error: string } | undefined;
 
@@ -80,6 +81,45 @@ function parseImages(raw: FormDataEntryValue | null): ParsedImage[] {
   return images;
 }
 
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// The weekly hours editor sends a per-day schedule as JSON. We validate every
+// day, keep only well-formed entries, and regenerate the human-readable
+// opening_hours text from the schedule so legacy consumers keep a display value.
+// Returns nulls when nothing usable is provided.
+function parseSchedule(raw: FormDataEntryValue | null): { schedule: BusinessHoursSchedule | null; text: string | null } {
+  const value = String(raw ?? "").trim();
+  if (!value) return { schedule: null, text: null };
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return { schedule: null, text: null };
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { schedule: null, text: null };
+
+  const source = parsed as Record<string, { closed?: unknown; open?: unknown; close?: unknown }>;
+  const schedule: BusinessHoursSchedule = {};
+  let hasOpen = false;
+  for (const key of ["0", "1", "2", "3", "4", "5", "6"]) {
+    const entry = source[key];
+    if (!entry || typeof entry !== "object") continue;
+    if (entry.closed) {
+      schedule[key] = { closed: true, open: "09:00", close: "17:00" };
+      continue;
+    }
+    const open = typeof entry.open === "string" && HHMM.test(entry.open) ? entry.open : null;
+    const close = typeof entry.close === "string" && HHMM.test(entry.close) ? entry.close : null;
+    if (!open || !close) continue;
+    schedule[key] = { closed: false, open, close };
+    hasOpen = true;
+  }
+
+  if (!hasOpen) return { schedule: null, text: null };
+  const text = scheduleToText(schedule);
+  return { schedule, text: text || null };
+}
+
 // Replace a listing's gallery with `images` (author/staff only, enforced by
 // business_images RLS). We clear and re-insert rather than diff — the list is
 // small and ordering is significant, so a rewrite keeps sort_order honest.
@@ -111,7 +151,6 @@ function parseBusinessFields(formData: FormData) {
     phone: String(formData.get("phone") ?? "").trim(),
     address: String(formData.get("address") ?? "").trim(),
     locationLabel: String(formData.get("location_label") ?? "").trim(),
-    openingHours: String(formData.get("opening_hours") ?? "").trim(),
     lat: parseCoordinate(formData.get("lat"), -90, 90),
     lng: parseCoordinate(formData.get("lng"), -180, 180),
     imageUrl,
@@ -165,6 +204,7 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
     if (scraped) images = [{ url: scraped, position: null }];
   }
   const cover = images[0] ?? null;
+  const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
 
   const { data: created, error } = await supabase
@@ -180,7 +220,8 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
       phone: f.phone || null,
       address: f.address || null,
       location_label: f.locationLabel || null,
-      opening_hours: f.openingHours || null,
+      opening_hours: hoursText,
+      opening_hours_structured: hoursSchedule,
       lat: f.lat,
       lng: f.lng,
       image_url: cover?.url ?? null,
@@ -223,6 +264,7 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
   const images = parseImages(formData.get("images"));
   const cover = images[0] ?? null;
+  const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
 
   const { error } = await supabase
     .from("businesses")
@@ -234,7 +276,8 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
       phone: f.phone || null,
       address: f.address || null,
       location_label: f.locationLabel || null,
-      opening_hours: f.openingHours || null,
+      opening_hours: hoursText,
+      opening_hours_structured: hoursSchedule,
       lat: f.lat,
       lng: f.lng,
       image_url: cover?.url ?? null,

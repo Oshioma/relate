@@ -6,8 +6,9 @@ import { updateBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import type { GalleryImage } from "./business-images-input";
+import { parseScheduleFromText } from "@/lib/opening-hours";
 import type { PickedLocation } from "@/components/map/location-picker";
-import type { Business, BusinessImage, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
+import type { Business, BusinessImage, BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 export function EditBusinessForm({
   business,
@@ -41,6 +42,11 @@ export function EditBusinessForm({
       : business.image_url
         ? [{ url: business.image_url, position: business.image_position }]
         : []
+  );
+  // Prefer the stored schedule; otherwise best-effort parse the legacy free text
+  // so editing a pre-structured listing still pre-fills the weekly editor.
+  const [schedule, setSchedule] = useState<BusinessHoursSchedule | null>(
+    business.opening_hours_structured ?? parseScheduleFromText(business.opening_hours)
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +84,8 @@ export function EditBusinessForm({
         onPinChange={setPin}
         images={images}
         onImagesChange={setImages}
+        schedule={schedule}
+        onScheduleChange={setSchedule}
         userId={userId}
       />
 
