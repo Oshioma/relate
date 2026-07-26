@@ -566,7 +566,10 @@ export type AccommodationListing = {
   name: string;
   accommodation_type: AccommodationType;
   description: string | null;
+  // Denormalised cover (kept in sync with photo_urls[0]) so the feed and map
+  // popups don't need the gallery. photo_urls is the full ordered gallery.
   photo_url: string | null;
+  photo_urls: string[];
   price_per_night: number | null;
   currency: string | null;
   booking_url: string | null;

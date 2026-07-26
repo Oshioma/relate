@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Building2, ExternalLink, MoreVertical, Trash2, RotateCcw, CircleCheck, BedDouble } from "lucide-react";
+import { MapPin, Building2, ExternalLink, MoreVertical, Pencil, Trash2, RotateCcw, CircleCheck, BedDouble, ChevronLeft, ChevronRight } from "lucide-react";
 import { accommodationTypeLabel } from "@/lib/accommodation-types";
 import { deleteAccommodationListing, setAccommodationStatus } from "./accommodation-actions";
+import { EditAccommodationForm } from "./edit-accommodation-form";
 import type { AccommodationListingWithBusiness } from "@/lib/data/accommodation";
 
 function formatPricePerNight(listing: AccommodationListingWithBusiness): string | null {
@@ -19,22 +20,35 @@ function formatPricePerNight(listing: AccommodationListingWithBusiness): string 
   }
 }
 
+// Prefer the gallery; fall back to the denormalised cover for rows created
+// before photo_urls existed and not yet backfilled.
+function listingPhotos(listing: AccommodationListingWithBusiness): string[] {
+  if (listing.photo_urls.length > 0) return listing.photo_urls;
+  return listing.photo_url ? [listing.photo_url] : [];
+}
+
 export function AccommodationCard({
   listing,
   communitySlug,
   spaceSlug,
   canManage,
+  userId,
 }: {
   listing: AccommodationListingWithBusiness;
   communitySlug: string;
   spaceSlug: string;
   canManage: boolean;
+  userId: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
   const router = useRouter();
   const isUnavailable = listing.status === "unavailable";
   const price = formatPricePerNight(listing);
+  const photos = listingPhotos(listing);
+  const current = Math.min(photoIndex, Math.max(0, photos.length - 1));
 
   function toggleAvailability() {
     setMenuOpen(false);
@@ -53,13 +67,31 @@ export function AccommodationCard({
     });
   }
 
+  if (editing) {
+    return (
+      <div className="sm:col-span-2 lg:col-span-3">
+        <EditAccommodationForm
+          listing={listing}
+          communitySlug={communitySlug}
+          spaceSlug={spaceSlug}
+          userId={userId}
+          onDone={() => {
+            setEditing(false);
+            router.refresh();
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md ${isPending ? "opacity-60" : ""}`}>
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        {listing.photo_url ? (
+        {photos.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={listing.photo_url}
+            src={photos[current]}
             alt={listing.name}
             className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${isUnavailable ? "grayscale" : ""}`}
           />
@@ -67,6 +99,39 @@ export function AccommodationCard({
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent-soft to-muted">
             <BedDouble className="h-10 w-10 text-accent/50" />
           </div>
+        )}
+
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              onClick={() => setPhotoIndex((current - 1 + photos.length) % photos.length)}
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/65"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next photo"
+              onClick={() => setPhotoIndex((current + 1) % photos.length)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/65"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
+              {photos.map((url, i) => (
+                <button
+                  key={url}
+                  type="button"
+                  aria-label={`Go to photo ${i + 1}`}
+                  aria-current={i === current}
+                  onClick={() => setPhotoIndex(i)}
+                  className={`h-1.5 rounded-full transition-all ${i === current ? "w-4 bg-white" : "w-1.5 bg-white/60 hover:bg-white/80"}`}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur">
@@ -95,6 +160,10 @@ export function AccommodationCard({
               </button>
               {menuOpen && (
                 <div className="absolute right-0 top-7 z-10 w-44 overflow-hidden rounded-md border border-border bg-card shadow-lg">
+                  <button type="button" onClick={() => { setMenuOpen(false); setEditing(true); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-foreground hover:bg-muted">
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit
+                  </button>
                   <button type="button" disabled={isPending} onClick={toggleAvailability} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-foreground hover:bg-muted disabled:opacity-60">
                     {isUnavailable ? <RotateCcw className="h-3.5 w-3.5" /> : <CircleCheck className="h-3.5 w-3.5" />}
                     {isUnavailable ? "Mark available" : "Mark unavailable"}

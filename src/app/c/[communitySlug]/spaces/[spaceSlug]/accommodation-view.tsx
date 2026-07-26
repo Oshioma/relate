@@ -105,7 +105,7 @@ export function AccommodationView({
 
       {showForm && (
         <div className="mb-5">
-          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} onDone={() => setShowForm(false)} />
+          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} onDone={() => setShowForm(false)} />
         </div>
       )}
 
@@ -124,6 +124,7 @@ export function AccommodationView({
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
               canManage={isStaff || listing.listed_by === userId}
+              userId={userId}
             />
           ))}
         </div>
