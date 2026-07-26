@@ -471,3 +471,97 @@ export async function identifyPlantAction(_prevState: PlantIdState, formData: Fo
 
   return { imageUrl, result, matchedSlug, matchedName };
 }
+
+// --- Community crop proposals ------------------------------------------------
+
+export type CropProposalFormState = { error: string } | undefined;
+
+function spacePath(communitySlug: string, spaceSlug: string) {
+  return `/c/${communitySlug}/spaces/${spaceSlug}`;
+}
+
+export async function proposeCrop(_prevState: CropProposalFormState, formData: FormData): Promise<CropProposalFormState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const commonName = String(formData.get("common_name") ?? "").trim();
+
+  if (!commonName) {
+    return { error: "Give the crop a name." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const bool = (key: string) => formData.get(key) === "on" || formData.get(key) === "true";
+
+  const { error } = await supabase.from("crop_proposals").insert({
+    community_id: communityId,
+    created_by: user.id,
+    common_name: commonName,
+    scientific_name: optionalText(formData, "scientific_name"),
+    family: optionalText(formData, "family"),
+    category: String(formData.get("category") ?? "vegetable") || "vegetable",
+    difficulty: optionalText(formData, "difficulty"),
+    lifecycle: optionalText(formData, "lifecycle"),
+    overview: optionalText(formData, "overview"),
+    preferred_climate: optionalText(formData, "preferred_climate"),
+    sun: optionalText(formData, "sun"),
+    water_need: optionalText(formData, "water_need"),
+    edible_part: optionalText(formData, "edible_part"),
+    time_to_maturity_days: optionalNumber(formData, "time_to_maturity_days"),
+    beginner_friendly: bool("beginner_friendly"),
+    pollinator_friendly: bool("pollinator_friendly"),
+    nitrogen_fixer: bool("nitrogen_fixer"),
+    drought_tolerant: bool("drought_tolerant"),
+    organic_favourite: bool("organic_favourite"),
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(spacePath(communitySlug, spaceSlug));
+  return undefined;
+}
+
+// Staff: promote a proposal into the global crops library via the SECURITY
+// DEFINER RPC (which re-checks staff and creates the published crop).
+export async function approveCropProposal(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.rpc("approve_crop_proposal", { p_proposal_id: id });
+
+  revalidatePath(spacePath(communitySlug, spaceSlug));
+}
+
+export async function rejectCropProposal(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const note = String(formData.get("reviewer_note") ?? "").trim() || null;
+
+  const supabase = await createClient();
+  await supabase.from("crop_proposals").update({ status: "rejected", reviewer_note: note }).eq("id", id);
+
+  revalidatePath(spacePath(communitySlug, spaceSlug));
+}
+
+export async function deleteCropProposal(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.from("crop_proposals").delete().eq("id", id);
+
+  revalidatePath(spacePath(communitySlug, spaceSlug));
+}
