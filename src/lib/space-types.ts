@@ -19,6 +19,7 @@ import {
   Star,
   GraduationCap,
   Leaf,
+  ScanLine,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -77,6 +78,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   recommendations: { type: "recommendations", label: "Recommendations", icon: Star, description: "Member recommendations for restaurants, services and more.", category: "place" },
   course: { type: "course", label: "Courses", icon: GraduationCap, description: "Structured courses members enrol in and work through lesson by lesson.", category: "programs" },
   crop_guides: { type: "crop_guides", label: "Crop Guides", icon: Leaf, description: "A searchable library of organic, region-aware growing guides — from seed to harvest.", category: "programs" },
+  plant_scanner: { type: "plant_scanner", label: "Plant Health Scanner", icon: ScanLine, description: "Upload a plant photo for an AI diagnosis of pests, diseases and deficiencies, with organic treatment.", category: "programs" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);

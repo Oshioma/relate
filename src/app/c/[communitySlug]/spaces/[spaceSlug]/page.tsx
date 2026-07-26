@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -61,6 +61,7 @@ import { GuidesView } from "./guides-view";
 import { VolunteerHubView } from "./volunteer-hub-view";
 import { CoursesView } from "./courses-view";
 import { CropGuidesView } from "./crop-guides-view";
+import { PlantScannerPanel } from "./plant-scanner-panel";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -105,6 +106,7 @@ export default async function SpaceDetailPage({
   const isVolunteerHubSpace = space.space_type === "volunteer_hub";
   const isCourseSpace = space.space_type === "course";
   const isCropGuidesSpace = space.space_type === "crop_guides";
+  const isPlantScannerSpace = space.space_type === "plant_scanner";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -121,7 +123,8 @@ export default async function SpaceDetailPage({
     !isGuidesSpace &&
     !isVolunteerHubSpace &&
     !isCourseSpace &&
-    !isCropGuidesSpace;
+    !isCropGuidesSpace &&
+    !isPlantScannerSpace;
 
   const [
     membership,
@@ -181,6 +184,11 @@ export default async function SpaceDetailPage({
     ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
     : [[], [], []];
   const cropSavedIds = isCropGuidesSpace && user ? await getSavedCropIds(supabase, user.id) : [];
+  // A standalone Plant Health Scanner space deep-links matched crops into the
+  // community's Crop Guides space, if one exists.
+  const cropGuidesSpaceSlug: string | null = isPlantScannerSpace
+    ? (await supabase.from("spaces").select("slug").eq("community_id", community.id).eq("space_type", "crop_guides").order("sort_order", { ascending: true }).limit(1).maybeSingle()).data?.slug ?? null
+    : null;
   // The user's crops from the shamba.online farm app (empty unless the bridge is
   // configured and the user's email is linked to a farm).
   const cropFarmCrops: FarmCrop[] = isCropGuidesSpace ? await getMyFarmCrops(user?.email) : [];
@@ -526,6 +534,14 @@ export default async function SpaceDetailPage({
           scannerEnabled={isPlantScannerConfigured()}
           isMember={canPost}
         />
+      ) : isPlantScannerSpace ? (
+        !isPlantScannerConfigured() ? (
+          <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Scanner not set up" description="The plant health scanner isn't configured on this platform yet." />
+        ) : !canPost ? (
+          <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Members only" description="Join this community to scan plants for diagnosis." />
+        ) : (
+          <PlantScannerPanel communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+        )
       ) : (
         <>
           {canPost && (

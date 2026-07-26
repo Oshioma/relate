@@ -130,7 +130,7 @@ export function CropGuidesView({
   return (
     <div>
       {/* Plant health scanner */}
-      {scannerEnabled && isMember && <PlantScannerPanel communitySlug={communitySlug} spaceSlug={spaceSlug} />}
+      {scannerEnabled && isMember && <PlantScannerPanel communitySlug={communitySlug} cropGuidesSpaceSlug={spaceSlug} />}
 
       {/* My crops — read from the shamba.online farm app */}
       {farmCrops.length > 0 && <MyFarmCrops farmCrops={farmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={communitySlug} spaceSlug={spaceSlug} />}
