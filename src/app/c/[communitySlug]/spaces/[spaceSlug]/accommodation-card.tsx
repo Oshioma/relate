@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
-import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
+import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, accommodationFactsSummary } from "@/lib/accommodation-types";
 import { StarRatingDisplay } from "./star-rating";
 import { toggleSaveAccommodation } from "./accommodation-actions";
 import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
@@ -26,6 +26,7 @@ export function AccommodationCard({
   const isUnavailable = listing.status === "unavailable";
   const price = formatAccommodationPrice(listing);
   const photos = accommodationPhotos(listing);
+  const facts = accommodationFactsSummary(listing);
   const [saved, setSaved] = useState(listing.saved);
   const [isPending, startTransition] = useTransition();
 
@@ -112,6 +113,8 @@ export function AccommodationCard({
             {listing.business.name}
           </p>
         )}
+
+        {facts && <p className="mt-1 text-xs text-muted-foreground">{facts}</p>}
 
         {listing.description && <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{listing.description}</p>}
 

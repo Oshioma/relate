@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart } from "lucide-react";
+import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
+import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, amenityLabel, formatAvailabilityWindow } from "@/lib/accommodation-types";
 import { StarRatingDisplay } from "./star-rating";
 import { ImageCarousel } from "./image-carousel";
 import { EditAccommodationForm } from "./edit-accommodation-form";
@@ -68,6 +68,7 @@ export function AccommodationDetailView({
   const photos = accommodationPhotos(listing).map((url, i) => ({ id: String(i), url, position: null }));
   const price = formatAccommodationPrice(listing);
   const isUnavailable = listing.status === "unavailable";
+  const availability = formatAvailabilityWindow(listing);
 
   function toggleAvailability() {
     setError(null);
@@ -180,7 +181,46 @@ export function AccommodationDetailView({
             </p>
           )}
 
+          {(listing.bedrooms !== null || listing.bathrooms !== null || listing.max_guests !== null) && (
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-foreground">
+              {listing.bedrooms !== null && (
+                <span className="flex items-center gap-1.5">
+                  <BedDouble className="h-4 w-4 text-muted-foreground" /> {listing.bedrooms} {listing.bedrooms === 1 ? "bedroom" : "bedrooms"}
+                </span>
+              )}
+              {listing.bathrooms !== null && (
+                <span className="flex items-center gap-1.5">
+                  <Bath className="h-4 w-4 text-muted-foreground" /> {listing.bathrooms} {listing.bathrooms === 1 ? "bathroom" : "bathrooms"}
+                </span>
+              )}
+              {listing.max_guests !== null && (
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-muted-foreground" /> Sleeps {listing.max_guests}
+                </span>
+              )}
+            </div>
+          )}
+
+          {availability && (
+            <p className="mt-3 flex items-center gap-1.5 text-sm text-foreground">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" /> {availability}
+            </p>
+          )}
+
           {listing.description && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{listing.description}</p>}
+
+          {listing.amenities.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Amenities</p>
+              <div className="flex flex-wrap gap-1.5">
+                {listing.amenities.map((a) => (
+                  <span key={a} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs text-foreground">
+                    <Check className="h-3 w-3 text-accent" /> {amenityLabel(a)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-wrap gap-2">
             {listing.booking_url && (

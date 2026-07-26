@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { ACCOMMODATION_TYPES } from "@/lib/accommodation-types";
-import type { AccommodationType, AccommodationStatus } from "@/types/database";
+import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
+import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit } from "@/types/database";
 
 export type AccommodationFormState = { error: string } | undefined;
 
@@ -24,6 +24,104 @@ function parseCoordinate(raw: FormDataEntryValue | null, min: number, max: numbe
   if (!value) return null;
   const n = Number(value);
   return Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
+
+function parseCount(raw: FormDataEntryValue | null): number | null {
+  const value = String(raw ?? "").trim();
+  if (!value) return null;
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
+function parsePriceUnit(raw: FormDataEntryValue | null): AccommodationPriceUnit {
+  const value = String(raw ?? "per_night");
+  return ACCOMMODATION_PRICE_UNITS.some((u) => u.value === value) ? (value as AccommodationPriceUnit) : "per_night";
+}
+
+// Keep only known amenity slugs, deduped, from the checkbox group.
+function parseAmenities(values: FormDataEntryValue[]): string[] {
+  const allowed = new Set(ACCOMMODATION_AMENITIES.map((a) => a.value));
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of values) {
+    const value = String(raw);
+    if (allowed.has(value) && !seen.has(value)) {
+      seen.add(value);
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+// An ISO date (YYYY-MM-DD) from a <input type="date">, or null.
+function parseDate(raw: FormDataEntryValue | null): string | null {
+  const value = String(raw ?? "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+}
+
+// The column values shared by create and update, so the two actions can't drift
+// out of sync. Returns a validation error instead of the values when a field is
+// off.
+type ListingFields = {
+  name: string;
+  accommodation_type: AccommodationType;
+  description: string | null;
+  photo_url: string | null;
+  photo_urls: string[];
+  price_per_night: number | null;
+  currency: string | null;
+  price_unit: AccommodationPriceUnit;
+  booking_url: string | null;
+  location_label: string | null;
+  lat: number | null;
+  lng: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  max_guests: number | null;
+  amenities: string[];
+  available_from: string | null;
+  available_to: string | null;
+};
+
+function parseListingFields(formData: FormData): { values: ListingFields } | { error: string } {
+  const name = String(formData.get("name") ?? "").trim();
+  const photoUrls = parsePhotoUrls(formData.get("photo_urls"));
+  const price = parsePrice(formData.get("price_per_night"));
+  const currency = String(formData.get("currency") ?? "").trim();
+  const lat = parseCoordinate(formData.get("lat"), -90, 90);
+  const lng = parseCoordinate(formData.get("lng"), -180, 180);
+  const availableFrom = parseDate(formData.get("available_from"));
+  const availableTo = parseDate(formData.get("available_to"));
+
+  if (!name) return { error: "Give the listing a name." };
+  if ((lat === null) !== (lng === null)) return { error: "Set both latitude and longitude, or leave both blank." };
+  // ISO dates compare lexically the same as chronologically.
+  if (availableFrom && availableTo && availableFrom > availableTo) {
+    return { error: "The available-from date must be on or before the available-to date." };
+  }
+
+  return {
+    values: {
+      name,
+      accommodation_type: parseAccommodationType(formData.get("accommodation_type")),
+      description: String(formData.get("description") ?? "").trim() || null,
+      photo_url: photoUrls[0] ?? null,
+      photo_urls: photoUrls,
+      price_per_night: price,
+      currency: price !== null ? currency || "USD" : null,
+      price_unit: parsePriceUnit(formData.get("price_unit")),
+      booking_url: String(formData.get("booking_url") ?? "").trim() || null,
+      location_label: String(formData.get("location_label") ?? "").trim() || null,
+      lat,
+      lng,
+      bedrooms: parseCount(formData.get("bedrooms")),
+      bathrooms: parseCount(formData.get("bathrooms")),
+      max_guests: parseCount(formData.get("max_guests")),
+      amenities: parseAmenities(formData.getAll("amenities")),
+      available_from: availableFrom,
+      available_to: availableTo,
+    },
+  };
 }
 
 const MAX_PHOTOS = 10;
@@ -58,22 +156,10 @@ export async function createAccommodationListing(_prevState: AccommodationFormSt
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const spaceSlug = String(formData.get("space_slug") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const accommodationType = parseAccommodationType(formData.get("accommodation_type"));
-  const description = String(formData.get("description") ?? "").trim();
-  const photoUrls = parsePhotoUrls(formData.get("photo_urls"));
-  const price = parsePrice(formData.get("price_per_night"));
-  const currency = String(formData.get("currency") ?? "").trim();
-  const bookingUrl = String(formData.get("booking_url") ?? "").trim();
-  const locationLabel = String(formData.get("location_label") ?? "").trim();
-  const lat = parseCoordinate(formData.get("lat"), -90, 90);
-  const lng = parseCoordinate(formData.get("lng"), -180, 180);
 
-  if (!name) {
-    return { error: "Give the listing a name." };
-  }
-  if ((lat === null) !== (lng === null)) {
-    return { error: "Set both latitude and longitude, or leave both blank." };
+  const parsed = parseListingFields(formData);
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
 
   const supabase = await createClient();
@@ -89,17 +175,7 @@ export async function createAccommodationListing(_prevState: AccommodationFormSt
     space_id: spaceId,
     community_id: communityId,
     listed_by: user.id,
-    name,
-    accommodation_type: accommodationType,
-    description: description || null,
-    photo_url: photoUrls[0] ?? null,
-    photo_urls: photoUrls,
-    price_per_night: price,
-    currency: price !== null ? currency || "USD" : null,
-    booking_url: bookingUrl || null,
-    location_label: locationLabel || null,
-    lat,
-    lng,
+    ...parsed.values,
   });
 
   if (error) {
@@ -114,25 +190,14 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
   const listingId = String(formData.get("listing_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const spaceSlug = String(formData.get("space_slug") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const accommodationType = parseAccommodationType(formData.get("accommodation_type"));
-  const description = String(formData.get("description") ?? "").trim();
-  const photoUrls = parsePhotoUrls(formData.get("photo_urls"));
-  const price = parsePrice(formData.get("price_per_night"));
-  const currency = String(formData.get("currency") ?? "").trim();
-  const bookingUrl = String(formData.get("booking_url") ?? "").trim();
-  const locationLabel = String(formData.get("location_label") ?? "").trim();
-  const lat = parseCoordinate(formData.get("lat"), -90, 90);
-  const lng = parseCoordinate(formData.get("lng"), -180, 180);
 
   if (!listingId) {
     return { error: "Missing listing." };
   }
-  if (!name) {
-    return { error: "Give the listing a name." };
-  }
-  if ((lat === null) !== (lng === null)) {
-    return { error: "Set both latitude and longitude, or leave both blank." };
+
+  const parsed = parseListingFields(formData);
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
 
   const supabase = await createClient();
@@ -146,22 +211,7 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
 
   // The lister-or-staff RLS policy on accommodation_listings decides whether
   // this update is allowed; we don't re-check ownership here.
-  const { error } = await supabase
-    .from("accommodation_listings")
-    .update({
-      name,
-      accommodation_type: accommodationType,
-      description: description || null,
-      photo_url: photoUrls[0] ?? null,
-      photo_urls: photoUrls,
-      price_per_night: price,
-      currency: price !== null ? currency || "USD" : null,
-      booking_url: bookingUrl || null,
-      location_label: locationLabel || null,
-      lat,
-      lng,
-    })
-    .eq("id", listingId);
+  const { error } = await supabase.from("accommodation_listings").update(parsed.values).eq("id", listingId);
 
   if (error) {
     return { error: error.message };

@@ -45,6 +45,7 @@ export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "inte
 export type JobListingStatus = "open" | "closed";
 export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
 export type AccommodationStatus = "available" | "unavailable";
+export type AccommodationPriceUnit = "per_night" | "per_week" | "per_month";
 export type RecommendationCategory = "restaurant" | "cafe" | "activity" | "service" | "professional" | "walk" | "viewpoint" | "contractor" | "other";
 export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
 
@@ -572,11 +573,24 @@ export type AccommodationListing = {
   photo_urls: string[];
   price_per_night: number | null;
   currency: string | null;
+  // How price_per_night should read — per night (default), per week or per
+  // month — so long-term rentals aren't shown as nightly rates.
+  price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
   lat: number | null;
   lng: number | null;
   status: AccommodationStatus;
+  // Structured facts guests filter on. All optional — a camping spot may set
+  // none of them.
+  bedrooms: number | null;
+  bathrooms: number | null;
+  max_guests: number | null;
+  // Amenity slugs from ACCOMMODATION_AMENITIES (e.g. "wifi", "kitchen").
+  amenities: string[];
+  // Optional availability window; both null means "ask the host".
+  available_from: string | null;
+  available_to: string | null;
   created_at: string;
   updated_at: string;
 };
