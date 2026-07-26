@@ -156,21 +156,6 @@ export function CropGuidesView({
 
   return (
     <div>
-      {isAdmin && (
-        <RegionManager
-          communityId={communityId}
-          communitySlug={communitySlug}
-          spaceSlug={spaceSlug}
-          regions={regions}
-          communityRegions={communityRegions}
-        />
-      )}
-
-      {/* Propose a crop (members) + review queue (staff) */}
-      {(isMember || isStaff) && (proposals.length > 0 || isMember) && (
-        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} canPropose={isMember} isStaff={isStaff} />
-      )}
-
       {/* Search + filters */}
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1 sm:max-w-md">
@@ -327,6 +312,23 @@ export function CropGuidesView({
             </div>
           )}
         </section>
+      )}
+
+      {isAdmin && (
+        <div className="mt-5">
+          <RegionManager
+            communityId={communityId}
+            communitySlug={communitySlug}
+            spaceSlug={spaceSlug}
+            regions={regions}
+            communityRegions={communityRegions}
+          />
+        </div>
+      )}
+
+      {/* Propose a crop (members) + review queue (staff) */}
+      {(isMember || isStaff) && (proposals.length > 0 || isMember) && (
+        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} canPropose={isMember} isStaff={isStaff} />
       )}
     </div>
   );
