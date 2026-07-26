@@ -156,49 +156,6 @@ export function CropGuidesView({
 
   return (
     <div>
-      {/* What can I grow now? */}
-      {regionOptions.length > 0 && (
-        <section className="mb-5 rounded-lg border border-border bg-card p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-              <CalendarClock className="h-4 w-4 text-accent" />
-              What can I grow now?
-              <span className="font-normal text-muted-foreground">· {MONTH_NAMES[currentMonth - 1]}</span>
-            </h2>
-            <label className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Region</span>
-              <select
-                value={regionValue}
-                onChange={(e) => setRegionValue(e.target.value)}
-                className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {regionGroups.map((g) => (
-                  <optgroup key={g.group} label={g.group}>
-                    {g.items.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {sowNow.length === 0 && harvestNow.length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">No calendar data for this region yet — try another region.</p>
-          ) : (
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sow</span>
-              {sowNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : sowNow.map(cropChip)}
-              <span className="text-border">·</span>
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harvest</span>
-              {harvestNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : harvestNow.map(cropChip)}
-            </div>
-          )}
-        </section>
-      )}
-
       {isAdmin && (
         <RegionManager
           communityId={communityId}
@@ -327,6 +284,49 @@ export function CropGuidesView({
             <CropCard key={crop.id} crop={crop} communitySlug={communitySlug} spaceSlug={spaceSlug} />
           ))}
         </div>
+      )}
+
+      {/* What can I grow now? */}
+      {regionOptions.length > 0 && (
+        <section className="mt-6 rounded-lg border border-border bg-card p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <CalendarClock className="h-4 w-4 text-accent" />
+              What can I grow now?
+              <span className="font-normal text-muted-foreground">· {MONTH_NAMES[currentMonth - 1]}</span>
+            </h2>
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Region</span>
+              <select
+                value={regionValue}
+                onChange={(e) => setRegionValue(e.target.value)}
+                className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {regionGroups.map((g) => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.items.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {sowNow.length === 0 && harvestNow.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">No calendar data for this region yet — try another region.</p>
+          ) : (
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sow</span>
+              {sowNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : sowNow.map(cropChip)}
+              <span className="text-border">·</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harvest</span>
+              {harvestNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : harvestNow.map(cropChip)}
+            </div>
+          )}
+        </section>
       )}
     </div>
   );
