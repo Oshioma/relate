@@ -33,7 +33,8 @@ export type SpaceType =
   | "recommendations"
   | "course"
   | "crop_guides"
-  | "plant_scanner";
+  | "plant_scanner"
+  | "my_crops";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";

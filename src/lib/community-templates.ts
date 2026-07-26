@@ -179,6 +179,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Farm Journal", description: "Post plantings, harvests and conditions." },
       { name: "Crop Guides", description: "Organic, region-aware growing guides — from seed to harvest.", space_type: "crop_guides" },
       { name: "Plant Health Scanner", description: "Upload a plant photo for an AI diagnosis with organic treatment.", space_type: "plant_scanner" },
+      { name: "My Crops", description: "Your own crops, synced from the shamba.online farm app.", space_type: "my_crops" },
       { name: "Ask for Help", description: "Get advice from experienced growers." },
       { name: "Marketplace", description: "Trade produce, seeds and tools." },
       { name: "Knowledge Base", description: "Farming best practices." },
