@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getPostById, getPostComments } from "@/lib/data/posts";
+import { getCrops } from "@/lib/data/crop-guides";
 import { CommentForm } from "./comment-form";
 import { PostCard } from "./post-card";
 import { CommentItem } from "./comment-item";
@@ -27,9 +28,12 @@ export default async function PostDetailPage({
   const post = await getPostById(supabase, postId);
   if (!post || post.space_id !== space.id) notFound();
 
-  const [membership, comments] = await Promise.all([
+  const [membership, comments, crops, editorProfile] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getPostComments(supabase, post.id),
+    // Powers the "choose a crop" image source when editing the post.
+    getCrops(supabase),
+    user ? getProfile(supabase, user.id) : Promise.resolve(null),
   ]);
 
   const canComment = membership?.status === "active";
@@ -50,6 +54,8 @@ export default async function PostDetailPage({
         canDelete={isPostAuthor || isStaff}
         communitySlug={community.slug}
         spaceSlug={space.slug}
+        crops={crops}
+        avatarUrl={editorProfile?.avatar_url}
       />
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
