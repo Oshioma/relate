@@ -21,7 +21,7 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
-import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, type MonthCalendarRow } from "@/lib/data/crop-guides";
+import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
@@ -178,6 +178,7 @@ export default async function SpaceDetailPage({
   const [cropRegions, cropCommunityRegions, cropMonthCalendar]: [CropRegion[], CommunityCropRegion[], MonthCalendarRow[]] = isCropGuidesSpace
     ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
     : [[], [], []];
+  const cropSavedIds = isCropGuidesSpace && user ? await getSavedCropIds(supabase, user.id) : [];
 
   const featuredBusinessCategories = isBusinessDirectorySpace
     ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
@@ -513,6 +514,7 @@ export default async function SpaceDetailPage({
           communityRegions={cropCommunityRegions}
           monthCalendar={cropMonthCalendar}
           currentMonth={cropCurrentMonth}
+          savedIds={cropSavedIds}
         />
       ) : (
         <>

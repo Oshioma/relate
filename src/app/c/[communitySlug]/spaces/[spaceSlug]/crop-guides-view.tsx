@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X } from "lucide-react";
+import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,6 +26,7 @@ export function CropGuidesView({
   communityRegions,
   monthCalendar,
   currentMonth,
+  savedIds,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -36,9 +37,12 @@ export function CropGuidesView({
   communityRegions: CommunityCropRegion[];
   monthCalendar: MonthCalendarRow[];
   currentMonth: number;
+  savedIds: string[];
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
   const cropsById = useMemo(() => new Map(crops.map((c) => [c.id, c])), [crops]);
 
@@ -79,6 +83,7 @@ export function CropGuidesView({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return crops.filter((c) => {
+      if (savedOnly && !savedSet.has(c.id)) return false;
       if (category && c.category !== category) return false;
       if (q) {
         const haystack = `${c.common_name} ${c.scientific_name ?? ""} ${c.overview ?? ""}`.toLowerCase();
@@ -86,7 +91,7 @@ export function CropGuidesView({
       }
       return true;
     });
-  }, [crops, query, category]);
+  }, [crops, query, category, savedOnly, savedSet]);
 
   const regionGroups = useMemo(() => {
     const seen = new Set<string>();
@@ -182,8 +187,18 @@ export function CropGuidesView({
         </div>
       </div>
 
-      {activeCategories.length > 0 && (
+      {(activeCategories.length > 0 || savedSet.size > 0) && (
         <div className="mb-5 flex flex-wrap gap-2">
+          {savedSet.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setSavedOnly((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              <Bookmark className={`h-3 w-3 ${savedOnly ? "fill-current" : ""}`} />
+              Saved ({savedSet.size})
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setCategory(null)}

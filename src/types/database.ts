@@ -1255,6 +1255,49 @@ export type CommunityCropRegion = {
   updated_at: string;
 };
 
+// Community power: growing journals, regional tips, saved crops. Field shapes on
+// the journal mirror the shamba.online farm app for future import.
+export type CropGrowingJournal = {
+  id: string;
+  crop_id: string;
+  community_id: string;
+  user_id: string;
+  variety: string | null;
+  planted_on: string | null;
+  harvested_on: string | null;
+  climate: string | null;
+  location: string | null;
+  yield_kg: number | null;
+  problems: string | null;
+  solutions: string | null;
+  weather: string | null;
+  success_rating: number | null;
+  photos: string[];
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CropCommunityTip = {
+  id: string;
+  crop_id: string;
+  community_id: string;
+  created_by: string;
+  region: string | null;
+  body: string;
+  approved: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CropSave = {
+  id: string;
+  user_id: string;
+  crop_id: string;
+  community_id: string | null;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1736,6 +1779,23 @@ export type Database = {
         Row: CommunityCropRegion;
         Insert: Partial<CommunityCropRegion> & { community_id: string; name: string };
         Update: Partial<CommunityCropRegion>;
+      } & NoRel;
+      crop_growing_journals: {
+        Row: CropGrowingJournal;
+        Insert: Partial<CropGrowingJournal> & { crop_id: string; community_id: string; user_id: string };
+        Update: Partial<CropGrowingJournal>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"crop_id", "crops">];
+      };
+      crop_community_tips: {
+        Row: CropCommunityTip;
+        Insert: Partial<CropCommunityTip> & { crop_id: string; community_id: string; created_by: string; body: string };
+        Update: Partial<CropCommunityTip>;
+        Relationships: [FKey<"created_by", "profiles">, FKey<"crop_id", "crops">];
+      };
+      crop_saves: {
+        Row: CropSave;
+        Insert: Partial<CropSave> & { user_id: string; crop_id: string };
+        Update: Partial<CropSave>;
       } & NoRel;
     };
     Views: Record<string, never>;
