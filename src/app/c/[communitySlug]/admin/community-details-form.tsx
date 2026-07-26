@@ -9,6 +9,10 @@ import type { Community } from "@/types/database";
 
 export function CommunityDetailsForm({ community }: { community: Community }) {
   const [state, formAction] = useActionState<CommunityDetailsState, FormData>(updateCommunityDetails, undefined);
+  // Location and "kind of place" only apply to place-based communities — they
+  // drive the map, AI event discovery and live tides & weather, none of which
+  // a generic community has. Don't surface them on every community's settings.
+  const isPlace = community.template_key === "place";
 
   return (
     <form action={formAction} className="space-y-3 rounded-lg border border-border bg-card p-4">
@@ -25,38 +29,42 @@ export function CommunityDetailsForm({ community }: { community: Community }) {
         <Textarea id="community_description" name="description" rows={2} defaultValue={community.description ?? ""} />
       </div>
 
-      <div>
-        <Label htmlFor="community_location">Location</Label>
-        <Input
-          id="community_location"
-          name="location_name"
-          defaultValue={community.location_name ?? ""}
-          placeholder="Zanzibar, Tanzania"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          The place this community is about. Used by AI event discovery, the map, and live tides &amp; weather.
-        </p>
-      </div>
+      {isPlace && (
+        <>
+          <div>
+            <Label htmlFor="community_location">Location</Label>
+            <Input
+              id="community_location"
+              name="location_name"
+              defaultValue={community.location_name ?? ""}
+              placeholder="Zanzibar, Tanzania"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              The place this community is about. Used by AI event discovery, the map, and live tides &amp; weather.
+            </p>
+          </div>
 
-      <div>
-        <Label htmlFor="community_location_type">Kind of place</Label>
-        <select
-          id="community_location_type"
-          name="location_type"
-          defaultValue={community.location_type ?? ""}
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Not a specific place</option>
-          {PLACE_LOCATION_TYPES.map((lt) => (
-            <option key={lt.key} value={lt.key}>
-              {lt.label}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Islands and coastal areas get live tide times alongside their weather.
-        </p>
-      </div>
+          <div>
+            <Label htmlFor="community_location_type">Kind of place</Label>
+            <select
+              id="community_location_type"
+              name="location_type"
+              defaultValue={community.location_type ?? ""}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Not a specific place</option>
+              {PLACE_LOCATION_TYPES.map((lt) => (
+                <option key={lt.key} value={lt.key}>
+                  {lt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Islands and coastal areas get live tide times alongside their weather.
+            </p>
+          </div>
+        </>
+      )}
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
