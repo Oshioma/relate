@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Sprout,
   Sun,
@@ -9,10 +10,24 @@ import {
   Flower2,
   Bean,
   Info,
+  ShieldCheck,
+  Moon,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cropCategoryLabel } from "@/lib/crop-categories";
-import type { Crop, CropSection } from "@/types/database";
+import {
+  PHASE_EMOJI,
+  PHASE_HEADLINE,
+  PHASE_GUIDANCE,
+  GROUP_LABEL,
+  GROUP_SOW_PHASE,
+  GROUP_HARVEST_PHASE,
+  cropLunarGroup,
+  type MoonPhase,
+} from "@/lib/lunar";
+import type { Crop, CropSection, CompanionRelationship } from "@/types/database";
+import type { CropDetail, CropCompanionWithLink } from "@/lib/data/crop-guides";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -62,7 +77,6 @@ const WATER_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
   high: { label: "High water", icon: <Droplets className="h-3.5 w-3.5" /> },
 };
 
-// A labelled fact for the overview grid, only rendered when present.
 function Fact({ label, value }: { label: string; value: string | number | null }) {
   if (value == null || value === "") return null;
   return (
@@ -73,9 +87,129 @@ function Fact({ label, value }: { label: string; value: string | number | null }
   );
 }
 
-export function CropDetailView({ crop }: { crop: Crop }) {
+// Optional labelled paragraph inside a pest/disease card.
+function Detail({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return (
+    <div className="mt-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
+const RELATIONSHIP_META: Record<CompanionRelationship, { label: string; tone: "accent" | "neutral" | "danger" }> = {
+  excellent: { label: "Excellent companions", tone: "accent" },
+  neutral: { label: "Neutral companions", tone: "neutral" },
+  avoid: { label: "Plants to avoid", tone: "danger" },
+};
+
+function severityTone(severity: string | null): "neutral" | "danger" {
+  return severity && /high/i.test(severity) ? "danger" : "neutral";
+}
+
+function CompanionGroup({
+  relationship,
+  companions,
+  communitySlug,
+  spaceSlug,
+}: {
+  relationship: CompanionRelationship;
+  companions: CropCompanionWithLink[];
+  communitySlug: string;
+  spaceSlug: string;
+}) {
+  if (companions.length === 0) return null;
+  const meta = RELATIONSHIP_META[relationship];
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <Badge tone={meta.tone}>{meta.label}</Badge>
+      </div>
+      <ul className="space-y-2">
+        {companions.map((c) => {
+          const inner = (
+            <>
+              <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                {c.companion_name}
+                {c.companion_slug && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+              </span>
+              {c.reason && <span className="text-sm text-muted-foreground">{c.reason}</span>}
+            </>
+          );
+          return (
+            <li key={c.id} className="rounded-md border border-border bg-card p-3">
+              {c.companion_slug ? (
+                <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/crop-guides/${c.companion_slug}`} className="block hover:opacity-80">
+                  {inner}
+                </Link>
+              ) : (
+                <div>{inner}</div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function MoonGardening({ crop, currentPhase }: { crop: Crop; currentPhase: MoonPhase }) {
+  const group = cropLunarGroup(crop);
+  const sowPhase = GROUP_SOW_PHASE[group];
+  const harvestPhase = GROUP_HARVEST_PHASE[group];
+  return (
+    <section className="rounded-lg border border-border bg-card p-5">
+      <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+        <Moon className="h-4 w-4 text-accent" />
+        Moon gardening
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Treated as a <span className="font-medium text-foreground">{GROUP_LABEL[group].toLowerCase()}</span> for lunar timing.
+      </p>
+
+      <div className="mt-4 rounded-md bg-accent-soft p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent">Right now</p>
+        <p className="mt-1 text-sm font-medium text-foreground">
+          {PHASE_EMOJI[currentPhase]} {currentPhase} — {PHASE_HEADLINE[currentPhase]}
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{PHASE_GUIDANCE[currentPhase]}</p>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-md border border-border p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Best phase to sow</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {PHASE_EMOJI[sowPhase]} {sowPhase}
+          </p>
+        </div>
+        <div className="rounded-md border border-border p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Best phase to harvest</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {PHASE_EMOJI[harvestPhase]} {harvestPhase}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CropDetailView({
+  detail,
+  currentPhase,
+  communitySlug,
+  spaceSlug,
+}: {
+  detail: CropDetail;
+  currentPhase: MoonPhase;
+  communitySlug: string;
+  spaceSlug: string;
+}) {
+  const { crop, varieties, companions, pests, diseases } = detail;
   const sun = crop.sun ? SUN_LABELS[crop.sun] : null;
   const water = crop.water_need ? WATER_LABELS[crop.water_need] : null;
+
+  const companionsByRel = (rel: CompanionRelationship) => companions.filter((c) => c.relationship === rel);
 
   return (
     <div className="space-y-6">
@@ -97,7 +231,6 @@ export function CropDetailView({ crop }: { crop: Crop }) {
           </div>
           {crop.scientific_name && <p className="mt-1 text-sm italic text-muted-foreground">{crop.scientific_name}</p>}
 
-          {/* Quick badges */}
           <div className="mt-4 flex flex-wrap gap-2">
             {sun && <QuickBadge icon={sun.icon} label={sun.label} />}
             {water && <QuickBadge icon={water.icon} label={water.label} />}
@@ -116,7 +249,6 @@ export function CropDetailView({ crop }: { crop: Crop }) {
         </section>
       )}
 
-      {/* Overview facts */}
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="mb-3 text-base font-semibold text-foreground">At a glance</h2>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -138,17 +270,111 @@ export function CropDetailView({ crop }: { crop: Crop }) {
       <SectionBlock title="Organic feeding" section={crop.feeding} />
       <SectionBlock title="Harvest" section={crop.harvest} />
 
-      {/* Sections still to come in later phases — signposted so the page reads as
-          part of a larger, living guide rather than a static stub. */}
+      {/* Companion planting */}
+      {companions.length > 0 && (
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h2 className="text-base font-semibold text-foreground">Companion planting</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Grow alongside these — tap a linked crop to open its guide.</p>
+          <div className="mt-4 space-y-5">
+            <CompanionGroup relationship="excellent" companions={companionsByRel("excellent")} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+            <CompanionGroup relationship="neutral" companions={companionsByRel("neutral")} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+            <CompanionGroup relationship="avoid" companions={companionsByRel("avoid")} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+          </div>
+        </section>
+      )}
+
+      {/* Pests — organic guidance only */}
+      {pests.length > 0 && (
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+            <Bug className="h-4 w-4 text-muted-foreground" />
+            Pests
+          </h2>
+          <div className="mt-4 space-y-4">
+            {pests.map((pest) => (
+              <div key={pest.id} className="rounded-md border border-border p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">{pest.name}</h3>
+                  {pest.severity && <Badge tone={severityTone(pest.severity)}>{pest.severity}</Badge>}
+                </div>
+                <Detail label="Symptoms" value={pest.symptoms} />
+                <Detail label="Life cycle" value={pest.life_cycle} />
+                <Detail label="Damage" value={pest.damage} />
+                <Detail label="Organic treatments" value={pest.organic_treatments} />
+                <Detail label="Natural predators" value={pest.natural_predators} />
+                <Detail label="Prevention" value={pest.prevention} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Diseases — organic guidance only */}
+      {diseases.length > 0 && (
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            Diseases
+          </h2>
+          <div className="mt-4 space-y-4">
+            {diseases.map((disease) => (
+              <div key={disease.id} className="rounded-md border border-border p-4">
+                <h3 className="text-sm font-semibold text-foreground">{disease.name}</h3>
+                <Detail label="Symptoms" value={disease.symptoms} />
+                <Detail label="Causes" value={disease.causes} />
+                <Detail label="Early warning signs" value={disease.early_signs} />
+                <Detail label="Organic control" value={disease.organic_control} />
+                <Detail label="Prevention" value={disease.prevention} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Varieties */}
+      {varieties.length > 0 && (
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h2 className="text-base font-semibold text-foreground">Varieties</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {varieties.map((v) => (
+              <div key={v.id} className="rounded-md border border-border p-4">
+                <h3 className="text-sm font-semibold text-foreground">{v.name}</h3>
+                {v.description && <p className="mt-1 text-sm text-muted-foreground">{v.description}</p>}
+                <dl className="mt-3 space-y-1.5 text-xs">
+                  {[
+                    ["Growth habit", v.growth_habit],
+                    ["Time to harvest", v.time_to_harvest],
+                    ["Yield", v.yield],
+                    ["Disease resistance", v.disease_resistance],
+                    ["Best climates", v.best_climates],
+                    ["Flavour", v.flavour],
+                    ["Uses", v.uses],
+                  ].map(([label, value]) =>
+                    value ? (
+                      <div key={label} className="flex gap-2">
+                        <dt className="shrink-0 font-medium text-foreground">{label}:</dt>
+                        <dd className="text-muted-foreground">{value}</dd>
+                      </div>
+                    ) : null,
+                  )}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <MoonGardening crop={crop} currentPhase={currentPhase} />
+
+      {/* Still to come in later phases */}
       <section className="rounded-lg border border-dashed border-border p-5">
         <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
           <Info className="h-4 w-4 text-muted-foreground" />
           More coming to this guide
         </h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          {["Varieties", "Companion planting", "Pests (organic)", "Diseases (organic)", "Regional calendar", "Growing journals", "Moon gardening"].map((label) => (
+          {["Region-aware planting calendar", "Growing journals", "Save to My Garden", "AI growing assistant"].map((label) => (
             <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1">
-              {label === "Pests (organic)" ? <Bug className="h-3 w-3" /> : null}
               {label}
             </span>
           ))}

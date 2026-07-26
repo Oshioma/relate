@@ -1158,6 +1158,69 @@ export type Crop = {
   updated_at: string;
 };
 
+export type CropVariety = {
+  id: string;
+  crop_id: string;
+  name: string;
+  image_url: string | null;
+  description: string | null;
+  growth_habit: string | null;
+  time_to_harvest: string | null;
+  yield: string | null;
+  disease_resistance: string | null;
+  best_climates: string | null;
+  flavour: string | null;
+  uses: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CompanionRelationship = "excellent" | "neutral" | "avoid";
+
+export type CropCompanion = {
+  id: string;
+  crop_id: string;
+  companion_crop_id: string | null;
+  companion_name: string;
+  relationship: CompanionRelationship;
+  reason: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+// crop_pests / crop_diseases carry organic guidance only — there is no
+// chemical-control field by design (see the sections migration).
+export type CropPest = {
+  id: string;
+  crop_id: string;
+  name: string;
+  photo_url: string | null;
+  symptoms: string | null;
+  life_cycle: string | null;
+  damage: string | null;
+  organic_treatments: string | null;
+  natural_predators: string | null;
+  prevention: string | null;
+  severity: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type CropDisease = {
+  id: string;
+  crop_id: string;
+  name: string;
+  photo_url: string | null;
+  symptoms: string | null;
+  causes: string | null;
+  organic_control: string | null;
+  prevention: string | null;
+  early_signs: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1603,6 +1666,27 @@ export type Database = {
         Row: Crop;
         Insert: Partial<Crop> & { slug: string; common_name: string };
         Update: Partial<Crop>;
+      } & NoRel;
+      crop_varieties: {
+        Row: CropVariety;
+        Insert: Partial<CropVariety> & { crop_id: string; name: string };
+        Update: Partial<CropVariety>;
+      } & NoRel;
+      crop_companions: {
+        Row: CropCompanion;
+        Insert: Partial<CropCompanion> & { crop_id: string; companion_name: string };
+        Update: Partial<CropCompanion>;
+        Relationships: [FKey<"crop_id", "crops">, FKey<"companion_crop_id", "crops">];
+      };
+      crop_pests: {
+        Row: CropPest;
+        Insert: Partial<CropPest> & { crop_id: string; name: string };
+        Update: Partial<CropPest>;
+      } & NoRel;
+      crop_diseases: {
+        Row: CropDisease;
+        Insert: Partial<CropDisease> & { crop_id: string; name: string };
+        Update: Partial<CropDisease>;
       } & NoRel;
     };
     Views: Record<string, never>;
