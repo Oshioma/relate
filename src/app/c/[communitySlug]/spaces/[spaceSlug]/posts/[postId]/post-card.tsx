@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { MediaAttachment } from "@/components/ui/media-attachment";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { updatePost, deletePost } from "../../actions";
 import type { PostWithAuthor } from "@/lib/data/posts";
 
@@ -99,8 +99,22 @@ export function PostCard({
     );
   }
 
+  // Photos and videos lead as a full-width banner; documents stay an inline
+  // download link within the body.
+  const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 overflow-hidden">
+      {bannerUrl && (
+        <div className="aspect-[16/9] w-full bg-muted">
+          {isVideoUrl(bannerUrl) ? (
+            <video controls preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+          )}
+        </div>
+      )}
       <CardContent className="pt-6">
         <div className="flex items-start gap-3">
           <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={36} />
@@ -114,7 +128,7 @@ export function PostCard({
               {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
             </p>
             {post.body && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.body}</p>}
-            {post.media_url && (
+            {post.media_url && !bannerUrl && (
               <div className="mt-3">
                 <MediaAttachment url={post.media_url} />
               </div>

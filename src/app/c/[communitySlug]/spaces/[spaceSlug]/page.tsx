@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { RichText } from "@/components/ui/rich-text";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getSpacePosts } from "@/lib/data/posts";
@@ -184,7 +184,9 @@ export default async function SpaceDetailPage({
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
     isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, viewerId) : Promise.resolve([]),
     isCourseSpace ? getSpaceCourses(supabase, space.id, viewerId) : Promise.resolve([]),
-    isCropGuidesSpace || isMyCropsSpace ? getCrops(supabase) : Promise.resolve([]),
+    // Crops power the Crop Guides / My Crops views, and also the "choose a
+    // crop photo" picker in the discussion composer.
+    isCropGuidesSpace || isMyCropsSpace || isDiscussionLike ? getCrops(supabase) : Promise.resolve([]),
   ]);
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
@@ -235,6 +237,9 @@ export default async function SpaceDetailPage({
   const showLiveConditions = isResourceSpace && /tide|weather/i.test(space.name);
 
   const canPost = membership?.status === "active";
+  // The composer offers the author's own photo as a one-tap image source, so
+  // fetch their profile only when they can actually post in a discussion space.
+  const posterProfile = isDiscussionLike && canPost && user ? await getProfile(supabase, user.id) : null;
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
@@ -591,41 +596,64 @@ export default async function SpaceDetailPage({
         <>
           {canPost && (
             <div className="mb-6">
-              <NewPostForm communityId={community.id} spaceId={space.id} communitySlug={community.slug} spaceSlug={space.slug} />
+              <NewPostForm
+                communityId={community.id}
+                spaceId={space.id}
+                communitySlug={community.slug}
+                spaceSlug={space.slug}
+                crops={crops}
+                avatarUrl={posterProfile?.avatar_url}
+                authorName={posterProfile?.full_name || posterProfile?.username}
+              />
             </div>
           )}
 
           {posts.length === 0 ? (
             <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="No posts yet" description="Be the first to start a discussion here." />
           ) : (
-            <div className="space-y-3">
-              {posts.map((post) => (
-                <Link key={post.id} href={`/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`}>
-                  <Card className="transition-shadow hover:shadow-sm">
-                    <CardContent className="pt-5">
-                      <div className="flex items-start gap-3">
-                        <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {post.is_pinned && <Pin className="h-3.5 w-3.5 text-accent" />}
-                            <h3 className="text-sm font-semibold text-foreground">{post.title}</h3>
-                            <Badge tone="neutral">{post.post_type}</Badge>
-                          </div>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
-                          </p>
-                          {post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{post.body}</p>}
-                          {post.media_url && (
-                            <div className="mt-2">
-                              <MediaAttachment url={post.media_url} className="max-h-48" />
-                            </div>
+            <div className="space-y-4">
+              {posts.map((post) => {
+                // Photos and videos become a full-width banner atop the card so
+                // the imagery leads; documents stay an inline link in the body.
+                const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+                return (
+                  <Link key={post.id} href={`/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`}>
+                    <Card className="overflow-hidden transition-shadow hover:shadow-sm">
+                      {bannerUrl && (
+                        <div className="aspect-[16/9] w-full bg-muted">
+                          {isVideoUrl(bannerUrl) ? (
+                            <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
                           )}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                      )}
+                      <CardContent className="pt-5">
+                        <div className="flex items-start gap-3">
+                          <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {post.is_pinned && <Pin className="h-3.5 w-3.5 text-accent" />}
+                              <h3 className="text-sm font-semibold text-foreground">{post.title}</h3>
+                              <Badge tone="neutral">{post.post_type}</Badge>
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
+                            </p>
+                            {post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{post.body}</p>}
+                            {post.media_url && !bannerUrl && (
+                              <div className="mt-2">
+                                <MediaAttachment url={post.media_url} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </>
