@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CropCard } from "./crop-card";
-import { PlantScannerPanel } from "./plant-scanner-panel";
 import { CROP_CATEGORIES, cropCategoryLabel } from "@/lib/crop-categories";
 import { createCommunityRegion, deleteCommunityRegion, type CropRegionFormState } from "./crop-guides-actions";
 import type { CropListItem, MonthCalendarRow } from "@/lib/data/crop-guides";
@@ -32,8 +31,6 @@ export function CropGuidesView({
   savedIds,
   farmCrops,
   farmAppUrl,
-  scannerEnabled,
-  isMember,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -47,8 +44,6 @@ export function CropGuidesView({
   savedIds: string[];
   farmCrops: FarmCrop[];
   farmAppUrl: string | null;
-  scannerEnabled: boolean;
-  isMember: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -129,9 +124,6 @@ export function CropGuidesView({
 
   return (
     <div>
-      {/* Plant health scanner */}
-      {scannerEnabled && isMember && <PlantScannerPanel communitySlug={communitySlug} cropGuidesSpaceSlug={spaceSlug} />}
-
       {/* My crops — read from the shamba.online farm app */}
       {farmCrops.length > 0 && <MyFarmCrops farmCrops={farmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={communitySlug} spaceSlug={spaceSlug} />}
 
