@@ -4,11 +4,15 @@ import type { BusinessCategory, BusinessCustomCategory } from "@/types/database"
 // resolvers need — BusinessCategoryLabelOverride from the DB satisfies this.
 export type CategoryLabelOverride = { category: BusinessCategory; label: string };
 
+// "accommodation" is intentionally absent: places to stay live in the dedicated
+// Accommodation space (space_type = "accommodation"), which is far richer than a
+// directory category. Legacy businesses tagged "accommodation" still render
+// (businessCategoryLabel humanises the slug) and get a bridge CTA to convert
+// into a stay — see business-stay-bridge.tsx.
 export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] = [
   { value: "restaurant", label: "Restaurant" },
   { value: "cafe", label: "Café" },
   { value: "shop", label: "Shop" },
-  { value: "accommodation", label: "Accommodation" },
   { value: "service", label: "Service" },
   { value: "health", label: "Health" },
   { value: "fitness", label: "Fitness" },
