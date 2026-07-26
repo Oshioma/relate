@@ -581,6 +581,30 @@ export type AccommodationListing = {
   updated_at: string;
 };
 
+// One member's review of a stay — a 1-5 star rating with optional text, one per
+// member per listing. Mirrors BusinessReview.
+export type AccommodationReview = {
+  id: string;
+  listing_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A public reply to a review from the host (listed_by) or staff — one per
+// review, like a Google Business response. Mirrors BusinessReviewReply.
+export type AccommodationReviewReply = {
+  id: string;
+  review_id: string;
+  listing_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
 // A member's bookmark of a stay. Visible only to the member who saved it, so
 // the accommodation view's "Saved" filter reflects that viewer alone.
 export type AccommodationSave = {
@@ -1266,6 +1290,18 @@ export type Database = {
         Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
         Update: Partial<AccommodationListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      accommodation_reviews: {
+        Row: AccommodationReview;
+        Insert: Partial<AccommodationReview> & { listing_id: string; author_id: string; rating: number };
+        Update: Partial<AccommodationReview>;
+        Relationships: [FKey<"listing_id", "accommodation_listings">, FKey<"author_id", "profiles">];
+      };
+      accommodation_review_replies: {
+        Row: AccommodationReviewReply;
+        Insert: Partial<AccommodationReviewReply> & { review_id: string; listing_id: string; author_id: string; body: string };
+        Update: Partial<AccommodationReviewReply>;
+        Relationships: [FKey<"review_id", "accommodation_reviews">, FKey<"listing_id", "accommodation_listings">, FKey<"author_id", "profiles">];
       };
       accommodation_saves: {
         Row: AccommodationSave;

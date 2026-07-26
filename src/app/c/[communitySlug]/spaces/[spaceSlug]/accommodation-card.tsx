@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
+import { StarRatingDisplay } from "./star-rating";
 import { toggleSaveAccommodation } from "./accommodation-actions";
 import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 
@@ -98,6 +99,12 @@ export function AccommodationCard({
 
       <div className="p-3.5">
         <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">{listing.name}</h3>
+
+        {listing.ratingCount > 0 && (
+          <div className="mt-1">
+            <StarRatingDisplay value={listing.avgRating} count={listing.ratingCount} />
+          </div>
+        )}
 
         {listing.business?.name && (
           <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">

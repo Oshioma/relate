@@ -47,6 +47,11 @@ export default async function AccommodationDetailPage({
         userId={viewerId}
         canManage={canManage}
         canSave={Boolean(isActive)}
+        // Any active member may review, except the host of this listing.
+        canReview={Boolean(isActive) && detail.listing.listed_by !== viewerId}
+        // The host or staff may reply to reviews.
+        canReply={canManage}
+        isStaff={Boolean(isStaff)}
       />
     </div>
   );

@@ -7,8 +7,11 @@ import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2,
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
+import { StarRatingDisplay } from "./star-rating";
 import { ImageCarousel } from "./image-carousel";
 import { EditAccommodationForm } from "./edit-accommodation-form";
+import { AccommodationReviewForm } from "./accommodation-review-form";
+import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import type { AccommodationDetail } from "@/lib/data/accommodation";
 
@@ -29,6 +32,9 @@ export function AccommodationDetailView({
   userId,
   canManage,
   canSave,
+  canReview,
+  canReply,
+  isStaff,
 }: {
   detail: AccommodationDetail;
   communitySlug: string;
@@ -36,8 +42,13 @@ export function AccommodationDetailView({
   userId: string;
   canManage: boolean;
   canSave: boolean;
+  // An active member who isn't the host — may review.
+  canReview: boolean;
+  // The host or staff — may reply to reviews.
+  canReply: boolean;
+  isStaff: boolean;
 }) {
-  const { listing } = detail;
+  const { listing, reviews, avgRating, ratingCount, viewerReview } = detail;
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(detail.saved);
   const [isPending, startTransition] = useTransition();
@@ -115,6 +126,9 @@ export function AccommodationDetailView({
                 <BedDouble className="h-4 w-4" />
                 {accommodationTypeLabel(listing.accommodation_type)}
               </p>
+              <div className="mt-1.5">
+                <StarRatingDisplay value={avgRating} count={ratingCount} />
+              </div>
               {price && <p className="mt-1.5 text-sm font-semibold text-foreground">{price}</p>}
             </div>
 
@@ -206,6 +220,33 @@ export function AccommodationDetailView({
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </CardContent>
       </Card>
+
+      <div>
+        <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Reviews {ratingCount > 0 && `(${ratingCount})`}
+        </h2>
+
+        {canReview && (
+          <div className="mb-4">
+            <AccommodationReviewForm listingId={listing.id} communitySlug={communitySlug} spaceSlug={spaceSlug} existing={viewerReview} />
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {reviews.map((review) => (
+            <AccommodationReviewItem
+              key={review.id}
+              review={review}
+              listingId={listing.id}
+              communitySlug={communitySlug}
+              spaceSlug={spaceSlug}
+              canDeleteReview={isStaff || review.author_id === userId}
+              canReply={canReply}
+            />
+          ))}
+          {reviews.length === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Be the first to leave one.</p>}
+        </div>
+      </div>
     </div>
   );
 }
