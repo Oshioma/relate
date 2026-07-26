@@ -249,41 +249,33 @@ export default async function CommunityFeedPage({
 
   return (
     <div>
-      {/* Hero: cover image fades into the page background so the name and
-          description stay readable in both light and dark. With no cover, a
-          subtle accent gradient still gives the header a strong presence. */}
-      <section
-        className={cn(
-          "relative isolate overflow-hidden border-b border-border",
-          !community.cover_image_url && "bg-gradient-to-br from-accent/10 via-background to-background"
-        )}
-      >
+      {/* Hero: the cover image sits as a self-contained banner up top, and the
+          name and description live in a clean block below it — so text never
+          fights the artwork for legibility. With no cover, a subtle accent
+          gradient still gives the header a strong presence. */}
+      <section className="border-b border-border">
         {community.cover_image_url && (
-          <>
+          <div className="aspect-[3/1] w-full overflow-hidden bg-muted sm:aspect-[4/1]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={community.cover_image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
-          </>
+            <img src={community.cover_image_url} alt="" className="h-full w-full object-cover" />
+          </div>
         )}
-        <div
-          className={cn(
-            "relative mx-auto flex max-w-4xl flex-col gap-5 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-6",
-            community.cover_image_url ? "pb-8 pt-40 sm:pb-10 sm:pt-60" : "py-10 sm:py-14"
-          )}
-        >
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
-            {community.description && (
-              <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
-                {community.description}
-              </p>
+        <div className={cn(!community.cover_image_url && "bg-gradient-to-br from-accent/10 via-background to-background")}>
+          <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
+              {community.description && (
+                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
+                  {community.description}
+                </p>
+              )}
+            </div>
+            {user && !membership && (
+              <div className="shrink-0">
+                <JoinCommunityButton communityId={community.id} />
+              </div>
             )}
           </div>
-          {user && !membership && (
-            <div className="shrink-0">
-              <JoinCommunityButton communityId={community.id} />
-            </div>
-          )}
         </div>
       </section>
 
