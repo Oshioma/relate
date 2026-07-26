@@ -31,7 +31,8 @@ export type SpaceType =
   | "jobs"
   | "accommodation"
   | "recommendations"
-  | "course";
+  | "course"
+  | "crop_guides";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -1114,6 +1115,49 @@ export type MemberConnection = {
   updated_at: string;
 };
 
+// Crop Guides — a platform-global, organic-first crop record. Not community
+// scoped: every community's Crop Guides space browses the same published
+// library. The narrative sections (soil/sowing/watering/feeding/harvest) are
+// flat label -> value maps rendered as blocks by the crop page.
+export type CropStatus = "draft" | "published";
+export type CropSection = Record<string, string>;
+
+export type Crop = {
+  id: string;
+  slug: string;
+  common_name: string;
+  scientific_name: string | null;
+  family: string | null;
+  category: string;
+  difficulty: string | null;
+  lifecycle: string | null;
+  beginner_friendly: boolean;
+  time_to_maturity_days: number | null;
+  average_yield: string | null;
+  preferred_climate: string | null;
+  usda_zones: string | null;
+  tropical_suitable: boolean;
+  pollination_type: string | null;
+  sun: string | null;
+  water_need: string | null;
+  drought_tolerant: boolean;
+  pollinator_friendly: boolean;
+  nitrogen_fixer: boolean;
+  organic_favourite: boolean;
+  edible_part: string | null;
+  image_url: string | null;
+  overview: string | null;
+  soil: CropSection;
+  sowing: CropSection;
+  watering: CropSection;
+  feeding: CropSection;
+  harvest: CropSection;
+  status: CropStatus;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1554,6 +1598,11 @@ export type Database = {
         Row: MemberConnection;
         Insert: Partial<MemberConnection> & { requester_id: string; addressee_id: string };
         Update: Partial<MemberConnection>;
+      } & NoRel;
+      crops: {
+        Row: Crop;
+        Insert: Partial<Crop> & { slug: string; common_name: string };
+        Update: Partial<Crop>;
       } & NoRel;
     };
     Views: Record<string, never>;
