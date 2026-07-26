@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCropDetail, getCropTips, getCropJournals, computeJournalStats } from "@/lib/data/crop-guides";
+import { buildCropContext, askCropAssistant } from "@/lib/ai/crop-assistant";
 
 export type CropRegionFormState = { error: string } | undefined;
 
@@ -220,4 +222,49 @@ export async function toggleSaveCrop(formData: FormData): Promise<void> {
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   if (cropSlug) revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+}
+
+// --- AI Growing Assistant ---------------------------------------------------
+
+export type CropAssistantState = { question?: string; answer?: string; error?: string } | undefined;
+
+// Grounds the answer in the crop guide + this community's tips/journals + the
+// current season and moon phase. Members only. Returns a friendly message when
+// the assistant isn't configured (no ANTHROPIC_API_KEY) rather than erroring.
+export async function askCropQuestion(_prevState: CropAssistantState, formData: FormData): Promise<CropAssistantState> {
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+  const communityId = String(formData.get("community_id") ?? "");
+  const question = String(formData.get("question") ?? "").trim();
+
+  if (!question) {
+    return { error: "Type a question first." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { question, error: "You need to be signed in." };
+  }
+
+  const detail = await getCropDetail(supabase, cropSlug);
+  if (!detail) {
+    return { question, error: "Crop not found." };
+  }
+
+  const [tips, journals] = await Promise.all([
+    getCropTips(supabase, detail.crop.id, communityId),
+    getCropJournals(supabase, detail.crop.id, communityId),
+  ]);
+
+  const approvedTips = tips.filter((t) => t.approved).map((t) => ({ region: t.region, body: t.body }));
+  const context = buildCropContext(detail, approvedTips, computeJournalStats(journals), new Date());
+
+  const answer = await askCropAssistant(detail.crop.common_name, question, context);
+  if (!answer) {
+    return { question, error: "The growing assistant isn't available right now." };
+  }
+
+  return { question, answer };
 }
