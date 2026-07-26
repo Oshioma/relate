@@ -23,7 +23,8 @@ import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, getCropProposals, type MonthCalendarRow } from "@/lib/data/crop-guides";
-import { getMyFarmCrops, type FarmCrop } from "@/lib/farm-bridge";
+import { getMyFarmCrops, getPublicFarmCrops, isFarmBridgeConfigured, type FarmCrop, type PublicFarm } from "@/lib/farm-bridge";
+import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import { isPlantIdConfigured } from "@/lib/ai/plant-id";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
@@ -208,6 +209,13 @@ export default async function SpaceDetailPage({
   // configured and the user's email is linked to a farm).
   const cropFarmCrops: FarmCrop[] = isMyCropsSpace ? await getMyFarmCrops(user?.email) : [];
   const farmAppUrl = process.env.NEXT_PUBLIC_FARM_APP_URL ?? null;
+  // Farm sharing: whether the viewer has opted their own farm public, and the
+  // other members of this community who have opted in (with their crops). The
+  // toggle only makes sense when the bridge is actually wired up.
+  const farmBridgeReady = isMyCropsSpace && isFarmBridgeConfigured();
+  const myFarmPublic: boolean = isMyCropsSpace && user ? await getMyFarmPublic(supabase, user.id) : false;
+  const publicFarms: PublicFarm[] =
+    isMyCropsSpace && user ? await getPublicFarmCrops(await getPublicFarmers(community.id, user.id)) : [];
 
   const featuredBusinessCategories = isBusinessDirectorySpace
     ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
@@ -564,7 +572,17 @@ export default async function SpaceDetailPage({
         !canPost ? (
           <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to see your crops here." />
         ) : (
-          <MyCropsView farmCrops={cropFarmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+          <MyCropsView
+            farmCrops={cropFarmCrops}
+            farmAppUrl={farmAppUrl}
+            crops={crops}
+            communitySlug={community.slug}
+            spaceSlug={space.slug}
+            cropGuidesSpaceSlug={cropGuidesSpaceSlug}
+            canShare={farmBridgeReady}
+            isPublic={myFarmPublic}
+            publicFarms={publicFarms}
+          />
         )
       ) : isPlantIdSpace ? (
         !isPlantIdConfigured() ? (

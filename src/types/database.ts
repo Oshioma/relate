@@ -1354,6 +1354,18 @@ export type CropMedicinalUse = {
   updated_at: string;
 };
 
+// Opt-in sharing of a member's shamba.online farm on the "My Crops" page. When
+// is_public, other members can browse this member's crops. farm_email is a
+// server-only snapshot used to query the farm bridge — RLS keeps it to the
+// owner's own row (see supabase/migrations/*_farm_shares_public_farms.sql).
+export type FarmShare = {
+  profile_id: string;
+  is_public: boolean;
+  farm_email: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1865,6 +1877,11 @@ export type Database = {
         Update: Partial<CropProposal>;
         Relationships: [FKey<"created_by", "profiles">];
       };
+      farm_shares: {
+        Row: FarmShare;
+        Insert: Partial<FarmShare> & { profile_id: string };
+        Update: Partial<FarmShare>;
+      } & NoRel;
     };
     Views: Record<string, never>;
     Functions: {
