@@ -27,11 +27,12 @@ import {
   type MoonPhase,
 } from "@/lib/lunar";
 import type { Crop, CropSection, CompanionRelationship, CropRegion, CropCalendar, CommunityCropRegion } from "@/types/database";
-import type { CropDetail, CropCompanionWithLink, JournalWithAuthor, JournalStats, TipWithAuthor } from "@/lib/data/crop-guides";
+import type { CropDetail, CropCompanionWithLink, JournalWithAuthor, JournalStats, TipWithAuthor, MedicinalUseWithAuthor } from "@/lib/data/crop-guides";
 import { PlantingCalendar } from "./planting-calendar";
 import { YieldCalculator } from "./yield-calculator";
 import { CropAssistantPanel } from "./crop-assistant-panel";
 import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
+import { MedicinalUses } from "./crop-medicinal";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -208,6 +209,7 @@ export function CropDetailView({
   journals,
   journalStats,
   tips,
+  medicinalUses,
   canContribute,
   isStaff,
   isSaved,
@@ -226,6 +228,7 @@ export function CropDetailView({
   journals: JournalWithAuthor[];
   journalStats: JournalStats;
   tips: TipWithAuthor[];
+  medicinalUses: MedicinalUseWithAuthor[];
   canContribute: boolean;
   isStaff: boolean;
   isSaved: boolean;
@@ -411,6 +414,9 @@ export function CropDetailView({
 
       {/* Regional knowledge (§22) */}
       <RegionalTips ctx={ctx} tips={tips} canContribute={canContribute} isStaff={isStaff} />
+
+      {/* Community medicinal-use log */}
+      <MedicinalUses ctx={ctx} uses={medicinalUses} canContribute={canContribute} isStaff={isStaff} />
 
       {/* Growing journals (§19) */}
       <GrowingJournals ctx={ctx} journals={journals} stats={journalStats} canContribute={canContribute} isStaff={isStaff} viewerId={viewerId} />

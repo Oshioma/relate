@@ -1300,6 +1300,22 @@ export type CropSave = {
   created_at: string;
 };
 
+// Community medicinal-use log — member-authored, staff-moderated, searchable by
+// ailment. Traditional knowledge, not medical advice.
+export type CropMedicinalUse = {
+  id: string;
+  crop_id: string;
+  community_id: string;
+  created_by: string;
+  ailment: string;
+  part_used: string | null;
+  preparation: string | null;
+  description: string | null;
+  approved: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1799,6 +1815,12 @@ export type Database = {
         Insert: Partial<CropSave> & { user_id: string; crop_id: string };
         Update: Partial<CropSave>;
       } & NoRel;
+      crop_medicinal_uses: {
+        Row: CropMedicinalUse;
+        Insert: Partial<CropMedicinalUse> & { crop_id: string; community_id: string; created_by: string; ailment: string };
+        Update: Partial<CropMedicinalUse>;
+        Relationships: [FKey<"created_by", "profiles">, FKey<"crop_id", "crops">];
+      };
     };
     Views: Record<string, never>;
     Functions: {

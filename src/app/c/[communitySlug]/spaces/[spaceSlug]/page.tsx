@@ -21,7 +21,7 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
-import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, type MonthCalendarRow } from "@/lib/data/crop-guides";
+import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, type FarmCrop } from "@/lib/farm-bridge";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
@@ -187,6 +187,9 @@ export default async function SpaceDetailPage({
     ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
     : [[], [], []];
   const cropSavedIds = isCropGuidesSpace && user ? await getSavedCropIds(supabase, user.id) : [];
+  // Extra per-crop search terms (pests, diseases, companions, community ailments)
+  // so the library is searchable by ailment and association, not just name.
+  const cropSearchIndex = isCropGuidesSpace ? await getCropSearchIndex(supabase, community.id) : {};
   // Standalone Plant Health Scanner / My Crops spaces deep-link matched crops
   // into the community's Crop Guides space, if one exists.
   const cropGuidesSpaceSlug: string | null =
@@ -533,6 +536,7 @@ export default async function SpaceDetailPage({
           monthCalendar={cropMonthCalendar}
           currentMonth={cropCurrentMonth}
           savedIds={cropSavedIds}
+          searchIndex={cropSearchIndex}
         />
       ) : isPlantScannerSpace ? (
         !isPlantScannerConfigured() ? (

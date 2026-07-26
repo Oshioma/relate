@@ -270,6 +270,74 @@ export async function askCropQuestion(_prevState: CropAssistantState, formData: 
   return { question, answer };
 }
 
+// --- Medicinal uses ---------------------------------------------------------
+
+export type CropMedicinalFormState = { error: string } | undefined;
+
+export async function addMedicinalUse(_prevState: CropMedicinalFormState, formData: FormData): Promise<CropMedicinalFormState> {
+  const cropId = String(formData.get("crop_id") ?? "");
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+  const ailment = String(formData.get("ailment") ?? "").trim();
+
+  if (!ailment) {
+    return { error: "Name the ailment or use." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  // approved is forced false for non-staff by the DB trigger.
+  const { error } = await supabase.from("crop_medicinal_uses").insert({
+    crop_id: cropId,
+    community_id: communityId,
+    created_by: user.id,
+    ailment,
+    part_used: optionalText(formData, "part_used"),
+    preparation: optionalText(formData, "preparation"),
+    description: optionalText(formData, "description"),
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+  return undefined;
+}
+
+export async function setMedicinalUseApproved(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const approved = String(formData.get("approved") ?? "") === "true";
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.from("crop_medicinal_uses").update({ approved }).eq("id", id);
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+}
+
+export async function deleteMedicinalUse(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.from("crop_medicinal_uses").delete().eq("id", id);
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+}
+
 // --- Plant Health Scanner ---------------------------------------------------
 
 export type PlantScanState =

@@ -11,6 +11,7 @@ import type {
   CommunityCropRegion,
   CropGrowingJournal,
   CropCommunityTip,
+  CropMedicinalUse,
   Profile,
 } from "@/types/database";
 
@@ -35,15 +36,17 @@ export type CropListItem = Pick<
   | "time_to_maturity_days"
   | "sun"
   | "water_need"
+  | "drought_tolerant"
   | "pollinator_friendly"
   | "nitrogen_fixer"
   | "organic_favourite"
+  | "edible_part"
   | "image_url"
   | "overview"
 >;
 
 const LIST_COLUMNS =
-  "id, slug, common_name, scientific_name, category, difficulty, beginner_friendly, time_to_maturity_days, sun, water_need, pollinator_friendly, nitrogen_fixer, organic_favourite, image_url, overview";
+  "id, slug, common_name, scientific_name, category, difficulty, beginner_friendly, time_to_maturity_days, sun, water_need, drought_tolerant, pollinator_friendly, nitrogen_fixer, organic_favourite, edible_part, image_url, overview";
 
 export async function getCrops(supabase: Client): Promise<CropListItem[]> {
   const { data, error } = await supabase
@@ -223,4 +226,53 @@ export async function getSavedCropIds(supabase: Client, userId: string): Promise
   const { data, error } = await supabase.from("crop_saves").select("crop_id").eq("user_id", userId);
   if (error) throw error;
   return (data ?? []).map((r) => r.crop_id);
+}
+
+// --- Medicinal uses + search index ------------------------------------------
+
+export type MedicinalUseWithAuthor = CropMedicinalUse & { author: Profile | null };
+
+export async function getCropMedicinalUses(supabase: Client, cropId: string, communityId: string): Promise<MedicinalUseWithAuthor[]> {
+  const { data, error } = await supabase
+    .from("crop_medicinal_uses")
+    .select("*, author:created_by (*)")
+    .eq("crop_id", cropId)
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as MedicinalUseWithAuthor[];
+}
+
+// Extra searchable terms per crop, so the library can be searched by pest,
+// disease, companion and (community, approved) ailment — not just crop name.
+// Returns crop_id -> a single lowercased blob of terms. RLS already scopes
+// medicinal ailments to what the viewer may see; the global tables are readable
+// for any published crop.
+export async function getCropSearchIndex(supabase: Client, communityId: string): Promise<Record<string, string>> {
+  const [{ data: pests }, { data: diseases }, { data: companions }, { data: medicinal }] = await Promise.all([
+    supabase.from("crop_pests").select("crop_id, name"),
+    supabase.from("crop_diseases").select("crop_id, name"),
+    supabase.from("crop_companions").select("crop_id, companion_name"),
+    supabase.from("crop_medicinal_uses").select("crop_id, ailment, preparation, part_used").eq("community_id", communityId),
+  ]);
+
+  const byCrop = new Map<string, string[]>();
+  const add = (cropId: string, term: string | null) => {
+    if (!term) return;
+    const list = byCrop.get(cropId) ?? [];
+    list.push(term);
+    byCrop.set(cropId, list);
+  };
+  for (const r of pests ?? []) add(r.crop_id, r.name);
+  for (const r of diseases ?? []) add(r.crop_id, r.name);
+  for (const r of companions ?? []) add(r.crop_id, r.companion_name);
+  for (const r of medicinal ?? []) {
+    add(r.crop_id, r.ailment);
+    add(r.crop_id, r.preparation);
+    add(r.crop_id, r.part_used);
+  }
+
+  const index: Record<string, string> = {};
+  for (const [cropId, terms] of byCrop) index[cropId] = terms.join(" ").toLowerCase();
+  return index;
 }
