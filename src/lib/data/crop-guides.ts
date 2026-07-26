@@ -9,6 +9,9 @@ import type {
   CropRegion,
   CropCalendar,
   CommunityCropRegion,
+  CropGrowingJournal,
+  CropCommunityTip,
+  Profile,
 } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
@@ -141,4 +144,83 @@ export async function getCurrentMonthCalendar(supabase: Client, month: number): 
   const { data, error } = await supabase.from("crop_calendars").select("crop_id, region_id, activity").eq("month", month);
   if (error) throw error;
   return (data ?? []) as MonthCalendarRow[];
+}
+
+// --- Community power: journals, tips, saves ---------------------------------
+
+export type JournalWithAuthor = CropGrowingJournal & { author: Profile | null };
+
+export async function getCropJournals(supabase: Client, cropId: string, communityId: string): Promise<JournalWithAuthor[]> {
+  const { data, error } = await supabase
+    .from("crop_growing_journals")
+    .select("*, author:user_id (*)")
+    .eq("crop_id", cropId)
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as JournalWithAuthor[];
+}
+
+export type JournalStats = {
+  growerCount: number;
+  entryCount: number;
+  avgYieldKg: number | null;
+  avgDaysToHarvest: number | null;
+  topVariety: { name: string; avgRating: number; count: number } | null;
+};
+
+// Aggregate journal entries into the headline stats shown on the crop page.
+// Computed in JS (like the guide-ratings aggregation) — the caller has already
+// read the community's entries via RLS.
+export function computeJournalStats(journals: CropGrowingJournal[]): JournalStats {
+  const growers = new Set(journals.map((j) => j.user_id));
+
+  const yields = journals.map((j) => j.yield_kg).filter((v): v is number => v != null);
+  const avgYieldKg = yields.length ? yields.reduce((s, v) => s + v, 0) / yields.length : null;
+
+  const spans = journals
+    .filter((j) => j.planted_on && j.harvested_on)
+    .map((j) => (new Date(j.harvested_on as string).getTime() - new Date(j.planted_on as string).getTime()) / 86400000)
+    .filter((d) => d >= 0);
+  const avgDaysToHarvest = spans.length ? Math.round(spans.reduce((s, v) => s + v, 0) / spans.length) : null;
+
+  // Highest-rated variety: group rated entries by variety, rank by average.
+  const byVariety = new Map<string, number[]>();
+  for (const j of journals) {
+    if (!j.variety || j.success_rating == null) continue;
+    const list = byVariety.get(j.variety) ?? [];
+    list.push(j.success_rating);
+    byVariety.set(j.variety, list);
+  }
+  let topVariety: JournalStats["topVariety"] = null;
+  for (const [name, ratings] of byVariety) {
+    const avg = ratings.reduce((s, v) => s + v, 0) / ratings.length;
+    if (!topVariety || avg > topVariety.avgRating) {
+      topVariety = { name, avgRating: avg, count: ratings.length };
+    }
+  }
+
+  return { growerCount: growers.size, entryCount: journals.length, avgYieldKg, avgDaysToHarvest, topVariety };
+}
+
+export type TipWithAuthor = CropCommunityTip & { author: Profile | null };
+
+// Regional tips visible to the viewer (RLS returns approved tips plus the
+// viewer's own / staff's pending ones).
+export async function getCropTips(supabase: Client, cropId: string, communityId: string): Promise<TipWithAuthor[]> {
+  const { data, error } = await supabase
+    .from("crop_community_tips")
+    .select("*, author:created_by (*)")
+    .eq("crop_id", cropId)
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as TipWithAuthor[];
+}
+
+// The set of crop ids the viewer has saved (empty for a guest).
+export async function getSavedCropIds(supabase: Client, userId: string): Promise<string[]> {
+  const { data, error } = await supabase.from("crop_saves").select("crop_id").eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.crop_id);
 }

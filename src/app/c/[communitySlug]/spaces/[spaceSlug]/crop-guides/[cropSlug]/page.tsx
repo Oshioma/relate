@@ -2,9 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCommunityBySlug } from "@/lib/data/community";
+import { getCurrentUser } from "@/lib/data/profile";
+import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getCropDetail, getCropRegions, getCommunityCropRegions, getCropCalendar } from "@/lib/data/crop-guides";
+import {
+  getCropDetail,
+  getCropRegions,
+  getCommunityCropRegions,
+  getCropCalendar,
+  getCropJournals,
+  computeJournalStats,
+  getCropTips,
+  getSavedCropIds,
+} from "@/lib/data/crop-guides";
 import { calcMoonPhase } from "@/lib/lunar";
 import { CropDetailView } from "../../crop-detail-view";
 
@@ -22,14 +32,24 @@ export default async function CropDetailPage({
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space || space.space_type !== "crop_guides") notFound();
 
+  const user = await getCurrentUser(supabase);
   const detail = await getCropDetail(supabase, cropSlug);
   if (!detail) notFound();
 
-  const [regions, communityRegions, calendar] = await Promise.all([
+  const [regions, communityRegions, calendar, journals, tips, savedIds, membership] = await Promise.all([
     getCropRegions(supabase),
     getCommunityCropRegions(supabase, community.id),
     getCropCalendar(supabase, detail.crop.id),
+    getCropJournals(supabase, detail.crop.id, community.id),
+    getCropTips(supabase, detail.crop.id, community.id),
+    user ? getSavedCropIds(supabase, user.id) : Promise.resolve([]),
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
   ]);
+
+  const journalStats = computeJournalStats(journals);
+  const canContribute = membership?.status === "active";
+  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  const isSaved = savedIds.includes(detail.crop.id);
 
   // Current moon phase / month are pure functions of today's date; computing
   // them on the server keeps the render deterministic (no hydration mismatch).
@@ -54,6 +74,14 @@ export default async function CropDetailPage({
         regions={regions}
         communityRegions={communityRegions}
         calendar={calendar}
+        journals={journals}
+        journalStats={journalStats}
+        tips={tips}
+        canContribute={Boolean(canContribute)}
+        isStaff={Boolean(isStaff)}
+        isSaved={isSaved}
+        viewerId={user?.id ?? ""}
+        communityId={community.id}
         communitySlug={community.slug}
         spaceSlug={space.slug}
       />

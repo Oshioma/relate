@@ -27,8 +27,9 @@ import {
   type MoonPhase,
 } from "@/lib/lunar";
 import type { Crop, CropSection, CompanionRelationship, CropRegion, CropCalendar, CommunityCropRegion } from "@/types/database";
-import type { CropDetail, CropCompanionWithLink } from "@/lib/data/crop-guides";
+import type { CropDetail, CropCompanionWithLink, JournalWithAuthor, JournalStats, TipWithAuthor } from "@/lib/data/crop-guides";
 import { PlantingCalendar } from "./planting-calendar";
+import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -202,6 +203,14 @@ export function CropDetailView({
   regions,
   communityRegions,
   calendar,
+  journals,
+  journalStats,
+  tips,
+  canContribute,
+  isStaff,
+  isSaved,
+  viewerId,
+  communityId,
   communitySlug,
   spaceSlug,
 }: {
@@ -211,6 +220,14 @@ export function CropDetailView({
   regions: CropRegion[];
   communityRegions: CommunityCropRegion[];
   calendar: CropCalendar[];
+  journals: JournalWithAuthor[];
+  journalStats: JournalStats;
+  tips: TipWithAuthor[];
+  canContribute: boolean;
+  isStaff: boolean;
+  isSaved: boolean;
+  viewerId: string;
+  communityId: string;
   communitySlug: string;
   spaceSlug: string;
 }) {
@@ -219,6 +236,7 @@ export function CropDetailView({
   const water = crop.water_need ? WATER_LABELS[crop.water_need] : null;
 
   const companionsByRel = (rel: CompanionRelationship) => companions.filter((c) => c.relationship === rel);
+  const ctx = { cropId: crop.id, communityId, communitySlug, spaceSlug, cropSlug: crop.slug };
 
   return (
     <div className="space-y-6">
@@ -249,6 +267,12 @@ export function CropDetailView({
             {crop.organic_favourite && <QuickBadge icon={<Leaf className="h-3.5 w-3.5" />} label="Organic favourite" />}
             {crop.drought_tolerant && <QuickBadge icon={<Droplet className="h-3.5 w-3.5" />} label="Drought tolerant" />}
           </div>
+
+          {canContribute && (
+            <div className="mt-4">
+              <SaveCropButton ctx={ctx} isSaved={isSaved} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -377,6 +401,12 @@ export function CropDetailView({
 
       <MoonGardening crop={crop} currentPhase={currentPhase} />
 
+      {/* Regional knowledge (§22) */}
+      <RegionalTips ctx={ctx} tips={tips} canContribute={canContribute} isStaff={isStaff} />
+
+      {/* Growing journals (§19) */}
+      <GrowingJournals ctx={ctx} journals={journals} stats={journalStats} canContribute={canContribute} isStaff={isStaff} viewerId={viewerId} />
+
       {/* Still to come in later phases */}
       <section className="rounded-lg border border-dashed border-border p-5">
         <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -384,7 +414,7 @@ export function CropDetailView({
           More coming to this guide
         </h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          {["Region-aware planting calendar", "Growing journals", "Save to My Garden", "AI growing assistant"].map((label) => (
+          {["Save to My Garden with reminders", "AI growing assistant", "Plant health scanner"].map((label) => (
             <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1">
               {label}
             </span>

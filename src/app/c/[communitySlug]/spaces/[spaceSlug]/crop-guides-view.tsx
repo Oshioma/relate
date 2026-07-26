@@ -1,14 +1,16 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X } from "lucide-react";
+import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X, Bookmark, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CropCard } from "./crop-card";
 import { CROP_CATEGORIES, cropCategoryLabel } from "@/lib/crop-categories";
 import { createCommunityRegion, deleteCommunityRegion, type CropRegionFormState } from "./crop-guides-actions";
 import type { CropListItem, MonthCalendarRow } from "@/lib/data/crop-guides";
+import type { FarmCrop } from "@/lib/farm-bridge";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -26,6 +28,9 @@ export function CropGuidesView({
   communityRegions,
   monthCalendar,
   currentMonth,
+  savedIds,
+  farmCrops,
+  farmAppUrl,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -36,9 +41,14 @@ export function CropGuidesView({
   communityRegions: CommunityCropRegion[];
   monthCalendar: MonthCalendarRow[];
   currentMonth: number;
+  savedIds: string[];
+  farmCrops: FarmCrop[];
+  farmAppUrl: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
   const cropsById = useMemo(() => new Map(crops.map((c) => [c.id, c])), [crops]);
 
@@ -79,6 +89,7 @@ export function CropGuidesView({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return crops.filter((c) => {
+      if (savedOnly && !savedSet.has(c.id)) return false;
       if (category && c.category !== category) return false;
       if (q) {
         const haystack = `${c.common_name} ${c.scientific_name ?? ""} ${c.overview ?? ""}`.toLowerCase();
@@ -86,7 +97,7 @@ export function CropGuidesView({
       }
       return true;
     });
-  }, [crops, query, category]);
+  }, [crops, query, category, savedOnly, savedSet]);
 
   const regionGroups = useMemo(() => {
     const seen = new Set<string>();
@@ -113,6 +124,9 @@ export function CropGuidesView({
 
   return (
     <div>
+      {/* My crops — read from the shamba.online farm app */}
+      {farmCrops.length > 0 && <MyFarmCrops farmCrops={farmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={communitySlug} spaceSlug={spaceSlug} />}
+
       {/* What can I grow now? */}
       {regionOptions.length > 0 && (
         <section className="mb-5 rounded-lg border border-border bg-card p-5">
@@ -182,8 +196,18 @@ export function CropGuidesView({
         </div>
       </div>
 
-      {activeCategories.length > 0 && (
+      {(activeCategories.length > 0 || savedSet.size > 0) && (
         <div className="mb-5 flex flex-wrap gap-2">
+          {savedSet.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setSavedOnly((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              <Bookmark className={`h-3 w-3 ${savedOnly ? "fill-current" : ""}`} />
+              Saved ({savedSet.size})
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setCategory(null)}
@@ -218,6 +242,76 @@ export function CropGuidesView({
         </div>
       )}
     </div>
+  );
+}
+
+// Read-only view of the user's crops from the shamba.online farm app. The farm
+// app stays the source of truth (reminders, tasks, harvests live there); relate
+// just surfaces them and links each to its guide where one exists.
+function MyFarmCrops({
+  farmCrops,
+  farmAppUrl,
+  crops,
+  communitySlug,
+  spaceSlug,
+}: {
+  farmCrops: FarmCrop[];
+  farmAppUrl: string | null;
+  crops: CropListItem[];
+  communitySlug: string;
+  spaceSlug: string;
+}) {
+  const slugByName = useMemo(() => new Map(crops.map((c) => [c.common_name.toLowerCase(), c.slug])), [crops]);
+
+  return (
+    <section className="mb-5 rounded-lg border border-border bg-card p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+            <Sprout className="h-4 w-4 text-accent" />
+            My crops
+          </h2>
+          <p className="text-xs text-muted-foreground">From your shamba.online farm — {farmCrops.length} growing</p>
+        </div>
+        {farmAppUrl && (
+          <a href={farmAppUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
+            Manage in shamba.online
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {farmCrops.map((fc) => {
+          const guideSlug = slugByName.get(fc.crop_name.toLowerCase()) ?? null;
+          const inner = (
+            <div className="flex h-full flex-col rounded-md border border-border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-foreground">{fc.crop_name}</span>
+                {fc.status && <Badge tone="neutral">{fc.status}</Badge>}
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                {fc.variety && <span>{fc.variety}</span>}
+                {fc.farm_name && <span>· {fc.farm_name}</span>}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                {fc.planted_on && <span>Planted {fc.planted_on}</span>}
+                {fc.expected_harvest_start && <span>Harvest ~{fc.expected_harvest_start}</span>}
+                {fc.actual_yield_kg != null && <span>Yield {fc.actual_yield_kg} kg</span>}
+              </div>
+              {guideSlug && <span className="mt-2 text-xs font-medium text-accent">Open guide →</span>}
+            </div>
+          );
+          return guideSlug ? (
+            <Link key={fc.id} href={`/c/${communitySlug}/spaces/${spaceSlug}/crop-guides/${guideSlug}`} className="block hover:opacity-90">
+              {inner}
+            </Link>
+          ) : (
+            <div key={fc.id}>{inner}</div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
