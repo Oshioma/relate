@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X, Bookmark } from "lucide-react";
+import { Search, Leaf, Sprout, CalendarClock, Settings2, Plus, X, Bookmark, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,6 +27,7 @@ export function CropGuidesView({
   monthCalendar,
   currentMonth,
   savedIds,
+  searchIndex,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -38,10 +39,19 @@ export function CropGuidesView({
   monthCalendar: MonthCalendarRow[];
   currentMonth: number;
   savedIds: string[];
+  // crop_id -> extra searchable terms (pests, diseases, companions, ailments).
+  searchIndex: Record<string, string>;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  // Faceted filters. Empty string = "any".
+  const [difficulty, setDifficulty] = useState("");
+  const [sun, setSun] = useState("");
+  const [water, setWater] = useState("");
+  const [ediblePart, setEdiblePart] = useState("");
+  const [flags, setFlags] = useState({ beginner: false, pollinator: false, nitrogen: false, drought: false, organic: false });
   const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
   const cropsById = useMemo(() => new Map(crops.map((c) => [c.id, c])), [crops]);
@@ -80,18 +90,39 @@ export function CropGuidesView({
     return [...known, ...extras];
   }, [crops]);
 
+  // Edible parts present in the library, for that facet's options.
+  const edibleParts = useMemo(() => {
+    const set = new Set<string>();
+    for (const c of crops) if (c.edible_part) set.add(c.edible_part);
+    return [...set].sort();
+  }, [crops]);
+
+  const activeFacetCount =
+    (difficulty ? 1 : 0) + (sun ? 1 : 0) + (water ? 1 : 0) + (ediblePart ? 1 : 0) + Object.values(flags).filter(Boolean).length;
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return crops.filter((c) => {
       if (savedOnly && !savedSet.has(c.id)) return false;
       if (category && c.category !== category) return false;
+      if (difficulty && c.difficulty !== difficulty) return false;
+      if (sun && c.sun !== sun) return false;
+      if (water && c.water_need !== water) return false;
+      if (ediblePart && c.edible_part !== ediblePart) return false;
+      if (flags.beginner && !c.beginner_friendly) return false;
+      if (flags.pollinator && !c.pollinator_friendly) return false;
+      if (flags.nitrogen && !c.nitrogen_fixer) return false;
+      if (flags.drought && !c.drought_tolerant) return false;
+      if (flags.organic && !c.organic_favourite) return false;
       if (q) {
-        const haystack = `${c.common_name} ${c.scientific_name ?? ""} ${c.overview ?? ""}`.toLowerCase();
+        // Includes the search index: pests, diseases, companions and ailments,
+        // so "cough" or "whitefly" find the right crops.
+        const haystack = `${c.common_name} ${c.scientific_name ?? ""} ${c.overview ?? ""} ${searchIndex[c.id] ?? ""}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
-  }, [crops, query, category, savedOnly, savedSet]);
+  }, [crops, query, category, savedOnly, savedSet, difficulty, sun, water, ediblePart, flags, searchIndex]);
 
   const regionGroups = useMemo(() => {
     const seen = new Set<string>();
@@ -171,18 +202,74 @@ export function CropGuidesView({
         />
       )}
 
-      {/* Search + categories */}
-      <div className="mb-4">
-        <div className="relative max-w-md">
+      {/* Search + filters */}
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative flex-1 sm:max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search crops by name…"
+            placeholder="Search by name, pest, disease or ailment…"
             className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          className={`inline-flex w-auto items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium ${
+            showFilters || activeFacetCount > 0 ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"
+          }`}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters{activeFacetCount > 0 ? ` (${activeFacetCount})` : ""}
+        </button>
       </div>
+
+      {showFilters && (
+        <div className="mb-4 rounded-lg border border-border bg-card p-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <FacetSelect label="Difficulty" value={difficulty} onChange={setDifficulty} options={[["beginner", "Beginner"], ["moderate", "Moderate"], ["advanced", "Advanced"]]} />
+            <FacetSelect label="Sun" value={sun} onChange={setSun} options={[["full_sun", "Full sun"], ["partial_shade", "Partial shade"], ["full_shade", "Full shade"]]} />
+            <FacetSelect label="Water" value={water} onChange={setWater} options={[["low", "Low"], ["moderate", "Moderate"], ["high", "High"]]} />
+            {edibleParts.length > 0 && <FacetSelect label="Edible part" value={ediblePart} onChange={setEdiblePart} options={edibleParts.map((p) => [p, p] as [string, string])} />}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(
+              [
+                ["beginner", "Beginner friendly"],
+                ["pollinator", "Pollinator friendly"],
+                ["nitrogen", "Nitrogen fixer"],
+                ["drought", "Drought tolerant"],
+                ["organic", "Organic favourite"],
+              ] as [keyof typeof flags, string][]
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFlags((f) => ({ ...f, [key]: !f[key] }))}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${flags[key] ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+              >
+                {label}
+              </button>
+            ))}
+            {activeFacetCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDifficulty("");
+                  setSun("");
+                  setWater("");
+                  setEdiblePart("");
+                  setFlags({ beginner: false, pollinator: false, nitrogen: false, drought: false, organic: false });
+                }}
+                className="rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {(activeCategories.length > 0 || savedSet.size > 0) && (
         <div className="mb-5 flex flex-wrap gap-2">
@@ -320,5 +407,36 @@ function RegionManager({
         </div>
       )}
     </section>
+  );
+}
+
+// A labelled dropdown for one search facet. options is [value, label][].
+function FacetSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: [string, string][];
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        <option value="">Any</option>
+        {options.map(([v, l]) => (
+          <option key={v} value={v}>
+            {l}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

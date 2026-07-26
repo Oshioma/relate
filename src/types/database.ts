@@ -34,7 +34,8 @@ export type SpaceType =
   | "course"
   | "crop_guides"
   | "plant_scanner"
-  | "my_crops";
+  | "my_crops"
+  | "plant_id";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -1154,6 +1155,11 @@ export type Crop = {
   watering: CropSection;
   feeding: CropSection;
   harvest: CropSection;
+  pruning: CropSection;
+  pollination: CropSection;
+  task_timeline: CropSection;
+  troubleshooting: CropSection;
+  biodiversity: CropSection;
   status: CropStatus;
   created_by: string | null;
   created_at: string;
@@ -1298,6 +1304,22 @@ export type CropSave = {
   crop_id: string;
   community_id: string | null;
   created_at: string;
+};
+
+// Community medicinal-use log — member-authored, staff-moderated, searchable by
+// ailment. Traditional knowledge, not medical advice.
+export type CropMedicinalUse = {
+  id: string;
+  crop_id: string;
+  community_id: string;
+  created_by: string;
+  ailment: string;
+  part_used: string | null;
+  preparation: string | null;
+  description: string | null;
+  approved: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 type FKey<Col extends string, Referenced extends string> = {
@@ -1799,6 +1821,12 @@ export type Database = {
         Insert: Partial<CropSave> & { user_id: string; crop_id: string };
         Update: Partial<CropSave>;
       } & NoRel;
+      crop_medicinal_uses: {
+        Row: CropMedicinalUse;
+        Insert: Partial<CropMedicinalUse> & { crop_id: string; community_id: string; created_by: string; ailment: string };
+        Update: Partial<CropMedicinalUse>;
+        Relationships: [FKey<"created_by", "profiles">, FKey<"crop_id", "crops">];
+      };
     };
     Views: Record<string, never>;
     Functions: {

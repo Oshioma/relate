@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCropDetail, getCropTips, getCropJournals, computeJournalStats, getCrops } from "@/lib/data/crop-guides";
 import { buildCropContext, askCropAssistant } from "@/lib/ai/crop-assistant";
 import { scanPlant, type PlantScanResult, type AnthropicImageMediaType } from "@/lib/ai/plant-scanner";
+import { identifyPlant, type PlantIdResult } from "@/lib/ai/plant-id";
 
 export type CropRegionFormState = { error: string } | undefined;
 
@@ -270,6 +271,74 @@ export async function askCropQuestion(_prevState: CropAssistantState, formData: 
   return { question, answer };
 }
 
+// --- Medicinal uses ---------------------------------------------------------
+
+export type CropMedicinalFormState = { error: string } | undefined;
+
+export async function addMedicinalUse(_prevState: CropMedicinalFormState, formData: FormData): Promise<CropMedicinalFormState> {
+  const cropId = String(formData.get("crop_id") ?? "");
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+  const ailment = String(formData.get("ailment") ?? "").trim();
+
+  if (!ailment) {
+    return { error: "Name the ailment or use." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  // approved is forced false for non-staff by the DB trigger.
+  const { error } = await supabase.from("crop_medicinal_uses").insert({
+    crop_id: cropId,
+    community_id: communityId,
+    created_by: user.id,
+    ailment,
+    part_used: optionalText(formData, "part_used"),
+    preparation: optionalText(formData, "preparation"),
+    description: optionalText(formData, "description"),
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+  return undefined;
+}
+
+export async function setMedicinalUseApproved(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const approved = String(formData.get("approved") ?? "") === "true";
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.from("crop_medicinal_uses").update({ approved }).eq("id", id);
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+}
+
+export async function deleteMedicinalUse(formData: FormData): Promise<void> {
+  const id = String(formData.get("id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const cropSlug = String(formData.get("crop_slug") ?? "");
+
+  const supabase = await createClient();
+  await supabase.from("crop_medicinal_uses").delete().eq("id", id);
+
+  revalidatePath(cropPath(communitySlug, spaceSlug, cropSlug));
+}
+
 // --- Plant Health Scanner ---------------------------------------------------
 
 export type PlantScanState =
@@ -329,6 +398,66 @@ export async function scanPlantAction(_prevState: PlantScanState, formData: Form
   let matchedName: string | null = null;
   if (result.crop_guess) {
     const guess = result.crop_guess.toLowerCase();
+    const crops = await getCrops(supabase);
+    const match = crops.find((c) => {
+      const name = c.common_name.toLowerCase();
+      return guess.includes(name) || name.includes(guess);
+    });
+    if (match) {
+      matchedSlug = match.slug;
+      matchedName = match.common_name;
+    }
+  }
+
+  return { imageUrl, result, matchedSlug, matchedName };
+}
+
+// --- Plant ID ---------------------------------------------------------------
+
+export type PlantIdState =
+  | { imageUrl?: string; result?: PlantIdResult; matchedSlug?: string | null; matchedName?: string | null; error?: string }
+  | undefined;
+
+// Identify an uploaded plant photo and, when the AI's name matches a crop in the
+// library, return that crop's slug so the UI can deep-link into its guide.
+export async function identifyPlantAction(_prevState: PlantIdState, formData: FormData): Promise<PlantIdState> {
+  const imageUrl = String(formData.get("image_url") ?? "").trim();
+  if (!imageUrl) {
+    return { error: "Upload a photo first." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  let base64: string;
+  let mediaType: AnthropicImageMediaType;
+  try {
+    const res = await fetch(imageUrl, { cache: "no-store" });
+    if (!res.ok) return { imageUrl, error: "Couldn't read that image." };
+    const mt = normaliseMediaType(res.headers.get("content-type"));
+    if (!mt) return { imageUrl, error: "Please upload a JPEG, PNG, WebP or GIF image." };
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > MAX_IMAGE_BYTES) return { imageUrl, error: "That image is too large — try one under 5MB." };
+    base64 = Buffer.from(buf).toString("base64");
+    mediaType = mt;
+  } catch {
+    return { imageUrl, error: "Couldn't read that image." };
+  }
+
+  const result = await identifyPlant(base64, mediaType);
+  if (!result) {
+    return { imageUrl, error: "Plant identification isn't available right now." };
+  }
+
+  let matchedSlug: string | null = null;
+  let matchedName: string | null = null;
+  if (result.common_name) {
+    const guess = result.common_name.toLowerCase();
     const crops = await getCrops(supabase);
     const match = crops.find((c) => {
       const name = c.common_name.toLowerCase();

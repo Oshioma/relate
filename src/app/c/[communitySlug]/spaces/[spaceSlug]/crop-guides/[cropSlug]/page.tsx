@@ -13,6 +13,7 @@ import {
   getCropJournals,
   computeJournalStats,
   getCropTips,
+  getCropMedicinalUses,
   getSavedCropIds,
 } from "@/lib/data/crop-guides";
 import { calcMoonPhase } from "@/lib/lunar";
@@ -37,12 +38,13 @@ export default async function CropDetailPage({
   const detail = await getCropDetail(supabase, cropSlug);
   if (!detail) notFound();
 
-  const [regions, communityRegions, calendar, journals, tips, savedIds, membership] = await Promise.all([
+  const [regions, communityRegions, calendar, journals, tips, medicinalUses, savedIds, membership] = await Promise.all([
     getCropRegions(supabase),
     getCommunityCropRegions(supabase, community.id),
     getCropCalendar(supabase, detail.crop.id),
     getCropJournals(supabase, detail.crop.id, community.id),
     getCropTips(supabase, detail.crop.id, community.id),
+    getCropMedicinalUses(supabase, detail.crop.id, community.id),
     user ? getSavedCropIds(supabase, user.id) : Promise.resolve([]),
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
   ]);
@@ -78,6 +80,7 @@ export default async function CropDetailPage({
         journals={journals}
         journalStats={journalStats}
         tips={tips}
+        medicinalUses={medicinalUses}
         canContribute={Boolean(canContribute)}
         isStaff={Boolean(isStaff)}
         isSaved={isSaved}
