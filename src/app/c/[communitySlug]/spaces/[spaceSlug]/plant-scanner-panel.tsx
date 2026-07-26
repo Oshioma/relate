@@ -22,7 +22,15 @@ function confidenceTone(c: ScanConfidence): "accent" | "neutral" | "danger" {
   return "neutral";
 }
 
-export function PlantScannerPanel({ communitySlug, spaceSlug }: { communitySlug: string; spaceSlug: string }) {
+export function PlantScannerPanel({
+  communitySlug,
+  cropGuidesSpaceSlug,
+}: {
+  communitySlug: string;
+  // The community's Crop Guides space to deep-link a matched crop into, or null
+  // when there's no such space to link to.
+  cropGuidesSpaceSlug: string | null;
+}) {
   const [state, formAction, isPending] = useActionState<PlantScanState, FormData>(scanPlantAction, undefined);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -69,9 +77,9 @@ export function PlantScannerPanel({ communitySlug, spaceSlug }: { communitySlug:
                 <span className="text-sm text-muted-foreground">Likely crop:</span>
                 <span className="text-sm font-medium text-foreground">{result.crop_guess ?? "Not sure"}</span>
                 {result.crop_guess && <Badge tone={confidenceTone(result.crop_confidence)}>{result.crop_confidence} confidence</Badge>}
-                {state?.matchedSlug && (
+                {state?.matchedSlug && cropGuidesSpaceSlug && (
                   <Link
-                    href={`/c/${communitySlug}/spaces/${spaceSlug}/crop-guides/${state.matchedSlug}`}
+                    href={`/c/${communitySlug}/spaces/${cropGuidesSpaceSlug}/crop-guides/${state.matchedSlug}`}
                     className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
                   >
                     Open {state.matchedName} guide
