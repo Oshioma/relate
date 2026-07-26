@@ -21,7 +21,8 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
-import { getCrops } from "@/lib/data/crop-guides";
+import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, type MonthCalendarRow } from "@/lib/data/crop-guides";
+import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
 import {
@@ -171,6 +172,12 @@ export default async function SpaceDetailPage({
     isCourseSpace ? getSpaceCourses(supabase, space.id, viewerId) : Promise.resolve([]),
     isCropGuidesSpace ? getCrops(supabase) : Promise.resolve([]),
   ]);
+
+  // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
+  const cropCurrentMonth = new Date().getMonth() + 1;
+  const [cropRegions, cropCommunityRegions, cropMonthCalendar]: [CropRegion[], CommunityCropRegion[], MonthCalendarRow[]] = isCropGuidesSpace
+    ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
+    : [[], [], []];
 
   const featuredBusinessCategories = isBusinessDirectorySpace
     ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
@@ -496,7 +503,17 @@ export default async function SpaceDetailPage({
           isStaff={Boolean(isStaff)}
         />
       ) : isCropGuidesSpace ? (
-        <CropGuidesView crops={crops} communitySlug={community.slug} spaceSlug={space.slug} />
+        <CropGuidesView
+          crops={crops}
+          communitySlug={community.slug}
+          spaceSlug={space.slug}
+          communityId={community.id}
+          isAdmin={Boolean(isAdmin)}
+          regions={cropRegions}
+          communityRegions={cropCommunityRegions}
+          monthCalendar={cropMonthCalendar}
+          currentMonth={cropCurrentMonth}
+        />
       ) : (
         <>
           {canPost && (

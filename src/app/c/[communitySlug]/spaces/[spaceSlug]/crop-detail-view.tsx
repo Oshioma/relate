@@ -26,8 +26,9 @@ import {
   cropLunarGroup,
   type MoonPhase,
 } from "@/lib/lunar";
-import type { Crop, CropSection, CompanionRelationship } from "@/types/database";
+import type { Crop, CropSection, CompanionRelationship, CropRegion, CropCalendar, CommunityCropRegion } from "@/types/database";
 import type { CropDetail, CropCompanionWithLink } from "@/lib/data/crop-guides";
+import { PlantingCalendar } from "./planting-calendar";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -197,11 +198,19 @@ function MoonGardening({ crop, currentPhase }: { crop: Crop; currentPhase: MoonP
 export function CropDetailView({
   detail,
   currentPhase,
+  currentMonth,
+  regions,
+  communityRegions,
+  calendar,
   communitySlug,
   spaceSlug,
 }: {
   detail: CropDetail;
   currentPhase: MoonPhase;
+  currentMonth: number;
+  regions: CropRegion[];
+  communityRegions: CommunityCropRegion[];
+  calendar: CropCalendar[];
   communitySlug: string;
   spaceSlug: string;
 }) {
@@ -263,6 +272,8 @@ export function CropDetailView({
           <Fact label="Edible part" value={crop.edible_part} />
         </dl>
       </section>
+
+      <PlantingCalendar calendar={calendar} regions={regions} communityRegions={communityRegions} currentMonth={currentMonth} />
 
       <SectionBlock title="Soil" section={crop.soil} />
       <SectionBlock title="Sowing & planting" section={crop.sowing} />

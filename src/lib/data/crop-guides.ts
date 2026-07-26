@@ -1,5 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Crop, CropVariety, CropCompanion, CropPest, CropDisease } from "@/types/database";
+import type {
+  Database,
+  Crop,
+  CropVariety,
+  CropCompanion,
+  CropPest,
+  CropDisease,
+  CropRegion,
+  CropCalendar,
+  CommunityCropRegion,
+} from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -93,4 +103,42 @@ export async function getCropDetail(supabase: Client, slug: string): Promise<Cro
     pests: pests ?? [],
     diseases: diseases ?? [],
   };
+}
+
+// --- Region-aware planting calendars ----------------------------------------
+
+export async function getCropRegions(supabase: Client): Promise<CropRegion[]> {
+  const { data, error } = await supabase.from("crop_regions").select("*").order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+// A community's own growing regions (Zanzibar, Kenya Highlands, …). Returns []
+// for a guest or non-member — RLS limits reads to members.
+export async function getCommunityCropRegions(supabase: Client, communityId: string): Promise<CommunityCropRegion[]> {
+  const { data, error } = await supabase
+    .from("community_crop_regions")
+    .select("*")
+    .eq("community_id", communityId)
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Every calendar row for one crop across all regions — small enough to fetch in
+// one query and filter by region on the client (no refetch when switching).
+export async function getCropCalendar(supabase: Client, cropId: string): Promise<CropCalendar[]> {
+  const { data, error } = await supabase.from("crop_calendars").select("*").eq("crop_id", cropId);
+  if (error) throw error;
+  return data ?? [];
+}
+
+// One month's slice across every crop, for the "What can I grow now?" panel.
+// Indexed on (region_id, month); the client filters by the selected region.
+export type MonthCalendarRow = Pick<CropCalendar, "crop_id" | "region_id" | "activity">;
+
+export async function getCurrentMonthCalendar(supabase: Client, month: number): Promise<MonthCalendarRow[]> {
+  const { data, error } = await supabase.from("crop_calendars").select("crop_id, region_id, activity").eq("month", month);
+  if (error) throw error;
+  return (data ?? []) as MonthCalendarRow[];
 }

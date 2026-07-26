@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getCropDetail } from "@/lib/data/crop-guides";
+import { getCropDetail, getCropRegions, getCommunityCropRegions, getCropCalendar } from "@/lib/data/crop-guides";
 import { calcMoonPhase } from "@/lib/lunar";
 import { CropDetailView } from "../../crop-detail-view";
 
@@ -25,9 +25,17 @@ export default async function CropDetailPage({
   const detail = await getCropDetail(supabase, cropSlug);
   if (!detail) notFound();
 
-  // Current moon phase is a pure function of today's date; computing it on the
-  // server keeps the render deterministic (no hydration mismatch).
-  const currentPhase = calcMoonPhase(new Date());
+  const [regions, communityRegions, calendar] = await Promise.all([
+    getCropRegions(supabase),
+    getCommunityCropRegions(supabase, community.id),
+    getCropCalendar(supabase, detail.crop.id),
+  ]);
+
+  // Current moon phase / month are pure functions of today's date; computing
+  // them on the server keeps the render deterministic (no hydration mismatch).
+  const now = new Date();
+  const currentPhase = calcMoonPhase(now);
+  const currentMonth = now.getMonth() + 1;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -39,7 +47,16 @@ export default async function CropDetailPage({
         {space.name}
       </Link>
 
-      <CropDetailView detail={detail} currentPhase={currentPhase} communitySlug={community.slug} spaceSlug={space.slug} />
+      <CropDetailView
+        detail={detail}
+        currentPhase={currentPhase}
+        currentMonth={currentMonth}
+        regions={regions}
+        communityRegions={communityRegions}
+        calendar={calendar}
+        communitySlug={community.slug}
+        spaceSlug={space.slug}
+      />
     </div>
   );
 }
