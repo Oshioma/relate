@@ -30,6 +30,7 @@ import type { Crop, CropSection, CompanionRelationship, CropRegion, CropCalendar
 import type { CropDetail, CropCompanionWithLink, JournalWithAuthor, JournalStats, TipWithAuthor } from "@/lib/data/crop-guides";
 import { PlantingCalendar } from "./planting-calendar";
 import { YieldCalculator } from "./yield-calculator";
+import { CropAssistantPanel } from "./crop-assistant-panel";
 import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
@@ -210,6 +211,7 @@ export function CropDetailView({
   canContribute,
   isStaff,
   isSaved,
+  assistantEnabled,
   viewerId,
   communityId,
   communitySlug,
@@ -227,6 +229,7 @@ export function CropDetailView({
   canContribute: boolean;
   isStaff: boolean;
   isSaved: boolean;
+  assistantEnabled: boolean;
   viewerId: string;
   communityId: string;
   communitySlug: string;
@@ -282,6 +285,8 @@ export function CropDetailView({
           <p className="text-sm leading-relaxed text-foreground">{crop.overview}</p>
         </section>
       )}
+
+      {assistantEnabled && canContribute && <CropAssistantPanel cropSlug={crop.slug} communityId={communityId} cropName={crop.common_name} />}
 
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="mb-3 text-base font-semibold text-foreground">At a glance</h2>
@@ -417,7 +422,7 @@ export function CropDetailView({
           More coming to this guide
         </h2>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          {["Save to My Garden with reminders", "AI growing assistant", "Plant health scanner"].map((label) => (
+          {["Plant health scanner"].map((label) => (
             <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1">
               {label}
             </span>
