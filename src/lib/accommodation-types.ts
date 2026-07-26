@@ -93,10 +93,8 @@ export function formatAvailabilityWindow(listing: { available_from: string | nul
   return null;
 }
 
-// The listing's photo gallery: prefer photo_urls, falling back to the legacy
-// denormalised cover for rows created before photo_urls existed. Shared by the
-// card, the detail carousel and the edit form so they never disagree.
-export function accommodationPhotos(listing: { photo_urls: string[]; photo_url: string | null }): string[] {
-  if (listing.photo_urls.length > 0) return listing.photo_urls;
-  return listing.photo_url ? [listing.photo_url] : [];
+// The listing's photo gallery; photo_urls[0] is the cover. A thin accessor kept
+// so the card, detail carousel and edit form share one notion of "the photos".
+export function accommodationPhotos(listing: { photo_urls: string[] }): string[] {
+  return listing.photo_urls;
 }

@@ -115,7 +115,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       id: stay.id,
       title: stay.name,
       description: stay.description,
-      imageUrl: stay.photo_url,
+      imageUrl: stay.photo_urls[0] ?? null,
       lat: stay.lat!,
       lng: stay.lng!,
       locationLabel: stay.location_label,

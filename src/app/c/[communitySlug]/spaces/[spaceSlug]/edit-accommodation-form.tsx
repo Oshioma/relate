@@ -23,11 +23,7 @@ export function EditAccommodationForm({
   onCancel: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
-  // Prefer the gallery; fall back to the denormalised cover for rows created
-  // before photo_urls existed and not yet backfilled.
-  const [photos, setPhotos] = useState<string[]>(
-    listing.photo_urls.length > 0 ? listing.photo_urls : listing.photo_url ? [listing.photo_url] : []
-  );
+  const [photos, setPhotos] = useState<string[]>(listing.photo_urls);
 
   async function handleSubmit(formData: FormData) {
     setError(null);

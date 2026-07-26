@@ -66,7 +66,6 @@ type ListingFields = {
   name: string;
   accommodation_type: AccommodationType;
   description: string | null;
-  photo_url: string | null;
   photo_urls: string[];
   price_per_night: number | null;
   currency: string | null;
@@ -105,7 +104,6 @@ function parseListingFields(formData: FormData): { values: ListingFields } | { e
       name,
       accommodation_type: parseAccommodationType(formData.get("accommodation_type")),
       description: String(formData.get("description") ?? "").trim() || null,
-      photo_url: photoUrls[0] ?? null,
       photo_urls: photoUrls,
       price_per_night: price,
       currency: price !== null ? currency || "USD" : null,

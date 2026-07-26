@@ -25,7 +25,7 @@ import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
 import { getCommunityRecentJobListings } from "@/lib/data/jobs";
 import { jobTypeLabel } from "@/lib/job-types";
 import { getCommunityRecentAccommodationListings } from "@/lib/data/accommodation";
-import { accommodationTypeLabel } from "@/lib/accommodation-types";
+import { accommodationTypeLabel, formatAccommodationPrice } from "@/lib/accommodation-types";
 import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
@@ -169,13 +169,13 @@ export default async function CommunityFeedPage({
       icon: BedDouble,
       title: a.name,
       description: a.description,
-      imageUrl: a.photo_url,
+      imageUrl: a.photo_urls[0] ?? null,
       typeBadge: `${accommodationTypeLabel(a.accommodation_type)} added`,
-      detail: a.price_per_night !== null ? `${a.currency ?? ""} ${a.price_per_night}/night`.trim() : null,
+      detail: formatAccommodationPrice(a),
       authorName: a.lister?.full_name || a.lister?.username || null,
       authorAvatar: a.lister?.avatar_url ?? null,
       spaceName: a.space?.name ?? null,
-      href: a.space ? `${base}/spaces/${a.space.slug}` : base,
+      href: a.space ? `${base}/spaces/${a.space.slug}/stays/${a.id}` : base,
     })),
     ...recentRecommendations.map((r): FeedItem => ({
       key: `recommendation-${r.id}`,
