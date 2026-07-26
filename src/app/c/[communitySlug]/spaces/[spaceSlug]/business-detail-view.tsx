@@ -14,6 +14,7 @@ import { EditBusinessForm } from "./edit-business-form";
 import { BusinessReviewForm } from "./business-review-form";
 import { BusinessReviewItem } from "./business-review-item";
 import { BusinessClaimSection } from "./business-claim-section";
+import { BusinessStayBridge } from "./business-stay-bridge";
 import { deleteBusiness, setBusinessBadge, toggleSaveBusiness } from "./business-directory-actions";
 import type { BusinessDetail } from "@/lib/data/businesses";
 import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
@@ -44,6 +45,8 @@ export function BusinessDetailView({
   canReply,
   canSave,
   canClaim,
+  linkedStay,
+  canCreateStay,
   customCategories,
   labelOverrides,
 }: {
@@ -64,6 +67,12 @@ export function BusinessDetailView({
   canSave: boolean;
   // Active member, listing unclaimed, and no existing claim of their own.
   canClaim: boolean;
+  // The stay already linked to this business, if any (for the accommodation
+  // bridge shown on stay-like listings).
+  linkedStay: { spaceSlug: string; id: string } | null;
+  // The viewer manages this listing and the community has an accommodation
+  // space, so they can spin up a stay from it.
+  canCreateStay: boolean;
   customCategories: BusinessCustomCategory[];
   labelOverrides?: BusinessCategoryLabelOverride[];
 }) {
@@ -263,6 +272,10 @@ export function BusinessDetailView({
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </CardContent>
       </Card>
+
+      {(business.category === "accommodation" || linkedStay) && (
+        <BusinessStayBridge businessId={business.id} communitySlug={communitySlug} linkedStay={linkedStay} canCreate={canCreateStay} />
+      )}
 
       {/* Reviews */}
       <div>

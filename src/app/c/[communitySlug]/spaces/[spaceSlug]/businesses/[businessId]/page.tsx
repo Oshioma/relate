@@ -5,6 +5,7 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getBusinessDetail, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
+import { getCommunityAccommodationSpace, getStayLinkForBusiness } from "@/lib/data/accommodation";
 import { BusinessDetailView } from "../../business-detail-view";
 
 export default async function BusinessDetailPage({
@@ -54,6 +55,14 @@ export default async function BusinessDetailPage({
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
   ]);
 
+  // Accommodation bridge: is this stay-like business already linked to a stay,
+  // and (if not) is there an accommodation space to create one in?
+  const isStayLike = detail.business.category === "accommodation";
+  const [linkedStay, accommodationSpace] = await Promise.all([
+    isStayLike ? getStayLinkForBusiness(supabase, detail.business.id) : Promise.resolve(null),
+    isStayLike && canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
+  ]);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -78,6 +87,8 @@ export default async function BusinessDetailPage({
         // Any active member may bookmark.
         canSave={Boolean(isActive)}
         canClaim={canClaim}
+        linkedStay={linkedStay}
+        canCreateStay={canManage && accommodationSpace !== null}
         customCategories={customCategories.filter((c) => c.space_id === space.id)}
         labelOverrides={labelOverrides.filter((o) => o.space_id === space.id)}
       />

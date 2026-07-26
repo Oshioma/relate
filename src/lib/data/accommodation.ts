@@ -14,6 +14,39 @@ function average(values: number[]): number | null {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
+// The community's accommodation space (the first, if several), used as the
+// target when creating a stay from a directory business. Null when the community
+// has no accommodation space to host one.
+export async function getCommunityAccommodationSpace(supabase: Client, communityId: string): Promise<Pick<Space, "id" | "slug" | "name"> | null> {
+  const { data, error } = await supabase
+    .from("spaces")
+    .select("id, slug, name")
+    .eq("community_id", communityId)
+    .eq("space_type", "accommodation")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
+// The stay already linked to a business (if any), with its space slug so the
+// directory can link straight to it instead of offering to create a duplicate.
+export async function getStayLinkForBusiness(supabase: Client, businessId: string): Promise<{ id: string; spaceSlug: string } | null> {
+  const { data, error } = await supabase
+    .from("accommodation_listings")
+    .select("id, space:space_id (slug)")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  const row = data as unknown as { id: string; space: { slug: string } | null } | null;
+  return row?.space?.slug ? { id: row.id, spaceSlug: row.space.slug } : null;
+}
+
 // Directory listings a stay can be linked to, for the form's picker. Community-
 // scoped; RLS trims it to businesses in spaces the viewer can see.
 export type BusinessLinkOption = { id: string; name: string };
