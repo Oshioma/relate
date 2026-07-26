@@ -21,6 +21,7 @@ import {
   Leaf,
   ScanLine,
   Wheat,
+  Camera,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -81,6 +82,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   crop_guides: { type: "crop_guides", label: "Crop Guides", icon: Leaf, description: "A searchable library of organic, region-aware growing guides — from seed to harvest.", category: "programs" },
   plant_scanner: { type: "plant_scanner", label: "Plant Health Scanner", icon: ScanLine, description: "Upload a plant photo for an AI diagnosis of pests, diseases and deficiencies, with organic treatment.", category: "programs" },
   my_crops: { type: "my_crops", label: "My Crops", icon: Wheat, description: "A member's own crops, synced read-only from the shamba.online farm app, filterable by farm.", category: "programs" },
+  plant_id: { type: "plant_id", label: "Plant ID", icon: Camera, description: "Upload a photo to identify a plant — its name, whether it's edible, and a link to its guide.", category: "programs" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);

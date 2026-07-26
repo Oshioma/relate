@@ -313,6 +313,11 @@ export function CropDetailView({
       <SectionBlock title="Watering" section={crop.watering} />
       <SectionBlock title="Organic feeding" section={crop.feeding} />
       <SectionBlock title="Harvest" section={crop.harvest} />
+      <SectionBlock title="Pruning & maintenance" section={crop.pruning} />
+      <SectionBlock title="Pollination" section={crop.pollination} />
+      <SectionBlock title="Seasonal task timeline" section={crop.task_timeline} />
+      <SectionBlock title="Common problems" section={crop.troubleshooting} />
+      <SectionBlock title="Biodiversity" section={crop.biodiversity} />
 
       <YieldCalculator crop={crop} />
 

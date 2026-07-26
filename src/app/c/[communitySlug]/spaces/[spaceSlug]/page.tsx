@@ -24,6 +24,7 @@ import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, type FarmCrop } from "@/lib/farm-bridge";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
+import { isPlantIdConfigured } from "@/lib/ai/plant-id";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
@@ -63,6 +64,7 @@ import { CoursesView } from "./courses-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
+import { PlantIdPanel } from "./plant-id-panel";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -109,6 +111,7 @@ export default async function SpaceDetailPage({
   const isCropGuidesSpace = space.space_type === "crop_guides";
   const isPlantScannerSpace = space.space_type === "plant_scanner";
   const isMyCropsSpace = space.space_type === "my_crops";
+  const isPlantIdSpace = space.space_type === "plant_id";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -127,7 +130,8 @@ export default async function SpaceDetailPage({
     !isCourseSpace &&
     !isCropGuidesSpace &&
     !isPlantScannerSpace &&
-    !isMyCropsSpace;
+    !isMyCropsSpace &&
+    !isPlantIdSpace;
 
   const [
     membership,
@@ -193,7 +197,7 @@ export default async function SpaceDetailPage({
   // Standalone Plant Health Scanner / My Crops spaces deep-link matched crops
   // into the community's Crop Guides space, if one exists.
   const cropGuidesSpaceSlug: string | null =
-    isPlantScannerSpace || isMyCropsSpace
+    isPlantScannerSpace || isMyCropsSpace || isPlantIdSpace
       ? (await supabase.from("spaces").select("slug").eq("community_id", community.id).eq("space_type", "crop_guides").order("sort_order", { ascending: true }).limit(1).maybeSingle()).data?.slug ?? null
       : null;
   // The user's crops from the shamba.online farm app (empty unless the bridge is
@@ -551,6 +555,14 @@ export default async function SpaceDetailPage({
           <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to see your crops here." />
         ) : (
           <MyCropsView farmCrops={cropFarmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+        )
+      ) : isPlantIdSpace ? (
+        !isPlantIdConfigured() ? (
+          <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Plant ID not set up" description="Plant identification isn't configured on this platform yet." />
+        ) : !canPost ? (
+          <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to identify plants." />
+        ) : (
+          <PlantIdPanel communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
         )
       ) : (
         <>

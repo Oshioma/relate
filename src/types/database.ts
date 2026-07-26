@@ -34,7 +34,8 @@ export type SpaceType =
   | "course"
   | "crop_guides"
   | "plant_scanner"
-  | "my_crops";
+  | "my_crops"
+  | "plant_id";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -1154,6 +1155,11 @@ export type Crop = {
   watering: CropSection;
   feeding: CropSection;
   harvest: CropSection;
+  pruning: CropSection;
+  pollination: CropSection;
+  task_timeline: CropSection;
+  troubleshooting: CropSection;
+  biodiversity: CropSection;
   status: CropStatus;
   created_by: string | null;
   created_at: string;
