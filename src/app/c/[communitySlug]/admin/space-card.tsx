@@ -8,7 +8,8 @@ import { SpaceNavToggle } from "./space-nav-toggle";
 import { JournalFieldsSection } from "./journal-fields-section";
 import { SpaceSubNavList } from "./space-subnav-list";
 import type { NavSubItem } from "./spaces-manager";
-import { Input, Textarea, Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -96,7 +97,7 @@ export function SpaceCard({
 
           <div>
             <Label htmlFor={`description-${space.id}`}>Description</Label>
-            <Textarea id={`description-${space.id}`} name="description" rows={2} defaultValue={space.description ?? ""} />
+            <MarkdownTextarea id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
