@@ -221,6 +221,95 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
   return undefined;
 }
 
+// The bridge from the Business Directory: turn a business (typically one
+// categorized "accommodation") into a rich stay in the community's accommodation
+// space, pre-filled from the business and linked back via business_id. Returns
+// the new stay's location so the caller can navigate to it. If a stay is already
+// linked to this business we return that one instead of creating a duplicate.
+export async function createStayFromBusiness(
+  businessId: string,
+  communitySlug: string
+): Promise<{ spaceSlug: string; listingId: string } | { error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: business, error: businessError } = await supabase
+    .from("businesses")
+    .select("id, community_id, name, description, image_url, location_label, lat, lng")
+    .eq("id", businessId)
+    .maybeSingle();
+  if (businessError || !business) {
+    return { error: businessError?.message ?? "Listing not found." };
+  }
+
+  // Already bridged? Hand back the existing stay rather than duplicating it.
+  const { data: existing, error: existingError } = await supabase
+    .from("accommodation_listings")
+    .select("id, space:space_id (slug)")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) {
+    return { error: existingError.message };
+  }
+  const existingRow = existing as unknown as { id: string; space: { slug: string } | null } | null;
+  if (existingRow?.space?.slug) {
+    return { spaceSlug: existingRow.space.slug, listingId: existingRow.id };
+  }
+
+  const { data: space, error: spaceError } = await supabase
+    .from("spaces")
+    .select("id, slug")
+    .eq("community_id", business.community_id)
+    .eq("space_type", "accommodation")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (spaceError) {
+    return { error: spaceError.message };
+  }
+  if (!space) {
+    return { error: "This community has no accommodation space to add the stay to." };
+  }
+
+  // Carry the business's gallery over as the stay's photos, falling back to its
+  // single cover image.
+  const { data: images } = await supabase.from("business_images").select("url").eq("business_id", businessId).order("sort_order", { ascending: true });
+  const photoUrls = (images ?? []).map((i) => i.url);
+  if (photoUrls.length === 0 && business.image_url) photoUrls.push(business.image_url);
+
+  const { data: created, error: insertError } = await supabase
+    .from("accommodation_listings")
+    .insert({
+      space_id: space.id,
+      community_id: business.community_id,
+      listed_by: user.id,
+      business_id: businessId,
+      name: business.name,
+      description: business.description,
+      photo_urls: photoUrls,
+      location_label: business.location_label,
+      lat: business.lat,
+      lng: business.lng,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !created) {
+    return { error: insertError?.message ?? "Couldn't create the stay." };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces/${space.slug}`);
+  return { spaceSlug: space.slug, listingId: created.id };
+}
+
 // Toggle the current member's bookmark of a stay. Mirrors toggleSaveBusiness:
 // insert/delete a single accommodation_saves row and report the new state so the
 // card and detail heart can settle optimistic UI.
