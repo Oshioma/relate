@@ -18,6 +18,7 @@ import {
   BedDouble,
   Star,
   GraduationCap,
+  Leaf,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -75,6 +76,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   accommodation: { type: "accommodation", label: "Accommodation", icon: BedDouble, description: "Places to stay, from short lets to long-term rentals.", category: "place" },
   recommendations: { type: "recommendations", label: "Recommendations", icon: Star, description: "Member recommendations for restaurants, services and more.", category: "place" },
   course: { type: "course", label: "Courses", icon: GraduationCap, description: "Structured courses members enrol in and work through lesson by lesson.", category: "programs" },
+  crop_guides: { type: "crop_guides", label: "Crop Guides", icon: Leaf, description: "A searchable library of organic, region-aware growing guides — from seed to harvest.", category: "programs" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);
