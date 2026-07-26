@@ -6,12 +6,14 @@ import { updateAccommodationListing } from "./accommodation-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AccommodationFormFields } from "./accommodation-form-fields";
 import type { AccommodationListing } from "@/types/database";
+import type { BusinessLinkOption } from "@/lib/data/accommodation";
 
 export function EditAccommodationForm({
   listing,
   communitySlug,
   spaceSlug,
   userId,
+  businesses,
   onDone,
   onCancel,
 }: {
@@ -19,6 +21,7 @@ export function EditAccommodationForm({
   communitySlug: string;
   spaceSlug: string;
   userId: string;
+  businesses: BusinessLinkOption[];
   onDone: () => void;
   onCancel: () => void;
 }) {
@@ -48,7 +51,7 @@ export function EditAccommodationForm({
         </button>
       </div>
 
-      <AccommodationFormFields idPrefix={`edit_accommodation_${listing.id}`} listing={listing} photos={photos} onPhotosChange={setPhotos} userId={userId} />
+      <AccommodationFormFields idPrefix={`edit_accommodation_${listing.id}`} listing={listing} businesses={businesses} photos={photos} onPhotosChange={setPhotos} userId={userId} />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

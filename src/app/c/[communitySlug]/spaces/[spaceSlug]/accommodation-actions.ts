@@ -65,6 +65,7 @@ function parseDate(raw: FormDataEntryValue | null): string | null {
 type ListingFields = {
   name: string;
   accommodation_type: AccommodationType;
+  business_id: string | null;
   description: string | null;
   photo_urls: string[];
   price_per_night: number | null;
@@ -103,6 +104,7 @@ function parseListingFields(formData: FormData): { values: ListingFields } | { e
     values: {
       name,
       accommodation_type: parseAccommodationType(formData.get("accommodation_type")),
+      business_id: String(formData.get("business_id") ?? "").trim() || null,
       description: String(formData.get("description") ?? "").trim() || null,
       photo_urls: photoUrls,
       price_per_night: price,

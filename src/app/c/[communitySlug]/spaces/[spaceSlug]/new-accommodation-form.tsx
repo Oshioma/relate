@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { createAccommodationListing } from "./accommodation-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AccommodationFormFields } from "./accommodation-form-fields";
+import type { BusinessLinkOption } from "@/lib/data/accommodation";
 
 export function NewAccommodationForm({
   communityId,
@@ -11,6 +12,7 @@ export function NewAccommodationForm({
   spaceId,
   spaceSlug,
   userId,
+  businesses,
   onDone,
 }: {
   communityId: string;
@@ -18,6 +20,7 @@ export function NewAccommodationForm({
   spaceId: string;
   spaceSlug: string;
   userId: string;
+  businesses: BusinessLinkOption[];
   onDone?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export function NewAccommodationForm({
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
 
-      <AccommodationFormFields idPrefix="new_accommodation" photos={photos} onPhotosChange={setPhotos} userId={userId} />
+      <AccommodationFormFields idPrefix="new_accommodation" businesses={businesses} photos={photos} onPhotosChange={setPhotos} userId={userId} />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

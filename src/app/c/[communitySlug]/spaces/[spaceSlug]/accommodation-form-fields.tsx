@@ -4,6 +4,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
 import { AccommodationPhotosInput } from "./accommodation-photos-input";
 import type { AccommodationListing } from "@/types/database";
+import type { BusinessLinkOption } from "@/lib/data/accommodation";
 
 const selectClass = "w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
@@ -13,12 +14,14 @@ const selectClass = "w-full rounded-md border border-border bg-card px-3 py-2 te
 export function AccommodationFormFields({
   idPrefix,
   listing,
+  businesses,
   photos,
   onPhotosChange,
   userId,
 }: {
   idPrefix: string;
   listing?: AccommodationListing;
+  businesses: BusinessLinkOption[];
   photos: string[];
   onPhotosChange: (photos: string[]) => void;
   userId: string;
@@ -51,6 +54,21 @@ export function AccommodationFormFields({
         <Label htmlFor={`${idPrefix}_description`}>Description (optional)</Label>
         <Textarea id={`${idPrefix}_description`} name="description" rows={2} defaultValue={listing?.description ?? ""} />
       </div>
+
+      {businesses.length > 0 && (
+        <div>
+          <Label htmlFor={`${idPrefix}_business`}>Link to a directory listing (optional)</Label>
+          <select id={`${idPrefix}_business`} name="business_id" defaultValue={listing?.business_id ?? ""} className={selectClass}>
+            <option value="">Not linked</option>
+            {businesses.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">If this stay is already in the Business Directory, link it so guests can jump to its full page.</p>
+        </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-[1.5fr_1.5fr_1fr]">
         <div>

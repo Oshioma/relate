@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel } from "@/lib/accommodation-types";
 import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
-import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
+import type { AccommodationListingWithStats, BusinessLinkOption } from "@/lib/data/accommodation";
 import type { AccommodationType } from "@/types/database";
 
 // Leaflet touches `window` at import, so the map only loads in the browser.
@@ -34,6 +34,7 @@ export function AccommodationView({
   spaceSlug,
   canPost,
   userId,
+  businesses,
 }: {
   listings: AccommodationListingWithStats[];
   communityId: string;
@@ -42,6 +43,7 @@ export function AccommodationView({
   spaceSlug: string;
   canPost: boolean;
   userId: string;
+  businesses: BusinessLinkOption[];
 }) {
   const [type, setType] = useState<AccommodationType | "all">("all");
   const [query, setQuery] = useState("");
@@ -242,7 +244,7 @@ export function AccommodationView({
 
       {showForm && (
         <div className="mb-5">
-          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} onDone={() => setShowForm(false)} />
+          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} businesses={businesses} onDone={() => setShowForm(false)} />
         </div>
       )}
 

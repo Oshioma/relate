@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getAccommodationDetail } from "@/lib/data/accommodation";
+import { getAccommodationDetail, getCommunityBusinessLinkOptions } from "@/lib/data/accommodation";
 import { AccommodationDetailView } from "../../accommodation-detail-view";
 
 export default async function AccommodationDetailPage({
@@ -31,6 +31,9 @@ export default async function AccommodationDetailPage({
   const isStaff = isActive && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   // The lister (listed_by) manages their own listing; staff can always manage.
   const canManage = detail.listing.listed_by === viewerId || Boolean(isStaff);
+  // Directory listings this stay can link to — only needed when the viewer can
+  // edit it.
+  const businesses = canManage ? await getCommunityBusinessLinkOptions(supabase, community.id) : [];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -52,6 +55,7 @@ export default async function AccommodationDetailPage({
         // The host or staff may reply to reviews.
         canReply={canManage}
         isStaff={Boolean(isStaff)}
+        businesses={businesses}
       />
     </div>
   );

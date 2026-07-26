@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { EditAccommodationForm } from "./edit-accommodation-form";
 import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
-import type { AccommodationDetail } from "@/lib/data/accommodation";
+import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
 
 const StaticMap = dynamic(() => import("@/components/map/static-map"), {
   ssr: false,
@@ -35,6 +36,7 @@ export function AccommodationDetailView({
   canReview,
   canReply,
   isStaff,
+  businesses,
 }: {
   detail: AccommodationDetail;
   communitySlug: string;
@@ -47,8 +49,9 @@ export function AccommodationDetailView({
   // The host or staff — may reply to reviews.
   canReply: boolean;
   isStaff: boolean;
+  businesses: BusinessLinkOption[];
 }) {
-  const { listing, reviews, avgRating, ratingCount, viewerReview } = detail;
+  const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness } = detail;
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(detail.saved);
   const [isPending, startTransition] = useTransition();
@@ -96,6 +99,7 @@ export function AccommodationDetailView({
         communitySlug={communitySlug}
         spaceSlug={spaceSlug}
         userId={userId}
+        businesses={businesses}
         onDone={() => {
           setIsEditing(false);
           router.refresh();
@@ -174,11 +178,21 @@ export function AccommodationDetailView({
             </div>
           </div>
 
-          {listing.business?.name && (
-            <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+          {linkedBusiness ? (
+            <Link
+              href={`/c/${communitySlug}/spaces/${linkedBusiness.spaceSlug}/businesses/${linkedBusiness.id}`}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+            >
               <Building2 className="h-4 w-4" />
-              {listing.business.name}
-            </p>
+              {linkedBusiness.name}
+            </Link>
+          ) : (
+            listing.business?.name && (
+              <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Building2 className="h-4 w-4" />
+                {listing.business.name}
+              </p>
+            )
           )}
 
           {(listing.bedrooms !== null || listing.bathrooms !== null || listing.max_guests !== null) && (

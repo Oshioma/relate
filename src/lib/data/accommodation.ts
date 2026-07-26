@@ -14,6 +14,21 @@ function average(values: number[]): number | null {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
+// Directory listings a stay can be linked to, for the form's picker. Community-
+// scoped; RLS trims it to businesses in spaces the viewer can see.
+export type BusinessLinkOption = { id: string; name: string };
+
+export async function getCommunityBusinessLinkOptions(supabase: Client, communityId: string): Promise<BusinessLinkOption[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("id, name")
+    .eq("community_id", communityId)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as BusinessLinkOption[];
+}
+
 // Newest available listings across the whole community, for the feed.
 export async function getCommunityRecentAccommodationListings(
   supabase: Client,
@@ -95,6 +110,9 @@ export type AccommodationDetail = {
   avgRating: number | null;
   ratingCount: number;
   viewerReview: AccommodationReview | null;
+  // The linked directory listing (if any), with its space slug so the detail
+  // page can link straight to the business's own page.
+  linkedBusiness: { id: string; name: string; spaceSlug: string } | null;
 };
 
 // One listing plus who posted it, any linked business, the viewer's saved state
@@ -133,6 +151,20 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
 
   const ratingValues = reviewRows.map((r) => r.rating);
 
+  // Resolve the linked directory listing's space slug so the detail page can
+  // link to it. One small extra query, only when a link is set.
+  let linkedBusiness: { id: string; name: string; spaceSlug: string } | null = null;
+  if (data.business_id) {
+    const { data: biz, error: bizError } = await supabase
+      .from("businesses")
+      .select("id, name, space:space_id (slug)")
+      .eq("id", data.business_id)
+      .maybeSingle();
+    if (bizError) throw bizError;
+    const row = biz as unknown as { id: string; name: string; space: { slug: string } | null } | null;
+    if (row?.space?.slug) linkedBusiness = { id: row.id, name: row.name, spaceSlug: row.space.slug };
+  }
+
   return {
     listing: data as unknown as AccommodationListingWithBusiness & { lister: Profile },
     saved: Boolean(saveRow),
@@ -140,5 +172,6 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
     avgRating: average(ratingValues),
     ratingCount: ratingValues.length,
     viewerReview: reviewRows.find((r) => r.author_id === viewerId) ?? null,
+    linkedBusiness,
   };
 }
