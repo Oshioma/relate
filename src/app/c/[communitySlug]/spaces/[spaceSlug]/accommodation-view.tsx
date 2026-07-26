@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, X, BedDouble, Heart } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Plus, Search, X, BedDouble, Heart, LayoutGrid, Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel } from "@/lib/accommodation-types";
@@ -9,6 +10,12 @@ import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
 import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 import type { AccommodationType } from "@/types/database";
+
+// Leaflet touches `window` at import, so the map only loads in the browser.
+const AccommodationMap = dynamic(() => import("./accommodation-map"), {
+  ssr: false,
+  loading: () => <div className="flex h-[65vh] min-h-[420px] items-center justify-center rounded-lg border border-border bg-muted text-xs text-muted-foreground">Loading map…</div>,
+});
 
 type SortKey = "newest" | "price_asc" | "price_desc" | "top_rated";
 
@@ -45,6 +52,7 @@ export function AccommodationView({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [amenityFilters, setAmenityFilters] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const savedCount = useMemo(() => listings.filter((l) => l.saved).length, [listings]);
 
@@ -110,12 +118,34 @@ export function AccommodationView({
             className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        {canPost && (
-          <Button type="button" onClick={() => setShowForm((v) => !v)} className="w-auto shrink-0">
-            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {showForm ? "Cancel" : "Post a listing"}
-          </Button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="inline-flex overflow-hidden rounded-md border border-border">
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              aria-pressed={viewMode === "list"}
+              title="List view"
+              className={`flex items-center gap-1 px-2.5 py-2 text-xs font-medium ${viewMode === "list" ? "bg-accent-soft text-accent" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              aria-pressed={viewMode === "map"}
+              title="Map view"
+              className={`flex items-center gap-1 border-l border-border px-2.5 py-2 text-xs font-medium ${viewMode === "map" ? "bg-accent-soft text-accent" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              <MapIcon className="h-4 w-4" />
+            </button>
+          </div>
+          {canPost && (
+            <Button type="button" onClick={() => setShowForm((v) => !v)} className="w-auto">
+              {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {showForm ? "Cancel" : "Post a listing"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
@@ -216,7 +246,17 @@ export function AccommodationView({
         </div>
       )}
 
-      {visible.length === 0 ? (
+      {viewMode === "map" ? (
+        visible.some((l) => l.lat !== null && l.lng !== null) ? (
+          <AccommodationMap listings={visible} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+        ) : (
+          <EmptyState
+            icon={<MapIcon className="h-6 w-6" />}
+            title="Nothing to map"
+            description="None of the matching stays have a location set yet. Add coordinates when posting to show them here."
+          />
+        )
+      ) : visible.length === 0 ? (
         <EmptyState
           icon={<BedDouble className="h-6 w-6" />}
           title={listings.length === 0 ? "No places to stay yet" : "Nothing matches"}
