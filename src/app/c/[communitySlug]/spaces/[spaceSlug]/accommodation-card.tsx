@@ -1,26 +1,45 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { MapPin, Building2, Images, BedDouble } from "lucide-react";
+import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
-import type { AccommodationListingWithBusiness } from "@/lib/data/accommodation";
+import { toggleSaveAccommodation } from "./accommodation-actions";
+import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 
 // A stay card is a link into the listing's own page (like business-card and
 // guide-card). It shows the cover photo with a photo count, the type, price,
-// name and a short description. Editing, availability and deletion all live on
-// the detail page.
+// name, a short description and a save toggle. Editing, availability and
+// deletion all live on the detail page.
 export function AccommodationCard({
   listing,
   communitySlug,
   spaceSlug,
+  canSave,
 }: {
-  listing: AccommodationListingWithBusiness;
+  listing: AccommodationListingWithStats;
   communitySlug: string;
   spaceSlug: string;
+  canSave: boolean;
 }) {
   const isUnavailable = listing.status === "unavailable";
   const price = formatAccommodationPrice(listing);
   const photos = accommodationPhotos(listing);
+  const [saved, setSaved] = useState(listing.saved);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSaveToggle(e: React.MouseEvent) {
+    // The card is a Link — keep the click from navigating.
+    e.preventDefault();
+    e.stopPropagation();
+    const optimistic = !saved;
+    setSaved(optimistic);
+    startTransition(async () => {
+      const result = await toggleSaveAccommodation(listing.id, communitySlug, spaceSlug);
+      if ("saved" in result && typeof result.saved === "boolean") setSaved(result.saved);
+      else setSaved(!optimistic); // revert on error
+    });
+  }
 
   return (
     <Link
@@ -48,6 +67,19 @@ export function AccommodationCard({
 
         {price && (
           <span className="absolute right-2 top-2 rounded-full bg-card/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur">{price}</span>
+        )}
+
+        {canSave && (
+          <button
+            type="button"
+            onClick={handleSaveToggle}
+            disabled={isPending}
+            title={saved ? "Remove from saved" : "Save"}
+            aria-pressed={saved}
+            className={`absolute p-1.5 text-white transition disabled:opacity-60 ${price ? "right-2 top-10" : "right-2 top-2"} rounded-full bg-black/45 hover:bg-black/65`}
+          >
+            <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+          </button>
         )}
 
         {photos.length > 1 && (

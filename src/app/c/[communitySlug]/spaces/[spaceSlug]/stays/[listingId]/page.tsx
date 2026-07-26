@@ -22,10 +22,10 @@ export default async function AccommodationDetailPage({
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
 
-  const detail = await getAccommodationDetail(supabase, listingId);
+  const viewerId = user?.id ?? "";
+  const detail = await getAccommodationDetail(supabase, listingId, viewerId);
   if (!detail || detail.listing.space_id !== space.id) notFound();
 
-  const viewerId = user?.id ?? "";
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const isActive = membership?.status === "active";
   const isStaff = isActive && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
@@ -46,6 +46,7 @@ export default async function AccommodationDetailPage({
         spaceSlug={space.slug}
         userId={viewerId}
         canManage={canManage}
+        canSave={Boolean(isActive)}
       />
     </div>
   );

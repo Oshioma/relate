@@ -171,6 +171,43 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
   return undefined;
 }
 
+// Toggle the current member's bookmark of a stay. Mirrors toggleSaveBusiness:
+// insert/delete a single accommodation_saves row and report the new state so the
+// card and detail heart can settle optimistic UI.
+export async function toggleSaveAccommodation(listingId: string, communitySlug: string, spaceSlug: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("accommodation_saves")
+    .select("id")
+    .eq("listing_id", listingId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (existing) {
+    const { error } = await supabase.from("accommodation_saves").delete().eq("id", existing.id);
+    if (error) return { error: error.message };
+    revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+    return { saved: false };
+  }
+
+  const { error } = await supabase.from("accommodation_saves").insert({ listing_id: listingId, user_id: user.id });
+  if (error) return { error: error.message };
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { saved: true };
+}
+
 export async function deleteAccommodationListing(listingId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("accommodation_listings").delete().eq("id", listingId);

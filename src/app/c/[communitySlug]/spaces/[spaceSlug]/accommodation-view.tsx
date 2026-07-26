@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, X, BedDouble } from "lucide-react";
+import { Plus, Search, X, BedDouble, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ACCOMMODATION_TYPES } from "@/lib/accommodation-types";
 import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
-import type { AccommodationListingWithBusiness } from "@/lib/data/accommodation";
+import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 import type { AccommodationType } from "@/types/database";
 
 export function AccommodationView({
@@ -19,7 +19,7 @@ export function AccommodationView({
   canPost,
   userId,
 }: {
-  listings: AccommodationListingWithBusiness[];
+  listings: AccommodationListingWithStats[];
   communityId: string;
   communitySlug: string;
   spaceId: string;
@@ -31,16 +31,20 @@ export function AccommodationView({
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
+  const [savedOnly, setSavedOnly] = useState(false);
+
+  const savedCount = useMemo(() => listings.filter((l) => l.saved).length, [listings]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return listings.filter((l) => {
       if (type !== "all" && l.accommodation_type !== type) return false;
+      if (savedOnly && !l.saved) return false;
       if (!showUnavailable && l.status === "unavailable") return false;
       if (q && !l.name.toLowerCase().includes(q) && !(l.description ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [listings, type, query, showUnavailable]);
+  }, [listings, type, query, showUnavailable, savedOnly]);
 
   const countByType = useMemo(() => {
     const counts = new Map<string, number>();
@@ -95,6 +99,17 @@ export function AccommodationView({
           );
         })}
 
+        {savedCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setSavedOnly((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            <Heart className={`h-3 w-3 ${savedOnly ? "fill-accent" : ""}`} />
+            Saved ({savedCount})
+          </button>
+        )}
+
         <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
           <input type="checkbox" checked={showUnavailable} onChange={(e) => setShowUnavailable(e.target.checked)} className="h-3.5 w-3.5 rounded border-border" />
           Show unavailable
@@ -116,7 +131,7 @@ export function AccommodationView({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((listing) => (
-            <AccommodationCard key={listing.id} listing={listing} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+            <AccommodationCard key={listing.id} listing={listing} communitySlug={communitySlug} spaceSlug={spaceSlug} canSave={canPost} />
           ))}
         </div>
       )}

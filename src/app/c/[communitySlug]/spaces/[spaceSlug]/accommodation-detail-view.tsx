@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck } from "lucide-react";
+import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice } from "@/lib/accommodation-types";
 import { ImageCarousel } from "./image-carousel";
 import { EditAccommodationForm } from "./edit-accommodation-form";
-import { deleteAccommodationListing, setAccommodationStatus } from "./accommodation-actions";
+import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import type { AccommodationDetail } from "@/lib/data/accommodation";
 
 const StaticMap = dynamic(() => import("@/components/map/static-map"), {
@@ -28,18 +28,31 @@ export function AccommodationDetailView({
   spaceSlug,
   userId,
   canManage,
+  canSave,
 }: {
   detail: AccommodationDetail;
   communitySlug: string;
   spaceSlug: string;
   userId: string;
   canManage: boolean;
+  canSave: boolean;
 }) {
   const { listing } = detail;
   const [isEditing, setIsEditing] = useState(false);
+  const [saved, setSaved] = useState(detail.saved);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  function handleSaveToggle() {
+    const optimistic = !saved;
+    setSaved(optimistic);
+    startTransition(async () => {
+      const result = await toggleSaveAccommodation(listing.id, communitySlug, spaceSlug);
+      if ("saved" in result && typeof result.saved === "boolean") setSaved(result.saved);
+      else setSaved(!optimistic);
+    });
+  }
 
   const photos = accommodationPhotos(listing).map((url, i) => ({ id: String(i), url, position: null }));
   const price = formatAccommodationPrice(listing);
@@ -105,31 +118,45 @@ export function AccommodationDetailView({
               {price && <p className="mt-1.5 text-sm font-semibold text-foreground">{price}</p>}
             </div>
 
-            {canManage && (
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button type="button" onClick={() => setIsEditing(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Edit listing">
-                  <Pencil className="h-4 w-4" />
-                </button>
+            <div className="flex shrink-0 items-center gap-1.5">
+              {canSave && (
                 <button
                   type="button"
+                  onClick={handleSaveToggle}
                   disabled={isPending}
-                  onClick={toggleAvailability}
+                  title={saved ? "Remove from saved" : "Save"}
+                  aria-pressed={saved}
                   className="rounded-md p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-60"
-                  title={isUnavailable ? "Mark available" : "Mark unavailable"}
                 >
-                  {isUnavailable ? <RotateCcw className="h-4 w-4" /> : <CircleCheck className="h-4 w-4" />}
+                  <Heart className={`h-4 w-4 ${saved ? "fill-accent text-accent" : ""}`} />
                 </button>
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={handleDelete}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:opacity-60"
-                  title="Remove listing"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            )}
+              )}
+              {canManage && (
+                <>
+                  <button type="button" onClick={() => setIsEditing(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Edit listing">
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={toggleAvailability}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-60"
+                    title={isUnavailable ? "Mark available" : "Mark unavailable"}
+                  >
+                    {isUnavailable ? <RotateCcw className="h-4 w-4" /> : <CircleCheck className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={handleDelete}
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:opacity-60"
+                    title="Remove listing"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {listing.business?.name && (

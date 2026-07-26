@@ -581,6 +581,15 @@ export type AccommodationListing = {
   updated_at: string;
 };
 
+// A member's bookmark of a stay. Visible only to the member who saved it, so
+// the accommodation view's "Saved" filter reflects that viewer alone.
+export type AccommodationSave = {
+  id: string;
+  listing_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 // A member's recommendation in a 'recommendations' space (see
 // space-types.ts). business_id/landmark_id optionally link to an existing
 // Business Directory listing or Explore Map pin; both stay null for a
@@ -1257,6 +1266,12 @@ export type Database = {
         Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
         Update: Partial<AccommodationListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      accommodation_saves: {
+        Row: AccommodationSave;
+        Insert: Partial<AccommodationSave> & { listing_id: string; user_id: string };
+        Update: Partial<AccommodationSave>;
+        Relationships: [FKey<"listing_id", "accommodation_listings">, FKey<"user_id", "profiles">];
       };
       recommendations: {
         Row: Recommendation;
