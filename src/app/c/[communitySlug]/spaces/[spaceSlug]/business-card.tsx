@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { BadgeCheck, Store, Images, Heart } from "lucide-react";
+import { BadgeCheck, Images, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
+import { BUSINESS_CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "./business-category-icon";
 import { StarRatingDisplay } from "./star-rating";
 import { toggleSaveBusiness } from "./business-directory-actions";
 import type { BusinessWithStats } from "@/lib/data/businesses";
@@ -31,6 +32,8 @@ export function BusinessCard({
   labelOverrides?: BusinessCategoryLabelOverride[];
 }) {
   const { business, avgRating, ratingCount, imageCount } = data;
+  const categoryLabel = businessCategoryLabel(business.category, customCategories, labelOverrides);
+  const CategoryIcon = BUSINESS_CATEGORY_ICONS[business.category] ?? DEFAULT_CATEGORY_ICON;
   const [saved, setSaved] = useState(data.saved);
   const [isPending, startTransition] = useTransition();
 
@@ -64,9 +67,15 @@ export function BusinessCard({
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              <Store className="h-8 w-8" />
+              <CategoryIcon className="h-8 w-8" />
             </div>
           )}
+          {/* The category chip leads the card so listings read as distinct
+              *kinds* at a glance — a frosted pill stays legible over any photo. */}
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border backdrop-blur">
+            <CategoryIcon className="h-3.5 w-3.5 text-accent" />
+            {categoryLabel}
+          </span>
           {imageCount > 1 && (
             <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">
               <Images className="h-3 w-3" />
@@ -96,7 +105,6 @@ export function BusinessCard({
             )}
             {business.featured && <Badge tone="accent">Featured</Badge>}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">{businessCategoryLabel(business.category, customCategories, labelOverrides)}</p>
 
           {business.description && <p className="mt-2 line-clamp-2 text-sm text-foreground">{business.description}</p>}
 
