@@ -41,6 +41,43 @@ export function isFarmBridgeConfigured(): boolean {
 // The user's crops from the farm app, or [] when the bridge is unconfigured,
 // the user has no linked farm account, or the farm app is unreachable.
 export async function getMyFarmCrops(email: string | null | undefined): Promise<FarmCrop[]> {
+  return fetchFarmCropsForEmail(email);
+}
+
+// One member's shared farm: their display info plus the crops the bridge
+// returned for them. Emails are resolved server-side and never included here.
+export type PublicFarm = {
+  profileId: string;
+  username: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  crops: FarmCrop[];
+};
+
+// The public farms to render for a browsing member: fetches each opted-in
+// member's crops from the bridge in parallel and drops anyone whose farm turned
+// up empty (unlinked account, unreachable app). Returns [] when the bridge is
+// unconfigured.
+export async function getPublicFarmCrops(
+  farmers: { profileId: string; username: string; fullName: string | null; avatarUrl: string | null; email: string }[]
+): Promise<PublicFarm[]> {
+  if (farmers.length === 0 || !isFarmBridgeConfigured()) return [];
+
+  const farms = await Promise.all(
+    farmers.map(async (f) => ({
+      profileId: f.profileId,
+      username: f.username,
+      fullName: f.fullName,
+      avatarUrl: f.avatarUrl,
+      crops: await fetchFarmCropsForEmail(f.email),
+    }))
+  );
+
+  return farms.filter((f) => f.crops.length > 0);
+}
+
+// Shared fetch: the crops the farm app has for one email, or [] on any failure.
+async function fetchFarmCropsForEmail(email: string | null | undefined): Promise<FarmCrop[]> {
   if (!email || !isFarmBridgeConfigured()) return [];
 
   try {
