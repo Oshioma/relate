@@ -167,15 +167,12 @@ export function CropGuidesView({
           {sowNow.length === 0 && harvestNow.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">No calendar data for this region yet — try another region.</p>
           ) : (
-            <div className="mt-4 space-y-4">
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sow or plant now</p>
-                {sowNow.length === 0 ? <p className="text-sm text-muted-foreground">Nothing to sow this month here.</p> : <div className="flex flex-wrap gap-2">{sowNow.map(cropChip)}</div>}
-              </div>
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harvest now</p>
-                {harvestNow.length === 0 ? <p className="text-sm text-muted-foreground">Nothing coming ready this month here.</p> : <div className="flex flex-wrap gap-2">{harvestNow.map(cropChip)}</div>}
-              </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sow</span>
+              {sowNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : sowNow.map(cropChip)}
+              <span className="text-border">·</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harvest</span>
+              {harvestNow.length === 0 ? <span className="text-sm text-muted-foreground">nothing</span> : harvestNow.map(cropChip)}
             </div>
           )}
         </section>
