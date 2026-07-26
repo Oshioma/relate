@@ -41,13 +41,7 @@ export function isFarmBridgeConfigured(): boolean {
 // The user's crops from the farm app, or [] when the bridge is unconfigured,
 // the user has no linked farm account, or the farm app is unreachable.
 export async function getMyFarmCrops(email: string | null | undefined): Promise<FarmCrop[]> {
-  if (!email) return [];
-  if (!isFarmBridgeConfigured()) {
-    // Diagnostic: the env vars aren't visible to this deployment (often means a
-    // redeploy is needed after setting them, or they were set on the wrong env).
-    console.warn("FARM_BRIDGE: not configured — FARM_API_URL / FARM_API_SECRET are unset on this deployment");
-    return [];
-  }
+  if (!email || !isFarmBridgeConfigured()) return [];
 
   try {
     const url = new URL(FARM_API_URL as string);
@@ -57,26 +51,13 @@ export async function getMyFarmCrops(email: string | null | undefined): Promise<
       headers: { Authorization: `Bearer ${FARM_API_SECRET}` },
       cache: "no-store",
     });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      console.error(`FARM_BRIDGE: farm app returned ${res.status} — ${body.slice(0, 200)}`);
-      return [];
-    }
+    if (!res.ok) return [];
 
     const data: unknown = await res.json();
     const crops = (data as { crops?: unknown })?.crops;
-    if (!Array.isArray(crops)) {
-      console.error("FARM_BRIDGE: unexpected response shape (no crops array)");
-      return [];
-    }
-    // Success: a count of 0 here means the email matched no active crops on the
-    // farm side (usually an email mismatch), not a transport problem.
-    console.info(`FARM_BRIDGE: ok — ${crops.length} crop(s) returned for the signed-in email`);
-    return crops as FarmCrop[];
-  } catch (err) {
+    return Array.isArray(crops) ? (crops as FarmCrop[]) : [];
+  } catch {
     // Never let a farm-app hiccup break the Crop Guides page.
-    console.error("FARM_BRIDGE: request failed —", err instanceof Error ? err.message : err);
     return [];
   }
 }

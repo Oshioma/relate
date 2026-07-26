@@ -62,6 +62,7 @@ import { VolunteerHubView } from "./volunteer-hub-view";
 import { CoursesView } from "./courses-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { PlantScannerPanel } from "./plant-scanner-panel";
+import { MyCropsView } from "./my-crops-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -107,6 +108,7 @@ export default async function SpaceDetailPage({
   const isCourseSpace = space.space_type === "course";
   const isCropGuidesSpace = space.space_type === "crop_guides";
   const isPlantScannerSpace = space.space_type === "plant_scanner";
+  const isMyCropsSpace = space.space_type === "my_crops";
   const isDiscussionLike =
     !isResourceSpace &&
     !isJournalSpace &&
@@ -124,7 +126,8 @@ export default async function SpaceDetailPage({
     !isVolunteerHubSpace &&
     !isCourseSpace &&
     !isCropGuidesSpace &&
-    !isPlantScannerSpace;
+    !isPlantScannerSpace &&
+    !isMyCropsSpace;
 
   const [
     membership,
@@ -175,7 +178,7 @@ export default async function SpaceDetailPage({
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
     isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, viewerId) : Promise.resolve([]),
     isCourseSpace ? getSpaceCourses(supabase, space.id, viewerId) : Promise.resolve([]),
-    isCropGuidesSpace ? getCrops(supabase) : Promise.resolve([]),
+    isCropGuidesSpace || isMyCropsSpace ? getCrops(supabase) : Promise.resolve([]),
   ]);
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
@@ -184,14 +187,15 @@ export default async function SpaceDetailPage({
     ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
     : [[], [], []];
   const cropSavedIds = isCropGuidesSpace && user ? await getSavedCropIds(supabase, user.id) : [];
-  // A standalone Plant Health Scanner space deep-links matched crops into the
-  // community's Crop Guides space, if one exists.
-  const cropGuidesSpaceSlug: string | null = isPlantScannerSpace
-    ? (await supabase.from("spaces").select("slug").eq("community_id", community.id).eq("space_type", "crop_guides").order("sort_order", { ascending: true }).limit(1).maybeSingle()).data?.slug ?? null
-    : null;
+  // Standalone Plant Health Scanner / My Crops spaces deep-link matched crops
+  // into the community's Crop Guides space, if one exists.
+  const cropGuidesSpaceSlug: string | null =
+    isPlantScannerSpace || isMyCropsSpace
+      ? (await supabase.from("spaces").select("slug").eq("community_id", community.id).eq("space_type", "crop_guides").order("sort_order", { ascending: true }).limit(1).maybeSingle()).data?.slug ?? null
+      : null;
   // The user's crops from the shamba.online farm app (empty unless the bridge is
   // configured and the user's email is linked to a farm).
-  const cropFarmCrops: FarmCrop[] = isCropGuidesSpace ? await getMyFarmCrops(user?.email) : [];
+  const cropFarmCrops: FarmCrop[] = isMyCropsSpace ? await getMyFarmCrops(user?.email) : [];
   const farmAppUrl = process.env.NEXT_PUBLIC_FARM_APP_URL ?? null;
 
   const featuredBusinessCategories = isBusinessDirectorySpace
@@ -529,8 +533,6 @@ export default async function SpaceDetailPage({
           monthCalendar={cropMonthCalendar}
           currentMonth={cropCurrentMonth}
           savedIds={cropSavedIds}
-          farmCrops={cropFarmCrops}
-          farmAppUrl={farmAppUrl}
         />
       ) : isPlantScannerSpace ? (
         !isPlantScannerConfigured() ? (
@@ -539,6 +541,12 @@ export default async function SpaceDetailPage({
           <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Members only" description="Join this community to scan plants for diagnosis." />
         ) : (
           <PlantScannerPanel communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+        )
+      ) : isMyCropsSpace ? (
+        !canPost ? (
+          <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to see your crops here." />
+        ) : (
+          <MyCropsView farmCrops={cropFarmCrops} farmAppUrl={farmAppUrl} crops={crops} communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
         )
       ) : (
         <>
