@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SafeHtml, looksLikeHtml, htmlToPlainText } from "./safe-html";
 
 // A tiny, dependency-free renderer for the safe subset of Markdown we let
 // members use in long-form text (space "About" descriptions, and anywhere else
@@ -137,6 +138,8 @@ function toBlocks(source: string): Block[] {
 // Strip the Markdown markers for plain-text contexts (list previews, meta
 // tags) so descriptions read cleanly where we can't render formatting.
 export function toPlainText(source: string): string {
+  // Pasted HTML descriptions read as HTML — strip tags rather than markers.
+  if (looksLikeHtml(source)) return htmlToPlainText(source);
   return source
     .replace(/\r\n/g, "\n")
     .replace(/^#{1,3}\s+/gm, "")
@@ -154,6 +157,12 @@ export function toPlainText(source: string): string {
 }
 
 export function RichText({ content, className }: { content: string; className?: string }) {
+  // A description that contains real HTML tags is rendered as (sanitised) HTML;
+  // everything else stays on the Markdown path.
+  if (looksLikeHtml(content)) {
+    return <SafeHtml html={content} className={cn("text-sm leading-relaxed", className)} />;
+  }
+
   const blocks = toBlocks(content);
 
   return (

@@ -165,7 +165,9 @@ export function MarkdownTextarea({
       <p className="px-3 pb-2 text-xs text-muted-foreground">
         Formatting supported — use the buttons above, or type <span className="font-medium">**bold**</span>,{" "}
         <span className="font-medium">_italic_</span>, <span className="font-medium">## headings</span> and{" "}
-        <span className="font-medium">- lists</span>.
+        <span className="font-medium">- lists</span>. You can also paste custom{" "}
+        <span className="font-medium">HTML</span> (with a <span className="font-medium">&lt;style&gt;</span> block) —
+        toggle Preview to check it.
       </p>
     </div>
   );
