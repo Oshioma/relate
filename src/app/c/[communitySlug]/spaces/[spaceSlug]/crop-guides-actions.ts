@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getCropDetail, getCropTips, getCropJournals, computeJournalStats } from "@/lib/data/crop-guides";
+import { getCropDetail, getCropTips, getCropJournals, computeJournalStats, getCrops } from "@/lib/data/crop-guides";
 import { buildCropContext, askCropAssistant } from "@/lib/ai/crop-assistant";
+import { scanPlant, type PlantScanResult, type AnthropicImageMediaType } from "@/lib/ai/plant-scanner";
 
 export type CropRegionFormState = { error: string } | undefined;
 
@@ -267,4 +268,77 @@ export async function askCropQuestion(_prevState: CropAssistantState, formData: 
   }
 
   return { question, answer };
+}
+
+// --- Plant Health Scanner ---------------------------------------------------
+
+export type PlantScanState =
+  | { imageUrl?: string; result?: PlantScanResult; matchedSlug?: string | null; matchedName?: string | null; error?: string }
+  | undefined;
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // Anthropic image limit ballpark
+
+function normaliseMediaType(contentType: string | null): AnthropicImageMediaType | null {
+  const ct = (contentType ?? "").toLowerCase();
+  if (ct.includes("jpeg") || ct.includes("jpg")) return "image/jpeg";
+  if (ct.includes("png")) return "image/png";
+  if (ct.includes("webp")) return "image/webp";
+  if (ct.includes("gif")) return "image/gif";
+  return null;
+}
+
+// Diagnose an uploaded plant photo and, when the AI's crop guess matches a crop
+// in the library, return that crop's slug so the UI can deep-link into its
+// guide. Members only; grounded organic advice comes from the vision model.
+export async function scanPlantAction(_prevState: PlantScanState, formData: FormData): Promise<PlantScanState> {
+  const imageUrl = String(formData.get("image_url") ?? "").trim();
+  if (!imageUrl) {
+    return { error: "Upload a photo first." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  let base64: string;
+  let mediaType: AnthropicImageMediaType;
+  try {
+    const res = await fetch(imageUrl, { cache: "no-store" });
+    if (!res.ok) return { imageUrl, error: "Couldn't read that image." };
+    const mt = normaliseMediaType(res.headers.get("content-type"));
+    if (!mt) return { imageUrl, error: "Please upload a JPEG, PNG, WebP or GIF image." };
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > MAX_IMAGE_BYTES) return { imageUrl, error: "That image is too large — try one under 5MB." };
+    base64 = Buffer.from(buf).toString("base64");
+    mediaType = mt;
+  } catch {
+    return { imageUrl, error: "Couldn't read that image." };
+  }
+
+  const result = await scanPlant(base64, mediaType);
+  if (!result) {
+    return { imageUrl, error: "The plant scanner isn't available right now." };
+  }
+
+  // Deep-link: match the AI's crop guess to a crop in the library by name.
+  let matchedSlug: string | null = null;
+  let matchedName: string | null = null;
+  if (result.crop_guess) {
+    const guess = result.crop_guess.toLowerCase();
+    const crops = await getCrops(supabase);
+    const match = crops.find((c) => {
+      const name = c.common_name.toLowerCase();
+      return guess.includes(name) || name.includes(guess);
+    });
+    if (match) {
+      matchedSlug = match.slug;
+      matchedName = match.common_name;
+    }
+  }
+
+  return { imageUrl, result, matchedSlug, matchedName };
 }

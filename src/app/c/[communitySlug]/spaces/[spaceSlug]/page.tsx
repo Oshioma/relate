@@ -23,6 +23,7 @@ import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, type FarmCrop } from "@/lib/farm-bridge";
+import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
@@ -522,6 +523,8 @@ export default async function SpaceDetailPage({
           savedIds={cropSavedIds}
           farmCrops={cropFarmCrops}
           farmAppUrl={farmAppUrl}
+          scannerEnabled={isPlantScannerConfigured()}
+          isMember={canPost}
         />
       ) : (
         <>
