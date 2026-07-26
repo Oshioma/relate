@@ -22,6 +22,7 @@ import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, type MonthCalendarRow } from "@/lib/data/crop-guides";
+import { getMyFarmCrops, type FarmCrop } from "@/lib/farm-bridge";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
@@ -179,6 +180,10 @@ export default async function SpaceDetailPage({
     ? await Promise.all([getCropRegions(supabase), getCommunityCropRegions(supabase, community.id), getCurrentMonthCalendar(supabase, cropCurrentMonth)])
     : [[], [], []];
   const cropSavedIds = isCropGuidesSpace && user ? await getSavedCropIds(supabase, user.id) : [];
+  // The user's crops from the shamba.online farm app (empty unless the bridge is
+  // configured and the user's email is linked to a farm).
+  const cropFarmCrops: FarmCrop[] = isCropGuidesSpace ? await getMyFarmCrops(user?.email) : [];
+  const farmAppUrl = process.env.NEXT_PUBLIC_FARM_APP_URL ?? null;
 
   const featuredBusinessCategories = isBusinessDirectorySpace
     ? (await getCommunityFeaturedBusinessCategories(supabase, community.id)).filter((f) => f.space_id === space.id).map((f) => f.category)
@@ -515,6 +520,8 @@ export default async function SpaceDetailPage({
           monthCalendar={cropMonthCalendar}
           currentMonth={cropCurrentMonth}
           savedIds={cropSavedIds}
+          farmCrops={cropFarmCrops}
+          farmAppUrl={farmAppUrl}
         />
       ) : (
         <>
