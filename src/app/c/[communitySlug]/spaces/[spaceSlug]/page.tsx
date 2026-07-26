@@ -531,8 +531,6 @@ export default async function SpaceDetailPage({
           savedIds={cropSavedIds}
           farmCrops={cropFarmCrops}
           farmAppUrl={farmAppUrl}
-          scannerEnabled={isPlantScannerConfigured()}
-          isMember={canPost}
         />
       ) : isPlantScannerSpace ? (
         !isPlantScannerConfigured() ? (
