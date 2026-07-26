@@ -1221,6 +1221,40 @@ export type CropDisease = {
   created_at: string;
 };
 
+// Region-aware planting calendars.
+export type CropRegionKind = "climate" | "geographic";
+export type Hemisphere = "north" | "south";
+export type CropCalendarActivity = "sow_indoors" | "direct_sow" | "transplant" | "harvest" | "avoid";
+
+export type CropRegion = {
+  id: string;
+  slug: string;
+  name: string;
+  kind: CropRegionKind;
+  hemisphere: Hemisphere | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type CropCalendar = {
+  id: string;
+  crop_id: string;
+  region_id: string;
+  month: number;
+  activity: CropCalendarActivity;
+  created_at: string;
+};
+
+export type CommunityCropRegion = {
+  id: string;
+  community_id: string;
+  name: string;
+  base_region_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1687,6 +1721,21 @@ export type Database = {
         Row: CropDisease;
         Insert: Partial<CropDisease> & { crop_id: string; name: string };
         Update: Partial<CropDisease>;
+      } & NoRel;
+      crop_regions: {
+        Row: CropRegion;
+        Insert: Partial<CropRegion> & { slug: string; name: string };
+        Update: Partial<CropRegion>;
+      } & NoRel;
+      crop_calendars: {
+        Row: CropCalendar;
+        Insert: Partial<CropCalendar> & { crop_id: string; region_id: string; month: number; activity: CropCalendarActivity };
+        Update: Partial<CropCalendar>;
+      } & NoRel;
+      community_crop_regions: {
+        Row: CommunityCropRegion;
+        Insert: Partial<CommunityCropRegion> & { community_id: string; name: string };
+        Update: Partial<CommunityCropRegion>;
       } & NoRel;
     };
     Views: Record<string, never>;
