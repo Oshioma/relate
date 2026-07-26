@@ -89,6 +89,8 @@ export async function updatePost(
 ): Promise<PostFormState> {
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
+  const mediaUrlRaw = String(formData.get("media_url") ?? "").trim();
+  const mediaUrl = /^https?:\/\//.test(mediaUrlRaw) ? mediaUrlRaw : null;
 
   if (!title) {
     return { error: "Give your post a title." };
@@ -97,7 +99,7 @@ export async function updatePost(
   const supabase = await createClient();
   const { error } = await supabase
     .from("posts")
-    .update({ title, body: body || null })
+    .update({ title, body: body || null, media_url: mediaUrl })
     .eq("id", postId);
 
   if (error) return { error: error.message };

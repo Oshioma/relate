@@ -11,6 +11,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { updatePost, deletePost } from "../../actions";
+import { PostImagePicker, type CropPhotoOption } from "../../post-image-picker";
 import type { PostWithAuthor } from "@/lib/data/posts";
 
 export function PostCard({
@@ -19,16 +20,21 @@ export function PostCard({
   canDelete,
   communitySlug,
   spaceSlug,
+  crops = [],
+  avatarUrl = null,
 }: {
   post: PostWithAuthor;
   canEdit: boolean;
   canDelete: boolean;
   communitySlug: string;
   spaceSlug: string;
+  crops?: CropPhotoOption[];
+  avatarUrl?: string | null;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(post.title);
   const [body, setBody] = useState(post.body ?? "");
+  const [mediaUrl, setMediaUrl] = useState<string | null>(post.media_url);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -38,6 +44,7 @@ export function PostCard({
     const formData = new FormData();
     formData.set("title", title);
     formData.set("body", body);
+    formData.set("media_url", mediaUrl ?? "");
 
     startTransition(async () => {
       const result = await updatePost(post.id, communitySlug, spaceSlug, undefined, formData);
@@ -75,6 +82,10 @@ export function PostCard({
             <Label htmlFor="edit_body">Details</Label>
             <Textarea id="edit_body" rows={4} value={body} onChange={(event) => setBody(event.target.value)} />
           </div>
+          <div>
+            <Label>Photo</Label>
+            <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} avatarUrl={avatarUrl} />
+          </div>
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex gap-2">
             <Button size="sm" disabled={isPending} onClick={handleSave}>
@@ -87,6 +98,7 @@ export function PostCard({
               onClick={() => {
                 setTitle(post.title);
                 setBody(post.body ?? "");
+                setMediaUrl(post.media_url);
                 setError(null);
                 setIsEditing(false);
               }}
