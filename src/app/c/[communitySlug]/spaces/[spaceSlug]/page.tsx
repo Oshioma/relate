@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { RichText } from "@/components/ui/rich-text";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
@@ -248,7 +249,7 @@ export default async function SpaceDetailPage({
           <TypeIcon className="h-5 w-5 text-muted-foreground" />
           {space.name}
         </h1>
-        {space.description && <p className="mt-1 text-sm text-muted-foreground">{space.description}</p>}
+        {space.description && <RichText content={space.description} className="mt-2 text-muted-foreground" />}
       </div>
 
       {isResourceSpace ? (
