@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/data/profile";
+import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getSpaceBySlug } from "@/lib/data/spaces";
+import { getAccommodationDetail } from "@/lib/data/accommodation";
+import { AccommodationDetailView } from "../../accommodation-detail-view";
+
+export default async function AccommodationDetailPage({
+  params,
+}: {
+  params: Promise<{ communitySlug: string; spaceSlug: string; listingId: string }>;
+}) {
+  const { communitySlug, spaceSlug, listingId } = await params;
+  const supabase = await createClient();
+
+  const user = await getCurrentUser(supabase);
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) notFound();
+
+  const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  if (!space) notFound();
+
+  const detail = await getAccommodationDetail(supabase, listingId);
+  if (!detail || detail.listing.space_id !== space.id) notFound();
+
+  const viewerId = user?.id ?? "";
+  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+  const isActive = membership?.status === "active";
+  const isStaff = isActive && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // The lister (listed_by) manages their own listing; staff can always manage.
+  const canManage = detail.listing.listed_by === viewerId || Boolean(isStaff);
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+      <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Link href={`/c/${community.slug}/spaces/${space.slug}`} className="hover:underline">
+          {space.name}
+        </Link>
+      </p>
+
+      <AccommodationDetailView
+        detail={detail}
+        communitySlug={community.slug}
+        spaceSlug={space.slug}
+        userId={viewerId}
+        canManage={canManage}
+      />
+    </div>
+  );
+}

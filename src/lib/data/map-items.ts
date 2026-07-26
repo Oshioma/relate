@@ -119,7 +119,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       lat: stay.lat!,
       lng: stay.lng!,
       locationLabel: stay.location_label,
-      href,
+      href: `${href}/stays/${stay.id}`,
       price: stay.price_per_night,
       currency: stay.currency,
       meta: accommodationTypeLabel(stay.accommodation_type),

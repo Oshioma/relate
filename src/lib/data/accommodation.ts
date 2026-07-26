@@ -37,3 +37,21 @@ export async function getSpaceAccommodationListings(supabase: Client, spaceId: s
   if (error) throw error;
   return (data ?? []) as unknown as AccommodationListingWithBusiness[];
 }
+
+export type AccommodationDetail = {
+  listing: AccommodationListingWithBusiness & { lister: Profile };
+};
+
+// One listing plus who posted it and any linked business, for its own page.
+// Reviews and the viewer's saved state are layered in by later data helpers.
+export async function getAccommodationDetail(supabase: Client, listingId: string): Promise<AccommodationDetail | null> {
+  const { data, error } = await supabase
+    .from("accommodation_listings")
+    .select("*, business:business_id (id, name), lister:listed_by (*)")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return { listing: data as unknown as AccommodationListingWithBusiness & { lister: Profile } };
+}

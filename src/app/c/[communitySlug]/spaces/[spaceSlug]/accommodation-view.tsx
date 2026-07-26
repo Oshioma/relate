@@ -17,7 +17,6 @@ export function AccommodationView({
   spaceId,
   spaceSlug,
   canPost,
-  isStaff,
   userId,
 }: {
   listings: AccommodationListingWithBusiness[];
@@ -26,7 +25,6 @@ export function AccommodationView({
   spaceId: string;
   spaceSlug: string;
   canPost: boolean;
-  isStaff: boolean;
   userId: string;
 }) {
   const [type, setType] = useState<AccommodationType | "all">("all");
@@ -118,14 +116,7 @@ export function AccommodationView({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((listing) => (
-            <AccommodationCard
-              key={listing.id}
-              listing={listing}
-              communitySlug={communitySlug}
-              spaceSlug={spaceSlug}
-              canManage={isStaff || listing.listed_by === userId}
-              userId={userId}
-            />
+            <AccommodationCard key={listing.id} listing={listing} communitySlug={communitySlug} spaceSlug={spaceSlug} />
           ))}
         </div>
       )}

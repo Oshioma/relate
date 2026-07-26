@@ -440,7 +440,6 @@ export default async function SpaceDetailPage({
           spaceId={space.id}
           spaceSlug={space.slug}
           canPost={canPost}
-          isStaff={Boolean(isStaff)}
           userId={viewerId}
         />
       ) : isRecommendationsSpace ? (
