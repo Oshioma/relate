@@ -329,9 +329,14 @@ export async function updateCommunityDetails(
   const communitySlug = String(formData.get("community_slug") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const locationName = String(formData.get("location_name") ?? "").trim();
-  const rawLocationType = String(formData.get("location_type") ?? "");
-  const locationType = getPlaceLocationType(rawLocationType) ? rawLocationType : null;
+  // Absent field ≠ empty field: only place communities render the location and
+  // "kind of place" inputs, so a generic community's edit must leave those
+  // columns untouched rather than clearing them.
+  const rawLocationName = formData.get("location_name");
+  const rawLocationType = formData.get("location_type");
+  const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
+  const locationType =
+    rawLocationType === null ? undefined : getPlaceLocationType(String(rawLocationType)) ? String(rawLocationType) : null;
 
   if (!name) {
     return { error: "Give your community a name." };
@@ -343,8 +348,8 @@ export async function updateCommunityDetails(
     .update({
       name,
       description: description || null,
-      location_name: locationName.slice(0, 120) || null,
-      location_type: locationType,
+      ...(locationName !== undefined && { location_name: locationName }),
+      ...(locationType !== undefined && { location_type: locationType }),
     })
     .eq("id", communityId);
 
