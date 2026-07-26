@@ -29,6 +29,7 @@ import {
 import type { Crop, CropSection, CompanionRelationship, CropRegion, CropCalendar, CommunityCropRegion } from "@/types/database";
 import type { CropDetail, CropCompanionWithLink, JournalWithAuthor, JournalStats, TipWithAuthor } from "@/lib/data/crop-guides";
 import { PlantingCalendar } from "./planting-calendar";
+import { YieldCalculator } from "./yield-calculator";
 import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
@@ -304,6 +305,8 @@ export function CropDetailView({
       <SectionBlock title="Watering" section={crop.watering} />
       <SectionBlock title="Organic feeding" section={crop.feeding} />
       <SectionBlock title="Harvest" section={crop.harvest} />
+
+      <YieldCalculator crop={crop} />
 
       {/* Companion planting */}
       {companions.length > 0 && (
