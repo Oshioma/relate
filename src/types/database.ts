@@ -1306,6 +1306,38 @@ export type CropSave = {
   created_at: string;
 };
 
+// Community propose-a-crop flow — members submit, staff approve → promoted into
+// the global crops library.
+export type CropProposalStatus = "pending" | "approved" | "rejected";
+
+export type CropProposal = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  common_name: string;
+  scientific_name: string | null;
+  family: string | null;
+  category: string;
+  difficulty: string | null;
+  lifecycle: string | null;
+  overview: string | null;
+  preferred_climate: string | null;
+  sun: string | null;
+  water_need: string | null;
+  edible_part: string | null;
+  time_to_maturity_days: number | null;
+  beginner_friendly: boolean;
+  pollinator_friendly: boolean;
+  nitrogen_fixer: boolean;
+  drought_tolerant: boolean;
+  organic_favourite: boolean;
+  status: CropProposalStatus;
+  reviewer_note: string | null;
+  crop_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 // Community medicinal-use log — member-authored, staff-moderated, searchable by
 // ailment. Traditional knowledge, not medical advice.
 export type CropMedicinalUse = {
@@ -1827,9 +1859,19 @@ export type Database = {
         Update: Partial<CropMedicinalUse>;
         Relationships: [FKey<"created_by", "profiles">, FKey<"crop_id", "crops">];
       };
+      crop_proposals: {
+        Row: CropProposal;
+        Insert: Partial<CropProposal> & { community_id: string; created_by: string; common_name: string };
+        Update: Partial<CropProposal>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      approve_crop_proposal: {
+        Args: { p_proposal_id: string };
+        Returns: string;
+      };
       get_invite_preview: {
         Args: { p_code: string };
         Returns: {

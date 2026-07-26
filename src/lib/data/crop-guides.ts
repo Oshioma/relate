@@ -12,6 +12,7 @@ import type {
   CropGrowingJournal,
   CropCommunityTip,
   CropMedicinalUse,
+  CropProposal,
   Profile,
 } from "@/types/database";
 
@@ -275,4 +276,18 @@ export async function getCropSearchIndex(supabase: Client, communityId: string):
   const index: Record<string, string> = {};
   for (const [cropId, terms] of byCrop) index[cropId] = terms.join(" ").toLowerCase();
   return index;
+}
+
+// --- Community crop proposals -----------------------------------------------
+
+export type ProposalWithAuthor = CropProposal & { author: Profile | null };
+
+export async function getCropProposals(supabase: Client, communityId: string): Promise<ProposalWithAuthor[]> {
+  const { data, error } = await supabase
+    .from("crop_proposals")
+    .select("*, author:created_by (*)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as ProposalWithAuthor[];
 }

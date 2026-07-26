@@ -6,9 +6,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CropCard } from "./crop-card";
+import { CropProposals } from "./crop-proposals";
 import { CROP_CATEGORIES, cropCategoryLabel } from "@/lib/crop-categories";
 import { createCommunityRegion, deleteCommunityRegion, type CropRegionFormState } from "./crop-guides-actions";
-import type { CropListItem, MonthCalendarRow } from "@/lib/data/crop-guides";
+import type { CropListItem, MonthCalendarRow, ProposalWithAuthor } from "@/lib/data/crop-guides";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -28,6 +29,9 @@ export function CropGuidesView({
   currentMonth,
   savedIds,
   searchIndex,
+  proposals,
+  isMember,
+  isStaff,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -41,6 +45,9 @@ export function CropGuidesView({
   savedIds: string[];
   // crop_id -> extra searchable terms (pests, diseases, companions, ailments).
   searchIndex: Record<string, string>;
+  proposals: ProposalWithAuthor[];
+  isMember: boolean;
+  isStaff: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -200,6 +207,11 @@ export function CropGuidesView({
           regions={regions}
           communityRegions={communityRegions}
         />
+      )}
+
+      {/* Propose a crop (members) + review queue (staff) */}
+      {(isMember || isStaff) && (proposals.length > 0 || isMember) && (
+        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} canPropose={isMember} isStaff={isStaff} />
       )}
 
       {/* Search + filters */}

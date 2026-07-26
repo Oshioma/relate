@@ -33,6 +33,7 @@ import { YieldCalculator } from "./yield-calculator";
 import { CropAssistantPanel } from "./crop-assistant-panel";
 import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
 import { MedicinalUses } from "./crop-medicinal";
+import { CompanionGraph } from "./companion-graph";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -326,6 +327,9 @@ export function CropDetailView({
         <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="text-base font-semibold text-foreground">Companion planting</h2>
           <p className="mt-1 text-sm text-muted-foreground">Grow alongside these — tap a linked crop to open its guide.</p>
+          <div className="mt-4">
+            <CompanionGraph cropName={crop.common_name} companions={companions} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+          </div>
           <div className="mt-4 space-y-5">
             <CompanionGroup relationship="excellent" companions={companionsByRel("excellent")} communitySlug={communitySlug} spaceSlug={spaceSlug} />
             <CompanionGroup relationship="neutral" companions={companionsByRel("neutral")} communitySlug={communitySlug} spaceSlug={spaceSlug} />
