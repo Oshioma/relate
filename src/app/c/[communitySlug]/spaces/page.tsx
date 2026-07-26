@@ -7,6 +7,7 @@ import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { toPlainText } from "@/components/ui/rich-text";
 import { LinkButton } from "@/components/ui/button";
 import { SPACE_TYPES } from "@/lib/space-types";
 
@@ -63,7 +64,7 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
                       </span>
                     </div>
                     {space.description && (
-                      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{space.description}</p>
+                      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(space.description)}</p>
                     )}
                   </CardContent>
                 </Card>
