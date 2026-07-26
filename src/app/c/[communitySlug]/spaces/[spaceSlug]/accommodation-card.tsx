@@ -1,65 +1,58 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { MapPin, Building2, ExternalLink, MoreVertical, Trash2, RotateCcw, CircleCheck, BedDouble } from "lucide-react";
-import { accommodationTypeLabel } from "@/lib/accommodation-types";
-import { deleteAccommodationListing, setAccommodationStatus } from "./accommodation-actions";
-import type { AccommodationListingWithBusiness } from "@/lib/data/accommodation";
+import Link from "next/link";
+import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
+import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, accommodationFactsSummary } from "@/lib/accommodation-types";
+import { StarRatingDisplay } from "./star-rating";
+import { toggleSaveAccommodation } from "./accommodation-actions";
+import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 
-function formatPricePerNight(listing: AccommodationListingWithBusiness): string | null {
-  if (listing.price_per_night === null) return null;
-  try {
-    const amount = new Intl.NumberFormat(undefined, { style: "currency", currency: listing.currency || "USD", maximumFractionDigits: 0 }).format(
-      listing.price_per_night
-    );
-    return `${amount} / night`;
-  } catch {
-    return `${listing.currency ?? ""} ${listing.price_per_night} / night`.trim();
-  }
-}
-
+// A stay card is a link into the listing's own page (like business-card and
+// guide-card). It shows the cover photo with a photo count, the type, price,
+// name, a short description and a save toggle. Editing, availability and
+// deletion all live on the detail page.
 export function AccommodationCard({
   listing,
   communitySlug,
   spaceSlug,
-  canManage,
+  canSave,
 }: {
-  listing: AccommodationListingWithBusiness;
+  listing: AccommodationListingWithStats;
   communitySlug: string;
   spaceSlug: string;
-  canManage: boolean;
+  canSave: boolean;
 }) {
-  const [isPending, startTransition] = useTransition();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const router = useRouter();
   const isUnavailable = listing.status === "unavailable";
-  const price = formatPricePerNight(listing);
+  const price = formatAccommodationPrice(listing);
+  const photos = accommodationPhotos(listing);
+  const facts = accommodationFactsSummary(listing);
+  const [saved, setSaved] = useState(listing.saved);
+  const [isPending, startTransition] = useTransition();
 
-  function toggleAvailability() {
-    setMenuOpen(false);
+  function handleSaveToggle(e: React.MouseEvent) {
+    // The card is a Link — keep the click from navigating.
+    e.preventDefault();
+    e.stopPropagation();
+    const optimistic = !saved;
+    setSaved(optimistic);
     startTransition(async () => {
-      await setAccommodationStatus(listing.id, isUnavailable ? "available" : "unavailable", communitySlug, spaceSlug);
-      router.refresh();
-    });
-  }
-
-  function handleDelete() {
-    setMenuOpen(false);
-    if (!window.confirm(`Remove "${listing.name}"? This can't be undone.`)) return;
-    startTransition(async () => {
-      await deleteAccommodationListing(listing.id, communitySlug, spaceSlug);
-      router.refresh();
+      const result = await toggleSaveAccommodation(listing.id, communitySlug, spaceSlug);
+      if ("saved" in result && typeof result.saved === "boolean") setSaved(result.saved);
+      else setSaved(!optimistic); // revert on error
     });
   }
 
   return (
-    <div className={`group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md ${isPending ? "opacity-60" : ""}`}>
+    <Link
+      href={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.id}`}
+      className="group block overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        {listing.photo_url ? (
+        {photos.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={listing.photo_url}
+            src={photos[0]}
             alt={listing.name}
             className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${isUnavailable ? "grayscale" : ""}`}
           />
@@ -78,6 +71,26 @@ export function AccommodationCard({
           <span className="absolute right-2 top-2 rounded-full bg-card/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur">{price}</span>
         )}
 
+        {canSave && (
+          <button
+            type="button"
+            onClick={handleSaveToggle}
+            disabled={isPending}
+            title={saved ? "Remove from saved" : "Save"}
+            aria-pressed={saved}
+            className={`absolute p-1.5 text-white transition disabled:opacity-60 ${price ? "right-2 top-10" : "right-2 top-2"} rounded-full bg-black/45 hover:bg-black/65`}
+          >
+            <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+          </button>
+        )}
+
+        {photos.length > 1 && (
+          <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">
+            <Images className="h-3 w-3" />
+            {photos.length}
+          </span>
+        )}
+
         {isUnavailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-foreground/40">
             <span className="rounded-md bg-card px-3 py-1 text-sm font-bold tracking-wide text-foreground shadow-lg">UNAVAILABLE</span>
@@ -86,28 +99,13 @@ export function AccommodationCard({
       </div>
 
       <div className="p-3.5">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">{listing.name}</h3>
-          {canManage && (
-            <div className="relative shrink-0">
-              <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-md p-1 text-muted-foreground hover:bg-muted" title="Manage listing">
-                <MoreVertical className="h-4 w-4" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-7 z-10 w-44 overflow-hidden rounded-md border border-border bg-card shadow-lg">
-                  <button type="button" disabled={isPending} onClick={toggleAvailability} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-foreground hover:bg-muted disabled:opacity-60">
-                    {isUnavailable ? <RotateCcw className="h-3.5 w-3.5" /> : <CircleCheck className="h-3.5 w-3.5" />}
-                    {isUnavailable ? "Mark available" : "Mark unavailable"}
-                  </button>
-                  <button type="button" disabled={isPending} onClick={handleDelete} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-danger hover:bg-danger/10 disabled:opacity-60">
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Remove
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">{listing.name}</h3>
+
+        {listing.ratingCount > 0 && (
+          <div className="mt-1">
+            <StarRatingDisplay value={listing.avgRating} count={listing.ratingCount} />
+          </div>
+        )}
 
         {listing.business?.name && (
           <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -115,6 +113,8 @@ export function AccommodationCard({
             {listing.business.name}
           </p>
         )}
+
+        {facts && <p className="mt-1 text-xs text-muted-foreground">{facts}</p>}
 
         {listing.description && <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{listing.description}</p>}
 
@@ -124,19 +124,7 @@ export function AccommodationCard({
             {listing.location_label}
           </p>
         )}
-
-        {listing.booking_url && (
-          <a
-            href={listing.booking_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1 border-t border-border pt-2.5 text-xs font-medium text-accent hover:underline"
-          >
-            Book
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
       </div>
-    </div>
+    </Link>
   );
 }

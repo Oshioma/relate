@@ -3,13 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 import { ImageLightbox } from "./image-lightbox";
-import type { BusinessImage } from "@/types/database";
+
+// The minimal shape the carousel and lightbox need. BusinessImage satisfies it
+// structurally, and accommodation maps its photo_urls onto it, so both features
+// share one carousel.
+export type CarouselImage = { id: string; url: string; position: string | null };
 
 // A lightweight, dependency-free photo carousel: a horizontal scroll-snap track
 // you can swipe or drag, with prev/next arrows, dot indicators, a photo counter
 // and arrow-key support. Keeping it hand-rolled matches the rest of the app,
 // which pulls in no carousel library.
-export function ImageCarousel({ images, alt }: { images: BusinessImage[]; alt: string }) {
+export function ImageCarousel({ images, alt }: { images: CarouselImage[]; alt: string }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);

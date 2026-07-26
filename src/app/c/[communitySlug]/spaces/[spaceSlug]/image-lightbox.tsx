@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import type { BusinessImage } from "@/types/database";
+import type { CarouselImage } from "./image-carousel";
 
 // Full-screen photo viewer opened from the carousel. Renders through a portal so
 // it escapes the card's clipping, traps Escape/arrow keys, locks body scroll and
@@ -14,7 +14,7 @@ export function ImageLightbox({
   alt,
   onClose,
 }: {
-  images: BusinessImage[];
+  images: CarouselImage[];
   startIndex: number;
   alt: string;
   onClose: () => void;

@@ -17,7 +17,7 @@ import { getMapCategories, getSpaceLandmarks, getCommunityMapPinnedBusinesses } 
 import { getCommunityMapItems } from "@/lib/data/map-items";
 import { getSpaceListings } from "@/lib/data/marketplace";
 import { getSpaceJobListings } from "@/lib/data/jobs";
-import { getSpaceAccommodationListings } from "@/lib/data/accommodation";
+import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions } from "@/lib/data/accommodation";
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceGuides } from "@/lib/data/guides";
@@ -133,6 +133,7 @@ export default async function SpaceDetailPage({
     listings,
     jobs,
     accommodationListings,
+    accommodationBusinessOptions,
     recommendations,
     clubs,
     guides,
@@ -156,7 +157,8 @@ export default async function SpaceDetailPage({
     isMapSpace ? getCommunityMapItems(supabase, community.id, community.slug) : Promise.resolve([]),
     isMarketplaceSpace ? getSpaceListings(supabase, space.id) : Promise.resolve([]),
     isJobsSpace ? getSpaceJobListings(supabase, space.id) : Promise.resolve([]),
-    isAccommodationSpace ? getSpaceAccommodationListings(supabase, space.id) : Promise.resolve([]),
+    isAccommodationSpace ? getSpaceAccommodationListingsWithStats(supabase, space.id, viewerId) : Promise.resolve([]),
+    isAccommodationSpace ? getCommunityBusinessLinkOptions(supabase, community.id) : Promise.resolve([]),
     isRecommendationsSpace ? getSpaceRecommendations(supabase, space.id, viewerId) : Promise.resolve([]),
     isClubsSpace ? getSpaceClubs(supabase, space.id, viewerId) : Promise.resolve([]),
     isGuidesSpace ? getSpaceGuides(supabase, space.id) : Promise.resolve([]),
@@ -440,8 +442,8 @@ export default async function SpaceDetailPage({
           spaceId={space.id}
           spaceSlug={space.slug}
           canPost={canPost}
-          isStaff={Boolean(isStaff)}
           userId={viewerId}
+          businesses={accommodationBusinessOptions}
         />
       ) : isRecommendationsSpace ? (
         <RecommendationsView

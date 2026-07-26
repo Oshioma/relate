@@ -45,6 +45,7 @@ export type JobType = "full_time" | "part_time" | "volunteer" | "remote" | "inte
 export type JobListingStatus = "open" | "closed";
 export type AccommodationType = "hotel" | "hostel" | "guesthouse" | "holiday_rental" | "long_term_rental" | "house_share" | "camping";
 export type AccommodationStatus = "available" | "unavailable";
+export type AccommodationPriceUnit = "per_night" | "per_week" | "per_month";
 export type RecommendationCategory = "restaurant" | "cafe" | "activity" | "service" | "professional" | "walk" | "viewpoint" | "contractor" | "other";
 export type VolunteerProjectStatus = "open" | "in_progress" | "completed";
 
@@ -566,16 +567,66 @@ export type AccommodationListing = {
   name: string;
   accommodation_type: AccommodationType;
   description: string | null;
-  photo_url: string | null;
+  // Denormalised cover (kept in sync with photo_urls[0]) so the feed and map
+  // popups don't need the gallery. photo_urls is the full ordered gallery.
+  // The photo gallery; photo_urls[0] is the cover. (The old denormalised
+  // photo_url column was dropped once every reader moved to photo_urls[0].)
+  photo_urls: string[];
   price_per_night: number | null;
   currency: string | null;
+  // How price_per_night should read — per night (default), per week or per
+  // month — so long-term rentals aren't shown as nightly rates.
+  price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
   lat: number | null;
   lng: number | null;
   status: AccommodationStatus;
+  // Structured facts guests filter on. All optional — a camping spot may set
+  // none of them.
+  bedrooms: number | null;
+  bathrooms: number | null;
+  max_guests: number | null;
+  // Amenity slugs from ACCOMMODATION_AMENITIES (e.g. "wifi", "kitchen").
+  amenities: string[];
+  // Optional availability window; both null means "ask the host".
+  available_from: string | null;
+  available_to: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// One member's review of a stay — a 1-5 star rating with optional text, one per
+// member per listing. Mirrors BusinessReview.
+export type AccommodationReview = {
+  id: string;
+  listing_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A public reply to a review from the host (listed_by) or staff — one per
+// review, like a Google Business response. Mirrors BusinessReviewReply.
+export type AccommodationReviewReply = {
+  id: string;
+  review_id: string;
+  listing_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's bookmark of a stay. Visible only to the member who saved it, so
+// the accommodation view's "Saved" filter reflects that viewer alone.
+export type AccommodationSave = {
+  id: string;
+  listing_id: string;
+  user_id: string;
+  created_at: string;
 };
 
 // A member's recommendation in a 'recommendations' space (see
@@ -1254,6 +1305,24 @@ export type Database = {
         Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
         Update: Partial<AccommodationListing>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      accommodation_reviews: {
+        Row: AccommodationReview;
+        Insert: Partial<AccommodationReview> & { listing_id: string; author_id: string; rating: number };
+        Update: Partial<AccommodationReview>;
+        Relationships: [FKey<"listing_id", "accommodation_listings">, FKey<"author_id", "profiles">];
+      };
+      accommodation_review_replies: {
+        Row: AccommodationReviewReply;
+        Insert: Partial<AccommodationReviewReply> & { review_id: string; listing_id: string; author_id: string; body: string };
+        Update: Partial<AccommodationReviewReply>;
+        Relationships: [FKey<"review_id", "accommodation_reviews">, FKey<"listing_id", "accommodation_listings">, FKey<"author_id", "profiles">];
+      };
+      accommodation_saves: {
+        Row: AccommodationSave;
+        Insert: Partial<AccommodationSave> & { listing_id: string; user_id: string };
+        Update: Partial<AccommodationSave>;
+        Relationships: [FKey<"listing_id", "accommodation_listings">, FKey<"user_id", "profiles">];
       };
       recommendations: {
         Row: Recommendation;
