@@ -4,11 +4,20 @@ import { useMemo, useState } from "react";
 import { Plus, Search, X, BedDouble, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ACCOMMODATION_TYPES } from "@/lib/accommodation-types";
+import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel } from "@/lib/accommodation-types";
 import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
 import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
 import type { AccommodationType } from "@/types/database";
+
+type SortKey = "newest" | "price_asc" | "price_desc" | "top_rated";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price: low to high" },
+  { value: "price_desc", label: "Price: high to low" },
+  { value: "top_rated", label: "Top rated" },
+];
 
 export function AccommodationView({
   listings,
@@ -32,19 +41,53 @@ export function AccommodationView({
   const [showForm, setShowForm] = useState(false);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("newest");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [amenityFilters, setAmenityFilters] = useState<string[]>([]);
 
   const savedCount = useMemo(() => listings.filter((l) => l.saved).length, [listings]);
 
-  const filtered = useMemo(() => {
+  // Only offer amenity chips for amenities at least one listing advertises.
+  const amenitiesInUse = useMemo(() => {
+    const present = new Set(listings.flatMap((l) => l.amenities));
+    return ACCOMMODATION_AMENITIES.filter((a) => present.has(a.value));
+  }, [listings]);
+
+  function toggleAmenity(value: string) {
+    setAmenityFilters((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+  }
+
+  const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return listings.filter((l) => {
+    const min = minPrice.trim() ? Number(minPrice) : null;
+    const max = maxPrice.trim() ? Number(maxPrice) : null;
+
+    const filtered = listings.filter((l) => {
       if (type !== "all" && l.accommodation_type !== type) return false;
       if (savedOnly && !l.saved) return false;
       if (!showUnavailable && l.status === "unavailable") return false;
       if (q && !l.name.toLowerCase().includes(q) && !(l.description ?? "").toLowerCase().includes(q)) return false;
+      if (min !== null && Number.isFinite(min) && (l.price_per_night === null || l.price_per_night < min)) return false;
+      if (max !== null && Number.isFinite(max) && (l.price_per_night === null || l.price_per_night > max)) return false;
+      if (amenityFilters.length > 0 && !amenityFilters.every((a) => l.amenities.includes(a))) return false;
       return true;
     });
-  }, [listings, type, query, showUnavailable, savedOnly]);
+
+    // Listings with no price (or no rating) sort last within their key.
+    const byPrice = (dir: 1 | -1) => (a: AccommodationListingWithStats, b: AccommodationListingWithStats) => {
+      if (a.price_per_night === null) return 1;
+      if (b.price_per_night === null) return -1;
+      return (a.price_per_night - b.price_per_night) * dir;
+    };
+    const sorted = [...filtered];
+    if (sort === "price_asc") sorted.sort(byPrice(1));
+    else if (sort === "price_desc") sorted.sort(byPrice(-1));
+    else if (sort === "top_rated")
+      sorted.sort((a, b) => (b.avgRating ?? -1) - (a.avgRating ?? -1) || b.ratingCount - a.ratingCount);
+    // "newest" keeps the created_at-desc order the query already returned.
+    return sorted;
+  }, [listings, type, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
 
   const countByType = useMemo(() => {
     const counts = new Map<string, number>();
@@ -116,13 +159,64 @@ export function AccommodationView({
         </label>
       </div>
 
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortKey)}
+          aria-label="Sort listings"
+          className="rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <input
+            type="number"
+            min="0"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+            placeholder="Min"
+            aria-label="Minimum price"
+            className="w-20 rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <span>–</span>
+          <input
+            type="number"
+            min="0"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            placeholder="Max"
+            aria-label="Maximum price"
+            className="w-20 rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {amenitiesInUse.map((a) => {
+          const active = amenityFilters.includes(a.value);
+          return (
+            <button
+              key={a.value}
+              type="button"
+              onClick={() => toggleAmenity(a.value)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium ${active ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              {amenityLabel(a.value)}
+            </button>
+          );
+        })}
+      </div>
+
       {showForm && (
         <div className="mb-5">
           <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} onDone={() => setShowForm(false)} />
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      {visible.length === 0 ? (
         <EmptyState
           icon={<BedDouble className="h-6 w-6" />}
           title={listings.length === 0 ? "No places to stay yet" : "Nothing matches"}
@@ -130,7 +224,7 @@ export function AccommodationView({
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((listing) => (
+          {visible.map((listing) => (
             <AccommodationCard key={listing.id} listing={listing} communitySlug={communitySlug} spaceSlug={spaceSlug} canSave={canPost} />
           ))}
         </div>
