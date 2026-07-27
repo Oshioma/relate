@@ -623,7 +623,7 @@ export default async function SpaceDetailPage({
       ) : (
         <>
           {canPost && (
-            <div className="mb-6">
+            <div id="new-post" className="mb-6 scroll-mt-6">
               <NewPostForm
                 communityId={community.id}
                 spaceId={space.id}
