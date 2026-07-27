@@ -9,9 +9,10 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 interface ImageUploadProps {
-  bucket: "avatars" | "community-assets";
+  bucket: "avatars" | "community-assets" | "uploads";
   // Object path without extension, e.g. `${userId}/avatar` or `${communityId}/logo`.
   // The file's own extension is appended, and re-uploads overwrite in place.
+  // For the per-user "uploads" bucket the first segment must be the uploader's id.
   basePath: string;
   currentUrl?: string | null;
   onUploaded: (publicUrl: string) => Promise<void> | void;

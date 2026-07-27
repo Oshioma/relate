@@ -586,6 +586,7 @@ export default async function SpaceDetailPage({
           savedIds={cropSavedIds}
           searchIndex={cropSearchIndex}
           proposals={cropProposals}
+          viewerId={viewerId}
           isMember={canPost}
           isStaff={Boolean(isStaff)}
         />

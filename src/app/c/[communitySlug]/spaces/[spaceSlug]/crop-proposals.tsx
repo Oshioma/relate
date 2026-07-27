@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Sprout, Plus, X, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { CROP_CATEGORIES } from "@/lib/crop-categories";
 import { proposeCrop, approveCropProposal, rejectCropProposal, deleteCropProposal, type CropProposalFormState } from "./crop-guides-actions";
 import type { ProposalWithAuthor } from "@/lib/data/crop-guides";
@@ -20,15 +21,21 @@ function authorName(a: { full_name: string | null; username: string } | null): s
 export function CropProposals({
   ctx,
   proposals,
+  viewerId,
   canPropose,
   isStaff,
 }: {
   ctx: Ctx;
   proposals: ProposalWithAuthor[];
+  viewerId: string;
   canPropose: boolean;
   isStaff: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // Stable per-mount id so re-picking a photo overwrites the same object rather
+  // than orphaning the previous upload.
+  const [uploadKey] = useState(() => Math.random().toString(36).slice(2, 10));
   const [state, formAction] = useActionState<CropProposalFormState, FormData>(proposeCrop, undefined);
 
   const pending = proposals.filter((p) => p.status === "pending");
@@ -91,6 +98,19 @@ export function CropProposals({
             <span className="mb-1 block text-xs font-medium text-muted-foreground">Overview</span>
             <textarea name="overview" rows={2} className={inputCls} placeholder="A sentence or two about the crop" />
           </label>
+          <div>
+            <span className="mb-1 block text-xs font-medium text-muted-foreground">Photo (optional)</span>
+            <input type="hidden" name="image_url" value={imageUrl ?? ""} />
+            <ImageUpload
+              bucket="uploads"
+              basePath={`${viewerId}/crop-proposals/${uploadKey}`}
+              currentUrl={imageUrl}
+              shape="square"
+              size={72}
+              label="photo"
+              onUploaded={(url) => setImageUrl(url)}
+            />
+          </div>
           {state?.error && <p className="text-sm text-danger">{state.error}</p>}
           <Button type="submit" size="sm" className="w-auto">
             Submit for review

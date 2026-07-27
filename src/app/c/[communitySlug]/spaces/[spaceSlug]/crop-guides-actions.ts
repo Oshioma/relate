@@ -558,6 +558,7 @@ export async function proposeCrop(_prevState: CropProposalFormState, formData: F
     nitrogen_fixer: bool("nitrogen_fixer"),
     drought_tolerant: bool("drought_tolerant"),
     organic_favourite: bool("organic_favourite"),
+    image_url: optionalText(formData, "image_url"),
   });
 
   if (error) {
@@ -566,6 +567,36 @@ export async function proposeCrop(_prevState: CropProposalFormState, formData: F
 
   revalidatePath(spacePath(communitySlug, spaceSlug));
   return undefined;
+}
+
+// Super admin: set or clear a crop's hero photo from its guide page. The crops
+// table is super-admin-write (RLS), so this update simply no-ops for anyone
+// else; we still check up front to return a clear message rather than a silent
+// success. Pass an empty imageUrl to remove the photo.
+export async function setCropImageUrl(input: {
+  slug: string;
+  imageUrl: string;
+  communitySlug: string;
+  spaceSlug: string;
+}): Promise<{ error?: string }> {
+  const slug = input.slug.trim();
+  const imageUrl = input.imageUrl.trim();
+  if (!slug) return { error: "Missing crop." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { data: profile } = await supabase.from("profiles").select("is_super_admin").eq("id", user.id).maybeSingle();
+  if (!profile?.is_super_admin) return { error: "Only a super admin can change a crop photo." };
+
+  const { error } = await supabase.from("crops").update({ image_url: imageUrl || null }).eq("slug", slug);
+  if (error) return { error: error.message };
+
+  revalidatePath(cropPath(input.communitySlug, input.spaceSlug, slug));
+  return {};
 }
 
 // Staff: promote a proposal into the global crops library via the SECURITY

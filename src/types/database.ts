@@ -1339,6 +1339,7 @@ export type CropProposal = {
   nitrogen_fixer: boolean;
   drought_tolerant: boolean;
   organic_favourite: boolean;
+  image_url: string | null;
   status: CropProposalStatus;
   reviewer_note: string | null;
   crop_id: string | null;

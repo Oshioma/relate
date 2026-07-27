@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import {
@@ -38,7 +38,7 @@ export default async function CropDetailPage({
   const detail = await getCropDetail(supabase, cropSlug);
   if (!detail) notFound();
 
-  const [regions, communityRegions, calendar, journals, tips, medicinalUses, savedIds, membership] = await Promise.all([
+  const [regions, communityRegions, calendar, journals, tips, medicinalUses, savedIds, membership, profile] = await Promise.all([
     getCropRegions(supabase),
     getCommunityCropRegions(supabase, community.id),
     getCropCalendar(supabase, detail.crop.id),
@@ -47,11 +47,13 @@ export default async function CropDetailPage({
     getCropMedicinalUses(supabase, detail.crop.id, community.id),
     user ? getSavedCropIds(supabase, user.id) : Promise.resolve([]),
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
+    user ? getProfile(supabase, user.id) : Promise.resolve(null),
   ]);
 
   const journalStats = computeJournalStats(journals);
   const canContribute = membership?.status === "active";
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  const isSuperAdmin = Boolean(profile?.is_super_admin);
   const isSaved = savedIds.includes(detail.crop.id);
 
   // Current moon phase / month are pure functions of today's date; computing
@@ -83,6 +85,7 @@ export default async function CropDetailPage({
         medicinalUses={medicinalUses}
         canContribute={Boolean(canContribute)}
         isStaff={Boolean(isStaff)}
+        isSuperAdmin={isSuperAdmin}
         isSaved={isSaved}
         assistantEnabled={isCropAssistantConfigured()}
         viewerId={user?.id ?? ""}
