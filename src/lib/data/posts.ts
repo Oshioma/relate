@@ -15,6 +15,35 @@ export type PostListItem = PostWithAuthor & {
   viewer_reacted: boolean;
 };
 
+export type SpaceContributor = { id: string; name: string | null; avatarUrl: string | null };
+
+export type DiscussionSpaceSummary = {
+  postCount: number;
+  contributorCount: number;
+  // The most recent few distinct contributors, for the header avatar stack.
+  contributors: SpaceContributor[];
+  activeThisWeek: boolean;
+};
+
+// Header activity stats for a discussion space, derived from its already-loaded
+// posts (no extra query). Kept out of the page component so the `Date.now()`
+// call for the "active this week" window isn't an impure call during render.
+export function summarizeDiscussionActivity(posts: PostListItem[]): DiscussionSpaceSummary {
+  const seen = new Map<string, SpaceContributor>();
+  const byRecency = [...posts].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  for (const p of byRecency) {
+    const a = p.author;
+    if (a && !seen.has(a.id)) seen.set(a.id, { id: a.id, name: a.full_name || a.username, avatarUrl: a.avatar_url });
+  }
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  return {
+    postCount: posts.length,
+    contributorCount: seen.size,
+    contributors: [...seen.values()].slice(0, 5),
+    activeThisWeek: posts.some((p) => new Date(p.created_at).getTime() >= weekAgo),
+  };
+}
+
 export async function getSpacePosts(supabase: Client, spaceId: string, viewerId?: string | null): Promise<PostListItem[]> {
   const { data, error } = await supabase
     .from("posts")
