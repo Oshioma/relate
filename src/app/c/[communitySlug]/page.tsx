@@ -325,7 +325,7 @@ export default async function CommunityFeedPage({
 
           <div className="lg:sticky lg:top-6 lg:self-start">
             {growingJourney && (
-              <ShareJourneyCard communitySlug={community.slug} highlight={growingJourney} />
+              <ShareJourneyCard communitySlug={community.slug} highlight={growingJourney} isLoggedIn={Boolean(user)} />
             )}
 
             <Suspense fallback={null}>

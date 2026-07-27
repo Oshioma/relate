@@ -7,15 +7,19 @@ import type { GrowingJourneyHighlight } from "@/lib/data/spaces";
 // Journey" space. It lives in the right column so it never pushes the feed
 // down, previews the photo from the most recently added journey post, and
 // links straight to the space's composer (#new-post) so a member can share
-// their own update in one tap.
+// their own update in one tap. Signed-out visitors go through /login first
+// with the composer as the post-login destination, so the flow stays smooth.
 export function ShareJourneyCard({
   communitySlug,
   highlight,
+  isLoggedIn,
 }: {
   communitySlug: string;
   highlight: GrowingJourneyHighlight;
+  isLoggedIn: boolean;
 }) {
-  const href = `/c/${communitySlug}/spaces/${highlight.spaceSlug}#new-post`;
+  const composerHref = `/c/${communitySlug}/spaces/${highlight.spaceSlug}#new-post`;
+  const href = isLoggedIn ? composerHref : `/login?next=${encodeURIComponent(composerHref)}`;
 
   return (
     <div className="mb-6">
