@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { createSpace } from "./actions";
 import { Input, Label } from "@/components/ui/input";
-import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
+import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import type { SpaceType } from "@/types/database";
@@ -55,7 +55,7 @@ export function NewSpaceForm({
 
       <div>
         <Label htmlFor="space_description">Description (optional)</Label>
-        <MarkdownTextarea id="space_description" name="description" rows={4} placeholder="Add an intro or an About section for this space…" />
+        <RichEditor id="space_description" name="description" rows={4} placeholder="Add an intro or an About section for this space…" />
       </div>
 
       <div>

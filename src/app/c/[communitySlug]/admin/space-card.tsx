@@ -9,7 +9,7 @@ import { JournalFieldsSection } from "./journal-fields-section";
 import { SpaceSubNavList } from "./space-subnav-list";
 import type { NavSubItem } from "./spaces-manager";
 import { Input, Label } from "@/components/ui/input";
-import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
+import { RichEditor } from "@/components/ui/rich-editor";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +97,7 @@ export function SpaceCard({
 
           <div>
             <Label htmlFor={`description-${space.id}`}>Description</Label>
-            <MarkdownTextarea id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
+            <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
