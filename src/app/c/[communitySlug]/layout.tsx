@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
+import { getCommunityBySlug, getCommunityGateCard, getMembership, canViewMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -20,6 +20,7 @@ import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
+import { CommunityGate } from "./community-gate";
 
 // Give each community its own tab title. `default` shows the community name on
 // the community's own pages; the template lets any child page that sets a title
@@ -32,9 +33,13 @@ export async function generateMetadata({
   const { communitySlug } = await params;
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community) return {};
+  // Fall back to the public card so a private community's members-only gate
+  // (rendered for non-members below) still shows the community name in the tab
+  // rather than the platform default.
+  const name = community?.name ?? (await getCommunityGateCard(supabase, communitySlug))?.name;
+  if (!name) return {};
   return {
-    title: { default: community.name, template: `%s · ${community.name}` },
+    title: { default: name, template: `%s · ${name}` },
   };
 }
 
@@ -55,10 +60,16 @@ export default async function CommunityLayout({
 
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) {
-    // For a guest, getCommunityBySlug only ever resolves public communities
-    // (RLS), so a null here is either a private community or a bad slug —
-    // notFound is the right, non-revealing answer in both cases.
-    notFound();
+    // getCommunityBySlug only resolves communities the viewer may SELECT under
+    // RLS — public ones, plus ones they own or belong to. A null here is a
+    // non-member (signed-out or signed-in) hitting a private community, or a
+    // bad slug. Private communities are "visible in search", so rather than a
+    // bare 404 we show a members-only gate with the community's public card;
+    // invite_only ("Hidden") and unknown slugs resolve to no card and stay a
+    // non-revealing 404.
+    const card = await getCommunityGateCard(supabase, communitySlug);
+    if (!card) notFound();
+    return <CommunityGate card={card} isLoggedIn={Boolean(user)} />;
   }
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the

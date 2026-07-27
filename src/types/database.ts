@@ -1915,6 +1915,17 @@ export type Database = {
           reason: string | null;
         }[];
       };
+      get_community_gate_card: {
+        Args: { p_slug: string };
+        Returns: {
+          name: string;
+          slug: string;
+          description: string | null;
+          logo_url: string | null;
+          cover_image_url: string | null;
+          privacy: CommunityPrivacy;
+        }[];
+      };
       redeem_invite: {
         Args: { p_code: string };
         Returns: { community_slug: string | null; error: string | null }[];
