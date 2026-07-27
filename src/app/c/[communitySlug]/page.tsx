@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
+import { getGrowingJourneySpace } from "@/lib/data/spaces";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -35,7 +36,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
-import { cn, formatDateTime } from "@/lib/utils";
+import { ShareJourneyCard } from "./share-journey-card";
+import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
   params,
@@ -65,6 +67,7 @@ export default async function CommunityFeedPage({
     recentVolunteerProjects,
     recentMembers,
     stats,
+    growingJourney,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -81,6 +84,7 @@ export default async function CommunityFeedPage({
     // Member profiles stay login-gated, so guests don't get "new member" cards.
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
     getCommunityStats(supabase, community.id),
+    getGrowingJourneySpace(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -98,7 +102,9 @@ export default async function CommunityFeedPage({
       icon: MessageSquare,
       title: p.title,
       description: p.body,
-      imageUrl: null,
+      // Lead with the post's own photo when it has one — media_url can also be
+      // a video or document, which this thumbnail can't show, so gate on image.
+      imageUrl: p.media_url && isImageUrl(p.media_url) ? p.media_url : null,
       typeBadge: `${p.post_type} posted`,
       detail: null,
       authorName: p.author?.full_name || p.author?.username || null,
@@ -320,6 +326,17 @@ export default async function CommunityFeedPage({
           </div>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
+            {growingJourney && (
+              <ShareJourneyCard
+                communityId={community.id}
+                communitySlug={community.slug}
+                spaceSlug={growingJourney.slug}
+                spaceName={growingJourney.name}
+                isLoggedIn={Boolean(user)}
+                isMember={membership?.status === "active"}
+              />
+            )}
+
             <Suspense fallback={null}>
               <WeatherTidesCard community={community} />
             </Suspense>
