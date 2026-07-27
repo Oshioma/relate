@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { createPost } from "./actions";
-import { Input, Textarea, Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Avatar } from "@/components/ui/avatar";
 import { PostImagePicker, type CropPhotoOption } from "./post-image-picker";
@@ -61,7 +62,7 @@ export function NewPostForm({
 
           <div>
             <Label htmlFor="body">Details (optional)</Label>
-            <Textarea id="body" name="body" rows={3} placeholder="Say more…" />
+            <RichEditor id="body" name="body" rows={3} placeholder="Say more…" />
           </div>
         </div>
       </div>

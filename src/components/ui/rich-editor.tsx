@@ -71,6 +71,7 @@ export function RichEditor({
   rows = 4,
   placeholder,
   className,
+  onChange,
 }: {
   name: string;
   defaultValue?: string;
@@ -78,11 +79,22 @@ export function RichEditor({
   rows?: number;
   placeholder?: string;
   className?: string;
+  /** Called with the current HTML whenever it changes. For callers that build
+   *  their own FormData instead of relying on the hidden input. */
+  onChange?: (value: string) => void;
 }) {
   const [value, setValue] = useState(defaultValue);
   const [mode, setMode] = useState<Mode>("write");
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
+
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  useEffect(() => {
+    onChangeRef.current?.(value);
+  }, [value]);
 
   // Populate the contenteditable when we (re)enter Write mode. Deliberately
   // NOT keyed on `value` — re-writing innerHTML on every keystroke would reset
