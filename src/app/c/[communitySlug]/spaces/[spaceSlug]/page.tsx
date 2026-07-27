@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { RichText } from "@/components/ui/rich-text";
+import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
@@ -686,7 +686,7 @@ export default async function SpaceDetailPage({
                         <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent">
                           {post.title}
                         </h3>
-                        {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>}
+                        {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(post.body)}</p>}
                         {post.media_url && !bannerUrl && (
                           <div className="mt-3">
                             <MediaAttachment url={post.media_url} />

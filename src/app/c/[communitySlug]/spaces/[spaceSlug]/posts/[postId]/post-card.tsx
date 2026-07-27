@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input, Textarea, Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { RichText } from "@/components/ui/rich-text";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { updatePost, deletePost, togglePostReaction } from "../../actions";
@@ -111,7 +113,7 @@ export function PostCard({
           </div>
           <div>
             <Label htmlFor="edit_body">Details</Label>
-            <Textarea id="edit_body" rows={4} value={body} onChange={(event) => setBody(event.target.value)} />
+            <RichEditor id="edit_body" name="edit_body" rows={4} defaultValue={post.body ?? ""} onChange={setBody} />
           </div>
           <div>
             <Label>Photo</Label>
@@ -170,7 +172,7 @@ export function PostCard({
             <p className="mt-1 text-xs text-muted-foreground">
               {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
             </p>
-            {post.body && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.body}</p>}
+            {post.body && <RichText content={post.body} className="mt-3 text-foreground" />}
             {post.media_url && !bannerUrl && (
               <div className="mt-3">
                 <MediaAttachment url={post.media_url} />
