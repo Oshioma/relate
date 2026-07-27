@@ -23,3 +23,15 @@ scripts/new-migration.sh add_widget_table   # prints the created file's path
 Then write your SQL into the file it prints. Because the helper bases the
 prefix on the latest already-committed migration, parallel branches created the
 same day no longer collide.
+# Branching and pull requests
+
+**One branch per logically-separate change.** Give each new feature or fix its
+own branch, cut fresh from the latest `main`, with a unique, descriptive name.
+Don't reuse a single branch for unrelated pieces of work.
+
+**Never stack new work on a branch whose PR is already merged.** A merged pull
+request is finished — it cannot track new commits, and adding them silently
+edits history that's already shipped. Before committing follow-up work, check
+whether the current branch's PR has merged. If it has, start over: create a new
+branch from the latest `main` (a new name — do not reuse the merged branch),
+put the follow-up work there, and open a new PR for it.
