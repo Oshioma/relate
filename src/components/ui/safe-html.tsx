@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 // the app.
 
 // Elements with no closing tag.
-const VOID_TAGS = new Set(["br", "hr", "img", "col", "wbr"]);
+const VOID_TAGS = new Set(["br", "hr", "img", "col", "wbr", "source", "track"]);
 
 // Tags we render. Anything not here (and not in DROP_SUBTREE) is "unwrapped":
 // we drop the tag but keep its children, matching how HTML sanitizers behave.
@@ -29,22 +29,38 @@ const ALLOWED_TAGS = new Set([
   "strong", "b", "em", "i", "u", "s", "strike", "small", "sub", "sup", "mark", "abbr",
   "time", "del", "ins", "q", "cite", "kbd", "samp", "var", "wbr",
   // links & media
-  "a", "img",
+  "a", "img", "picture", "video", "audio", "source", "track", "iframe",
   // tables
   "table", "thead", "tbody", "tfoot", "tr", "td", "th", "caption", "colgroup", "col",
 ]);
 
+// Hosts we allow in <iframe src> — trusted media/embed providers only.
+// Anything else (an arbitrary page in an iframe) is dropped.
+const IFRAME_HOST_ALLOWLIST = [
+  "youtube.com", "www.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com",
+  "player.vimeo.com", "vimeo.com",
+  "w.soundcloud.com",
+  "open.spotify.com",
+  "player.twitch.tv", "clips.twitch.tv",
+  "www.loom.com", "loom.com",
+  "fast.wistia.net", "fast.wistia.com",
+  "www.dailymotion.com", "geo.dailymotion.com",
+  "www.google.com", "maps.google.com", // Google Maps embeds
+  "drive.google.com",
+];
+
 // Tags whose entire subtree is discarded — these can execute code, load remote
 // content, or capture input, none of which belongs in a description.
 const DROP_SUBTREE = new Set([
-  "script", "iframe", "object", "embed", "noscript", "template", "form", "input", "button",
+  "script", "object", "embed", "noscript", "template", "form", "input", "button",
   "select", "textarea", "option", "optgroup", "label", "fieldset", "legend",
   "meta", "link", "base", "title", "head", "html", "body", "svg", "math", "canvas",
-  "audio", "video", "source", "track", "picture", "frame", "frameset", "applet", "param", "dialog", "slot",
+  "frame", "frameset", "applet", "param", "dialog", "slot",
 ]);
 
 // Attributes we pass through, with their React prop name. `class`, `style`,
-// `href` and `src` are handled specially below and are not in this map.
+// `href`, `src`, `poster` and the boolean attrs below are handled specially
+// and are not in this map.
 const ATTR_MAP: Record<string, string> = {
   id: "id",
   title: "title",
@@ -57,17 +73,35 @@ const ATTR_MAP: Record<string, string> = {
   height: "height",
   loading: "loading",
   start: "start",
-  reversed: "reversed",
   value: "value",
   align: "align",
   span: "span",
   scope: "scope",
   headers: "headers",
   cite: "cite",
-  open: "open",
   datetime: "dateTime",
   colspan: "colSpan",
   rowspan: "rowSpan",
+  // media
+  preload: "preload",
+  type: "type",
+  kind: "kind",
+  srclang: "srcLang",
+  label: "label",
+  referrerpolicy: "referrerPolicy",
+};
+
+// Presence-only (boolean) attributes → their React prop name. Set to `true`
+// whenever the attribute appears, since HTML writes them value-less.
+const BOOL_ATTR_MAP: Record<string, string> = {
+  controls: "controls",
+  autoplay: "autoPlay",
+  loop: "loop",
+  muted: "muted",
+  playsinline: "playsInline",
+  reversed: "reversed",
+  open: "open",
+  allowfullscreen: "allowFullScreen",
 };
 
 // Only turn these into real hrefs/srcs; anything else (javascript:, vbscript:,
@@ -89,6 +123,27 @@ function safeImgSrc(url: string): string | null {
   if (trimmed.startsWith("/")) return trimmed;
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return null;
   return trimmed || null;
+}
+
+// <video>/<audio>/<source> src: https or same-origin relative only (no data:
+// URLs — media blobs don't belong inline).
+function safeMediaSrc(url: string): string | null {
+  const trimmed = url.trim();
+  if (/^https?:/i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/")) return trimmed;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return null;
+  return trimmed || null;
+}
+
+// <iframe> src: https only, and only for a host on the embed allowlist.
+function safeIframeSrc(url: string): string | null {
+  const trimmed = url.trim();
+  const withScheme = trimmed.startsWith("//") ? `https:${trimmed}` : trimmed;
+  if (!/^https:\/\//i.test(withScheme)) return null;
+  const host = /^https:\/\/([^/?#]+)/i.exec(withScheme)?.[1]?.toLowerCase().replace(/:\d+$/, "");
+  if (!host) return null;
+  const ok = IFRAME_HOST_ALLOWLIST.some((h) => host === h || host.endsWith(`.${h}`));
+  return ok ? withScheme : null;
 }
 
 // ---- Entity decoding (text nodes & attribute values) --------------------
@@ -365,6 +420,8 @@ function collectStyles(nodes: TreeNode[], out: string[]): void {
 
 // ---- Render to React -----------------------------------------------------
 
+const MEDIA_SRC_TAGS = new Set(["video", "audio", "source", "track"]);
+
 function buildProps(tag: string, attrs: Record<string, string>, key: string): Record<string, unknown> {
   const props: Record<string, unknown> = { key };
   for (const [name, value] of Object.entries(attrs)) {
@@ -386,16 +443,40 @@ function buildProps(tag: string, attrs: Record<string, string>, key: string): Re
     } else if (name === "src" && tag === "img") {
       const src = safeImgSrc(value);
       if (src) props.src = src;
+    } else if (name === "src" && tag === "iframe") {
+      const src = safeIframeSrc(value);
+      if (src) props.src = src;
+    } else if (name === "src" && MEDIA_SRC_TAGS.has(tag)) {
+      const src = safeMediaSrc(value);
+      if (src) props.src = src;
+    } else if (name === "poster" && tag === "video") {
+      const poster = safeImgSrc(value);
+      if (poster) props.poster = poster;
+    } else if (BOOL_ATTR_MAP[name]) {
+      props[BOOL_ATTR_MAP[name]] = true;
     } else if (name.startsWith("aria-") || name.startsWith("data-")) {
       props[name] = value;
     } else if (ATTR_MAP[name]) {
       props[ATTR_MAP[name]] = value;
     }
   }
+
   if (tag === "img") {
-    if (!props.src) return props; // handled by caller: skip src-less images
+    if (!props.src) return props; // caller drops src-less images
     if (props.alt === undefined) props.alt = "";
   }
+
+  if (tag === "iframe") {
+    if (!props.src) return props; // caller drops iframes without an allowed src
+    // Harden every embed regardless of what the author wrote.
+    props.sandbox = "allow-scripts allow-same-origin allow-popups allow-presentation allow-popups-to-escape-sandbox";
+    props.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+    props.allowFullScreen = true;
+    props.loading = "lazy";
+    props.referrerPolicy = "strict-origin-when-cross-origin";
+    if (props.title === undefined) props.title = "Embedded content";
+  }
+
   return props;
 }
 
@@ -420,7 +501,8 @@ function renderNodes(nodes: TreeNode[], keyPrefix: string): ReactNode[] {
     }
 
     const props = buildProps(tag, attrs, key);
-    if (tag === "img" && !props.src) return; // dropped unsafe/empty src
+    // Drop media whose src didn't survive the URL/host checks.
+    if ((tag === "img" || tag === "iframe") && !props.src) return;
 
     if (VOID_TAGS.has(tag)) {
       out.push(createElement(tag, props));
@@ -447,11 +529,18 @@ export function SafeHtml({ html, className }: { html: string; className?: string
   collectStyles(tree, rawStyles);
 
   const scope = `rc-${hashString(html)}`;
-  const scopedCss = rawStyles.map((css) => scopeCss(css, scope)).join("\n").trim();
+  // Sensible defaults so pasted media stays inside the page. Authors can still
+  // override any of it from their own <style> block (same scope, later in the
+  // cascade). iframes get a 16:9 responsive frame unless sized explicitly.
+  const baseCss =
+    `.${scope} img,.${scope} video,.${scope} iframe{max-width:100%}` +
+    `.${scope} img,.${scope} video{height:auto}` +
+    `.${scope} iframe{width:100%;aspect-ratio:16/9;height:auto;border:0}`;
+  const scopedCss = [baseCss, ...rawStyles.map((css) => scopeCss(css, scope))].join("\n").trim();
 
   return (
     <div className={cn(scope, className)}>
-      {scopedCss ? createElement("style", { key: "scoped-style" }, scopedCss) : null}
+      {createElement("style", { key: "scoped-style" }, scopedCss)}
       {renderNodes(tree, "h")}
     </div>
   );

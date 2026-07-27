@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine } from "lucide-react";
+import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { RichText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -114,7 +114,11 @@ export default async function SpaceDetailPage({
   const isPlantScannerSpace = space.space_type === "plant_scanner";
   const isMyCropsSpace = space.space_type === "my_crops";
   const isPlantIdSpace = space.space_type === "plant_id";
+  // A standalone page: its description is the whole content (rendered as
+  // sanitised HTML/Markdown), with no post form and no feed.
+  const isCustomPageSpace = space.space_type === "custom";
   const isDiscussionLike =
+    !isCustomPageSpace &&
     !isResourceSpace &&
     !isJournalSpace &&
     !isGrowthJourneySpace &&
@@ -266,11 +270,21 @@ export default async function SpaceDetailPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-          <TypeIcon className="h-5 w-5 text-muted-foreground" />
-          {space.name}
-        </h1>
-        {space.description && <RichText content={space.description} className="mt-2 text-muted-foreground" />}
+        {/* A custom page is a blank canvas: no default title or icon, its
+            description *is* the whole page. Every other space keeps the
+            title with a muted intro beneath it. */}
+        {!isCustomPageSpace && (
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+            <TypeIcon className="h-5 w-5 text-muted-foreground" />
+            {space.name}
+          </h1>
+        )}
+        {space.description && (
+          <RichText
+            content={space.description}
+            className={isCustomPageSpace ? "text-foreground" : "mt-2 text-muted-foreground"}
+          />
+        )}
       </div>
 
       {isResourceSpace ? (
@@ -584,6 +598,16 @@ export default async function SpaceDetailPage({
             publicFarms={publicFarms}
           />
         )
+      ) : isCustomPageSpace ? (
+        // The description above is the entire page. Nothing else renders —
+        // except a hint for admins when the page has no content yet.
+        !space.description && isAdmin ? (
+          <EmptyState
+            icon={<LayoutTemplate className="h-6 w-6" />}
+            title="This page is empty"
+            description="Add your content in the space's Description (Admin → Spaces → Edit). You can paste HTML or Markdown."
+          />
+        ) : null
       ) : isPlantIdSpace ? (
         !isPlantIdConfigured() ? (
           <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Plant ID not set up" description="Plant identification isn't configured on this platform yet." />
