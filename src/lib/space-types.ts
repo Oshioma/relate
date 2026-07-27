@@ -7,7 +7,7 @@ import {
   Flag,
   Sprout,
   CircleQuestionMark,
-  Sparkles,
+  LayoutTemplate,
   Map,
   Store,
   Building2,
@@ -52,9 +52,11 @@ export interface SpaceTypeMeta {
   category: SpaceTypeCategory;
 }
 
-// All types except 'gallery', 'qa', and 'custom' have dedicated rendering
-// (see src/app/c/[communitySlug]/spaces/[spaceSlug]/page.tsx); the rest
-// still fall back to the plain discussion feed. The nine Place-Based
+// All types except 'gallery' and 'qa' have dedicated rendering
+// (see src/app/c/[communitySlug]/spaces/[spaceSlug]/page.tsx); those two
+// still fall back to the plain discussion feed. 'custom' is a standalone
+// page: it renders only its description (as sanitised HTML/Markdown), with
+// no post form or feed. The nine Place-Based
 // Community types below (map through recommendations) are new, real
 // categories admins can pick today — dedicated rendering (an actual map,
 // listing cards, etc.) is follow-up work, same as challenges/journal/etc.
@@ -68,7 +70,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   challenges: { type: "challenges", label: "Challenges", icon: Flag, description: "Time-boxed programs members join together.", category: "programs" },
   growth_journey: { type: "growth_journey", label: "Growth Journey", icon: Sprout, description: "Members' personal progress over time.", category: "programs" },
   qa: { type: "qa", label: "Q&A", icon: CircleQuestionMark, description: "Members ask questions and discuss answers.", category: "general" },
-  custom: { type: "custom", label: "Custom", icon: Sparkles, description: "A general-purpose space.", category: "general" },
+  custom: { type: "custom", label: "Custom Page", icon: LayoutTemplate, description: "A standalone page — paste your own HTML or Markdown as the whole page. No post form or feed.", category: "general" },
   map: { type: "map", label: "Explore Map", icon: Map, description: "An interactive map of the places that make up this community.", category: "place" },
   marketplace: { type: "marketplace", label: "Marketplace", icon: Store, description: "Buy, sell and trade goods, services and more locally.", category: "place" },
   business_directory: { type: "business_directory", label: "Business Directory", icon: Building2, description: "Local businesses with profiles, hours and reviews.", category: "place" },
