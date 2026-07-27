@@ -7,8 +7,9 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getSpacePosts } from "@/lib/data/posts";
+import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { DiscussionSpaceHeader } from "./discussion-space-header";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
@@ -255,6 +256,10 @@ export default async function SpaceDetailPage({
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
+  // Header activity stats for discussion spaces, derived from the already-loaded
+  // posts (no extra query).
+  const discussionSummary = summarizeDiscussionActivity(posts);
+
   const discoverableMembers = directoryMembers.filter(isDiscoverable);
   const viewerDirectoryEntry = directoryMembers.find((m) => m.profile.id === viewerId);
   const recommendedMembers = isDirectorySpace
@@ -274,23 +279,28 @@ export default async function SpaceDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-6">
-        {/* A custom page is a blank canvas: no default title or icon, its
-            description *is* the whole page. Every other space keeps the
-            title with a muted intro beneath it. */}
-        {!isCustomPageSpace && (
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-            <TypeIcon className="h-5 w-5 text-muted-foreground" />
-            {space.name}
-          </h1>
-        )}
-        {space.description && (
-          <RichText
-            content={space.description}
-            className={isCustomPageSpace ? "text-foreground" : "mt-2 text-muted-foreground"}
-          />
-        )}
-      </div>
+      {isDiscussionLike ? (
+        // Discussion spaces get a richer masthead with live activity stats.
+        <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
+      ) : (
+        <div className="mb-6">
+          {/* A custom page is a blank canvas: no default title or icon, its
+              description *is* the whole page. Every other space keeps the
+              title with a muted intro beneath it. */}
+          {!isCustomPageSpace && (
+            <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+              <TypeIcon className="h-5 w-5 text-muted-foreground" />
+              {space.name}
+            </h1>
+          )}
+          {space.description && (
+            <RichText
+              content={space.description}
+              className={isCustomPageSpace ? "text-foreground" : "mt-2 text-muted-foreground"}
+            />
+          )}
+        </div>
+      )}
 
       {isResourceSpace ? (
         <>
