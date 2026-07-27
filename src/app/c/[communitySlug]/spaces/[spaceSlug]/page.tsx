@@ -33,6 +33,7 @@ import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
+import { getSpaceLiveSessions, splitLiveSessions } from "@/lib/data/live-events";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -66,6 +67,7 @@ import { ClubsView } from "./clubs-view";
 import { GuidesView } from "./guides-view";
 import { VolunteerHubView } from "./volunteer-hub-view";
 import { CoursesView } from "./courses-view";
+import { LiveEventsView } from "./live-events-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
@@ -117,6 +119,7 @@ export default async function SpaceDetailPage({
   const isPlantScannerSpace = space.space_type === "plant_scanner";
   const isMyCropsSpace = space.space_type === "my_crops";
   const isPlantIdSpace = space.space_type === "plant_id";
+  const isLiveSpace = space.space_type === "live";
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
@@ -140,7 +143,8 @@ export default async function SpaceDetailPage({
     !isCropGuidesSpace &&
     !isPlantScannerSpace &&
     !isMyCropsSpace &&
-    !isPlantIdSpace;
+    !isPlantIdSpace &&
+    !isLiveSpace;
 
   const [
     membership,
@@ -166,6 +170,7 @@ export default async function SpaceDetailPage({
     volunteerProjects,
     courses,
     crops,
+    liveSessions,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id, viewerId) : Promise.resolve([]),
@@ -194,7 +199,13 @@ export default async function SpaceDetailPage({
     // Crops power the Crop Guides / My Crops views, and also the "choose a
     // crop photo" picker in the discussion composer.
     isCropGuidesSpace || isMyCropsSpace || isDiscussionLike ? getCrops(supabase) : Promise.resolve([]),
+    isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
   ]);
+
+  const { active: activeLiveSession, past: pastLiveSessions } = splitLiveSessions(liveSessions);
+  // The name the viewer shows up as in the meeting.
+  const liveViewer = isLiveSpace && user ? await getProfile(supabase, user.id) : null;
+  const liveDisplayName = liveViewer?.full_name || liveViewer?.username || null;
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -637,6 +648,19 @@ export default async function SpaceDetailPage({
         ) : (
           <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to identify plants." />
         )
+      ) : isLiveSpace ? (
+        <LiveEventsView
+          active={activeLiveSession}
+          past={pastLiveSessions}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          spaceName={space.name}
+          isStaff={Boolean(isStaff)}
+          canJoin={canPost}
+          displayName={liveDisplayName}
+        />
       ) : (
         <>
           {canPost && (
