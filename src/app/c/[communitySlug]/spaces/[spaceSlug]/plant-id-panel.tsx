@@ -14,33 +14,79 @@ function confidenceTone(c: IdConfidence): "accent" | "neutral" | "danger" {
   return "neutral";
 }
 
+// The model downsamples anything past ~1568px on the long edge anyway, so shrink
+// the photo to that in the browser and re-encode it as JPEG before sending. A
+// multi-megabyte phone photo becomes a few hundred KB — faster to upload, well
+// under the Server Action body limit, and no wasted image tokens. Formats the
+// canvas can't decode (e.g. some HEIC) fall back to sending the original file,
+// which the action still validates.
+const MAX_EDGE = 1568;
+
+type PreparedImage = { blob: Blob; url: string; filename: string };
+
+async function prepareImage(file: File): Promise<PreparedImage> {
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("no-2d-context");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+    if (!blob) throw new Error("encode-failed");
+    return { blob, url: URL.createObjectURL(blob), filename: "photo.jpg" };
+  } catch {
+    // Couldn't process client-side — send the original and let the server validate it.
+    return { blob: file, url: URL.createObjectURL(file), filename: file.name || "photo" };
+  }
+}
+
 // A Plant ID space can be public, so this panel works for signed-out visitors
 // too. The photo is submitted straight to the server action (which forwards it
 // to the model and stores nothing) rather than uploaded to the members-only
 // 'uploads' bucket — the preview is a local object URL, never a stored file.
 export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { communitySlug: string; cropGuidesSpaceSlug: string | null }) {
   const [state, formAction, isPending] = useActionState<PlantIdState, FormData>(identifyPlantAction, undefined);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [hasFile, setHasFile] = useState(false);
+  const [prepared, setPrepared] = useState<PreparedImage | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Free the object URL when it changes or the panel unmounts.
+  // Free the object URL when the prepared image changes or the panel unmounts.
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (prepared) URL.revokeObjectURL(prepared.url);
     };
-  }, [previewUrl]);
+  }, [prepared]);
 
-  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  async function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
-    setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return file ? URL.createObjectURL(file) : null;
+    if (!file) return;
+    setIsProcessing(true);
+    const next = await prepareImage(file);
+    setPrepared((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return next;
     });
-    setHasFile(Boolean(file));
+    setIsProcessing(false);
+  }
+
+  function identify() {
+    if (!prepared) return;
+    const formData = new FormData();
+    formData.set("community_slug", communitySlug);
+    formData.set("image", prepared.blob, prepared.filename);
+    formAction(formData);
   }
 
   const result = state?.result;
+  const busy = isProcessing || isPending;
 
   return (
     <section className="rounded-lg border border-border bg-card p-5">
@@ -50,13 +96,11 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">Upload a photo and the assistant will identify the plant, note whether it&apos;s edible, and link to its guide.</p>
 
-      <form action={formAction} className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
-        <input type="hidden" name="community_slug" value={communitySlug} />
-
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="sm:w-56">
-          {previewUrl ? (
+          {prepared ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="Plant to identify" className="aspect-square w-full rounded-md border border-border object-cover" />
+            <img src={prepared.url} alt="Plant to identify" className="aspect-square w-full rounded-md border border-border object-cover" />
           ) : (
             <div className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed border-border bg-muted">
               <Camera className="h-8 w-8 text-muted-foreground" />
@@ -69,12 +113,11 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
               className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-xs font-medium text-muted-foreground hover:border-accent hover:text-foreground"
             >
               <Upload className="h-3.5 w-3.5" />
-              {hasFile ? "Change photo" : "Upload photo"}
+              {prepared ? "Change photo" : "Upload photo"}
             </button>
             <input
               ref={fileInputRef}
               type="file"
-              name="image"
               accept="image/png,image/jpeg,image/webp,image/gif"
               className="hidden"
               onChange={onFileChange}
@@ -83,9 +126,9 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
         </div>
 
         <div className="flex-1">
-          <Button type="submit" size="sm" className="w-auto" disabled={!hasFile || isPending}>
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-            {isPending ? "Identifying…" : "Identify"}
+          <Button type="button" size="sm" className="w-auto" disabled={!prepared || busy} onClick={identify}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+            {isProcessing ? "Preparing…" : isPending ? "Identifying…" : "Identify"}
           </Button>
 
           {state?.error && <p className="mt-3 text-sm text-danger">{state.error}</p>}
@@ -121,7 +164,7 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
             </div>
           )}
         </div>
-      </form>
+      </div>
     </section>
   );
 }
