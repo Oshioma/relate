@@ -6,46 +6,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { identifyPlantAction, type PlantIdState } from "./crop-guides-actions";
+import { shrinkImageForUpload, type PreparedImage } from "@/lib/image-resize";
 import type { IdConfidence } from "@/lib/ai/plant-id";
 
 function confidenceTone(c: IdConfidence): "accent" | "neutral" | "danger" {
   if (c === "high") return "accent";
   if (c === "low") return "danger";
   return "neutral";
-}
-
-// The model downsamples anything past ~1568px on the long edge anyway, so shrink
-// the photo to that in the browser and re-encode it as JPEG before sending. A
-// multi-megabyte phone photo becomes a few hundred KB — faster to upload, well
-// under the Server Action body limit, and no wasted image tokens. Formats the
-// canvas can't decode (e.g. some HEIC) fall back to sending the original file,
-// which the action still validates.
-const MAX_EDGE = 1568;
-
-type PreparedImage = { blob: Blob; url: string; filename: string };
-
-async function prepareImage(file: File): Promise<PreparedImage> {
-  try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("no-2d-context");
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close();
-
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
-    if (!blob) throw new Error("encode-failed");
-    return { blob, url: URL.createObjectURL(blob), filename: "photo.jpg" };
-  } catch {
-    // Couldn't process client-side — send the original and let the server validate it.
-    return { blob: file, url: URL.createObjectURL(file), filename: file.name || "photo" };
-  }
 }
 
 // A Plant ID space can be public, so this panel works for signed-out visitors
@@ -69,7 +36,7 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
     setIsProcessing(true);
-    const next = await prepareImage(file);
+    const next = await shrinkImageForUpload(file);
     setPrepared((prev) => {
       if (prev) URL.revokeObjectURL(prev.url);
       return next;

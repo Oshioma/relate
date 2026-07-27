@@ -344,15 +344,16 @@ export async function deleteMedicinalUse(formData: FormData): Promise<void> {
 // --- Plant Health Scanner ---------------------------------------------------
 
 export type PlantScanState =
-  | { imageUrl?: string; result?: PlantScanResult; matchedSlug?: string | null; matchedName?: string | null; error?: string }
+  | { result?: PlantScanResult; matchedSlug?: string | null; matchedName?: string | null; error?: string }
   | undefined;
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // Anthropic image limit ballpark
 
-// Daily Plant ID cap for non-members (signed-out visitors and signed-in
-// non-members), keyed by client IP. Each run calls a paid vision model, so this
-// bounds the cost a public space can incur. Active members are exempt.
-const PLANT_ID_GUEST_DAILY_LIMIT = 10;
+// Daily cap for the public AI vision tools (Plant ID, Plant Scanner) per
+// non-member — signed-out, or signed-in but not a member — counted per client
+// IP, per tool. Each run calls a paid vision model, so this bounds the cost a
+// public space can incur. Active members are exempt.
+const GUEST_AI_DAILY_LIMIT = 10;
 
 // Best-effort client IP for per-visitor quotas. x-forwarded-for is set by the
 // platform's proxy; the first hop is the client. Falls back to a shared bucket
@@ -372,41 +373,72 @@ function normaliseMediaType(contentType: string | null): AnthropicImageMediaType
   return null;
 }
 
-// Diagnose an uploaded plant photo and, when the AI's crop guess matches a crop
-// in the library, return that crop's slug so the UI can deep-link into its
-// guide. Members only; grounded organic advice comes from the vision model.
-export async function scanPlantAction(_prevState: PlantScanState, formData: FormData): Promise<PlantScanState> {
-  const imageUrl = String(formData.get("image_url") ?? "").trim();
-  if (!imageUrl) {
+type VisionPrep = { base64: string; mediaType: AnthropicImageMediaType } | { error: string };
+
+// Shared front end for the public AI vision tools: pull the photo off the
+// request (posted straight to the action — never stored), validate it, and for
+// non-members spend one unit of this tool's per-IP daily quota. Active members
+// are exempt. Returns the decoded image, or a user-facing error to show.
+async function prepareVisionRequest(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  formData: FormData,
+  opts: { bucket: string; overLimitMessage: string },
+): Promise<VisionPrep> {
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) {
     return { error: "Upload a photo first." };
   }
+  const mediaType = normaliseMediaType(file.type);
+  if (!mediaType) {
+    return { error: "Please upload a JPEG, PNG, WebP or GIF image." };
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return { error: "That image is too large — try one under 5MB." };
+  }
 
-  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "You need to be signed in." };
+  const communitySlug = String(formData.get("community_slug") ?? "").trim();
+  let isMember = false;
+  if (user && communitySlug) {
+    const community = await getCommunityBySlug(supabase, communitySlug);
+    if (community) {
+      const membership = await getMembership(supabase, community.id, user.id);
+      isMember = membership?.status === "active";
+    }
+  }
+  if (!isMember) {
+    const ip = clientIp(await headers());
+    const { data: withinLimit, error: quotaError } = await supabase.rpc("consume_ai_quota", {
+      p_bucket: opts.bucket,
+      p_identity: `ip:${ip}`,
+      p_limit: GUEST_AI_DAILY_LIMIT,
+    });
+    // Fail closed: if the quota can't be recorded, don't spend the model call.
+    if (quotaError) return { error: "This isn't available right now — try again shortly." };
+    if (!withinLimit) return { error: opts.overLimitMessage };
   }
 
-  let base64: string;
-  let mediaType: AnthropicImageMediaType;
-  try {
-    const res = await fetch(imageUrl, { cache: "no-store" });
-    if (!res.ok) return { imageUrl, error: "Couldn't read that image." };
-    const mt = normaliseMediaType(res.headers.get("content-type"));
-    if (!mt) return { imageUrl, error: "Please upload a JPEG, PNG, WebP or GIF image." };
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength > MAX_IMAGE_BYTES) return { imageUrl, error: "That image is too large — try one under 5MB." };
-    base64 = Buffer.from(buf).toString("base64");
-    mediaType = mt;
-  } catch {
-    return { imageUrl, error: "Couldn't read that image." };
-  }
+  const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
+  return { base64, mediaType };
+}
 
-  const result = await scanPlant(base64, mediaType);
+// Diagnose an uploaded plant photo and, when the AI's crop guess matches a crop
+// in the library, return that crop's slug so the UI can deep-link into its
+// guide. Usable by anyone in a public space (capped per visitor by
+// prepareVisionRequest); grounded organic advice comes from the vision model.
+export async function scanPlantAction(_prevState: PlantScanState, formData: FormData): Promise<PlantScanState> {
+  const supabase = await createClient();
+  const prep = await prepareVisionRequest(supabase, formData, {
+    bucket: "plant_scanner",
+    overLimitMessage: `You've reached today's limit of ${GUEST_AI_DAILY_LIMIT} free plant scans. Join this community to scan more, or come back tomorrow.`,
+  });
+  if ("error" in prep) return { error: prep.error };
+
+  const result = await scanPlant(prep.base64, prep.mediaType);
   if (!result) {
-    return { imageUrl, error: "The plant scanner isn't available right now." };
+    return { error: "The plant scanner isn't available right now." };
   }
 
   // Deep-link: match the AI's crop guess to a crop in the library by name.
@@ -425,7 +457,7 @@ export async function scanPlantAction(_prevState: PlantScanState, formData: Form
     }
   }
 
-  return { imageUrl, result, matchedSlug, matchedName };
+  return { result, matchedSlug, matchedName };
 }
 
 // --- Plant ID ---------------------------------------------------------------
@@ -437,57 +469,14 @@ export type PlantIdState =
 // Identify an uploaded plant photo and, when the AI's name matches a crop in the
 // library, return that crop's slug so the UI can deep-link into its guide.
 export async function identifyPlantAction(_prevState: PlantIdState, formData: FormData): Promise<PlantIdState> {
-  // The photo is posted straight to the server (not stored): a Plant ID space
-  // can be public, and signed-out visitors have no 'uploads' bucket access. We
-  // read the bytes, send them to the model, and keep nothing.
-  const file = formData.get("image");
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Upload a photo first." };
-  }
-  const mediaType: AnthropicImageMediaType | null = normaliseMediaType(file.type);
-  if (!mediaType) {
-    return { error: "Please upload a JPEG, PNG, WebP or GIF image." };
-  }
-  if (file.size > MAX_IMAGE_BYTES) {
-    return { error: "That image is too large — try one under 5MB." };
-  }
-
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const prep = await prepareVisionRequest(supabase, formData, {
+    bucket: "plant_id",
+    overLimitMessage: `You've reached today's limit of ${GUEST_AI_DAILY_LIMIT} free plant IDs. Join this community to identify more, or come back tomorrow.`,
+  });
+  if ("error" in prep) return { error: prep.error };
 
-  // Each identification calls a paid model. Active members use it freely; every
-  // other visitor (signed-out, or signed-in but not a member) shares a small
-  // per-IP daily quota so a public space can't be used to rack up cost.
-  const communitySlug = String(formData.get("community_slug") ?? "").trim();
-  let isMember = false;
-  if (user && communitySlug) {
-    const community = await getCommunityBySlug(supabase, communitySlug);
-    if (community) {
-      const membership = await getMembership(supabase, community.id, user.id);
-      isMember = membership?.status === "active";
-    }
-  }
-  if (!isMember) {
-    const ip = clientIp(await headers());
-    const { data: withinLimit, error: quotaError } = await supabase.rpc("consume_ai_quota", {
-      p_bucket: "plant_id",
-      p_identity: `ip:${ip}`,
-      p_limit: PLANT_ID_GUEST_DAILY_LIMIT,
-    });
-    // Fail closed: if the quota can't be recorded, don't spend the model call.
-    if (quotaError) return { error: "Plant ID isn't available right now — try again shortly." };
-    if (!withinLimit) {
-      return {
-        error: `You've reached today's limit of ${PLANT_ID_GUEST_DAILY_LIMIT} free plant IDs. Join this community to identify more, or come back tomorrow.`,
-      };
-    }
-  }
-
-  const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
-
-  const result = await identifyPlant(base64, mediaType);
+  const result = await identifyPlant(prep.base64, prep.mediaType);
   if (!result) {
     return { error: "Plant identification isn't available right now." };
   }

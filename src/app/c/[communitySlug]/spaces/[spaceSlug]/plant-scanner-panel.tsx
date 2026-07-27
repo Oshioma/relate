@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { ScanLine, Loader2, ArrowRight, CheckCircle2, Bug, AlertTriangle, Info } from "lucide-react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { ScanLine, Loader2, ArrowRight, CheckCircle2, Bug, AlertTriangle, Info, Upload } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UploadButton } from "@/components/ui/upload-button";
 import { scanPlantAction, type PlantScanState } from "./crop-guides-actions";
+import { shrinkImageForUpload, type PreparedImage } from "@/lib/image-resize";
 import type { ScanConfidence, ScanFindingType } from "@/lib/ai/plant-scanner";
 
 const TYPE_LABEL: Record<ScanFindingType, string> = {
@@ -22,6 +22,10 @@ function confidenceTone(c: ScanConfidence): "accent" | "neutral" | "danger" {
   return "neutral";
 }
 
+// Mirrors PlantIdPanel: a public Plant Scanner space works for signed-out
+// visitors too, so the photo is shrunk in the browser and posted straight to
+// the server action (which forwards it to the model and stores nothing) rather
+// than uploaded to the members-only 'uploads' bucket.
 export function PlantScannerPanel({
   communitySlug,
   cropGuidesSpaceSlug,
@@ -32,10 +36,38 @@ export function PlantScannerPanel({
   cropGuidesSpaceSlug: string | null;
 }) {
   const [state, formAction, isPending] = useActionState<PlantScanState, FormData>(scanPlantAction, undefined);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [prepared, setPrepared] = useState<PreparedImage | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const shownImage = imageUrl ?? state?.imageUrl ?? null;
+  useEffect(() => {
+    return () => {
+      if (prepared) URL.revokeObjectURL(prepared.url);
+    };
+  }, [prepared]);
+
+  async function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) return;
+    setIsProcessing(true);
+    const next = await shrinkImageForUpload(file);
+    setPrepared((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return next;
+    });
+    setIsProcessing(false);
+  }
+
+  function diagnose() {
+    if (!prepared) return;
+    const formData = new FormData();
+    formData.set("community_slug", communitySlug);
+    formData.set("image", prepared.blob, prepared.filename);
+    formAction(formData);
+  }
+
   const result = state?.result;
+  const busy = isProcessing || isPending;
 
   return (
     <section className="mb-5 rounded-lg border border-border bg-card p-5">
@@ -49,24 +81,37 @@ export function PlantScannerPanel({
 
       <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="sm:w-56">
-          {shownImage ? (
+          {prepared ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={shownImage} alt="Plant to diagnose" className="aspect-square w-full rounded-md border border-border object-cover" />
+            <img src={prepared.url} alt="Plant to diagnose" className="aspect-square w-full rounded-md border border-border object-cover" />
           ) : (
             <div className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed border-border bg-muted">
               <ScanLine className="h-8 w-8 text-muted-foreground" />
             </div>
           )}
-          <div className="mt-2 flex items-center gap-2">
-            <UploadButton kind="image" label={shownImage ? "Change photo" : "Upload photo"} onUploaded={(url) => setImageUrl(url)} />
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-xs font-medium text-muted-foreground hover:border-accent hover:text-foreground"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              {prepared ? "Change photo" : "Upload photo"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={onFileChange}
+            />
           </div>
         </div>
 
-        <form action={formAction} className="flex-1">
-          <input type="hidden" name="image_url" value={shownImage ?? ""} />
-          <Button type="submit" size="sm" className="w-auto" disabled={!shownImage || isPending}>
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
-            {isPending ? "Analysing…" : "Diagnose"}
+        <div className="flex-1">
+          <Button type="button" size="sm" className="w-auto" disabled={!prepared || busy} onClick={diagnose}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
+            {isProcessing ? "Preparing…" : isPending ? "Analysing…" : "Diagnose"}
           </Button>
 
           {state?.error && <p className="mt-3 text-sm text-danger">{state.error}</p>}
@@ -126,7 +171,7 @@ export function PlantScannerPanel({
               </p>
             </div>
           )}
-        </form>
+        </div>
       </div>
     </section>
   );

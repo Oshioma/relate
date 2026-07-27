@@ -592,10 +592,13 @@ export default async function SpaceDetailPage({
       ) : isPlantScannerSpace ? (
         !isPlantScannerConfigured() ? (
           <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Scanner not set up" description="The plant health scanner isn't configured on this platform yet." />
-        ) : !canPost ? (
-          <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Members only" description="Join this community to scan plants for diagnosis." />
-        ) : (
+        ) : // A public Plant Scanner space is usable by anyone (guests included),
+        // capped by a per-visitor daily quota in the action; a members-only
+        // space still requires membership.
+        canPost || space.visibility === "public" ? (
           <PlantScannerPanel communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+        ) : (
+          <EmptyState icon={<ScanLine className="h-6 w-6" />} title="Members only" description="Join this community to scan plants for diagnosis." />
         )
       ) : isMyCropsSpace ? (
         !canPost ? (
