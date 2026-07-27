@@ -228,11 +228,6 @@ export function RichEditor({
       )}
 
       <input ref={hiddenRef} type="hidden" name={name} value={value} />
-      <p className="px-3 pb-2 pt-1 text-xs text-muted-foreground">
-        Select text and use the buttons to format it — bold, italic, headings and lists, no symbols needed. Or switch to{" "}
-        <span className="font-medium">HTML</span> to paste your own markup (images, video, embeds), then{" "}
-        <span className="font-medium">Preview</span> to see the page.
-      </p>
     </div>
   );
 }
