@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
-import { updatePost, deletePost } from "../../actions";
+import { updatePost, deletePost, togglePostReaction } from "../../actions";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
+import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { cn } from "@/lib/utils";
 import type { PostWithAuthor } from "@/lib/data/posts";
 
 export function PostCard({
@@ -23,6 +25,9 @@ export function PostCard({
   crops = [],
   myCrops = [],
   avatarUrl = null,
+  reactionCount = 0,
+  viewerReacted = false,
+  canReact = false,
 }: {
   post: PostWithAuthor;
   canEdit: boolean;
@@ -32,6 +37,9 @@ export function PostCard({
   crops?: CropPhotoOption[];
   myCrops?: FarmCropPhotoOption[];
   avatarUrl?: string | null;
+  reactionCount?: number;
+  viewerReacted?: boolean;
+  canReact?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(post.title);
@@ -39,7 +47,28 @@ export function PostCard({
   const [mediaUrl, setMediaUrl] = useState<string | null>(post.media_url);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  // Optimistic reaction state so the smile toggles instantly.
+  const [reacted, setReacted] = useState(viewerReacted);
+  const [reactions, setReactions] = useState(reactionCount);
+  const [isReacting, startReacting] = useTransition();
   const router = useRouter();
+
+  function toggleReaction() {
+    const next = !reacted;
+    setReacted(next);
+    setReactions((n) => n + (next ? 1 : -1));
+    startReacting(async () => {
+      const result = await togglePostReaction(post.id, communitySlug, spaceSlug, !next);
+      if (result?.error) {
+        // Revert on failure.
+        setReacted(!next);
+        setReactions((n) => n + (next ? -1 : 1));
+        setError(result.error);
+      } else {
+        router.refresh();
+      }
+    });
+  }
 
   function handleSave() {
     setError(null);
@@ -147,6 +176,33 @@ export function PostCard({
                 <MediaAttachment url={post.media_url} />
               </div>
             )}
+
+            <div className="mt-4">
+              {canReact ? (
+                <button
+                  type="button"
+                  onClick={toggleReaction}
+                  disabled={isReacting}
+                  aria-pressed={reacted}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-60",
+                    reacted ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                  )}
+                >
+                  <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
+                  {reactions > 0 && <span>{reactions}</span>}
+                  <span>{reacted ? "Smiled" : "Smile"}</span>
+                </button>
+              ) : (
+                reactions > 0 && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
+                    {reactions}
+                    <span className="sr-only"> smiles</span>
+                  </span>
+                )
+              )}
+            </div>
 
             {(canEdit || canDelete) && (
               <div className="mt-3 flex gap-3">
