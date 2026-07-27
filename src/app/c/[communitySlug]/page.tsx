@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
+import { getGrowingJourneyHighlight } from "@/lib/data/spaces";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -35,6 +36,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
+import { ShareJourneyCard } from "./share-journey-card";
 import { cn, formatDateTime } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
@@ -65,6 +67,7 @@ export default async function CommunityFeedPage({
     recentVolunteerProjects,
     recentMembers,
     stats,
+    growingJourney,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -81,6 +84,7 @@ export default async function CommunityFeedPage({
     // Member profiles stay login-gated, so guests don't get "new member" cards.
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
     getCommunityStats(supabase, community.id),
+    getGrowingJourneyHighlight(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -320,6 +324,10 @@ export default async function CommunityFeedPage({
           </div>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
+            {growingJourney && (
+              <ShareJourneyCard communitySlug={community.slug} highlight={growingJourney} />
+            )}
+
             <Suspense fallback={null}>
               <WeatherTidesCard community={community} />
             </Suspense>
