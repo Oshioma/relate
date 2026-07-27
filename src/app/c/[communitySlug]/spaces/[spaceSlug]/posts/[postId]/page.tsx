@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getPostById, getPostComments } from "@/lib/data/posts";
+import { getPostById, getPostComments, getPostReactionSummary } from "@/lib/data/posts";
 import { getCrops } from "@/lib/data/crop-guides";
 import { getMyFarmCrops } from "@/lib/farm-bridge";
 import { CommentForm } from "./comment-form";
@@ -29,7 +29,7 @@ export default async function PostDetailPage({
   const post = await getPostById(supabase, postId);
   if (!post || post.space_id !== space.id) notFound();
 
-  const [membership, comments, crops, editorProfile, editorFarmCrops] = await Promise.all([
+  const [membership, comments, crops, editorProfile, editorFarmCrops, reactions] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getPostComments(supabase, post.id),
     // Powers the "choose a crop" image source when editing the post.
@@ -37,6 +37,7 @@ export default async function PostDetailPage({
     user ? getProfile(supabase, user.id) : Promise.resolve(null),
     // Powers the "My Crops" image source when editing — the editor's own farm.
     user ? getMyFarmCrops(user.email) : Promise.resolve([]),
+    getPostReactionSummary(supabase, post.id, user?.id),
   ]);
 
   const canComment = membership?.status === "active";
@@ -60,6 +61,9 @@ export default async function PostDetailPage({
         crops={crops}
         myCrops={editorFarmCrops}
         avatarUrl={editorProfile?.avatar_url}
+        reactionCount={reactions.count}
+        viewerReacted={reactions.viewerReacted}
+        canReact={canComment}
       />
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { PostType } from "@/types/database";
+import { SMILE_EMOJI } from "@/lib/post-reactions";
 
 export type PostFormState = { error: string } | undefined;
 
@@ -144,6 +145,31 @@ export async function deleteComment(commentId: string, communitySlug: string, sp
 
   if (error) return { error: error.message };
 
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
+  return { error: null };
+}
+
+// Toggle the current member's smile reaction on a post. `reacted` is the state
+// the client is showing, so we simply do the opposite; RLS guarantees a member
+// can only add or remove their own reaction. Revalidates both the feed and the
+// post page, where the count is shown.
+export async function togglePostReaction(postId: string, communitySlug: string, spaceSlug: string, reacted: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "You need to be signed in to react." };
+
+  const { error } = reacted
+    ? await supabase.from("post_reactions").delete().eq("post_id", postId).eq("user_id", user.id).eq("emoji", SMILE_EMOJI)
+    : await supabase.from("post_reactions").insert({ post_id: postId, user_id: user.id, emoji: SMILE_EMOJI });
+
+  // A double-tap can race the unique constraint (23505) — treat an existing
+  // reaction as already done rather than surfacing an error.
+  if (error && error.code !== "23505") return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
   return { error: null };
 }

@@ -8,6 +8,7 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getSpacePosts } from "@/lib/data/posts";
+import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
@@ -165,7 +166,7 @@ export default async function SpaceDetailPage({
     crops,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
-    isDiscussionLike ? getSpacePosts(supabase, space.id) : Promise.resolve([]),
+    isDiscussionLike ? getSpacePosts(supabase, space.id, viewerId) : Promise.resolve([]),
     isResourceSpace ? getSpaceResources(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalFields(supabase, space.id) : Promise.resolve([]),
     isJournalSpace ? getSpaceJournalEntries(supabase, space.id) : Promise.resolve([]),
@@ -697,6 +698,11 @@ export default async function SpaceDetailPage({
                             <MessageSquare className="h-4 w-4" />
                             {post.comment_count}
                             <span className="sr-only"> comments</span>
+                          </span>
+                          <span className={cn("inline-flex items-center gap-1.5", post.viewer_reacted && "text-accent")}>
+                            <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
+                            {post.reaction_count}
+                            <span className="sr-only"> smiles</span>
                           </span>
                         </div>
                       </CardContent>

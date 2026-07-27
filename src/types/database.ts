@@ -175,6 +175,14 @@ export type Comment = {
   updated_at: string;
 };
 
+export type PostReaction = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+};
+
 // `location` remains the free-text venue name/address; lat/lng/location_label
 // are the optional map pin — an event appears on the Explore Map at its venue
 // without requiring the venue to exist as a separate Landmark/Place record.
@@ -1409,6 +1417,12 @@ export type Database = {
         Insert: Partial<Comment> & { post_id: string; author_id: string; body: string };
         Update: Partial<Comment>;
         Relationships: [FKey<"author_id", "profiles">, FKey<"post_id", "posts">];
+      };
+      post_reactions: {
+        Row: PostReaction;
+        Insert: Partial<PostReaction> & { post_id: string; user_id: string };
+        Update: Partial<PostReaction>;
+        Relationships: [FKey<"post_id", "posts">, FKey<"user_id", "profiles">];
       };
       events: { Row: Event; Insert: Partial<Event> & { community_id: string; title: string; start_time: string; created_by: string }; Update: Partial<Event> } & NoRel;
       resources: { Row: Resource; Insert: Partial<Resource> & { community_id: string; space_id: string; title: string; url: string; created_by: string }; Update: Partial<Resource> } & NoRel;
