@@ -626,10 +626,13 @@ export default async function SpaceDetailPage({
       ) : isPlantIdSpace ? (
         !isPlantIdConfigured() ? (
           <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Plant ID not set up" description="Plant identification isn't configured on this platform yet." />
-        ) : !canPost ? (
-          <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to identify plants." />
-        ) : (
+        ) : // A public Plant ID space is usable by anyone (guests included), capped by
+        // a per-visitor daily quota in the action; a members-only space still
+        // requires membership.
+        canPost || space.visibility === "public" ? (
           <PlantIdPanel communitySlug={community.slug} cropGuidesSpaceSlug={cropGuidesSpaceSlug} />
+        ) : (
+          <EmptyState icon={<NotebookPen className="h-6 w-6" />} title="Members only" description="Join this community to identify plants." />
         )
       ) : (
         <>

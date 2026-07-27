@@ -1903,6 +1903,10 @@ export type Database = {
         Args: { p_proposal_id: string };
         Returns: string;
       };
+      consume_ai_quota: {
+        Args: { p_bucket: string; p_identity: string; p_limit: number };
+        Returns: boolean;
+      };
       get_invite_preview: {
         Args: { p_code: string };
         Returns: {
