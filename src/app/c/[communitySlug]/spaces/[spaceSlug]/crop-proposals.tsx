@@ -36,9 +36,10 @@ export function CropProposals({
 }) {
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  // Controlled so the AI image buttons can use the crop's name as their prompt.
+  // Controlled so the AI image buttons can use the crop's name/part as prompt.
   const [commonName, setCommonName] = useState("");
   const [scientificName, setScientificName] = useState("");
+  const [ediblePart, setEdiblePart] = useState("");
   // Stable per-mount id so re-picking a photo overwrites the same object rather
   // than orphaning the previous upload.
   const [uploadKey] = useState(() => Math.random().toString(36).slice(2, 10));
@@ -97,7 +98,7 @@ export function CropProposals({
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-muted-foreground">Edible part</span>
-              <input name="edible_part" className={inputCls} placeholder="e.g. Leaf, pod" />
+              <input name="edible_part" value={ediblePart} onChange={(e) => setEdiblePart(e.target.value)} className={inputCls} placeholder="e.g. Leaf, pod" />
             </label>
           </div>
           <label className="block">
@@ -121,6 +122,7 @@ export function CropProposals({
             <CropImageAiButtons
               commonName={commonName}
               scientificName={scientificName}
+              ediblePart={ediblePart}
               generateEnabled={imageGenEnabled}
               onImage={(url) => setImageUrl(url)}
             />
