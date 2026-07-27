@@ -30,6 +30,7 @@ export function CropGuidesView({
   savedIds,
   searchIndex,
   proposals,
+  viewerId,
   isMember,
   isStaff,
 }: {
@@ -46,6 +47,7 @@ export function CropGuidesView({
   // crop_id -> extra searchable terms (pests, diseases, companions, ailments).
   searchIndex: Record<string, string>;
   proposals: ProposalWithAuthor[];
+  viewerId: string;
   isMember: boolean;
   isStaff: boolean;
 }) {
@@ -328,7 +330,7 @@ export function CropGuidesView({
 
       {/* Propose a crop (members) + review queue (staff) */}
       {(isMember || isStaff) && (proposals.length > 0 || isMember) && (
-        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} canPropose={isMember} isStaff={isStaff} />
+        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} viewerId={viewerId} canPropose={isMember} isStaff={isStaff} />
       )}
     </div>
   );

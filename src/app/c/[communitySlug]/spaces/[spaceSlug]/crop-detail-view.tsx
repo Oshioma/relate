@@ -35,6 +35,7 @@ import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community"
 import { MedicinalUses } from "./crop-medicinal";
 import { CompanionGraph } from "./companion-graph";
 import { CropSectionNav, type CropNavSection } from "./crop-section-nav";
+import { CropImageEditor } from "./crop-image-editor";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -214,6 +215,7 @@ export function CropDetailView({
   medicinalUses,
   canContribute,
   isStaff,
+  isSuperAdmin,
   isSaved,
   assistantEnabled,
   viewerId,
@@ -233,6 +235,7 @@ export function CropDetailView({
   medicinalUses: MedicinalUseWithAuthor[];
   canContribute: boolean;
   isStaff: boolean;
+  isSuperAdmin: boolean;
   isSaved: boolean;
   assistantEnabled: boolean;
   viewerId: string;
@@ -314,6 +317,16 @@ export function CropDetailView({
             <div className="mt-4">
               <SaveCropButton ctx={ctx} isSaved={isSaved} />
             </div>
+          )}
+
+          {isSuperAdmin && (
+            <CropImageEditor
+              slug={crop.slug}
+              currentUrl={crop.image_url}
+              viewerId={viewerId}
+              communitySlug={communitySlug}
+              spaceSlug={spaceSlug}
+            />
           )}
         </div>
       </div>
