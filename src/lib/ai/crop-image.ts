@@ -133,23 +133,34 @@ export async function findCropPhoto(opts: {
   const ediblePart = opts.ediblePart?.trim() || null;
   if (!commonName) return { ok: false, error: "Enter the crop name first." };
 
-  // 1) Let the AI pick a direct image URL, then verify it really is an image.
+  const fromWikipedia = async (term: string): Promise<CropImageResult | null> => {
+    const url = await wikipediaImageUrl(term);
+    if (!url) return null;
+    const image = await fetchAsImage(url);
+    if (!image) return null;
+    return { ok: true, ...image, credit: "Wikipedia", sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(term)}` };
+  };
+
+  // 1) Wikipedia's COMMON-name page first — deterministic and depicts the
+  // cultivated crop (e.g. "Carrot" → the orange root). This is the reliable
+  // path for well-known crops, and avoids the model occasionally returning the
+  // wild species in flower (e.g. "Daucus carota" → the wild-carrot umbel).
+  const byCommon = await fromWikipedia(commonName);
+  if (byCommon) return byCommon;
+
+  // 2) AI web search — casts a wider net for crops without a good Wikipedia
+  // lead image. Verified to be a real image before use.
   const ai = await findImageUrlWithAI(commonName, scientificName, ediblePart);
   if (ai) {
     const image = await fetchAsImage(ai.url);
     if (image) return { ok: true, ...image, credit: ai.credit ?? "Web", sourceUrl: ai.sourceUrl };
   }
 
-  // 2) Keyless fallback: Wikipedia's own lead image. Try the COMMON name first —
-  // its page depicts the cultivated crop (e.g. "Carrot" → the orange root),
-  // whereas the scientific-name page is often the wild species in flower
-  // (e.g. "Daucus carota" → the wild-carrot umbel).
-  for (const term of [commonName, scientificName].filter((t): t is string => Boolean(t))) {
-    const url = await wikipediaImageUrl(term);
-    if (url) {
-      const image = await fetchAsImage(url);
-      if (image) return { ok: true, ...image, credit: "Wikipedia", sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(term)}` };
-    }
+  // 3) Last resort: the scientific-name page (better than nothing, even if it's
+  // sometimes the wild species).
+  if (scientificName) {
+    const bySci = await fromWikipedia(scientificName);
+    if (bySci) return bySci;
   }
 
   return { ok: false, error: "Couldn't find a suitable photo — try a more specific name, or upload one." };
