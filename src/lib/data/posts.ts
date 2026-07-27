@@ -7,17 +7,23 @@ export type PostWithAuthor = Post & { author: Profile };
 export type CommentWithAuthor = Comment & { author: Profile };
 export type PostWithSpace = Post & { space: Pick<Space, "id" | "name" | "slug"> };
 export type PostWithAuthorAndSpace = Post & { author: Profile; space: Pick<Space, "id" | "name" | "slug"> };
+// A feed row carries its comment count so cards can show conversation activity.
+export type PostListItem = PostWithAuthor & { comment_count: number };
 
-export async function getSpacePosts(supabase: Client, spaceId: string): Promise<PostWithAuthor[]> {
+export async function getSpacePosts(supabase: Client, spaceId: string): Promise<PostListItem[]> {
   const { data, error } = await supabase
     .from("posts")
-    .select("*, author:author_id (*)")
+    // comments(count) returns [{ count }] for each post — normalised below.
+    .select("*, author:author_id (*), comments(count)")
     .eq("space_id", spaceId)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as unknown as PostWithAuthor[];
+  return (data ?? []).map((row) => {
+    const { comments, ...post } = row as Record<string, unknown> & { comments?: { count: number }[] };
+    return { ...post, comment_count: Array.isArray(comments) ? comments[0]?.count ?? 0 : 0 };
+  }) as unknown as PostListItem[];
 }
 
 export async function getCommunityPosts(supabase: Client, communityId: string, limit = 10): Promise<PostWithAuthorAndSpace[]> {

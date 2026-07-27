@@ -44,7 +44,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { cn, formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
@@ -640,43 +640,64 @@ export default async function SpaceDetailPage({
           {posts.length === 0 ? (
             <EmptyState icon={<MessageSquare className="h-6 w-6" />} title="No posts yet" description="Be the first to start a discussion here." />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {posts.map((post) => {
                 // Photos and videos become a full-width banner atop the card so
                 // the imagery leads; documents stay an inline link in the body.
                 const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+                // The default "discussion" type is noise on every card, so only
+                // announcements and resources earn a labelled pill.
+                const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
                 return (
                   <Link key={post.id} href={`/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`}>
-                    <Card className="overflow-hidden transition-shadow hover:shadow-sm">
+                    <Card
+                      className={cn(
+                        "group overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-accent/35 motion-reduce:transform-none motion-reduce:transition-none",
+                        post.is_pinned && "border-accent/40"
+                      )}
+                    >
                       {bannerUrl && (
-                        <div className="aspect-[16/9] w-full bg-muted">
+                        <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
                           {isVideoUrl(bannerUrl) ? (
-                            <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
+                            <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+                            <img src={bannerUrl} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
                           )}
                         </div>
                       )}
-                      <CardContent className="pt-5">
-                        <div className="flex items-start gap-3">
+                      <CardContent className="pt-4">
+                        {post.is_pinned && (
+                          <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                            <Pin className="h-3.5 w-3.5" />
+                            Pinned
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2.5">
                           <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              {post.is_pinned && <Pin className="h-3.5 w-3.5 text-accent" />}
-                              <h3 className="text-sm font-semibold text-foreground">{post.title}</h3>
-                              <Badge tone="neutral">{post.post_type}</Badge>
-                            </div>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
-                            </p>
-                            {post.body && <p className="mt-2 line-clamp-2 text-sm text-foreground">{post.body}</p>}
-                            {post.media_url && !bannerUrl && (
-                              <div className="mt-2">
-                                <MediaAttachment url={post.media_url} />
-                              </div>
-                            )}
+                            <p className="truncate text-sm font-medium text-foreground">{post.author?.full_name || post.author?.username}</p>
+                            <p className="text-xs text-muted-foreground">{formatRelativeTime(post.created_at)}</p>
                           </div>
+                          {post.post_type !== "discussion" && <Badge tone={typeTone}>{post.post_type}</Badge>}
+                        </div>
+
+                        <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent">
+                          {post.title}
+                        </h3>
+                        {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>}
+                        {post.media_url && !bannerUrl && (
+                          <div className="mt-3">
+                            <MediaAttachment url={post.media_url} />
+                          </div>
+                        )}
+
+                        <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <MessageSquare className="h-4 w-4" />
+                            {post.comment_count}
+                            <span className="sr-only"> comments</span>
+                          </span>
                         </div>
                       </CardContent>
                     </Card>
