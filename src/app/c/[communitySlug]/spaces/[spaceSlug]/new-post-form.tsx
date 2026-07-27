@@ -5,15 +5,17 @@ import { createPost } from "./actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Avatar } from "@/components/ui/avatar";
-import { PostImagePicker, type CropPhotoOption } from "./post-image-picker";
+import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "./post-image-picker";
 
 interface NewPostFormProps {
   communityId: string;
   spaceId: string;
   communitySlug: string;
   spaceSlug: string;
-  /** Crops (with photos) the author can borrow an image from. */
+  /** Community crop-guide photos the author can borrow an image from. */
   crops?: CropPhotoOption[];
+  /** The member's own "My Crops" (farm) photos. */
+  myCrops?: FarmCropPhotoOption[];
   /** The current member's avatar, offered as a one-tap photo source. */
   avatarUrl?: string | null;
   authorName?: string | null;
@@ -25,6 +27,7 @@ export function NewPostForm({
   communitySlug,
   spaceSlug,
   crops = [],
+  myCrops = [],
   avatarUrl = null,
   authorName = null,
 }: NewPostFormProps) {
@@ -66,7 +69,7 @@ export function NewPostForm({
         </div>
       </div>
 
-      <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} avatarUrl={avatarUrl} />
+      <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} myCrops={myCrops} avatarUrl={avatarUrl} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <select

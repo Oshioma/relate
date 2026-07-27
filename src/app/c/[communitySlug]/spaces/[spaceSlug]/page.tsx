@@ -244,6 +244,10 @@ export default async function SpaceDetailPage({
   // The composer offers the author's own photo as a one-tap image source, so
   // fetch their profile only when they can actually post in a discussion space.
   const posterProfile = isDiscussionLike && canPost && user ? await getProfile(supabase, user.id) : null;
+  // The composer also lets the author pick a photo from their own "My Crops"
+  // (their shamba.online farm). Returns [] fast when the bridge is unconfigured
+  // or the member has no linked farm, so it's cheap to load in every discussion.
+  const posterFarmCrops: FarmCrop[] = isDiscussionLike && canPost && user ? await getMyFarmCrops(user.email) : [];
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
@@ -626,6 +630,7 @@ export default async function SpaceDetailPage({
                 communitySlug={community.slug}
                 spaceSlug={space.slug}
                 crops={crops}
+                myCrops={posterFarmCrops}
                 avatarUrl={posterProfile?.avatar_url}
                 authorName={posterProfile?.full_name || posterProfile?.username}
               />

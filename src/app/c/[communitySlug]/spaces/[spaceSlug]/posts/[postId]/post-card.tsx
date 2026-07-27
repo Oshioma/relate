@@ -11,7 +11,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { updatePost, deletePost } from "../../actions";
-import { PostImagePicker, type CropPhotoOption } from "../../post-image-picker";
+import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
 import type { PostWithAuthor } from "@/lib/data/posts";
 
 export function PostCard({
@@ -21,6 +21,7 @@ export function PostCard({
   communitySlug,
   spaceSlug,
   crops = [],
+  myCrops = [],
   avatarUrl = null,
 }: {
   post: PostWithAuthor;
@@ -29,6 +30,7 @@ export function PostCard({
   communitySlug: string;
   spaceSlug: string;
   crops?: CropPhotoOption[];
+  myCrops?: FarmCropPhotoOption[];
   avatarUrl?: string | null;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -84,7 +86,7 @@ export function PostCard({
           </div>
           <div>
             <Label>Photo</Label>
-            <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} avatarUrl={avatarUrl} />
+            <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} myCrops={myCrops} avatarUrl={avatarUrl} />
           </div>
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex gap-2">
