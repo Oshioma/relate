@@ -16,7 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
-import { getGrowingJourneySpace } from "@/lib/data/spaces";
+import { getJourneySpaces } from "@/lib/data/spaces";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -67,7 +67,7 @@ export default async function CommunityFeedPage({
     recentVolunteerProjects,
     recentMembers,
     stats,
-    growingJourney,
+    journeySpaces,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -84,7 +84,7 @@ export default async function CommunityFeedPage({
     // Member profiles stay login-gated, so guests don't get "new member" cards.
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
     getCommunityStats(supabase, community.id),
-    getGrowingJourneySpace(supabase, community.id),
+    getJourneySpaces(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -326,16 +326,17 @@ export default async function CommunityFeedPage({
           </div>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
-            {growingJourney && (
+            {journeySpaces.map((space) => (
               <ShareJourneyCard
+                key={space.id}
                 communityId={community.id}
                 communitySlug={community.slug}
-                spaceSlug={growingJourney.slug}
-                spaceName={growingJourney.name}
+                spaceSlug={space.slug}
+                spaceName={space.name}
                 isLoggedIn={Boolean(user)}
                 isMember={membership?.status === "active"}
               />
-            )}
+            ))}
 
             <Suspense fallback={null}>
               <WeatherTidesCard community={community} />

@@ -1,4 +1,4 @@
-import { Sprout } from "lucide-react";
+import { NotebookPen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShareJourneyButton } from "./share-journey-button";
 
@@ -35,9 +35,9 @@ export function ShareJourneyCard({
       <Card>
         <CardContent className="pt-5">
           <div className="flex items-center gap-3">
-            <Sprout className="h-9 w-9 shrink-0 text-accent" />
+            <NotebookPen className="h-9 w-9 shrink-0 text-accent" />
             <p className="text-sm text-muted-foreground">
-              Share how your season is going with the community.
+              Share how it&apos;s going with the community.
             </p>
           </div>
           <div className="mt-4">

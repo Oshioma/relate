@@ -343,7 +343,7 @@ export default async function SpaceDetailPage({
       ) : isJournalSpace ? (
         <>
           {canPost && (
-            <div className="mb-6">
+            <div id="new-post" className="mb-6 scroll-mt-6">
               <JournalEntryForm
                 communityId={community.id}
                 communitySlug={community.slug}
