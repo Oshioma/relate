@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Community, CommunityMembership, Profile } from "@/types/database";
+import type { Database, Community, CommunityMembership, CommunityPrivacy, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -59,6 +59,28 @@ export async function getCommunityBySlug(supabase: Client, slug: string): Promis
   const { data, error } = await supabase.from("communities").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
   return data;
+}
+
+// The safe, showable card for a community a non-member can't SELECT under RLS.
+// A private community is "visible in search" but its full row is members-only,
+// so getCommunityBySlug returns null for a guest — this resolves just the
+// public card (name, logo, cover, description) via a security-definer function
+// so the app can show a members-only gate instead of a bare 404. Returns null
+// for invite_only communities ("Hidden") and unknown slugs, which both stay a
+// non-revealing 404.
+export type CommunityGateCard = {
+  name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  cover_image_url: string | null;
+  privacy: CommunityPrivacy;
+};
+
+export async function getCommunityGateCard(supabase: Client, slug: string): Promise<CommunityGateCard | null> {
+  const { data, error } = await supabase.rpc("get_community_gate_card", { p_slug: slug }).maybeSingle();
+  if (error) throw error;
+  return (data as CommunityGateCard) ?? null;
 }
 
 export async function getMembership(
