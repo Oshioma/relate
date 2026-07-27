@@ -34,6 +34,7 @@ import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { JoinCommunityButton } from "./join-community-button";
+import { CommunityGate } from "./community-gate";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
@@ -52,6 +53,18 @@ export default async function CommunityFeedPage({
   if (!community) notFound();
 
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+
+  // A private community's feed is members-only, but its shell still renders so
+  // a visitor can reach any spaces the admin made public (from the nav). Show
+  // the members-only gate here in place of the feed for a non-member — the
+  // owner and every active member (checked via their membership) see the real
+  // feed. Public communities never gate. invite_only never reaches this page
+  // for a non-member (the community doesn't resolve for them under RLS).
+  const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  if (!community.is_public && !isMember) {
+    return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
+  }
+
   const [
     posts,
     events,
