@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { CROP_CATEGORIES } from "@/lib/crop-categories";
 import { proposeCrop, approveCropProposal, rejectCropProposal, deleteCropProposal, type CropProposalFormState } from "./crop-guides-actions";
+import { CropImageAiButtons } from "./crop-image-ai-buttons";
 import type { ProposalWithAuthor } from "@/lib/data/crop-guides";
 
 type Ctx = { communityId: string; communitySlug: string; spaceSlug: string };
@@ -24,15 +25,20 @@ export function CropProposals({
   viewerId,
   canPropose,
   isStaff,
+  imageGenEnabled,
 }: {
   ctx: Ctx;
   proposals: ProposalWithAuthor[];
   viewerId: string;
   canPropose: boolean;
   isStaff: boolean;
+  imageGenEnabled: boolean;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // Controlled so the AI image buttons can use the crop's name as their prompt.
+  const [commonName, setCommonName] = useState("");
+  const [scientificName, setScientificName] = useState("");
   // Stable per-mount id so re-picking a photo overwrites the same object rather
   // than orphaning the previous upload.
   const [uploadKey] = useState(() => Math.random().toString(36).slice(2, 10));
@@ -73,11 +79,11 @@ export function CropProposals({
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-muted-foreground">Common name</span>
-              <input name="common_name" required className={inputCls} placeholder="e.g. Moringa" />
+              <input name="common_name" required value={commonName} onChange={(e) => setCommonName(e.target.value)} className={inputCls} placeholder="e.g. Moringa" />
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-muted-foreground">Scientific name</span>
-              <input name="scientific_name" className={inputCls} placeholder="e.g. Moringa oleifera" />
+              <input name="scientific_name" value={scientificName} onChange={(e) => setScientificName(e.target.value)} className={inputCls} placeholder="e.g. Moringa oleifera" />
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-muted-foreground">Category</span>
@@ -102,6 +108,8 @@ export function CropProposals({
             <span className="mb-1 block text-xs font-medium text-muted-foreground">Photo (optional)</span>
             <input type="hidden" name="image_url" value={imageUrl ?? ""} />
             <ImageUpload
+              // Remount when the URL changes so the thumbnail reflects AI results.
+              key={imageUrl ?? "empty"}
               bucket="uploads"
               basePath={`${viewerId}/crop-proposals/${uploadKey}`}
               currentUrl={imageUrl}
@@ -109,6 +117,12 @@ export function CropProposals({
               size={72}
               label="photo"
               onUploaded={(url) => setImageUrl(url)}
+            />
+            <CropImageAiButtons
+              commonName={commonName}
+              scientificName={scientificName}
+              generateEnabled={imageGenEnabled}
+              onImage={(url) => setImageUrl(url)}
             />
           </div>
           {state?.error && <p className="text-sm text-danger">{state.error}</p>}

@@ -7,6 +7,7 @@ import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCropDetail, getCropTips, getCropJournals, computeJournalStats, getCrops } from "@/lib/data/crop-guides";
 import { buildCropContext, askCropAssistant } from "@/lib/ai/crop-assistant";
 import { scanPlant, type PlantScanResult, type AnthropicImageMediaType } from "@/lib/ai/plant-scanner";
+import { findCropPhoto, generateCropImage, type CropImageResult } from "@/lib/ai/crop-image";
 import { identifyPlant, type PlantIdResult } from "@/lib/ai/plant-id";
 
 export type CropRegionFormState = { error: string } | undefined;
@@ -597,6 +598,71 @@ export async function setCropImageUrl(input: {
 
   revalidatePath(cropPath(input.communitySlug, input.spaceSlug, slug));
   return {};
+}
+
+// --- AI-assisted crop imagery -----------------------------------------------
+
+export type CropImageActionResult = { imageUrl?: string; credit?: string | null; error?: string };
+
+// Re-host AI-sourced image bytes into our own `uploads` bucket so the crop
+// doesn't depend on a third-party URL that could rot or block hotlinking. The
+// bucket's RLS namespaces objects by the uploader's id, so the path leads with
+// the signed-in user's id.
+async function rehostCropImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  result: Extract<CropImageResult, { ok: true }>,
+): Promise<string | null> {
+  const ext = result.mediaType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+  const path = `${userId}/crop-ai/${crypto.randomUUID()}.${ext}`;
+  const bytes = Buffer.from(result.base64, "base64");
+  const { error } = await supabase.storage.from("uploads").upload(path, bytes, { contentType: result.mediaType, upsert: true });
+  if (error) {
+    console.error("[crop-image] re-host failed:", error.message);
+    return null;
+  }
+  const { data } = supabase.storage.from("uploads").getPublicUrl(path);
+  return `${data.publicUrl}?v=${Date.now()}`;
+}
+
+// Any signed-in member may fetch an AI image candidate; this only produces a
+// hosted URL. Persisting it onto a crop still goes through setCropImageUrl
+// (super-admin) or the proposal flow, so this isn't a privileged action.
+async function runCropImage(
+  produce: () => Promise<CropImageResult>,
+): Promise<CropImageActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const result = await produce();
+  if (!result.ok) return { error: result.error };
+
+  const url = await rehostCropImage(supabase, user.id, result);
+  if (!url) return { error: "Couldn't save that image — try again." };
+  return { imageUrl: url, credit: result.credit };
+}
+
+// Find a real photo of the crop on the web (Claude web_search + Wikipedia
+// fallback), re-hosted into our storage.
+export async function aiFindCropImage(input: { commonName: string; scientificName?: string | null }): Promise<CropImageActionResult> {
+  if (!input.commonName?.trim()) return { error: "Enter the crop name first." };
+  return runCropImage(() => findCropPhoto({ commonName: input.commonName, scientificName: input.scientificName ?? null }));
+}
+
+// Generate an illustration of the crop with an image model (requires the
+// platform's image-generation key), re-hosted into our storage.
+export async function aiGenerateCropImage(input: {
+  commonName: string;
+  scientificName?: string | null;
+  category?: string | null;
+}): Promise<CropImageActionResult> {
+  if (!input.commonName?.trim()) return { error: "Enter the crop name first." };
+  return runCropImage(() =>
+    generateCropImage({ commonName: input.commonName, scientificName: input.scientificName ?? null, category: input.category ?? null }),
+  );
 }
 
 // Staff: promote a proposal into the global crops library via the SECURITY
