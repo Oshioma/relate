@@ -34,6 +34,7 @@ import { CropAssistantPanel } from "./crop-assistant-panel";
 import { SaveCropButton, GrowingJournals, RegionalTips } from "./crop-community";
 import { MedicinalUses } from "./crop-medicinal";
 import { CompanionGraph } from "./companion-graph";
+import { CropSectionNav, type CropNavSection } from "./crop-section-nav";
 
 // Humanise a section key ("row_spacing" -> "Row spacing") for display.
 function humanise(key: string): string {
@@ -45,10 +46,10 @@ function hasEntries(section: CropSection): boolean {
   return section && Object.keys(section).length > 0;
 }
 
-function SectionBlock({ title, section }: { title: string; section: CropSection }) {
+function SectionBlock({ id, title, section }: { id: string; title: string; section: CropSection }) {
   if (!hasEntries(section)) return null;
   return (
-    <section className="rounded-lg border border-border bg-card p-5">
+    <section id={id} className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
       <h2 className="text-base font-semibold text-foreground">{title}</h2>
       <dl className="mt-3 space-y-2.5">
         {Object.entries(section).map(([key, value]) => (
@@ -246,6 +247,39 @@ export function CropDetailView({
   const companionsByRel = (rel: CompanionRelationship) => companions.filter((c) => c.relationship === rel);
   const ctx = { cropId: crop.id, communityId, communitySlug, spaceSlug, cropSlug: crop.slug };
 
+  // The dl-style guide sections, each keyed to an anchor. `navLabel` is a short
+  // form for the jump-nav chip; `title` is the full heading shown in the card.
+  const sectionBlocks: { id: string; title: string; navLabel: string; section: CropSection }[] = [
+    { id: "soil", title: "Soil", navLabel: "Soil", section: crop.soil },
+    { id: "sowing", title: "Sowing & planting", navLabel: "Sowing", section: crop.sowing },
+    { id: "watering", title: "Watering", navLabel: "Watering", section: crop.watering },
+    { id: "feeding", title: "Organic feeding", navLabel: "Feeding", section: crop.feeding },
+    { id: "harvest", title: "Harvest", navLabel: "Harvest", section: crop.harvest },
+    { id: "pruning", title: "Pruning & maintenance", navLabel: "Pruning", section: crop.pruning },
+    { id: "pollination", title: "Pollination", navLabel: "Pollination", section: crop.pollination },
+    { id: "task-timeline", title: "Seasonal task timeline", navLabel: "Timeline", section: crop.task_timeline },
+    { id: "troubleshooting", title: "Common problems", navLabel: "Problems", section: crop.troubleshooting },
+    { id: "biodiversity", title: "Biodiversity", navLabel: "Biodiversity", section: crop.biodiversity },
+  ];
+
+  // Jump-nav entries, in page order. Only sections that actually render get an
+  // entry, so every chip lands on real content.
+  const navSections: CropNavSection[] = [
+    ...(crop.overview ? [{ id: "overview", label: "Overview" }] : []),
+    { id: "at-a-glance", label: "At a glance" },
+    { id: "planting-calendar", label: "Calendar" },
+    ...sectionBlocks.filter((b) => hasEntries(b.section)).map((b) => ({ id: b.id, label: b.navLabel })),
+    { id: "yield", label: "Yield" },
+    ...(companions.length > 0 ? [{ id: "companions", label: "Companions" }] : []),
+    ...(pests.length > 0 ? [{ id: "pests", label: "Pests" }] : []),
+    ...(diseases.length > 0 ? [{ id: "diseases", label: "Diseases" }] : []),
+    ...(varieties.length > 0 ? [{ id: "varieties", label: "Varieties" }] : []),
+    { id: "moon", label: "Moon" },
+    { id: "tips", label: "Regional tips" },
+    { id: "medicinal", label: "Medicinal" },
+    { id: "journals", label: "Journals" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Hero */}
@@ -284,15 +318,17 @@ export function CropDetailView({
         </div>
       </div>
 
+      <CropSectionNav sections={navSections} />
+
       {crop.overview && (
-        <section className="rounded-lg border border-border bg-card p-5">
+        <section id="overview" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
           <p className="text-sm leading-relaxed text-foreground">{crop.overview}</p>
         </section>
       )}
 
       {assistantEnabled && canContribute && <CropAssistantPanel cropSlug={crop.slug} communityId={communityId} cropName={crop.common_name} />}
 
-      <section className="rounded-lg border border-border bg-card p-5">
+      <section id="at-a-glance" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
         <h2 className="mb-3 text-base font-semibold text-foreground">At a glance</h2>
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <Fact label="Family" value={crop.family} />
@@ -307,24 +343,21 @@ export function CropDetailView({
         </dl>
       </section>
 
-      <PlantingCalendar calendar={calendar} regions={regions} communityRegions={communityRegions} currentMonth={currentMonth} />
+      <div id="planting-calendar" className="scroll-mt-20">
+        <PlantingCalendar calendar={calendar} regions={regions} communityRegions={communityRegions} currentMonth={currentMonth} />
+      </div>
 
-      <SectionBlock title="Soil" section={crop.soil} />
-      <SectionBlock title="Sowing & planting" section={crop.sowing} />
-      <SectionBlock title="Watering" section={crop.watering} />
-      <SectionBlock title="Organic feeding" section={crop.feeding} />
-      <SectionBlock title="Harvest" section={crop.harvest} />
-      <SectionBlock title="Pruning & maintenance" section={crop.pruning} />
-      <SectionBlock title="Pollination" section={crop.pollination} />
-      <SectionBlock title="Seasonal task timeline" section={crop.task_timeline} />
-      <SectionBlock title="Common problems" section={crop.troubleshooting} />
-      <SectionBlock title="Biodiversity" section={crop.biodiversity} />
+      {sectionBlocks.map((b) => (
+        <SectionBlock key={b.id} id={b.id} title={b.title} section={b.section} />
+      ))}
 
-      <YieldCalculator crop={crop} />
+      <div id="yield" className="scroll-mt-20">
+        <YieldCalculator crop={crop} />
+      </div>
 
       {/* Companion planting */}
       {companions.length > 0 && (
-        <section className="rounded-lg border border-border bg-card p-5">
+        <section id="companions" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
           <h2 className="text-base font-semibold text-foreground">Companion planting</h2>
           <p className="mt-1 text-sm text-muted-foreground">Grow alongside these — tap a linked crop to open its guide.</p>
           <div className="mt-4">
@@ -340,7 +373,7 @@ export function CropDetailView({
 
       {/* Pests — organic guidance only */}
       {pests.length > 0 && (
-        <section className="rounded-lg border border-border bg-card p-5">
+        <section id="pests" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
             <Bug className="h-4 w-4 text-muted-foreground" />
             Pests
@@ -366,7 +399,7 @@ export function CropDetailView({
 
       {/* Diseases — organic guidance only */}
       {diseases.length > 0 && (
-        <section className="rounded-lg border border-border bg-card p-5">
+        <section id="diseases" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             Diseases
@@ -388,7 +421,7 @@ export function CropDetailView({
 
       {/* Varieties */}
       {varieties.length > 0 && (
-        <section className="rounded-lg border border-border bg-card p-5">
+        <section id="varieties" className="scroll-mt-20 rounded-lg border border-border bg-card p-5">
           <h2 className="text-base font-semibold text-foreground">Varieties</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {varieties.map((v) => (
@@ -419,16 +452,24 @@ export function CropDetailView({
         </section>
       )}
 
-      <MoonGardening crop={crop} currentPhase={currentPhase} />
+      <div id="moon" className="scroll-mt-20">
+        <MoonGardening crop={crop} currentPhase={currentPhase} />
+      </div>
 
       {/* Regional knowledge (§22) */}
-      <RegionalTips ctx={ctx} tips={tips} canContribute={canContribute} isStaff={isStaff} />
+      <div id="tips" className="scroll-mt-20">
+        <RegionalTips ctx={ctx} tips={tips} canContribute={canContribute} isStaff={isStaff} />
+      </div>
 
       {/* Community medicinal-use log */}
-      <MedicinalUses ctx={ctx} uses={medicinalUses} canContribute={canContribute} isStaff={isStaff} />
+      <div id="medicinal" className="scroll-mt-20">
+        <MedicinalUses ctx={ctx} uses={medicinalUses} canContribute={canContribute} isStaff={isStaff} />
+      </div>
 
       {/* Growing journals (§19) */}
-      <GrowingJournals ctx={ctx} journals={journals} stats={journalStats} canContribute={canContribute} isStaff={isStaff} viewerId={viewerId} />
+      <div id="journals" className="scroll-mt-20">
+        <GrowingJournals ctx={ctx} journals={journals} stats={journalStats} canContribute={canContribute} isStaff={isStaff} viewerId={viewerId} />
+      </div>
 
       {/* Still to come in later phases */}
       <section className="rounded-lg border border-dashed border-border p-5">
