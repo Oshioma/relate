@@ -1,11 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Camera, Loader2, ArrowRight, Info, Utensils } from "lucide-react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { Camera, Loader2, ArrowRight, Info, Utensils, Upload } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UploadButton } from "@/components/ui/upload-button";
 import { identifyPlantAction, type PlantIdState } from "./crop-guides-actions";
 import type { IdConfidence } from "@/lib/ai/plant-id";
 
@@ -15,11 +14,32 @@ function confidenceTone(c: IdConfidence): "accent" | "neutral" | "danger" {
   return "neutral";
 }
 
+// A Plant ID space can be public, so this panel works for signed-out visitors
+// too. The photo is submitted straight to the server action (which forwards it
+// to the model and stores nothing) rather than uploaded to the members-only
+// 'uploads' bucket — the preview is a local object URL, never a stored file.
 export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { communitySlug: string; cropGuidesSpaceSlug: string | null }) {
   const [state, formAction, isPending] = useActionState<PlantIdState, FormData>(identifyPlantAction, undefined);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [hasFile, setHasFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const shownImage = imageUrl ?? state?.imageUrl ?? null;
+  // Free the object URL when it changes or the panel unmounts.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return file ? URL.createObjectURL(file) : null;
+    });
+    setHasFile(Boolean(file));
+  }
+
   const result = state?.result;
 
   return (
@@ -30,24 +50,40 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">Upload a photo and the assistant will identify the plant, note whether it&apos;s edible, and link to its guide.</p>
 
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+      <form action={formAction} className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+        <input type="hidden" name="community_slug" value={communitySlug} />
+
         <div className="sm:w-56">
-          {shownImage ? (
+          {previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={shownImage} alt="Plant to identify" className="aspect-square w-full rounded-md border border-border object-cover" />
+            <img src={previewUrl} alt="Plant to identify" className="aspect-square w-full rounded-md border border-border object-cover" />
           ) : (
             <div className="flex aspect-square w-full items-center justify-center rounded-md border border-dashed border-border bg-muted">
               <Camera className="h-8 w-8 text-muted-foreground" />
             </div>
           )}
-          <div className="mt-2 flex items-center gap-2">
-            <UploadButton kind="image" label={shownImage ? "Change photo" : "Upload photo"} onUploaded={(url) => setImageUrl(url)} />
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1.5 text-xs font-medium text-muted-foreground hover:border-accent hover:text-foreground"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              {hasFile ? "Change photo" : "Upload photo"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="image"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={onFileChange}
+            />
           </div>
         </div>
 
-        <form action={formAction} className="flex-1">
-          <input type="hidden" name="image_url" value={shownImage ?? ""} />
-          <Button type="submit" size="sm" className="w-auto" disabled={!shownImage || isPending}>
+        <div className="flex-1">
+          <Button type="submit" size="sm" className="w-auto" disabled={!hasFile || isPending}>
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
             {isPending ? "Identifying…" : "Identify"}
           </Button>
@@ -84,8 +120,8 @@ export function PlantIdPanel({ communitySlug, cropGuidesSpaceSlug }: { community
               </p>
             </div>
           )}
-        </form>
-      </div>
+        </div>
+      </form>
     </section>
   );
 }
