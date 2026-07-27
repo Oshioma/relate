@@ -29,6 +29,7 @@ import { getMyFarmCrops, getPublicFarmCrops, isFarmBridgeConfigured, type FarmCr
 import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import { isPlantIdConfigured } from "@/lib/ai/plant-id";
+import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
@@ -589,6 +590,7 @@ export default async function SpaceDetailPage({
           viewerId={viewerId}
           isMember={canPost}
           isStaff={Boolean(isStaff)}
+          imageGenEnabled={isCropImageGenConfigured()}
         />
       ) : isPlantScannerSpace ? (
         !isPlantScannerConfigured() ? (

@@ -216,6 +216,7 @@ export function CropDetailView({
   canContribute,
   isStaff,
   isSuperAdmin,
+  imageGenEnabled,
   isSaved,
   assistantEnabled,
   viewerId,
@@ -236,6 +237,7 @@ export function CropDetailView({
   canContribute: boolean;
   isStaff: boolean;
   isSuperAdmin: boolean;
+  imageGenEnabled: boolean;
   isSaved: boolean;
   assistantEnabled: boolean;
   viewerId: string;
@@ -323,9 +325,13 @@ export function CropDetailView({
             <CropImageEditor
               slug={crop.slug}
               currentUrl={crop.image_url}
+              commonName={crop.common_name}
+              scientificName={crop.scientific_name}
+              category={crop.category}
               viewerId={viewerId}
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
+              generateEnabled={imageGenEnabled}
             />
           )}
         </div>

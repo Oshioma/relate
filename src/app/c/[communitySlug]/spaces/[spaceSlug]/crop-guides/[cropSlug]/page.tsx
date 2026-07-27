@@ -18,6 +18,7 @@ import {
 } from "@/lib/data/crop-guides";
 import { calcMoonPhase } from "@/lib/lunar";
 import { isCropAssistantConfigured } from "@/lib/ai/crop-assistant";
+import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import { CropDetailView } from "../../crop-detail-view";
 
 export default async function CropDetailPage({
@@ -86,6 +87,7 @@ export default async function CropDetailPage({
         canContribute={Boolean(canContribute)}
         isStaff={Boolean(isStaff)}
         isSuperAdmin={isSuperAdmin}
+        imageGenEnabled={isCropImageGenConfigured()}
         isSaved={isSaved}
         assistantEnabled={isCropAssistantConfigured()}
         viewerId={user?.id ?? ""}

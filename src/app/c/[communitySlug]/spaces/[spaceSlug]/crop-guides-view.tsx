@@ -33,6 +33,7 @@ export function CropGuidesView({
   viewerId,
   isMember,
   isStaff,
+  imageGenEnabled,
 }: {
   crops: CropListItem[];
   communitySlug: string;
@@ -50,6 +51,7 @@ export function CropGuidesView({
   viewerId: string;
   isMember: boolean;
   isStaff: boolean;
+  imageGenEnabled: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -330,7 +332,7 @@ export function CropGuidesView({
 
       {/* Propose a crop (members) + review queue (staff) */}
       {(isMember || isStaff) && (proposals.length > 0 || isMember) && (
-        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} viewerId={viewerId} canPropose={isMember} isStaff={isStaff} />
+        <CropProposals ctx={{ communityId, communitySlug, spaceSlug }} proposals={proposals} viewerId={viewerId} canPropose={isMember} isStaff={isStaff} imageGenEnabled={imageGenEnabled} />
       )}
     </div>
   );
