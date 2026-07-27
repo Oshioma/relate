@@ -23,6 +23,15 @@ scripts/new-migration.sh add_widget_table   # prints the created file's path
 Then write your SQL into the file it prints. Because the helper bases the
 prefix on the latest already-committed migration, parallel branches created the
 same day no longer collide.
+
+**A new migration's timestamp must also be newer than every migration already
+on `main`, not just unique** — the CI job fails a migration whose prefix is
+`<=` the newest one on the base branch, because it would otherwise apply out of
+order. This bites when other migrations land on `main` after you branch. The
+fix is to rebase on the latest `main` and renumber: delete the stale file,
+re-run `scripts/new-migration.sh <name>` (it now sees the newer base and picks
+a higher prefix), and move your SQL into the file it prints.
+
 # Branching and pull requests
 
 **One branch per logically-separate change.** Give each new feature or fix its
