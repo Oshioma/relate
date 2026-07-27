@@ -328,6 +328,7 @@ export function CropDetailView({
               commonName={crop.common_name}
               scientificName={crop.scientific_name}
               category={crop.category}
+              ediblePart={crop.edible_part}
               viewerId={viewerId}
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}

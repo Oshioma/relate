@@ -71,14 +71,23 @@ async function wikipediaImageUrl(term: string): Promise<string | null> {
 }
 
 // Ask Claude (with web_search) for the single best direct image URL of the crop.
-async function findImageUrlWithAI(commonName: string, scientificName: string | null): Promise<{ url: string; credit: string | null; sourceUrl: string | null } | null> {
+async function findImageUrlWithAI(
+  commonName: string,
+  scientificName: string | null,
+  ediblePart: string | null,
+): Promise<{ url: string; credit: string | null; sourceUrl: string | null } | null> {
   const anthropic = getFindClient();
   if (!anthropic) return null;
 
   const name = scientificName ? `${commonName} (${scientificName})` : commonName;
+  const partHint = ediblePart
+    ? `This crop is grown for its ${ediblePart.toLowerCase()}, so prefer a photo that features that part.`
+    : `Prefer a photo of the part the crop is grown for — its root, fruit, leaves, tuber or pods.`;
   const system = `You find a single high-quality, openly-licensed photograph of a specific plant/crop for a gardening app.
 
 Use web_search to find a real photo of the plant. Strongly prefer Wikimedia Commons, Wikipedia, or other public-domain / Creative Commons sources. The photo must clearly show the actual plant, fruit, or crop — not a logo, diagram, seed packet, or unrelated image.
+
+Choose the image a gardener would expect: the cultivated, harvested, or edible plant as commonly grown. ${partHint} Do NOT return an image that shows only the flower or seed head, unless the crop is specifically grown for its flower.
 
 Respond with ONLY a JSON object (no prose, no markdown fences):
 {
@@ -114,20 +123,28 @@ If you cannot find a suitable direct image URL, respond with exactly {"image_url
   }
 }
 
-export async function findCropPhoto(opts: { commonName: string; scientificName?: string | null }): Promise<CropImageResult> {
+export async function findCropPhoto(opts: {
+  commonName: string;
+  scientificName?: string | null;
+  ediblePart?: string | null;
+}): Promise<CropImageResult> {
   const commonName = opts.commonName.trim();
   const scientificName = opts.scientificName?.trim() || null;
+  const ediblePart = opts.ediblePart?.trim() || null;
   if (!commonName) return { ok: false, error: "Enter the crop name first." };
 
   // 1) Let the AI pick a direct image URL, then verify it really is an image.
-  const ai = await findImageUrlWithAI(commonName, scientificName);
+  const ai = await findImageUrlWithAI(commonName, scientificName, ediblePart);
   if (ai) {
     const image = await fetchAsImage(ai.url);
     if (image) return { ok: true, ...image, credit: ai.credit ?? "Web", sourceUrl: ai.sourceUrl };
   }
 
-  // 2) Keyless fallback: Wikipedia's own image for the species, then the name.
-  for (const term of [scientificName, commonName].filter((t): t is string => Boolean(t))) {
+  // 2) Keyless fallback: Wikipedia's own lead image. Try the COMMON name first —
+  // its page depicts the cultivated crop (e.g. "Carrot" → the orange root),
+  // whereas the scientific-name page is often the wild species in flower
+  // (e.g. "Daucus carota" → the wild-carrot umbel).
+  for (const term of [commonName, scientificName].filter((t): t is string => Boolean(t))) {
     const url = await wikipediaImageUrl(term);
     if (url) {
       const image = await fetchAsImage(url);
@@ -144,6 +161,7 @@ export async function generateCropImage(opts: {
   commonName: string;
   scientificName?: string | null;
   category?: string | null;
+  ediblePart?: string | null;
 }): Promise<CropImageResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return { ok: false, error: "Image generation isn't configured on this platform." };
@@ -152,10 +170,13 @@ export async function generateCropImage(opts: {
   if (!commonName) return { ok: false, error: "Enter the crop name first." };
   const scientific = opts.scientificName?.trim();
   const category = opts.category?.trim();
+  const ediblePart = opts.ediblePart?.trim();
 
   const prompt = `A clean, realistic photograph of ${commonName}${scientific ? ` (${scientific})` : ""}${
     category ? `, a ${category} plant` : ""
-  }, growing healthy in a garden. Single clear subject, natural daylight, sharp focus, no text, no watermark, no people.`;
+  }, growing healthy in a garden${
+    ediblePart ? `, clearly showing its ${ediblePart.toLowerCase()} (the part it is grown for)` : ""
+  }. Single clear subject, natural daylight, sharp focus, no text, no watermark, no people.`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {

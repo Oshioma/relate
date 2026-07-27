@@ -647,9 +647,15 @@ async function runCropImage(
 
 // Find a real photo of the crop on the web (Claude web_search + Wikipedia
 // fallback), re-hosted into our storage.
-export async function aiFindCropImage(input: { commonName: string; scientificName?: string | null }): Promise<CropImageActionResult> {
+export async function aiFindCropImage(input: {
+  commonName: string;
+  scientificName?: string | null;
+  ediblePart?: string | null;
+}): Promise<CropImageActionResult> {
   if (!input.commonName?.trim()) return { error: "Enter the crop name first." };
-  return runCropImage(() => findCropPhoto({ commonName: input.commonName, scientificName: input.scientificName ?? null }));
+  return runCropImage(() =>
+    findCropPhoto({ commonName: input.commonName, scientificName: input.scientificName ?? null, ediblePart: input.ediblePart ?? null }),
+  );
 }
 
 // Generate an illustration of the crop with an image model (requires the
@@ -658,10 +664,16 @@ export async function aiGenerateCropImage(input: {
   commonName: string;
   scientificName?: string | null;
   category?: string | null;
+  ediblePart?: string | null;
 }): Promise<CropImageActionResult> {
   if (!input.commonName?.trim()) return { error: "Enter the crop name first." };
   return runCropImage(() =>
-    generateCropImage({ commonName: input.commonName, scientificName: input.scientificName ?? null, category: input.category ?? null }),
+    generateCropImage({
+      commonName: input.commonName,
+      scientificName: input.scientificName ?? null,
+      category: input.category ?? null,
+      ediblePart: input.ediblePart ?? null,
+    }),
   );
 }
 

@@ -12,12 +12,14 @@ export function CropImageAiButtons({
   commonName,
   scientificName,
   category,
+  ediblePart,
   generateEnabled,
   onImage,
 }: {
   commonName: string;
   scientificName?: string | null;
   category?: string | null;
+  ediblePart?: string | null;
   generateEnabled: boolean;
   onImage: (url: string) => void | Promise<void>;
 }) {
@@ -34,8 +36,8 @@ export function CropImageAiButtons({
     setCredit(null);
     const res =
       kind === "find"
-        ? await aiFindCropImage({ commonName, scientificName })
-        : await aiGenerateCropImage({ commonName, scientificName, category });
+        ? await aiFindCropImage({ commonName, scientificName, ediblePart })
+        : await aiGenerateCropImage({ commonName, scientificName, category, ediblePart });
     setBusy(null);
     if (res.error || !res.imageUrl) {
       setError(res.error ?? "Something went wrong.");

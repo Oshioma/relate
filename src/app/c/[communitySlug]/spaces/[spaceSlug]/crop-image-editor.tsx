@@ -17,6 +17,7 @@ export function CropImageEditor({
   commonName,
   scientificName,
   category,
+  ediblePart,
   viewerId,
   communitySlug,
   spaceSlug,
@@ -27,6 +28,7 @@ export function CropImageEditor({
   commonName: string;
   scientificName: string | null;
   category: string | null;
+  ediblePart: string | null;
   viewerId: string;
   communitySlug: string;
   spaceSlug: string;
@@ -74,6 +76,7 @@ export function CropImageEditor({
         commonName={commonName}
         scientificName={scientificName}
         category={category}
+        ediblePart={ediblePart}
         generateEnabled={generateEnabled}
         onImage={persist}
       />
