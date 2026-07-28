@@ -77,27 +77,9 @@ export async function getPublicFarmCrops(
 }
 
 // Shared fetch: the crops the farm app has for one email, or [] on any failure.
+// Never lets a farm-app hiccup break the Crop Guides page.
 async function fetchFarmCropsForEmail(email: string | null | undefined): Promise<FarmCrop[]> {
-  return (await fetchFarmCrops(email)).crops;
-}
-
-// The full outcome of one call to the farm app, including why it came back
-// empty. The normal render path throws all of this away and keeps only .crops;
-// the diagnostic route (below, via getFarmCropsDiagnostic) surfaces the rest so
-// an operator can tell "unconfigured" from "farm app said 401" from "email has
-// no crops" — the three very different reasons My Crops can look empty.
-type FarmFetchResult = {
-  ok: boolean; // did we get a well-formed response from the farm app?
-  httpStatus: number | null; // the farm app's HTTP status, or null if we never got one
-  error: string | null; // a short human reason when ok is false
-  crops: FarmCrop[];
-};
-
-async function fetchFarmCrops(email: string | null | undefined): Promise<FarmFetchResult> {
-  if (!email) return { ok: false, httpStatus: null, error: "no signed-in email", crops: [] };
-  if (!isFarmBridgeConfigured()) {
-    return { ok: false, httpStatus: null, error: "farm bridge not configured (FARM_API_URL / FARM_API_SECRET unset)", crops: [] };
-  }
+  if (!email || !isFarmBridgeConfigured()) return [];
 
   try {
     const url = new URL(FARM_API_URL as string);
@@ -107,55 +89,12 @@ async function fetchFarmCrops(email: string | null | undefined): Promise<FarmFet
       headers: { Authorization: `Bearer ${FARM_API_SECRET}` },
       cache: "no-store",
     });
-    if (!res.ok) return { ok: false, httpStatus: res.status, error: `farm app returned HTTP ${res.status}`, crops: [] };
+    if (!res.ok) return [];
 
     const data: unknown = await res.json();
     const crops = (data as { crops?: unknown })?.crops;
-    if (!Array.isArray(crops)) {
-      return { ok: true, httpStatus: res.status, error: "farm app response had no crops array", crops: [] };
-    }
-    return { ok: true, httpStatus: res.status, error: null, crops: crops as FarmCrop[] };
-  } catch (e) {
-    // Never let a farm-app hiccup break the Crop Guides page.
-    return { ok: false, httpStatus: null, error: e instanceof Error ? e.message : "fetch to farm app failed", crops: [] };
+    return Array.isArray(crops) ? (crops as FarmCrop[]) : [];
+  } catch {
+    return [];
   }
-}
-
-// A non-secret report of exactly what shamba.online returned for one email:
-// whether the bridge is configured, what the farm app answered, how many crops
-// came back, and how many of those actually carry an image_url. Used by the
-// /api/farm-check diagnostic route to explain why My Crops looks incomplete —
-// missing crops (the farm app filtered them out for this email) vs missing
-// images (crops arrived but with image_url null). Carries the user's own crop
-// summary only; never the API URL or secret.
-export type FarmBridgeDiagnostic = {
-  configured: boolean;
-  email: string | null;
-  ok: boolean;
-  httpStatus: number | null;
-  error: string | null;
-  cropCount: number;
-  cropsWithImage: number;
-  cropsWithoutImage: number;
-  crops: { id: string; crop_name: string; farm_name: string | null; image_url: string | null }[];
-};
-
-export async function getFarmCropsDiagnostic(email: string | null | undefined): Promise<FarmBridgeDiagnostic> {
-  const result = await fetchFarmCrops(email);
-  return {
-    configured: isFarmBridgeConfigured(),
-    email: email ?? null,
-    ok: result.ok,
-    httpStatus: result.httpStatus,
-    error: result.error,
-    cropCount: result.crops.length,
-    cropsWithImage: result.crops.filter((c) => Boolean(c.image_url)).length,
-    cropsWithoutImage: result.crops.filter((c) => !c.image_url).length,
-    crops: result.crops.map((c) => ({
-      id: c.id,
-      crop_name: c.crop_name,
-      farm_name: c.farm_name,
-      image_url: c.image_url,
-    })),
-  };
 }
