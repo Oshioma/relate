@@ -34,6 +34,7 @@ import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
 import { getSpaceLiveSessions, splitLiveSessions } from "@/lib/data/live-events";
+import { isJaasConfigured } from "@/lib/jitsi";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -660,6 +661,7 @@ export default async function SpaceDetailPage({
           isStaff={Boolean(isStaff)}
           canJoin={canPost}
           displayName={liveDisplayName}
+          jaasConfigured={isJaasConfigured()}
         />
       ) : (
         <>

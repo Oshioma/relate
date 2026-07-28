@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, Video, History, LogOut } from "lucide-react";
+import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatRelativeTime } from "@/lib/utils";
 import { startLiveSession, endLiveSession } from "./live-events-actions";
@@ -24,6 +25,7 @@ export function LiveEventsView({
   isStaff,
   canJoin,
   displayName,
+  jaasConfigured,
 }: {
   active: LiveSessionWithStarter | null;
   past: LiveSessionWithStarter[];
@@ -36,6 +38,9 @@ export function LiveEventsView({
   // Whether the viewer is an active member (only members join the meeting).
   canJoin: boolean;
   displayName?: string | null;
+  // Whether JaaS env is set — decides which video backend the meeting uses.
+  // Shown only to staff as a small status line.
+  jaasConfigured: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -85,6 +90,23 @@ export function LiveEventsView({
     <div className="space-y-6">
       {error && (
         <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
+      )}
+
+      {/* Staff-only: which video backend is live, so an admin can confirm the
+          JaaS setup took effect without opening DevTools. */}
+      {isStaff && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Video backend:</span>
+          {jaasConfigured ? (
+            <Badge tone="accent" className="gap-1 normal-case">
+              <ShieldCheck className="h-3 w-3" /> JaaS · authenticated
+            </Badge>
+          ) : (
+            <Badge tone="neutral" className="gap-1 normal-case" title="Set the JITSI_* env vars to switch to authenticated, unlimited rooms.">
+              <TriangleAlert className="h-3 w-3" /> Public demo · 5-min limit
+            </Badge>
+          )}
+        </div>
       )}
 
       {active ? (
