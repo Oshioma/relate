@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ExternalLink, CalendarDays, BookOpen, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfileByUsername } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, getUserCommunities } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getMemberClaimedBusinesses } from "@/lib/data/businesses";
 import { getCommunityProfileFieldsWithValues } from "@/lib/data/community-profile-fields";
 import {
   getMemberInterests,
@@ -60,7 +61,7 @@ export default async function MemberProfilePage({
     resources,
     hostedEvents,
     attendedEvents,
-    communities,
+    organisations,
   ] = await Promise.all([
     getMemberInterests(supabase, profile.id),
     getMemberSkills(supabase, profile.id),
@@ -73,13 +74,12 @@ export default async function MemberProfilePage({
     getMemberResources(supabase, community.id, profile.id),
     getMemberHostedEvents(supabase, community.id, profile.id),
     getMemberAttendedEvents(supabase, community.id, profile.id),
-    isOwnProfile || !profile.hide_communities ? getUserCommunities(supabase, profile.id) : Promise.resolve([]),
+    getMemberClaimedBusinesses(supabase, community.id, profile.id),
   ]);
 
   const showSocialLinks = isOwnProfile || !profile.hide_social_links;
   const showOnlineStatus = isOwnProfile || !profile.hide_online_status;
   const showBusiness = business && (isOwnProfile || !profile.hide_business_profile);
-  const showCommunities = isOwnProfile || !profile.hide_communities;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -126,19 +126,19 @@ export default async function MemberProfilePage({
         </Card>
       )}
 
-      {showCommunities && communities.length > 0 && (
+      {organisations.length > 0 && (
         <Card className="mt-6">
           <CardContent className="pt-6">
-            <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">Communities</h2>
+            <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">Organisations</h2>
             <div className="flex flex-wrap gap-3">
-              {communities.map((c) => (
+              {organisations.map((o) => (
                 <Link
-                  key={c.id}
-                  href={`/c/${c.slug}`}
+                  key={o.id}
+                  href={`/c/${community.slug}/spaces/${o.space.slug}/businesses/${o.id}`}
                   className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted"
                 >
-                  <Avatar src={c.logo_url} name={c.name} size={24} />
-                  {c.name}
+                  <Avatar src={o.image_url} name={o.name} size={24} />
+                  {o.name}
                 </Link>
               ))}
             </div>
