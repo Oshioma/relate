@@ -15,15 +15,23 @@ export function isResendConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
-function defaultFromAddress(): string | null {
-  if (process.env.INVITE_EMAIL_FROM) return process.env.INVITE_EMAIL_FROM;
+// Sender address for an inbox on the verified sending domain. `mailbox` is the
+// local part ("invites", "notifications"); `override` lets a caller pin the
+// full address through an env var. Returns null when there's no way to know the
+// hostname (no override and no NEXT_PUBLIC_SITE_URL).
+function fromAddressFor(mailbox: string, override?: string): string | null {
+  if (override) return override;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (!siteUrl) return null;
   try {
-    return `invites@${new URL(siteUrl).hostname}`;
+    return `${mailbox}@${new URL(siteUrl).hostname}`;
   } catch {
     return null;
   }
+}
+
+function defaultFromAddress(): string | null {
+  return fromAddressFor("invites", process.env.INVITE_EMAIL_FROM);
 }
 
 function escapeHtml(value: string) {
@@ -90,6 +98,87 @@ export async function sendCommunityInviteEmail(
         from: `${input.communityName.replace(/[<>@"]/g, "")} <${fromAddress}>`,
         to: [input.to],
         subject: `You're invited to join ${input.communityName}`,
+        html,
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Generic in-app-notification email
+//
+// The in-app notification (bell) is created by a DB trigger; this is the email
+// counterpart, sent from server actions for events worth an inbox ping (e.g. a
+// business-directory ownership claim). Best-effort by design: callers treat a
+// failure as non-fatal, since the in-app notification still landed.
+//   NOTIFICATION_EMAIL_FROM — sender address; defaults to
+//                             notifications@<NEXT_PUBLIC_SITE_URL's hostname>
+// -----------------------------------------------------------------------------
+export type NotificationEmailInput = {
+  to: string;
+  subject: string;
+  heading: string;
+  body?: string | null;
+  ctaLabel: string;
+  ctaUrl: string;
+  communityName?: string | null;
+};
+
+export async function sendNotificationEmail(
+  input: NotificationEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+  const fromAddress = fromAddressFor("notifications", process.env.NOTIFICATION_EMAIL_FROM);
+  if (!fromAddress) return { ok: false, reason: "no sender address — set NOTIFICATION_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  const heading = escapeHtml(input.heading);
+  const preview = input.body ? escapeHtml(input.body) : null;
+  const url = escapeHtml(input.ctaUrl);
+  const ctaLabel = escapeHtml(input.ctaLabel);
+  const community = input.communityName ? escapeHtml(input.communityName) : null;
+  const fromName = (input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate";
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px 16px;background:#f6f5f1;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:420px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+      <h1 style="margin:0 0 12px;font-size:18px;line-height:1.4;color:#1f2a1f;">${heading}</h1>
+      ${preview ? `<p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#5c665c;">${preview}</p>` : ""}
+      <a href="${url}" style="display:inline-block;background:#44553f;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">
+        ${ctaLabel}
+      </a>
+      <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a938a;">
+        Or copy this link into your browser:<br />
+        <a href="${url}" style="color:#44553f;word-break:break-all;">${url}</a>
+      </p>
+    </div>
+    <p style="max-width:420px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
+      Sent by Relate${community ? ` on behalf of ${community}` : ""}. Manage these in your notification settings.
+    </p>
+  </body>
+</html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `${fromName} <${fromAddress}>`,
+        to: [input.to],
+        subject: input.subject,
         html,
       }),
       cache: "no-store",

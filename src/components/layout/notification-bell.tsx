@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { NavLink } from "@/components/layout/nav-link";
 import { cn } from "@/lib/utils";
+import { useNotificationStream } from "@/components/layout/use-notification-stream";
 
 function BellIcon({ count, className }: { count: number; className?: string }) {
   return (
@@ -16,20 +19,22 @@ function BellIcon({ count, className }: { count: number; className?: string }) {
   );
 }
 
-// For desktop sidebars, alongside the other NavLink items.
-export function NotificationsNavLink({ count }: { count: number }) {
+// For desktop sidebars, alongside the other NavLink items. Count updates live.
+export function NotificationsNavLink({ userId, count }: { userId: string; count: number }) {
+  const { unreadCount } = useNotificationStream(userId, [], count);
   return (
-    <NavLink href="/notifications" icon={<BellIcon count={count} />}>
+    <NavLink href="/notifications" icon={<BellIcon count={unreadCount} />}>
       Notifications
     </NavLink>
   );
 }
 
-// For mobile top bars, icon-only.
-export function NotificationsIconLink({ count }: { count: number }) {
+// For mobile top bars, icon-only. Count updates live.
+export function NotificationsIconLink({ userId, count }: { userId: string; count: number }) {
+  const { unreadCount } = useNotificationStream(userId, [], count);
   return (
     <Link href="/notifications" className="text-muted-foreground">
-      <BellIcon count={count} className="h-5 w-5" />
+      <BellIcon count={unreadCount} className="h-5 w-5" />
     </Link>
   );
 }
