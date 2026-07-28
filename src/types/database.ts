@@ -965,6 +965,12 @@ export type Notification = {
   created_at: string;
 };
 
+export type NotificationEmailPreference = {
+  user_id: string;
+  type: NotificationType;
+  enabled: boolean;
+};
+
 export type ConciergeQuery = {
   id: string;
   community_id: string;
@@ -1499,6 +1505,12 @@ export type Database = {
         Insert: Partial<Notification> & { user_id: string; type: NotificationType; title: string };
         Update: Partial<Notification>;
         Relationships: [FKey<"actor_id", "profiles">];
+      };
+      notification_email_preferences: {
+        Row: NotificationEmailPreference;
+        Insert: Partial<NotificationEmailPreference> & { user_id: string; type: NotificationType };
+        Update: Partial<NotificationEmailPreference>;
+        Relationships: [FKey<"user_id", "profiles">];
       };
       event_rsvps: {
         Row: EventRsvp;
