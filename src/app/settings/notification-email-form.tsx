@@ -8,7 +8,7 @@ import type { NotificationType } from "@/types/database";
 
 const TOGGLES: { type: NotificationType; label: string; description: string }[] = [
   { type: "comment", label: "Comments on your posts", description: "When someone replies to something you posted." },
-  { type: "post", label: "New posts", description: "When a post or announcement is shared in one of your communities." },
+  { type: "post", label: "New posts", description: "Off by default — turn on to be emailed for every post shared in your communities." },
   { type: "membership", label: "Membership updates", description: "When you join a community or your role changes." },
   { type: "claim", label: "Business listing claims", description: "Claims to review as staff, and decisions on claims you've made." },
 ];

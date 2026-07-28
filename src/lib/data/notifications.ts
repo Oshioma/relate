@@ -11,8 +11,19 @@ export const EMAILABLE_NOTIFICATION_TYPES: NotificationType[] = ["comment", "pos
 
 export type NotificationEmailPrefs = Record<NotificationType, boolean>;
 
-// Per-type email preference for a member. Opt-out: a missing row means enabled,
-// so the default is every type on.
+// Default email preference per type when the member has no explicit row.
+// 'post' is opt-in (a new post reaches every member, so emailing all of them by
+// default is noisy); everything else is opt-out. Mirrors the effective-default
+// logic in the email_notification() trigger — keep the two in sync.
+export const DEFAULT_NOTIFICATION_EMAIL_PREFS: NotificationEmailPrefs = {
+  comment: true,
+  post: false,
+  membership: true,
+  claim: true,
+};
+
+// Per-type email preference for a member, with the per-type defaults applied for
+// any type they haven't explicitly set.
 export async function getNotificationEmailPrefs(supabase: Client, userId: string): Promise<NotificationEmailPrefs> {
   const { data, error } = await supabase
     .from("notification_email_preferences")
@@ -20,7 +31,7 @@ export async function getNotificationEmailPrefs(supabase: Client, userId: string
     .eq("user_id", userId);
   if (error) throw error;
 
-  const prefs = { comment: true, post: true, membership: true, claim: true } as NotificationEmailPrefs;
+  const prefs = { ...DEFAULT_NOTIFICATION_EMAIL_PREFS };
   for (const row of data ?? []) prefs[row.type] = row.enabled;
   return prefs;
 }
