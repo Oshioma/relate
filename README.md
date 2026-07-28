@@ -170,14 +170,25 @@ directly as a fallback.
 
 ### Sending real email (SMTP)
 
-**Account emails** — signup confirmations and password resets — always go
-out through **Supabase Auth**, which relays via whatever SMTP provider you
-configure under **Authentication → Emails → SMTP Settings**. (Email invites
-take the direct-Resend path above when `RESEND_API_KEY` is set, and only
-fall back to this Supabase-Auth path when it isn't.) Supabase's built-in
-shared service is dev-only and rate-limited to a few messages an hour, so
-production needs your own provider. These settings are for
+**Account emails** — signup confirmations and password resets — go out
+through **Supabase Auth**, which relays via whatever SMTP provider you
+configure under **Authentication → Emails → SMTP Settings**. Supabase's
+built-in shared service is dev-only and rate-limited to a few messages an
+hour, so production needs your own provider. These settings are for
 [Resend](https://resend.com); other providers follow the same shape.
+
+**One exception — community-branded signup confirmations.** When someone
+signs up specifically to join a community (they followed an invite link, a
+`/c/<slug>` community page, or a community's own custom domain) and
+`RESEND_API_KEY` is set, the confirmation email is sent the same
+direct-Resend, community-branded way as invites above — "Confirm your email
+to join Mzungu Zanzibar", from the community's name and logo, rather than
+the global "from Relate" template. Everything else (a bare signup with no
+community context, or when Resend isn't configured) still uses Supabase
+Auth's default confirmation template described here. This reuses the same
+`SUPABASE_SERVICE_ROLE_KEY` the email-invite path needs — `generateLink`
+mints the confirmation link server-side, and Relate wraps its own email
+around it.
 
 | Field        | Value                                              |
 | ------------ | -------------------------------------------------- |
