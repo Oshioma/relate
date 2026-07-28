@@ -35,7 +35,8 @@ export type SpaceType =
   | "crop_guides"
   | "plant_scanner"
   | "my_crops"
-  | "plant_id";
+  | "plant_id"
+  | "live";
 export type PostType = "discussion" | "announcement" | "resource";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
@@ -774,6 +775,27 @@ export type VolunteerSignup = {
   project_id: string;
   user_id: string;
   signed_up_at: string;
+};
+
+export type LiveSessionStatus = "live" | "ended";
+
+// A live video session in a 'live' space (Live Events). One row per session —
+// no content hierarchy, unlike Course. Staff start it (status 'live') and end
+// it (status 'ended'); members who can view the space join a meeting keyed by
+// room_name. room_name is a long unguessable string generated server-side and
+// handed to the video provider (meet.jit.si) — at the video layer it's the
+// join secret, so it's never user-supplied.
+export type LiveSession = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  started_by: string | null;
+  title: string;
+  room_name: string;
+  status: LiveSessionStatus;
+  started_at: string;
+  ended_at: string | null;
+  created_at: string;
 };
 
 export type CourseStatus = "draft" | "published";
@@ -1662,6 +1684,12 @@ export type Database = {
         Insert: Partial<Course> & { space_id: string; community_id: string; title: string };
         Update: Partial<Course>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">, FKey<"instructor_id", "profiles">];
+      };
+      live_sessions: {
+        Row: LiveSession;
+        Insert: Partial<LiveSession> & { space_id: string; community_id: string; title: string; room_name: string };
+        Update: Partial<LiveSession>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"started_by", "profiles">];
       };
       course_modules: {
         Row: CourseModule;
