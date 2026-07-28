@@ -43,7 +43,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <NavLink href="/communities/new" icon={<Plus className="h-4 w-4" />}>
             New community
           </NavLink>
-          <NotificationsNavLink count={unreadCount} />
+          <NotificationsNavLink userId={user.id} count={unreadCount} />
           <MessagesNavLink count={unreadMessageCount} />
 
           {communities.length > 0 && (
@@ -85,7 +85,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             Relate
           </Link>
           <div className="flex items-center gap-4">
-            <NotificationsIconLink count={unreadCount} />
+            <NotificationsIconLink userId={user.id} count={unreadCount} />
             <MessagesIconLink count={unreadMessageCount} />
             <Link href="/settings">
               <Avatar src={profile?.avatar_url} name={profile?.full_name || profile?.username} size={30} />

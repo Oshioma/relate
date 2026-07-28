@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, MessageSquare, Megaphone, Users } from "lucide-react";
+import { Bell, MessageSquare, Megaphone, Users, Store } from "lucide-react";
 import { IconPopover } from "@/components/layout/icon-popover";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { NotificationWithActor } from "@/lib/data/notifications";
+import { useNotificationStream } from "@/components/layout/use-notification-stream";
 
 const typeIcon = {
   comment: <MessageSquare className="h-4 w-4" />,
   post: <Megaphone className="h-4 w-4" />,
   membership: <Users className="h-4 w-4" />,
+  claim: <Store className="h-4 w-4" />,
 };
 
 function BellIcon({ count }: { count: number }) {
@@ -28,12 +30,16 @@ function BellIcon({ count }: { count: number }) {
 }
 
 export function NotificationsPopover({
-  notifications,
-  unreadCount,
+  userId,
+  notifications: initialNotifications,
+  unreadCount: initialUnreadCount,
 }: {
+  userId: string;
   notifications: NotificationWithActor[];
   unreadCount: number;
 }) {
+  const { notifications, unreadCount } = useNotificationStream(userId, initialNotifications, initialUnreadCount);
+
   return (
     <IconPopover icon={<BellIcon count={unreadCount} />} label="Notifications" panelTitle="Notifications">
       {notifications.length === 0 ? (

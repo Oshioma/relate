@@ -273,7 +273,7 @@ export default async function CommunityLayout({
             </Link>
             {user ? (
               <>
-                <NotificationsPopover notifications={recentNotifications} unreadCount={unreadCount} />
+                <NotificationsPopover userId={user.id} notifications={recentNotifications} unreadCount={unreadCount} />
                 <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
                 <Link href="/settings" aria-label="Settings" className="text-muted-foreground hover:text-foreground">
                   <Settings className="h-5 w-5" />

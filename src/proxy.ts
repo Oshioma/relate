@@ -17,6 +17,9 @@ const PLATFORM_PATH_PREFIXES = [
   "/login",
   "/signup",
   "/auth",
+  // Route handlers are platform-level and self-authenticating; never rewrite
+  // them onto a community's /c/<slug> tree.
+  "/api",
   "/dashboard",
   "/settings",
   "/messages",

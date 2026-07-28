@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeUrl } from "@/lib/utils";
+import { EMAILABLE_NOTIFICATION_TYPES } from "@/lib/data/notifications";
 import type { HelpRequestKind } from "@/types/database";
 
 export type ProfileFormState = { error: string } | undefined;
@@ -215,6 +216,32 @@ export async function updatePrivacy(_prevState: PrivacyFormState, formData: Form
       is_discoverable: formData.get("is_discoverable") === "on",
     })
     .eq("id", auth.userId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}
+
+export type NotificationEmailFormState = { error: string } | undefined;
+
+export async function updateNotificationEmailPrefs(
+  _prevState: NotificationEmailFormState,
+  formData: FormData
+): Promise<NotificationEmailFormState> {
+  const auth = await requireUserId();
+  if ("error" in auth) return auth;
+
+  // Unchecked checkboxes are absent from the form data, so an off toggle stores
+  // an explicit enabled=false row that the trigger reads.
+  const rows = EMAILABLE_NOTIFICATION_TYPES.map((type) => ({
+    user_id: auth.userId,
+    type,
+    enabled: formData.get(type) === "on",
+  }));
+
+  const { error } = await auth.supabase
+    .from("notification_email_preferences")
+    .upsert(rows, { onConflict: "user_id,type" });
   if (error) return { error: error.message };
 
   revalidatePath("/settings");
