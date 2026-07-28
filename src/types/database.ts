@@ -950,7 +950,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership";
+export type NotificationType = "comment" | "post" | "membership" | "claim";
 
 export type Notification = {
   id: string;
