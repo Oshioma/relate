@@ -136,6 +136,7 @@ export function LiveEventsView({
               <div className="mt-4">
                 <JitsiRoom
                   roomName={active.room_name}
+                  communityId={communityId}
                   displayName={displayName}
                   subject={active.title}
                   onClose={() => setRoomOpen(false)}

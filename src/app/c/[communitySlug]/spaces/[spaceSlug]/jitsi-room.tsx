@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getJitsiToken } from "./live-events-actions";
 
-// Phase 1 uses Jitsi's free public server. It needs no account or API key: we
-// load their External API script and embed a meeting iframe in-page. Access is
-// gated by our own RLS (only viewers who can see the space get the room name);
-// the room name itself is the join secret at this layer. Swapping this file for
-// a LiveKit/Daily embed later is the Phase 2 upgrade — nothing else changes.
-const JITSI_DOMAIN = "meet.jit.si";
-const SCRIPT_SRC = `https://${JITSI_DOMAIN}/external_api.js`;
+// The video embed. In production it points at JaaS (8x8.vc) with a signed,
+// per-participant JWT — no time limit, no demo banner. When JaaS isn't
+// configured (local dev), getJitsiToken returns mode:"public" and we fall back
+// to the free meet.jit.si server. Either way this component is the only place
+// that talks to the video provider — swapping it for LiveKit/Daily later
+// touches nothing else.
+const PUBLIC_DOMAIN = "meet.jit.si";
+const JAAS_DOMAIN = "8x8.vc";
 
 type JitsiApi = {
   dispose: () => void;
@@ -22,34 +24,35 @@ declare global {
   }
 }
 
-// Load the external_api.js script once per page and share the promise across
-// mounts, so re-opening a room doesn't inject it again.
-let scriptPromise: Promise<void> | null = null;
-function loadJitsiScript(): Promise<void> {
+// Load external_api.js once per domain and share the promise across mounts.
+const scriptPromises: Record<string, Promise<void>> = {};
+function loadJitsiScript(domain: string): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   if (window.JitsiMeetExternalAPI) return Promise.resolve();
-  if (scriptPromise) return scriptPromise;
-  scriptPromise = new Promise<void>((resolve, reject) => {
+  if (domain in scriptPromises) return scriptPromises[domain];
+  scriptPromises[domain] = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = SCRIPT_SRC;
+    script.src = `https://${domain}/external_api.js`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => {
-      scriptPromise = null; // let a later mount retry
+      delete scriptPromises[domain]; // let a later mount retry
       reject(new Error("Couldn't load the video service. Check your connection and try again."));
     };
     document.body.appendChild(script);
   });
-  return scriptPromise;
+  return scriptPromises[domain];
 }
 
 export function JitsiRoom({
   roomName,
+  communityId,
   displayName,
   subject,
   onClose,
 }: {
   roomName: string;
+  communityId: string;
   displayName?: string | null;
   subject?: string;
   // Called when the participant hangs up inside the meeting.
@@ -68,32 +71,47 @@ export function JitsiRoom({
     let cancelled = false;
     let api: JitsiApi | null = null;
 
-    loadJitsiScript()
-      .then(() => {
-        if (cancelled || !containerRef.current || !window.JitsiMeetExternalAPI) return;
-        api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, {
-          roomName,
-          parentNode: containerRef.current,
-          width: "100%",
-          height: "100%",
-          userInfo: displayName ? { displayName } : undefined,
-          configOverwrite: {
-            prejoinPageEnabled: false,
-            disableDeepLinking: true,
-            startWithAudioMuted: false,
-          },
-          interfaceConfigOverwrite: {
-            MOBILE_APP_PROMO: false,
-            SHOW_JITSI_WATERMARK: false,
-          },
-        });
-        if (subject) api.executeCommand("subject", subject);
-        api.addEventListener("videoConferenceLeft", () => onCloseRef.current?.());
-        api.addEventListener("readyToClose", () => onCloseRef.current?.());
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't start the meeting.");
-      });
+    (async () => {
+      const config = await getJitsiToken({ communityId, roomName });
+      if (cancelled) return;
+      if ("error" in config) {
+        setError(config.error);
+        return;
+      }
+
+      const jaas = config.mode === "jaas";
+      const domain = jaas ? JAAS_DOMAIN : PUBLIC_DOMAIN;
+      // JaaS rooms are namespaced under the AppID: "<appId>/<room>".
+      const room = jaas ? `${config.appId}/${roomName}` : roomName;
+
+      await loadJitsiScript(domain);
+      if (cancelled || !containerRef.current || !window.JitsiMeetExternalAPI) return;
+
+      const options: Record<string, unknown> = {
+        roomName: room,
+        parentNode: containerRef.current,
+        width: "100%",
+        height: "100%",
+        userInfo: displayName ? { displayName } : undefined,
+        configOverwrite: {
+          prejoinPageEnabled: false,
+          disableDeepLinking: true,
+          startWithAudioMuted: false,
+        },
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+          SHOW_JITSI_WATERMARK: false,
+        },
+      };
+      if (jaas) options.jwt = config.token;
+
+      api = new window.JitsiMeetExternalAPI(domain, options);
+      if (subject) api.executeCommand("subject", subject);
+      api.addEventListener("videoConferenceLeft", () => onCloseRef.current?.());
+      api.addEventListener("readyToClose", () => onCloseRef.current?.());
+    })().catch((e: unknown) => {
+      if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't start the meeting.");
+    });
 
     return () => {
       cancelled = true;
@@ -105,7 +123,7 @@ export function JitsiRoom({
     };
     // Only re-init when the room actually changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomName]);
+  }, [roomName, communityId]);
 
   if (error) {
     return (
