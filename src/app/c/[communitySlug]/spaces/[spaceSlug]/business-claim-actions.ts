@@ -1,19 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { emailStaffOfNewClaim, emailClaimantsOfDecision } from "@/lib/data/claim-emails";
 
 export type BusinessClaimFormState = { error: string } | undefined;
 
 function detailPath(communitySlug: string, spaceSlug: string, businessId: string) {
   return `/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`;
-}
-
-async function getSiteOrigin() {
-  const headerList = await headers();
-  return headerList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
 // A member opens a claim on an unclaimed listing. RLS blocks claims on already-
@@ -44,24 +37,6 @@ export async function submitClaim(_prevState: BusinessClaimFormState, formData: 
     return { error: error.message };
   }
 
-  // Email the community's staff (the bell notification is handled by a DB
-  // trigger). Best-effort — the claim is already recorded either way.
-  const [{ data: business }, { data: community }, { data: claimant }, origin] = await Promise.all([
-    supabase.from("businesses").select("name").eq("id", businessId).maybeSingle(),
-    supabase.from("communities").select("name").eq("id", communityId).maybeSingle(),
-    supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle(),
-    getSiteOrigin(),
-  ]);
-  await emailStaffOfNewClaim({
-    communityId,
-    claimantId: user.id,
-    claimantName: claimant?.full_name || claimant?.username || "A member",
-    communityName: community?.name ?? null,
-    businessName: business?.name ?? "a listing",
-    message: message || null,
-    url: `${origin}${detailPath(communitySlug, spaceSlug, businessId)}`,
-  });
-
   revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
   return undefined;
 }
@@ -81,7 +56,7 @@ export async function resolveClaim(claimId: string, approve: boolean, communityS
 
   const { data: claim, error: fetchError } = await supabase
     .from("business_claims")
-    .select("business_id, claimant_id, community_id")
+    .select("business_id, claimant_id")
     .eq("id", claimId)
     .maybeSingle();
   if (fetchError || !claim) {
@@ -96,23 +71,12 @@ export async function resolveClaim(claimId: string, approve: boolean, communityS
     return { error: updateError.message };
   }
 
-  // Approving also turns down every other pending claim on the same listing —
-  // those claimants are emailed a rejection too.
-  const alsoRejected: string[] = [];
   if (approve) {
     const { error: ownerError } = await supabase.from("businesses").update({ claimed_by: claim.claimant_id }).eq("id", claim.business_id);
     if (ownerError) {
       return { error: ownerError.message };
     }
-
-    const { data: others } = await supabase
-      .from("business_claims")
-      .select("claimant_id")
-      .eq("business_id", claim.business_id)
-      .eq("status", "pending")
-      .neq("id", claimId);
-    for (const other of others ?? []) alsoRejected.push(other.claimant_id);
-
+    // Turn down any other still-pending claims for the same listing.
     await supabase
       .from("business_claims")
       .update({ status: "rejected", resolved_by: user.id, resolved_at: new Date().toISOString() })
@@ -120,27 +84,6 @@ export async function resolveClaim(claimId: string, approve: boolean, communityS
       .eq("status", "pending")
       .neq("id", claimId);
   }
-
-  // Email the outcome to the claimant (and any auto-rejected rivals). The bell
-  // notifications are handled by a DB trigger; this is best-effort.
-  const [{ data: business }, { data: community }, origin] = await Promise.all([
-    supabase.from("businesses").select("name").eq("id", claim.business_id).maybeSingle(),
-    supabase.from("communities").select("name").eq("id", claim.community_id).maybeSingle(),
-    getSiteOrigin(),
-  ]);
-  const url = `${origin}${detailPath(communitySlug, spaceSlug, claim.business_id)}`;
-  const businessName = business?.name ?? "a listing";
-  const communityName = community?.name ?? null;
-  await Promise.all([
-    emailClaimantsOfDecision({
-      claimantIds: [claim.claimant_id],
-      communityName,
-      businessName,
-      status: approve ? "approved" : "rejected",
-      url,
-    }),
-    emailClaimantsOfDecision({ claimantIds: alsoRejected, communityName, businessName, status: "rejected", url }),
-  ]);
 
   revalidatePath(detailPath(communitySlug, spaceSlug, claim.business_id));
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);

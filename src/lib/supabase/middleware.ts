@@ -28,6 +28,9 @@ const COMMUNITY_ICON_PATH = new RegExp(`^/c/[^/]+/(?:icon|apple-icon)(?:/.*)?$`)
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
+  // Route handlers do their own auth (e.g. the notification-email webhook
+  // checks a shared secret); the session redirect must not intercept them.
+  if (pathname.startsWith("/api/")) return true;
   // Invite links show a "you're invited" preview before asking someone to
   // sign in or sign up, so logged-out visitors need to reach the page.
   // /signup/check-email is where a just-signed-up (and therefore still
