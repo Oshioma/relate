@@ -16,6 +16,11 @@ export async function GET() {
     // The two keys the community-branded confirmation email needs.
     resend: Boolean(process.env.RESEND_API_KEY),
     serviceRole: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    // The secret the notification-email webhook checks. Must be set here AND
+    // match the notification_email_webhook_secret row in public.app_config, or
+    // /api/notifications/email rejects every call with 401.
+    notificationSecret: Boolean(process.env.NOTIFICATION_EMAIL_WEBHOOK_SECRET),
+    notificationFrom: Boolean(process.env.NOTIFICATION_EMAIL_FROM),
     // Handy neighbours: without a sender address the branded email can't send,
     // and NODE_ENV tells you which deployment answered.
     inviteFrom: Boolean(process.env.INVITE_EMAIL_FROM),
