@@ -20,6 +20,7 @@ const CTA_LABEL: Record<string, string> = {
   claim: "Review the claim",
   live_event: "View the event",
   live_started: "Join now",
+  live_reminder: "View the event",
 };
 
 export async function POST(request: NextRequest) {

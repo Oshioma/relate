@@ -16,6 +16,7 @@ const typeIcon = {
   claim: <Store className="h-4 w-4" />,
   live_event: <Radio className="h-4 w-4" />,
   live_started: <Radio className="h-4 w-4" />,
+  live_reminder: <Radio className="h-4 w-4" />,
 };
 
 export default async function NotificationsPage() {

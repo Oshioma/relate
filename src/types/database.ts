@@ -796,6 +796,9 @@ export type LiveSession = {
   // Set when the session was scheduled ahead of time; null for ad-hoc
   // "go live now" sessions.
   scheduled_start: string | null;
+  // Stamped by the reminder job once a scheduled session's pre-start reminder
+  // has been sent, so it fires at most once.
+  reminder_sent_at: string | null;
   started_at: string;
   ended_at: string | null;
   created_at: string;
@@ -963,7 +966,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder";
 
 export type Notification = {
   id: string;
