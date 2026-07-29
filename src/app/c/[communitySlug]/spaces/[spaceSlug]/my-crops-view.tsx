@@ -217,12 +217,24 @@ function FarmCropCard({
   guideSlug: string | null;
   showFarmName: boolean;
 }) {
+  // A crop may carry an image_url whose file is missing from storage (a link
+  // saved without the upload completing). Track a load failure so we fall back
+  // to the sprout placeholder instead of the browser's broken-image glyph —
+  // matching how crops with no image (null / "") already render.
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(fc.image_url) && !imageFailed;
+
   const inner = (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex aspect-[3/2] items-center justify-center bg-accent-soft">
-        {fc.image_url ? (
+        {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={fc.image_url} alt={fc.crop_name} className="h-full w-full object-cover" />
+          <img
+            src={fc.image_url as string}
+            alt={fc.crop_name}
+            className="h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <Sprout className="h-10 w-10 text-accent" />
         )}
