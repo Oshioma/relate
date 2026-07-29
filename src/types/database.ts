@@ -122,7 +122,7 @@ export type Community = {
   // Stripe Connect Express: the owner's connected account, and whether it can
   // take charges yet (mirrors the account's charges_enabled). Written only by
   // the admin billing actions and the service-role webhook. See
-  // 20260729183203_space_paywall.sql.
+  // 20260729185900_space_paywall.sql.
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
   created_at: string;
@@ -172,7 +172,7 @@ export type Space = {
   // Per-space paywall. price_cents 0 = free (unchanged behaviour); > 0 makes
   // the space paid — members need an active subscription to see its content
   // (enforced by has_space_access() in RLS). currency is a lowercase ISO-4217
-  // code. See 20260729183203_space_paywall.sql.
+  // code. See 20260729185900_space_paywall.sql.
   price_cents: number;
   currency: string;
   created_at: string;

@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Relate — Extend per-space paywalls to course & marketplace content
 --
--- The first paywall migration (20260729183203_space_paywall.sql) gated the base
+-- The first paywall migration (20260729185900_space_paywall.sql) gated the base
 -- content tables (posts/comments/resources) on has_space_access(). Course and
 -- marketplace spaces keep their content in their own tables, so their read
 -- policies still gated on can_view_space() — which ignores the subscription.

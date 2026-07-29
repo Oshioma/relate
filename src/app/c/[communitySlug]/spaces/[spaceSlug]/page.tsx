@@ -104,7 +104,7 @@ export default async function SpaceDetailPage({
   // space (per its visibility) gets the paywall instead. RLS enforces the same
   // rule on the underlying content tables (has_space_access) — this is the UI
   // side of it, and it also covers space types whose content lives in their
-  // own tables. See 20260729183203_space_paywall.sql.
+  // own tables. See 20260729185900_space_paywall.sql.
   if (space.price_cents > 0) {
     const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
     const gateIsStaff =
