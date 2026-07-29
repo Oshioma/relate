@@ -78,7 +78,12 @@ export function mintJaasToken(input: JaasTokenInput): string {
     aud: "jitsi",
     iss: "chat",
     sub: appId(),
-    room: input.room,
+    // "*" authorises any room in the tenant. A room-specific claim has to match
+    // exactly what the client joins ("<appId>/<room>"), and any mismatch yields
+    // a bare "you're not allowed to join this call". The token is already only
+    // handed to members who can view the space and is short-lived, so a
+    // tenant-wide claim is a fine trade for removing that failure mode.
+    room: "*",
     // Short-lived: long enough for a live event, short enough to limit reuse.
     exp: now + 60 * 60 * 3,
     // Deliberately no `nbf`. It's optional for JaaS and only blocks *early* use
