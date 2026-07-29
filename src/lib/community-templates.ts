@@ -11,6 +11,10 @@ export interface TemplateSpace {
   // Defaults to 'discussion' when omitted — every non-place template relies
   // on that default rather than setting this explicitly.
   space_type?: SpaceType;
+  // Seeds the space as a one-way / broadcast space (only staff can post).
+  // Defaults to false when omitted. Used by the Artist Fan Club template's
+  // Announcements space.
+  staff_post_only?: boolean;
 }
 
 export interface TemplateProfileField {
@@ -111,6 +115,25 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Q&A", description: "Ask me anything." },
     ],
     defaultProfileFields: [{ label: "Content Niche", field_type: "text" }],
+  },
+  {
+    key: "fanclub",
+    label: "Artist Fan Club",
+    icon: "Disc3",
+    tagline: "A home for your fans, direct from you",
+    description:
+      "For a musician, DJ or artist building a membership community around themselves — broadcast drops and news, go live, share exclusives, and let fans connect with each other.",
+    defaultSpaces: [
+      { name: "Announcements", description: "News, drops and tour dates — straight from the artist.", staff_post_only: true },
+      { name: "The Group Chat", description: "Where fans hang out, react and connect." },
+      { name: "Live", description: "Livestreamed sets, listening parties and AMAs.", space_type: "live" },
+      { name: "The Vault", description: "Exclusive extras — demos, stems, wallpapers and presale codes.", space_type: "resources" },
+      { name: "Ask Me Anything", description: "Fans ask, you answer.", space_type: "qa" },
+    ],
+    defaultProfileFields: [
+      { label: "Fan Since", field_type: "text" },
+      { label: "Favorite Track or Album", field_type: "text" },
+    ],
   },
   {
     key: "fitness",
