@@ -27,9 +27,18 @@ import { NavLinksList } from "./nav-links-list";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
 import { DeleteCommunitySection } from "./delete-community-section";
+import { BillingSection } from "./billing-section";
+import { isStripeConfigured } from "@/lib/stripe";
 
-export default async function AdminPage({ params }: { params: Promise<{ communitySlug: string }> }) {
+export default async function AdminPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ communitySlug: string }>;
+  searchParams: Promise<{ stripe?: string }>;
+}) {
   const { communitySlug } = await params;
+  const { stripe: stripeReturn } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -139,6 +148,7 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
             communitySlug={community.slug}
             journalFieldsBySpaceId={journalFieldsBySpaceId}
             allowedTypes={allowedTypes}
+            paymentsEnabled={community.stripe_charges_enabled}
           />
         </div>
       )}
@@ -207,6 +217,22 @@ export default async function AdminPage({ params }: { params: Promise<{ communit
 
       {isOwner && (
         <>
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Payments</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Connect Stripe to charge members a monthly fee for individual spaces. Set a price on a space in the Spaces
+            section above once payments are connected.
+          </p>
+          <div className="mb-8">
+            <BillingSection
+              communityId={community.id}
+              communitySlug={community.slug}
+              stripeAccountId={community.stripe_account_id}
+              chargesEnabled={community.stripe_charges_enabled}
+              platformConfigured={isStripeConfigured()}
+              justReturned={stripeReturn === "return"}
+            />
+          </div>
+
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
           <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />
 
