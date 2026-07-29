@@ -33,7 +33,7 @@ import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
-import { getSpaceLiveSessions, splitLiveSessions } from "@/lib/data/live-events";
+import { getSpaceLiveSessions, splitLiveSessions, getLiveSessionRsvps, groupRsvpsBySession } from "@/lib/data/live-events";
 import { isJaasConfigured } from "@/lib/jitsi";
 import {
   getDirectoryMembers,
@@ -203,7 +203,11 @@ export default async function SpaceDetailPage({
     isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
   ]);
 
-  const { active: activeLiveSession, past: pastLiveSessions } = splitLiveSessions(liveSessions);
+  const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
+  // RSVPs for the upcoming (scheduled) sessions, grouped by session for the card.
+  const liveRsvps =
+    isLiveSpace && scheduledLiveSessions.length > 0 ? await getLiveSessionRsvps(supabase, scheduledLiveSessions.map((s) => s.id)) : [];
+  const liveRsvpsBySession = Object.fromEntries(groupRsvpsBySession(liveRsvps));
   // The name the viewer shows up as in the meeting.
   const liveViewer = isLiveSpace && user ? await getProfile(supabase, user.id) : null;
   const liveDisplayName = liveViewer?.full_name || liveViewer?.username || null;
@@ -652,7 +656,10 @@ export default async function SpaceDetailPage({
       ) : isLiveSpace ? (
         <LiveEventsView
           active={activeLiveSession}
+          scheduled={scheduledLiveSessions}
           past={pastLiveSessions}
+          rsvpsBySession={liveRsvpsBySession}
+          currentUserId={viewerId}
           communityId={community.id}
           communitySlug={community.slug}
           spaceId={space.id}
