@@ -16,6 +16,11 @@ import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
 const PLATFORM_PATH_PREFIXES = [
   "/login",
   "/signup",
+  // The password-reset entry page. Like /login and /signup it exists only at
+  // the platform root, so it must keep its platform meaning on a community's
+  // host — otherwise an invited member clicking "Forgot your password?" gets
+  // it rewritten onto /c/<slug>/forgot-password, which 404s.
+  "/forgot-password",
   "/auth",
   // Route handlers are platform-level and self-authenticating; never rewrite
   // them onto a community's /c/<slug> tree.

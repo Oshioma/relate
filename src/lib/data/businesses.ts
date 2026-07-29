@@ -42,6 +42,30 @@ export async function getCommunityRecentBusinesses(
   return (data ?? []) as unknown as BusinessWithContext[];
 }
 
+// The directory listings a member owns — businesses whose claim staff have
+// approved (claimed_by = the member). Scoped to one community so the profile can
+// deep-link each into its directory space; the space slug rides along for the
+// URL. RLS still trims the result to listings the viewer can see.
+export type ClaimedBusiness = Business & {
+  space: Pick<Space, "slug">;
+};
+
+export async function getMemberClaimedBusinesses(
+  supabase: Client,
+  communityId: string,
+  memberId: string
+): Promise<ClaimedBusiness[]> {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("*, space:space_id (slug)")
+    .eq("community_id", communityId)
+    .eq("claimed_by", memberId)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as ClaimedBusiness[];
+}
+
 export async function getSpaceBusinesses(supabase: Client, spaceId: string): Promise<Business[]> {
   const { data, error } = await supabase
     .from("businesses")

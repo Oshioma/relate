@@ -10,16 +10,38 @@ import { createSign } from "node:crypto";
 //   JITSI_PRIVATE_KEY  the RSA private key (PEM) that pairs with that key id
 // All server-side only. When any is missing, isJaasConfigured() is false and
 // the embed falls back to the public demo server, so local dev still works.
-const APP_ID = process.env.JITSI_APP_ID;
-const API_KEY_ID = process.env.JITSI_API_KEY_ID;
+const APP_ID_ENV = process.env.JITSI_APP_ID;
+const API_KEY_ID_ENV = process.env.JITSI_API_KEY_ID;
 const RAW_PRIVATE_KEY = process.env.JITSI_PRIVATE_KEY;
 
+// JaaS validates that the JWT header's `kid` is "<AppID>/<keyId>" AND that the
+// payload's `sub` equals that AppID — a mismatch is the "Key ID (kid) does not
+// match sub" auth error. The two console values can be pasted a few ways (the
+// full "<AppID>/<keyId>" in one var, or split across the two), so we normalise
+// here and derive `sub` from the same source as `kid`, guaranteeing they agree.
+
+// The full key id used as the JWT `kid`: "<AppID>/<keyId>". If JITSI_API_KEY_ID
+// already contains a "/", trust it as-is; otherwise join it to the AppID.
+function fullKeyId(): string | null {
+  if (!API_KEY_ID_ENV) return null;
+  if (API_KEY_ID_ENV.includes("/")) return API_KEY_ID_ENV;
+  return APP_ID_ENV ? `${APP_ID_ENV}/${API_KEY_ID_ENV}` : null;
+}
+
+// The AppID (JWT `sub` and the room-name prefix): always the part of the key id
+// before the "/", so it can't disagree with `kid`. Falls back to JITSI_APP_ID.
+function appId(): string | null {
+  const kid = fullKeyId();
+  if (kid?.includes("/")) return kid.slice(0, kid.indexOf("/"));
+  return APP_ID_ENV ?? null;
+}
+
 export function isJaasConfigured(): boolean {
-  return Boolean(APP_ID && API_KEY_ID && RAW_PRIVATE_KEY);
+  return Boolean(appId() && fullKeyId() && RAW_PRIVATE_KEY);
 }
 
 export function getJaasAppId(): string | null {
-  return APP_ID ?? null;
+  return appId();
 }
 
 // Env stores multi-line PEMs with the newlines escaped as "\n"; restore them.
@@ -51,15 +73,23 @@ export function mintJaasToken(input: JaasTokenInput): string {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", kid: API_KEY_ID, typ: "JWT" };
+  const header = { alg: "RS256", kid: fullKeyId(), typ: "JWT" };
   const payload = {
     aud: "jitsi",
     iss: "chat",
-    sub: APP_ID,
-    room: input.room,
+    sub: appId(),
+    // "*" authorises any room in the tenant. A room-specific claim has to match
+    // exactly what the client joins ("<appId>/<room>"), and any mismatch yields
+    // a bare "you're not allowed to join this call". The token is already only
+    // handed to members who can view the space and is short-lived, so a
+    // tenant-wide claim is a fine trade for removing that failure mode.
+    room: "*",
     // Short-lived: long enough for a live event, short enough to limit reuse.
     exp: now + 60 * 60 * 3,
-    nbf: now - 10,
+    // Deliberately no `nbf`. It's optional for JaaS and only blocks *early* use
+    // (pointless here — people join immediately). Omitting it makes the "nbf
+    // value is in the future" rejection impossible, even if this server's clock
+    // runs ahead of 8x8's validators.
     context: {
       features: {
         livestreaming: false,

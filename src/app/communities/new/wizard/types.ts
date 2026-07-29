@@ -6,6 +6,7 @@ export interface WizardSpace {
   description: string;
   show_in_nav: boolean;
   space_type: SpaceType;
+  staff_post_only: boolean;
 }
 
 export interface WizardProfileField {

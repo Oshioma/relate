@@ -31,6 +31,7 @@ export function SpacesManager({
   communitySlug,
   journalFieldsBySpaceId,
   allowedTypes,
+  paymentsEnabled,
 }: {
   items: NavManagerItem[];
   communityId: string;
@@ -39,6 +40,9 @@ export function SpacesManager({
   // Space types the super admin permits for this community — the choices in a
   // space's Type dropdown.
   allowedTypes: SpaceType[];
+  // Whether the community's Stripe account can take charges — gates the
+  // per-space price control in the editor.
+  paymentsEnabled: boolean;
 }) {
   const router = useRouter();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -82,6 +86,7 @@ export function SpacesManager({
             journalFields={journalFieldsBySpaceId[item.space.id] ?? []}
             subItems={item.subItems}
             allowedTypes={allowedTypes}
+            paymentsEnabled={paymentsEnabled}
             isDragging={dragIndex === i}
             dragHandlers={dragHandlers}
           />

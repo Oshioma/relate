@@ -15,6 +15,7 @@ export interface WizardSpaceInput {
   description: string;
   show_in_nav: boolean;
   space_type: SpaceType;
+  staff_post_only: boolean;
 }
 
 export interface WizardProfileFieldInput {
@@ -132,6 +133,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         sort_order: i,
         show_in_nav: s.show_in_nav,
         space_type: s.space_type,
+        staff_post_only: s.staff_post_only,
       }))
     );
     if (spacesError) {
