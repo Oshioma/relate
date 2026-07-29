@@ -38,7 +38,19 @@ export async function POST(request: NextRequest) {
           metadata?: Record<string, string>;
         };
         const meta = session.metadata ?? {};
-        if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
+        // A community plan checkout (platform billing) — distinguished from a
+        // member's space subscription by carrying plan_id, not space_id.
+        if (meta.plan_id && meta.community_id) {
+          await admin
+            .from("communities")
+            .update({
+              plan_id: meta.plan_id,
+              plan_status: "active",
+              plan_stripe_customer_id: session.customer ?? null,
+              plan_stripe_subscription_id: session.subscription ?? null,
+            })
+            .eq("id", meta.community_id);
+        } else if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
           await admin.from("space_subscriptions").upsert(
             {
               space_id: meta.space_id,
