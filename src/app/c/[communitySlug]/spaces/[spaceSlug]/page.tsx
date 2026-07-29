@@ -305,6 +305,10 @@ export default async function SpaceDetailPage({
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // A one-way / broadcast space (e.g. a fan community's Announcements): only
+  // staff may start posts. Mirrors the posts_insert_member RLS policy, so the
+  // composer is hidden exactly when a member's insert would be rejected.
+  const canPostHere = canPost && (!space.staff_post_only || Boolean(isStaff));
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
   // Header activity stats for discussion spaces, derived from the already-loaded
@@ -706,7 +710,7 @@ export default async function SpaceDetailPage({
         />
       ) : (
         <>
-          {canPost && (
+          {canPostHere ? (
             <div id="new-post" className="mb-6 scroll-mt-6">
               <NewPostForm
                 communityId={community.id}
@@ -719,6 +723,12 @@ export default async function SpaceDetailPage({
                 authorName={posterProfile?.full_name || posterProfile?.username}
               />
             </div>
+          ) : (
+            canPost && (
+              <p className="mb-6 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                This is a one-way space — only the team posts here. You can still comment on and react to posts.
+              </p>
+            )
           )}
 
           {posts.length === 0 ? (

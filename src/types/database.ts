@@ -165,6 +165,10 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // A one-way / broadcast space: when true, only community staff can create
+  // posts here; members still read (and can comment/react). See
+  // supabase/migrations/*_staff_post_only_spaces.sql.
+  staff_post_only: boolean;
   // Overrides the community's location_name for this space's live data
   // (today: the Tides & Weather panel). Null = use the community's location.
   // See supabase/space-location.sql.

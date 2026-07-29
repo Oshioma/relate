@@ -29,7 +29,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       locationType: state.templateKey === "place" ? state.locationType : "",
       locationName: state.templateKey === "place" ? state.locationName : "",
       mapLayers: state.templateKey === "place" ? state.mapLayers : [],
-      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type })),
+      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only })),
       profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
     });
     // Only reached on error — success redirects server-side.
