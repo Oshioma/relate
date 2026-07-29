@@ -61,6 +61,9 @@ export function SpaceCard({
   // Watched so the price control can hide the moment the space is set public —
   // public spaces are always free (see the spaces_public_is_free constraint).
   const [visibility, setVisibility] = useState<SpaceVisibility>(space.visibility);
+  // Watched so the "let members comment" sub-option only shows while the space
+  // is one-way — it's meaningless otherwise (members can already comment).
+  const [staffPostOnly, setStaffPostOnly] = useState(space.staff_post_only);
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
@@ -154,24 +157,48 @@ export function SpaceCard({
           </div>
 
           {(space.space_type === "discussion" || space.staff_post_only) && (
-            <label
-              htmlFor={`staff-post-only-${space.id}`}
-              className="flex items-start gap-2.5 rounded-md border border-border p-3"
-            >
-              <input
-                type="checkbox"
-                id={`staff-post-only-${space.id}`}
-                name="staff_post_only"
-                defaultChecked={space.staff_post_only}
-                className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-2 focus:ring-ring"
-              />
-              <span className="text-sm">
-                <span className="font-medium text-foreground">One-way (announcements)</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  Only owners, admins and moderators can post or comment here. Members can still read and react.
+            <div className="space-y-2">
+              <label
+                htmlFor={`staff-post-only-${space.id}`}
+                className="flex items-start gap-2.5 rounded-md border border-border p-3"
+              >
+                <input
+                  type="checkbox"
+                  id={`staff-post-only-${space.id}`}
+                  name="staff_post_only"
+                  checked={staffPostOnly}
+                  onChange={(e) => setStaffPostOnly(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-2 focus:ring-ring"
+                />
+                <span className="text-sm">
+                  <span className="font-medium text-foreground">One-way (announcements)</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    Only owners, admins and moderators can post here. Members read and react.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+
+              {staffPostOnly && (
+                <label
+                  htmlFor={`allow-member-comments-${space.id}`}
+                  className="ml-6 flex items-start gap-2.5 rounded-md border border-border p-3"
+                >
+                  <input
+                    type="checkbox"
+                    id={`allow-member-comments-${space.id}`}
+                    name="allow_member_comments"
+                    defaultChecked={space.allow_member_comments}
+                    className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-2 focus:ring-ring"
+                  />
+                  <span className="text-sm">
+                    <span className="font-medium text-foreground">Let members comment</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      Members can reply to posts even though they can&apos;t start one. Off = fully broadcast (staff-only comments).
+                    </span>
+                  </span>
+                </label>
+              )}
+            </div>
           )}
 
           {(space.space_type === "resources" || space.location_name) && (
