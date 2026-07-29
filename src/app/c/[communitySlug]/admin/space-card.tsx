@@ -58,6 +58,9 @@ export function SpaceCard({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Watched so the price control can hide the moment the space is set public —
+  // public spaces are always free (see the spaces_public_is_free constraint).
+  const [visibility, setVisibility] = useState<SpaceVisibility>(space.visibility);
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
@@ -137,7 +140,8 @@ export function SpaceCard({
               <select
                 id={`visibility-${space.id}`}
                 name="visibility"
-                defaultValue={space.visibility}
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as SpaceVisibility)}
                 className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {(["public", "members", "private"] as SpaceVisibility[]).map((v) => (
@@ -165,7 +169,15 @@ export function SpaceCard({
             </div>
           )}
 
-          {paymentsEnabled ? (
+          {visibility === "public" ? (
+            // Public spaces are open to everyone, so they can't charge. Show why
+            // rather than a disabled control — and the action forces price to 0
+            // if a paid space is switched to public.
+            <p className="text-xs text-muted-foreground">
+              Public spaces are open to everyone and are always free. Set visibility to Members or Private to charge for
+              access.
+            </p>
+          ) : paymentsEnabled ? (
             <div>
               <Label htmlFor={`price-${space.id}`}>Monthly price</Label>
               <div className="flex gap-2">
@@ -193,8 +205,8 @@ export function SpaceCard({
               </p>
             </div>
           ) : (
-            // Keep the space's existing price on save even while payments are
-            // disconnected — omit the input entirely so the action leaves it be.
+            // Payments not connected: omit the input so the action leaves the
+            // existing price untouched, but explain how to start charging.
             space.price_cents > 0 && (
               <p className="text-xs text-muted-foreground">
                 This space charges {formatMonthlyPrice(space.price_cents, space.currency)}, but payments aren&apos;t
@@ -209,7 +221,14 @@ export function SpaceCard({
             <SubmitButton className="w-auto" pendingText="Saving…">
               Save
             </SubmitButton>
-            <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setVisibility(space.visibility);
+                setEditing(false);
+              }}
+            >
               Cancel
             </Button>
           </div>
