@@ -153,6 +153,27 @@ export function SpaceCard({
             </div>
           </div>
 
+          {(space.space_type === "discussion" || space.staff_post_only) && (
+            <label
+              htmlFor={`staff-post-only-${space.id}`}
+              className="flex items-start gap-2.5 rounded-md border border-border p-3"
+            >
+              <input
+                type="checkbox"
+                id={`staff-post-only-${space.id}`}
+                name="staff_post_only"
+                defaultChecked={space.staff_post_only}
+                className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-2 focus:ring-ring"
+              />
+              <span className="text-sm">
+                <span className="font-medium text-foreground">One-way (announcements)</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Only owners, admins and moderators can post here. Members can still read, comment and react.
+                </span>
+              </span>
+            </label>
+          )}
+
           {(space.space_type === "resources" || space.location_name) && (
             <div>
               <Label htmlFor={`location-${space.id}`}>Location override (optional)</Label>

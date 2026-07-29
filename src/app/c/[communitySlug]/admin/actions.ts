@@ -38,6 +38,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
   const showInNav = formData.get("show_in_nav") === "on";
+  const staffPostOnly = formData.get("staff_post_only") === "on";
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -93,6 +94,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
     space_type: spaceType,
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: showInNav,
+    staff_post_only: staffPostOnly,
   });
 
   if (error) {
@@ -112,6 +114,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const description = String(formData.get("description") ?? "").trim();
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
+  const staffPostOnly = formData.get("staff_post_only") === "on";
   // Absent field ≠ empty field: only forms that render the location input
   // (resources spaces) may change it, so other edits can't silently wipe it.
   const rawLocationName = formData.get("location_name");
@@ -158,6 +161,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       description: description || null,
       visibility,
       space_type: spaceType,
+      staff_post_only: staffPostOnly,
       ...(locationName !== undefined && { location_name: locationName }),
       ...(priceUpdate ?? {}),
     })
@@ -221,6 +225,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     space_type: original.space_type,
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: original.show_in_nav,
+    staff_post_only: original.staff_post_only,
     location_name: original.location_name,
   });
 
