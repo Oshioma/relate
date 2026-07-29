@@ -7,6 +7,8 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
+import { hasActiveSpaceSubscription } from "@/lib/data/space-access";
+import { SpacePaywall } from "./space-paywall";
 import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
@@ -82,10 +84,10 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[] }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory } = await searchParams;
+  const { category: rawCategory, subscribed } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -96,6 +98,38 @@ export default async function SpaceDetailPage({
   // RLS only returns the space to a guest when it's public; members/private
   // resolve to null here, so notFound doubles as the access gate.
   if (!space) notFound();
+
+  // Paid space gate: a space with a price shows its content only to staff and
+  // to members holding an active subscription. Everyone else who can see the
+  // space (per its visibility) gets the paywall instead. RLS enforces the same
+  // rule on the underlying content tables (has_space_access) — this is the UI
+  // side of it, and it also covers space types whose content lives in their
+  // own tables. See 20260729183203_space_paywall.sql.
+  if (space.price_cents > 0) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    const gateIsStaff =
+      gateMembership?.status === "active" &&
+      (gateMembership.role === "owner" || gateMembership.role === "admin" || gateMembership.role === "moderator");
+    const hasSpaceAccess = gateIsStaff || (user ? await hasActiveSpaceSubscription(supabase, space.id, user.id) : false);
+    if (!hasSpaceAccess) {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+          <SpacePaywall
+            spaceId={space.id}
+            spaceName={space.name}
+            spaceDescription={space.description}
+            priceCents={space.price_cents}
+            currency={space.currency}
+            communitySlug={community.slug}
+            spaceSlug={space.slug}
+            isSignedIn={Boolean(user)}
+            paymentsReady={community.stripe_charges_enabled}
+            justSubscribed={subscribed === "1"}
+          />
+        </div>
+      );
+    }
+  }
 
   // Guests have no id; the personalized data helpers only use this to flag
   // "you joined / you voted", so an empty id safely reads as "not yet".

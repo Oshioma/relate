@@ -16,12 +16,21 @@ import { Badge } from "@/components/ui/badge";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import type { Space, SpaceVisibility, SpaceJournalField, SpaceType } from "@/types/database";
 
+function formatMonthlyPrice(cents: number, currency: string): string {
+  try {
+    return `${new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)}/mo`;
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}/mo`;
+  }
+}
+
 export function SpaceCard({
   space,
   communitySlug,
   journalFields,
   subItems,
   allowedTypes,
+  paymentsEnabled,
   dragHandlers,
   isDragging,
 }: {
@@ -34,6 +43,9 @@ export function SpaceCard({
   // current type is always kept selectable even if no longer in the pool, so
   // an existing space can be edited without being forced to change type.
   allowedTypes: SpaceType[];
+  // Whether the community can take charges (Stripe connected). Gates the
+  // per-space monthly-price control.
+  paymentsEnabled: boolean;
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -153,6 +165,44 @@ export function SpaceCard({
             </div>
           )}
 
+          {paymentsEnabled ? (
+            <div>
+              <Label htmlFor={`price-${space.id}`}>Monthly price</Label>
+              <div className="flex gap-2">
+                <Input
+                  id={`price-${space.id}`}
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : ""}
+                  placeholder="0.00"
+                  className="flex-1"
+                />
+                <Input
+                  aria-label="Currency"
+                  name="currency"
+                  defaultValue={space.currency || "usd"}
+                  maxLength={3}
+                  className="w-20 uppercase"
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Charge members this every month for access. Leave blank or 0 to keep the space free. Members pay you
+                directly through Stripe.
+              </p>
+            </div>
+          ) : (
+            // Keep the space's existing price on save even while payments are
+            // disconnected — omit the input entirely so the action leaves it be.
+            space.price_cents > 0 && (
+              <p className="text-xs text-muted-foreground">
+                This space charges {formatMonthlyPrice(space.price_cents, space.currency)}, but payments aren&apos;t
+                connected right now — reconnect Stripe under Payments to collect.
+              </p>
+            )
+          )}
+
           {updateState?.error && <p className="text-sm text-danger">{updateState.error}</p>}
 
           <div className="flex gap-2">
@@ -179,6 +229,7 @@ export function SpaceCard({
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
             <Badge>{meta.label}</Badge>
+            {space.price_cents > 0 && <Badge tone="accent">{formatMonthlyPrice(space.price_cents, space.currency)}</Badge>}
           </div>
           <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
         </div>

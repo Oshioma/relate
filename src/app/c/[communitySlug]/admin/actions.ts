@@ -117,6 +117,19 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const rawLocationName = formData.get("location_name");
   const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
+  // Paywall price, in whole currency units from the form. Absent field ≠ set to
+  // free — only the edit form that renders the price input sends it, so other
+  // edits can't silently un-price a space. An empty or non-positive value means
+  // free (price_cents 0).
+  const rawPrice = formData.get("price");
+  let priceCents: number | undefined;
+  let currency: string | undefined;
+  if (rawPrice !== null) {
+    const amount = Number(String(rawPrice).trim());
+    priceCents = Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
+    currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
+  }
+
   if (!name) {
     return { error: "Give the space a name." };
   }
@@ -142,6 +155,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       visibility,
       space_type: spaceType,
       ...(locationName !== undefined && { location_name: locationName }),
+      ...(priceCents !== undefined && { price_cents: priceCents, currency: currency ?? "usd" }),
     })
     .eq("id", spaceId);
 
