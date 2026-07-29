@@ -73,6 +73,9 @@ export type Profile = {
   hide_business_profile: boolean;
   is_discoverable: boolean;
   is_super_admin: boolean;
+  // IANA timezone captured from the browser (e.g. "Africa/Nairobi"), used to
+  // localize server-generated notification times. Null until first captured.
+  timezone: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -806,7 +809,7 @@ export type VolunteerSignup = {
   signed_up_at: string;
 };
 
-export type LiveSessionStatus = "live" | "ended";
+export type LiveSessionStatus = "scheduled" | "live" | "ended";
 
 // A live video session in a 'live' space (Live Events). One row per session —
 // no content hierarchy, unlike Course. Staff start it (status 'live') and end
@@ -822,8 +825,24 @@ export type LiveSession = {
   title: string;
   room_name: string;
   status: LiveSessionStatus;
+  // Set when the session was scheduled ahead of time; null for ad-hoc
+  // "go live now" sessions.
+  scheduled_start: string | null;
+  // Stamped by the reminder job once a scheduled session's pre-start reminder
+  // has been sent, so it fires at most once.
+  reminder_sent_at: string | null;
   started_at: string;
   ended_at: string | null;
+  created_at: string;
+};
+
+// A member's RSVP to a scheduled live session — presence = attending, mirroring
+// EventRsvp.
+export type LiveSessionRsvp = {
+  id: string;
+  session_id: string;
+  community_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -979,7 +998,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder";
 
 export type Notification = {
   id: string;
@@ -1737,6 +1756,12 @@ export type Database = {
         Insert: Partial<LiveSession> & { space_id: string; community_id: string; title: string; room_name: string };
         Update: Partial<LiveSession>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"started_by", "profiles">];
+      };
+      live_session_rsvps: {
+        Row: LiveSessionRsvp;
+        Insert: Partial<LiveSessionRsvp> & { session_id: string; community_id: string; user_id: string };
+        Update: Partial<LiveSessionRsvp>;
+        Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">];
       };
       course_modules: {
         Row: CourseModule;
