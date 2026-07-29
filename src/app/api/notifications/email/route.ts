@@ -18,6 +18,8 @@ const CTA_LABEL: Record<string, string> = {
   post: "Read the post",
   membership: "Go to the community",
   claim: "Review the claim",
+  live_event: "View the event",
+  live_started: "Join now",
 };
 
 export async function POST(request: NextRequest) {

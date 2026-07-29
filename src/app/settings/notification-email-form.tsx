@@ -11,6 +11,8 @@ const TOGGLES: { type: NotificationType; label: string; description: string }[] 
   { type: "post", label: "New posts", description: "Off by default — turn on to be emailed for every post shared in your communities." },
   { type: "membership", label: "Membership updates", description: "When you join a community or your role changes." },
   { type: "claim", label: "Business listing claims", description: "Claims to review as staff, and decisions on claims you've made." },
+  { type: "live_event", label: "Live events scheduled", description: "When a host schedules a new live video event in one of your communities." },
+  { type: "live_started", label: "Live events starting", description: "When a live video event goes live and you can join." },
 ];
 
 export function NotificationEmailForm({ prefs }: { prefs: NotificationEmailPrefs }) {

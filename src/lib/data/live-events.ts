@@ -1,15 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, LiveSession, Profile } from "@/types/database";
+import type { Database, LiveSession, LiveSessionRsvp, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
 // A live session together with the staff member who started it, for the card.
 export type LiveSessionWithStarter = LiveSession & { starter: Profile | null };
 
-// Every session in a 'live' space, newest first. The currently-running one (if
-// any) has status 'live'; the rest are 'ended' history. RLS
-// (live_sessions_select) already restricts this to viewers who can see the
-// space, so no extra gating is needed here.
+// Every session in a 'live' space, newest first. RLS (live_sessions_select)
+// already restricts this to viewers who can see the space, so no extra gating
+// is needed here.
 export async function getSpaceLiveSessions(supabase: Client, spaceId: string): Promise<LiveSessionWithStarter[]> {
   const { data, error } = await supabase
     .from("live_sessions")
@@ -21,9 +20,44 @@ export async function getSpaceLiveSessions(supabase: Client, spaceId: string): P
   return (data ?? []) as unknown as LiveSessionWithStarter[];
 }
 
-// Splits sessions into the single active one (if any) and the ended history.
+// Splits sessions into the single active one (if any), the upcoming scheduled
+// ones (soonest first), and the ended history.
 export function splitLiveSessions(sessions: LiveSessionWithStarter[]) {
   const active = sessions.find((s) => s.status === "live") ?? null;
+  const scheduled = sessions
+    .filter((s) => s.status === "scheduled")
+    .sort((a, b) => {
+      const ta = a.scheduled_start ? new Date(a.scheduled_start).getTime() : Infinity;
+      const tb = b.scheduled_start ? new Date(b.scheduled_start).getTime() : Infinity;
+      return ta - tb;
+    });
   const past = sessions.filter((s) => s.status === "ended");
-  return { active, past };
+  return { active, scheduled, past };
+}
+
+export type LiveRsvpWithAttendee = LiveSessionRsvp & { attendee: Profile | null };
+
+// RSVPs for a set of scheduled sessions, for the "X going" row and the viewer's
+// own going state. Returns [] fast when there are no sessions to look up.
+export async function getLiveSessionRsvps(supabase: Client, sessionIds: string[]): Promise<LiveRsvpWithAttendee[]> {
+  if (sessionIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("live_session_rsvps")
+    .select("*, attendee:user_id (*)")
+    .in("session_id", sessionIds)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as LiveRsvpWithAttendee[];
+}
+
+export function groupRsvpsBySession(rsvps: LiveRsvpWithAttendee[]): Map<string, LiveRsvpWithAttendee[]> {
+  const map = new Map<string, LiveRsvpWithAttendee[]>();
+  for (const rsvp of rsvps) {
+    const list = map.get(rsvp.session_id) ?? [];
+    list.push(rsvp);
+    map.set(rsvp.session_id, list);
+  }
+  return map;
 }
