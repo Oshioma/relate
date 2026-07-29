@@ -73,6 +73,9 @@ export type Profile = {
   hide_business_profile: boolean;
   is_discoverable: boolean;
   is_super_admin: boolean;
+  // IANA timezone captured from the browser (e.g. "Africa/Nairobi"), used to
+  // localize server-generated notification times. Null until first captured.
+  timezone: string | null;
   created_at: string;
   updated_at: string;
 };
