@@ -20,6 +20,7 @@ import { LogoutButton } from "@/components/layout/logout-button";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
+import { TimezoneSync } from "@/components/layout/timezone-sync";
 
 // Give each community its own tab title. `default` shows the community name on
 // the community's own pages; the template lets any child page that sets a title
@@ -273,6 +274,7 @@ export default async function CommunityLayout({
             </Link>
             {user ? (
               <>
+                <TimezoneSync current={profile?.timezone ?? null} />
                 <NotificationsPopover userId={user.id} notifications={recentNotifications} unreadCount={unreadCount} />
                 <MessagesPopover conversations={conversations.slice(0, 5)} unreadCount={unreadMessageCount} />
                 <Link href="/settings" aria-label="Settings" className="text-muted-foreground hover:text-foreground">
