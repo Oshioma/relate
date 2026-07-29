@@ -7,6 +7,8 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
+import { hasActiveSpaceSubscription } from "@/lib/data/space-access";
+import { SpacePaywall } from "./space-paywall";
 import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
@@ -33,7 +35,8 @@ import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
-import { getSpaceLiveSessions, splitLiveSessions } from "@/lib/data/live-events";
+import { getSpaceLiveSessions, splitLiveSessions, getLiveSessionRsvps, groupRsvpsBySession } from "@/lib/data/live-events";
+import { isJaasConfigured } from "@/lib/jitsi";
 import {
   getDirectoryMembers,
   isDiscoverable,
@@ -81,10 +84,10 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[] }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory } = await searchParams;
+  const { category: rawCategory, subscribed } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -95,6 +98,38 @@ export default async function SpaceDetailPage({
   // RLS only returns the space to a guest when it's public; members/private
   // resolve to null here, so notFound doubles as the access gate.
   if (!space) notFound();
+
+  // Paid space gate: a space with a price shows its content only to staff and
+  // to members holding an active subscription. Everyone else who can see the
+  // space (per its visibility) gets the paywall instead. RLS enforces the same
+  // rule on the underlying content tables (has_space_access) — this is the UI
+  // side of it, and it also covers space types whose content lives in their
+  // own tables. See 20260729185900_space_paywall.sql.
+  if (space.price_cents > 0) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    const gateIsStaff =
+      gateMembership?.status === "active" &&
+      (gateMembership.role === "owner" || gateMembership.role === "admin" || gateMembership.role === "moderator");
+    const hasSpaceAccess = gateIsStaff || (user ? await hasActiveSpaceSubscription(supabase, space.id, user.id) : false);
+    if (!hasSpaceAccess) {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+          <SpacePaywall
+            spaceId={space.id}
+            spaceName={space.name}
+            spaceDescription={space.description}
+            priceCents={space.price_cents}
+            currency={space.currency}
+            communitySlug={community.slug}
+            spaceSlug={space.slug}
+            isSignedIn={Boolean(user)}
+            paymentsReady={community.stripe_charges_enabled}
+            justSubscribed={subscribed === "1"}
+          />
+        </div>
+      );
+    }
+  }
 
   // Guests have no id; the personalized data helpers only use this to flag
   // "you joined / you voted", so an empty id safely reads as "not yet".
@@ -202,7 +237,11 @@ export default async function SpaceDetailPage({
     isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
   ]);
 
-  const { active: activeLiveSession, past: pastLiveSessions } = splitLiveSessions(liveSessions);
+  const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
+  // RSVPs for the upcoming (scheduled) sessions, grouped by session for the card.
+  const liveRsvps =
+    isLiveSpace && scheduledLiveSessions.length > 0 ? await getLiveSessionRsvps(supabase, scheduledLiveSessions.map((s) => s.id)) : [];
+  const liveRsvpsBySession = Object.fromEntries(groupRsvpsBySession(liveRsvps));
   // The name the viewer shows up as in the meeting.
   const liveViewer = isLiveSpace && user ? await getProfile(supabase, user.id) : null;
   const liveDisplayName = liveViewer?.full_name || liveViewer?.username || null;
@@ -266,6 +305,10 @@ export default async function SpaceDetailPage({
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // A one-way / broadcast space (e.g. a fan community's Announcements): only
+  // staff may start posts. Mirrors the posts_insert_member RLS policy, so the
+  // composer is hidden exactly when a member's insert would be rejected.
+  const canPostHere = canPost && (!space.staff_post_only || Boolean(isStaff));
   const TypeIcon = SPACE_TYPES[space.space_type].icon;
 
   // Header activity stats for discussion spaces, derived from the already-loaded
@@ -651,7 +694,10 @@ export default async function SpaceDetailPage({
       ) : isLiveSpace ? (
         <LiveEventsView
           active={activeLiveSession}
+          scheduled={scheduledLiveSessions}
           past={pastLiveSessions}
+          rsvpsBySession={liveRsvpsBySession}
+          currentUserId={viewerId}
           communityId={community.id}
           communitySlug={community.slug}
           spaceId={space.id}
@@ -660,10 +706,11 @@ export default async function SpaceDetailPage({
           isStaff={Boolean(isStaff)}
           canJoin={canPost}
           displayName={liveDisplayName}
+          jaasConfigured={isJaasConfigured()}
         />
       ) : (
         <>
-          {canPost && (
+          {canPostHere ? (
             <div id="new-post" className="mb-6 scroll-mt-6">
               <NewPostForm
                 communityId={community.id}
@@ -676,6 +723,12 @@ export default async function SpaceDetailPage({
                 authorName={posterProfile?.full_name || posterProfile?.username}
               />
             </div>
+          ) : (
+            canPost && (
+              <p className="mb-6 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                This is a one-way space — only the team posts here. You can still comment on and react to posts.
+              </p>
+            )
           )}
 
           {posts.length === 0 ? (

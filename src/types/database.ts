@@ -73,6 +73,9 @@ export type Profile = {
   hide_business_profile: boolean;
   is_discoverable: boolean;
   is_super_admin: boolean;
+  // IANA timezone captured from the browser (e.g. "Africa/Nairobi"), used to
+  // localize server-generated notification times. Null until first captured.
+  timezone: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -116,6 +119,29 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Stripe Connect Express: the owner's connected account, and whether it can
+  // take charges yet (mirrors the account's charges_enabled). Written only by
+  // the admin billing actions and the service-role webhook. See
+  // 20260729185900_space_paywall.sql.
+  stripe_account_id: string | null;
+  stripe_charges_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's paid subscription to a single paid space. Rows are written only by
+// the Stripe webhook (service role) — never by the browser. `status` mirrors
+// the Stripe subscription status; access is granted while it's active/trialing
+// and the period hasn't lapsed.
+export type SpaceSubscription = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  user_id: string;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  status: string;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -139,10 +165,20 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // A one-way / broadcast space: when true, only community staff can create
+  // posts here; members still read (and can comment/react). See
+  // supabase/migrations/*_staff_post_only_spaces.sql.
+  staff_post_only: boolean;
   // Overrides the community's location_name for this space's live data
   // (today: the Tides & Weather panel). Null = use the community's location.
   // See supabase/space-location.sql.
   location_name: string | null;
+  // Per-space paywall. price_cents 0 = free (unchanged behaviour); > 0 makes
+  // the space paid — members need an active subscription to see its content
+  // (enforced by has_space_access() in RLS). currency is a lowercase ISO-4217
+  // code. See 20260729185900_space_paywall.sql.
+  price_cents: number;
+  currency: string;
   created_at: string;
 };
 
@@ -777,7 +813,7 @@ export type VolunteerSignup = {
   signed_up_at: string;
 };
 
-export type LiveSessionStatus = "live" | "ended";
+export type LiveSessionStatus = "scheduled" | "live" | "ended";
 
 // A live video session in a 'live' space (Live Events). One row per session —
 // no content hierarchy, unlike Course. Staff start it (status 'live') and end
@@ -793,8 +829,24 @@ export type LiveSession = {
   title: string;
   room_name: string;
   status: LiveSessionStatus;
+  // Set when the session was scheduled ahead of time; null for ad-hoc
+  // "go live now" sessions.
+  scheduled_start: string | null;
+  // Stamped by the reminder job once a scheduled session's pre-start reminder
+  // has been sent, so it fires at most once.
+  reminder_sent_at: string | null;
   started_at: string;
   ended_at: string | null;
+  created_at: string;
+};
+
+// A member's RSVP to a scheduled live session — presence = attending, mirroring
+// EventRsvp.
+export type LiveSessionRsvp = {
+  id: string;
+  session_id: string;
+  community_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -950,7 +1002,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder";
 
 export type Notification = {
   id: string;
@@ -1435,6 +1487,12 @@ export type Database = {
         Relationships: [FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
       };
       spaces: { Row: Space; Insert: Partial<Space> & { community_id: string; name: string; slug: string }; Update: Partial<Space> } & NoRel;
+      space_subscriptions: {
+        Row: SpaceSubscription;
+        Insert: Partial<SpaceSubscription> & { space_id: string; community_id: string; user_id: string };
+        Update: Partial<SpaceSubscription>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
+      };
       posts: {
         Row: Post;
         Insert: Partial<Post> & { community_id: string; space_id: string; author_id: string; title: string };
@@ -1702,6 +1760,12 @@ export type Database = {
         Insert: Partial<LiveSession> & { space_id: string; community_id: string; title: string; room_name: string };
         Update: Partial<LiveSession>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"started_by", "profiles">];
+      };
+      live_session_rsvps: {
+        Row: LiveSessionRsvp;
+        Insert: Partial<LiveSessionRsvp> & { session_id: string; community_id: string; user_id: string };
+        Update: Partial<LiveSessionRsvp>;
+        Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">];
       };
       course_modules: {
         Row: CourseModule;
