@@ -168,7 +168,7 @@ export function SpaceCard({
               <span className="text-sm">
                 <span className="font-medium text-foreground">One-way (announcements)</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                  Only owners, admins and moderators can post here. Members can still read, comment and react.
+                  Only owners, admins and moderators can post or comment here. Members can still read and react.
                 </span>
               </span>
             </label>

@@ -730,7 +730,7 @@ export default async function SpaceDetailPage({
           ) : (
             canPost && (
               <p className="mb-6 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                This is a one-way space — only the team posts here. You can still comment on and react to posts.
+                This is a one-way space — only the team posts and comments here. You can still react to posts.
               </p>
             )
           )}
