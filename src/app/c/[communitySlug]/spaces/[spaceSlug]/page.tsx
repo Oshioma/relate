@@ -370,10 +370,14 @@ export default async function SpaceDetailPage({
             </Suspense>
           )}
 
-          {/* A live-conditions space is a data page first: the live panel is
-              its content, so skip the add-resource form and the "no resources
-              yet" placeholder — any resources that do exist still render. */}
-          {canPost && !showLiveConditions && (
+          {/* Adding resources is staff-only (resources_insert_staff RLS), so only
+              staff see the form — a member submitting it would just hit an RLS
+              error. This makes a resources space (e.g. a fan community's Vault of
+              exclusives) one-way: staff post, everyone else browses.
+              A live-conditions space is a data page first: the live panel is its
+              content, so skip the add-resource form and the "no resources yet"
+              placeholder — any resources that do exist still render. */}
+          {isStaff && !showLiveConditions && (
             <div className="mb-6">
               <SpaceResourceForm communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} />
             </div>
