@@ -146,11 +146,25 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   // Only enforce the pool when the type is actually changing — an existing
   // space of a now-disallowed type can still be edited, it just can't be
   // switched *into* a disallowed type.
-  const { data: current } = await supabase.from("spaces").select("community_id, space_type").eq("id", spaceId).maybeSingle();
+  const { data: current } = await supabase
+    .from("spaces")
+    .select("community_id, space_type, price_cents")
+    .eq("id", spaceId)
+    .maybeSingle();
   if (current && spaceType !== current.space_type) {
     const pool = await getCommunitySpaceTypePool(supabase, current.community_id);
     if (!pool[spaceType]) {
       return { error: `The ${SPACE_TYPE_META[spaceType].label} space type isn't available to this community.` };
+    }
+  }
+
+  // Charging members is a paid-plan capability. Gate ENABLING a price on a
+  // currently-free space behind the community's plan — but don't block editing
+  // an already-paid space (soft downgrade keeps existing paid spaces working).
+  if (current && priceUpdate && priceUpdate.price_cents > 0 && current.price_cents === 0) {
+    const { data: canCharge } = await supabase.rpc("community_can_charge", { p_community_id: current.community_id });
+    if (!canCharge) {
+      return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
     }
   }
 

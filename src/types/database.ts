@@ -125,6 +125,33 @@ export type Community = {
   // 20260729185900_space_paywall.sql.
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
+  // Platform plan (the platform charging the owner). plan_status 'none' = free.
+  // All plan_* columns are written only by the Stripe webhook — a DB trigger
+  // rejects anon/authenticated writes. See 20260729230727_platform_plans.sql.
+  plan_id: string | null;
+  plan_status: string;
+  plan_current_period_end: string | null;
+  plan_stripe_customer_id: string | null;
+  plan_stripe_subscription_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A platform subscription tier, defined by the super admin. `features` is the
+// set of premium capability keys the plan grants (the entitlement source of
+// truth); `limits` holds numeric caps like {"members":200,"admins":1}.
+export type PlatformPlan = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  currency: string;
+  stripe_price_id: string | null;
+  features: string[];
+  limits: Record<string, number>;
+  sort_order: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -1493,6 +1520,11 @@ export type Database = {
         Update: Partial<SpaceSubscription>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
       };
+      platform_plans: {
+        Row: PlatformPlan;
+        Insert: Partial<PlatformPlan> & { slug: string; name: string };
+        Update: Partial<PlatformPlan>;
+      } & NoRel;
       posts: {
         Row: Post;
         Insert: Partial<Post> & { community_id: string; space_id: string; author_id: string; title: string };
@@ -2007,6 +2039,14 @@ export type Database = {
       approve_crop_proposal: {
         Args: { p_proposal_id: string };
         Returns: string;
+      };
+      community_can_charge: {
+        Args: { p_community_id: string };
+        Returns: boolean;
+      };
+      community_has_feature: {
+        Args: { p_community_id: string; p_feature: string };
+        Returns: boolean;
       };
       consume_ai_quota: {
         Args: { p_bucket: string; p_identity: string; p_limit: number };

@@ -33,10 +33,16 @@ create table if not exists public.platform_plans (
   -- Price in their Stripe dashboard and pastes it in; a plan without one can't
   -- be checked out.
   stripe_price_id text,
-  -- The only capability gated for now: whether being on this plan lets the
-  -- owner charge members for spaces. Future limits/perks can be added as
-  -- columns here without touching callers.
-  allows_member_charging boolean not null default true,
+  -- The premium capabilities this plan unlocks, as feature keys (e.g.
+  -- 'paid_memberships', 'white_label', 'api', 'automation'). Being on a plan
+  -- grants everything in this array — the single source of truth for gating, so
+  -- a new premium feature is just a new key, no schema change. The feature
+  -- marketplace (a later layer) grants the same keys à la carte.
+  features text[] not null default '{}',
+  -- Numeric caps for tiers that limit rather than gate (e.g. {"members":200,
+  -- "admins":1}). Absent key = unlimited. Stored/displayed now; enforcement at
+  -- the join/role chokepoints is a fast-follow.
+  limits jsonb not null default '{}'::jsonb,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -114,10 +120,43 @@ create trigger communities_protect_plan
   for each row
   execute function public.protect_community_plan_columns();
 
--- --- Capability gate ---------------------------------------------------------
--- True when the community is on a live paid plan that permits member charging.
--- A null period_end is treated as still-valid (a fresh active sub before the
--- period-end webhook lands).
+-- --- Entitlement resolver ----------------------------------------------------
+-- The one gate everything checks: does this community have a given premium
+-- feature? A community's effective plan is its live paid plan (active/trialing,
+-- not lapsed) if it has one, otherwise the seeded 'free' plan. The feature is
+-- granted when it's in that plan's `features`. (When the marketplace lands,
+-- this is where à-la-carte grants get unioned in — callers won't change.)
+create or replace function public.community_has_feature(p_community_id uuid, p_feature text)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select coalesce(
+    (
+      select p_feature = any(
+        case
+          when c.plan_id is not null
+            and c.plan_status in ('active', 'trialing')
+            and (c.plan_current_period_end is null or c.plan_current_period_end > now())
+          then paid.features
+          else coalesce(free.features, '{}')
+        end
+      )
+      from public.communities c
+      left join public.platform_plans paid on paid.id = c.plan_id
+      left join public.platform_plans free on free.slug = 'free'
+      where c.id = p_community_id
+    ),
+    false
+  );
+$$;
+
+-- Convenience gate for the per-space paywall: a community can charge members
+-- only when its plan includes the 'paid_memberships' feature. Soft downgrade
+-- falls out for free: the flag flips false, blocking NEW charging while
+-- existing paid spaces / member subscriptions keep running.
 create or replace function public.community_can_charge(p_community_id uuid)
 returns boolean
 language sql
@@ -125,23 +164,44 @@ security definer
 stable
 set search_path = public
 as $$
-  select exists (
-    select 1
-    from public.communities c
-    join public.platform_plans p on p.id = c.plan_id
-    where c.id = p_community_id
-      and p.allows_member_charging
-      and c.plan_status in ('active', 'trialing')
-      and (c.plan_current_period_end is null or c.plan_current_period_end > now())
-  );
+  select public.community_has_feature(p_community_id, 'paid_memberships');
 $$;
 
--- --- Seed starter tiers ------------------------------------------------------
--- Two example paid tiers; "no plan" is the implicit free tier (can't charge).
--- The operator sets each plan's stripe_price_id (and tunes price/name) in the
--- platform-admin Plans section before owners can subscribe.
-insert into public.platform_plans (slug, name, description, price_cents, currency, allows_member_charging, sort_order)
-values
-  ('pro',   'Pro',   'Charge members for spaces. For growing communities.', 2900, 'usd', true, 1),
-  ('scale', 'Scale', 'Everything in Pro, for larger communities.',          9900, 'usd', true, 2)
+-- --- Seed tiers --------------------------------------------------------------
+-- Prices in GBP. 'free' is a real row so the resolver can fall back to it for
+-- communities with no active paid plan (it grants no premium features and caps
+-- members/admins). Paid tiers gate premium FEATURES, not member count — free
+-- communities can grow before they feel limited. The operator sets each paid
+-- plan's stripe_price_id in the platform-admin Plans section before owners can
+-- subscribe; the free plan needs none. Enterprise is intentionally left for the
+-- operator to add (custom pricing).
+insert into public.platform_plans (slug, name, description, price_cents, currency, features, limits, sort_order) values
+  (
+    'free', 'Free', 'For testing and getting started.',
+    0, 'gbp',
+    '{}',
+    '{"members": 200, "admins": 1}'::jsonb,
+    0
+  ),
+  (
+    'starter', 'Starter', 'For small creators ready to charge.',
+    2500, 'gbp',
+    '{paid_memberships,unlimited_members}',
+    '{}'::jsonb,
+    1
+  ),
+  (
+    'growth', 'Growth', 'For businesses and paid communities.',
+    4900, 'gbp',
+    '{paid_memberships,unlimited_members,automation}',
+    '{}'::jsonb,
+    2
+  ),
+  (
+    'pro', 'Pro', 'For large organisations.',
+    19900, 'gbp',
+    '{paid_memberships,unlimited_members,automation,white_label,api,advanced_permissions,multiple_communities,multiple_admins}',
+    '{}'::jsonb,
+    3
+  )
 on conflict (slug) do nothing;

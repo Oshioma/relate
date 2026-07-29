@@ -81,7 +81,22 @@ export async function POST(request: NextRequest) {
         const status = event.type === "customer.subscription.deleted" ? "canceled" : sub.status;
         const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
 
-        if (meta.space_id && meta.user_id && meta.community_id) {
+        if (meta.plan_id && meta.community_id) {
+          // A community plan subscription (platform billing). On cancel we keep
+          // plan_id for the record but flip status to 'canceled' — the
+          // community_can_charge gate reads status, so this is the soft
+          // downgrade. Match by subscription id when metadata is thin.
+          await admin
+            .from("communities")
+            .update({
+              plan_id: meta.plan_id,
+              plan_status: status,
+              plan_current_period_end: periodEnd,
+              plan_stripe_subscription_id: sub.id,
+              plan_stripe_customer_id: sub.customer ?? null,
+            })
+            .eq("id", meta.community_id);
+        } else if (meta.space_id && meta.user_id && meta.community_id) {
           await admin.from("space_subscriptions").upsert(
             {
               space_id: meta.space_id,
