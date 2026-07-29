@@ -16,12 +16,21 @@ import { Badge } from "@/components/ui/badge";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import type { Space, SpaceVisibility, SpaceJournalField, SpaceType } from "@/types/database";
 
+function formatMonthlyPrice(cents: number, currency: string): string {
+  try {
+    return `${new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)}/mo`;
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}/mo`;
+  }
+}
+
 export function SpaceCard({
   space,
   communitySlug,
   journalFields,
   subItems,
   allowedTypes,
+  paymentsEnabled,
   dragHandlers,
   isDragging,
 }: {
@@ -34,6 +43,9 @@ export function SpaceCard({
   // current type is always kept selectable even if no longer in the pool, so
   // an existing space can be edited without being forced to change type.
   allowedTypes: SpaceType[];
+  // Whether the community can take charges (Stripe connected). Gates the
+  // per-space monthly-price control.
+  paymentsEnabled: boolean;
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -46,6 +58,9 @@ export function SpaceCard({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Watched so the price control can hide the moment the space is set public —
+  // public spaces are always free (see the spaces_public_is_free constraint).
+  const [visibility, setVisibility] = useState<SpaceVisibility>(space.visibility);
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
@@ -125,7 +140,8 @@ export function SpaceCard({
               <select
                 id={`visibility-${space.id}`}
                 name="visibility"
-                defaultValue={space.visibility}
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as SpaceVisibility)}
                 className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {(["public", "members", "private"] as SpaceVisibility[]).map((v) => (
@@ -153,13 +169,66 @@ export function SpaceCard({
             </div>
           )}
 
+          {visibility === "public" ? (
+            // Public spaces are open to everyone, so they can't charge. Show why
+            // rather than a disabled control — and the action forces price to 0
+            // if a paid space is switched to public.
+            <p className="text-xs text-muted-foreground">
+              Public spaces are open to everyone and are always free. Set visibility to Members or Private to charge for
+              access.
+            </p>
+          ) : paymentsEnabled ? (
+            <div>
+              <Label htmlFor={`price-${space.id}`}>Monthly price</Label>
+              <div className="flex gap-2">
+                <Input
+                  id={`price-${space.id}`}
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : ""}
+                  placeholder="0.00"
+                  className="flex-1"
+                />
+                <Input
+                  aria-label="Currency"
+                  name="currency"
+                  defaultValue={space.currency || "usd"}
+                  maxLength={3}
+                  className="w-20 uppercase"
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Charge members this every month for access. Leave blank or 0 to keep the space free. Members pay you
+                directly through Stripe.
+              </p>
+            </div>
+          ) : (
+            // Payments not connected: omit the input so the action leaves the
+            // existing price untouched, but explain how to start charging.
+            space.price_cents > 0 && (
+              <p className="text-xs text-muted-foreground">
+                This space charges {formatMonthlyPrice(space.price_cents, space.currency)}, but payments aren&apos;t
+                connected right now — reconnect Stripe under Payments to collect.
+              </p>
+            )
+          )}
+
           {updateState?.error && <p className="text-sm text-danger">{updateState.error}</p>}
 
           <div className="flex gap-2">
             <SubmitButton className="w-auto" pendingText="Saving…">
               Save
             </SubmitButton>
-            <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setVisibility(space.visibility);
+                setEditing(false);
+              }}
+            >
               Cancel
             </Button>
           </div>
@@ -179,6 +248,7 @@ export function SpaceCard({
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
             <Badge>{meta.label}</Badge>
+            {space.price_cents > 0 && <Badge tone="accent">{formatMonthlyPrice(space.price_cents, space.currency)}</Badge>}
           </div>
           <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
         </div>

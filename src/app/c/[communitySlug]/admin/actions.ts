@@ -117,6 +117,23 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const rawLocationName = formData.get("location_name");
   const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
+  // Paywall price, in whole currency units from the form. Absent field ≠ set to
+  // free — only the edit form that renders the price input sends it, so other
+  // edits can't silently un-price a space. An empty or non-positive value means
+  // free (price_cents 0). A public space is always open, so it's forced free
+  // regardless of what was submitted (mirrors the spaces_public_is_free DB
+  // constraint) — switching a paid space to public un-prices it.
+  const rawPrice = formData.get("price");
+  let priceUpdate: { price_cents: number; currency?: string } | undefined;
+  if (visibility === "public") {
+    priceUpdate = { price_cents: 0 };
+  } else if (rawPrice !== null) {
+    const amount = Number(String(rawPrice).trim());
+    const priceCents = Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
+    const currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
+    priceUpdate = { price_cents: priceCents, currency };
+  }
+
   if (!name) {
     return { error: "Give the space a name." };
   }
@@ -142,6 +159,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       visibility,
       space_type: spaceType,
       ...(locationName !== undefined && { location_name: locationName }),
+      ...(priceUpdate ?? {}),
     })
     .eq("id", spaceId);
 

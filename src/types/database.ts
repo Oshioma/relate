@@ -119,6 +119,29 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Stripe Connect Express: the owner's connected account, and whether it can
+  // take charges yet (mirrors the account's charges_enabled). Written only by
+  // the admin billing actions and the service-role webhook. See
+  // 20260729185900_space_paywall.sql.
+  stripe_account_id: string | null;
+  stripe_charges_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+// A member's paid subscription to a single paid space. Rows are written only by
+// the Stripe webhook (service role) — never by the browser. `status` mirrors
+// the Stripe subscription status; access is granted while it's active/trialing
+// and the period hasn't lapsed.
+export type SpaceSubscription = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  user_id: string;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  status: string;
+  current_period_end: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -146,6 +169,12 @@ export type Space = {
   // (today: the Tides & Weather panel). Null = use the community's location.
   // See supabase/space-location.sql.
   location_name: string | null;
+  // Per-space paywall. price_cents 0 = free (unchanged behaviour); > 0 makes
+  // the space paid — members need an active subscription to see its content
+  // (enforced by has_space_access() in RLS). currency is a lowercase ISO-4217
+  // code. See 20260729185900_space_paywall.sql.
+  price_cents: number;
+  currency: string;
   created_at: string;
 };
 
@@ -1454,6 +1483,12 @@ export type Database = {
         Relationships: [FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
       };
       spaces: { Row: Space; Insert: Partial<Space> & { community_id: string; name: string; slug: string }; Update: Partial<Space> } & NoRel;
+      space_subscriptions: {
+        Row: SpaceSubscription;
+        Insert: Partial<SpaceSubscription> & { space_id: string; community_id: string; user_id: string };
+        Update: Partial<SpaceSubscription>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
+      };
       posts: {
         Row: Post;
         Insert: Partial<Post> & { community_id: string; space_id: string; author_id: string; title: string };
