@@ -81,9 +81,10 @@ export function mintJaasToken(input: JaasTokenInput): string {
     room: input.room,
     // Short-lived: long enough for a live event, short enough to limit reuse.
     exp: now + 60 * 60 * 3,
-    // Backdate nbf generously (5 min) so clock skew between this server and
-    // 8x8 never trips the "nbf value is in the future" rejection.
-    nbf: now - 5 * 60,
+    // Deliberately no `nbf`. It's optional for JaaS and only blocks *early* use
+    // (pointless here — people join immediately). Omitting it makes the "nbf
+    // value is in the future" rejection impossible, even if this server's clock
+    // runs ahead of 8x8's validators.
     context: {
       features: {
         livestreaming: false,
