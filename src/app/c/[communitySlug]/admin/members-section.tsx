@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
 import type { MemberRow } from "@/lib/data/community";
+import { MemberRoleSelect } from "../members/member-role-select";
+import { RemoveMemberButton } from "../members/remove-member-button";
 
 // Role breakdown over the active membership, in display order. Owner/admin sit
 // up front because they're the ones an admin actually manages; a role with no
@@ -16,18 +18,77 @@ const ROLE_ORDER = [
   { role: "member", label: "Members" },
 ] as const;
 
-// A compact members panel for the admin page: role breakdown + the latest
-// people to join, with a jump to the full /members page where roles, removals,
-// and invites already live. Surfaces "who's in my community" — a core admin
-// concern that was otherwise only reachable via a plain nav link.
-export function MembersSection({ members, communitySlug }: { members: MemberRow[]; communitySlug: string }) {
+const STAFF_ROLES = ["owner", "admin", "moderator"] as const;
+const staffRank: Record<string, number> = { owner: 0, admin: 1, moderator: 2 };
+
+// One member row with inline management. Reuses the same MemberRoleSelect /
+// RemoveMemberButton (and their server actions) that the /members page uses, so
+// the write path and its guards stay in one place. The owner and the viewer
+// themselves aren't manageable — mirroring exactly what those actions enforce
+// server-side — so they render as a static role badge instead of controls.
+function MemberRow({
+  member,
+  communitySlug,
+  currentUserId,
+}: {
+  member: MemberRow;
+  communitySlug: string;
+  currentUserId: string;
+}) {
+  const canManage = member.role !== "owner" && member.user_id !== currentUserId;
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <Link
+        href={`/c/${communitySlug}/members/${member.profile.username}`}
+        className="flex min-w-0 items-center gap-3 hover:opacity-80"
+      >
+        <Avatar src={member.profile.avatar_url} name={member.profile.full_name || member.profile.username} size={32} />
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium text-foreground">
+            {member.profile.full_name || member.profile.username}
+          </span>
+          <span className="block truncate text-xs text-muted-foreground">Joined {formatDate(member.created_at)}</span>
+        </span>
+      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        {canManage ? (
+          <>
+            <MemberRoleSelect membershipId={member.id} role={member.role} communitySlug={communitySlug} />
+            <RemoveMemberButton membershipId={member.id} communitySlug={communitySlug} />
+          </>
+        ) : (
+          <Badge tone={member.role === "owner" || member.role === "admin" ? "accent" : "neutral"}>{member.role}</Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// A members panel for the admin page with inline management. Lists all staff
+// (owners/admins/moderators) so their roles can be changed or they can be
+// removed without leaving the page, plus the most recent regular joins. The
+// full /members directory — search, filters, blocking, invites — is one click
+// away.
+export function MembersSection({
+  members,
+  communitySlug,
+  currentUserId,
+}: {
+  members: MemberRow[];
+  communitySlug: string;
+  currentUserId: string;
+}) {
   const counts = new Map<string, number>();
   for (const m of members) counts.set(m.role, (counts.get(m.role) ?? 0) + 1);
   const breakdown = ROLE_ORDER.filter(({ role }) => (counts.get(role) ?? 0) > 0);
 
-  // Newest first. getCommunityMembers returns active members oldest-first, so
-  // the tail is the most recent — take five and reverse for display.
-  const recent = members.slice(-5).reverse();
+  const staff = members
+    .filter((m) => (STAFF_ROLES as readonly string[]).includes(m.role))
+    .sort((a, b) => staffRank[a.role] - staffRank[b.role]);
+
+  // Newest first among plain members. getCommunityMembers returns them
+  // oldest-first, so the tail is the most recent — take five and reverse.
+  const recentMembers = members.filter((m) => m.role === "member").slice(-5).reverse();
 
   return (
     <Card>
@@ -40,38 +101,33 @@ export function MembersSection({ members, communitySlug }: { members: MemberRow[
           ))}
         </div>
 
-        {recent.length > 0 && (
-          <>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Recently joined</p>
-            <ul className="mb-4 space-y-2">
-              {recent.map((m) => (
-                <li key={m.id}>
-                  <Link
-                    href={`/c/${communitySlug}/members/${m.profile.username}`}
-                    className="flex items-center gap-3 rounded-md px-2 py-1.5 -mx-2 transition-colors hover:bg-muted"
-                  >
-                    <Avatar src={m.profile.avatar_url} name={m.profile.full_name || m.profile.username} size={32} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground">
-                        {m.profile.full_name || m.profile.username}
-                      </span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        Joined {formatDate(m.created_at)}
-                      </span>
-                    </span>
-                    {m.role !== "member" && <Badge tone="accent">{m.role}</Badge>}
-                  </Link>
-                </li>
+        {staff.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Admins &amp; moderators</p>
+            <div className="divide-y divide-border">
+              {staff.map((m) => (
+                <MemberRow key={m.id} member={m} communitySlug={communitySlug} currentUserId={currentUserId} />
               ))}
-            </ul>
-          </>
+            </div>
+          </div>
+        )}
+
+        {recentMembers.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Recently joined</p>
+            <div className="divide-y divide-border">
+              {recentMembers.map((m) => (
+                <MemberRow key={m.id} member={m} communitySlug={communitySlug} currentUserId={currentUserId} />
+              ))}
+            </div>
+          </div>
         )}
 
         <Link
           href={`/c/${communitySlug}/members`}
           className="inline-flex items-center gap-1 text-sm font-medium text-accent underline-offset-2 hover:underline"
         >
-          Manage members, roles &amp; invites <ArrowRight className="h-3.5 w-3.5" />
+          All members, search &amp; invites <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </CardContent>
     </Card>

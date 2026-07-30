@@ -203,7 +203,7 @@ export default async function AdminPage({
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
       <div className="mb-8">
-        <MembersSection members={members} communitySlug={community.slug} />
+        <MembersSection members={members} communitySlug={community.slug} currentUserId={user.id} />
       </div>
 
       <h2 id="details" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
