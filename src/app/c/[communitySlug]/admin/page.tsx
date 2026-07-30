@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunityEvents } from "@/lib/data/events";
+import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
+import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
@@ -60,10 +63,11 @@ export default async function AdminPage({
 
   const isOwner = membership?.role === "owner";
 
-  const [spaces, members, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
+  const [spaces, members, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
     await Promise.all([
       getCommunitySpaces(supabase, community.id),
       getCommunityMembers(supabase, community.id),
+      getCommunityEvents(supabase, community.id),
       getCommunityProfileFields(supabase, community.id),
       getCommunityNavLinks(supabase, community.id),
       getCommunityNavItemOrder(supabase, community.id),
@@ -77,6 +81,21 @@ export default async function AdminPage({
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
+
+  // Overview stats. Members are already active-only (see getCommunityMembers);
+  // "new this week" counts them by join date so the header reflects momentum,
+  // not just a running total. Upcoming events look ahead from now.
+  const now = new Date().getTime();
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const newThisWeek = members.filter((m) => new Date(m.created_at).getTime() >= weekAgo).length;
+  const upcomingEvents = events.filter((e) => new Date(e.start_time).getTime() >= now).length;
+
+  const stats: { label: string; value: number; sub?: string }[] = [
+    { label: "Members", value: members.length },
+    { label: "Spaces", value: spaces.length },
+    { label: "Upcoming events", value: upcomingEvents },
+    { label: "New this week", value: newThisWeek, sub: "members joined" },
+  ];
 
   // Platform plans (owner-only). The community can charge members only while on
   // a live plan whose features include 'paid_memberships' — the same rule as
@@ -127,33 +146,66 @@ export default async function AdminPage({
     })),
   ].sort((a, b) => a.sort - b.sort);
 
+  // Owner-only "charge members" setup chain. Each step's `done` mirrors the
+  // same gates the sections below enforce, so the checklist can never disagree
+  // with what those sections actually let you do.
+  const monetizationSteps: ChecklistStep[] = [
+    { label: "Upgrade to a paid plan", hint: "Unlocks paid memberships on your plan.", done: canCharge, href: "#plan" },
+    { label: "Connect Stripe", hint: "Link an account to receive payouts.", done: community.stripe_charges_enabled, href: "#payments" },
+    { label: "Set a price on a space", hint: "Charge a monthly fee for any private space.", done: spaces.some((s) => s.price_cents > 0), href: "#spaces" },
+    { label: "Bundle a membership tier", hint: "Group spaces into one recurring price.", done: tiers.length > 0, href: "#tiers" },
+  ];
+
+  // Sections shown in the sticky jump-nav, in page order. Owner-only sections
+  // are appended only when they actually render below, so a chip never points
+  // at a missing anchor.
+  const sections: AdminNavSection[] = [
+    { id: "overview", label: "Overview" },
+    { id: "details", label: "Details" },
+    { id: "public-access", label: "Public access" },
+    { id: "spaces", label: "Spaces" },
+    { id: "profile-fields", label: "Profile fields" },
+    { id: "sidebar-links", label: "Sidebar links" },
+    { id: "more", label: "More" },
+  ];
+  if (isOwner && featureControls.length > 0) sections.push({ id: "features", label: "Features" });
+  if (isOwner) {
+    sections.push(
+      { id: "plan", label: "Plan" },
+      { id: "marketplace", label: "Marketplace" },
+      { id: "payments", label: "Payments" },
+      { id: "tiers", label: "Tiers" },
+      { id: "domain", label: "Custom domain" },
+      { id: "danger", label: "Danger zone" },
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+      <AdminSectionNav sections={sections} />
+
       <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
       <p className="mb-8 text-sm text-muted-foreground">Manage {community.name}.</p>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="pt-5">
-            <p className="text-2xl font-semibold text-foreground">{members.length}</p>
-            <p className="text-xs text-muted-foreground">Members</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-5">
-            <p className="text-2xl font-semibold text-foreground">{spaces.length}</p>
-            <p className="text-xs text-muted-foreground">Spaces</p>
-          </CardContent>
-        </Card>
+      <div id="overview" className="mb-8 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardContent className="pt-5">
+              <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              {stat.sub && <p className="mt-0.5 text-xs text-accent">{stat.sub}</p>}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
+      <h2 id="details" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
       <div className="mb-8 space-y-4">
         <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
+      <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         What signed-out visitors can see before logging in. Individual spaces have their own visibility setting.
       </p>
@@ -161,7 +213,7 @@ export default async function AdminPage({
         <PublicAccessForm community={community} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
+      <h2 id="spaces" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top. A space with
         nav sub-links (like a business directory&apos;s featured categories) shows a{" "}
@@ -183,7 +235,7 @@ export default async function AdminPage({
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} allowedTypes={allowedTypes} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom profile fields</h2>
+      <h2 id="profile-fields" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom profile fields</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Ask members questions specific to {community.name} — answers show up on their member profile within this community.
       </p>
@@ -191,7 +243,7 @@ export default async function AdminPage({
         <ProfileFieldsSection communityId={community.id} communitySlug={community.slug} fields={profileFields} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Sidebar links</h2>
+      <h2 id="sidebar-links" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Sidebar links</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Add external links to {community.name}&apos;s sidebar — each opens in a new tab.
       </p>
@@ -202,7 +254,7 @@ export default async function AdminPage({
         <NavLinksList links={navLinks} communitySlug={community.slug} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">More</h2>
+      <h2 id="more" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">More</h2>
       <div className="grid gap-3 sm:grid-cols-3">
         <Link href={`/c/${community.slug}/events`}>
           <Card className="transition-shadow hover:shadow-sm">
@@ -232,7 +284,7 @@ export default async function AdminPage({
 
       {isOwner && featureControls.length > 0 && (
         <>
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Features</h2>
+          <h2 id="features" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Features</h2>
           <p className="mb-3 text-sm text-muted-foreground">
             Turn optional sections of {community.name} on or off. The platform admin decides which are available to you.
           </p>
@@ -244,7 +296,11 @@ export default async function AdminPage({
 
       {isOwner && (
         <>
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Plan</h2>
+          <div className="mb-8 mt-8">
+            <MonetizationChecklist steps={monetizationSteps} />
+          </div>
+
+          <h2 id="plan" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Plan</h2>
           <p className="mb-3 text-sm text-muted-foreground">
             Your community runs free forever. Upgrade to unlock premium features — including the ability to charge members
             for spaces.
@@ -261,7 +317,7 @@ export default async function AdminPage({
             />
           </div>
 
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feature marketplace</h2>
+          <h2 id="marketplace" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feature marketplace</h2>
           <p className="mb-3 text-sm text-muted-foreground">
             Install feature packs to add more to {community.name}. Each pack unlocks its spaces in the &ldquo;add a
             space&rdquo; picker.
@@ -275,12 +331,12 @@ export default async function AdminPage({
             />
           </div>
 
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Payments</h2>
+          <h2 id="payments" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Payments</h2>
           {canCharge ? (
             <>
               <p className="mb-3 text-sm text-muted-foreground">
-                Connect Stripe to charge members a monthly fee for individual spaces. Set a price on a space in the Spaces
-                section above once payments are connected.
+                Connect Stripe to charge members a monthly fee for individual spaces. Once payments are connected, set a
+                price on a space in the <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces</a> section.
               </p>
               <div className="mb-8">
                 <BillingSection
@@ -295,11 +351,13 @@ export default async function AdminPage({
             </>
           ) : (
             <p className="mb-8 text-sm text-muted-foreground">
-              Charging members for spaces is a paid-plan feature. Upgrade above to connect Stripe and set space prices.
+              Charging members for spaces is a paid-plan feature.{" "}
+              <a href="#plan" className="text-accent underline-offset-2 hover:underline">Upgrade your plan</a> to connect
+              Stripe and set space prices.
             </p>
           )}
 
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Membership tiers</h2>
+          <h2 id="tiers" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Membership tiers</h2>
           {canCharge && community.stripe_charges_enabled ? (
             <>
               <p className="mb-3 text-sm text-muted-foreground">
@@ -311,13 +369,16 @@ export default async function AdminPage({
               </div>
             </>
           ) : (
-            <p className="mb-8 text-sm text-muted-foreground">Connect payments above to offer membership tiers.</p>
+            <p className="mb-8 text-sm text-muted-foreground">
+              <a href="#payments" className="text-accent underline-offset-2 hover:underline">Connect payments</a> to offer
+              membership tiers.
+            </p>
           )}
 
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
+          <h2 id="domain" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
           <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />
 
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
+          <h2 id="danger" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
           <DeleteCommunitySection community={community} />
         </>
       )}
