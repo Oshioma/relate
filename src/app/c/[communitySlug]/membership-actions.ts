@@ -131,3 +131,52 @@ export async function cancelTierSubscription(tierId: string, communitySlug: stri
 export async function resumeTierSubscription(tierId: string, communitySlug: string): Promise<CancelResult> {
   return setTierCancellation(tierId, communitySlug, false);
 }
+
+// Per-space equivalent of setTierCancellation, for individually-priced spaces.
+async function setSpaceCancellation(spaceId: string, communitySlug: string, cancel: boolean): Promise<CancelResult> {
+  if (!isStripeConfigured()) return { error: "Payments aren't available on this platform yet." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { data: sub } = await supabase
+    .from("space_subscriptions")
+    .select("id, stripe_subscription_id, community_id")
+    .eq("space_id", spaceId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!sub || !sub.stripe_subscription_id) return { error: "No active subscription to change." };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("stripe_account_id")
+    .eq("id", sub.community_id)
+    .maybeSingle();
+  if (!community?.stripe_account_id) return { error: "This community's payment account isn't available." };
+
+  try {
+    await setSubscriptionCancellation({
+      stripeAccount: community.stripe_account_id,
+      subscriptionId: sub.stripe_subscription_id,
+      cancelAtPeriodEnd: cancel,
+    });
+  } catch (err) {
+    return { error: (err as Error).message || "Couldn't update the subscription." };
+  }
+
+  await createAdminClient().from("space_subscriptions").update({ cancel_at_period_end: cancel }).eq("id", sub.id);
+
+  revalidatePath(`/c/${communitySlug}/membership`);
+  return { error: null };
+}
+
+export async function cancelSpaceSubscription(spaceId: string, communitySlug: string): Promise<CancelResult> {
+  return setSpaceCancellation(spaceId, communitySlug, true);
+}
+
+export async function resumeSpaceSubscription(spaceId: string, communitySlug: string): Promise<CancelResult> {
+  return setSpaceCancellation(spaceId, communitySlug, false);
+}
