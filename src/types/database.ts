@@ -179,6 +179,45 @@ export type SpaceSubscription = {
   updated_at: string;
 };
 
+// A community membership tier: a recurring-priced membership that unlocks a set
+// of spaces (via TierSpace). Coexists with per-space prices — access is granted
+// by either. See supabase/migrations/*_membership_tiers.sql.
+export type CommunityTier = {
+  id: string;
+  community_id: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  currency: string;
+  sort_order: number;
+  // Archived tiers stop accepting new subscribers but keep granting access to
+  // existing subscribers. Null = active.
+  archived_at: string | null;
+  created_at: string;
+};
+
+// Join row: which spaces a tier unlocks.
+export type TierSpace = {
+  tier_id: string;
+  space_id: string;
+  created_at: string;
+};
+
+// One row per (tier, member). Written only by the Stripe webhook (service role);
+// mirrors SpaceSubscription.
+export type TierSubscription = {
+  id: string;
+  tier_id: string;
+  community_id: string;
+  user_id: string;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  status: string;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CommunityMembership = {
   id: string;
   user_id: string;
@@ -1531,6 +1570,24 @@ export type Database = {
         Insert: Partial<SpaceSubscription> & { space_id: string; community_id: string; user_id: string };
         Update: Partial<SpaceSubscription>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
+      };
+      community_tiers: {
+        Row: CommunityTier;
+        Insert: Partial<CommunityTier> & { community_id: string; name: string };
+        Update: Partial<CommunityTier>;
+        Relationships: [FKey<"community_id", "communities">];
+      };
+      tier_spaces: {
+        Row: TierSpace;
+        Insert: Partial<TierSpace> & { tier_id: string; space_id: string };
+        Update: Partial<TierSpace>;
+        Relationships: [FKey<"tier_id", "community_tiers">, FKey<"space_id", "spaces">];
+      };
+      tier_subscriptions: {
+        Row: TierSubscription;
+        Insert: Partial<TierSubscription> & { tier_id: string; community_id: string; user_id: string };
+        Update: Partial<TierSubscription>;
+        Relationships: [FKey<"tier_id", "community_tiers">, FKey<"community_id", "communities">, FKey<"user_id", "profiles">];
       };
       platform_plans: {
         Row: PlatformPlan;
