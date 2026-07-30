@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
@@ -10,6 +10,7 @@ import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
@@ -68,7 +69,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -76,6 +77,7 @@ export default async function CommunityLayout({
     getCommunityBusinessCustomCategories(supabase, community.id),
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeatures(supabase, community.id),
+    countActiveTiers(supabase, community.id),
   ]);
 
   // Personal chrome (profile, membership, notifications, messages) only exists
@@ -149,8 +151,13 @@ export default async function CommunityLayout({
       : []),
   ].sort((a, b) => a.sort - b.sort);
 
+  // Surface the Membership/join link only when the community actually offers a
+  // (non-archived) tier — otherwise it's noise.
+  const showMembershipLink = activeTierCount > 0;
+
   const navItems = [
     { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
+    ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
     ...orderedUnits.flatMap((unit) => unit.items),
   ];
 

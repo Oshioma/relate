@@ -7,7 +7,8 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { hasActiveSpaceSubscription } from "@/lib/data/space-access";
+import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
+import { getTiersForSpace } from "@/lib/data/tiers";
 import { SpacePaywall } from "./space-paywall";
 import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
@@ -99,19 +100,28 @@ export default async function SpaceDetailPage({
   // resolve to null here, so notFound doubles as the access gate.
   if (!space) notFound();
 
-  // Paid space gate: a space with a price shows its content only to staff and
-  // to members holding an active subscription. Everyone else who can see the
-  // space (per its visibility) gets the paywall instead. RLS enforces the same
-  // rule on the underlying content tables (has_space_access) — this is the UI
-  // side of it, and it also covers space types whose content lives in their
-  // own tables. See 20260729185900_space_paywall.sql.
-  if (space.price_cents > 0) {
+  // Gated space gate: a space is gated when it has a per-space price OR belongs
+  // to a membership tier. Its content shows only to staff and to members who
+  // hold an active per-space subscription or an active tier that includes it.
+  // Everyone else who can see the space (per its visibility) gets the paywall
+  // instead — with the per-space price (if any) and any tiers that unlock it as
+  // join options. RLS enforces the same rule via has_space_access() (this is the
+  // UI side, and it covers space types whose content lives in their own tables).
+  const spaceTiers = await getTiersForSpace(supabase, space.id);
+  const isGated = space.price_cents > 0 || spaceTiers.length > 0;
+  if (isGated) {
     const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
     const gateIsStaff =
       gateMembership?.status === "active" &&
       (gateMembership.role === "owner" || gateMembership.role === "admin" || gateMembership.role === "moderator");
-    const hasSpaceAccess = gateIsStaff || (user ? await hasActiveSpaceSubscription(supabase, space.id, user.id) : false);
+    const hasSpaceAccess =
+      gateIsStaff ||
+      (user ? await hasActiveSpaceSubscription(supabase, space.id, user.id) : false) ||
+      (user ? await hasActiveTierForSpace(supabase, space.id, user.id) : false);
     if (!hasSpaceAccess) {
+      const joinableTiers = spaceTiers
+        .filter((t) => !t.archived_at)
+        .map((t) => ({ id: t.id, name: t.name, description: t.description, priceCents: t.price_cents, currency: t.currency, spaceCount: t.spaceCount }));
       return (
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
           <SpacePaywall
@@ -124,6 +134,7 @@ export default async function SpaceDetailPage({
             spaceSlug={space.slug}
             isSignedIn={Boolean(user)}
             paymentsReady={community.stripe_charges_enabled}
+            tiers={joinableTiers}
             justSubscribed={subscribed === "1"}
           />
         </div>
