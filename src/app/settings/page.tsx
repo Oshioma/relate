@@ -11,6 +11,7 @@ import { ProfileTagsSection } from "./profile-tags-section";
 import { LocationForm } from "./location-form";
 import { PrivacyForm } from "./privacy-form";
 import { NotificationEmailForm } from "./notification-email-form";
+import { PushToggle } from "./push-toggle";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -83,6 +84,19 @@ export default async function SettingsPage() {
         <Card>
           <CardContent className="pt-6">
             <NotificationEmailForm prefs={emailPrefs} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm font-medium text-foreground">Push notifications</p>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              Get a push notification on this device when something happens — the same events as your email
+              notifications, controlled by the same per-type toggles above.
+            </p>
+            <PushToggle vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null} />
           </CardContent>
         </Card>
       </div>
