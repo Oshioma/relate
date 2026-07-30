@@ -672,3 +672,35 @@ export async function deleteCommunity(_prevState: DeleteCommunityState, formData
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
+
+// Owner-only switch: whether non-owner admins may manage other staff. The
+// owner check here gives a friendly error and hides the change from admins;
+// the database trigger guard_admins_can_manage_staff is the real boundary and
+// blocks the column for anyone but the owner regardless of entry point.
+export async function setAdminsCanManageStaff(
+  communityId: string,
+  communitySlug: string,
+  value: boolean
+): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: community } = await supabase.from("communities").select("owner_id").eq("id", communityId).single();
+  if (!community || community.owner_id !== user.id) {
+    return { error: "Only the owner can change this setting." };
+  }
+
+  const { error } = await supabase.from("communities").update({ admins_can_manage_staff: value }).eq("id", communityId);
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return undefined;
+}

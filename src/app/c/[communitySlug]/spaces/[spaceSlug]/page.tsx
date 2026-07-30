@@ -535,7 +535,14 @@ export default async function SpaceDetailPage({
           <DiscoverySection title="Businesses" members={businessMembers} communitySlug={community.slug} />
 
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">All members</h2>
-          <MemberDirectoryList members={directoryMembers} communitySlug={community.slug} currentUserId={viewerId} isAdmin={Boolean(isAdmin)} />
+          <MemberDirectoryList
+            members={directoryMembers}
+            communitySlug={community.slug}
+            currentUserId={viewerId}
+            isAdmin={Boolean(isAdmin)}
+            viewerIsOwner={membership?.role === "owner"}
+            allowStaff={community.admins_can_manage_staff}
+          />
         </>
         )
       ) : isChallengeSpace ? (

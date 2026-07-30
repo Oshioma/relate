@@ -95,7 +95,14 @@ export default async function MembersPage({ params }: { params: Promise<{ commun
       <DiscoverySection title="Businesses" members={businesses} communitySlug={community.slug} />
 
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">All members</h2>
-      <MemberDirectoryList members={members} communitySlug={community.slug} currentUserId={user.id} isAdmin={Boolean(isAdmin)} />
+      <MemberDirectoryList
+        members={members}
+        communitySlug={community.slug}
+        currentUserId={user.id}
+        isAdmin={Boolean(isAdmin)}
+        viewerIsOwner={membership?.role === "owner"}
+        allowStaff={community.admins_can_manage_staff}
+      />
     </div>
   );
 }

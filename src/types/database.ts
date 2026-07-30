@@ -125,6 +125,11 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Owner opt-in: may non-owner admins change the role of / remove other staff
+  // (admins & moderators)? Default false — admins manage regular members only,
+  // the owner manages everyone. Enforced in RLS (see the migration) and in the
+  // member server actions.
+  admins_can_manage_staff: boolean;
   // Stripe Connect Express: the owner's connected account, and whether it can
   // take charges yet (mirrors the account's charges_enabled). Written only by
   // the admin billing actions and the service-role webhook. See
