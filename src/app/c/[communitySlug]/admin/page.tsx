@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Users, Sparkles, ListTree } from "lucide-react";
+import { CalendarDays, Sparkles, ListTree } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
@@ -8,6 +8,7 @@ import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
 import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
+import { MembersSection } from "./members-section";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
@@ -161,6 +162,7 @@ export default async function AdminPage({
   // at a missing anchor.
   const sections: AdminNavSection[] = [
     { id: "overview", label: "Overview" },
+    { id: "members", label: "Members" },
     { id: "details", label: "Details" },
     { id: "public-access", label: "Public access" },
     { id: "spaces", label: "Spaces" },
@@ -197,6 +199,11 @@ export default async function AdminPage({
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
+      <div className="mb-8">
+        <MembersSection members={members} communitySlug={community.slug} />
       </div>
 
       <h2 id="details" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
@@ -255,20 +262,12 @@ export default async function AdminPage({
       </div>
 
       <h2 id="more" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">More</h2>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Link href={`/c/${community.slug}/events`}>
           <Card className="transition-shadow hover:shadow-sm">
             <CardContent className="flex items-center gap-3 pt-5">
               <CalendarDays className="h-4 w-4 text-accent" />
               <span className="text-sm font-medium text-foreground">Schedule an event</span>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href={`/c/${community.slug}/members`}>
-          <Card className="transition-shadow hover:shadow-sm">
-            <CardContent className="flex items-center gap-3 pt-5">
-              <Users className="h-4 w-4 text-accent" />
-              <span className="text-sm font-medium text-foreground">View members</span>
             </CardContent>
           </Card>
         </Link>
