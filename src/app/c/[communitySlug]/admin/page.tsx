@@ -29,7 +29,9 @@ import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
 import { DeleteCommunitySection } from "./delete-community-section";
 import { BillingSection } from "./billing-section";
 import { PlanSection } from "./plan-section";
+import { MarketplaceSection } from "./marketplace-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
+import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
 import { isStripeConfigured } from "@/lib/stripe";
 
 export default async function AdminPage({
@@ -81,6 +83,14 @@ export default async function AdminPage({
   const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
   const planIsLive = community.plan_status === "active" || community.plan_status === "trialing";
   const canCharge = Boolean(planIsLive && currentPlan?.features.includes("paid_memberships"));
+
+  // Feature marketplace (owner-only): available packs + which this community has
+  // actively installed.
+  const featurePacks = isOwner ? await getActiveFeaturePacks(supabase) : [];
+  const communityAddons = isOwner ? await getCommunityAddons(supabase, community.id) : [];
+  const installedPackIds = communityAddons
+    .filter((a) => a.status === "active" || a.status === "trialing")
+    .map((a) => a.pack_id);
 
   // A space's nav sub-links, grouped by space and kept in nav order (the query
   // returns featured categories already sorted by sort_order). Today only a
@@ -241,6 +251,20 @@ export default async function AdminPage({
               hasBillingAccount={Boolean(community.plan_stripe_customer_id)}
               platformConfigured={isStripeConfigured()}
               justSubscribed={planReturn === "subscribed"}
+            />
+          </div>
+
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feature marketplace</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Install feature packs to add more to {community.name}. Each pack unlocks its spaces in the &ldquo;add a
+            space&rdquo; picker.
+          </p>
+          <div className="mb-8">
+            <MarketplaceSection
+              communityId={community.id}
+              packs={featurePacks}
+              installedPackIds={installedPackIds}
+              platformConfigured={isStripeConfigured()}
             />
           </div>
 

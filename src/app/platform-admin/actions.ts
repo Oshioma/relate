@@ -88,3 +88,45 @@ export async function savePlatformPlan(_prevState: PlanFormState, formData: Form
   revalidatePath("/platform-admin");
   return { ok: true };
 }
+
+// Update one feature pack's editable fields. space_types is entered
+// comma-separated (space type keys) and stored as text[].
+export async function saveFeaturePack(_prevState: PlanFormState, formData: FormData): Promise<PlanFormState> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can edit packs." };
+
+  const packId = String(formData.get("pack_id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  if (!packId) return { error: "Missing pack." };
+  if (!name) return { error: "The pack needs a name." };
+
+  const priceAmount = Number(String(formData.get("price") ?? "").trim());
+  const priceCents = Number.isFinite(priceAmount) && priceAmount > 0 ? Math.round(priceAmount * 100) : 0;
+  const currency = (String(formData.get("currency") ?? "gbp").trim().toLowerCase() || "gbp").slice(0, 3);
+  const stripePriceId = String(formData.get("stripe_price_id") ?? "").trim() || null;
+  const spaceTypes = String(formData.get("space_types") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const isActive = formData.get("is_active") === "on";
+
+  const { error } = await supabase
+    .from("feature_packs")
+    .update({
+      name,
+      description: String(formData.get("description") ?? "").trim() || null,
+      price_cents: priceCents,
+      currency,
+      stripe_price_id: stripePriceId,
+      space_types: spaceTypes,
+      is_active: isActive,
+    })
+    .eq("id", packId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin");
+  return { ok: true };
+}
