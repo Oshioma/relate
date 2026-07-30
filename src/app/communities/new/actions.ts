@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
-import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType, getArtistMode } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
@@ -36,6 +36,9 @@ export interface WizardPayload {
   // below and dropped (not just left blank) for every other template.
   locationType?: string;
   locationName?: string;
+  // Musician / Artist template only — 'fan' or 'collective', validated against
+  // ARTIST_MODES below and dropped for every other template.
+  artistMode?: string;
   // Seeds map_categories (the Explore Map's togglable layers) so a place
   // community's map isn't empty on day one. Dropped unless locationType is
   // also set and valid.
@@ -83,6 +86,10 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   const templateKey = payload.templateKey && getCommunityTemplate(payload.templateKey) ? payload.templateKey : null;
   const locationType = payload.locationType && getPlaceLocationType(payload.locationType) ? payload.locationType : null;
   const locationName = locationType && payload.locationName?.trim() ? payload.locationName.trim() : null;
+  // Only recorded for the Musician / Artist template, and only when it's a
+  // recognised mode — dropped to null otherwise.
+  const artistMode =
+    templateKey === "fanclub" && payload.artistMode && getArtistMode(payload.artistMode) ? payload.artistMode : null;
 
   const supabase = await createClient();
   const {
@@ -104,6 +111,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       template_key: templateKey,
       location_type: locationType,
       location_name: locationName,
+      artist_mode: artistMode,
     })
     .select("id, slug")
     .single();

@@ -106,6 +106,12 @@ export type Community = {
   template_key: string | null;
   location_type: string | null;
   location_name: string | null;
+  // Musician / Artist template only: which mode was picked at setup — 'fan'
+  // (around one artist) or 'collective' (a community of artists). Validated
+  // against ARTIST_MODES at the application layer, same as location_type. Null
+  // for every other template (and for older artist communities created before
+  // this column existed).
+  artist_mode: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
   // the service-role client — a DB trigger rejects anon/authenticated writes
   // to these columns, so include them in an Update payload only from the
