@@ -127,7 +127,7 @@ export type Community = {
   stripe_charges_enabled: boolean;
   // Platform plan (the platform charging the owner). plan_status 'none' = free.
   // All plan_* columns are written only by the Stripe webhook — a DB trigger
-  // rejects anon/authenticated writes. See 20260729230727_platform_plans.sql.
+  // rejects anon/authenticated writes. See 20260729233000_platform_plans.sql.
   plan_id: string | null;
   plan_status: string;
   plan_current_period_end: string | null;
