@@ -30,12 +30,23 @@ function MemberRow({
   member,
   communitySlug,
   currentUserId,
+  viewerIsOwner,
+  allowStaff,
 }: {
   member: MemberRow;
   communitySlug: string;
   currentUserId: string;
+  viewerIsOwner: boolean;
+  allowStaff: boolean;
 }) {
-  const canManage = member.role !== "owner" && member.user_id !== currentUserId;
+  // Same rule the RLS policy and server actions enforce: never the owner, never
+  // yourself, and a non-owner admin can only touch a fellow admin/moderator
+  // when the community has opted in.
+  const targetIsStaff = member.role === "admin" || member.role === "moderator";
+  const canManage =
+    member.role !== "owner" &&
+    member.user_id !== currentUserId &&
+    (viewerIsOwner || !targetIsStaff || allowStaff);
   return (
     <div className="flex items-center justify-between gap-3 py-2">
       <Link
@@ -73,10 +84,14 @@ export function MembersSection({
   members,
   communitySlug,
   currentUserId,
+  viewerIsOwner,
+  allowStaff,
 }: {
   members: MemberRow[];
   communitySlug: string;
   currentUserId: string;
+  viewerIsOwner: boolean;
+  allowStaff: boolean;
 }) {
   const counts = new Map<string, number>();
   for (const m of members) counts.set(m.role, (counts.get(m.role) ?? 0) + 1);
@@ -106,7 +121,14 @@ export function MembersSection({
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Admins &amp; moderators</p>
             <div className="divide-y divide-border">
               {staff.map((m) => (
-                <MemberRow key={m.id} member={m} communitySlug={communitySlug} currentUserId={currentUserId} />
+                <MemberRow
+                  key={m.id}
+                  member={m}
+                  communitySlug={communitySlug}
+                  currentUserId={currentUserId}
+                  viewerIsOwner={viewerIsOwner}
+                  allowStaff={allowStaff}
+                />
               ))}
             </div>
           </div>
@@ -117,7 +139,14 @@ export function MembersSection({
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Recently joined</p>
             <div className="divide-y divide-border">
               {recentMembers.map((m) => (
-                <MemberRow key={m.id} member={m} communitySlug={communitySlug} currentUserId={currentUserId} />
+                <MemberRow
+                  key={m.id}
+                  member={m}
+                  communitySlug={communitySlug}
+                  currentUserId={currentUserId}
+                  viewerIsOwner={viewerIsOwner}
+                  allowStaff={allowStaff}
+                />
               ))}
             </div>
           </div>

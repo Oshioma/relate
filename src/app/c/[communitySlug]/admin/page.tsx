@@ -9,6 +9,7 @@ import { getCommunityEvents } from "@/lib/data/events";
 import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { MembersSection } from "./members-section";
+import { StaffManagementToggle } from "./staff-management-toggle";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
@@ -202,8 +203,21 @@ export default async function AdminPage({
       </div>
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
-      <div className="mb-8">
-        <MembersSection members={members} communitySlug={community.slug} currentUserId={user.id} />
+      <div className="mb-8 space-y-4">
+        <MembersSection
+          members={members}
+          communitySlug={community.slug}
+          currentUserId={user.id}
+          viewerIsOwner={isOwner}
+          allowStaff={community.admins_can_manage_staff}
+        />
+        {isOwner && (
+          <StaffManagementToggle
+            communityId={community.id}
+            communitySlug={community.slug}
+            enabled={community.admins_can_manage_staff}
+          />
+        )}
       </div>
 
       <h2 id="details" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community details</h2>
