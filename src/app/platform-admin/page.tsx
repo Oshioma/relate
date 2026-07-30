@@ -7,7 +7,9 @@ import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/
 import { getSpaceTypeDefaults, getAllCommunitySpaceTypeOverrides } from "@/lib/data/space-type-pool";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getAllPlatformPlans } from "@/lib/data/platform-plans";
+import { getAllFeaturePacks } from "@/lib/data/feature-packs";
 import { PlanAdminRow } from "./plan-admin-row";
+import { PackAdminRow } from "./pack-admin-row";
 import { COMMUNITY_FEATURES } from "@/lib/features";
 import { groupSpaceTypesByCategory } from "@/lib/space-types";
 import { COMMUNITY_TEMPLATES } from "@/lib/community-templates";
@@ -28,7 +30,7 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans] = await Promise.all([
+  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
@@ -36,6 +38,7 @@ export default async function PlatformAdminPage() {
     getSpaceTypeDefaults(supabase),
     getAllCommunitySpaceTypeOverrides(supabase),
     getAllPlatformPlans(supabase),
+    getAllFeaturePacks(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -114,7 +117,19 @@ export default async function PlatformAdminPage() {
         ))}
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">4. Communities ({communities.length})</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">4. Feature packs</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Marketplace packs owners can install. A pack unlocks its <code>space_types</code> for the community that installs
+        it — so to actually gate a type, turn it OFF in the default pool above, then sell it here. Paid packs need a Stripe
+        recurring Price id.
+      </p>
+      <div className="mb-10 space-y-3">
+        {packs.map((pack) => (
+          <PackAdminRow key={pack.id} pack={pack} />
+        ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">5. Communities ({communities.length})</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Turn built-in features on or off for one specific community, and regulate its space-type pool.
       </p>
