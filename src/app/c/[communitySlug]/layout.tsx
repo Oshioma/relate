@@ -325,6 +325,7 @@ export default async function CommunityLayout({
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
+          ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-5 w-5" /> }] : []),
           ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
