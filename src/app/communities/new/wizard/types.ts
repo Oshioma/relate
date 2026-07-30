@@ -29,6 +29,9 @@ export interface WizardState {
   // every other template.
   locationType: string;
   locationName: string;
+  // Musician / Artist template only: "fan" (around one artist) or "collective"
+  // (a community of artists). Empty for every other template, and until picked.
+  artistMode: string;
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
@@ -45,6 +48,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   transformationGoal: "",
   locationType: "",
   locationName: "",
+  artistMode: "",
   mapLayers: [],
   rationale: [],
   spaces: [],
