@@ -1132,6 +1132,17 @@ export type NotificationEmailPreference = {
   enabled: boolean;
 };
 
+// A Web Push subscription for one member device. See
+// supabase/migrations/*_push_notifications.sql.
+export type PushSubscription = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+};
+
 export type ConciergeQuery = {
   id: string;
   community_id: string;
@@ -1711,6 +1722,12 @@ export type Database = {
         Row: NotificationEmailPreference;
         Insert: Partial<NotificationEmailPreference> & { user_id: string; type: NotificationType };
         Update: Partial<NotificationEmailPreference>;
+        Relationships: [FKey<"user_id", "profiles">];
+      };
+      push_subscriptions: {
+        Row: PushSubscription;
+        Insert: Partial<PushSubscription> & { user_id: string; endpoint: string; p256dh: string; auth: string };
+        Update: Partial<PushSubscription>;
         Relationships: [FKey<"user_id", "profiles">];
       };
       event_rsvps: {
