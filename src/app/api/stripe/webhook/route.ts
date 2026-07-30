@@ -102,11 +102,13 @@ export async function POST(request: NextRequest) {
           status: string;
           customer?: string;
           current_period_end?: number;
+          cancel_at_period_end?: boolean;
           metadata?: Record<string, string>;
         };
         const meta = sub.metadata ?? {};
         const status = event.type === "customer.subscription.deleted" ? "canceled" : sub.status;
         const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+        const cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end);
 
         if (meta.plan_id && meta.community_id) {
           // A community plan subscription (platform billing). On cancel we keep
@@ -146,6 +148,7 @@ export async function POST(request: NextRequest) {
               stripe_customer_id: sub.customer ?? null,
               status,
               current_period_end: periodEnd,
+              cancel_at_period_end: cancelAtPeriodEnd,
               updated_at: new Date().toISOString(),
             },
             { onConflict: "space_id,user_id" }
@@ -160,6 +163,7 @@ export async function POST(request: NextRequest) {
               stripe_customer_id: sub.customer ?? null,
               status,
               current_period_end: periodEnd,
+              cancel_at_period_end: cancelAtPeriodEnd,
               updated_at: new Date().toISOString(),
             },
             { onConflict: "tier_id,user_id" }
@@ -168,7 +172,7 @@ export async function POST(request: NextRequest) {
           // No metadata (older subscription): fall back to matching the row by
           // its Stripe subscription id, in whichever table holds it (the update
           // is a no-op on the table that doesn't).
-          const patch = { status, current_period_end: periodEnd, updated_at: new Date().toISOString() };
+          const patch = { status, current_period_end: periodEnd, cancel_at_period_end: cancelAtPeriodEnd, updated_at: new Date().toISOString() };
           await admin.from("space_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
           await admin.from("tier_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
         }

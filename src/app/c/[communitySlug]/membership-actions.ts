@@ -1,10 +1,13 @@
 "use server";
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isStripeConfigured, createTierCheckoutSession } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isStripeConfigured, createTierCheckoutSession, setSubscriptionCancellation } from "@/lib/stripe";
 
 export type CheckoutResult = { error: string } | { url: string };
+export type CancelResult = { error: string | null };
 
 // Build an absolute base URL for Stripe's return links from the request host, so
 // checkout returns to whatever host (subdomain / custom domain) the member is
@@ -72,4 +75,59 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
   } catch (err) {
     return { error: (err as Error).message || "Couldn't start checkout." };
   }
+}
+
+// Schedule the member's own tier subscription to cancel at period end (or, with
+// cancel=false, resume it). Access continues until the period ends. The Stripe
+// call runs on the community's connected account; the flag is also written
+// straight away (via the service-role client, after the RLS-checked read
+// confirms ownership) so the UI reflects it without waiting on the webhook.
+async function setTierCancellation(tierId: string, communitySlug: string, cancel: boolean): Promise<CancelResult> {
+  if (!isStripeConfigured()) return { error: "Payments aren't available on this platform yet." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  // RLS returns only the caller's own subscription rows.
+  const { data: sub } = await supabase
+    .from("tier_subscriptions")
+    .select("id, stripe_subscription_id, community_id")
+    .eq("tier_id", tierId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!sub || !sub.stripe_subscription_id) return { error: "No active subscription to change." };
+
+  const { data: community } = await supabase
+    .from("communities")
+    .select("stripe_account_id")
+    .eq("id", sub.community_id)
+    .maybeSingle();
+  if (!community?.stripe_account_id) return { error: "This community's payment account isn't available." };
+
+  try {
+    await setSubscriptionCancellation({
+      stripeAccount: community.stripe_account_id,
+      subscriptionId: sub.stripe_subscription_id,
+      cancelAtPeriodEnd: cancel,
+    });
+  } catch (err) {
+    return { error: (err as Error).message || "Couldn't update the subscription." };
+  }
+
+  // Reflect immediately; the webhook will confirm the same value.
+  await createAdminClient().from("tier_subscriptions").update({ cancel_at_period_end: cancel }).eq("id", sub.id);
+
+  revalidatePath(`/c/${communitySlug}/membership`);
+  return { error: null };
+}
+
+export async function cancelTierSubscription(tierId: string, communitySlug: string): Promise<CancelResult> {
+  return setTierCancellation(tierId, communitySlug, true);
+}
+
+export async function resumeTierSubscription(tierId: string, communitySlug: string): Promise<CancelResult> {
+  return setTierCancellation(tierId, communitySlug, false);
 }
