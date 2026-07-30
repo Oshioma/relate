@@ -76,6 +76,20 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "space_id,user_id" }
           );
+        } else if (meta.tier_id && meta.user_id && meta.community_id && session.subscription) {
+          // A membership-tier subscription — unlocks the tier's spaces.
+          await admin.from("tier_subscriptions").upsert(
+            {
+              tier_id: meta.tier_id,
+              user_id: meta.user_id,
+              community_id: meta.community_id,
+              stripe_subscription_id: session.subscription,
+              stripe_customer_id: session.customer ?? null,
+              status: "active",
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "tier_id,user_id" }
+          );
         }
         break;
       }
@@ -136,13 +150,27 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "space_id,user_id" }
           );
+        } else if (meta.tier_id && meta.user_id && meta.community_id) {
+          await admin.from("tier_subscriptions").upsert(
+            {
+              tier_id: meta.tier_id,
+              user_id: meta.user_id,
+              community_id: meta.community_id,
+              stripe_subscription_id: sub.id,
+              stripe_customer_id: sub.customer ?? null,
+              status,
+              current_period_end: periodEnd,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "tier_id,user_id" }
+          );
         } else {
           // No metadata (older subscription): fall back to matching the row by
-          // its Stripe subscription id.
-          await admin
-            .from("space_subscriptions")
-            .update({ status, current_period_end: periodEnd, updated_at: new Date().toISOString() })
-            .eq("stripe_subscription_id", sub.id);
+          // its Stripe subscription id, in whichever table holds it (the update
+          // is a no-op on the table that doesn't).
+          const patch = { status, current_period_end: periodEnd, updated_at: new Date().toISOString() };
+          await admin.from("space_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
+          await admin.from("tier_subscriptions").update(patch).eq("stripe_subscription_id", sub.id);
         }
         break;
       }

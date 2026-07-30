@@ -178,6 +178,44 @@ export function createBillingPortalSession(params: { customerId: string; returnU
   });
 }
 
+// --- Member checkout for a membership tier -----------------------------------
+// Same shape as createSpaceCheckoutSession, but the subscription unlocks a set
+// of spaces (via tier_spaces) rather than one. Metadata carries tier_id so the
+// webhook records it into tier_subscriptions.
+export function createTierCheckoutSession(params: {
+  stripeAccount: string;
+  priceCents: number;
+  currency: string;
+  productName: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  metadata: { tier_id: string; user_id: string; community_id: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    stripeAccount: params.stripeAccount,
+    body: {
+      mode: "subscription",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.priceCents,
+            recurring: { interval: "month" },
+            product_data: { name: params.productName },
+          },
+        },
+      ],
+      metadata: params.metadata,
+      subscription_data: { metadata: params.metadata },
+    },
+  });
+}
+
 // --- Webhook signature verification -----------------------------------------
 // Mirrors Stripe's constructEvent: recompute the HMAC over `${t}.${payload}`
 // and constant-time compare it to the v1 signature in the Stripe-Signature
