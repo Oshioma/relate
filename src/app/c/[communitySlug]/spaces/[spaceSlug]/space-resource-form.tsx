@@ -4,6 +4,17 @@ import { useRef, useState } from "react";
 import { createResource } from "./resource-actions";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { UploadButton } from "@/components/ui/upload-button";
+import type { ResourceType } from "@/types/database";
+
+// Map an uploaded file's MIME to the closest resource type (there's no dedicated
+// audio type, so audio is stored as a plain file and detected for playback by
+// its URL later).
+function resourceTypeForMime(mime: string): ResourceType {
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("image/") || mime.startsWith("audio/")) return "file";
+  return "document";
+}
 
 export function SpaceResourceForm({
   communityId,
@@ -17,6 +28,9 @@ export function SpaceResourceForm({
   spaceSlug: string;
 }) {
   const [error, setError] = useState<string | null>(null);
+  // Controlled so the Upload button can fill them after a file lands.
+  const [url, setUrl] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("link");
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(formData: FormData) {
@@ -26,6 +40,8 @@ export function SpaceResourceForm({
       setError(result.error);
     } else {
       formRef.current?.reset();
+      setUrl("");
+      setResourceType("link");
     }
   }
 
@@ -38,7 +54,7 @@ export function SpaceResourceForm({
 
       <div>
         <Label htmlFor="resource_title">Title</Label>
-        <Input id="resource_title" name="title" placeholder="Companion planting guide" required />
+        <Input id="resource_title" name="title" placeholder="Unreleased demo" required />
       </div>
 
       <div>
@@ -49,14 +65,23 @@ export function SpaceResourceForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor="url">URL</Label>
-          <Input id="url" name="url" type="text" placeholder="example.com" required />
+          <Input
+            id="url"
+            name="url"
+            type="text"
+            placeholder="example.com or upload a file"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
+          />
         </div>
         <div>
           <Label htmlFor="resource_type">Type</Label>
           <select
             id="resource_type"
             name="resource_type"
-            defaultValue="link"
+            value={resourceType}
+            onChange={(e) => setResourceType(e.target.value as ResourceType)}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="link">Link</option>
@@ -65,6 +90,18 @@ export function SpaceResourceForm({
             <option value="document">Document</option>
           </select>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <UploadButton
+          kind="vault"
+          label="Upload a file"
+          onUploaded={(publicUrl, file) => {
+            setUrl(publicUrl);
+            if (file) setResourceType(resourceTypeForMime(file.type));
+          }}
+        />
+        <span className="text-xs text-muted-foreground">Audio, video, images or docs up to 200MB — hosted here.</span>
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}

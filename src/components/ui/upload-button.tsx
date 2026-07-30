@@ -7,6 +7,17 @@ import { cn } from "@/lib/utils";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+const AUDIO_TYPES = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/aac",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/ogg",
+  "audio/flac",
+  "audio/x-flac",
+  "audio/webm",
+];
 const DOCUMENT_TYPES = [
   "application/pdf",
   "application/zip",
@@ -26,6 +37,13 @@ const KINDS = {
   image: { types: IMAGE_TYPES, maxBytes: 10 * 1024 * 1024, hint: "an image (max 10MB)" },
   media: { types: [...IMAGE_TYPES, ...VIDEO_TYPES], maxBytes: 50 * 1024 * 1024, hint: "an image or video (max 50MB)" },
   any: { types: [...IMAGE_TYPES, ...VIDEO_TYPES, ...DOCUMENT_TYPES], maxBytes: 50 * 1024 * 1024, hint: "an image, video, or document (max 50MB)" },
+  // Audio/video/image/docs up to 200MB — for hosting exclusives (tracks, stems,
+  // mixes, sets) in a resources space. Matches the raised 'uploads' bucket limit.
+  vault: {
+    types: [...IMAGE_TYPES, ...VIDEO_TYPES, ...AUDIO_TYPES, ...DOCUMENT_TYPES],
+    maxBytes: 200 * 1024 * 1024,
+    hint: "audio, video, an image or a document (max 200MB)",
+  },
 } as const;
 
 // Small self-contained upload button for the general 'uploads' bucket.
@@ -38,7 +56,9 @@ export function UploadButton({
   label = "Upload image",
   className,
 }: {
-  onUploaded: (publicUrl: string) => void;
+  // Second arg carries the uploaded file's MIME + name so callers can, e.g.,
+  // infer a resource type. Existing callers that take only the URL still work.
+  onUploaded: (publicUrl: string, file?: { type: string; name: string }) => void;
   kind?: keyof typeof KINDS;
   label?: string;
   className?: string;
@@ -82,7 +102,7 @@ export function UploadButton({
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("uploads").getPublicUrl(path);
-      onUploaded(data.publicUrl);
+      onUploaded(data.publicUrl, { type: file.type, name: file.name });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
