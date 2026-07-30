@@ -38,6 +38,37 @@ export async function getCommunityTiers(supabase: Client, communityId: string): 
   return list.map((t) => ({ ...t, spaceIds: byTier.get(t.id) ?? [] }));
 }
 
+// How many active (non-archived) tiers a community has — used to decide whether
+// to surface the Membership nav link/page at all.
+export async function countActiveTiers(supabase: Client, communityId: string): Promise<number> {
+  const { count } = await supabase
+    .from("community_tiers")
+    .select("id", { count: "exact", head: true })
+    .eq("community_id", communityId)
+    .is("archived_at", null);
+  return count ?? 0;
+}
+
+// The ids of tiers the user currently holds an active (paid-up) subscription to,
+// within a community. Drives the "you're a member" state on the join page.
+export async function getActiveTierIds(supabase: Client, communityId: string, userId: string): Promise<Set<string>> {
+  const { data } = await supabase
+    .from("tier_subscriptions")
+    .select("tier_id, status, current_period_end")
+    .eq("community_id", communityId)
+    .eq("user_id", userId);
+
+  const now = new Date();
+  const ids = new Set<string>();
+  for (const s of data ?? []) {
+    const live =
+      (s.status === "active" || s.status === "trialing") &&
+      (!s.current_period_end || new Date(s.current_period_end) > now);
+    if (live) ids.add(s.tier_id);
+  }
+  return ids;
+}
+
 export type SpaceTierOption = {
   id: string;
   name: string;
