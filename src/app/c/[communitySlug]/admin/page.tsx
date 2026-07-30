@@ -28,6 +28,8 @@ import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
 import { DeleteCommunitySection } from "./delete-community-section";
 import { BillingSection } from "./billing-section";
+import { PlanSection } from "./plan-section";
+import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { isStripeConfigured } from "@/lib/stripe";
 
 export default async function AdminPage({
@@ -35,10 +37,10 @@ export default async function AdminPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string }>;
-  searchParams: Promise<{ stripe?: string }>;
+  searchParams: Promise<{ stripe?: string; plan?: string }>;
 }) {
   const { communitySlug } = await params;
-  const { stripe: stripeReturn } = await searchParams;
+  const { stripe: stripeReturn, plan: planReturn } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -71,6 +73,14 @@ export default async function AdminPage({
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
+
+  // Platform plans (owner-only). The community can charge members only while on
+  // a live plan whose features include 'paid_memberships' — the same rule as
+  // the community_can_charge() SQL gate, computed here to drive the UI.
+  const platformPlans = isOwner ? await getActivePlatformPlans(supabase) : [];
+  const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
+  const planIsLive = community.plan_status === "active" || community.plan_status === "trialing";
+  const canCharge = Boolean(planIsLive && currentPlan?.features.includes("paid_memberships"));
 
   // A space's nav sub-links, grouped by space and kept in nav order (the query
   // returns featured categories already sorted by sort_order). Today only a
@@ -148,7 +158,7 @@ export default async function AdminPage({
             communitySlug={community.slug}
             journalFieldsBySpaceId={journalFieldsBySpaceId}
             allowedTypes={allowedTypes}
-            paymentsEnabled={community.stripe_charges_enabled}
+            paymentsEnabled={canCharge && community.stripe_charges_enabled}
           />
         </div>
       )}
@@ -217,21 +227,46 @@ export default async function AdminPage({
 
       {isOwner && (
         <>
-          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Payments</h2>
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Plan</h2>
           <p className="mb-3 text-sm text-muted-foreground">
-            Connect Stripe to charge members a monthly fee for individual spaces. Set a price on a space in the Spaces
-            section above once payments are connected.
+            Your community runs free forever. Upgrade to unlock premium features — including the ability to charge members
+            for spaces.
           </p>
           <div className="mb-8">
-            <BillingSection
+            <PlanSection
               communityId={community.id}
-              communitySlug={community.slug}
-              stripeAccountId={community.stripe_account_id}
-              chargesEnabled={community.stripe_charges_enabled}
+              plans={platformPlans}
+              currentPlanId={community.plan_id}
+              planStatus={community.plan_status}
+              hasBillingAccount={Boolean(community.plan_stripe_customer_id)}
               platformConfigured={isStripeConfigured()}
-              justReturned={stripeReturn === "return"}
+              justSubscribed={planReturn === "subscribed"}
             />
           </div>
+
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Payments</h2>
+          {canCharge ? (
+            <>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Connect Stripe to charge members a monthly fee for individual spaces. Set a price on a space in the Spaces
+                section above once payments are connected.
+              </p>
+              <div className="mb-8">
+                <BillingSection
+                  communityId={community.id}
+                  communitySlug={community.slug}
+                  stripeAccountId={community.stripe_account_id}
+                  chargesEnabled={community.stripe_charges_enabled}
+                  platformConfigured={isStripeConfigured()}
+                  justReturned={stripeReturn === "return"}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="mb-8 text-sm text-muted-foreground">
+              Charging members for spaces is a paid-plan feature. Upgrade above to connect Stripe and set space prices.
+            </p>
+          )}
 
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
           <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />

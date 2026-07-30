@@ -6,6 +6,8 @@ import { getAllCommunities } from "@/lib/data/community";
 import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/features";
 import { getSpaceTypeDefaults, getAllCommunitySpaceTypeOverrides } from "@/lib/data/space-type-pool";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
+import { getAllPlatformPlans } from "@/lib/data/platform-plans";
+import { PlanAdminRow } from "./plan-admin-row";
 import { COMMUNITY_FEATURES } from "@/lib/features";
 import { groupSpaceTypesByCategory } from "@/lib/space-types";
 import { COMMUNITY_TEMPLATES } from "@/lib/community-templates";
@@ -26,13 +28,14 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides] = await Promise.all([
+  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
     getTemplateDefaultsByTemplate(supabase),
     getSpaceTypeDefaults(supabase),
     getAllCommunitySpaceTypeOverrides(supabase),
+    getAllPlatformPlans(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -98,7 +101,20 @@ export default async function PlatformAdminPage() {
         <TemplateSpacesManager templates={templateOptions} initialByTemplate={defaultsByTemplate} allowedTypes={defaultAllowedTypes} />
       </div>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">3. Communities ({communities.length})</h2>
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">3. Platform plans</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        The subscription tiers communities can upgrade to. Create a matching recurring Price in your Stripe dashboard and
+        paste its id here — a paid plan with no Stripe price id can&apos;t be checked out. Features are capability keys a plan
+        grants (e.g. <code>paid_memberships</code>). The <code>free</code> plan is the fallback for communities with no
+        active subscription.
+      </p>
+      <div className="mb-10 space-y-3">
+        {plans.map((plan) => (
+          <PlanAdminRow key={plan.id} plan={plan} />
+        ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">4. Communities ({communities.length})</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Turn built-in features on or off for one specific community, and regulate its space-type pool.
       </p>
