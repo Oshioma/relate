@@ -33,6 +33,21 @@ export interface CommunityTemplate {
   defaultProfileFields: TemplateProfileField[];
 }
 
+// Shared between the Musician / Artist template's default setup and the
+// "around one artist" (fan) mode in ARTIST_MODES below, so the fan starter set
+// is defined exactly once.
+const ARTIST_FAN_SPACES: TemplateSpace[] = [
+  { name: "Announcements", description: "News, drops and tour dates — straight from the artist.", staff_post_only: true },
+  { name: "The Group Chat", description: "Where fans hang out, react and connect." },
+  { name: "Live", description: "Livestreamed sets, listening parties and AMAs.", space_type: "live" },
+  { name: "The Vault", description: "Exclusive extras — demos, stems, wallpapers and presale codes.", space_type: "resources" },
+  { name: "Ask Me Anything", description: "Fans ask, you answer.", space_type: "qa" },
+];
+const ARTIST_FAN_FIELDS: TemplateProfileField[] = [
+  { label: "Fan Since", field_type: "text" },
+  { label: "Favorite Track or Album", field_type: "text" },
+];
+
 export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
   {
     key: "learning",
@@ -117,23 +132,18 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     defaultProfileFields: [{ label: "Content Niche", field_type: "text" }],
   },
   {
+    // Key kept as "fanclub" for continuity (it's a stable identifier stored on
+    // communities.template_key); the label is now the broader "Musician /
+    // Artist", which offers two modes at setup — see ARTIST_MODES. The default
+    // spaces below are the fan-community setup, used when no mode is picked.
     key: "fanclub",
-    label: "Artist Fan Club",
+    label: "Musician / Artist",
     icon: "Disc3",
-    tagline: "A home for your fans, direct from you",
+    tagline: "A fan community, or a collective of artists",
     description:
-      "For a musician, DJ or artist building a membership community around themselves — broadcast drops and news, go live, share exclusives, and let fans connect with each other.",
-    defaultSpaces: [
-      { name: "Announcements", description: "News, drops and tour dates — straight from the artist.", staff_post_only: true },
-      { name: "The Group Chat", description: "Where fans hang out, react and connect." },
-      { name: "Live", description: "Livestreamed sets, listening parties and AMAs.", space_type: "live" },
-      { name: "The Vault", description: "Exclusive extras — demos, stems, wallpapers and presale codes.", space_type: "resources" },
-      { name: "Ask Me Anything", description: "Fans ask, you answer.", space_type: "qa" },
-    ],
-    defaultProfileFields: [
-      { label: "Fan Since", field_type: "text" },
-      { label: "Favorite Track or Album", field_type: "text" },
-    ],
+      "For musicians, DJs and artists. Build a fan community around one artist — you broadcast, fans belong and unlock exclusives — or a collective where many artists share work, collaborate and give feedback. You choose which when you set up.",
+    defaultSpaces: ARTIST_FAN_SPACES,
+    defaultProfileFields: ARTIST_FAN_FIELDS,
   },
   {
     key: "fitness",
@@ -402,6 +412,75 @@ export function recommendSetup(templateKey: string, transformationGoal: string):
     spaces: dedupeByName([...template.defaultSpaces, ...(overlay?.extraSpaces ?? [])]),
     profileFields: [...template.defaultProfileFields, ...(overlay?.extraProfileFields ?? [])],
     rationale,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Musician / Artist: "one artist, or a community of artists?"
+//
+// The Musician / Artist template (key "fanclub") offers two mutually-exclusive
+// modes, chosen in the wizard the same way a Place community chooses its kind
+// of place. Unlike place location types — which layer extras onto a shared base
+// — the two artist modes are complete, separate starter sets: a fan community
+// (broadcast + belonging, around one artist) and an artist collective (a peer
+// network where many artists share work) have almost nothing in common
+// structurally, so each replaces the starter box wholesale.
+// ---------------------------------------------------------------------------
+
+export interface ArtistMode {
+  key: string;
+  label: string;
+  tagline: string;
+  description: string;
+  spaces: TemplateSpace[];
+  profileFields: TemplateProfileField[];
+}
+
+export const ARTIST_MODES: ArtistMode[] = [
+  {
+    key: "fan",
+    label: "Around one artist",
+    tagline: "A fan community",
+    description: "Built around a single musician, DJ or artist. You broadcast; fans belong, hang out and unlock exclusives.",
+    spaces: ARTIST_FAN_SPACES,
+    profileFields: ARTIST_FAN_FIELDS,
+  },
+  {
+    key: "collective",
+    label: "A community of artists",
+    tagline: "An artist collective",
+    description: "A peer network where many artists share work, collaborate, swap feedback and find gigs.",
+    spaces: [
+      { name: "Discussion", description: "General conversation for the whole collective." },
+      { name: "Tracks & Mixes", description: "Share your latest tracks, mixes and cover art.", space_type: "gallery" },
+      { name: "Feedback & Critique", description: "Post work and get specific feedback from peers.", space_type: "qa" },
+      { name: "Collab Board", description: "Find collaborators — vocalists, producers, engineers.", space_type: "directory" },
+      { name: "Beat Battles", description: "Time-boxed production challenges and remix contests.", space_type: "challenges" },
+      { name: "Live", description: "Livestreamed sets, listening parties and workshops.", space_type: "live" },
+      { name: "The Crate", description: "Shared sample packs, presets, stems and gear guides.", space_type: "resources" },
+      { name: "Gigs & Opportunities", description: "Bookings, collab calls and open slots.", space_type: "jobs" },
+    ],
+    profileFields: [
+      { label: "Role", field_type: "dropdown", options: ["DJ", "Producer", "Vocalist", "Instrumentalist", "Visual Artist", "Other"] },
+      { label: "Genre", field_type: "text" },
+      { label: "Setup / DAW", field_type: "text" },
+    ],
+  },
+];
+
+export function getArtistMode(key: string): ArtistMode | undefined {
+  return ARTIST_MODES.find((m) => m.key === key);
+}
+
+// The Musician / Artist counterpart to recommendPlaceSetup: each mode is a full,
+// standalone starter set (not a base + overlay), so this just returns the chosen
+// mode's spaces and fields. Defaults to the fan mode when the key is unknown.
+export function recommendArtistSetup(modeKey: string): SetupRecommendation {
+  const mode = getArtistMode(modeKey) ?? ARTIST_MODES[0];
+  return {
+    spaces: mode.spaces,
+    profileFields: mode.profileFields,
+    rationale: [`Set up as ${mode.tagline.toLowerCase()} (${mode.label.toLowerCase()}).`, mode.description],
   };
 }
 
