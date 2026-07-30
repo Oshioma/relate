@@ -50,6 +50,19 @@ export async function POST(request: NextRequest) {
               plan_stripe_subscription_id: session.subscription ?? null,
             })
             .eq("id", meta.community_id);
+        } else if (meta.pack_id && meta.community_id && session.subscription) {
+          // A feature-marketplace pack purchase.
+          await admin.from("community_feature_addons").upsert(
+            {
+              community_id: meta.community_id,
+              pack_id: meta.pack_id,
+              status: "active",
+              stripe_subscription_id: session.subscription,
+              stripe_customer_id: session.customer ?? null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "community_id,pack_id" }
+          );
         } else if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
           await admin.from("space_subscriptions").upsert(
             {
@@ -96,6 +109,19 @@ export async function POST(request: NextRequest) {
               plan_stripe_customer_id: sub.customer ?? null,
             })
             .eq("id", meta.community_id);
+        } else if (meta.pack_id && meta.community_id) {
+          await admin.from("community_feature_addons").upsert(
+            {
+              community_id: meta.community_id,
+              pack_id: meta.pack_id,
+              status,
+              stripe_subscription_id: sub.id,
+              stripe_customer_id: sub.customer ?? null,
+              current_period_end: periodEnd,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "community_id,pack_id" }
+          );
         } else if (meta.space_id && meta.user_id && meta.community_id) {
           await admin.from("space_subscriptions").upsert(
             {

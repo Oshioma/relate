@@ -149,7 +149,9 @@ export function createBillingCheckoutSession(params: {
   cancelUrl: string;
   customerEmail?: string;
   customerId?: string;
-  metadata: { community_id: string; plan_id: string };
+  // e.g. { community_id, plan_id } for a plan, { community_id, pack_id } for a
+  // marketplace pack — the webhook routes on which key is present.
+  metadata: Record<string, string>;
 }): Promise<{ id: string; url: string }> {
   return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
     body: {

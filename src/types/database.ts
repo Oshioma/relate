@@ -162,6 +162,37 @@ export type PlatformPlan = {
   updated_at: string;
 };
 
+// A feature marketplace pack (Layer 2). Maps to space types the community can
+// add once the pack is installed (free) or subscribed to (paid).
+export type FeaturePack = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  currency: string;
+  stripe_price_id: string | null;
+  space_types: string[];
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+// A community's installed/purchased pack. Paid rows are written only by the
+// Stripe webhook; free installs by the admin action via the service-role client.
+export type CommunityFeatureAddon = {
+  id: string;
+  community_id: string;
+  pack_id: string;
+  status: string;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 // A member's paid subscription to a single paid space. Rows are written only by
 // the Stripe webhook (service role) — never by the browser. `status` mirrors
 // the Stripe subscription status; access is granted while it's active/trialing
@@ -1537,6 +1568,17 @@ export type Database = {
         Insert: Partial<PlatformPlan> & { slug: string; name: string };
         Update: Partial<PlatformPlan>;
       } & NoRel;
+      feature_packs: {
+        Row: FeaturePack;
+        Insert: Partial<FeaturePack> & { slug: string; name: string };
+        Update: Partial<FeaturePack>;
+      } & NoRel;
+      community_feature_addons: {
+        Row: CommunityFeatureAddon;
+        Insert: Partial<CommunityFeatureAddon> & { community_id: string; pack_id: string };
+        Update: Partial<CommunityFeatureAddon>;
+        Relationships: [FKey<"community_id", "communities">, FKey<"pack_id", "feature_packs">];
+      };
       posts: {
         Row: Post;
         Insert: Partial<Post> & { community_id: string; space_id: string; author_id: string; title: string };
@@ -2059,6 +2101,10 @@ export type Database = {
       community_has_feature: {
         Args: { p_community_id: string; p_feature: string };
         Returns: boolean;
+      };
+      community_purchased_space_types: {
+        Args: { p_community_id: string };
+        Returns: string[];
       };
       consume_ai_quota: {
         Args: { p_bucket: string; p_identity: string; p_limit: number };

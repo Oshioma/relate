@@ -26,15 +26,22 @@ export async function getSpaceTypeDefaults(supabase: Client): Promise<Record<Spa
 // An explicit community_space_types override wins, otherwise the platform
 // default, otherwise enabled.
 export async function getCommunitySpaceTypePool(supabase: Client, communityId: string): Promise<Record<SpaceType, boolean>> {
-  const [defaults, overridesResult] = await Promise.all([
+  const [defaults, overridesResult, purchasedResult] = await Promise.all([
     getSpaceTypeDefaults(supabase),
     supabase.from("community_space_types").select("space_type, enabled").eq("community_id", communityId),
+    // Space types unlocked by the community's active feature-marketplace packs.
+    supabase.rpc("community_purchased_space_types", { p_community_id: communityId }),
   ]);
   if (overridesResult.error) throw overridesResult.error;
 
   const resolved = { ...defaults };
   for (const row of overridesResult.data ?? []) {
     resolved[row.space_type as SpaceType] = row.enabled;
+  }
+  // Purchased packs always ENABLE their types (the community paid for them), so
+  // they're applied last and never turn a type off.
+  for (const st of purchasedResult.data ?? []) {
+    resolved[st as SpaceType] = true;
   }
   return resolved;
 }
