@@ -139,6 +139,43 @@ export function createSpaceCheckoutSession(params: {
   });
 }
 
+// --- Platform billing (the platform charges the owner for a plan) ------------
+// A subscription Checkout on the PLATFORM account (no Stripe-Account header),
+// against a pre-created recurring Price. Reusing an existing customer keeps a
+// community's billing under one Stripe customer across plan changes.
+export function createBillingCheckoutSession(params: {
+  priceId: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  customerId?: string;
+  metadata: { community_id: string; plan_id: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    body: {
+      mode: "subscription",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerId
+        ? { customer: params.customerId }
+        : params.customerEmail
+          ? { customer_email: params.customerEmail }
+          : {}),
+      line_items: [{ price: params.priceId, quantity: 1 }],
+      metadata: params.metadata,
+      subscription_data: { metadata: params.metadata },
+    },
+  });
+}
+
+// Stripe-hosted billing portal so an owner can change/cancel their plan or
+// update their card, then return to the admin page.
+export function createBillingPortalSession(params: { customerId: string; returnUrl: string }): Promise<{ url: string }> {
+  return stripeFetch<{ url: string }>("/billing_portal/sessions", {
+    body: { customer: params.customerId, return_url: params.returnUrl },
+  });
+}
+
 // --- Webhook signature verification -----------------------------------------
 // Mirrors Stripe's constructEvent: recompute the HMAC over `${t}.${payload}`
 // and constant-time compare it to the v1 signature in the Stripe-Signature
