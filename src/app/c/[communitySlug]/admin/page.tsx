@@ -30,8 +30,10 @@ import { DeleteCommunitySection } from "./delete-community-section";
 import { BillingSection } from "./billing-section";
 import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
+import { TiersSection } from "./tiers-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
+import { getCommunityTiers } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
 
 export default async function AdminPage({
@@ -91,6 +93,11 @@ export default async function AdminPage({
   const installedPackIds = communityAddons
     .filter((a) => a.status === "active" || a.status === "trialing")
     .map((a) => a.pack_id);
+
+  // Membership tiers (owner-only section, shown once payments are connected).
+  // Public spaces are always free, so they can't be assigned to a tier.
+  const tiers = isOwner && canCharge ? await getCommunityTiers(supabase, community.id) : [];
+  const tierAssignableSpaces = spaces.filter((s) => s.visibility !== "public").map((s) => ({ id: s.id, name: s.name }));
 
   // A space's nav sub-links, grouped by space and kept in nav order (the query
   // returns featured categories already sorted by sort_order). Today only a
@@ -290,6 +297,21 @@ export default async function AdminPage({
             <p className="mb-8 text-sm text-muted-foreground">
               Charging members for spaces is a paid-plan feature. Upgrade above to connect Stripe and set space prices.
             </p>
+          )}
+
+          <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Membership tiers</h2>
+          {canCharge && community.stripe_charges_enabled ? (
+            <>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Bundle spaces into a recurring membership — one price unlocks every space in the tier. Members can join a
+                tier instead of paying for spaces one by one. Public spaces are always free and can&apos;t be tiered.
+              </p>
+              <div className="mb-8">
+                <TiersSection communityId={community.id} communitySlug={community.slug} tiers={tiers} spaces={tierAssignableSpaces} />
+              </div>
+            </>
+          ) : (
+            <p className="mb-8 text-sm text-muted-foreground">Connect payments above to offer membership tiers.</p>
           )}
 
           <h2 className="mb-3 mt-8 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
