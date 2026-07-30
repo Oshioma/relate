@@ -193,9 +193,15 @@ export type Space = {
   sort_order: number;
   show_in_nav: boolean;
   // A one-way / broadcast space: when true, only community staff can create
-  // posts here; members still read (and can comment/react). See
-  // supabase/migrations/*_staff_post_only_spaces.sql.
+  // posts here — and comment, unless allow_member_comments re-opens comments.
+  // Members always read and react. See
+  // supabase/migrations/*_staff_post_only_spaces.sql and
+  // *_staff_post_only_comments.sql.
   staff_post_only: boolean;
+  // Only meaningful when staff_post_only is true: re-opens commenting to
+  // members while posting stays staff-only. See
+  // supabase/migrations/*_space_allow_member_comments.sql.
+  allow_member_comments: boolean;
   // Overrides the community's location_name for this space's live data
   // (today: the Tides & Weather panel). Null = use the community's location.
   // See supabase/space-location.sql.

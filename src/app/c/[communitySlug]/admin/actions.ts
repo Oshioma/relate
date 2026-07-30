@@ -39,6 +39,9 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
   const spaceType = parseSpaceType(formData.get("space_type"));
   const showInNav = formData.get("show_in_nav") === "on";
   const staffPostOnly = formData.get("staff_post_only") === "on";
+  // Only meaningful alongside staff_post_only; forced false when not one-way so
+  // the flag never lingers on a space that isn't broadcast.
+  const allowMemberComments = staffPostOnly && formData.get("allow_member_comments") === "on";
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -95,6 +98,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: showInNav,
     staff_post_only: staffPostOnly,
+    allow_member_comments: allowMemberComments,
   });
 
   if (error) {
@@ -115,6 +119,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
   const staffPostOnly = formData.get("staff_post_only") === "on";
+  const allowMemberComments = staffPostOnly && formData.get("allow_member_comments") === "on";
   // Absent field ≠ empty field: only forms that render the location input
   // (resources spaces) may change it, so other edits can't silently wipe it.
   const rawLocationName = formData.get("location_name");
@@ -176,6 +181,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       visibility,
       space_type: spaceType,
       staff_post_only: staffPostOnly,
+      allow_member_comments: allowMemberComments,
       ...(locationName !== undefined && { location_name: locationName }),
       ...(priceUpdate ?? {}),
     })
@@ -240,6 +246,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     sort_order: (maxSort?.sort_order ?? -1) + 1,
     show_in_nav: original.show_in_nav,
     staff_post_only: original.staff_post_only,
+    allow_member_comments: original.allow_member_comments,
     location_name: original.location_name,
   });
 
