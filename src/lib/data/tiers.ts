@@ -52,21 +52,41 @@ export async function countActiveTiers(supabase: Client, communityId: string): P
 // The ids of tiers the user currently holds an active (paid-up) subscription to,
 // within a community. Drives the "you're a member" state on the join page.
 export async function getActiveTierIds(supabase: Client, communityId: string, userId: string): Promise<Set<string>> {
+  const map = await getMyTierSubscriptions(supabase, communityId, userId);
+  return new Set([...map].filter(([, s]) => s.active).map(([tierId]) => tierId));
+}
+
+export type MyTierSubscription = {
+  // Access is currently granted (paid-up).
+  active: boolean;
+  // Scheduled to cancel at period end (access continues until then).
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+};
+
+// The viewer's tier subscriptions in a community, keyed by tier id — active
+// state plus the cancellation status the Membership page uses to offer
+// Cancel / Resume.
+export async function getMyTierSubscriptions(
+  supabase: Client,
+  communityId: string,
+  userId: string
+): Promise<Map<string, MyTierSubscription>> {
   const { data } = await supabase
     .from("tier_subscriptions")
-    .select("tier_id, status, current_period_end")
+    .select("tier_id, status, current_period_end, cancel_at_period_end")
     .eq("community_id", communityId)
     .eq("user_id", userId);
 
   const now = new Date();
-  const ids = new Set<string>();
+  const map = new Map<string, MyTierSubscription>();
   for (const s of data ?? []) {
-    const live =
+    const active =
       (s.status === "active" || s.status === "trialing") &&
       (!s.current_period_end || new Date(s.current_period_end) > now);
-    if (live) ids.add(s.tier_id);
+    map.set(s.tier_id, { active, cancelAtPeriodEnd: s.cancel_at_period_end, currentPeriodEnd: s.current_period_end });
   }
-  return ids;
+  return map;
 }
 
 export type SpaceTierOption = {

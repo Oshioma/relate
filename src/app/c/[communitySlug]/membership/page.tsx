@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
-import { getCommunityTiers, getActiveTierIds } from "@/lib/data/tiers";
+import { getCommunityTiers, getMyTierSubscriptions } from "@/lib/data/tiers";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MembershipTierCard } from "./membership-tier-card";
@@ -31,11 +31,11 @@ export default async function MembershipPage({
     membership?.status === "active" &&
     (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
 
-  const [allTiers, spaces, activeTierIds] = await Promise.all([
+  const [allTiers, spaces, mySubs] = await Promise.all([
     // Tiers are member-readable via RLS; a non-member gets an empty list.
     getCommunityTiers(supabase, community.id),
     getCommunitySpaces(supabase, community.id),
-    user ? getActiveTierIds(supabase, community.id, user.id) : Promise.resolve(new Set<string>()),
+    user ? getMyTierSubscriptions(supabase, community.id, user.id) : Promise.resolve(new Map()),
   ]);
 
   const tiers = allTiers.filter((t) => !t.archived_at);
@@ -87,7 +87,9 @@ export default async function MembershipPage({
                 currency={tier.currency}
                 spaceNames={tier.spaceIds.map((id) => spaceName.get(id)).filter((n): n is string => Boolean(n))}
                 communitySlug={community.slug}
-                isSubscribed={activeTierIds.has(tier.id)}
+                isSubscribed={Boolean(mySubs.get(tier.id)?.active)}
+                cancelAtPeriodEnd={Boolean(mySubs.get(tier.id)?.cancelAtPeriodEnd)}
+                currentPeriodEnd={mySubs.get(tier.id)?.currentPeriodEnd ?? null}
                 isStaff={Boolean(isStaff)}
                 isSignedIn={Boolean(user)}
                 paymentsReady={community.stripe_charges_enabled}

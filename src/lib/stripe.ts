@@ -178,6 +178,21 @@ export function createBillingPortalSession(params: { customerId: string; returnU
   });
 }
 
+// Schedule (or unschedule) a member subscription to cancel at the end of the
+// paid period. Member subscriptions live on the community's connected account,
+// so the call is made with that account's context. cancel_at_period_end keeps
+// access until the period ends rather than cutting it off immediately.
+export function setSubscriptionCancellation(params: {
+  stripeAccount: string;
+  subscriptionId: string;
+  cancelAtPeriodEnd: boolean;
+}): Promise<{ id: string; cancel_at_period_end: boolean }> {
+  return stripeFetch<{ id: string; cancel_at_period_end: boolean }>(`/subscriptions/${params.subscriptionId}`, {
+    stripeAccount: params.stripeAccount,
+    body: { cancel_at_period_end: params.cancelAtPeriodEnd },
+  });
+}
+
 // --- Member checkout for a membership tier -----------------------------------
 // Same shape as createSpaceCheckoutSession, but the subscription unlocks a set
 // of spaces (via tier_spaces) rather than one. Metadata carries tier_id so the
