@@ -31,6 +31,10 @@ export function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url);
 }
 
+export function isAudioUrl(url: string): boolean {
+  return /\.(mp3|m4a|aac|wav|ogg|oga|flac)(\?.*)?$/i.test(url);
+}
+
 // Display name for an uploaded file: last path segment, minus the random
 // UUID prefix UploadButton adds to prevent collisions.
 export function fileNameFromUrl(url: string): string {
