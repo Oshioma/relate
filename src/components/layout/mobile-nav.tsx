@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-import { Menu, X, ArrowLeft, ExternalLink } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Menu, X, ArrowLeft, ExternalLink, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,26 @@ function itemIsActive(pathname: string, href: string, exact?: boolean) {
 export function MobileNav({ tabs, communityName, communityLogoUrl, items, links, account }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
+  const [query, setQuery] = useState("");
+  // Closing also resets the query so the sheet always reopens fresh.
+  const close = () => {
+    setOpen(false);
+    setQuery("");
+  };
+
+  // A community can accumulate many spaces and featured categories; a filter
+  // at the top of the drawer turns "scroll and hunt" into "type two letters".
+  const q = query.trim().toLowerCase();
+  const searching = q.length > 0;
+  const filteredItems = useMemo(
+    () => (searching ? items.filter((item) => item.label.toLowerCase().includes(q)) : items),
+    [items, q, searching]
+  );
+  const filteredLinks = useMemo(
+    () => (searching ? links.filter((link) => link.label.toLowerCase().includes(q)) : links),
+    [links, q, searching]
+  );
+  const hasResults = filteredItems.length > 0 || filteredLinks.length > 0;
 
   // Lock body scroll while the sheet is open so the page behind doesn't move.
   useEffect(() => {
@@ -77,7 +96,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -126,7 +145,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
         aria-hidden={!open}
       >
         <div
-          onClick={() => setOpen(false)}
+          onClick={close}
           className={cn(
             "absolute inset-0 bg-foreground/40 backdrop-blur-sm transition-opacity duration-200",
             open ? "opacity-100" : "opacity-0"
@@ -148,7 +167,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={close}
               aria-label="Close menu"
               className="-mr-1 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
@@ -156,10 +175,39 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
             </button>
           </div>
 
+          <div className="border-b border-border px-3 py-2.5">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 focus-within:border-accent/50">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Jump to a space, category…"
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="Search this community's spaces"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              {searching && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="-mr-1 shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
             <div className="space-y-0.5">
-              {items.map((item) => {
+              {filteredItems.map((item) => {
                 const isActive = itemIsActive(pathname, item.href, item.exact);
+                // A sub-item shown on its own (while searching) reads oddly with
+                // the parent's indent, so drop it when the list is filtered.
+                const indented = item.sub && !searching;
                 return (
                   <Link
                     key={item.href + item.label}
@@ -167,7 +215,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
                     onClick={close}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-                      item.sub ? "py-1.5 pl-9 text-[13px]" : "py-2.5",
+                      indented ? "py-1.5 pl-9 text-[13px]" : "py-2.5",
                       isActive
                         ? "bg-accent-soft text-accent"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -180,9 +228,15 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
               })}
             </div>
 
-            {links.length > 0 && (
-              <div className="mt-3 space-y-0.5 border-t border-border pt-3">
-                {links.map((link) => (
+            {!hasResults && (
+              <p className="px-3 py-8 text-center text-sm text-muted-foreground">
+                No spaces match “{query.trim()}”.
+              </p>
+            )}
+
+            {filteredLinks.length > 0 && (
+              <div className={cn("space-y-0.5", !searching && "mt-3 border-t border-border pt-3")}>
+                {filteredLinks.map((link) => (
                   <a
                     key={link.id}
                     href={link.url}

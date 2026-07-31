@@ -12,11 +12,14 @@ import {
   UsersRound,
   HandHeart,
   UserPlus,
+  Search,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
 import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunityFeatures } from "@/lib/data/features";
+import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { Tag } from "lucide-react";
 import { getCommunityPosts } from "@/lib/data/posts";
@@ -86,6 +89,8 @@ export default async function CommunityFeedPage({
     growingJourney,
     spaces,
     featuredCategories,
+    features,
+    navItemOrder,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -105,6 +110,8 @@ export default async function CommunityFeedPage({
     getGrowingJourneySpace(supabase, community.id),
     getCommunitySpaces(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
+    getCommunityFeatures(supabase, community.id),
+    getCommunityNavItemOrder(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
@@ -135,6 +142,27 @@ export default async function CommunityFeedPage({
         })),
     ];
   });
+
+  // Fold the enabled built-in features (Events, Search) into the strip too —
+  // only when the community actually has them turned on and in the nav, so it
+  // never advertises a destination that isn't there. Events carries a live
+  // upcoming-count so the tile earns its place.
+  const canSeeEvents = Boolean(user) || community.events_public;
+  if (features.events && canSeeEvents && navItemOrder.events?.showInNav !== false) {
+    discoverShortcuts.push({
+      href: `${base}/events`,
+      label: "Events",
+      hint: upcoming.length > 0 ? `${upcoming.length} upcoming` : null,
+      icon: <CalendarDays className="h-5 w-5" />,
+    });
+  }
+  if (features.concierge && navItemOrder.concierge?.showInNav !== false) {
+    discoverShortcuts.push({
+      href: `${base}/concierge`,
+      label: "Search",
+      icon: <Search className="h-5 w-5" />,
+    });
+  }
 
   // Recent activity mixes posts with everything created anywhere in the
   // community (businesses, events, marketplace, jobs, stays,
