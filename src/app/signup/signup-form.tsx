@@ -6,7 +6,7 @@ import { signup, type AuthFormState } from "@/app/auth/actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-export function SignupForm({ next }: { next: string }) {
+export function SignupForm({ next, prefilledEmail }: { next: string; prefilledEmail?: string | null }) {
   const [state, formAction] = useActionState<AuthFormState, FormData>(signup, undefined);
 
   return (
@@ -20,7 +20,26 @@ export function SignupForm({ next }: { next: string }) {
 
       <div>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+        {prefilledEmail ? (
+          // Came from an email invite — we already have their address, so lock
+          // it and let them get straight to picking a password. readOnly (not
+          // disabled) keeps the value in the submitted form data.
+          <>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              readOnly
+              defaultValue={prefilledEmail}
+              className="cursor-not-allowed bg-muted text-muted-foreground"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">This is the address your invite was sent to.</p>
+          </>
+        ) : (
+          <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
+        )}
       </div>
 
       <div>
