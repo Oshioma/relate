@@ -18,7 +18,7 @@ import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
-import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
@@ -321,15 +321,40 @@ export default async function CommunityLayout({
         </main>
       </div>
 
-      <MobileTabBar
+      {/* Mobile navigation: a compact bottom bar of primary destinations plus a
+          Menu button that opens a slide-out drawer with the full nav tree — the
+          same spaces, featured categories and links the desktop sidebar shows,
+          which is otherwise `hidden md:flex` and unreachable on a phone. */}
+      <MobileNav
+        communityName={community.name}
+        communityLogoUrl={community.logo_url}
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
-          { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
-          ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-5 w-5" /> }] : []),
+          { href: `${base}/spaces`, label: "Spaces", icon: <Layers className="h-5 w-5" /> },
           ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
-          ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
+        items={[
+          { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" />, exact: true },
+          ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
+          ...orderedUnits.flatMap((unit) => unit.items),
+          ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
+        ]}
+        links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}
+        account={
+          user
+            ? {
+                kind: "user",
+                name: profile?.full_name || profile?.username || "You",
+                username: profile?.username ?? null,
+                avatarUrl: profile?.avatar_url ?? null,
+              }
+            : {
+                kind: "guest",
+                loginHref: `/login?next=${encodeURIComponent(base)}`,
+                signupHref: `/signup?next=${encodeURIComponent(base)}`,
+              }
+        }
       />
     </div>
   );

@@ -16,10 +16,12 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
-import { getGrowingJourneySpace } from "@/lib/data/spaces";
+import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
+import { SPACE_TYPES } from "@/lib/space-types";
+import { Tag } from "lucide-react";
 import { getCommunityPosts } from "@/lib/data/posts";
-import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
-import { businessCategoryLabel } from "@/lib/business-categories";
+import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
 import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
@@ -38,6 +40,7 @@ import { CommunityGate } from "./community-gate";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
+import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
 import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
@@ -81,6 +84,8 @@ export default async function CommunityFeedPage({
     recentMembers,
     stats,
     growingJourney,
+    spaces,
+    featuredCategories,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -98,10 +103,38 @@ export default async function CommunityFeedPage({
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
     getCommunityStats(supabase, community.id),
     getGrowingJourneySpace(supabase, community.id),
+    getCommunitySpaces(supabase, community.id),
+    getCommunityFeaturedBusinessCategories(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
   const base = `/c/${community.slug}`;
+
+  // Discover strip (mobile only): surface each nav space and its featured
+  // categories (e.g. Restaurants under a Business Directory) as one-tap tiles
+  // right where the visitor lands. Featured categories deep-link to the
+  // pre-filtered directory, matching the desktop sidebar's sub-links.
+  const navSpaces = spaces.filter((s) => s.show_in_nav);
+  const discoverShortcuts: DiscoverShortcut[] = navSpaces.flatMap((space) => {
+    const SpaceIcon = SPACE_TYPES[space.space_type].icon;
+    const spaceLabelOverrides = labelOverrides.filter((o) => o.space_id === space.id);
+    return [
+      {
+        href: `${base}/spaces/${space.slug}`,
+        label: space.name,
+        icon: <SpaceIcon className="h-5 w-5" />,
+      },
+      ...featuredCategories
+        .filter((f) => f.space_id === space.id)
+        .map((f): DiscoverShortcut => ({
+          href: `${base}/spaces/${space.slug}?category=${f.category}`,
+          label: businessCategoryPluralLabel(f.category, customCategories, spaceLabelOverrides),
+          hint: space.name,
+          icon: <Tag className="h-4 w-4" />,
+          accent: true,
+        })),
+    ];
+  });
 
   // Recent activity mixes posts with everything created anywhere in the
   // community (businesses, events, marketplace, jobs, stays,
@@ -311,6 +344,8 @@ export default async function CommunityFeedPage({
           </div>
         </div>
       )}
+
+      <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="grid gap-6 lg:grid-cols-3">
