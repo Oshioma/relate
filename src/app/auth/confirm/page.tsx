@@ -36,8 +36,17 @@ async function verifiedReturnHost(rawHost: string | null): Promise<string | null
 
 // Human-facing copy for the confirm button, by the kind of email link that led
 // here. The point of the interstitial is that a *person* presses this, so the
-// wording should match what they're expecting from the email they clicked.
-function interstitialCopy(type: EmailOtpType | null): { heading: string; body: string; cta: string } {
+// wording should match what they're expecting from the email they clicked. A
+// `code` link (Supabase's default templates) carries no type, so we fall back
+// to the destination: a reset lands on /settings/password.
+function interstitialCopy(type: EmailOtpType | null, next: string): { heading: string; body: string; cta: string } {
+  if (!type && next.startsWith("/settings/password")) {
+    return {
+      heading: "Reset your password",
+      body: "Confirm it's you to continue. You'll pick a new password on the next screen.",
+      cta: "Continue",
+    };
+  }
   switch (type) {
     case "recovery":
       return {
@@ -84,36 +93,45 @@ function interstitialCopy(type: EmailOtpType | null): { heading: string; body: s
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token_hash?: string; type?: string; next?: string; return_host?: string }>;
+  searchParams: Promise<{ token_hash?: string; type?: string; code?: string; next?: string; return_host?: string }>;
 }) {
   const params = await searchParams;
   const tokenHash = params.token_hash ?? "";
   const type = (params.type ?? null) as EmailOtpType | null;
+  const code = params.code ?? "";
   const next = params.next?.startsWith("/") ? params.next : "/dashboard";
 
-  if (!tokenHash || !type) {
+  const hasToken = Boolean(tokenHash && type);
+  const hasCode = Boolean(code);
+  if (!hasToken && !hasCode) {
     redirect("/login?error=confirmation-failed");
   }
 
-  // Forward the token to the custom domain *unverified* and let that host's own
-  // copy of this page show the button and verify: verifyOtp sets the session
-  // cookie on whichever host runs it, and auth cookies are host-scoped, so
-  // verifying here would leave the member logged out on their community's
-  // domain. The forwarded URL carries no return_host, so it lands on the
-  // interstitial below on the second pass. This hop is a redirect that consumes
-  // nothing, so a scanner following it still can't spend the token.
+  // Forward the credential to the custom domain *unspent* and let that host's
+  // own copy of this page show the button and complete the sign-in. The session
+  // cookie is set on whichever host runs verifyOtp / exchangeCodeForSession, and
+  // auth cookies are host-scoped, so finishing here would leave the member
+  // logged out on their community's domain — and the PKCE `code` can only be
+  // exchanged on the host that holds its verifier cookie, which is the one they
+  // requested the email from. The forwarded URL carries no return_host, so it
+  // lands on the interstitial below on the second pass. This hop is a redirect
+  // that spends nothing, so a scanner following it still can't consume the link.
   const returnHost = await verifiedReturnHost(params.return_host ?? null);
   if (returnHost) {
     const headerList = await headers();
     const proto = headerList.get("x-forwarded-proto") ?? "https";
     const target = new URL(`${proto}://${returnHost}/auth/confirm`);
-    target.searchParams.set("token_hash", tokenHash);
-    target.searchParams.set("type", type);
+    if (hasToken) {
+      target.searchParams.set("token_hash", tokenHash);
+      target.searchParams.set("type", type as string);
+    } else {
+      target.searchParams.set("code", code);
+    }
     target.searchParams.set("next", next);
     redirect(target.toString());
   }
 
-  const copy = interstitialCopy(type);
+  const copy = interstitialCopy(type, next);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -130,7 +148,8 @@ export default async function ConfirmPage({
           <CardContent className="pt-6">
             <form action={confirmOtp} className="space-y-4">
               <input type="hidden" name="token_hash" value={tokenHash} />
-              <input type="hidden" name="type" value={type} />
+              <input type="hidden" name="type" value={type ?? ""} />
+              <input type="hidden" name="code" value={code} />
               <input type="hidden" name="next" value={next} />
               <SubmitButton pendingText="Confirming…">{copy.cta}</SubmitButton>
             </form>

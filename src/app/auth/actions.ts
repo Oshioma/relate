@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformHost } from "@/lib/custom-domain";
-import { isResendConfigured, sendCommunityConfirmationEmail } from "@/lib/email";
+import { isResendConfigured, sendCommunityConfirmationEmail, sendPasswordResetEmail } from "@/lib/email";
 
 export type AuthFormState = { error: string } | undefined;
 
@@ -305,11 +305,83 @@ export type PasswordResetState = { error?: string; done?: boolean } | undefined;
 // whose auth account was created by inviteUserByEmail with NO password at
 // all. For them "Create account" says already-registered and "Sign in" can
 // never succeed; this flow is the only way in.
+// Best-effort: mint the recovery link with the Admin API and send it ourselves
+// through Resend. Returns true only when our own email actually went out, so
+// the caller knows whether to fall back to Supabase's default recovery email.
+// The whole point is to avoid that default: it routes through GoTrue's /verify
+// endpoint and a PKCE `?code=` exchange that needs a code-verifier cookie from
+// the same browser the reset was requested in — so it silently fails whenever
+// the email is opened on a different device (request on a laptop, open on a
+// phone). admin.generateLink hands back a token_hash instead, which
+// /auth/confirm verifies with verifyOtp and which carries no per-browser state,
+// so it works anywhere and — routed through our interstitial — survives the
+// link scanners that were pre-spending tokens.
+async function trySendBrandedPasswordReset(args: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  email: string;
+  customHost: string | null;
+  platformOrigin: string;
+  returnParam: string;
+}): Promise<boolean> {
+  const { supabase, email, customHost, platformOrigin, returnParam } = args;
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return false;
+  }
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    // redirectTo only shapes the action_link we ignore, but must be an
+    // allowlisted origin, so reuse the platform confirm route.
+    options: { redirectTo: `${platformOrigin}/auth/confirm` },
+  });
+
+  // No usable link — a non-existent address (the common case here) lands in
+  // this branch too. Returning false lets the caller fall through; every branch
+  // still reports success to the user, so which emails have accounts stays
+  // hidden either way.
+  if (error || !data?.properties?.hashed_token) {
+    if (error) console.error("[password-reset] generateLink failed, falling back:", error);
+    return false;
+  }
+
+  // A community-branded reset when the request came from a custom domain we can
+  // resolve; otherwise a plain "Relate" one.
+  let community: { name: string; logoUrl: string | null } | null = null;
+  if (customHost) {
+    const { data: slug } = await supabase.rpc("community_slug_for_domain", { p_domain: customHost.split(":")[0] });
+    if (slug) community = await communityBySlug(supabase, slug);
+  }
+
+  const resetUrl =
+    `${platformOrigin}/auth/confirm` +
+    `?token_hash=${encodeURIComponent(data.properties.hashed_token)}` +
+    `&type=recovery&next=${encodeURIComponent("/settings/password")}${returnParam}`;
+
+  const sent = await sendPasswordResetEmail({
+    to: email,
+    communityName: community?.name ?? null,
+    communityLogoUrl: community?.logoUrl ?? null,
+    resetUrl,
+  });
+
+  if (!sent.ok) {
+    console.error("[password-reset] branded email failed, falling back:", sent.reason);
+    return false;
+  }
+
+  return true;
+}
+
 export async function requestPasswordReset(
   _prevState: PasswordResetState,
   formData: FormData
 ): Promise<PasswordResetState> {
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email || !email.includes("@")) {
     return { error: "Enter your email address." };
   }
@@ -323,6 +395,18 @@ export async function requestPasswordReset(
   const returnParam = customHost ? `&return_host=${encodeURIComponent(customHost)}` : "";
 
   const supabase = await createClient();
+
+  // Preferred: our own token_hash recovery email (see helper). Only when Resend
+  // isn't set up — or minting/sending fell through — do we drop to Supabase's
+  // default recovery email, which uses the fragile PKCE `?code=` flow that
+  // /auth/confirm now also handles, but which only works same-device.
+  if (isResendConfigured()) {
+    const sent = await trySendBrandedPasswordReset({ supabase, email, customHost, platformOrigin, returnParam });
+    if (sent) {
+      return { done: true };
+    }
+  }
+
   await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${platformOrigin}/auth/confirm?next=${encodeURIComponent("/settings/password")}${returnParam}`,
   });
