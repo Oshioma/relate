@@ -2199,6 +2199,7 @@ export type Database = {
           community_logo_url: string | null;
           community_cover_image_url: string | null;
           community_is_public: boolean | null;
+          invite_email: string | null;
           valid: boolean;
           reason: string | null;
         }[];
