@@ -125,6 +125,12 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const rawLocationName = formData.get("location_name");
   const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
+  // Cover image. Same absent-≠-empty rule as location: only the edit form that
+  // renders the uploader submits the field, so an edit elsewhere can't wipe it.
+  // The uploader stores a public URL and empty means "no cover" (→ null).
+  const rawImageUrl = formData.get("image_url");
+  const imageUrl = rawImageUrl === null ? undefined : String(rawImageUrl).trim() || null;
+
   // Paywall price, in whole currency units from the form. Absent field ≠ set to
   // free — only the edit form that renders the price input sends it, so other
   // edits can't silently un-price a space. An empty or non-positive value means
@@ -183,6 +189,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       staff_post_only: staffPostOnly,
       allow_member_comments: allowMemberComments,
       ...(locationName !== undefined && { location_name: locationName }),
+      ...(imageUrl !== undefined && { image_url: imageUrl }),
       ...(priceUpdate ?? {}),
     })
     .eq("id", spaceId);
@@ -248,6 +255,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     staff_post_only: original.staff_post_only,
     allow_member_comments: original.allow_member_comments,
     location_name: original.location_name,
+    image_url: original.image_url,
   });
 
   if (error) {
