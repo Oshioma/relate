@@ -275,6 +275,10 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // Optional cover image (community-assets bucket URL), surfaced on the mobile
+  // Explore strip and the Spaces grid. Null = fall back to the type icon.
+  // See 20260731214352_add_space_image_url.sql.
+  image_url: string | null;
   // A one-way / broadcast space: when true, only community staff can create
   // posts here — and comment, unless allow_member_comments re-opens comments.
   // Members always read and react. See
