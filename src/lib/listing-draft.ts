@@ -64,7 +64,16 @@ export const EMPTY_DRAFT: ListingDraft = {
 export type ListingDraftSource = "google" | "page" | "link";
 
 export type ListingImportResult =
-  | { ok: true; draft: ListingDraft; source: ListingDraftSource; note: string }
+  | {
+      ok: true;
+      draft: ListingDraft;
+      source: ListingDraftSource;
+      note: string;
+      // Something the member needs to act on even though the import worked —
+      // above all, a place to stay pasted into the directory form, which has no
+      // accommodation category to put it in.
+      warning?: string;
+    }
   | { ok: false; error: string };
 
 // True when the draft carries nothing worth applying — every importer can
