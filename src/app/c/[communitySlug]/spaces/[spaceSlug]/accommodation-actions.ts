@@ -73,6 +73,9 @@ type ListingFields = {
   price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
+  address: string | null;
+  website: string | null;
+  phone: string | null;
   lat: number | null;
   lng: number | null;
   bedrooms: number | null;
@@ -112,6 +115,9 @@ function parseListingFields(formData: FormData): { values: ListingFields } | { e
       price_unit: parsePriceUnit(formData.get("price_unit")),
       booking_url: String(formData.get("booking_url") ?? "").trim() || null,
       location_label: String(formData.get("location_label") ?? "").trim() || null,
+      address: String(formData.get("address") ?? "").trim() || null,
+      website: String(formData.get("website") ?? "").trim() || null,
+      phone: String(formData.get("phone") ?? "").trim() || null,
       lat,
       lng,
       bedrooms: parseCount(formData.get("bedrooms")),
@@ -241,7 +247,7 @@ export async function createStayFromBusiness(
 
   const { data: business, error: businessError } = await supabase
     .from("businesses")
-    .select("id, community_id, name, description, image_url, location_label, lat, lng")
+    .select("id, community_id, name, description, image_url, location_label, address, website, phone, lat, lng")
     .eq("id", businessId)
     .maybeSingle();
   if (businessError || !business) {
@@ -296,6 +302,9 @@ export async function createStayFromBusiness(
       description: business.description,
       photo_urls: photoUrls,
       location_label: business.location_label,
+      address: business.address,
+      website: business.website,
+      phone: business.phone,
       lat: business.lat,
       lng: business.lng,
     })

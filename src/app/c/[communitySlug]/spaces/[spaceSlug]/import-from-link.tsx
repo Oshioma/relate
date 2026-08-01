@@ -7,12 +7,12 @@ import type { ListingDraft, ListingImportKind, ListingDraftSource } from "@/lib/
 
 const COPY: Record<ListingImportKind, { placeholder: string; hint: string }> = {
   business: {
-    placeholder: "https://maps.app.goo.gl/… or the place's website",
-    hint: "Paste a Google Maps share link, or the place's own website — we'll fill in the form below.",
+    placeholder: "https://maps.app.goo.gl/… or the place's own website",
+    hint: "Paste a Google Maps, TripAdvisor or the place's own website link — we'll fill in the form below.",
   },
   accommodation: {
-    placeholder: "https://www.booking.com/hotel/… or an Airbnb link",
-    hint: "Paste a Booking.com, Airbnb or Google Maps link — we'll fill in the form below.",
+    placeholder: "https://maps.app.goo.gl/… or the property's own website",
+    hint: "Paste a Google Maps, TripAdvisor or the property's own website link — we'll fill in the form below.",
   },
 };
 
@@ -32,7 +32,7 @@ export function ImportFromLink({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<{ text: string; source: ListingDraftSource } | null>(null);
+  const [note, setNote] = useState<{ text: string; source: ListingDraftSource; warning?: string } | null>(null);
 
   async function handleImport() {
     const value = url.trim();
@@ -50,7 +50,7 @@ export function ImportFromLink({
         return;
       }
       onApply(result.draft);
-      setNote({ text: result.note, source: result.source });
+      setNote({ text: result.note, source: result.source, warning: result.warning });
     } catch {
       setError("Something went wrong reading that link. Try again in a moment.");
     } finally {
@@ -95,7 +95,10 @@ export function ImportFromLink({
       {error ? (
         <p className="mt-1.5 text-xs text-danger">{error}</p>
       ) : note ? (
-        <p className={`mt-1.5 text-xs ${note.source === "link" ? "text-danger" : "text-muted-foreground"}`}>{note.text}</p>
+        <>
+          <p className={`mt-1.5 text-xs ${note.source === "link" ? "text-danger" : "text-muted-foreground"}`}>{note.text}</p>
+          {note.warning && <p className="mt-1 text-xs font-medium text-danger">{note.warning}</p>}
+        </>
       ) : (
         <p className="mt-1.5 text-xs text-muted-foreground">{COPY[kind].hint}</p>
       )}
