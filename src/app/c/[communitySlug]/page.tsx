@@ -330,46 +330,52 @@ export default async function CommunityFeedPage({
   return (
     <div>
       {/* Hero: with a cover image the name, description and stats sit *on* the
-          photo behind a gradient scrim — the community reads as the place it's
-          about rather than as a banner glued above a document. The scrim is
-          what makes that safe: it darkens the bottom of any photo, so white
-          text stays legible over a bright sky or a blown-out beach alike. The
-          crop is deliberately taller on a phone than on a desktop, so an image
-          with sky and sand in it doesn't lose both. With no cover, the original
-          accent-gradient header and its own stats strip still apply. */}
+          photo — the community reads as the place it's about rather than as a
+          banner glued above a document.
+
+          The darkening is confined to a band at the foot of the image instead
+          of covering the whole thing: the top of the photo stays as shot, and
+          only the strip actually carrying text gets a backing dark enough to
+          keep white type legible over an unknown image. The text runs the full
+          width of the page rather than the feed's centred column, which keeps
+          the description to a line or two — a short block needs a much smaller
+          band than a tall one, so the photo keeps more of itself.
+
+          With no cover, the original accent-gradient header and its own stats
+          strip still apply. */}
       {community.cover_image_url ? (
-        <section className="relative isolate overflow-hidden border-b border-border">
+        <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={community.cover_image_url}
             alt=""
             className="absolute inset-0 -z-20 h-full w-full object-cover"
           />
-          <div
-            aria-hidden
-            className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/5"
-          />
-          <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 pb-7 pt-40 sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:pb-8 sm:pt-52">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white [text-shadow:0_2px_16px_rgb(0_0_0/0.45)] sm:text-4xl">
-                {community.name}
-              </h1>
-              {community.description && (
-                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-white/90 [text-shadow:0_1px_10px_rgb(0_0_0/0.45)] sm:text-xl">
-                  {community.description}
-                </p>
+
+          {/* The backing. Its height is the text's height plus the pt-* fade,
+              so it grows with a long description instead of being a fixed slab
+              across the image. */}
+          <div className="bg-gradient-to-t from-black/85 via-black/70 to-transparent">
+            <div className="flex flex-col gap-4 px-4 pb-5 pt-14 sm:flex-row sm:items-end sm:justify-between sm:gap-8 sm:px-6 sm:pb-6 sm:pt-16">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-white [text-shadow:0_2px_16px_rgb(0_0_0/0.5)] sm:text-4xl">
+                  {community.name}
+                </h1>
+                {community.description && (
+                  <p className="mt-2 text-base leading-relaxed text-white/90 [text-shadow:0_1px_10px_rgb(0_0_0/0.5)] sm:text-lg">
+                    {community.description}
+                  </p>
+                )}
+              </div>
+              {user && !membership && (
+                <div className="shrink-0">
+                  <JoinCommunityButton communityId={community.id} />
+                </div>
               )}
             </div>
-            {user && !membership && (
-              <div className="shrink-0">
-                <JoinCommunityButton communityId={community.id} />
-              </div>
-            )}
-          </div>
 
-          {statItems.length > 0 && (
-            <div className="border-t border-white/15 bg-black/35 backdrop-blur-sm">
-              <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
+            {statItems.length > 0 && (
+              <div className="flex flex-wrap gap-x-10 gap-y-3 border-t border-white/15 px-4 py-3 sm:px-6">
                 {statItems.map((stat) => (
                   <div key={stat.label} className="flex items-baseline gap-2">
                     <span className="text-xl font-bold text-white">{stat.value.toLocaleString()}</span>
@@ -377,8 +383,8 @@ export default async function CommunityFeedPage({
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </section>
       ) : (
         <>
