@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check } from "lucide-react";
+import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,13 +20,17 @@ import {
   cancelLiveRsvp,
 } from "./live-events-actions";
 import { JitsiRoom } from "./jitsi-room";
-import type { LiveSessionWithStarter, LiveRsvpWithAttendee } from "@/lib/data/live-events";
+import { InviteMembersModal } from "./invite-members-modal";
+import type { LiveSessionWithStarter, LiveRsvpWithAttendee, LiveInviteWithMember } from "@/lib/data/live-events";
+import type { Profile } from "@/types/database";
 
 export function LiveEventsView({
   active,
   scheduled,
   past,
   rsvpsBySession,
+  invitesBySession,
+  inviteMembers,
   currentUserId,
   communityId,
   communitySlug,
@@ -42,6 +46,10 @@ export function LiveEventsView({
   scheduled: LiveSessionWithStarter[];
   past: LiveSessionWithStarter[];
   rsvpsBySession: Record<string, LiveRsvpWithAttendee[]>;
+  // Hand-picked invites per session (active + scheduled).
+  invitesBySession: Record<string, LiveInviteWithMember[]>;
+  // Community members that populate the invite picker — staff-only, [] otherwise.
+  inviteMembers: Profile[];
   currentUserId: string;
   communityId: string;
   communitySlug: string;
@@ -66,6 +74,8 @@ export function LiveEventsView({
   const [title, setTitle] = useState("");
   const [mode, setMode] = useState<"now" | "schedule">("now");
   const [scheduledStart, setScheduledStart] = useState("");
+  // The session the "invite members" picker is currently open for, if any.
+  const [inviteFor, setInviteFor] = useState<LiveSessionWithStarter | null>(null);
 
   function run(action: () => Promise<{ error: string | null }>, after?: () => void) {
     setError(null);
@@ -188,12 +198,19 @@ export function LiveEventsView({
                   </Button>
                 )}
                 {isStaff && (
-                  <Button type="button" variant="danger" onClick={() => handleEnd(active.id)} disabled={pending}>
-                    End session
-                  </Button>
+                  <>
+                    <Button type="button" variant="secondary" onClick={() => setInviteFor(active)} disabled={pending}>
+                      <UserPlus className="h-4 w-4" /> Invite
+                    </Button>
+                    <Button type="button" variant="danger" onClick={() => handleEnd(active.id)} disabled={pending}>
+                      End session
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
+
+            <InvitedRow invites={invitesBySession[active.id] ?? []} isStaff={isStaff} />
 
             {roomOpen && (
               <div className="mt-4">
@@ -305,6 +322,9 @@ export function LiveEventsView({
                         )}
                         {isStaff && (
                           <>
+                            <Button type="button" variant="secondary" onClick={() => setInviteFor(session)} disabled={pending}>
+                              <UserPlus className="h-4 w-4" /> Invite
+                            </Button>
                             <Button type="button" onClick={() => handleGoLive(session.id)} disabled={pending}>
                               <Radio className="h-4 w-4" /> Go live
                             </Button>
@@ -320,6 +340,8 @@ export function LiveEventsView({
                         )}
                       </div>
                     </div>
+
+                    <InvitedRow invites={invitesBySession[session.id] ?? []} isStaff={isStaff} />
 
                     {rsvps.length > 0 && (
                       <div className="mt-3 flex items-center gap-2">
@@ -387,6 +409,60 @@ export function LiveEventsView({
           </div>
         </div>
       )}
+
+      {/* Staff member-invite picker for the chosen session. */}
+      {inviteFor && (
+        <InviteMembersModal
+          sessionId={inviteFor.id}
+          sessionTitle={inviteFor.title}
+          isLive={inviteFor.status === "live"}
+          communityId={communityId}
+          communitySlug={communitySlug}
+          spaceSlug={spaceSlug}
+          members={inviteMembers}
+          alreadyInvitedIds={(invitesBySession[inviteFor.id] ?? []).map((i) => i.user_id)}
+          currentUserId={currentUserId}
+          onClose={() => setInviteFor(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// The invited-members row on a session card. Staff see the full guest list
+// (avatars + count); a plain member's RLS only returns their own invite, so
+// they instead get a simple "You're invited" badge when they've been picked.
+function InvitedRow({ invites, isStaff }: { invites: LiveInviteWithMember[]; isStaff: boolean }) {
+  if (invites.length === 0) return null;
+
+  if (!isStaff) {
+    return (
+      <div className="mt-3">
+        <Badge tone="accent" className="gap-1 normal-case">
+          <Check className="h-3 w-3" /> You&apos;re invited
+        </Badge>
+      </div>
+    );
+  }
+
+  const visible = invites.slice(0, 5);
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <span className="text-xs text-muted-foreground">Invited</span>
+      <div className="flex -space-x-2">
+        {visible.map((invite) => (
+          <Avatar
+            key={invite.id}
+            src={invite.invitee?.avatar_url}
+            name={invite.invitee?.full_name || invite.invitee?.username}
+            size={24}
+            className="border-2 border-card"
+          />
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {invites.length} invited{invites.length > visible.length ? ` (+${invites.length - visible.length} more)` : ""}
+      </p>
     </div>
   );
 }

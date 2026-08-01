@@ -7,7 +7,7 @@ export type NotificationWithActor = Notification & { actor: Profile | null };
 
 // The notification types a member can receive an email copy of. Order here is
 // the order the settings toggles render in.
-export const EMAILABLE_NOTIFICATION_TYPES: NotificationType[] = ["comment", "post", "membership", "claim", "live_event", "live_started", "live_reminder"];
+export const EMAILABLE_NOTIFICATION_TYPES: NotificationType[] = ["comment", "post", "membership", "claim", "live_event", "live_started", "live_reminder", "live_invite"];
 
 export type NotificationEmailPrefs = Record<NotificationType, boolean>;
 
@@ -23,6 +23,7 @@ export const DEFAULT_NOTIFICATION_EMAIL_PREFS: NotificationEmailPrefs = {
   live_event: true,
   live_started: true,
   live_reminder: true,
+  live_invite: true,
 };
 
 // Per-type email preference for a member, with the per-type defaults applied for

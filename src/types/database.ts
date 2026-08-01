@@ -978,6 +978,17 @@ export type LiveSessionRsvp = {
   created_at: string;
 };
 
+// A specific member a host hand-picked to invite to a live session (as opposed
+// to the space-wide broadcast every session already sends).
+export type LiveSessionInvite = {
+  id: string;
+  session_id: string;
+  community_id: string;
+  user_id: string;
+  invited_by: string | null;
+  created_at: string;
+};
+
 export type CourseStatus = "draft" | "published";
 
 // A course in a 'course' space (see space-types.ts). Deeper than
@@ -1130,7 +1141,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite";
 
 export type Notification = {
   id: string;
@@ -1955,6 +1966,12 @@ export type Database = {
         Insert: Partial<LiveSessionRsvp> & { session_id: string; community_id: string; user_id: string };
         Update: Partial<LiveSessionRsvp>;
         Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">];
+      };
+      live_session_invites: {
+        Row: LiveSessionInvite;
+        Insert: Partial<LiveSessionInvite> & { session_id: string; community_id: string; user_id: string };
+        Update: Partial<LiveSessionInvite>;
+        Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">, FKey<"invited_by", "profiles">];
       };
       course_modules: {
         Row: CourseModule;

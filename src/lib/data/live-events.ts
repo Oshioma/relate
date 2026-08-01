@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, LiveSession, LiveSessionRsvp, Profile } from "@/types/database";
+import type { Database, LiveSession, LiveSessionRsvp, LiveSessionInvite, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -58,6 +58,36 @@ export function groupRsvpsBySession(rsvps: LiveRsvpWithAttendee[]): Map<string, 
     const list = map.get(rsvp.session_id) ?? [];
     list.push(rsvp);
     map.set(rsvp.session_id, list);
+  }
+  return map;
+}
+
+export type LiveInviteWithMember = LiveSessionInvite & { invitee: Profile | null };
+
+// Hand-picked invites for a set of sessions, for the "invited" row on the card
+// and to pre-tick already-invited members in the picker. RLS
+// (live_session_invites_select) limits rows to the invitee and staff, so a
+// plain member only ever sees their own invite here. Returns [] fast when
+// there's nothing to look up.
+export async function getLiveSessionInvites(supabase: Client, sessionIds: string[]): Promise<LiveInviteWithMember[]> {
+  if (sessionIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("live_session_invites")
+    .select("*, invitee:user_id (*)")
+    .in("session_id", sessionIds)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as LiveInviteWithMember[];
+}
+
+export function groupInvitesBySession(invites: LiveInviteWithMember[]): Map<string, LiveInviteWithMember[]> {
+  const map = new Map<string, LiveInviteWithMember[]>();
+  for (const invite of invites) {
+    const list = map.get(invite.session_id) ?? [];
+    list.push(invite);
+    map.set(invite.session_id, list);
   }
   return map;
 }
