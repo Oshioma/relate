@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Sparkles, Loader2, ArrowRight } from "lucide-react";
 import { importListingFromLink } from "./listing-import-actions";
 import type { ListingDraft, ListingImportKind, ListingDraftSource } from "@/lib/listing-draft";
 
@@ -23,16 +24,20 @@ const COPY: Record<ListingImportKind, { placeholder: string; hint: string }> = {
 export function ImportFromLink({
   kind,
   spaceId,
+  initialUrl,
   onApply,
 }: {
   kind: ListingImportKind;
   spaceId: string;
+  // A link handed over from the other form (see the `handoff` on an import
+  // result). Autofill runs once on arrival so the member doesn't paste twice.
+  initialUrl?: string;
   onApply: (draft: ListingDraft) => void;
 }) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<{ text: string; source: ListingDraftSource; warning?: string } | null>(null);
+  const [note, setNote] = useState<{ text: string; source: ListingDraftSource; warning?: string; handoff?: { href: string; label: string } } | null>(null);
 
   async function handleImport() {
     const value = url.trim();
@@ -50,13 +55,23 @@ export function ImportFromLink({
         return;
       }
       onApply(result.draft);
-      setNote({ text: result.note, source: result.source, warning: result.warning });
+      setNote({ text: result.note, source: result.source, warning: result.warning, handoff: result.handoff });
     } catch {
       setError("Something went wrong reading that link. Try again in a moment.");
     } finally {
       setBusy(false);
     }
   }
+
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || !initialUrl) return;
+    autoRan.current = true;
+    void handleImport();
+    // handleImport reads `url`, which is seeded from initialUrl above; this is a
+    // one-shot on arrival, never a re-run as the member edits the field.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialUrl]);
 
   return (
     <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3">
@@ -98,6 +113,14 @@ export function ImportFromLink({
         <>
           <p className={`mt-1.5 text-xs ${note.source === "link" ? "text-danger" : "text-muted-foreground"}`}>{note.text}</p>
           {note.warning && <p className="mt-1 text-xs font-medium text-danger">{note.warning}</p>}
+          {note.handoff && (
+            <Link
+              href={note.handoff.href}
+              className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+            >
+              {note.handoff.label} <ArrowRight className="h-3 w-3" />
+            </Link>
+          )}
         </>
       ) : (
         <p className="mt-1.5 text-xs text-muted-foreground">{COPY[kind].hint}</p>

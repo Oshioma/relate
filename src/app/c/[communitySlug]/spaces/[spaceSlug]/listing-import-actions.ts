@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { importListingDraft } from "@/lib/listing-import";
+import { getCommunityAccommodationSpace } from "@/lib/data/accommodation";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import type { ListingImportKind, ListingImportResult } from "@/lib/listing-draft";
 
@@ -31,15 +32,38 @@ export async function importListingFromLink({
     return { ok: false, error: "Unknown listing type." };
   }
 
+  // The space tells us which community we're in — needed to find where a
+  // misplaced stay should go instead. RLS decides whether the caller can see it.
+  const { data: space } = await supabase.from("spaces").select("community_id").eq("id", spaceId).maybeSingle();
+
   // The category the model may choose from is the space's real option list —
   // built-ins plus whatever staff added — read server-side so a suggested
-  // category is always one createBusiness will accept. RLS decides whether the
-  // caller can see the space's categories at all.
+  // category is always one createBusiness will accept.
   let categories = BUSINESS_CATEGORIES.map((c) => c.value as string);
   if (kind === "business" && spaceId) {
     const { data } = await supabase.from("business_custom_categories").select("slug").eq("space_id", spaceId);
     if (data) categories = [...categories, ...data.map((c) => c.slug)];
   }
 
-  return importListingDraft({ rawUrl: url, kind, categories });
+  const result = await importListingDraft({ rawUrl: url, kind, categories });
+
+  // A place to stay pasted into the directory form isn't an error — the member
+  // simply started in the wrong half of the app. Hand them a way through that
+  // keeps the link, so the Accommodation space can re-read it as a stay and
+  // fill in price, rooms and amenities the directory form has no fields for.
+  if (result.ok && result.warning && space?.community_id) {
+    const [staySpace, { data: community }] = await Promise.all([
+      getCommunityAccommodationSpace(supabase, space.community_id),
+      supabase.from("communities").select("slug").eq("id", space.community_id).maybeSingle(),
+    ]);
+    const communitySlug = community?.slug;
+    if (staySpace && communitySlug) {
+      result.handoff = {
+        href: `/c/${communitySlug}/spaces/${staySpace.slug}?import=${encodeURIComponent(url.trim())}`,
+        label: `Add it in ${staySpace.name} instead`,
+      };
+    }
+  }
+
+  return result;
 }

@@ -73,6 +73,12 @@ export type ListingImportResult =
       // above all, a place to stay pasted into the directory form, which has no
       // accommodation category to put it in.
       warning?: string;
+      // Where to carry on when the warning applies: the community's
+      // Accommodation space, with this link ready to autofill there. Absent
+      // when the community has no such space, in which case the warning stands
+      // on its own. Built server-side so the form doesn't have to know the
+      // community's layout.
+      handoff?: { href: string; label: string };
     }
   | { ok: false; error: string };
 

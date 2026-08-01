@@ -35,6 +35,7 @@ export function AccommodationView({
   canPost,
   userId,
   businesses,
+  importUrl,
 }: {
   listings: AccommodationListingWithStats[];
   communityId: string;
@@ -44,11 +45,13 @@ export function AccommodationView({
   canPost: boolean;
   userId: string;
   businesses: BusinessLinkOption[];
+  // Arriving from the directory's add form with a link to autofill from.
+  importUrl?: string;
 }) {
   const [term, setTerm] = useState<StayTerm | "all">("all");
   const [type, setType] = useState<AccommodationType | "all">("all");
   const [query, setQuery] = useState("");
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(Boolean(importUrl) && canPost);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>("newest");
@@ -293,7 +296,7 @@ export function AccommodationView({
 
       {showForm && (
         <div className="mb-5">
-          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} businesses={businesses} onDone={() => setShowForm(false)} />
+          <NewAccommodationForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} businesses={businesses} importUrl={importUrl} onDone={() => setShowForm(false)} />
         </div>
       )}
 
