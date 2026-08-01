@@ -25,6 +25,7 @@ import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
+import { JoinCommunityButton } from "./join-community-button";
 
 // Give each community its own tab title. `default` shows the community name on
 // the community's own pages; the template lets any child page that sets a title
@@ -352,8 +353,14 @@ export default async function CommunityLayout({
               to post, review and join.
             </div>
           ) : !membership ? (
-            <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
-              You&apos;re viewing {community.name} as a guest. Join to post and see member-only spaces.
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
+              <span>
+                You&apos;re viewing {community.name} as a guest.{" "}
+                {community.is_public
+                  ? "Join to post and see member-only spaces."
+                  : "Ask an admin for an invite to post and see member-only spaces."}
+              </span>
+              {community.is_public && <JoinCommunityButton communityId={community.id} size="sm" />}
             </div>
           ) : null}
           {children}
