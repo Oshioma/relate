@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { joinCommunity } from "@/app/dashboard/actions";
 
-export function JoinCommunityButton({ communityId }: { communityId: string }) {
+export function JoinCommunityButton({
+  communityId,
+  size = "md",
+}: {
+  communityId: string;
+  size?: "sm" | "md" | "lg";
+}) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -13,6 +19,7 @@ export function JoinCommunityButton({ communityId }: { communityId: string }) {
   return (
     <div>
       <Button
+        size={size}
         disabled={isPending}
         onClick={() => {
           setError(null);
