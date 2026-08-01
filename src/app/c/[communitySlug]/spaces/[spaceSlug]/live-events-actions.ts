@@ -256,3 +256,64 @@ export async function cancelLiveRsvp(input: {
   revalidateSpace(input.communitySlug, input.spaceSlug);
   return { error: null };
 }
+
+// Staff-only (RLS live_session_invites_insert_staff): hand-pick specific members
+// to invite to a session — a scheduled event or one that's live right now. Each
+// new invite row fires a personal 'live_invite' notification (see the
+// notify_live_session_invite trigger). Already-invited members are skipped via
+// the unique(session_id, user_id) index, so re-inviting is a no-op, not a
+// double ping.
+export async function inviteMembersToLiveSession(input: {
+  sessionId: string;
+  communityId: string;
+  communitySlug: string;
+  spaceSlug: string;
+  memberIds: string[];
+}): Promise<LiveActionResult> {
+  const memberIds = Array.from(new Set(input.memberIds)).filter(Boolean);
+  if (memberIds.length === 0) return { error: "Pick at least one member to invite." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const rows = memberIds.map((memberId) => ({
+    session_id: input.sessionId,
+    community_id: input.communityId,
+    user_id: memberId,
+    invited_by: user.id,
+  }));
+
+  // Ignore rows that collide with an existing invite; insert the rest.
+  const { error } = await supabase
+    .from("live_session_invites")
+    .upsert(rows, { onConflict: "session_id,user_id", ignoreDuplicates: true });
+
+  if (error) return { error: error.message };
+
+  revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}
+
+// Staff-only (RLS): withdraw an invite. The member keeps any notification
+// already sent, but drops off the session's invited list.
+export async function uninviteMemberFromLiveSession(input: {
+  sessionId: string;
+  memberId: string;
+  communitySlug: string;
+  spaceSlug: string;
+}): Promise<LiveActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("live_session_invites")
+    .delete()
+    .eq("session_id", input.sessionId)
+    .eq("user_id", input.memberId);
+
+  if (error) return { error: error.message };
+
+  revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, LiveSession, LiveSessionRsvp, Profile } from "@/types/database";
+import type { Database, LiveSession, LiveSessionRsvp, LiveSessionInvite, Profile } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -18,6 +18,34 @@ export async function getSpaceLiveSessions(supabase: Client, spaceId: string): P
 
   if (error) throw error;
   return (data ?? []) as unknown as LiveSessionWithStarter[];
+}
+
+// The session that's live right now in a community (if any), with the slug of
+// the space hosting it so the header "Live now" badge can deep-link to it. RLS
+// (live_sessions_select → can_view_space) means a viewer only sees a session in
+// a space they're allowed into, so this is safe to call for anyone. If more
+// than one space is live at once, the most recently started wins.
+export type CommunityLiveSession = { id: string; title: string; spaceSlug: string };
+
+export async function getCommunityLiveSession(
+  supabase: Client,
+  communityId: string
+): Promise<CommunityLiveSession | null> {
+  const { data, error } = await supabase
+    .from("live_sessions")
+    .select("id, title, space:space_id (slug)")
+    .eq("community_id", communityId)
+    .eq("status", "live")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const space = (data as unknown as { space: { slug: string } | null }).space;
+  if (!space?.slug) return null;
+  return { id: data.id, title: data.title, spaceSlug: space.slug };
 }
 
 // Splits sessions into the single active one (if any), the upcoming scheduled
@@ -58,6 +86,36 @@ export function groupRsvpsBySession(rsvps: LiveRsvpWithAttendee[]): Map<string, 
     const list = map.get(rsvp.session_id) ?? [];
     list.push(rsvp);
     map.set(rsvp.session_id, list);
+  }
+  return map;
+}
+
+export type LiveInviteWithMember = LiveSessionInvite & { invitee: Profile | null };
+
+// Hand-picked invites for a set of sessions, for the "invited" row on the card
+// and to pre-tick already-invited members in the picker. RLS
+// (live_session_invites_select) limits rows to the invitee and staff, so a
+// plain member only ever sees their own invite here. Returns [] fast when
+// there's nothing to look up.
+export async function getLiveSessionInvites(supabase: Client, sessionIds: string[]): Promise<LiveInviteWithMember[]> {
+  if (sessionIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("live_session_invites")
+    .select("*, invitee:user_id (*)")
+    .in("session_id", sessionIds)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as LiveInviteWithMember[];
+}
+
+export function groupInvitesBySession(invites: LiveInviteWithMember[]): Map<string, LiveInviteWithMember[]> {
+  const map = new Map<string, LiveInviteWithMember[]>();
+  for (const invite of invites) {
+    const list = map.get(invite.session_id) ?? [];
+    list.push(invite);
+    map.set(invite.session_id, list);
   }
   return map;
 }

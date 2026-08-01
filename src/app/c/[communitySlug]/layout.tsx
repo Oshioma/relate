@@ -10,6 +10,7 @@ import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { getCommunityLiveSession } from "@/lib/data/live-events";
 import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
@@ -22,6 +23,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
+import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
 
 // Give each community its own tab title. `default` shows the community name on
@@ -70,7 +72,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -79,6 +81,7 @@ export default async function CommunityLayout({
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeatures(supabase, community.id),
     countActiveTiers(supabase, community.id),
+    getCommunityLiveSession(supabase, community.id),
   ]);
 
   // Personal chrome (profile, membership, notifications, messages) only exists
@@ -172,6 +175,11 @@ export default async function CommunityLayout({
       style={accentStyle}
       {...(accentStyle ? { "data-community-accent": "" } : {})}
     >
+      {/* Watches for a session going live / ending and refreshes the header
+          badge instantly. Outside the signed-in gate so guests on a public
+          live space see it too. */}
+      <LiveSessionWatcher communityId={community.id} />
+
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
         {/* Sidebar header: the logo on the plain card background. The cover
             photo was tried here and pulled back out — a tinted crop behind a
@@ -266,6 +274,22 @@ export default async function CommunityLayout({
           </Link>
           <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
           <div className="flex items-center gap-4">
+            {/* When a session is live anywhere in the community, a pulsing badge
+                in the header makes it impossible to miss and jumps straight into
+                the room. Shown to anyone who can see the session (RLS-scoped). */}
+            {liveSession && (
+              <Link
+                href={`${base}/spaces/${liveSession.spaceSlug}`}
+                title={`${liveSession.title} is live now — join`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-danger-foreground shadow-sm transition-opacity hover:opacity-90"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
+                </span>
+                Live now!
+              </Link>
+            )}
             {isStaff && (
               <Link
                 href={`${base}/admin`}

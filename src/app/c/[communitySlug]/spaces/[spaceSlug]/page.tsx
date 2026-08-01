@@ -5,7 +5,7 @@ import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTe
 import { createClient } from "@/lib/supabase/server";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
 import { getTiersForSpace } from "@/lib/data/tiers";
@@ -36,7 +36,7 @@ import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { getSpaceCourses } from "@/lib/data/courses";
-import { getSpaceLiveSessions, splitLiveSessions, getLiveSessionRsvps, groupRsvpsBySession } from "@/lib/data/live-events";
+import { getSpaceLiveSessions, splitLiveSessions, getLiveSessionRsvps, groupRsvpsBySession, getLiveSessionInvites, groupInvitesBySession } from "@/lib/data/live-events";
 import { isJaasConfigured } from "@/lib/jitsi";
 import {
   getDirectoryMembers,
@@ -253,6 +253,13 @@ export default async function SpaceDetailPage({
   const liveRsvps =
     isLiveSpace && scheduledLiveSessions.length > 0 ? await getLiveSessionRsvps(supabase, scheduledLiveSessions.map((s) => s.id)) : [];
   const liveRsvpsBySession = Object.fromEntries(groupRsvpsBySession(liveRsvps));
+  // Hand-picked invites for the active + upcoming sessions, grouped for the card.
+  const liveInviteSessionIds = [activeLiveSession?.id, ...scheduledLiveSessions.map((s) => s.id)].filter(
+    (id): id is string => Boolean(id)
+  );
+  const liveInvites =
+    isLiveSpace && liveInviteSessionIds.length > 0 ? await getLiveSessionInvites(supabase, liveInviteSessionIds) : [];
+  const liveInvitesBySession = Object.fromEntries(groupInvitesBySession(liveInvites));
   // The name the viewer shows up as in the meeting.
   const liveViewer = isLiveSpace && user ? await getProfile(supabase, user.id) : null;
   const liveDisplayName = liveViewer?.full_name || liveViewer?.username || null;
@@ -316,6 +323,9 @@ export default async function SpaceDetailPage({
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // The member list that powers the "invite members" picker in a live space.
+  // Staff-only (only staff can invite), so members aren't loaded otherwise.
+  const liveInviteMembers = isLiveSpace && isStaff ? (await getCommunityMembers(supabase, community.id)).map((m) => m.profile) : [];
   // A one-way / broadcast space (e.g. a fan community's Announcements): only
   // staff may start posts. Mirrors the posts_insert_member RLS policy, so the
   // composer is hidden exactly when a member's insert would be rejected.
@@ -749,6 +759,8 @@ export default async function SpaceDetailPage({
           scheduled={scheduledLiveSessions}
           past={pastLiveSessions}
           rsvpsBySession={liveRsvpsBySession}
+          invitesBySession={liveInvitesBySession}
+          inviteMembers={liveInviteMembers}
           currentUserId={viewerId}
           communityId={community.id}
           communitySlug={community.slug}
