@@ -46,9 +46,12 @@ export default async function BusinessDetailPage({
   // A self-listing (you added it or you own it) can't be reviewed by you — super
   // admins excepted, for seeding.
   const isSelfListing = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
-  // Anyone active may claim an unclaimed listing they don't already have a claim
-  // on — including the member who added it (a curator claiming a listing they own).
-  const canClaim = Boolean(isActive) && detail.business.claimed_by === null && detail.viewerClaim === null;
+  // Anyone signed in who can see this listing may claim an unclaimed one they
+  // don't already have a claim on — including the member who added it (a curator
+  // claiming a listing they own) and a brand-new user who hasn't joined the
+  // community yet ("claim your business" is how an owner gets connected). Staff
+  // still approve every claim before ownership is granted.
+  const canClaim = Boolean(user) && detail.business.claimed_by === null && detail.viewerClaim === null;
 
   const [customCategories, labelOverrides] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),

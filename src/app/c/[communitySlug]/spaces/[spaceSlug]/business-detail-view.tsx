@@ -65,7 +65,8 @@ export function BusinessDetailView({
   canReply: boolean;
   // Any active member — may bookmark the listing.
   canSave: boolean;
-  // Active member, listing unclaimed, and no existing claim of their own.
+  // Signed in, listing unclaimed, and no existing claim of their own. Doesn't
+  // require community membership — claiming is open to new users too.
   canClaim: boolean;
   // The stay already linked to this business, if any (for the accommodation
   // bridge shown on stay-like listings).
