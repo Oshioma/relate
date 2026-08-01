@@ -352,38 +352,49 @@ export default async function CommunityFeedPage({
             className="absolute inset-0 -z-20 h-full w-full object-cover"
           />
 
-          {/* The backing. Its height is the text's height plus the pt-* fade,
-              so it grows with a long description instead of being a fixed slab
-              across the image. */}
-          <div className="bg-gradient-to-t from-black/85 via-black/70 to-transparent">
-            <div className="flex flex-col gap-4 px-4 pb-5 pt-14 sm:flex-row sm:items-end sm:justify-between sm:gap-8 sm:px-6 sm:pb-6 sm:pt-16">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white [text-shadow:0_2px_16px_rgb(0_0_0/0.5)] sm:text-4xl">
-                  {community.name}
-                </h1>
-                {community.description && (
-                  <p className="mt-2 text-base leading-relaxed text-white/90 [text-shadow:0_1px_10px_rgb(0_0_0/0.5)] sm:text-lg">
-                    {community.description}
-                  </p>
+          {/* The backing is a flat tint plus a blur, not a see-through
+              gradient. A gradient lets the photo through, so the band reads
+              dark where something dark sits behind it and washes out over open
+              sky — it changes tone across its own width and stops looking like
+              a deliberate element. A uniform panel with one crisp top edge
+              reads the same left to right whatever the photo is doing, and the
+              blur keeps it from feeling like a flat sticker. Everything the
+              band carries lives inside it, so there is no second edge cutting
+              across the picture. */}
+          <div className="bg-black/55 backdrop-blur-md">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+                <div className="min-w-0">
+                  <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    {community.name}
+                  </h1>
+                  {community.description && (
+                    // Capped rather than edge-to-edge: on a wide desktop an
+                    // uncapped line runs past a comfortable reading measure and
+                    // collides with the viewport's right edge.
+                    <p className="mt-2 max-w-5xl text-base leading-relaxed text-white/85 sm:text-lg">
+                      {community.description}
+                    </p>
+                  )}
+                </div>
+                {user && !membership && (
+                  <div className="shrink-0">
+                    <JoinCommunityButton communityId={community.id} />
+                  </div>
                 )}
               </div>
-              {user && !membership && (
-                <div className="shrink-0">
-                  <JoinCommunityButton communityId={community.id} />
+
+              {statItems.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-x-10 gap-y-2">
+                  {statItems.map((stat) => (
+                    <div key={stat.label} className="flex items-baseline gap-2">
+                      <span className="text-xl font-bold text-white">{stat.value.toLocaleString()}</span>
+                      <span className="text-sm text-white/70">{stat.label}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-
-            {statItems.length > 0 && (
-              <div className="flex flex-wrap gap-x-10 gap-y-3 border-t border-white/15 px-4 py-3 sm:px-6">
-                {statItems.map((stat) => (
-                  <div key={stat.label} className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-white">{stat.value.toLocaleString()}</span>
-                    <span className="text-sm text-white/75">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </section>
       ) : (

@@ -192,16 +192,14 @@ export default async function CommunityLayout({
                 alt=""
                 className="absolute inset-0 -z-20 h-full w-full object-cover"
               />
-              {/* Fixed dark scrim rather than a theme token: it sits on top of
-                  an unknown photo, and the text above it is white in both
-                  themes. Weighted toward the foot of the crop so the photo
-                  keeps its detail up top — but never fully clear, because a
-                  logo is often a transparent PNG and needs something behind it
-                  to read against a bright sky. */}
-              <div
-                aria-hidden
-                className="absolute inset-0 -z-10 bg-gradient-to-b from-black/25 via-black/40 to-black/75"
-              />
+              {/* An even tint, matching the hero's band: a gradient here shifts
+                  tone down the crop and reads as a different device from the
+                  one on the feed. Flat and uniform, it's legible behind a
+                  transparent-PNG logo anywhere in the frame and the two
+                  surfaces look like the same decision. Fixed black rather than
+                  a theme token — it sits on an unknown photo, and the text over
+                  it is white in both themes. */}
+              <div aria-hidden className="absolute inset-0 -z-10 bg-black/45" />
             </>
           )}
           <div className="flex flex-col items-center text-center">
