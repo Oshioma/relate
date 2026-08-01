@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Sparkles, Loader2 } from "lucide-react";
 import { importListingFromLink } from "./listing-import-actions";
 import type { ListingDraft, ListingImportKind, ListingDraftSource } from "@/lib/listing-draft";
 
@@ -34,10 +34,14 @@ export function ImportFromLink({
   initialUrl?: string;
   onApply: (draft: ListingDraft) => void;
 }) {
+  const router = useRouter();
   const [url, setUrl] = useState(initialUrl ?? "");
   const [busy, setBusy] = useState(false);
+  // Held after a hand-off so the box stays disabled while the next page loads,
+  // rather than flicking back to "Autofill" and inviting a second click.
+  const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<{ text: string; source: ListingDraftSource; warning?: string; handoff?: { href: string; label: string } } | null>(null);
+  const [note, setNote] = useState<{ text: string; source: ListingDraftSource; warning?: string } | null>(null);
 
   async function handleImport() {
     const value = url.trim();
@@ -54,8 +58,18 @@ export function ImportFromLink({
         setError(result.error);
         return;
       }
+      // A place to stay pasted into the directory: don't fill this form at all,
+      // just move to the one that fits. The destination re-reads the same link
+      // as a stay, so it picks up price, rooms and amenities this form has no
+      // fields for — filling in here first would only flash the wrong shape.
+      if (result.handoff) {
+        setLeaving(true);
+        setNote({ text: result.handoff.label, source: result.source });
+        router.push(result.handoff.href);
+        return;
+      }
       onApply(result.draft);
-      setNote({ text: result.note, source: result.source, warning: result.warning, handoff: result.handoff });
+      setNote({ text: result.note, source: result.source, warning: result.warning });
     } catch {
       setError("Something went wrong reading that link. Try again in a moment.");
     } finally {
@@ -89,21 +103,21 @@ export function ImportFromLink({
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
-              if (!busy) void handleImport();
+              if (!busy && !leaving) void handleImport();
             }
           }}
           placeholder={COPY[kind].placeholder}
-          disabled={busy}
+          disabled={busy || leaving}
           className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
         />
         <button
           type="button"
           onClick={handleImport}
-          disabled={busy}
+          disabled={busy || leaving}
           className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
         >
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-          {busy ? "Reading…" : "Autofill"}
+          {busy || leaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {leaving ? "Opening…" : busy ? "Reading…" : "Autofill"}
         </button>
       </div>
 
@@ -113,14 +127,6 @@ export function ImportFromLink({
         <>
           <p className={`mt-1.5 text-xs ${note.source === "link" ? "text-danger" : "text-muted-foreground"}`}>{note.text}</p>
           {note.warning && <p className="mt-1 text-xs font-medium text-danger">{note.warning}</p>}
-          {note.handoff && (
-            <Link
-              href={note.handoff.href}
-              className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-            >
-              {note.handoff.label} <ArrowRight className="h-3 w-3" />
-            </Link>
-          )}
         </>
       ) : (
         <p className="mt-1.5 text-xs text-muted-foreground">{COPY[kind].hint}</p>
