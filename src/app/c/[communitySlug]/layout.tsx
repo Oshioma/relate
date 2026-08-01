@@ -194,10 +194,13 @@ export default async function CommunityLayout({
               />
               {/* Fixed dark scrim rather than a theme token: it sits on top of
                   an unknown photo, and the text above it is white in both
-                  themes. */}
+                  themes. Weighted toward the foot of the crop so the photo
+                  keeps its detail up top — but never fully clear, because a
+                  logo is often a transparent PNG and needs something behind it
+                  to read against a bright sky. */}
               <div
                 aria-hidden
-                className="absolute inset-0 -z-10 bg-gradient-to-b from-black/45 to-black/80"
+                className="absolute inset-0 -z-10 bg-gradient-to-b from-black/25 via-black/40 to-black/75"
               />
             </>
           )}
