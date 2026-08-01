@@ -12,7 +12,7 @@ const COPY: Record<ListingImportKind, { placeholder: string; hint: string }> = {
   },
   accommodation: {
     placeholder: "https://maps.app.goo.gl/… or the property's own website",
-    hint: "Paste a Google Maps, TripAdvisor, Airbnb or the property's own website link — we'll fill in the form below.",
+    hint: "Paste a Google Maps, TripAdvisor or the property's own website link — we'll fill in the form below.",
   },
 };
 

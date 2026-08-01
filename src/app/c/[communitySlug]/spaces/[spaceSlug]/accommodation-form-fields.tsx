@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
+import { ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES, STAY_TERMS, accommodationTypesByTerm } from "@/lib/accommodation-types";
 import { AccommodationPhotosInput } from "./accommodation-photos-input";
 import type { ListingDraft } from "@/lib/listing-draft";
 import type { AccommodationListing } from "@/types/database";
@@ -48,10 +48,14 @@ export function AccommodationFormFields({
             defaultValue={draft?.accommodation_type ?? listing?.accommodation_type ?? "holiday_rental"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {ACCOMMODATION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+            {STAY_TERMS.map((term) => (
+              <optgroup key={term.value} label={term.label}>
+                {accommodationTypesByTerm(term.value).map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
