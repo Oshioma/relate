@@ -13,7 +13,18 @@ import { messageMembers } from "./live-events-actions";
 // Staff composer: pick members, write a subject + message, and send. Each
 // recipient gets an in-app notification and (unless they've opted out) an
 // email. Members can silence the email from Settings and keep the in-app copy.
-export type MessageAutofill = { subject: string; body: string; link?: string };
+export type MessageAutofill = { subject: string; message: string; link?: string };
+
+// Turns the autofill into the visible prefilled body: the message line, then
+// the full URL on its own line so it's clickable in the email and the in-app
+// notification. Built on the client so window.location.origin is available;
+// falls back to the relative path during SSR.
+function buildInitialBody(autofill?: MessageAutofill | null): string {
+  if (!autofill) return "";
+  if (!autofill.link) return autofill.message;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${autofill.message}\n${origin}${autofill.link}`;
+}
 
 export function MessageMembersModal({
   communityId,
@@ -38,7 +49,7 @@ export function MessageMembersModal({
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [subject, setSubject] = useState(autofill?.subject ?? "");
-  const [body, setBody] = useState(autofill?.body ?? "");
+  const [body, setBody] = useState(() => buildInitialBody(autofill));
 
   const selectable = useMemo(() => members.filter((m) => m.id !== currentUserId), [members, currentUserId]);
 
