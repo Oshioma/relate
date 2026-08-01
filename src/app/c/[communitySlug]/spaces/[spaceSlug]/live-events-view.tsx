@@ -144,18 +144,21 @@ export function LiveEventsView({
   // the reader up for the 10-minutes-before reminder. `scheduled` is sorted
   // soonest-first, so [0] is the next event.
   const soonest = scheduled[0];
+  // `message` is the human line; `link` is a relative path. The composer turns
+  // the link into a full URL and drops it on its own line in the prefilled
+  // body, so staff see exactly what recipients get and can edit before sending.
   const messageAutofill = active
     ? {
         subject: `We're going live now — ${active.title}`,
-        body: `We're going live now in ${spaceName}. Tap below to join us.`,
+        message: `We're going live now in ${spaceName} — join us:`,
         link: `/c/${communitySlug}/spaces/${spaceSlug}`,
       }
     : soonest
     ? {
         subject: `Live soon: ${soonest.title}`,
-        body: soonest.scheduled_start
-          ? `We're scheduled to go live at ${formatDateTime(soonest.scheduled_start)}. Tap below to get an email reminder 10 minutes before we start.`
-          : `We're scheduling a live session soon. Tap below to get an email reminder before we start.`,
+        message: soonest.scheduled_start
+          ? `We're scheduled to go live at ${formatDateTime(soonest.scheduled_start)}. Get an email reminder 10 minutes before we start:`
+          : `We're scheduling a live session soon. Get an email reminder before we start:`,
         link: `/c/${communitySlug}/spaces/${spaceSlug}/remind/${soonest.id}`,
       }
     : null;
