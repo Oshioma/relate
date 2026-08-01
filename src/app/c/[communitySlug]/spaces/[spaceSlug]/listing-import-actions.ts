@@ -60,8 +60,13 @@ export async function importListingFromLink({
     if (staySpace && communitySlug) {
       result.handoff = {
         href: `/c/${communitySlug}/spaces/${staySpace.slug}?import=${encodeURIComponent(url.trim())}`,
-        label: `Add it in ${staySpace.name} instead`,
+        label: `This is a place to stay — taking you to ${staySpace.name}…`,
       };
+      // The warning told the member to go somewhere else; we're taking them
+      // there instead, so it would only flash up as a scolding on the way out.
+      // It stays for communities with no Accommodation space, where there is
+      // nowhere to send them and the explanation is all we have.
+      result.warning = undefined;
     }
   }
 
