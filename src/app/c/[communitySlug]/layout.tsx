@@ -23,6 +23,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
+import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
 
 // Give each community its own tab title. `default` shows the community name on
@@ -174,6 +175,11 @@ export default async function CommunityLayout({
       style={accentStyle}
       {...(accentStyle ? { "data-community-accent": "" } : {})}
     >
+      {/* Watches for a session going live / ending and refreshes the header
+          badge instantly. Outside the signed-in gate so guests on a public
+          live space see it too. */}
+      <LiveSessionWatcher communityId={community.id} />
+
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
         {/* Sidebar header: the logo on the plain card background. The cover
             photo was tried here and pulled back out — a tinted crop behind a
