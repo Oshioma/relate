@@ -185,9 +185,14 @@ export function LiveEventsView({
               </Badge>
             )}
           </div>
-          <Button type="button" variant="secondary" size="sm" onClick={() => setMessageOpen(true)}>
-            <Mail className="h-4 w-4" /> Email members
-          </Button>
+          {/* Only offer "Email members" once there's actually a live or
+              scheduled session to tell them about — messageAutofill is non-null
+              exactly in that case. */}
+          {messageAutofill && (
+            <Button type="button" variant="secondary" size="sm" onClick={() => setMessageOpen(true)}>
+              <Mail className="h-4 w-4" /> Email members
+            </Button>
+          )}
         </div>
       )}
 
