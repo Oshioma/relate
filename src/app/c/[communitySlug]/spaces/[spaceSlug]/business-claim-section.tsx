@@ -27,7 +27,8 @@ export function BusinessClaimSection({
   communityId: string;
   communitySlug: string;
   spaceSlug: string;
-  // Active member, listing unclaimed, and no existing claim of their own.
+  // Signed in, listing unclaimed, and no existing claim of their own. Doesn't
+  // require community membership — claiming is open to new users too.
   canClaim: boolean;
   isStaff: boolean;
   viewerClaim: BusinessClaim | null;
