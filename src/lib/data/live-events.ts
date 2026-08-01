@@ -20,6 +20,34 @@ export async function getSpaceLiveSessions(supabase: Client, spaceId: string): P
   return (data ?? []) as unknown as LiveSessionWithStarter[];
 }
 
+// The session that's live right now in a community (if any), with the slug of
+// the space hosting it so the header "Live now" badge can deep-link to it. RLS
+// (live_sessions_select → can_view_space) means a viewer only sees a session in
+// a space they're allowed into, so this is safe to call for anyone. If more
+// than one space is live at once, the most recently started wins.
+export type CommunityLiveSession = { id: string; title: string; spaceSlug: string };
+
+export async function getCommunityLiveSession(
+  supabase: Client,
+  communityId: string
+): Promise<CommunityLiveSession | null> {
+  const { data, error } = await supabase
+    .from("live_sessions")
+    .select("id, title, space:space_id (slug)")
+    .eq("community_id", communityId)
+    .eq("status", "live")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const space = (data as unknown as { space: { slug: string } | null }).space;
+  if (!space?.slug) return null;
+  return { id: data.id, title: data.title, spaceSlug: space.slug };
+}
+
 // Splits sessions into the single active one (if any), the upcoming scheduled
 // ones (soonest first), and the ended history.
 export function splitLiveSessions(sessions: LiveSessionWithStarter[]) {
