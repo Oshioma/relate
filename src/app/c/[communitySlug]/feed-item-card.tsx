@@ -67,11 +67,17 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
                 <Icon className="h-4 w-4" />
               </span>
             )}
+            {/* `break-words` throughout: titles and descriptions are typed by
+                members and routinely carry an unbroken run — a URL, an email,
+                a hashtag. Without it that run neither wraps nor shrinks, so it
+                pushes the card wider than its column instead of folding. */}
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
-              {item.description && <p className="mt-2 line-clamp-2 text-sm text-foreground">{item.description}</p>}
-              {item.detail && <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>}
+              <h3 className="break-words text-sm font-semibold text-foreground">{item.title}</h3>
+              <p className="mt-1 break-words text-xs text-muted-foreground">{meta}</p>
+              {item.description && (
+                <p className="mt-2 line-clamp-2 break-words text-sm text-foreground">{item.description}</p>
+              )}
+              {item.detail && <p className="mt-1 break-words text-xs text-muted-foreground">{item.detail}</p>}
             </div>
           </div>
         </CardContent>

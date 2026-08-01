@@ -480,8 +480,17 @@ export default async function CommunityFeedPage({
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+        {/* `min-w-0` on both columns is load-bearing, not decoration. A grid
+            item defaults to `min-width: auto`, so its track can't shrink below
+            the item's min-content width — and min-content here is the longest
+            unbreakable run of text in the column (a URL, an email, a long
+            business name). On mobile both columns stack into the one track, so
+            a single long token in either the feed or the sidebar widens the
+            track past the viewport. Everything full-bleed (header, hero) stays
+            at viewport width while the cards run off the right edge, which
+            reads as the two sitting on different margins. */}
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             {activity.length === 0 ? (
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
@@ -505,7 +514,7 @@ export default async function CommunityFeedPage({
             )}
           </div>
 
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
             {growingJourney && (
               <ShareJourneyCard
                 communityId={community.id}
@@ -535,7 +544,7 @@ export default async function CommunityFeedPage({
                 {upcoming.slice(0, 4).map((event) => (
                   <Card key={event.id}>
                     <CardContent className="pt-5">
-                      <p className="text-sm font-semibold text-foreground">{event.title}</p>
+                      <p className="break-words text-sm font-semibold text-foreground">{event.title}</p>
                       <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.start_time)}</p>
                     </CardContent>
                   </Card>
