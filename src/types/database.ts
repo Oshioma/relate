@@ -101,6 +101,10 @@ export type Community = {
   // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
   // Null = 'center'.
   cover_position: string | null;
+  // Show the member / event / business / post counts in the community header.
+  // Defaults false — a small community is usually better off not advertising
+  // its size.
+  show_stats: boolean;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
