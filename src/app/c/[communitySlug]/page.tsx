@@ -43,6 +43,7 @@ import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
 import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
+import { CoverQuickEdit } from "./cover-quick-edit";
 import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
 import { coverPositionClass } from "@/lib/cover-position";
 
@@ -67,6 +68,11 @@ export default async function CommunityFeedPage({
   // feed. Public communities never gate. invite_only never reaches this page
   // for a non-member (the community doesn't resolve for them under RLS).
   const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  // Staff get the in-place cover controls on the header (same test the layout
+  // uses for the Admin link).
+  const isStaff =
+    community.owner_id === user?.id ||
+    (membership?.status === "active" && (membership.role === "owner" || membership.role === "admin"));
   if (!community.is_public && !isMember) {
     return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
   }
@@ -321,12 +327,18 @@ export default async function CommunityFeedPage({
   const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const activity = [...pinned, ...rest].slice(0, 40);
 
-  const statItems = [
-    { label: "Members", value: stats.members },
-    { label: "Events", value: stats.events },
-    { label: "Businesses", value: stats.businesses },
-    { label: "Posts", value: stats.posts },
-  ].filter((s) => s.value > 0);
+  // Counts are opt-in per community (show_stats, default off). A stat strip
+  // exists to argue the place is busy, and small numbers argue the opposite —
+  // so a community only shows them once its owner decides they help. Zero
+  // values stay filtered out regardless.
+  const statItems = community.show_stats
+    ? [
+        { label: "Members", value: stats.members },
+        { label: "Events", value: stats.events },
+        { label: "Businesses", value: stats.businesses },
+        { label: "Posts", value: stats.posts },
+      ].filter((s) => s.value > 0)
+    : [];
 
   return (
     <div>
@@ -360,6 +372,10 @@ export default async function CommunityFeedPage({
             )}
           />
 
+          {isStaff && (
+            <CoverQuickEdit communityId={community.id} coverPosition={community.cover_position} />
+          )}
+
           {/* The backing is a flat tint plus a blur, not a see-through
               gradient. A gradient lets the photo through, so the band reads
               dark where something dark sits behind it and washes out over open
@@ -376,10 +392,29 @@ export default async function CommunityFeedPage({
           <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
             <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-                <div className="min-w-0">
-                  <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                    {community.name}
-                  </h1>
+                <div className="min-w-0 flex-1">
+                  {/* The counts ride on the title's line rather than taking one
+                      of their own. A community name rarely fills the width, so
+                      they sit in space that was already empty — and every line
+                      the band doesn't need is a line of the photograph it
+                      doesn't cover. */}
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                      {community.name}
+                    </h1>
+                    {statItems.length > 0 && (
+                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                        {statItems.map((stat) => (
+                          <div key={stat.label} className="flex items-baseline gap-1.5">
+                            <span className="text-base font-semibold text-white">
+                              {stat.value.toLocaleString()}
+                            </span>
+                            <span className="text-xs text-white/70">{stat.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {community.description && (
                     <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
                       {community.description}
@@ -392,17 +427,6 @@ export default async function CommunityFeedPage({
                   </div>
                 )}
               </div>
-
-              {statItems.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-x-10 gap-y-2">
-                  {statItems.map((stat) => (
-                    <div key={stat.label} className="flex items-baseline gap-2">
-                      <span className="text-xl font-bold text-white">{stat.value.toLocaleString()}</span>
-                      <span className="text-sm text-white/70">{stat.label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -422,6 +446,15 @@ export default async function CommunityFeedPage({
                 {user && !membership && (
                   <div className="shrink-0">
                     <JoinCommunityButton communityId={community.id} />
+                  </div>
+                )}
+                {isStaff && (
+                  <div className="shrink-0">
+                    <CoverQuickEdit
+                      communityId={community.id}
+                      coverPosition={community.cover_position}
+                      hasCover={false}
+                    />
                   </div>
                 )}
               </div>

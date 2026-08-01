@@ -22,6 +22,8 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
   const [customColor, setCustomColor] = useState(community.accent_color ?? "#4d6a52");
   const customTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [coverPosition, setCoverPosition] = useState<string>(community.cover_position ?? "center");
+  const [showStats, setShowStats] = useState(community.show_stats);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   async function persistLogo(url: string) {
     const supabase = createClient();
@@ -74,6 +76,24 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
 
     if (error) {
       setCoverPosition(previous);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function persistShowStats(next: boolean) {
+    setShowStats(next);
+    setStatsError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("communities")
+      .update({ show_stats: next })
+      .eq("id", community.id);
+
+    if (error) {
+      setShowStats(!next);
+      setStatsError(error.message);
       return;
     }
     router.refresh();
@@ -147,6 +167,26 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="border-t border-border pt-5">
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={showStats}
+            onChange={(event) => persistShowStats(event.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--accent)]"
+          />
+          <span>
+            <span className="block font-medium text-foreground">Show counts in the header</span>
+            <span className="block text-muted-foreground">
+              Members, events, businesses and posts, alongside the community name. Off by default —
+              the counts make the case that a community is busy, so they help once the numbers are
+              worth showing and work against you before then. Counts of zero never appear either way.
+            </span>
+          </span>
+        </label>
+        {statsError && <p className="mt-2 text-xs text-danger">{statsError}</p>}
       </div>
 
       <div className="border-t border-border pt-5">
