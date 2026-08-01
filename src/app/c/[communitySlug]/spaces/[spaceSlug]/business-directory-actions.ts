@@ -384,7 +384,17 @@ export async function setCategoryFeatured(
 ) {
   const supabase = await createClient();
 
-  if ((await resolveCategory(supabase, spaceId, category)) !== category) {
+  // Only pinning needs the category to exist. Unpinning must not go through
+  // resolveCategory: a pin outlives whatever created it — a custom category
+  // someone deleted, or the retired "accommodation" slug — and resolveCategory
+  // folds both to "other", so the check would reject the removal of exactly the
+  // stranded nav links that most need removing. Deleting a row that doesn't
+  // exist is a no-op, and the statement is scoped to this space either way, so
+  // a loose slug can't reach anything it shouldn't.
+  if (featured && (await resolveCategory(supabase, spaceId, category)) !== category) {
+    return { error: "Unknown category." };
+  }
+  if (!featured && !/^[a-z0-9][a-z0-9-]{0,39}$/.test(category)) {
     return { error: "Unknown category." };
   }
 
