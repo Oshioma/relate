@@ -316,6 +316,9 @@ export async function messageMembers(input: {
   memberIds: string[];
   subject: string;
   body: string;
+  // Where the email's button / in-app notification links to. An internal path
+  // only (must start with "/"); anything else falls back to the community home.
+  link?: string;
 }): Promise<LiveActionResult> {
   const subject = input.subject.trim();
   const body = input.body.trim();
@@ -337,13 +340,16 @@ export async function messageMembers(input: {
   const memberIds = Array.from(new Set(input.memberIds)).filter((id) => id && id !== user.id);
   if (memberIds.length === 0) return { error: "Pick at least one member to message." };
 
+  // Only accept an internal path, so the link can't be pointed off-platform.
+  const link = input.link && input.link.startsWith("/") ? input.link : `/c/${input.communitySlug}`;
+
   const rows = memberIds.map((id) => ({
     user_id: id,
     community_id: input.communityId,
     type: "member_message" as const,
     title: subject.slice(0, 200),
     body: body.slice(0, 2000),
-    link: `/c/${input.communitySlug}`,
+    link,
     actor_id: user.id,
   }));
 

@@ -13,17 +13,23 @@ import { messageMembers } from "./live-events-actions";
 // Staff composer: pick members, write a subject + message, and send. Each
 // recipient gets an in-app notification and (unless they've opted out) an
 // email. Members can silence the email from Settings and keep the in-app copy.
+export type MessageAutofill = { subject: string; body: string; link?: string };
+
 export function MessageMembersModal({
   communityId,
   communitySlug,
   members,
   currentUserId,
+  autofill,
   onClose,
 }: {
   communityId: string;
   communitySlug: string;
   members: Profile[];
   currentUserId: string;
+  // Prefilled subject/body/link, e.g. "we're going live now" — staff can edit
+  // before sending.
+  autofill?: MessageAutofill | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -31,8 +37,8 @@ export function MessageMembersModal({
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [subject, setSubject] = useState(autofill?.subject ?? "");
+  const [body, setBody] = useState(autofill?.body ?? "");
 
   const selectable = useMemo(() => members.filter((m) => m.id !== currentUserId), [members, currentUserId]);
 
@@ -85,6 +91,7 @@ export function MessageMembersModal({
         memberIds: Array.from(selected),
         subject,
         body,
+        link: autofill?.link,
       });
       if (res.error) {
         setError(res.error);

@@ -139,6 +139,27 @@ export function LiveEventsView({
 
   const showEmptyState = !active && scheduled.length === 0 && !isStaff;
 
+  // Prefill the "Email members" composer from the session context: a live-now
+  // shout with a join link, or the soonest upcoming one with a link that signs
+  // the reader up for the 10-minutes-before reminder. `scheduled` is sorted
+  // soonest-first, so [0] is the next event.
+  const soonest = scheduled[0];
+  const messageAutofill = active
+    ? {
+        subject: `We're going live now — ${active.title}`,
+        body: `We're going live now in ${spaceName}. Tap below to join us.`,
+        link: `/c/${communitySlug}/spaces/${spaceSlug}`,
+      }
+    : soonest
+    ? {
+        subject: `Live soon: ${soonest.title}`,
+        body: soonest.scheduled_start
+          ? `We're scheduled to go live at ${formatDateTime(soonest.scheduled_start)}. Tap below to get an email reminder 10 minutes before we start.`
+          : `We're scheduling a live session soon. Tap below to get an email reminder before we start.`,
+        link: `/c/${communitySlug}/spaces/${spaceSlug}/remind/${soonest.id}`,
+      }
+    : null;
+
   return (
     <div className="space-y-6">
       {error && (
@@ -427,6 +448,7 @@ export function LiveEventsView({
           communitySlug={communitySlug}
           members={inviteMembers}
           currentUserId={currentUserId}
+          autofill={messageAutofill}
           onClose={() => setMessageOpen(false)}
         />
       )}
