@@ -23,7 +23,6 @@ import { NotificationsPopover } from "@/components/layout/notifications-popover"
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { communityAccentStyle } from "@/lib/accent-color";
-import { cn } from "@/lib/utils";
 
 // Give each community its own tab title. `default` shows the community name on
 // the community's own pages; the template lets any child page that sets a title
@@ -174,46 +173,16 @@ export default async function CommunityLayout({
       {...(accentStyle ? { "data-community-accent": "" } : {})}
     >
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
-        {/* Sidebar header: the cover image sits behind the logo and name, so the
-            community's own artwork carries past the feed into every page the
-            shell wraps — Spaces, Events, Members. Without a cover it stays the
-            plain card header it has always been. */}
-        <div
-          className={cn(
-            "relative isolate overflow-hidden border-b border-border px-5 py-5",
-            community.cover_image_url && "border-b-0"
-          )}
-        >
-          {community.cover_image_url && (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={community.cover_image_url}
-                alt=""
-                className="absolute inset-0 -z-20 h-full w-full object-cover"
-              />
-              {/* An even tint, matching the hero's band: a gradient here shifts
-                  tone down the crop and reads as a different device from the
-                  one on the feed. Flat and uniform, it's legible behind a
-                  transparent-PNG logo anywhere in the frame and the two
-                  surfaces look like the same decision. Fixed black rather than
-                  a theme token — it sits on an unknown photo, and the text over
-                  it is white in both themes. */}
-              <div aria-hidden className="absolute inset-0 -z-10 bg-black/45" />
-            </>
-          )}
+        {/* Sidebar header: the logo on the plain card background. The cover
+            photo was tried here and pulled back out — a tinted crop behind a
+            logo made the sidebar compete with the hero rather than support it,
+            and no tint reads well behind every possible logo. The cover earns
+            its place on the feed header, where it's large enough to be the
+            photograph it is. */}
+        <div className="border-b border-border px-5 py-5">
           <div className="flex flex-col items-center text-center">
             <Avatar src={community.logo_url} name={community.name} size={140} />
-            <span
-              className={cn(
-                "mt-3 truncate text-lg font-semibold",
-                community.cover_image_url
-                  ? "text-white [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]"
-                  : "text-foreground"
-              )}
-            >
-              {community.name}
-            </span>
+            <span className="mt-3 truncate text-lg font-semibold text-foreground">{community.name}</span>
           </div>
         </div>
 
