@@ -15,6 +15,7 @@ export function NewAccommodationForm({
   spaceSlug,
   userId,
   businesses,
+  importUrl,
   onDone,
 }: {
   communityId: string;
@@ -23,6 +24,8 @@ export function NewAccommodationForm({
   spaceSlug: string;
   userId: string;
   businesses: BusinessLinkOption[];
+  // Pre-loaded link from the directory hand-off; autofills once on arrival.
+  importUrl?: string;
   onDone?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +67,7 @@ export function NewAccommodationForm({
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
 
-      <ImportFromLink kind="accommodation" spaceId={spaceId} onApply={applyDraft} />
+      <ImportFromLink kind="accommodation" spaceId={spaceId} initialUrl={importUrl} onApply={applyDraft} />
 
       <AccommodationFormFields
         key={draftKey}

@@ -85,10 +85,13 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[] }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport } = await searchParams;
+  // A link handed over from the directory's add form when what was pasted turned
+  // out to be a place to stay — see the `handoff` on an import result.
+  const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -644,6 +647,7 @@ export default async function SpaceDetailPage({
           canPost={canPost}
           userId={viewerId}
           businesses={accommodationBusinessOptions}
+          importUrl={importUrl}
         />
       ) : isRecommendationsSpace ? (
         <RecommendationsView
