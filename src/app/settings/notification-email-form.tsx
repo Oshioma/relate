@@ -15,6 +15,7 @@ const TOGGLES: { type: NotificationType; label: string; description: string }[] 
   { type: "live_started", label: "Live events starting", description: "When a live video event goes live and you can join." },
   { type: "live_reminder", label: "Live event reminders", description: "A heads-up shortly before an event you've RSVP'd to starts." },
   { type: "live_invite", label: "Live event invites", description: "When a host personally invites you to a live video call." },
+  { type: "member_message", label: "Messages from community hosts", description: "When a community host emails a message to you and other members. You'll always see these in the app." },
 ];
 
 export function NotificationEmailForm({ prefs }: { prefs: NotificationEmailPrefs }) {

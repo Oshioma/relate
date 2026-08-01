@@ -3,11 +3,18 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getMembership } from "@/lib/data/community";
 import { getProfile } from "@/lib/data/profile";
 import { isJaasConfigured, getJaasAppId, mintJaasToken } from "@/lib/jitsi";
 
 export type LiveActionResult = { error: string } | { error: null };
+
+// True for owner/admin/moderator — the "community host" roles that can start
+// sessions, invite, and message members. Mirrors is_community_staff() in SQL.
+function isStaffRole(role: string | undefined): boolean {
+  return role === "owner" || role === "admin" || role === "moderator";
+}
 
 // Revalidate the whole space subtree so the list and any open room re-render.
 function revalidateSpace(communitySlug: string, spaceSlug: string) {
@@ -294,6 +301,56 @@ export async function inviteMembersToLiveSession(input: {
   if (error) return { error: error.message };
 
   revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}
+
+// Staff-only: email a message to hand-picked members. Each recipient gets an
+// in-app notification (always) plus an email — unless they've opted out of
+// 'member_message' emails in Settings, in which case they still get the in-app
+// copy. Notifications for *other* users can't be inserted under RLS, so after
+// verifying the caller is a host we insert with the service-role client; the
+// email_notification() trigger then fans out the emails, honouring opt-outs.
+export async function messageMembers(input: {
+  communityId: string;
+  communitySlug: string;
+  memberIds: string[];
+  subject: string;
+  body: string;
+}): Promise<LiveActionResult> {
+  const subject = input.subject.trim();
+  const body = input.body.trim();
+  if (!subject) return { error: "Add a subject." };
+  if (!body) return { error: "Write a message." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const membership = await getMembership(supabase, input.communityId, user.id);
+  if (!(membership?.status === "active" && isStaffRole(membership.role))) {
+    return { error: "Only community hosts can message members." };
+  }
+
+  // Don't message yourself; de-dupe the picker's selection.
+  const memberIds = Array.from(new Set(input.memberIds)).filter((id) => id && id !== user.id);
+  if (memberIds.length === 0) return { error: "Pick at least one member to message." };
+
+  const rows = memberIds.map((id) => ({
+    user_id: id,
+    community_id: input.communityId,
+    type: "member_message" as const,
+    title: subject.slice(0, 200),
+    body: body.slice(0, 2000),
+    link: `/c/${input.communitySlug}`,
+    actor_id: user.id,
+  }));
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("notifications").insert(rows);
+  if (error) return { error: error.message };
+
   return { error: null };
 }
 

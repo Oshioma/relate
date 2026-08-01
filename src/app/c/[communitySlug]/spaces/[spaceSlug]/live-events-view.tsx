@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus } from "lucide-react";
+import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import {
 } from "./live-events-actions";
 import { JitsiRoom } from "./jitsi-room";
 import { InviteMembersModal } from "./invite-members-modal";
+import { MessageMembersModal } from "./message-members-modal";
 import type { LiveSessionWithStarter, LiveRsvpWithAttendee, LiveInviteWithMember } from "@/lib/data/live-events";
 import type { Profile } from "@/types/database";
 
@@ -76,6 +77,8 @@ export function LiveEventsView({
   const [scheduledStart, setScheduledStart] = useState("");
   // The session the "invite members" picker is currently open for, if any.
   const [inviteFor, setInviteFor] = useState<LiveSessionWithStarter | null>(null);
+  // Whether the "email members" composer is open.
+  const [messageOpen, setMessageOpen] = useState(false);
 
   function run(action: () => Promise<{ error: string | null }>, after?: () => void) {
     setError(null);
@@ -142,20 +145,25 @@ export function LiveEventsView({
         <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {/* Staff-only: which video backend is live, so an admin can confirm the
-          JaaS setup took effect without opening DevTools. */}
+      {/* Staff-only toolbar: the active video backend (so an admin can confirm
+          the JaaS setup without DevTools) plus a shortcut to email members. */}
       {isStaff && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Video backend:</span>
-          {jaasConfigured ? (
-            <Badge tone="accent" className="gap-1 normal-case">
-              <ShieldCheck className="h-3 w-3" /> JaaS · authenticated
-            </Badge>
-          ) : (
-            <Badge tone="neutral" className="gap-1 normal-case" title="Set the JITSI_* env vars to switch to authenticated, unlimited rooms.">
-              <TriangleAlert className="h-3 w-3" /> Public demo · 5-min limit
-            </Badge>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Video backend:</span>
+            {jaasConfigured ? (
+              <Badge tone="accent" className="gap-1 normal-case">
+                <ShieldCheck className="h-3 w-3" /> JaaS · authenticated
+              </Badge>
+            ) : (
+              <Badge tone="neutral" className="gap-1 normal-case" title="Set the JITSI_* env vars to switch to authenticated, unlimited rooms.">
+                <TriangleAlert className="h-3 w-3" /> Public demo · 5-min limit
+              </Badge>
+            )}
+          </div>
+          <Button type="button" variant="secondary" size="sm" onClick={() => setMessageOpen(true)}>
+            <Mail className="h-4 w-4" /> Email members
+          </Button>
         </div>
       )}
 
@@ -382,29 +390,15 @@ export function LiveEventsView({
           <h2 className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
             <History className="h-4 w-4" /> Past sessions
           </h2>
-          <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((session) => (
-              <Card key={session.id}>
-                <CardContent className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{session.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {session.starter ? `Hosted by ${session.starter.full_name || session.starter.username} · ` : ""}
-                      Ended {formatRelativeTime(session.ended_at ?? session.started_at)}
-                    </p>
-                  </div>
-                  {isStaff && (
-                    <button
-                      type="button"
-                      title="Remove from history"
-                      onClick={() => handleDelete(session.id)}
-                      className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-danger"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </CardContent>
-              </Card>
+              <PastSessionCard
+                key={session.id}
+                session={session}
+                isStaff={isStaff}
+                onDelete={() => handleDelete(session.id)}
+                pending={pending}
+              />
             ))}
           </div>
         </div>
@@ -425,8 +419,87 @@ export function LiveEventsView({
           onClose={() => setInviteFor(null)}
         />
       )}
+
+      {/* Staff composer: email a message to selected members. */}
+      {messageOpen && (
+        <MessageMembersModal
+          communityId={communityId}
+          communitySlug={communitySlug}
+          members={inviteMembers}
+          currentUserId={currentUserId}
+          onClose={() => setMessageOpen(false)}
+        />
+      )}
     </div>
   );
+}
+
+// A past session rendered as a card: a video-tile header with a "replay"-style
+// glyph, then the title, host and when it ended (plus how long it ran, when
+// both timestamps are present). Staff get a remove-from-history control.
+function PastSessionCard({
+  session,
+  isStaff,
+  onDelete,
+  pending,
+}: {
+  session: LiveSessionWithStarter;
+  isStaff: boolean;
+  onDelete: () => void;
+  pending: boolean;
+}) {
+  const duration = formatSessionDuration(session.started_at, session.ended_at);
+  const hostName = session.starter?.full_name || session.starter?.username;
+  return (
+    <Card className="group relative overflow-hidden">
+      <div className="relative flex h-24 items-center justify-center bg-gradient-to-br from-muted to-border">
+        <Video className="h-7 w-7 text-muted-foreground/70" />
+        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur">
+          <History className="h-3 w-3" /> Ended
+        </span>
+        {duration && (
+          <span className="absolute bottom-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur">
+            {duration}
+          </span>
+        )}
+        {isStaff && (
+          <button
+            type="button"
+            title="Remove from history"
+            onClick={onDelete}
+            disabled={pending}
+            className="absolute right-2 top-2 rounded-full bg-background/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-danger group-hover:opacity-100 disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      <CardContent className="py-3">
+        <p className="truncate text-sm font-semibold text-foreground" title={session.title}>
+          {session.title}
+        </p>
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {session.starter && <Avatar src={session.starter.avatar_url} name={hostName} size={18} />}
+          <span className="truncate">
+            {hostName ? `${hostName} · ` : ""}
+            {formatRelativeTime(session.ended_at ?? session.started_at)}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// "45 min", "1h 20m" or null when we can't tell how long a session ran.
+function formatSessionDuration(startedAt: string | null, endedAt: string | null): string | null {
+  if (!startedAt || !endedAt) return null;
+  const ms = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+  if (!Number.isFinite(ms) || ms < 60_000) return null;
+  const mins = Math.round(ms / 60_000);
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
 }
 
 // The invited-members row on a session card. Staff see the full guest list
