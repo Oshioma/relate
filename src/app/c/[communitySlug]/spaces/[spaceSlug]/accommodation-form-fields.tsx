@@ -156,9 +156,27 @@ export function AccommodationFormFields({
         <Input id={`${idPrefix}_booking_url`} name="booking_url" type="url" placeholder="https://…" defaultValue={draft?.booking_url ?? listing?.booking_url ?? ""} />
       </div>
 
-      <div>
-        <Label htmlFor={`${idPrefix}_location_label`}>Location (optional)</Label>
-        <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={draft?.location_label ?? listing?.location_label ?? ""} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_location_label`}>Area (optional)</Label>
+          <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={draft?.location_label ?? listing?.location_label ?? ""} />
+          <p className="mt-1 text-xs text-muted-foreground">The village or neighbourhood — used to filter listings.</p>
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_address`}>Address (optional)</Label>
+          <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Nungwi" defaultValue={draft?.address ?? listing?.address ?? ""} />
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_website`}>Website (optional)</Label>
+          <Input id={`${idPrefix}_website`} name="website" type="url" placeholder="https://…" defaultValue={draft?.website ?? listing?.website ?? ""} />
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_phone`}>Phone (optional)</Label>
+          <Input id={`${idPrefix}_phone`} name="phone" type="tel" placeholder="+255 …" defaultValue={draft?.phone ?? listing?.phone ?? ""} />
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

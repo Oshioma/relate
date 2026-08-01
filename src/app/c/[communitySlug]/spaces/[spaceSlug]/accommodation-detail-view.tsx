@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check } from "lucide-react";
+import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check, Globe, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, amenityLabel, formatAvailabilityWindow } from "@/lib/accommodation-types";
@@ -259,10 +259,38 @@ export function AccommodationDetailView({
             )}
           </div>
 
-          {listing.location_label && (
-            <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0" /> {listing.location_label}
-            </p>
+          {(listing.location_label || listing.address || listing.website || listing.phone) && (
+            <div className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+              {/* Area and address say the same kind of thing, so show the
+                  address when there is one and fall back to the area. */}
+              {(listing.address || listing.location_label) && (
+                <p className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  {listing.address ?? listing.location_label}
+                </p>
+              )}
+              {listing.phone && (
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  <a href={`tel:${listing.phone.replace(/\s+/g, "")}`} className="hover:text-foreground hover:underline">
+                    {listing.phone}
+                  </a>
+                </p>
+              )}
+              {listing.website && (
+                <p className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <a
+                    href={listing.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate hover:text-foreground hover:underline"
+                  >
+                    {listing.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                  </a>
+                </p>
+              )}
+            </div>
           )}
 
           {listing.lat !== null && listing.lng !== null && (
