@@ -2,7 +2,7 @@
 -- Relate — notification type for personal Live Event invites
 --
 -- Adds the 'live_invite' notification_type used by the trigger in the next
--- migration (20260801075952_live_session_invites.sql). Unlike 'live_event' /
+-- migration (20260801080102_live_session_invites.sql). Unlike 'live_event' /
 -- 'live_started', which broadcast to the whole space, this fires only for the
 -- specific members a host hand-picks to invite.
 --
