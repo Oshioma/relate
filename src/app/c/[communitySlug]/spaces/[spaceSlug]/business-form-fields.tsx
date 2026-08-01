@@ -7,6 +7,7 @@ import { businessCategoryOptions } from "@/lib/business-categories";
 import { BusinessImagesInput, type GalleryImage } from "./business-images-input";
 import { OpeningHoursInput } from "./opening-hours-input";
 import type { PickedLocation } from "@/components/map/location-picker";
+import type { ListingDraft } from "@/lib/listing-draft";
 import type { Business, BusinessCustomCategory, BusinessCategoryLabelOverride, BusinessHoursSchedule } from "@/types/database";
 
 // Leaflet touches `window` at import time, so the picker can only load in the
@@ -19,9 +20,15 @@ const LocationPicker = dynamic(() => import("@/components/map/location-picker"),
 // The shared field set for adding and editing a directory listing. The parent
 // form owns the pin and image state (so it can reset or prefill them) while
 // uncontrolled text fields take their defaults from `business` when editing.
+//
+// `draft` is a link-import result the member hasn't saved yet: it outranks
+// `business` as the default for any field it filled. Because these are
+// uncontrolled inputs, defaults only apply on mount — the parent remounts this
+// subtree (via `key`) each time a new draft arrives.
 export function BusinessFormFields({
   idPrefix,
   business,
+  draft,
   pin,
   onPinChange,
   images,
@@ -34,6 +41,7 @@ export function BusinessFormFields({
 }: {
   idPrefix: string;
   business?: Business;
+  draft?: ListingDraft | null;
   // Staff-added categories for this space, merged into the category select.
   customCategories: BusinessCustomCategory[];
   // Staff relabellings of built-in categories, applied to the select options.
@@ -53,14 +61,14 @@ export function BusinessFormFields({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_name`}>Name</Label>
-          <Input id={`${idPrefix}_name`} name="name" placeholder="The Rock Restaurant" defaultValue={business?.name} required />
+          <Input id={`${idPrefix}_name`} name="name" placeholder="The Rock Restaurant" defaultValue={draft?.name ?? business?.name} required />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_category`}>Category</Label>
           <select
             id={`${idPrefix}_category`}
             name="category"
-            defaultValue={business?.category ?? "restaurant"}
+            defaultValue={draft?.category ?? business?.category ?? "restaurant"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {businessCategoryOptions(customCategories, labelOverrides).map((c) => (
@@ -80,7 +88,7 @@ export function BusinessFormFields({
           id={`${idPrefix}_is_local`}
           name="is_local"
           type="checkbox"
-          defaultChecked={business?.is_local ?? false}
+          defaultChecked={draft?.is_local ?? business?.is_local ?? false}
           className="mt-0.5 h-4 w-4 shrink-0 rounded border-border text-accent focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <span className="text-sm">
@@ -98,7 +106,7 @@ export function BusinessFormFields({
           name="description"
           rows={2}
           placeholder="What makes this place worth a visit?"
-          defaultValue={business?.description ?? ""}
+          defaultValue={draft?.description ?? business?.description ?? ""}
         />
       </div>
 
@@ -109,13 +117,13 @@ export function BusinessFormFields({
             id={`${idPrefix}_location_label`}
             name="location_label"
             placeholder="Kendwa"
-            defaultValue={business?.location_label ?? ""}
+            defaultValue={draft?.location_label ?? business?.location_label ?? ""}
           />
           <p className="mt-1 text-xs text-muted-foreground">The village or neighbourhood — used to filter the directory.</p>
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_address`}>Address (optional)</Label>
-          <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Jambiani" defaultValue={business?.address ?? ""} />
+          <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Jambiani" defaultValue={draft?.address ?? business?.address ?? ""} />
         </div>
       </div>
 
@@ -128,11 +136,11 @@ export function BusinessFormFields({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_website`}>Website (optional)</Label>
-          <Input ref={websiteRef} id={`${idPrefix}_website`} name="website" type="url" placeholder="https://…" defaultValue={business?.website ?? ""} />
+          <Input ref={websiteRef} id={`${idPrefix}_website`} name="website" type="url" placeholder="https://…" defaultValue={draft?.website ?? business?.website ?? ""} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_phone`}>Phone (optional)</Label>
-          <Input id={`${idPrefix}_phone`} name="phone" type="tel" placeholder="+255 …" defaultValue={business?.phone ?? ""} />
+          <Input id={`${idPrefix}_phone`} name="phone" type="tel" placeholder="+255 …" defaultValue={draft?.phone ?? business?.phone ?? ""} />
         </div>
       </div>
 
