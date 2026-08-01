@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { businessCategoryOptions } from "@/lib/business-categories";
+import { businessCategoryOptions, businessCategoryLabel } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
 import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory, renameBusinessCategory } from "./business-directory-actions";
@@ -75,6 +75,20 @@ export function BusinessDirectoryView({
     [customCategories, labelOverrides]
   );
 
+  // A pinned category has to stay reachable even after it drops out of the
+  // option list — a custom category that was deleted, or the retired
+  // "accommodation" slug, both of which keep their nav sub-link because
+  // featured_business_categories is keyed by slug and outlives them. Unpinning
+  // is only offered for the *selected* category, so a pin with no chip is a nav
+  // link that can never be removed.
+  const chipOptions = useMemo(() => {
+    const known = new Set(categoryOptions.map((c) => c.value));
+    const stranded = featured
+      .filter((f) => !known.has(f))
+      .map((f) => ({ value: f, label: businessCategoryLabel(f, customCategories, labelOverrides) }));
+    return [...categoryOptions, ...stranded];
+  }, [categoryOptions, featured, customCategories, labelOverrides]);
+
   function toggleFeatured(target: BusinessCategory) {
     const makeFeatured = !featured.includes(target);
     setChipError(null);
@@ -122,7 +136,7 @@ export function BusinessDirectoryView({
   function startRename(target: BusinessCategory) {
     setChipError(null);
     setAddingCategory(false);
-    setRenameLabel(categoryOptions.find((o) => o.value === target)?.label ?? "");
+    setRenameLabel(chipOptions.find((o) => o.value === target)?.label ?? "");
     setRenamingCategory(target);
   }
 
@@ -274,12 +288,13 @@ export function BusinessDirectoryView({
             Local ({localCount})
           </button>
         )}
-        {categoryOptions.map((c) => {
+        {chipOptions.map((c) => {
           const count = countByCategory.get(c.value) ?? 0;
           const isCustom = customCategories.some((cc) => cc.slug === c.value);
           // Built-ins only clutter the row once something uses them; customs
-          // were added deliberately, so they show right away.
-          if (count === 0 && !isCustom) return null;
+          // were added deliberately, so they show right away. A pinned category
+          // always shows, empty or not, so its nav link can be removed.
+          if (count === 0 && !isCustom && !featured.includes(c.value)) return null;
           const isActive = category === c.value;
           return (
             <button
