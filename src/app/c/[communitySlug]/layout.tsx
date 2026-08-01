@@ -22,6 +22,8 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
+import { communityAccentStyle } from "@/lib/accent-color";
+import { cn } from "@/lib/utils";
 
 // Give each community its own tab title. `default` shows the community name on
 // the community's own pages; the template lets any child page that sets a title
@@ -161,13 +163,56 @@ export default async function CommunityLayout({
     ...orderedUnits.flatMap((unit) => unit.items),
   ];
 
+  // A community that has chosen its own accent re-points the accent tokens for
+  // everything inside its shell (see globals.css).
+  const accentStyle = communityAccentStyle(community.accent_color);
+
   return (
-    <div className="min-h-screen bg-background md:flex">
+    <div
+      className="min-h-screen bg-background md:flex"
+      style={accentStyle}
+      {...(accentStyle ? { "data-community-accent": "" } : {})}
+    >
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
-        <div className="border-b border-border px-5 py-5">
+        {/* Sidebar header: the cover image sits behind the logo and name, so the
+            community's own artwork carries past the feed into every page the
+            shell wraps — Spaces, Events, Members. Without a cover it stays the
+            plain card header it has always been. */}
+        <div
+          className={cn(
+            "relative isolate overflow-hidden border-b border-border px-5 py-5",
+            community.cover_image_url && "border-b-0"
+          )}
+        >
+          {community.cover_image_url && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={community.cover_image_url}
+                alt=""
+                className="absolute inset-0 -z-20 h-full w-full object-cover"
+              />
+              {/* Fixed dark scrim rather than a theme token: it sits on top of
+                  an unknown photo, and the text above it is white in both
+                  themes. */}
+              <div
+                aria-hidden
+                className="absolute inset-0 -z-10 bg-gradient-to-b from-black/45 to-black/80"
+              />
+            </>
+          )}
           <div className="flex flex-col items-center text-center">
             <Avatar src={community.logo_url} name={community.name} size={140} />
-            <span className="mt-3 truncate text-lg font-semibold text-foreground">{community.name}</span>
+            <span
+              className={cn(
+                "mt-3 truncate text-lg font-semibold",
+                community.cover_image_url
+                  ? "text-white [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]"
+                  : "text-foreground"
+              )}
+            >
+              {community.name}
+            </span>
           </div>
         </div>
 

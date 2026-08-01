@@ -18,6 +18,12 @@ interface ImageUploadProps {
   onUploaded: (publicUrl: string) => Promise<void> | void;
   shape?: "circle" | "square";
   size?: number;
+  // Preview aspect ratio (width / height). Defaults to 1 (a square). Set it to
+  // match how the image actually renders — a preview shaped like a logo invites
+  // a logo, which is how wordmarks end up in banner slots.
+  aspect?: number;
+  // Extra guidance under the upload button, e.g. a recommended size.
+  hint?: string;
   label: string;
 }
 
@@ -28,6 +34,8 @@ export function ImageUpload({
   onUploaded,
   shape = "circle",
   size = 80,
+  aspect = 1,
+  hint,
   label,
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
@@ -91,7 +99,7 @@ export function ImageUpload({
           "relative flex shrink-0 items-center justify-center overflow-hidden border border-border bg-muted text-muted-foreground transition-opacity hover:opacity-80 disabled:opacity-60",
           shape === "circle" ? "rounded-full" : "rounded-lg"
         )}
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size / aspect }}
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -116,6 +124,7 @@ export function ImageUpload({
           {preview ? `Change ${label.toLowerCase()}` : `Upload ${label.toLowerCase()}`}
         </button>
         <p className="mt-0.5 text-xs text-muted-foreground">PNG, JPEG, WebP, or GIF. Up to 8MB.</p>
+        {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
         {error && <p className="mt-1 text-xs text-danger">{error}</p>}
         <input
           ref={inputRef}

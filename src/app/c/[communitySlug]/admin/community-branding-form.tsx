@@ -1,13 +1,25 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/input";
+import { ACCENT_PRESETS, normalizeAccentColor } from "@/lib/accent-color";
+import { cn } from "@/lib/utils";
 import type { Community } from "@/types/database";
 
 export function CommunityBrandingForm({ community }: { community: Community }) {
   const router = useRouter();
+  // Optimistic: the swatch highlights on click rather than after the round
+  // trip, so picking a colour feels like picking a colour.
+  const [accent, setAccent] = useState<string | null>(community.accent_color);
+  const [accentError, setAccentError] = useState<string | null>(null);
+  // The native colour input fires continuously while the picker is dragged, so
+  // its value is held locally and only written once the picking settles.
+  const [customColor, setCustomColor] = useState(community.accent_color ?? "#4d6a52");
+  const customTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function persistLogo(url: string) {
     const supabase = createClient();
@@ -21,34 +33,132 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
     router.refresh();
   }
 
+  async function persistAccent(raw: string | null) {
+    // Null clears the override; anything else has to survive normalisation,
+    // because the column's check constraint will reject it otherwise.
+    const value = raw === null ? null : normalizeAccentColor(raw);
+    if (raw !== null && !value) {
+      setAccentError("That isn't a valid colour.");
+      return;
+    }
+
+    const previous = accent;
+    setAccent(value);
+    setAccentError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("communities")
+      .update({ accent_color: value })
+      .eq("id", community.id);
+
+    if (error) {
+      setAccent(previous);
+      setAccentError(error.message);
+      return;
+    }
+    router.refresh();
+  }
+
+  function pickPreset(value: string) {
+    setCustomColor(value);
+    persistAccent(value);
+  }
+
+  function pickCustom(value: string) {
+    setCustomColor(value);
+    if (customTimer.current) clearTimeout(customTimer.current);
+    customTimer.current = setTimeout(() => persistAccent(value), 400);
+  }
+
   return (
-    <div className="grid gap-6 rounded-lg border border-border bg-card p-4 sm:grid-cols-2">
-      <div>
-        <Label>Logo</Label>
-        <div className="mt-2">
-          <ImageUpload
-            bucket="community-assets"
-            basePath={`${community.id}/logo`}
-            currentUrl={community.logo_url}
-            onUploaded={persistLogo}
-            label="Logo"
-          />
+    <div className="space-y-6 rounded-lg border border-border bg-card p-4">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <Label>Logo</Label>
+          <div className="mt-2">
+            <ImageUpload
+              bucket="community-assets"
+              basePath={`${community.id}/logo`}
+              currentUrl={community.logo_url}
+              onUploaded={persistLogo}
+              label="Logo"
+              hint="Your mark or wordmark. Shown in the sidebar and the mobile menu."
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label>Cover image</Label>
+          <div className="mt-2">
+            {/* Previewed at the shape it actually renders at — a wide banner, not
+                a square — so it's clear this slot wants a photograph. */}
+            <ImageUpload
+              bucket="community-assets"
+              basePath={`${community.id}/cover`}
+              currentUrl={community.cover_image_url}
+              onUploaded={persistCover}
+              shape="square"
+              size={168}
+              aspect={3}
+              label="Cover image"
+              hint="A wide photo of your place — around 2400×800. Fills the page header and tints the sidebar."
+            />
+          </div>
         </div>
       </div>
 
-      <div>
-        <Label>Cover image</Label>
-        <div className="mt-2">
-          <ImageUpload
-            bucket="community-assets"
-            basePath={`${community.id}/cover`}
-            currentUrl={community.cover_image_url}
-            onUploaded={persistCover}
-            shape="square"
-            size={80}
-            label="Cover image"
-          />
+      <div className="border-t border-border pt-5">
+        <Label>Accent colour</Label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Used for buttons, links and the active nav item across this community. Leave it unset to
+          use the platform&apos;s default.
+        </p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {ACCENT_PRESETS.map((preset) => {
+            const isActive = accent === preset.value;
+            return (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => pickPreset(preset.value)}
+                aria-label={preset.name}
+                aria-pressed={isActive}
+                title={preset.name}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-full border transition-transform hover:scale-110",
+                  isActive ? "border-foreground" : "border-border"
+                )}
+                style={{ backgroundColor: preset.value }}
+              >
+                {isActive && <Check className="h-4 w-4 text-white" strokeWidth={3} />}
+              </button>
+            );
+          })}
+
+          <label className="ml-1 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <input
+              type="color"
+              value={customColor}
+              onChange={(event) => pickCustom(event.target.value)}
+              className="h-8 w-8 cursor-pointer rounded-full border border-border bg-transparent p-0"
+            />
+            Custom
+          </label>
+
+          {accent && (
+            <button
+              type="button"
+              onClick={() => persistAccent(null)}
+              className="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
+            >
+              Reset to default
+            </button>
+          )}
         </div>
+
+        {accentError && <p className="mt-2 text-xs text-danger">{accentError}</p>}
       </div>
     </div>
   );

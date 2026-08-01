@@ -93,6 +93,10 @@ export type Community = {
   description: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  // Optional per-community accent, as '#rrggbb' (a DB check constraint enforces
+  // the shape). Null = inherit the platform accent from globals.css. Applied to
+  // the community shell by communityAccentStyle in src/lib/accent-color.ts.
+  accent_color: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
