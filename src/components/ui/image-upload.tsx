@@ -2,14 +2,11 @@
 
 import { useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { IMAGE_ACCEPTED_TYPES, uploadImage, validateImageFile, type ImageBucket } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
 
-const MAX_BYTES = 8 * 1024 * 1024;
-const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
-
 interface ImageUploadProps {
-  bucket: "avatars" | "community-assets" | "uploads";
+  bucket: ImageBucket;
   // Object path without extension, e.g. `${userId}/avatar` or `${communityId}/logo`.
   // The file's own extension is appended, and re-uploads overwrite in place.
   // For the per-user "uploads" bucket the first segment must be the uploader's id.
@@ -50,12 +47,9 @@ export function ImageUpload({
 
     setError(null);
 
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      setError("Please choose a PNG, JPEG, WebP, or GIF image.");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      setError("That image is too large (max 8MB).");
+    const invalid = validateImageFile(file);
+    if (invalid) {
+      setError(invalid);
       return;
     }
 
@@ -64,21 +58,7 @@ export function ImageUpload({
     setPreview(localPreview);
 
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const path = `${basePath}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { upsert: true, contentType: file.type });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      const publicUrl = `${data.publicUrl}?v=${Date.now()}`;
-
+      const publicUrl = await uploadImage(file, bucket, basePath);
       await onUploaded(publicUrl);
       setPreview(publicUrl);
     } catch (err) {
@@ -129,7 +109,7 @@ export function ImageUpload({
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPTED_TYPES.join(",")}
+          accept={IMAGE_ACCEPTED_TYPES.join(",")}
           className="hidden"
           onChange={handleFileChange}
         />

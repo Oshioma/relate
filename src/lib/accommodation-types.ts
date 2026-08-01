@@ -14,6 +14,40 @@ export function accommodationTypeLabel(type: AccommodationType): string {
   return ACCOMMODATION_TYPES.find((t) => t.value === type)?.label ?? type;
 }
 
+// How long someone is staying — the first question a guest or a renter actually
+// has, and the one that splits this space into two audiences: visitors booking
+// a few nights, and people looking for somewhere to live.
+//
+// Derived from the type rather than stored: the seven types already fall
+// cleanly on one side or the other, so there's nothing for a member to get
+// wrong and no column to keep in sync. The trade-off is that a guesthouse
+// can't also advertise monthly lets — if that turns out to matter, this
+// becomes a real (defaulted) column on accommodation_listings and only this
+// function changes.
+export type StayTerm = "short_stay" | "long_term";
+
+export const STAY_TERMS: { value: StayTerm; label: string; description: string }[] = [
+  { value: "short_stay", label: "Short stay", description: "Nightly and weekly — hotels, guesthouses, hostels, holiday rentals and camping." },
+  { value: "long_term", label: "Long term", description: "Monthly and beyond — rentals and house shares for people living here." },
+];
+
+const LONG_TERM_TYPES = new Set<AccommodationType>(["long_term_rental", "house_share"]);
+
+export function stayTermForType(type: AccommodationType): StayTerm {
+  return LONG_TERM_TYPES.has(type) ? "long_term" : "short_stay";
+}
+
+export function stayTermLabel(term: StayTerm): string {
+  return STAY_TERMS.find((t) => t.value === term)?.label ?? term;
+}
+
+// The types belonging to each term, in the order ACCOMMODATION_TYPES declares
+// them. Drives the grouped filter chips and the form's grouped type picker, so
+// both read the same way round.
+export function accommodationTypesByTerm(term: StayTerm): { value: AccommodationType; label: string }[] {
+  return ACCOMMODATION_TYPES.filter((t) => stayTermForType(t.value) === term);
+}
+
 // How a price reads. The short suffix ("/ night") goes next to the amount; the
 // long label ("per night") labels the picker.
 export const ACCOMMODATION_PRICE_UNITS: { value: AccommodationPriceUnit; label: string; suffix: string }[] = [

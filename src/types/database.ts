@@ -101,6 +101,10 @@ export type Community = {
   // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
   // Null = 'center'.
   cover_position: string | null;
+  // Show the member / event / business / post counts in the community header.
+  // Defaults false — a small community is usually better off not advertising
+  // its size.
+  show_stats: boolean;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
@@ -756,6 +760,12 @@ export type AccommodationListing = {
   price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
+  // The full street address, and how to reach the host directly — the same
+  // three a directory listing carries. All optional; a camping spot may have
+  // none of them.
+  address: string | null;
+  website: string | null;
+  phone: string | null;
   lat: number | null;
   lng: number | null;
   status: AccommodationStatus;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
+import { ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES, STAY_TERMS, accommodationTypesByTerm } from "@/lib/accommodation-types";
 import { AccommodationPhotosInput } from "./accommodation-photos-input";
 import type { ListingDraft } from "@/lib/listing-draft";
 import type { AccommodationListing } from "@/types/database";
@@ -48,10 +48,14 @@ export function AccommodationFormFields({
             defaultValue={draft?.accommodation_type ?? listing?.accommodation_type ?? "holiday_rental"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {ACCOMMODATION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+            {STAY_TERMS.map((term) => (
+              <optgroup key={term.value} label={term.label}>
+                {accommodationTypesByTerm(term.value).map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
@@ -152,9 +156,27 @@ export function AccommodationFormFields({
         <Input id={`${idPrefix}_booking_url`} name="booking_url" type="url" placeholder="https://…" defaultValue={draft?.booking_url ?? listing?.booking_url ?? ""} />
       </div>
 
-      <div>
-        <Label htmlFor={`${idPrefix}_location_label`}>Location (optional)</Label>
-        <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={draft?.location_label ?? listing?.location_label ?? ""} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_location_label`}>Area (optional)</Label>
+          <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={draft?.location_label ?? listing?.location_label ?? ""} />
+          <p className="mt-1 text-xs text-muted-foreground">The village or neighbourhood — used to filter listings.</p>
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_address`}>Address (optional)</Label>
+          <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Nungwi" defaultValue={draft?.address ?? listing?.address ?? ""} />
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_website`}>Website (optional)</Label>
+          <Input id={`${idPrefix}_website`} name="website" type="url" placeholder="https://…" defaultValue={draft?.website ?? listing?.website ?? ""} />
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_phone`}>Phone (optional)</Label>
+          <Input id={`${idPrefix}_phone`} name="phone" type="tel" placeholder="+255 …" defaultValue={draft?.phone ?? listing?.phone ?? ""} />
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

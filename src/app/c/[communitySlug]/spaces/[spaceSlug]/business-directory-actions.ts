@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory } from "@/lib/business-categories";
+import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory, isReservedStaySlug } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import { scheduleToText } from "@/lib/opening-hours";
 import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
@@ -465,6 +465,12 @@ export async function addBusinessCategory(
   }
   if (BUSINESS_CATEGORIES.some((c) => c.value === slug)) {
     return { error: "That category already exists." };
+  }
+  if (isReservedStaySlug(slug)) {
+    return {
+      error:
+        "Places to stay have their own space. Add an Accommodation space instead — its listings carry price, rooms, amenities, availability and guest reviews, which a directory category can't. Pick another name if you meant something else.",
+    };
   }
 
   const supabase = await createClient();
