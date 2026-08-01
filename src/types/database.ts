@@ -1325,6 +1325,11 @@ export type Conversation = {
   created_at: string;
 };
 
+// An ordinary chat message, or a video-call invite card ("call").
+export type DirectMessageKind = "text" | "call";
+// Call lifecycle: joinable now / scheduled for later / called off.
+export type DirectMessageCallStatus = "active" | "scheduled" | "cancelled";
+
 export type DirectMessage = {
   id: string;
   conversation_id: string;
@@ -1332,6 +1337,11 @@ export type DirectMessage = {
   body: string;
   read: boolean;
   created_at: string;
+  kind: DirectMessageKind;
+  // Video-call fields — set only when kind === "call".
+  call_room: string | null;
+  call_scheduled_at: string | null;
+  call_status: DirectMessageCallStatus | null;
 };
 
 export type ConnectionStatus = "pending" | "accepted" | "declined";
