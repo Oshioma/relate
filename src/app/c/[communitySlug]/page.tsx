@@ -43,7 +43,8 @@ import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
 import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
-import { formatDateTime, isImageUrl } from "@/lib/utils";
+import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
+import { coverPositionClass } from "@/lib/cover-position";
 
 export default async function CommunityFeedPage({
   params,
@@ -336,20 +337,27 @@ export default async function CommunityFeedPage({
           The darkening is confined to a band at the foot of the image instead
           of covering the whole thing: the top of the photo stays as shot, and
           only the strip actually carrying text gets a backing dark enough to
-          keep white type legible over an unknown image. The text runs the full
-          width of the page rather than the feed's centred column, which keeps
-          the description to a line or two — a short block needs a much smaller
-          band than a tall one, so the photo keeps more of itself.
+          keep white type legible over an unknown image.
+
+          The band's own contents sit in the same centred column the feed below
+          uses, so the page keeps one left margin all the way down rather than
+          stepping in once past the header.
 
           With no cover, the original accent-gradient header and its own stats
           strip still apply. */}
       {community.cover_image_url ? (
         <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
+          {/* The crop keeps whichever part of the photo the community chose —
+              the band covers the foot of the image, so a subject sitting low in
+              the frame disappears behind the text unless it's pushed up. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={community.cover_image_url}
             alt=""
-            className="absolute inset-0 -z-20 h-full w-full object-cover"
+            className={cn(
+              "absolute inset-0 -z-20 h-full w-full object-cover",
+              coverPositionClass(community.cover_position)
+            )}
           />
 
           {/* The backing is a flat tint plus a blur, not a see-through
@@ -357,22 +365,23 @@ export default async function CommunityFeedPage({
               dark where something dark sits behind it and washes out over open
               sky — it changes tone across its own width and stops looking like
               a deliberate element. A uniform panel with one crisp top edge
-              reads the same left to right whatever the photo is doing, and the
-              blur keeps it from feeling like a flat sticker. Everything the
-              band carries lives inside it, so there is no second edge cutting
-              across the picture. */}
-          <div className="bg-black/55 backdrop-blur-md">
-            <div className="px-4 py-5 sm:px-6 sm:py-6">
+              reads the same left to right whatever the photo is doing.
+
+              The blur is desaturated as well: blurring alone preserves hue, so
+              the panel still picked up the green of shallow water at one end
+              and stayed neutral at the other. Draining the colour on the way
+              through gives one tone across the width while keeping the sense
+              that the photograph continues behind the text, which a fully
+              opaque panel loses. */}
+          <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
+            <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
                 <div className="min-w-0">
                   <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                     {community.name}
                   </h1>
                   {community.description && (
-                    // Capped rather than edge-to-edge: on a wide desktop an
-                    // uncapped line runs past a comfortable reading measure and
-                    // collides with the viewport's right edge.
-                    <p className="mt-2 max-w-5xl text-base leading-relaxed text-white/85 sm:text-lg">
+                    <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
                       {community.description}
                     </p>
                   )}

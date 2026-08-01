@@ -7,6 +7,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/input";
 import { ACCENT_PRESETS, normalizeAccentColor } from "@/lib/accent-color";
+import { COVER_POSITIONS, type CoverPosition } from "@/lib/cover-position";
 import { cn } from "@/lib/utils";
 import type { Community } from "@/types/database";
 
@@ -20,6 +21,7 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
   // its value is held locally and only written once the picking settles.
   const [customColor, setCustomColor] = useState(community.accent_color ?? "#4d6a52");
   const customTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [coverPosition, setCoverPosition] = useState<string>(community.cover_position ?? "center");
 
   async function persistLogo(url: string) {
     const supabase = createClient();
@@ -55,6 +57,23 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
     if (error) {
       setAccent(previous);
       setAccentError(error.message);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function persistCoverPosition(value: CoverPosition) {
+    const previous = coverPosition;
+    setCoverPosition(value);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("communities")
+      .update({ cover_position: value })
+      .eq("id", community.id);
+
+    if (error) {
+      setCoverPosition(previous);
       return;
     }
     router.refresh();
@@ -102,9 +121,31 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
               size={168}
               aspect={3}
               label="Cover image"
-              hint="A wide photo of your place — around 2400×800. Fills the page header and tints the sidebar."
+              hint="A wide photo of your place — around 2400×800. Fills the page header."
             />
           </div>
+
+          {community.cover_image_url && (
+            <div className="mt-4">
+              <Label htmlFor="cover_position">Keep this part of the photo</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The header crops your photo and lays the community name over its lower edge.
+                Choose the part that matters most.
+              </p>
+              <select
+                id="cover_position"
+                value={coverPosition}
+                onChange={(event) => persistCoverPosition(event.target.value as CoverPosition)}
+                className="mt-2 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {COVER_POSITIONS.map((position) => (
+                  <option key={position.key} value={position.key}>
+                    {position.label} — {position.hint}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 

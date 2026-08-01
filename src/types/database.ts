@@ -97,6 +97,10 @@ export type Community = {
   // the shape). Null = inherit the platform accent from globals.css. Applied to
   // the community shell by communityAccentStyle in src/lib/accent-color.ts.
   accent_color: string | null;
+  // Which part of cover_image_url to keep when it's cropped to the feed
+  // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
+  // Null = 'center'.
+  cover_position: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
