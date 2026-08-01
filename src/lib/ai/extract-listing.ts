@@ -31,9 +31,11 @@ Rules, in order of importance:
 1. Only report details that appear in the supplied page content. If a field isn't stated, omit it. Never guess, never infer from the brand name, never fill a field from general knowledge about the place.
 2. Prefer the JSON-LD block when it disagrees with the page text — it is the site's own structured data.
 3. The description must be your own neutral one-or-two-sentence summary of what the place is and what stands out, drawn only from the page. No marketing superlatives, no invented amenities, no quotes, no emoji, max 300 characters.
-4. Ignore the surrounding site: navigation, cookie banners, "other properties you may like", review carousels for different places, and prices for unrelated listings are all noise. If the page describes several properties, use only the main one the URL points at.
-5. Prices must be the listing's own nightly/weekly/monthly rate as a plain number, with its ISO currency code. Do not convert currencies. Skip a price if it is a total for a specific date range, a discount, or a "from" price you can't attribute confidently.
-6. If the page is a login wall, captcha, error page, or otherwise doesn't describe the place, call the tool with no fields set.`;
+4. Ignore the surrounding site: navigation, cookie banners, "other properties you may like", "best nearby", sponsored placements, review carousels for different places, and prices for unrelated listings are all noise. If the page describes several properties, use only the main one the URL points at.
+5. On a review site (TripAdvisor, Google), most of the page is text written by visitors. Never build the description out of review text, and never treat a reviewer's claim as a fact about the place. Use the venue's own information panel — address, phone, website, hours, cuisine or price band — and the site's summary of the venue.
+6. On a venue's own website the text is marketing copy. Summarise what the place actually is, dropping the superlatives; "award-winning beachfront paradise" is a restaurant on the beach.
+7. Prices must be the listing's own nightly/weekly/monthly rate as a plain number, with its ISO currency code. Do not convert currencies. Skip a price if it is a total for a specific date range, a discount, or a "from" price you can't attribute confidently.
+8. If the page is a login wall, captcha, error page, or otherwise doesn't describe the place, call the tool with no fields set.`;
 
 // Field schemas shared by both kinds. Every field is optional — the model
 // omitting one is how it says "not stated on the page".

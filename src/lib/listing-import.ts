@@ -15,11 +15,13 @@ import type { BusinessCategory, AccommodationType } from "@/types/database";
 //   2. The page itself, read once and handed to Claude for extraction. This is
 //      the path Booking.com / Airbnb / a hotel's own site take.
 //   3. The URL string alone, when the site refuses server-side requests — which
-//      the big booking sites often do. Only the name and town survive, and the
-//      caller tells the member the rest is on them.
+//      the booking and review sites often do. TripAdvisor's paths are regular
+//      enough to read outright; anything else falls to the model, which is told
+//      to take only what the slug literally spells out.
 //
 // Whichever source produced the draft, Google Places then fills in the gaps it
-// can (pin, phone, hours) so a Booking.com import still lands on the map.
+// can (pin, phone, hours) so a Booking.com or TripAdvisor import still lands on
+// the map — often completely, even when the page itself was never readable.
 
 const MAX_PHOTOS = 6;
 
@@ -104,6 +106,75 @@ function readGoogleMapsUrl(url: URL): { query: string | null; near: { lat: numbe
     query: query && !query.startsWith("place_id:") ? query : null,
     near: near && Number.isFinite(near.lat) && Number.isFinite(near.lng) ? near : null,
     placeId,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// TripAdvisor links
+//
+// TripAdvisor blocks server-side requests more aggressively than the booking
+// sites, so its pages often can't be read at all. Its URLs are unusually
+// structured though — the review type, the venue name and its location are all
+// in the path — which is enough to seed a Places lookup and land a fully
+// populated form without the page ever being fetched.
+//
+//   /Restaurant_Review-g482884-d1063269-Reviews-The_Rock_Restaurant-Michanwi_Pingwe_Zanzibar.html
+//    └ type                              └ name                    └ location
+// ---------------------------------------------------------------------------
+
+type TripAdvisorLink = {
+  name: string;
+  // The location as TripAdvisor writes it: locality, region and country run
+  // together ("Michanwi Pingwe Zanzibar Island"). Too coarse for the form's
+  // Area field, but a good bias for a Places lookup — which then returns a
+  // real address we can take a clean locality from.
+  locationHint: string | null;
+  category: BusinessCategory | null;
+  accommodationType: AccommodationType | null;
+};
+
+const TRIPADVISOR_TYPES: { prefix: string; category: BusinessCategory | null; accommodationType: AccommodationType | null }[] = [
+  { prefix: "Restaurant", category: "restaurant", accommodationType: null },
+  { prefix: "Attraction", category: "activity", accommodationType: null },
+  { prefix: "VacationRental", category: null, accommodationType: "holiday_rental" },
+  { prefix: "Hotel", category: null, accommodationType: "hotel" },
+];
+
+function isTripAdvisorHost(host: string): boolean {
+  return /^(?:.+\.)?tripadvisor\.[a-z]{2,3}(?:\.[a-z]{2})?$/.test(host);
+}
+
+function unslug(value: string): string {
+  return value.replace(/_/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function readTripAdvisorUrl(url: URL): TripAdvisorLink | null {
+  if (!isTripAdvisorHost(url.hostname.toLowerCase())) return null;
+
+  const match = decodeURIComponent(url.pathname).match(/^\/([A-Za-z_]+?)_?Review-g\d+-d\d+-(.+?)\.html$/);
+  if (!match) return null;
+
+  // What's left is hyphen-separated fields, sometimes led by "Reviews" and a
+  // pagination offset ("or20"), then the name and the location.
+  const fields = match[2].split("-").filter((field) => field && field !== "Reviews" && !/^or\d+$/.test(field));
+  const name = unslug(fields[0] ?? "");
+  if (!name) return null;
+
+  const type = TRIPADVISOR_TYPES.find((t) => match[1].startsWith(t.prefix));
+  return {
+    name,
+    locationHint: fields[1] ? unslug(fields[1]) : null,
+    category: type?.category ?? null,
+    accommodationType: type?.accommodationType ?? null,
+  };
+}
+
+function draftFromTripAdvisor(link: TripAdvisorLink, kind: ListingImportKind): ListingDraft {
+  return {
+    ...EMPTY_DRAFT,
+    name: link.name,
+    category: kind === "business" ? link.category : null,
+    accommodation_type: kind === "accommodation" ? link.accommodationType : null,
   };
 }
 
@@ -212,6 +283,14 @@ function photosFromPage(page: PageContent | null): string[] {
 // Entry point
 // ---------------------------------------------------------------------------
 
+// The directory has no accommodation category on purpose — stays live in the
+// Accommodation space, which carries rooms, price and availability that a
+// category could never hold (see business-categories.ts). So when a member
+// pastes a hotel into the directory form, say so rather than letting it default
+// to Restaurant.
+const STAY_IN_DIRECTORY_WARNING =
+  "This looks like a place to stay. The directory has no accommodation category — add it in the Accommodation space instead, where you can set rooms, price and availability.";
+
 export async function importListingDraft({
   rawUrl,
   kind,
@@ -247,11 +326,13 @@ export async function importListingDraft({
       const page = site ? await fetchPageContent(site) : null;
       draft = { ...draft, photos: photosFromPage(page) };
     }
+    const isStay = googleAccommodationType(place.types) !== null;
     return {
       ok: true,
       draft,
       source: "google",
       note: "Filled in from Google Maps. Check the details, add photos, and post.",
+      ...(kind === "business" && isStay ? { warning: STAY_IN_DIRECTORY_WARNING } : {}),
     };
   }
 
@@ -261,9 +342,18 @@ export async function importListingDraft({
 
   // 2. Read the page and let Claude extract it.
   const page = await fetchPageContent(url);
-  const extracted = await extractListingWithAi({ url: url.toString(), kind, page, categories: allowedCategories });
+  const tripAdvisor = readTripAdvisorUrl(url);
 
-  if (!extracted || isEmptyDraft(extracted)) {
+  // When the page is unreadable but the URL is one we can parse ourselves,
+  // skip the model entirely: a deterministic read of the slug beats a guess at
+  // it, and it saves a call that would add nothing.
+  const extracted =
+    page || !tripAdvisor
+      ? await extractListingWithAi({ url: url.toString(), kind, page, categories: allowedCategories })
+      : null;
+
+  const seed = extracted ?? (tripAdvisor ? draftFromTripAdvisor(tripAdvisor, kind) : null);
+  if (!seed || isEmptyDraft(seed)) {
     return {
       ok: false,
       error: page
@@ -272,7 +362,9 @@ export async function importListingDraft({
     };
   }
 
-  let draft: ListingDraft = { ...extracted, photos: photosFromPage(page) };
+  let draft: ListingDraft = { ...seed, photos: photosFromPage(page) };
+  // Anything the page gave us outranks the URL slug; the slug fills the rest.
+  if (extracted && tripAdvisor) draft = fillGaps(draft, draftFromTripAdvisor(tripAdvisor, kind));
 
   // The pasted link itself is the booking link for a stay, and the website for
   // a business that has no other one — but only when it isn't an aggregator.
@@ -286,18 +378,39 @@ export async function importListingDraft({
 
   // 3. Let Google fill the holes — above all the map pin, which no booking
   // page exposes but every listing wants.
+  let enriched = false;
+  let isStay = tripAdvisor?.accommodationType != null;
   if (draft.name && isGooglePlacesConfigured()) {
-    const query = [draft.name, draft.address ?? draft.location_label].filter(Boolean).join(", ");
+    const query = [draft.name, draft.address ?? draft.location_label ?? tripAdvisor?.locationHint].filter(Boolean).join(", ");
     const place = await lookupGooglePlace(query, draft.lat !== null && draft.lng !== null ? { lat: draft.lat, lng: draft.lng } : null);
-    if (place) draft = fillGaps(draft, draftFromGooglePlace(place, kind));
+    if (place) {
+      draft = fillGaps(draft, draftFromGooglePlace(place, kind));
+      enriched = true;
+      isStay = isStay || googleAccommodationType(place.types) !== null;
+    }
   }
 
-  return {
-    ok: true,
-    draft,
-    source: page ? "page" : "link",
-    note: page
-      ? "Filled in from that page. Check every field before posting — some of it is inferred."
-      : "That site blocked us from reading the page, so only what the link itself revealed came through. Please fill in the rest.",
-  };
+  const warn = kind === "business" && isStay ? { warning: STAY_IN_DIRECTORY_WARNING } : {};
+
+  if (page) {
+    return { ok: true, draft, source: "page", note: "Filled in from that page. Check every field before posting — some of it is inferred.", ...warn };
+  }
+  // The page was blocked. If Google recognised the place anyway the form is
+  // properly filled and Google is the honest source; if not, the member is
+  // looking at little more than a name and needs to know it.
+  return enriched
+    ? {
+        ok: true,
+        draft,
+        source: "google",
+        note: "That site wouldn't let us read the page, so these details came from the link and Google Maps. Check them before posting.",
+        ...warn,
+      }
+    : {
+        ok: true,
+        draft,
+        source: "link",
+        note: "That site blocked us from reading the page, so only what the link itself revealed came through. Please fill in the rest.",
+        ...warn,
+      };
 }

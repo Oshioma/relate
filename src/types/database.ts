@@ -760,6 +760,12 @@ export type AccommodationListing = {
   price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
+  // The full street address, and how to reach the host directly — the same
+  // three a directory listing carries. All optional; a camping spot may have
+  // none of them.
+  address: string | null;
+  website: string | null;
+  phone: string | null;
   lat: number | null;
   lng: number | null;
   status: AccommodationStatus;

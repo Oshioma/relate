@@ -514,6 +514,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "Zanzibar, Bali, a Greek island — surrounded by water, tide- and ferry-dependent.",
     mapLayers: ["Beaches", "Marine Life", "Boat & Ferry Schedules", "Weather & Tides", "Dive Sites", "Fishing Spots", "Surf Breaks", "Marine Conservation Areas"],
     extraSpaces: [
+      { name: "Accommodation", description: "Hotels, guesthouses and rentals — short stays and long lets.", space_type: "accommodation" },
       { name: "Boat & Ferry Schedules", description: "Departure times, routes and disruptions.", space_type: "resources" },
       { name: "Tides & Weather", description: "Daily tide charts and forecasts.", space_type: "resources" },
     ],
@@ -524,6 +525,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "A seaside town, fishing village or stretch of coast — life runs on the water.",
     mapLayers: ["Beaches", "Harbours & Marinas", "Weather & Tides", "Surf Breaks", "Fishing Spots", "Coastal Walks", "Marine Conservation Areas"],
     extraSpaces: [
+      { name: "Accommodation", description: "Places to stay along the coast, from a few nights to a few months.", space_type: "accommodation" },
       { name: "Tides & Weather", description: "Daily tide charts and forecasts.", space_type: "resources" },
       { name: "Harbour & Boating", description: "Moorings, launches and conditions on the water." },
     ],
@@ -534,6 +536,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "Lisbon, New York — dense, multi-district, public-transport-first.",
     mapLayers: ["Districts", "Public Transport", "Nightlife", "Neighbourhoods", "Public Services", "Traffic & Roadworks"],
     extraSpaces: [
+      { name: "Accommodation", description: "Rooms, flats and hotels — short stays and long lets.", space_type: "accommodation" },
       { name: "Neighbourhoods", description: "Conversations organised by district." },
       { name: "Jobs Board", description: "Openings from employers across the city.", space_type: "jobs" },
       { name: "Transport & Traffic", description: "Live disruptions, routes and roadworks.", space_type: "resources" },
@@ -545,6 +548,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "A market town — smaller than a city, with its own centre and services.",
     mapLayers: ["Shops", "Markets", "Parking", "Schools", "Public Transport"],
     extraSpaces: [
+      { name: "Accommodation", description: "Places to stay in and around town, short or long term.", space_type: "accommodation" },
       { name: "Jobs Board", description: "Local job openings and hiring.", space_type: "jobs" },
       { name: "Markets", description: "Market days, stalls and traders." },
     ],
@@ -555,6 +559,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "A small, tight-knit settlement where everyone knows everyone.",
     mapLayers: ["Village Hall", "Community Garden", "Local Trades", "Footpaths", "Bus Stops"],
     extraSpaces: [
+      { name: "Accommodation", description: "Rooms and rentals in the village, short or long term.", space_type: "accommodation" },
       { name: "Notice Board", description: "Official parish and village notices." },
       { name: "Neighbour Help", description: "Ask for, or offer, a hand nearby.", space_type: "volunteer_hub" },
       { name: "Local Trades", description: "Trusted local tradespeople and services.", space_type: "business_directory" },
@@ -576,6 +581,7 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
     description: "A county, province or multi-town area with shared identity.",
     mapLayers: ["Towns & Villages", "Attractions", "Regional Transport", "Protected Areas"],
     extraSpaces: [
+      { name: "Accommodation", description: "Places to stay across the region, short stays and long lets.", space_type: "accommodation" },
       { name: "Towns & Villages", description: "Explore every settlement in the region.", space_type: "guides" },
       { name: "Regional Transport", description: "Trains, buses and routes across the region.", space_type: "resources" },
     ],

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { Plus, Search, X, BedDouble, Heart, LayoutGrid, Map as MapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel } from "@/lib/accommodation-types";
+import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel, STAY_TERMS, stayTermForType, type StayTerm } from "@/lib/accommodation-types";
 import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
 import type { AccommodationListingWithStats, BusinessLinkOption } from "@/lib/data/accommodation";
@@ -45,6 +45,7 @@ export function AccommodationView({
   userId: string;
   businesses: BusinessLinkOption[];
 }) {
+  const [term, setTerm] = useState<StayTerm | "all">("all");
   const [type, setType] = useState<AccommodationType | "all">("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -74,6 +75,7 @@ export function AccommodationView({
     const max = maxPrice.trim() ? Number(maxPrice) : null;
 
     const filtered = listings.filter((l) => {
+      if (term !== "all" && stayTermForType(l.accommodation_type) !== term) return false;
       if (type !== "all" && l.accommodation_type !== type) return false;
       if (savedOnly && !l.saved) return false;
       if (!showUnavailable && l.status === "unavailable") return false;
@@ -97,7 +99,7 @@ export function AccommodationView({
       sorted.sort((a, b) => (b.avgRating ?? -1) - (a.avgRating ?? -1) || b.ratingCount - a.ratingCount);
     // "newest" keeps the created_at-desc order the query already returned.
     return sorted;
-  }, [listings, type, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
+  }, [listings, term, type, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
 
   const countByType = useMemo(() => {
     const counts = new Map<string, number>();
@@ -107,6 +109,27 @@ export function AccommodationView({
     }
     return counts;
   }, [listings, showUnavailable]);
+
+  const countByTerm = useMemo(() => {
+    const counts = new Map<StayTerm, number>();
+    for (const l of listings) {
+      if (l.status === "unavailable" && !showUnavailable) continue;
+      const t = stayTermForType(l.accommodation_type);
+      counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    return counts;
+  }, [listings, showUnavailable]);
+
+  // Picking a term narrows the type chips to that term's types, and clears a
+  // type selection that no longer belongs to it.
+  function chooseTerm(next: StayTerm | "all") {
+    setTerm(next);
+    if (next !== "all" && type !== "all" && stayTermForType(type) !== next) setType("all");
+  }
+
+  // Both terms in play is what makes the split worth showing; a space that only
+  // ever lists holiday rentals shouldn't carry a toggle that does nothing.
+  const showTermToggle = STAY_TERMS.filter((t) => (countByTerm.get(t.value) ?? 0) > 0).length > 1;
 
   return (
     <div>
@@ -150,17 +173,43 @@ export function AccommodationView({
         </div>
       </div>
 
+      {showTermToggle && (
+        <div className="mb-3 inline-flex overflow-hidden rounded-lg border border-border">
+          <button
+            type="button"
+            onClick={() => chooseTerm("all")}
+            aria-pressed={term === "all"}
+            className={`px-3.5 py-1.5 text-xs font-medium ${term === "all" ? "bg-accent-soft text-accent" : "text-muted-foreground hover:bg-muted"}`}
+          >
+            All stays
+          </button>
+          {STAY_TERMS.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => chooseTerm(t.value)}
+              aria-pressed={term === t.value}
+              title={t.description}
+              className={`border-l border-border px-3.5 py-1.5 text-xs font-medium ${term === t.value ? "bg-accent-soft text-accent" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              {t.label} ({countByTerm.get(t.value) ?? 0})
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           onClick={() => setType("all")}
           className={`rounded-full border px-3 py-1 text-xs font-medium ${type === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
         >
-          All ({listings.filter((l) => showUnavailable || l.status !== "unavailable").length})
+          All ({term === "all" ? listings.filter((l) => showUnavailable || l.status !== "unavailable").length : countByTerm.get(term) ?? 0})
         </button>
         {ACCOMMODATION_TYPES.map((t) => {
           const count = countByType.get(t.value) ?? 0;
           if (count === 0) return null;
+          if (term !== "all" && stayTermForType(t.value) !== term) return null;
           const isActive = type === t.value;
           return (
             <button
