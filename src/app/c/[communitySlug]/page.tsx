@@ -43,7 +43,7 @@ import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
 import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
-import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
+import { formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
   params,
@@ -329,23 +329,33 @@ export default async function CommunityFeedPage({
 
   return (
     <div>
-      {/* Hero: the cover image sits as a self-contained banner up top, and the
-          name and description live in a clean block below it — so text never
-          fights the artwork for legibility. With no cover, a subtle accent
-          gradient still gives the header a strong presence. */}
-      <section className="border-b border-border">
-        {community.cover_image_url && (
-          <div className="aspect-[3/1] w-full overflow-hidden bg-muted sm:aspect-[4/1]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={community.cover_image_url} alt="" className="h-full w-full object-cover" />
-          </div>
-        )}
-        <div className={cn(!community.cover_image_url && "bg-gradient-to-br from-accent/10 via-background to-background")}>
-          <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
+      {/* Hero: with a cover image the name, description and stats sit *on* the
+          photo behind a gradient scrim — the community reads as the place it's
+          about rather than as a banner glued above a document. The scrim is
+          what makes that safe: it darkens the bottom of any photo, so white
+          text stays legible over a bright sky or a blown-out beach alike. The
+          crop is deliberately taller on a phone than on a desktop, so an image
+          with sky and sand in it doesn't lose both. With no cover, the original
+          accent-gradient header and its own stats strip still apply. */}
+      {community.cover_image_url ? (
+        <section className="relative isolate overflow-hidden border-b border-border">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={community.cover_image_url}
+            alt=""
+            className="absolute inset-0 -z-20 h-full w-full object-cover"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/5"
+          />
+          <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 pb-7 pt-40 sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:pb-8 sm:pt-52">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white [text-shadow:0_2px_16px_rgb(0_0_0/0.45)] sm:text-4xl">
+                {community.name}
+              </h1>
               {community.description && (
-                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
+                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-white/90 [text-shadow:0_1px_10px_rgb(0_0_0/0.45)] sm:text-xl">
                   {community.description}
                 </p>
               )}
@@ -356,21 +366,56 @@ export default async function CommunityFeedPage({
               </div>
             )}
           </div>
-        </div>
-      </section>
 
-      {/* Stats strip: at-a-glance signals that the community is active. */}
-      {statItems.length > 0 && (
-        <div className="border-b border-border bg-muted/30">
-          <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
-            {statItems.map((stat) => (
-              <div key={stat.label} className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-foreground">{stat.value.toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
+          {statItems.length > 0 && (
+            <div className="border-t border-white/15 bg-black/35 backdrop-blur-sm">
+              <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
+                {statItems.map((stat) => (
+                  <div key={stat.label} className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-white">{stat.value.toLocaleString()}</span>
+                    <span className="text-sm text-white/75">{stat.label}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
+      ) : (
+        <>
+          <section className="border-b border-border">
+            <div className="bg-gradient-to-br from-accent/10 via-background to-background">
+              <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
+                  {community.description && (
+                    <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
+                      {community.description}
+                    </p>
+                  )}
+                </div>
+                {user && !membership && (
+                  <div className="shrink-0">
+                    <JoinCommunityButton communityId={community.id} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Stats strip: at-a-glance signals that the community is active. */}
+          {statItems.length > 0 && (
+            <div className="border-b border-border bg-muted/30">
+              <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
+                {statItems.map((stat) => (
+                  <div key={stat.label} className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-foreground">{stat.value.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
