@@ -91,6 +91,10 @@ export type Community = {
   name: string;
   slug: string;
   description: string | null;
+  // House rules / code of conduct, written by the owner or an admin in the
+  // community admin page and shown at /c/<slug>/guidelines. Sanitised HTML or
+  // Markdown, rendered through <RichText>. Null = none set yet.
+  guidelines: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
   // Optional per-community accent, as '#rrggbb' (a DB check constraint enforces
@@ -1625,6 +1629,28 @@ export type FarmShare = {
   updated_at: string;
 };
 
+// Platform-wide legal documents, a one-row singleton (id = 1) edited by the
+// super admin at /platform-admin and shown at /terms and /privacy. Content is
+// sanitised HTML/Markdown rendered through <RichText>.
+export type PlatformSettings = {
+  id: number;
+  terms: string | null;
+  privacy: string | null;
+  updated_at: string;
+};
+
+// A message left through the public /contact form. Written only by the contact
+// server action via the service-role client; readable by the super admin.
+export type ContactMessage = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  message: string;
+  handled: boolean;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1686,6 +1712,17 @@ export type Database = {
         Insert: Partial<PlatformPlan> & { slug: string; name: string };
         Update: Partial<PlatformPlan>;
       } & NoRel;
+      platform_settings: {
+        Row: PlatformSettings;
+        Insert: Partial<PlatformSettings>;
+        Update: Partial<PlatformSettings>;
+      } & NoRel;
+      contact_messages: {
+        Row: ContactMessage;
+        Insert: Partial<ContactMessage> & { name: string; email: string; message: string };
+        Update: Partial<ContactMessage>;
+        Relationships: [FKey<"user_id", "profiles">];
+      };
       feature_packs: {
         Row: FeaturePack;
         Insert: Partial<FeaturePack> & { slug: string; name: string };

@@ -25,6 +25,7 @@ import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
+import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
@@ -165,6 +166,7 @@ export default async function AdminPage({
     { id: "overview", label: "Overview" },
     { id: "members", label: "Members" },
     { id: "details", label: "Details" },
+    { id: "guidelines", label: "Guidelines" },
     { id: "public-access", label: "Public access" },
     { id: "spaces", label: "Spaces" },
     { id: "profile-fields", label: "Profile fields" },
@@ -224,6 +226,11 @@ export default async function AdminPage({
       <div className="mb-8 space-y-4">
         <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
+      </div>
+
+      <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
+      <div className="mb-8">
+        <CommunityGuidelinesForm community={community} />
       </div>
 
       <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
