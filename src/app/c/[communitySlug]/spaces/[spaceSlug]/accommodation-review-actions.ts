@@ -33,7 +33,7 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
     return { error: "You need to be signed in." };
   }
 
-  const { data: listing, error: listingError } = await supabase.from("accommodation_listings").select("listed_by").eq("id", listingId).maybeSingle();
+  const { data: listing, error: listingError } = await supabase.from("accommodation_listings").select("listed_by, place_id").eq("id", listingId).maybeSingle();
   if (listingError || !listing) {
     return { error: listingError?.message ?? "Listing not found." };
   }
@@ -41,9 +41,15 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
     return { error: "You can't review your own listing." };
   }
 
-  const { error } = await supabase
-    .from("accommodation_reviews")
-    .upsert({ listing_id: listingId, author_id: user.id, rating, body: body || null }, { onConflict: "listing_id,author_id" });
+  // Reviews are written against the place, so one review covers every facet of
+  // it. A listing with no place still takes reviews the old way.
+  const { error } = listing.place_id
+    ? await supabase
+        .from("place_reviews")
+        .upsert({ place_id: listing.place_id, author_id: user.id, rating, body: body || null }, { onConflict: "place_id,author_id" })
+    : await supabase
+        .from("accommodation_reviews")
+        .upsert({ listing_id: listingId, author_id: user.id, rating, body: body || null }, { onConflict: "listing_id,author_id" });
 
   if (error) {
     return { error: error.message };
@@ -56,6 +62,9 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
 
 export async function deleteAccommodationReview(reviewId: string, listingId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
+  // The id may belong to either store while listings without a place remain;
+  // deleting from both is harmless, as only one can match.
+  await supabase.from("place_reviews").delete().eq("id", reviewId);
   const { error } = await supabase.from("accommodation_reviews").delete().eq("id", reviewId);
 
   if (error) {
@@ -89,9 +98,16 @@ export async function replyToAccommodationReview(_prevState: AccommodationReview
     return { error: "You need to be signed in." };
   }
 
-  const { error } = await supabase
-    .from("accommodation_review_replies")
-    .upsert({ review_id: reviewId, listing_id: listingId, author_id: user.id, body }, { onConflict: "review_id" });
+  // A reply belongs to the place, alongside the review it answers.
+  const { data: listing } = await supabase.from("accommodation_listings").select("place_id").eq("id", listingId).maybeSingle();
+
+  const { error } = listing?.place_id
+    ? await supabase
+        .from("place_review_replies")
+        .upsert({ review_id: reviewId, place_id: listing.place_id, author_id: user.id, body }, { onConflict: "review_id" })
+    : await supabase
+        .from("accommodation_review_replies")
+        .upsert({ review_id: reviewId, listing_id: listingId, author_id: user.id, body }, { onConflict: "review_id" });
 
   if (error) {
     return { error: error.message };
@@ -103,6 +119,7 @@ export async function replyToAccommodationReview(_prevState: AccommodationReview
 
 export async function deleteAccommodationReviewReply(replyId: string, listingId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
+  await supabase.from("place_review_replies").delete().eq("id", replyId);
   const { error } = await supabase.from("accommodation_review_replies").delete().eq("id", replyId);
 
   if (error) {
