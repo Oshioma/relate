@@ -11,11 +11,11 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { colorForCategory } from "@/lib/map-pin-colors";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { createLandmark, deleteLandmark } from "./map-actions";
-import { BusinessMapPopup } from "./business-map-popup";
 import { MapItemPopup, isEventSoon } from "./map-item-popup";
 import { MAP_ITEM_KINDS, MAP_ITEM_KIND_ORDER, type MapItem } from "@/lib/map-item-kinds";
 import { UNGUJA_BOUNDS_LNGLAT } from "@/lib/map-bounds";
-import type { MapCategory, Landmark, Business } from "@/types/database";
+import type { MapCategory, Landmark } from "@/types/database";
+import type { MapPinnedBusiness } from "@/lib/data/map";
 
 // Vector basemaps from OpenFreeMap — free, no API key, GPU-rendered by
 // MapLibre for fractional zoom, rotation and crisp labels. Both get
@@ -166,6 +166,9 @@ type PinDef = {
   subtitle: string;
   thumbUrl: string | null;
   thumbIcon: ReactNode;
+  // A pin with an href navigates on click (businesses → their detail page)
+  // rather than opening a popup, so popup is null for those.
+  href?: string;
   popup: ReactNode;
 };
 
@@ -371,12 +374,13 @@ export default function ExploreMap({
   spaceSlug: string;
   categories: MapCategory[];
   landmarks: Landmark[];
-  businesses: Business[];
+  businesses: MapPinnedBusiness[];
   items: MapItem[];
   canPost: boolean;
   isAdmin: boolean;
   userId: string;
 }) {
+  const router = useRouter();
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
   const [businessCategory, setBusinessCategory] = useState<string>("all");
   const [location, setLocation] = useState<string>("all");
@@ -521,7 +525,10 @@ export default function ExploreMap({
                   : businessCategoryLabel(business.category),
               thumbUrl: business.image_url,
               thumbIcon: BUSINESS_CATEGORY_EMOJI[business.category] ?? "🏪",
-              popup: <BusinessMapPopup business={business} />,
+              // Clicking a business goes straight to its listing (under its own
+              // directory space), so it carries an href instead of a popup.
+              href: business.space_slug ? `/c/${communitySlug}/spaces/${business.space_slug}/businesses/${business.id}` : undefined,
+              popup: null,
             }]
           : []
       ),
@@ -754,7 +761,9 @@ export default function ExploreMap({
                   style={active ? { zIndex: 5 } : undefined}
                   onClick={(e) => {
                     e.originalEvent.stopPropagation();
-                    if (!addMode) selectPin(pin.key);
+                    if (addMode) return;
+                    if (pin.href) router.push(pin.href);
+                    else selectPin(pin.key);
                   }}
                 >
                   <Pin color={pin.color} inner={pin.inner} pulseColor={pin.pulseColor} delay={Math.min(i * 25, 500)} highlight={active} />
@@ -876,7 +885,7 @@ export default function ExploreMap({
               <button
                 key={pin.key}
                 type="button"
-                onClick={() => focusPin(pin)}
+                onClick={() => (pin.href ? router.push(pin.href) : focusPin(pin))}
                 onMouseEnter={() => setHoverKey(pin.key)}
                 onMouseLeave={() => setHoverKey(null)}
                 className={`flex w-full items-center gap-2.5 border-b border-border px-3 py-2.5 text-left last:border-b-0 hover:bg-muted ${selectedKey === pin.key ? "bg-muted" : ""}`}
