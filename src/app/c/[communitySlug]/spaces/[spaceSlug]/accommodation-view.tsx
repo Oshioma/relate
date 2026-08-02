@@ -49,6 +49,7 @@ export function AccommodationView({
   importUrl?: string;
 }) {
   const [term, setTerm] = useState<StayTerm | "all">("all");
+  const [location, setLocation] = useState<string>("all");
   const [type, setType] = useState<AccommodationType | "all">("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(Boolean(importUrl) && canPost);
@@ -80,6 +81,7 @@ export function AccommodationView({
     const filtered = listings.filter((l) => {
       if (term !== "all" && stayTermForType(l.accommodation_type) !== term) return false;
       if (type !== "all" && l.accommodation_type !== type) return false;
+      if (location !== "all" && l.location_label !== location) return false;
       if (savedOnly && !l.saved) return false;
       if (!showUnavailable && l.status === "unavailable") return false;
       if (q && !l.name.toLowerCase().includes(q) && !(l.description ?? "").toLowerCase().includes(q)) return false;
@@ -102,7 +104,7 @@ export function AccommodationView({
       sorted.sort((a, b) => (b.avgRating ?? -1) - (a.avgRating ?? -1) || b.ratingCount - a.ratingCount);
     // "newest" keeps the created_at-desc order the query already returned.
     return sorted;
-  }, [listings, term, type, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
+  }, [listings, term, type, location, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
 
   const countByType = useMemo(() => {
     const counts = new Map<string, number>();
@@ -111,6 +113,16 @@ export function AccommodationView({
       counts.set(l.accommodation_type, (counts.get(l.accommodation_type) ?? 0) + 1);
     }
     return counts;
+  }, [listings, showUnavailable]);
+
+  const locations = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const l of listings) {
+      if (l.status === "unavailable" && !showUnavailable) continue;
+      if (!l.location_label) continue;
+      counts.set(l.location_label, (counts.get(l.location_label) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [listings, showUnavailable]);
 
   const countByTerm = useMemo(() => {
@@ -242,6 +254,31 @@ export function AccommodationView({
           Show unavailable
         </label>
       </div>
+
+      {locations.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setLocation("all")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            All locations
+          </button>
+          {locations.map(([label, count]) => {
+            const isActive = location === label;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setLocation(isActive ? "all" : label)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+              >
+                {label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <select
