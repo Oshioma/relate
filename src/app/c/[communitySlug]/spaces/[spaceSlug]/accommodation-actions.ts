@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import { createPlaceForListing } from "@/lib/data/places";
 import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit, BusinessCategory } from "@/types/database";
 
 export type AccommodationFormState = { error: string } | undefined;
@@ -182,6 +183,22 @@ export async function createAccommodationListing(_prevState: AccommodationFormSt
     space_id: spaceId,
     community_id: communityId,
     listed_by: user.id,
+    // Every new stay is a facet of a place. A null here (the place insert
+    // failing) still leaves a perfectly valid listing — nothing reads place_id
+    // yet — so it never blocks posting.
+    place_id: await createPlaceForListing(supabase, {
+      communityId,
+      createdBy: user.id,
+      name: parsed.values.name,
+      description: parsed.values.description,
+      address: parsed.values.address,
+      locationLabel: parsed.values.location_label,
+      website: parsed.values.website,
+      phone: parsed.values.phone,
+      lat: parsed.values.lat,
+      lng: parsed.values.lng,
+      coverUrl: parsed.values.photo_urls[0] ?? null,
+    }),
     ...parsed.values,
   });
 
@@ -248,7 +265,7 @@ export async function createStayFromBusiness(
 
   const { data: business, error: businessError } = await supabase
     .from("businesses")
-    .select("id, community_id, name, description, image_url, location_label, address, website, phone, lat, lng")
+    .select("id, community_id, place_id, name, description, image_url, location_label, address, website, phone, lat, lng")
     .eq("id", businessId)
     .maybeSingle();
   if (businessError || !business) {
@@ -299,6 +316,9 @@ export async function createStayFromBusiness(
       community_id: business.community_id,
       listed_by: user.id,
       business_id: businessId,
+      // The bridge asserts these are one place, so the stay joins the
+      // business's place instead of starting its own.
+      place_id: business.place_id,
       name: business.name,
       description: business.description,
       photo_urls: photoUrls,
@@ -402,7 +422,7 @@ export async function createBusinessFromStay(
 
   const { data: listing, error: listingError } = await supabase
     .from("accommodation_listings")
-    .select("id, community_id, business_id, name, description, photo_urls, location_label, address, website, phone, lat, lng")
+    .select("id, community_id, place_id, business_id, name, description, photo_urls, location_label, address, website, phone, lat, lng")
     .eq("id", listingId)
     .maybeSingle();
   if (listingError || !listing) {
@@ -460,6 +480,10 @@ export async function createBusinessFromStay(
       space_id: space.id,
       community_id: listing.community_id,
       created_by: user.id,
+      // The bridge asserts these are one place, so the directory listing joins
+      // the stay's place instead of starting its own — the mirror of what
+      // createStayFromBusiness does.
+      place_id: listing.place_id,
       name: listing.name,
       category: resolved as BusinessCategory,
       description: listing.description,

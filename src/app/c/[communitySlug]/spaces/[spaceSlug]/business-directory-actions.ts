@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory, isReservedStaySlug } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
+import { createPlaceForListing } from "@/lib/data/places";
 import { scheduleToText } from "@/lib/opening-hours";
 import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
 
@@ -215,6 +216,22 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
       space_id: spaceId,
       community_id: communityId,
       created_by: user.id,
+      // Every new listing is a facet of a place. `place_id` may come back null
+      // if the insert failed — a listing without one is still perfectly valid,
+      // and nothing reads it yet — so this never blocks creating the listing.
+      place_id: await createPlaceForListing(supabase, {
+        communityId,
+        createdBy: user.id,
+        name: f.name,
+        description: f.description || null,
+        address: f.address || null,
+        locationLabel: f.locationLabel || null,
+        website: f.website || null,
+        phone: f.phone || null,
+        lat: f.lat,
+        lng: f.lng,
+        coverUrl: cover?.url ?? null,
+      }),
       name: f.name,
       category,
       is_local: f.isLocal,

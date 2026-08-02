@@ -24,6 +24,7 @@ export function AccommodationFormFields({
   photos,
   onPhotosChange,
   userId,
+  onNameChange,
 }: {
   idPrefix: string;
   listing?: AccommodationListing;
@@ -32,13 +33,23 @@ export function AccommodationFormFields({
   photos: string[];
   onPhotosChange: (photos: string[]) => void;
   userId: string;
+  // Reports what's typed in the name field so the parent can check it against
+  // places the community already has. Optional — editing has no use for it.
+  onNameChange?: (name: string) => void;
 }) {
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_name`}>Name</Label>
-          <Input id={`${idPrefix}_name`} name="name" placeholder="Ocean View Guesthouse" defaultValue={draft?.name ?? listing?.name ?? ""} required />
+          <Input
+            id={`${idPrefix}_name`}
+            name="name"
+            placeholder="Ocean View Guesthouse"
+            defaultValue={draft?.name ?? listing?.name ?? ""}
+            onChange={(event) => onNameChange?.(event.target.value)}
+            required
+          />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_type`}>Type</Label>
