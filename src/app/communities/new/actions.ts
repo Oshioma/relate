@@ -8,6 +8,7 @@ import { getCommunityTemplate, getPlaceLocationType, getArtistMode } from "@/lib
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
+import { OWNER_AGREEMENT_VERSION } from "@/lib/owner-agreement";
 import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
@@ -45,6 +46,10 @@ export interface WizardPayload {
   mapLayers?: string[];
   spaces: WizardSpaceInput[];
   profileFields: WizardProfileFieldInput[];
+  // The owner ticked the mandatory Community Owner Agreement checkbox. Enforced
+  // server-side (not just in the wizard UI) so a community can never be created
+  // without a recorded acceptance.
+  ownerAgreementAccepted: boolean;
 }
 
 export type WizardResult = { error: string };
@@ -70,6 +75,12 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   const name = payload.name.trim();
   if (!name) {
     return { error: "Give your community a name." };
+  }
+
+  // The Community Owner Agreement checkbox is mandatory — refuse to create a
+  // community without it, so every community carries a recorded acceptance.
+  if (!payload.ownerAgreementAccepted) {
+    return { error: "Please accept the Community Owner Agreement to create your community." };
   }
 
   const slug = slugify(payload.slug || name);
@@ -112,6 +123,8 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       location_type: locationType,
       location_name: locationName,
       artist_mode: artistMode,
+      owner_agreement_accepted_at: new Date().toISOString(),
+      owner_agreement_version: OWNER_AGREEMENT_VERSION,
     })
     .select("id, slug")
     .single();

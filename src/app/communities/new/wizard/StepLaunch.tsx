@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Sparkles, Rocket } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCommunityTemplate, getPlaceLocationType } from "@/lib/community-templates";
 import { TEMPLATE_ICONS } from "@/lib/template-icons";
+import { OWNER_AGREEMENT_ACCEPTANCE } from "@/lib/owner-agreement";
 import { createCommunityFromWizard } from "../actions";
 import type { WizardState } from "./types";
 
 export function StepLaunch({ state }: { state: WizardState }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Mandatory Community Owner Agreement — the Launch button stays disabled and
+  // the server action refuses the request until this is ticked.
+  const [agreed, setAgreed] = useState(false);
   const template = getCommunityTemplate(state.templateKey || "custom");
   const Icon = template ? (TEMPLATE_ICONS[template.icon] ?? Sparkles) : Sparkles;
   const locationType = state.templateKey === "place" ? getPlaceLocationType(state.locationType) : undefined;
@@ -32,6 +37,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       mapLayers: state.templateKey === "place" ? state.mapLayers : [],
       spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only })),
       profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
+      ownerAgreementAccepted: agreed,
     });
     // Only reached on error — success redirects server-side.
     if (result?.error) {
@@ -81,9 +87,33 @@ export function StepLaunch({ state }: { state: WizardState }) {
         </div>
       </Card>
 
+      <Card className="p-5">
+        <h2 className="text-base font-semibold text-foreground">Community Owner Agreement</h2>
+        <p className="mt-2 text-sm font-semibold text-foreground">{OWNER_AGREEMENT_ACCEPTANCE}</p>
+        <label className="mt-4 flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-[var(--accent)]"
+          />
+          <span className="text-sm text-foreground">
+            I agree to the{" "}
+            <Link href="/community-owner-agreement" target="_blank" className="font-medium text-accent underline underline-offset-2">
+              Community Owner Agreement
+            </Link>{" "}
+            and relate.click{" "}
+            <Link href="/terms" target="_blank" className="font-medium text-accent underline underline-offset-2">
+              Terms &amp; Conditions
+            </Link>
+            .
+          </span>
+        </label>
+      </Card>
+
       {error && <div className="rounded-md border border-danger/20 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
 
-      <Button onClick={submit} disabled={submitting || !state.name || !state.slug}>
+      <Button onClick={submit} disabled={submitting || !state.name || !state.slug || !agreed}>
         <Rocket className="h-4 w-4" />
         {submitting ? "Launching…" : "Launch Community"}
       </Button>

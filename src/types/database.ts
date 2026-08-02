@@ -164,6 +164,13 @@ export type Community = {
   plan_current_period_end: string | null;
   plan_stripe_customer_id: string | null;
   plan_stripe_subscription_id: string | null;
+  // Community Owner Agreement acceptance, recorded when the owner ticks the
+  // mandatory checkbox in the creation wizard. accepted_at is the moment they
+  // agreed; version is the Agreement's "last updated" date (see
+  // OWNER_AGREEMENT_VERSION). Both null for communities created before this
+  // requirement existed.
+  owner_agreement_accepted_at: string | null;
+  owner_agreement_version: string | null;
   created_at: string;
   updated_at: string;
 };

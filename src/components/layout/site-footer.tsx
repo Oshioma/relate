@@ -16,6 +16,10 @@ export function SiteFooter() {
           Privacy Policy
         </Link>
         <span aria-hidden className="text-border">·</span>
+        <Link href="/community-owner-agreement" className="hover:text-foreground">
+          Owner Agreement
+        </Link>
+        <span aria-hidden className="text-border">·</span>
         <Link href="/contact" className="hover:text-foreground">
           Contact
         </Link>
