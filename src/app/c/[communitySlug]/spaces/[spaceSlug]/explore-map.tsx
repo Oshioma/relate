@@ -470,19 +470,26 @@ export default function ExploreMap({
     });
   }
 
+  // Picking a directory filter — a specific business category, or Local —
+  // means "show me these businesses": the map and the synced list narrow to
+  // just them, setting aside landmarks and the living-map layers (events,
+  // stays, …). "All" restores the full map.
+  const businessFilterActive = businessCategory !== "all" || localOnly;
+
   const pins: PinDef[] = useMemo(() => {
-    // Landmarks are reference points, not directory listings, so the
-    // directory-style category/location chips leave them be.
-    const visibleLandmarks = landmarks;
+    // Landmarks are reference points, not directory listings; they show
+    // alongside everything on the full map but step aside once a business
+    // filter narrows the view.
+    const visibleLandmarks = businessFilterActive ? [] : landmarks;
     const visibleBusinesses = mappableBusinesses.filter((b) => {
       if (businessCategory !== "all" && b.category !== businessCategory) return false;
       if (location !== "all" && b.location_label !== location) return false;
       if (localOnly && !b.is_local) return false;
       return true;
     });
-    const visibleItems = items.filter(
-      (i) => !hiddenKeys.has(`__kind:${i.kind}`) && (location === "all" || i.locationLabel === location)
-    );
+    const visibleItems = businessFilterActive
+      ? []
+      : items.filter((i) => !hiddenKeys.has(`__kind:${i.kind}`) && (location === "all" || i.locationLabel === location));
 
     return [
       ...visibleLandmarks.map((landmark) => ({
@@ -533,7 +540,7 @@ export default function ExploreMap({
         popup: <MapItemPopup item={item} />,
       })),
     ];
-  }, [landmarks, mappableBusinesses, businessCategory, location, localOnly, items, hiddenKeys, categories, communitySlug, spaceSlug, isAdmin, userId]);
+  }, [landmarks, mappableBusinesses, businessCategory, location, localOnly, businessFilterActive, items, hiddenKeys, categories, communitySlug, spaceSlug, isAdmin, userId]);
 
   const q = query.trim().toLowerCase();
   const filteredPins = useMemo(() => (q ? pins.filter((p) => p.searchText.includes(q)) : pins), [pins, q]);
@@ -644,21 +651,24 @@ export default function ExploreMap({
             </button>
           );
         })}
-        {presentKinds.map((kind) => {
-          const key = `__kind:${kind}`;
-          const cfg = MAP_ITEM_KINDS[kind];
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => toggleKey(key)}
-              className={`${pillBase} ${hiddenKeys.has(key) ? "border-border text-muted-foreground" : ""}`}
-              style={hiddenKeys.has(key) ? undefined : { borderColor: cfg.color, color: cfg.color }}
-            >
-              {cfg.emoji} {cfg.label}
-            </button>
-          );
-        })}
+        {/* The living-map layers only make sense on the full map — a business
+            filter sets them aside, so hide the (now inert) toggles. */}
+        {!businessFilterActive &&
+          presentKinds.map((kind) => {
+            const key = `__kind:${kind}`;
+            const cfg = MAP_ITEM_KINDS[kind];
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleKey(key)}
+                className={`${pillBase} ${hiddenKeys.has(key) ? "border-border text-muted-foreground" : ""}`}
+                style={hiddenKeys.has(key) ? undefined : { borderColor: cfg.color, color: cfg.color }}
+              >
+                {cfg.emoji} {cfg.label}
+              </button>
+            );
+          })}
 
         <div className="ml-auto flex items-center gap-1.5">
           {canPost && (
