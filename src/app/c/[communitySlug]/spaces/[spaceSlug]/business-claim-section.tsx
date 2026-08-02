@@ -20,6 +20,8 @@ export function BusinessClaimSection({
   spaceSlug,
   canClaim,
   isStaff,
+  ownedByViewer,
+  claimed,
   viewerClaim,
   pendingClaims,
 }: {
@@ -31,6 +33,11 @@ export function BusinessClaimSection({
   // require community membership — claiming is open to new users too.
   canClaim: boolean;
   isStaff: boolean;
+  // The listing has an owner (an approved claim), and that owner is the viewer.
+  ownedByViewer: boolean;
+  // The listing has an owner at all. When true there's nothing to claim; we say
+  // so instead of rendering a blank space where the CTA would be.
+  claimed: boolean;
   viewerClaim: BusinessClaim | null;
   pendingClaims: BusinessClaimWithClaimant[];
 }) {
@@ -47,13 +54,17 @@ export function BusinessClaimSection({
   // let them try again right below.
   const showViewerDeclined = viewerClaim?.status === "rejected";
 
-  // Nothing to show: not eligible to claim, no claim of their own to report, and
-  // (for staff) no pending claims to action.
-  if (!canClaim && !showViewerPending && !showViewerDeclined && staffPending.length === 0) return null;
+  // Already owned: no CTA, but say why rather than leaving a blank — otherwise a
+  // claimed listing just looks like the claim option is missing.
+  const showOwned = claimed && !showViewerPending;
+
+  // Nothing to show: not eligible to claim, no claim of their own to report, not
+  // owned, and (for staff) no pending claims to action.
+  if (!canClaim && !showViewerPending && !showViewerDeclined && !showOwned && staffPending.length === 0) return null;
 
   // When the only thing to show is the claim CTA, keep it to a single compact
   // line instead of a full bordered card.
-  const isCompactCta = canClaim && !showForm && !showViewerPending && !showViewerDeclined && staffPending.length === 0;
+  const isCompactCta = canClaim && !showForm && !showViewerPending && !showViewerDeclined && !showOwned && staffPending.length === 0;
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -133,6 +144,16 @@ export function BusinessClaimSection({
             <button type="button" disabled={isPending} onClick={() => handleWithdraw(viewerClaim.id)} className="font-medium text-danger hover:underline disabled:opacity-60">
               Withdraw
             </button>
+          </p>
+        </div>
+      )}
+
+      {/* Already has an owner — explain the absent CTA instead of a blank. */}
+      {showOwned && (
+        <div className={staffPending.length > 0 ? "mt-3 border-t border-border pt-3" : ""}>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <BadgeCheck className="h-4 w-4 shrink-0 text-accent" />
+            {ownedByViewer ? "You own this business — its listing is linked to your account." : "This business has been claimed by its owner."}
           </p>
         </div>
       )}
