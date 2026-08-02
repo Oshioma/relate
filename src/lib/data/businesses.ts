@@ -91,9 +91,12 @@ export async function getSpaceBusinessesWithStats(
   if (businesses.length === 0) return [];
 
   const ids = businesses.map((b) => b.id);
+  // Ratings hang off the place, so a hotel's stay reviews count towards its
+  // directory card too — it's one place with one rating.
+  const placeIds = [...new Set(businesses.map((b) => b.place_id).filter((id): id is string => id !== null))];
 
   const [{ data: reviews, error: reviewsError }, { data: images, error: imagesError }, { data: saves, error: savesError }] = await Promise.all([
-    supabase.from("business_reviews").select("business_id, rating").in("business_id", ids),
+    supabase.from("place_reviews").select("place_id, rating").in("place_id", placeIds),
     supabase.from("business_images").select("business_id").in("business_id", ids),
     viewerId
       ? supabase.from("business_saves").select("business_id").in("business_id", ids).eq("user_id", viewerId)
@@ -104,11 +107,11 @@ export async function getSpaceBusinessesWithStats(
   if (imagesError) throw imagesError;
   if (savesError) throw savesError;
 
-  const ratingsByBusiness = new Map<string, number[]>();
+  const ratingsByPlace = new Map<string, number[]>();
   for (const row of reviews ?? []) {
-    const list = ratingsByBusiness.get(row.business_id) ?? [];
+    const list = ratingsByPlace.get(row.place_id) ?? [];
     list.push(row.rating);
-    ratingsByBusiness.set(row.business_id, list);
+    ratingsByPlace.set(row.place_id, list);
   }
 
   const imageCountByBusiness = new Map<string, number>();
@@ -119,7 +122,7 @@ export async function getSpaceBusinessesWithStats(
   const savedIds = new Set((saves ?? []).map((row) => row.business_id));
 
   return businesses.map((business) => {
-    const ratings = ratingsByBusiness.get(business.id) ?? [];
+    const ratings = business.place_id ? ratingsByPlace.get(business.place_id) ?? [] : [];
     return {
       business,
       avgRating: average(ratings),
@@ -159,8 +162,16 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
   const [{ data: images, error: imagesError }, { data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }, { data: claims, error: claimsError }] =
     await Promise.all([
       supabase.from("business_images").select("*").eq("business_id", businessId).order("sort_order", { ascending: true }),
-      supabase.from("business_reviews").select("*, author:author_id (*)").eq("business_id", businessId).order("created_at", { ascending: false }),
-      supabase.from("business_review_replies").select("*, author:author_id (*)").eq("business_id", businessId),
+      // Reviews belong to the place, so this listing and any stay for the same
+      // place show the same conversation and the same rating. A listing with no
+      // place (only possible if its place insert failed) falls back to its own
+      // reviews rather than appearing to have none.
+      business.place_id
+        ? supabase.from("place_reviews").select("*, author:author_id (*)").eq("place_id", business.place_id).order("created_at", { ascending: false })
+        : supabase.from("business_reviews").select("*, author:author_id (*)").eq("business_id", businessId).order("created_at", { ascending: false }),
+      business.place_id
+        ? supabase.from("place_review_replies").select("*, author:author_id (*)").eq("place_id", business.place_id)
+        : supabase.from("business_review_replies").select("*, author:author_id (*)").eq("business_id", businessId),
       viewerId
         ? supabase.from("business_saves").select("id").eq("business_id", businessId).eq("user_id", viewerId).maybeSingle()
         : Promise.resolve({ data: null, error: null }),
@@ -180,7 +191,10 @@ export async function getBusinessDetail(supabase: Client, businessId: string, vi
     replyByReviewId.set(reply.review_id, reply);
   }
 
-  const reviewRows = (reviews ?? []) as unknown as (BusinessReview & { author: Profile })[];
+  const reviewRows = ((reviews ?? []) as unknown as (BusinessReview & { author: Profile })[]).map((r) => ({
+    ...r,
+    business_id: businessId,
+  }));
   const withReplies: BusinessReviewWithAuthor[] = reviewRows.map((review) => ({
     ...review,
     reply: replyByReviewId.get(review.id) ?? null,

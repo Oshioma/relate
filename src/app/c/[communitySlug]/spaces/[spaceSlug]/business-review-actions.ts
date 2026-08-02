@@ -33,7 +33,7 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     return { error: "You need to be signed in." };
   }
 
-  const { data: business, error: businessError } = await supabase.from("businesses").select("claimed_by").eq("id", businessId).maybeSingle();
+  const { data: business, error: businessError } = await supabase.from("businesses").select("claimed_by, place_id").eq("id", businessId).maybeSingle();
   if (businessError || !business) {
     return { error: businessError?.message ?? "Listing not found." };
   }
@@ -47,9 +47,16 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     }
   }
 
-  const { error } = await supabase
-    .from("business_reviews")
-    .upsert({ business_id: businessId, author_id: user.id, rating, body: body || null }, { onConflict: "business_id,author_id" });
+  // Reviews are written against the place, so one review covers every facet of
+  // it. A listing with no place (its place insert having failed) still takes
+  // reviews the old way rather than refusing them.
+  const { error } = business.place_id
+    ? await supabase
+        .from("place_reviews")
+        .upsert({ place_id: business.place_id, author_id: user.id, rating, body: body || null }, { onConflict: "place_id,author_id" })
+    : await supabase
+        .from("business_reviews")
+        .upsert({ business_id: businessId, author_id: user.id, rating, body: body || null }, { onConflict: "business_id,author_id" });
 
   if (error) {
     return { error: error.message };
@@ -62,6 +69,9 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
 
 export async function deleteReview(reviewId: string, businessId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
+  // The id may belong to either store while listings without a place remain;
+  // deleting from both is harmless, as only one can match.
+  await supabase.from("place_reviews").delete().eq("id", reviewId);
   const { error } = await supabase.from("business_reviews").delete().eq("id", reviewId);
 
   if (error) {
@@ -96,9 +106,16 @@ export async function replyToReview(_prevState: BusinessReviewFormState, formDat
     return { error: "You need to be signed in." };
   }
 
-  const { error } = await supabase
-    .from("business_review_replies")
-    .upsert({ review_id: reviewId, business_id: businessId, author_id: user.id, body }, { onConflict: "review_id" });
+  // A reply belongs to the place, alongside the review it answers.
+  const { data: business } = await supabase.from("businesses").select("place_id").eq("id", businessId).maybeSingle();
+
+  const { error } = business?.place_id
+    ? await supabase
+        .from("place_review_replies")
+        .upsert({ review_id: reviewId, place_id: business.place_id, author_id: user.id, body }, { onConflict: "review_id" })
+    : await supabase
+        .from("business_review_replies")
+        .upsert({ review_id: reviewId, business_id: businessId, author_id: user.id, body }, { onConflict: "review_id" });
 
   if (error) {
     return { error: error.message };
@@ -110,6 +127,7 @@ export async function replyToReview(_prevState: BusinessReviewFormState, formDat
 
 export async function deleteReviewReply(replyId: string, businessId: string, communitySlug: string, spaceSlug: string) {
   const supabase = await createClient();
+  await supabase.from("place_review_replies").delete().eq("id", replyId);
   const { error } = await supabase.from("business_review_replies").delete().eq("id", replyId);
 
   if (error) {
