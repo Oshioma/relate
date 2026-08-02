@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { markConversationRead } from "@/lib/data/conversation-reads";
 import { getProfile } from "@/lib/data/profile";
 import { isJaasConfigured, getJaasAppId, mintJaasToken } from "@/lib/jitsi";
 
@@ -91,21 +92,44 @@ export async function sendMessage(conversationId: string, body: string): Promise
   return { error: null };
 }
 
+// Skip the email when the recipient was reading the thread within this window —
+// they'll see the message arrive live, so an email would just be noise.
+const ACTIVE_READER_WINDOW_MS = 60_000;
+
 // The email copy of a direct message carries the text itself and deep-links to
 // the thread. Inserting the notification needs the service-role client because
 // RLS won't let one member write into another's notifications list — the same
-// pattern the host-broadcast and contact-form flows use.
+// pattern the host-broadcast and contact-form flows use. Suppressed while the
+// recipient is actively reading, or already sitting on an unread ping.
 async function notifyRecipient(conversationId: string, senderId: string, body: string) {
   try {
     const supabase = await createClient();
     const { data: convo } = await supabase
       .from("conversations")
-      .select("user_one_id, user_two_id")
+      .select("user_one_id, user_two_id, user_one_last_read_at, user_two_last_read_at")
       .eq("id", conversationId)
       .maybeSingle();
     if (!convo) return;
 
     const recipientId = convo.user_one_id === senderId ? convo.user_two_id : convo.user_one_id;
+
+    // Actively reading right now? Their last-read marker is very recent — skip.
+    const recipientLastRead = convo.user_one_id === recipientId ? convo.user_one_last_read_at : convo.user_two_last_read_at;
+    if (recipientLastRead && Date.now() - new Date(recipientLastRead).getTime() < ACTIVE_READER_WINDOW_MS) {
+      return;
+    }
+
+    // Otherwise debounce a burst: if they already have an unread message from
+    // this sender (more than the one just inserted), they've been emailed for it
+    // already — don't pile on until they've caught up.
+    const { count } = await supabase
+      .from("direct_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("conversation_id", conversationId)
+      .eq("sender_id", senderId)
+      .eq("read", false);
+    if ((count ?? 0) > 1) return;
+
     const profile = await getProfile(supabase, senderId);
     const senderName = profile?.full_name || profile?.username || "Someone";
     const preview = body.length > 300 ? `${body.slice(0, 300)}…` : body;
@@ -259,6 +283,10 @@ export async function markMessagesRead(conversationId: string): Promise<{ error:
     .eq("conversation_id", conversationId)
     .neq("sender_id", user.id)
     .eq("read", false);
+
+  // Keep the read marker fresh so a message arriving seconds later — while
+  // they're still in the thread — doesn't email them.
+  await markConversationRead(conversationId, user.id);
 
   revalidatePath("/messages");
   return { error: null };

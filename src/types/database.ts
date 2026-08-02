@@ -1358,6 +1358,10 @@ export type Conversation = {
   user_one_id: string;
   user_two_id: string;
   last_message_at: string | null;
+  // When each participant last opened the thread — used to suppress the
+  // direct-message email while a recipient is actively reading.
+  user_one_last_read_at: string | null;
+  user_two_last_read_at: string | null;
   created_at: string;
 };
 
