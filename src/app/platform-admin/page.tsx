@@ -9,7 +9,9 @@ import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getAllPlatformPlans } from "@/lib/data/platform-plans";
 import { getAllFeaturePacks } from "@/lib/data/feature-packs";
 import { getPlatformSettings } from "@/lib/data/platform-settings";
+import { getContactMessages } from "@/lib/data/contact-messages";
 import { LegalSettingsForm } from "./legal-settings-form";
+import { ContactInbox } from "./contact-inbox";
 import { PlanAdminRow } from "./plan-admin-row";
 import { PackAdminRow } from "./pack-admin-row";
 import { COMMUNITY_FEATURES } from "@/lib/features";
@@ -32,7 +34,7 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs, legalSettings] = await Promise.all([
+  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs, legalSettings, contactMessages] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
@@ -42,6 +44,7 @@ export default async function PlatformAdminPage() {
     getAllPlatformPlans(supabase),
     getAllFeaturePacks(supabase),
     getPlatformSettings(supabase),
+    getContactMessages(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -215,6 +218,15 @@ export default async function PlatformAdminPage() {
       </p>
       <div className="mb-6">
         <LegalSettingsForm settings={legalSettings} />
+      </div>
+
+      <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">Contact messages</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Submissions from the <span className="font-medium text-foreground">/contact</span> form. Each also emails the
+        support inbox — this is the durable record.
+      </p>
+      <div className="mb-6">
+        <ContactInbox messages={contactMessages} />
       </div>
     </div>
   );

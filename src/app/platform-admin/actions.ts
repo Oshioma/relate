@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import type { TemplateDefaultItem } from "@/lib/template-defaults";
 
@@ -70,6 +71,25 @@ export async function savePlatformLegal(_prevState: LegalFormState, formData: Fo
   revalidatePath("/terms");
   revalidatePath("/privacy");
   return { ok: true };
+}
+
+// --- Contact messages --------------------------------------------------------
+// Flag a contact-form submission handled / unhandled from the super-admin inbox.
+// contact_messages has no client write policy by design, so the update goes
+// through the service-role client — gated here by an explicit super-admin check.
+export async function setContactMessageHandled(id: string, handled: boolean): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can manage contact messages." };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("contact_messages").update({ handled }).eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin");
+  return undefined;
 }
 
 // --- Platform plans ----------------------------------------------------------
