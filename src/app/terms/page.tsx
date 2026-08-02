@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getPlatformSettings } from "@/lib/data/platform-settings";
 import { RichText } from "@/components/ui/rich-text";
+import { PROSE_CLASS } from "@/lib/prose";
 
 export const metadata: Metadata = { title: "Terms & Conditions — Relate" };
 
@@ -17,7 +18,7 @@ export default async function TermsPage() {
       </Link>
       <h1 className="mb-6 mt-4 text-2xl font-semibold tracking-tight text-foreground">Terms &amp; Conditions</h1>
       {settings?.terms ? (
-        <RichText content={settings.terms} />
+        <RichText content={settings.terms} className={PROSE_CLASS} />
       ) : (
         <p className="text-sm text-muted-foreground">Our terms haven&apos;t been published yet. Please check back soon.</p>
       )}
