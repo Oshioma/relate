@@ -31,6 +31,13 @@ const PLATFORM_PATH_PREFIXES = [
   "/notifications",
   "/communities",
   "/invite",
+  // Platform-wide legal documents (the super admin's Terms & Privacy). They
+  // exist only at the platform root, so on a community's host they must keep
+  // their platform meaning rather than rewriting onto /c/<slug>/terms (404).
+  // Note: /contact is deliberately NOT here — on a community's host it means
+  // that community's own contact page (/c/<slug>/contact).
+  "/terms",
+  "/privacy",
   // The platform super-admin page. It lives at /platform-admin (not /admin)
   // precisely so it doesn't collide with a community's own /c/<slug>/admin
   // page, which canonicalizes to a bare /admin on the community's host.

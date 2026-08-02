@@ -25,6 +25,7 @@ export const DEFAULT_NOTIFICATION_EMAIL_PREFS: NotificationEmailPrefs = {
   live_reminder: true,
   live_invite: true,
   member_message: true,
+  contact: true,
 };
 
 // Per-type email preference for a member, with the per-type defaults applied for

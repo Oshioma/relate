@@ -19,6 +19,7 @@ const typeIcon = {
   live_reminder: <Radio className="h-4 w-4" />,
   live_invite: <Radio className="h-4 w-4" />,
   member_message: <Mail className="h-4 w-4" />,
+  contact: <Mail className="h-4 w-4" />,
 };
 
 function BellIcon({ count }: { count: number }) {
