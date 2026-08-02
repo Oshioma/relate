@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getConversationById, getConversationMessages } from "@/lib/data/messages";
+import { markConversationRead } from "@/lib/data/conversation-reads";
 import { ConversationView } from "../conversation-view";
 
 export default async function ConversationPage({ params }: { params: Promise<{ conversationId: string }> }) {
@@ -29,6 +30,9 @@ export default async function ConversationPage({ params }: { params: Promise<{ c
   if (unreadIds.length > 0) {
     await supabase.from("direct_messages").update({ read: true }).in("id", unreadIds);
   }
+  // Record that they're looking at the thread now (even with nothing unread), so
+  // a message that lands moments later doesn't also email them — they're here.
+  await markConversationRead(conversationId, user.id);
 
   return (
     <ConversationView
