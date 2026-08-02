@@ -5,12 +5,12 @@ import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } f
 import { useRouter } from "next/navigation";
 import { Map as MapGL, Marker, Popup, NavigationControl, GeolocateControl, type MapRef } from "react-map-gl/maplibre";
 import type { Map as MaplibreMap, Offset, StyleSpecification } from "maplibre-gl";
-import { MapPin, Plus, Search, Settings, Trash2, X, Maximize2, Minimize2, Satellite, Map as MapStyleIcon } from "lucide-react";
+import { MapPin, Plus, Search, X, Maximize2, Minimize2, Satellite, Map as MapStyleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { colorForCategory } from "@/lib/map-pin-colors";
 import { businessCategoryLabel } from "@/lib/business-categories";
-import { createLandmark, deleteLandmark, createMapCategory, toggleMapCategory, deleteMapCategory } from "./map-actions";
+import { createLandmark, deleteLandmark } from "./map-actions";
 import { BusinessMapPopup } from "./business-map-popup";
 import { MapItemPopup, isEventSoon } from "./map-item-popup";
 import { MAP_ITEM_KINDS, MAP_ITEM_KIND_ORDER, type MapItem } from "@/lib/map-item-kinds";
@@ -352,71 +352,6 @@ function NewLandmarkForm({
   );
 }
 
-function LayerManager({
-  communityId,
-  communitySlug,
-  spaceSlug,
-  categories,
-}: {
-  communityId: string;
-  communitySlug: string;
-  spaceSlug: string;
-  categories: MapCategory[];
-}) {
-  const [isPending, startTransition] = useTransition();
-  const [newName, setNewName] = useState("");
-  const router = useRouter();
-
-  function addLayer() {
-    if (!newName.trim()) return;
-    startTransition(async () => {
-      await createMapCategory(communityId, newName, communitySlug, spaceSlug);
-      setNewName("");
-      router.refresh();
-    });
-  }
-
-  function toggle(categoryId: string, enabled: boolean) {
-    startTransition(async () => {
-      await toggleMapCategory(categoryId, enabled, communitySlug, spaceSlug);
-      router.refresh();
-    });
-  }
-
-  function remove(categoryId: string, name: string) {
-    if (!window.confirm(`Delete the "${name}" layer? Pins in it become uncategorized.`)) return;
-    startTransition(async () => {
-      await deleteMapCategory(categoryId, communitySlug, spaceSlug);
-      router.refresh();
-    });
-  }
-
-  return (
-    <div className="mt-3 rounded-lg border border-border bg-card p-4">
-      <p className="text-sm font-medium text-foreground">Manage layers</p>
-      <div className="mt-2 space-y-1.5">
-        {categories.map((c) => (
-          <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
-            <label className="flex items-center gap-2 text-foreground">
-              <input type="checkbox" checked={c.enabled} disabled={isPending} onChange={(e) => toggle(c.id, e.target.checked)} className="h-4 w-4 rounded border-border" />
-              {c.name}
-            </label>
-            <button type="button" disabled={isPending} onClick={() => remove(c.id, c.name)} className="text-muted-foreground hover:text-danger disabled:opacity-60">
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
-      </div>
-      <div className="mt-3 flex gap-2">
-        <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New layer name" className="text-sm" />
-        <Button type="button" size="sm" variant="secondary" disabled={isPending || !newName.trim()} onClick={addLayer} className="w-auto shrink-0">
-          Add
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function ExploreMap({
   communityId,
   communitySlug,
@@ -443,9 +378,11 @@ export default function ExploreMap({
   userId: string;
 }) {
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+  const [businessCategory, setBusinessCategory] = useState<string>("all");
+  const [location, setLocation] = useState<string>("all");
+  const [localOnly, setLocalOnly] = useState(false);
   const [addMode, setAddMode] = useState(false);
   const [pending, setPending] = useState<{ lat: number; lng: number } | null>(null);
-  const [showLayerManager, setShowLayerManager] = useState(false);
   const [satellite, setSatellite] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [zoom, setZoom] = useState(9.5);
@@ -489,9 +426,40 @@ export default function ExploreMap({
     return () => window.removeEventListener("keydown", onKey);
   }, [fullscreen]);
 
-  const enabledCategories = categories.filter((c) => c.enabled || isAdmin);
   // Only kinds with pins get a filter pill — an empty "Jobs" toggle is noise.
   const presentKinds = MAP_ITEM_KIND_ORDER.filter((kind) => items.some((i) => i.kind === kind));
+
+  // Only businesses that actually sit on the map (have coordinates) can be
+  // filtered or counted — the directory-style chips mirror those.
+  const mappableBusinesses = useMemo(
+    () => businesses.filter((b) => b.lat !== null && b.lng !== null),
+    [businesses]
+  );
+
+  // Directory-style category chips: every business category present on the
+  // map, with a count, sorted by label. The map spans the whole community
+  // rather than one directory space, so labels come from the slug (custom
+  // per-space relabellings aren't in scope here — see businessCategoryLabel).
+  const businessCategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const b of mappableBusinesses) counts.set(b.category, (counts.get(b.category) ?? 0) + 1);
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, count, label: businessCategoryLabel(value) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [mappableBusinesses]);
+
+  const localCount = useMemo(() => mappableBusinesses.filter((b) => b.is_local).length, [mappableBusinesses]);
+
+  // Location chips, also directory-style: each distinct location_label with a
+  // count. Clicking one filters and flies the map to that area (selectLocation).
+  const locations = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const b of mappableBusinesses) {
+      if (!b.location_label) continue;
+      counts.set(b.location_label, (counts.get(b.location_label) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [mappableBusinesses]);
 
   function toggleKey(key: string) {
     setHiddenKeys((prev) => {
@@ -503,9 +471,18 @@ export default function ExploreMap({
   }
 
   const pins: PinDef[] = useMemo(() => {
-    const visibleLandmarks = landmarks.filter((l) => !hiddenKeys.has(l.category_id ?? "uncategorized") && categories.some((c) => c.id === l.category_id ? c.enabled : true));
-    const visibleBusinesses = hiddenKeys.has("__businesses") ? [] : businesses;
-    const visibleItems = items.filter((i) => !hiddenKeys.has(`__kind:${i.kind}`));
+    // Landmarks are reference points, not directory listings, so the
+    // directory-style category/location chips leave them be.
+    const visibleLandmarks = landmarks;
+    const visibleBusinesses = mappableBusinesses.filter((b) => {
+      if (businessCategory !== "all" && b.category !== businessCategory) return false;
+      if (location !== "all" && b.location_label !== location) return false;
+      if (localOnly && !b.is_local) return false;
+      return true;
+    });
+    const visibleItems = items.filter(
+      (i) => !hiddenKeys.has(`__kind:${i.kind}`) && (location === "all" || i.locationLabel === location)
+    );
 
     return [
       ...visibleLandmarks.map((landmark) => ({
@@ -556,7 +533,7 @@ export default function ExploreMap({
         popup: <MapItemPopup item={item} />,
       })),
     ];
-  }, [landmarks, businesses, items, hiddenKeys, categories, communitySlug, spaceSlug, isAdmin, userId]);
+  }, [landmarks, mappableBusinesses, businessCategory, location, localOnly, items, hiddenKeys, categories, communitySlug, spaceSlug, isAdmin, userId]);
 
   const q = query.trim().toLowerCase();
   const filteredPins = useMemo(() => (q ? pins.filter((p) => p.searchText.includes(q)) : pins), [pins, q]);
@@ -588,6 +565,27 @@ export default function ExploreMap({
     mapRef.current?.flyTo({ center: [pin.lng, pin.lat], zoom: Math.max(zoom, 14.5), duration: 650 });
   }
 
+  // Selecting a location chip filters to it and flies the map to fit every
+  // business there — "click a location, the map zooms to the area".
+  function selectLocation(label: string) {
+    const next = location === label ? "all" : label;
+    setLocation(next);
+    if (next === "all") return;
+    const here = mappableBusinesses.filter((b) => b.location_label === next);
+    if (here.length === 0) return;
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    for (const b of here) {
+      minLat = Math.min(minLat, b.lat as number);
+      maxLat = Math.max(maxLat, b.lat as number);
+      minLng = Math.min(minLng, b.lng as number);
+      maxLng = Math.max(maxLng, b.lng as number);
+    }
+    mapRef.current?.fitBounds(
+      [[minLng, minLat], [maxLng, maxLat]],
+      { padding: 90, duration: 700, maxZoom: 15 }
+    );
+  }
+
   // Glide to the matching pins as the user types.
   useEffect(() => {
     if (!q || filteredPins.length === 0) return;
@@ -612,14 +610,40 @@ export default function ExploreMap({
 
   return (
     <div>
+      {/* Directory-style filters, front and centre: a category chip per
+          business type on the map, then a location row that flies the map to
+          the area. The living-map content types (events, stays, …) follow. */}
       <div className="mb-3 flex flex-wrap items-center gap-1.5">
         <button
           type="button"
-          onClick={() => toggleKey("__businesses")}
-          className={`${pillBase} ${hiddenKeys.has("__businesses") ? "border-border text-muted-foreground" : "border-accent bg-accent-soft text-accent"}`}
+          onClick={() => setBusinessCategory("all")}
+          className={`${pillBase} ${businessCategory === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
         >
-          🏪 Businesses
+          All ({mappableBusinesses.length})
         </button>
+        {localCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setLocalOnly((v) => !v)}
+            className={`inline-flex items-center gap-1 ${pillBase} ${localOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            <MapPin className={`h-3 w-3 ${localOnly ? "fill-accent" : ""}`} />
+            Local ({localCount})
+          </button>
+        )}
+        {businessCategories.map((c) => {
+          const isActive = businessCategory === c.value;
+          return (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => setBusinessCategory(isActive ? "all" : c.value)}
+              className={`${pillBase} ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              {c.label} ({c.count})
+            </button>
+          );
+        })}
         {presentKinds.map((kind) => {
           const key = `__kind:${kind}`;
           const cfg = MAP_ITEM_KINDS[kind];
@@ -635,18 +659,6 @@ export default function ExploreMap({
             </button>
           );
         })}
-        {enabledCategories.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => toggleKey(c.id)}
-            className={`${pillBase} ${hiddenKeys.has(c.id) ? "border-border text-muted-foreground" : ""}`}
-            style={hiddenKeys.has(c.id) ? undefined : { borderColor: colorForCategory(c.id), color: colorForCategory(c.id) }}
-          >
-            {c.enabled ? "" : "(hidden) "}
-            {c.name}
-          </button>
-        ))}
 
         <div className="ml-auto flex items-center gap-1.5">
           {canPost && (
@@ -655,13 +667,33 @@ export default function ExploreMap({
               {addMode ? "Cancel" : "Add pin"}
             </Button>
           )}
-          {isAdmin && (
-            <button type="button" onClick={() => setShowLayerManager((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Manage layers">
-              <Settings className="h-4 w-4" />
-            </button>
-          )}
         </div>
       </div>
+
+      {locations.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setLocation("all")}
+            className={`${pillBase} ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+          >
+            All locations
+          </button>
+          {locations.map(([label, count]) => {
+            const isActive = location === label;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => selectLocation(label)}
+                className={`${pillBase} ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+              >
+                {label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {addMode && <p className="mb-2 text-xs text-muted-foreground">Click anywhere on the map to place a pin.</p>}
 
@@ -873,8 +905,6 @@ export default function ExploreMap({
           onCancel={() => setPending(null)}
         />
       )}
-
-      {isAdmin && showLayerManager && <LayerManager communityId={communityId} communitySlug={communitySlug} spaceSlug={spaceSlug} categories={categories} />}
     </div>
   );
 }
