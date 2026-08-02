@@ -60,10 +60,15 @@ export default async function BusinessDetailPage({
 
   // Accommodation bridge: is this stay-like business already linked to a stay,
   // and (if not) is there an accommodation space to create one in?
+  // The bridge used to be offered only on listings already tagged as
+  // accommodation — no help at all to a hotel someone filed under Restaurants,
+  // which is exactly when it's needed. Anyone who manages the listing can reach
+  // it now; the card just states its case more quietly when we haven't detected
+  // anything ourselves.
   const isStayLike = detail.business.category === "accommodation";
   const [linkedStay, accommodationSpace] = await Promise.all([
-    isStayLike ? getStayLinkForBusiness(supabase, detail.business.id) : Promise.resolve(null),
-    isStayLike && canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
+    getStayLinkForBusiness(supabase, detail.business.id),
+    canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
   ]);
 
   return (
@@ -92,6 +97,7 @@ export default async function BusinessDetailPage({
         canClaim={canClaim}
         linkedStay={linkedStay}
         canCreateStay={canManage && accommodationSpace !== null}
+        stayDetected={isStayLike}
         customCategories={customCategories.filter((c) => c.space_id === space.id)}
         labelOverrides={labelOverrides.filter((o) => o.space_id === space.id)}
       />

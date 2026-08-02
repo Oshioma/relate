@@ -14,7 +14,9 @@ import { EditAccommodationForm } from "./edit-accommodation-form";
 import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
+import { StayBusinessBridge } from "./stay-business-bridge";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
+import type { BusinessCustomCategory } from "@/types/database";
 
 const StaticMap = dynamic(() => import("@/components/map/static-map"), {
   ssr: false,
@@ -37,6 +39,8 @@ export function AccommodationDetailView({
   canReply,
   isStaff,
   businesses,
+  canCreateBusiness,
+  directoryCategories,
 }: {
   detail: AccommodationDetail;
   communitySlug: string;
@@ -50,6 +54,9 @@ export function AccommodationDetailView({
   canReply: boolean;
   isStaff: boolean;
   businesses: BusinessLinkOption[];
+  // The viewer manages this stay and the community has a directory to add to.
+  canCreateBusiness: boolean;
+  directoryCategories: BusinessCustomCategory[];
 }) {
   const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness } = detail;
   const [isEditing, setIsEditing] = useState(false);
@@ -302,6 +309,14 @@ export function AccommodationDetailView({
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </CardContent>
       </Card>
+
+      <StayBusinessBridge
+        listingId={listing.id}
+        communitySlug={communitySlug}
+        linkedBusiness={linkedBusiness}
+        canCreate={canCreateBusiness}
+        customCategories={directoryCategories}
+      />
 
       <div>
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">

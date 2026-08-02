@@ -14,6 +14,7 @@ export function BusinessStayBridge({
   communitySlug,
   linkedStay,
   canCreate,
+  detected,
 }: {
   businessId: string;
   communitySlug: string;
@@ -21,6 +22,10 @@ export function BusinessStayBridge({
   // The viewer manages this listing and the community has an accommodation
   // space to host the stay.
   canCreate: boolean;
+  // Whether we detected this ourselves. When we didn't, the prompt is an
+  // offer rather than an observation — it shows on every listing the viewer
+  // manages, so it must not assert that a hardware shop is a hotel.
+  detected: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -58,13 +63,14 @@ export function BusinessStayBridge({
   if (!canCreate) return null;
 
   return (
-    <div className="rounded-lg border border-accent/40 bg-accent-soft/50 p-4">
+    <div className={`rounded-lg border p-4 ${detected ? "border-accent/40 bg-accent-soft/50" : "border-dashed border-border"}`}>
       <p className="flex items-center gap-2 text-sm font-medium text-foreground">
         <BedDouble className="h-4 w-4 text-accent" />
-        This looks like a place to stay
+        {detected ? "This looks like a place to stay" : "Is this a place to stay?"}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
         Create a full stay listing — with a photo gallery, price, availability, amenities and guest reviews — pre-filled from this listing and linked back to it.
+        {!detected && " Use this if it was added to the directory by mistake, or if it's both."}
       </p>
       <button
         type="button"
