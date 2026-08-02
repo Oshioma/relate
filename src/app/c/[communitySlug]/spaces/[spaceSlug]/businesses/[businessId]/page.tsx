@@ -43,9 +43,6 @@ export default async function BusinessDetailPage({
   // takes over. Staff and super admins can always manage.
   const isCaretaker = detail.business.claimed_by === null && detail.business.created_by === viewerId;
   const canManage = isOwner || isCaretaker || Boolean(isStaff) || isSuperAdmin;
-  // A self-listing (you added it or you own it) can't be reviewed by you — super
-  // admins excepted, for seeding.
-  const isSelfListing = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
   // Anyone signed in who can see this listing may claim an unclaimed one they
   // don't already have a *live* claim on — including the member who added it (a
   // curator claiming a listing they own) and a brand-new user who hasn't joined
@@ -86,9 +83,11 @@ export default async function BusinessDetailPage({
         userId={viewerId}
         canManage={canManage}
         isStaff={Boolean(isStaff)}
-        // Any active member may review, except a listing they added or own — but a
-        // super admin may review even their own listing.
-        canReview={Boolean(isActive) && (!isSelfListing || isSuperAdmin)}
+        // Any active member may review, except the owner of a listing they've
+        // claimed (you can't rate your own business). Adding a listing is
+        // curation, not ownership, so the adder may still review it. Super admins
+        // may review anything, for seeding.
+        canReview={Boolean(isActive) && (!isOwner || isSuperAdmin)}
         // Whoever manages the listing may reply to reviews on its behalf.
         canReply={canManage}
         // Any active member may bookmark.

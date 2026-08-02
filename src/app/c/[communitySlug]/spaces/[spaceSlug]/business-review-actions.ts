@@ -33,16 +33,17 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     return { error: "You need to be signed in." };
   }
 
-  const { data: business, error: businessError } = await supabase.from("businesses").select("created_by, claimed_by").eq("id", businessId).maybeSingle();
+  const { data: business, error: businessError } = await supabase.from("businesses").select("claimed_by").eq("id", businessId).maybeSingle();
   if (businessError || !business) {
     return { error: businessError?.message ?? "Listing not found." };
   }
-  // A member can't review a listing they added or one they own — matching the
-  // hidden review form in the UI. Super admins may (seeding/testing).
-  if (business.created_by === user.id || business.claimed_by === user.id) {
+  // A member can't review a business they own (a claim that was approved) —
+  // matching the hidden review form in the UI. Adding a listing is curation, not
+  // ownership, so the adder may still review it. Super admins may (seeding).
+  if (business.claimed_by === user.id) {
     const { data: profile } = await supabase.from("profiles").select("is_super_admin").eq("id", user.id).maybeSingle();
     if (!profile?.is_super_admin) {
-      return { error: "You can't review your own listing." };
+      return { error: "You can't review a business you own." };
     }
   }
 
