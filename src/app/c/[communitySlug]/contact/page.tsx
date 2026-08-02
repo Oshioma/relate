@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug } from "@/lib/data/community";
 import { RichText } from "@/components/ui/rich-text";
+import { PROSE_CLASS } from "@/lib/prose";
 import { CommunityContactForm } from "./community-contact-form";
 
 export const metadata: Metadata = { title: "Contact" };
@@ -24,7 +25,7 @@ export default async function CommunityContactPage({ params }: { params: Promise
       </p>
 
       {community.contact_info && (
-        <RichText content={community.contact_info} className="mb-6 rounded-lg border border-border bg-card p-5" />
+        <RichText content={community.contact_info} className={`mb-6 rounded-lg border border-border bg-card p-5 ${PROSE_CLASS}`} />
       )}
 
       <CommunityContactForm communityId={community.id} />
