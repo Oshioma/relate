@@ -156,3 +156,51 @@ export async function createPlaceForListing(
     .single();
   return data?.id ?? null;
 }
+
+// Keeps the place in step when one of its facets is edited.
+//
+// Stage 1 created the place from the listing and then never looked at it again,
+// so changing a listing's phone number left the place holding the old one — and
+// duplicate detection matches on the place's name, so a stale name quietly
+// stops catching duplicates.
+//
+// Location and contact details are the place's, so a facet editing them is
+// editing the place. The name is only taken when this facet is the place's
+// *only* one: once a hotel has a restaurant, the two legitimately carry
+// different names ("Kendwa Rocks" and "The Rock at Kendwa Rocks") and neither
+// should overwrite the other. Description and photos stay per-facet throughout —
+// a restaurant and a hotel describe themselves differently.
+export async function syncPlaceIdentity(
+  supabase: Client,
+  placeId: string | null,
+  input: {
+    name: string;
+    address?: string | null;
+    locationLabel?: string | null;
+    website?: string | null;
+    phone?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  }
+): Promise<void> {
+  if (!placeId) return;
+
+  const [{ count: businessCount }, { count: stayCount }] = await Promise.all([
+    supabase.from("businesses").select("id", { count: "exact", head: true }).eq("place_id", placeId),
+    supabase.from("accommodation_listings").select("id", { count: "exact", head: true }).eq("place_id", placeId),
+  ]);
+  const onlyFacet = (businessCount ?? 0) + (stayCount ?? 0) <= 1;
+
+  await supabase
+    .from("places")
+    .update({
+      ...(onlyFacet ? { name: input.name } : {}),
+      address: input.address ?? null,
+      location_label: input.locationLabel ?? null,
+      website: input.website ?? null,
+      phone: input.phone ?? null,
+      lat: input.lat ?? null,
+      lng: input.lng ?? null,
+    })
+    .eq("id", placeId);
+}
