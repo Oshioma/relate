@@ -27,9 +27,32 @@ import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { JoinCommunityButton } from "./join-community-button";
 
-// Give each community its own tab title. `default` shows the community name on
-// the community's own pages; the template lets any child page that sets a title
-// render as "Page · Community" without repeating the community name everywhere.
+// The snippet a search engine shows under the result, and the text on a
+// social-share card, both come from the page's meta description. Without one,
+// every community page inherited the root layout's generic line — and because
+// that line says nothing about this particular community, Google discards it
+// and scrapes visible page text instead, which is often a business listing
+// ("Kendwa Rocks…") rather than anything about the community. So give each
+// community its own description: the owner's own community.description when
+// set, otherwise a name-based fallback that's still community-specific.
+// Trimmed to ~160 chars (a word boundary) to stay within what search results
+// display without truncating mid-word.
+function communityMetaDescription(community: { name: string; description: string | null }): string {
+  const own = community.description?.trim();
+  if (own) {
+    if (own.length <= 160) return own;
+    const clipped = own.slice(0, 160);
+    const lastSpace = clipped.lastIndexOf(" ");
+    return `${(lastSpace > 100 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
+  }
+  return `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`;
+}
+
+// Give each community its own tab title and meta description. `default` shows
+// the community name on the community's own pages; the template lets any child
+// page that sets a title render as "Page · Community" without repeating the
+// community name everywhere. The description is inherited by every child page
+// that doesn't set its own, so the whole community reads correctly in search.
 export async function generateMetadata({
   params,
 }: {
@@ -39,8 +62,21 @@ export async function generateMetadata({
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
+  const description = communityMetaDescription(community);
+  // Only an absolute URL is safe here: a relative image path with no
+  // metadataBase configured makes the build error out. Cover images are
+  // Supabase public URLs (absolute), but guard anyway so an odd value degrades
+  // to no OG image rather than a build failure.
+  const cover = community.cover_image_url;
+  const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
   return {
     title: { default: community.name, template: `%s · ${community.name}` },
+    description,
+    openGraph: {
+      title: community.name,
+      description,
+      ...(ogImage ? { images: ogImage } : {}),
+    },
   };
 }
 
