@@ -445,6 +445,34 @@ export async function updateCommunityGuidelines(
   return { ok: true };
 }
 
+export type CommunityContactInfoState = { error: string } | { ok: true } | undefined;
+
+// Save the contact details shown above a community's contact form. Same
+// sanitised HTML/Markdown as guidelines, rendered through <RichText>. RLS
+// restricts the update to the owner and admins; empty clears it.
+export async function updateCommunityContactInfo(
+  _prevState: CommunityContactInfoState,
+  formData: FormData
+): Promise<CommunityContactInfoState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const contactInfo = String(formData.get("contact_info") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ contact_info: contactInfo || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/contact`);
+  return { ok: true };
+}
+
 export type PublicAccessState = { error: string } | undefined;
 
 // The community's pre-login / public-access controls, grouped into one place:

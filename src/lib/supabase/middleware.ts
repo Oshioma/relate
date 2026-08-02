@@ -10,7 +10,7 @@ const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/co
 // space resolves to notFound for a guest — but the middleware must not bounce
 // them to /login first, or a public community could never be browsed.
 // Everything else under /c/<slug> (admin, members, …) stays login-gated.
-const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines"];
+const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact"];
 
 // Matches the community feed (/c/<slug>) and its guest-visible sections
 // (/c/<slug>/spaces, /events, /concierge and anything nested under them).

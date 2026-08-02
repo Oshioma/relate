@@ -95,6 +95,10 @@ export type Community = {
   // community admin page and shown at /c/<slug>/guidelines. Sanitised HTML or
   // Markdown, rendered through <RichText>. Null = none set yet.
   guidelines: string | null;
+  // Contact details the owner shows above their community's contact form
+  // (/c/<slug>/contact) — phone, hours, address, etc. Sanitised HTML/Markdown
+  // rendered through <RichText>. Null = nothing shown above the form.
+  contact_info: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
   // Optional per-community accent, as '#rrggbb' (a DB check constraint enforces
@@ -1155,7 +1159,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact";
 
 export type Notification = {
   id: string;
@@ -1644,6 +1648,9 @@ export type PlatformSettings = {
 export type ContactMessage = {
   id: string;
   user_id: string | null;
+  // Set when the message came from a community's own contact page; null for a
+  // platform (marketing) /contact submission.
+  community_id: string | null;
   name: string;
   email: string;
   message: string;

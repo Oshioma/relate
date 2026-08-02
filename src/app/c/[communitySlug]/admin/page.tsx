@@ -26,6 +26,9 @@ import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-ma
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
+import { CommunityContactInfoForm } from "./community-contact-info-form";
+import { CommunityContactMessages } from "./community-contact-messages";
+import { getCommunityContactMessages } from "@/lib/data/contact-messages";
 import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
@@ -84,6 +87,8 @@ export default async function AdminPage({
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
+
+  const contactMessages = await getCommunityContactMessages(supabase, community.id);
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -167,6 +172,7 @@ export default async function AdminPage({
     { id: "members", label: "Members" },
     { id: "details", label: "Details" },
     { id: "guidelines", label: "Guidelines" },
+    { id: "contact", label: "Contact" },
     { id: "public-access", label: "Public access" },
     { id: "spaces", label: "Spaces" },
     { id: "profile-fields", label: "Profile fields" },
@@ -231,6 +237,17 @@ export default async function AdminPage({
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
       <div className="mb-8">
         <CommunityGuidelinesForm community={community} />
+      </div>
+
+      <h2 id="contact" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Contact page</h2>
+      <div className="mb-8 space-y-4">
+        <CommunityContactInfoForm community={community} />
+        <div>
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Messages{contactMessages.length > 0 ? ` (${contactMessages.length})` : ""}
+          </h3>
+          <CommunityContactMessages messages={contactMessages} />
+        </div>
       </div>
 
       <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
