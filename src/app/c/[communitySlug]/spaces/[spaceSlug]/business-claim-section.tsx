@@ -42,14 +42,18 @@ export function BusinessClaimSection({
 
   const staffPending = isStaff ? pendingClaims : [];
   const showViewerPending = viewerClaim?.status === "pending";
+  // A declined claim used to hide this whole panel, stranding the claimant with
+  // no CTA and no explanation. Surface it, and (since canClaim now allows it)
+  // let them try again right below.
+  const showViewerDeclined = viewerClaim?.status === "rejected";
 
-  // Nothing to show: not eligible to claim, no pending claim of their own, and
+  // Nothing to show: not eligible to claim, no claim of their own to report, and
   // (for staff) no pending claims to action.
-  if (!canClaim && !showViewerPending && staffPending.length === 0) return null;
+  if (!canClaim && !showViewerPending && !showViewerDeclined && staffPending.length === 0) return null;
 
   // When the only thing to show is the claim CTA, keep it to a single compact
   // line instead of a full bordered card.
-  const isCompactCta = canClaim && !showForm && !showViewerPending && staffPending.length === 0;
+  const isCompactCta = canClaim && !showForm && !showViewerPending && !showViewerDeclined && staffPending.length === 0;
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -130,6 +134,13 @@ export function BusinessClaimSection({
               Withdraw
             </button>
           </p>
+        </div>
+      )}
+
+      {/* A prior claim of theirs that staff turned down. */}
+      {showViewerDeclined && (
+        <div className={staffPending.length > 0 ? "mt-3 border-t border-border pt-3" : ""}>
+          <p className="text-sm text-muted-foreground">Your previous ownership claim was declined.</p>
         </div>
       )}
 
