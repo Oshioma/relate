@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
-import { createPlaceForListing } from "@/lib/data/places";
+import { createPlaceForListing, syncPlaceIdentity } from "@/lib/data/places";
 import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit, BusinessCategory } from "@/types/database";
 
 export type AccommodationFormState = { error: string } | undefined;
@@ -236,6 +236,21 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
   // The lister-or-staff RLS policy on accommodation_listings decides whether
   // this update is allowed; we don't re-check ownership here.
   const { error } = await supabase.from("accommodation_listings").update(parsed.values).eq("id", listingId);
+
+  // Editing a stay edits the place it is a facet of, so the place doesn't drift
+  // out of step with it — duplicate detection reads the place's name.
+  if (!error) {
+    const { data: row } = await supabase.from("accommodation_listings").select("place_id").eq("id", listingId).maybeSingle();
+    await syncPlaceIdentity(supabase, row?.place_id ?? null, {
+      name: parsed.values.name,
+      address: parsed.values.address,
+      locationLabel: parsed.values.location_label,
+      website: parsed.values.website,
+      phone: parsed.values.phone,
+      lat: parsed.values.lat,
+      lng: parsed.values.lng,
+    });
+  }
 
   if (error) {
     return { error: error.message };

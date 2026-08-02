@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory, isReservedStaySlug } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
-import { createPlaceForListing } from "@/lib/data/places";
+import { createPlaceForListing, syncPlaceIdentity } from "@/lib/data/places";
 import { scheduleToText } from "@/lib/opening-hours";
 import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
 
@@ -310,6 +310,19 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   if (error) {
     return { error: error.message };
   }
+
+  // Editing a listing edits the place it is a facet of, so the place doesn't
+  // drift out of step with it — duplicate detection reads the place's name.
+  const { data: row } = await supabase.from("businesses").select("place_id").eq("id", businessId).maybeSingle();
+  await syncPlaceIdentity(supabase, row?.place_id ?? null, {
+    name: f.name,
+    address: f.address || null,
+    locationLabel: f.locationLabel || null,
+    website: f.website || null,
+    phone: f.phone || null,
+    lat: f.lat,
+    lng: f.lng,
+  });
 
   await syncBusinessImages(supabase, businessId, user.id, images);
 
