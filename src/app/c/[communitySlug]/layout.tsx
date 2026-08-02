@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
@@ -210,8 +210,13 @@ export default async function CommunityLayout({
             ))}
           </div>
 
-          {navLinks.length > 0 && (
+          {(community.guidelines || navLinks.length > 0) && (
             <div className="mt-4 space-y-1 border-t border-border pt-4">
+              {community.guidelines && (
+                <NavLink href={`${base}/guidelines`} icon={<BookOpen className="h-4 w-4" />}>
+                  Community guidelines
+                </NavLink>
+              )}
               {navLinks.map((link) => (
                 <a
                   key={link.id}
@@ -385,6 +390,7 @@ export default async function CommunityLayout({
           ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
           ...orderedUnits.flatMap((unit) => unit.items),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
+          ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
         ]}
         links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}
         account={

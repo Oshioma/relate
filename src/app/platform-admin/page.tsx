@@ -8,6 +8,8 @@ import { getSpaceTypeDefaults, getAllCommunitySpaceTypeOverrides } from "@/lib/d
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getAllPlatformPlans } from "@/lib/data/platform-plans";
 import { getAllFeaturePacks } from "@/lib/data/feature-packs";
+import { getPlatformSettings } from "@/lib/data/platform-settings";
+import { LegalSettingsForm } from "./legal-settings-form";
 import { PlanAdminRow } from "./plan-admin-row";
 import { PackAdminRow } from "./pack-admin-row";
 import { COMMUNITY_FEATURES } from "@/lib/features";
@@ -30,7 +32,7 @@ export default async function PlatformAdminPage() {
     redirect("/dashboard");
   }
 
-  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs] = await Promise.all([
+  const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs, legalSettings] = await Promise.all([
     getAllCommunities(supabase),
     getFeatureDefaults(supabase),
     getAllCommunityFeatureOverrides(supabase),
@@ -39,6 +41,7 @@ export default async function PlatformAdminPage() {
     getAllCommunitySpaceTypeOverrides(supabase),
     getAllPlatformPlans(supabase),
     getAllFeaturePacks(supabase),
+    getPlatformSettings(supabase),
   ]);
 
   const overridesByCommunity = new Map<string, Map<string, boolean>>();
@@ -203,6 +206,15 @@ export default async function PlatformAdminPage() {
             </div>
           );
         })}
+      </div>
+
+      <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">Legal documents</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        The platform&apos;s Terms &amp; Conditions and Privacy Policy. These are linked in the footer on every page and shown
+        at <span className="font-medium text-foreground">/terms</span> and <span className="font-medium text-foreground">/privacy</span>.
+      </p>
+      <div className="mb-6">
+        <LegalSettingsForm settings={legalSettings} />
       </div>
     </div>
   );

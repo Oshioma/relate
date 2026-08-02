@@ -42,6 +42,36 @@ export async function saveTemplateDefaultSpaces(
   return undefined;
 }
 
+// --- Legal documents (Terms & Privacy) ---------------------------------------
+export type LegalFormState = { error: string } | { ok: true } | undefined;
+
+// Save the platform's Terms and Privacy documents into the one-row
+// platform_settings singleton. Content is stored as the same sanitised
+// HTML/Markdown the rest of the app uses, rendered only through <RichText> on
+// /terms and /privacy. RLS restricts the write to super admins; the explicit
+// check turns a silently-blocked write into a clear message.
+export async function savePlatformLegal(_prevState: LegalFormState, formData: FormData): Promise<LegalFormState> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can edit legal documents." };
+
+  const terms = String(formData.get("terms") ?? "").trim();
+  const privacy = String(formData.get("privacy") ?? "").trim();
+
+  const { error } = await supabase
+    .from("platform_settings")
+    .update({ terms: terms || null, privacy: privacy || null })
+    .eq("id", 1);
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin");
+  revalidatePath("/terms");
+  revalidatePath("/privacy");
+  return { ok: true };
+}
+
 // --- Platform plans ----------------------------------------------------------
 export type PlanFormState = { error: string } | { ok: true } | undefined;
 
