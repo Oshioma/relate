@@ -1166,7 +1166,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "direct_message";
 
 export type Notification = {
   id: string;

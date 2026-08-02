@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getProfile } from "@/lib/data/profile";
 import { isJaasConfigured, getJaasAppId, mintJaasToken } from "@/lib/jitsi";
 
@@ -79,9 +80,48 @@ export async function sendMessage(conversationId: string, body: string): Promise
     return { error: "That message couldn't be sent. You may have been blocked." };
   }
 
+  // Drop a notification in the recipient's inbox so the email_notification /
+  // push triggers reach them with the message and a link straight back to this
+  // conversation. Best-effort: the message is already saved, so a missing
+  // service-role key or a notification hiccup must never fail the send.
+  await notifyRecipient(conversationId, user.id, trimmed);
+
   revalidatePath(`/messages/${conversationId}`);
   revalidatePath("/messages");
   return { error: null };
+}
+
+// The email copy of a direct message carries the text itself and deep-links to
+// the thread. Inserting the notification needs the service-role client because
+// RLS won't let one member write into another's notifications list — the same
+// pattern the host-broadcast and contact-form flows use.
+async function notifyRecipient(conversationId: string, senderId: string, body: string) {
+  try {
+    const supabase = await createClient();
+    const { data: convo } = await supabase
+      .from("conversations")
+      .select("user_one_id, user_two_id")
+      .eq("id", conversationId)
+      .maybeSingle();
+    if (!convo) return;
+
+    const recipientId = convo.user_one_id === senderId ? convo.user_two_id : convo.user_one_id;
+    const profile = await getProfile(supabase, senderId);
+    const senderName = profile?.full_name || profile?.username || "Someone";
+    const preview = body.length > 300 ? `${body.slice(0, 300)}…` : body;
+
+    const admin = createAdminClient();
+    await admin.from("notifications").insert({
+      user_id: recipientId,
+      type: "direct_message",
+      title: `New message from ${senderName}`,
+      body: preview,
+      link: `/messages/${conversationId}`,
+      actor_id: senderId,
+    });
+  } catch (err) {
+    console.warn("[messages] recipient notification failed:", err);
+  }
 }
 
 // -----------------------------------------------------------------------------
