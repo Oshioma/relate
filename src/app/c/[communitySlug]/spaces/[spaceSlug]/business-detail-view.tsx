@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { Store, BadgeCheck, Star, Pencil, Trash2, Globe, Phone, MapPin, Clock, Navigation, Heart } from "lucide-react";
+import { Store, BadgeCheck, Star, Pencil, Trash2, Globe, Phone, MapPin, Clock, Navigation, Heart, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
@@ -16,6 +16,7 @@ import { BusinessReviewItem } from "./business-review-item";
 import { BusinessClaimSection } from "./business-claim-section";
 import { BusinessStayBridge } from "./business-stay-bridge";
 import { deleteBusiness, setBusinessBadge, toggleSaveBusiness } from "./business-directory-actions";
+import { startConversation } from "@/app/messages/actions";
 import type { BusinessDetail } from "@/lib/data/businesses";
 import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
@@ -106,6 +107,21 @@ export function BusinessDetailView({
       const result = await deleteBusiness(business.id, communitySlug, spaceSlug);
       if (result?.error) setError(result.error);
       else router.push(`/c/${communitySlug}/spaces/${spaceSlug}`);
+    });
+  }
+
+  // Reach the owner (the member whose claim was approved) through the in-app
+  // inbox. Reuses the same conversation plumbing as the member directory.
+  function handleMessageOwner() {
+    if (!business.claimed_by) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await startConversation(business.claimed_by!);
+      if (result.error || !result.conversationId) {
+        setError(result.error ?? "Couldn't start a conversation.");
+      } else {
+        router.push(`/messages/${result.conversationId}`);
+      }
     });
   }
 
@@ -222,6 +238,18 @@ export function BusinessDetailView({
                 <Globe className="h-4 w-4" /> Website
               </a>
             )}
+            {/* Only for claimed listings — an unclaimed one has no owner to reach —
+                and never shown to the owner themselves or a signed-out visitor. */}
+            {business.claimed_by && userId && business.claimed_by !== userId && (
+              <button
+                type="button"
+                onClick={handleMessageOwner}
+                disabled={isPending}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-accent disabled:opacity-60"
+              >
+                <MessageSquare className="h-4 w-4" /> {isPending ? "Opening…" : "Message business"}
+              </button>
+            )}
           </div>
 
           {/* Details */}
@@ -322,6 +350,8 @@ export function BusinessDetailView({
           spaceSlug={spaceSlug}
           canClaim={canClaim}
           isStaff={isStaff}
+          ownedByViewer={business.claimed_by !== null && business.claimed_by === userId}
+          claimed={business.claimed_by !== null}
           viewerClaim={viewerClaim}
           pendingClaims={pendingClaims}
         />

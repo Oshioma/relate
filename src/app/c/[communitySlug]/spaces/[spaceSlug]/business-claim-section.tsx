@@ -20,6 +20,8 @@ export function BusinessClaimSection({
   spaceSlug,
   canClaim,
   isStaff,
+  ownedByViewer,
+  claimed,
   viewerClaim,
   pendingClaims,
 }: {
@@ -31,6 +33,11 @@ export function BusinessClaimSection({
   // require community membership — claiming is open to new users too.
   canClaim: boolean;
   isStaff: boolean;
+  // The listing has an owner (an approved claim), and that owner is the viewer.
+  ownedByViewer: boolean;
+  // The listing has an owner at all. When true there's nothing to claim; we say
+  // so instead of rendering a blank space where the CTA would be.
+  claimed: boolean;
   viewerClaim: BusinessClaim | null;
   pendingClaims: BusinessClaimWithClaimant[];
 }) {
@@ -42,14 +49,22 @@ export function BusinessClaimSection({
 
   const staffPending = isStaff ? pendingClaims : [];
   const showViewerPending = viewerClaim?.status === "pending";
+  // A declined claim used to hide this whole panel, stranding the claimant with
+  // no CTA and no explanation. Surface it, and (since canClaim now allows it)
+  // let them try again right below.
+  const showViewerDeclined = viewerClaim?.status === "rejected";
 
-  // Nothing to show: not eligible to claim, no pending claim of their own, and
-  // (for staff) no pending claims to action.
-  if (!canClaim && !showViewerPending && staffPending.length === 0) return null;
+  // Already owned: no CTA, but say why rather than leaving a blank — otherwise a
+  // claimed listing just looks like the claim option is missing.
+  const showOwned = claimed && !showViewerPending;
+
+  // Nothing to show: not eligible to claim, no claim of their own to report, not
+  // owned, and (for staff) no pending claims to action.
+  if (!canClaim && !showViewerPending && !showViewerDeclined && !showOwned && staffPending.length === 0) return null;
 
   // When the only thing to show is the claim CTA, keep it to a single compact
   // line instead of a full bordered card.
-  const isCompactCta = canClaim && !showForm && !showViewerPending && staffPending.length === 0;
+  const isCompactCta = canClaim && !showForm && !showViewerPending && !showViewerDeclined && !showOwned && staffPending.length === 0;
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -130,6 +145,23 @@ export function BusinessClaimSection({
               Withdraw
             </button>
           </p>
+        </div>
+      )}
+
+      {/* Already has an owner — explain the absent CTA instead of a blank. */}
+      {showOwned && (
+        <div className={staffPending.length > 0 ? "mt-3 border-t border-border pt-3" : ""}>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <BadgeCheck className="h-4 w-4 shrink-0 text-accent" />
+            {ownedByViewer ? "You own this business — its listing is linked to your account." : "This business has been claimed by its owner."}
+          </p>
+        </div>
+      )}
+
+      {/* A prior claim of theirs that staff turned down. */}
+      {showViewerDeclined && (
+        <div className={staffPending.length > 0 ? "mt-3 border-t border-border pt-3" : ""}>
+          <p className="text-sm text-muted-foreground">Your previous ownership claim was declined.</p>
         </div>
       )}
 

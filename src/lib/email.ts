@@ -362,3 +362,80 @@ export async function sendNotificationEmail(
     return { ok: false, reason: "couldn't reach the Resend API" };
   }
 }
+
+// -----------------------------------------------------------------------------
+// Contact-form email
+//
+// The public /contact form sends here, to the platform support inbox. The
+// recipient is deliberately NOT exposed to the browser — it lives only in this
+// server module (CONTACT_EMAIL_TO, defaulting to the support address). Resend's
+// reply_to is set to the submitter so the team can reply straight from the
+// email. Best-effort: the server action has already stored the message in the
+// database, so a mail failure never loses it.
+//   CONTACT_EMAIL_TO   — where submissions go; defaults to relate@guestlist.net
+//   CONTACT_EMAIL_FROM — sender address; defaults to contact@<site hostname>,
+//                        then falls back to the invites sender.
+// -----------------------------------------------------------------------------
+export type ContactEmailInput = {
+  fromName: string;
+  fromEmail: string;
+  message: string;
+};
+
+export async function sendContactEmail(
+  input: ContactEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+
+  const to = process.env.CONTACT_EMAIL_TO || "relate@guestlist.net";
+  const fromAddress = fromAddressFor("contact", process.env.CONTACT_EMAIL_FROM) ?? defaultFromAddress();
+  if (!fromAddress) return { ok: false, reason: "no sender address — set CONTACT_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  const name = escapeHtml(input.fromName);
+  const email = escapeHtml(input.fromEmail);
+  // Keep the submitter's line breaks in the email body.
+  const message = escapeHtml(input.message).replace(/\n/g, "<br />");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px 16px;background:#f6f5f1;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+      <h1 style="margin:0 0 12px;font-size:18px;line-height:1.4;color:#1f2a1f;">New contact-form message</h1>
+      <p style="margin:0 0 6px;font-size:14px;color:#5c665c;"><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+      <div style="margin:16px 0 0;padding:16px;background:#f6f5f1;border-radius:8px;font-size:14px;line-height:1.6;color:#1f2a1f;">
+        ${message}
+      </div>
+    </div>
+    <p style="max-width:520px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
+      Sent from the Relate contact form. Reply directly to reach ${name}.
+    </p>
+  </body>
+</html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `Relate contact <${fromAddress}>`,
+        to: [to],
+        reply_to: input.fromEmail,
+        subject: `Contact form: ${input.fromName}`,
+        html,
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}

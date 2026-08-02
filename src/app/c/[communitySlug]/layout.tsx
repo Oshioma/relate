@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
@@ -27,9 +27,32 @@ import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { JoinCommunityButton } from "./join-community-button";
 
-// Give each community its own tab title. `default` shows the community name on
-// the community's own pages; the template lets any child page that sets a title
-// render as "Page · Community" without repeating the community name everywhere.
+// The snippet a search engine shows under the result, and the text on a
+// social-share card, both come from the page's meta description. Without one,
+// every community page inherited the root layout's generic line — and because
+// that line says nothing about this particular community, Google discards it
+// and scrapes visible page text instead, which is often a business listing
+// ("Kendwa Rocks…") rather than anything about the community. So give each
+// community its own description: the owner's own community.description when
+// set, otherwise a name-based fallback that's still community-specific.
+// Trimmed to ~160 chars (a word boundary) to stay within what search results
+// display without truncating mid-word.
+function communityMetaDescription(community: { name: string; description: string | null }): string {
+  const own = community.description?.trim();
+  if (own) {
+    if (own.length <= 160) return own;
+    const clipped = own.slice(0, 160);
+    const lastSpace = clipped.lastIndexOf(" ");
+    return `${(lastSpace > 100 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
+  }
+  return `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`;
+}
+
+// Give each community its own tab title and meta description. `default` shows
+// the community name on the community's own pages; the template lets any child
+// page that sets a title render as "Page · Community" without repeating the
+// community name everywhere. The description is inherited by every child page
+// that doesn't set its own, so the whole community reads correctly in search.
 export async function generateMetadata({
   params,
 }: {
@@ -39,8 +62,21 @@ export async function generateMetadata({
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
+  const description = communityMetaDescription(community);
+  // Only an absolute URL is safe here: a relative image path with no
+  // metadataBase configured makes the build error out. Cover images are
+  // Supabase public URLs (absolute), but guard anyway so an odd value degrades
+  // to no OG image rather than a build failure.
+  const cover = community.cover_image_url;
+  const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
   return {
     title: { default: community.name, template: `%s · ${community.name}` },
+    description,
+    openGraph: {
+      title: community.name,
+      description,
+      ...(ogImage ? { images: ogImage } : {}),
+    },
   };
 }
 
@@ -210,22 +246,32 @@ export default async function CommunityLayout({
             ))}
           </div>
 
-          {navLinks.length > 0 && (
-            <div className="mt-4 space-y-1 border-t border-border pt-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="truncate">{link.label}</span>
-                </a>
-              ))}
-            </div>
-          )}
+          <div className="mt-4 space-y-1 border-t border-border pt-4">
+            {community.guidelines && (
+              <NavLink href={`${base}/guidelines`} icon={<BookOpen className="h-4 w-4" />}>
+                Community guidelines
+              </NavLink>
+            )}
+            <NavLink href={`${base}/contact`} icon={<Mail className="h-4 w-4" />}>
+              Contact
+            </NavLink>
+            {navLinks.length > 0 && (
+              <>
+                {navLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="truncate">{link.label}</span>
+                  </a>
+                ))}
+              </>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-border p-3">
@@ -385,6 +431,8 @@ export default async function CommunityLayout({
           ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
           ...orderedUnits.flatMap((unit) => unit.items),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
+          ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
+          { href: `${base}/contact`, label: "Contact", icon: <Mail className="h-4 w-4" /> },
         ]}
         links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}
         account={

@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { MapCategory, Landmark, Business } from "@/types/database";
+import type { MapCategory, Landmark } from "@/types/database";
+import type { MapPinnedBusiness } from "@/lib/data/map";
 import type { MapItem } from "@/lib/map-item-kinds";
 
 // Leaflet touches `window` at import time, so it can only load in the
@@ -19,7 +20,7 @@ export function ExploreMapLoader(props: {
   spaceSlug: string;
   categories: MapCategory[];
   landmarks: Landmark[];
-  businesses: Business[];
+  businesses: MapPinnedBusiness[];
   items: MapItem[];
   canPost: boolean;
   isAdmin: boolean;

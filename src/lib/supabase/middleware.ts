@@ -3,14 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sharedCookieDomain } from "@/lib/custom-domain";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact"];
 
 // Community sub-sections a signed-out visitor is allowed to reach. The page
 // (and Postgres RLS) still decides what actually renders — a members-only
 // space resolves to notFound for a guest — but the middleware must not bounce
 // them to /login first, or a public community could never be browsed.
 // Everything else under /c/<slug> (admin, members, …) stays login-gated.
-const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge"];
+const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact"];
 
 // Matches the community feed (/c/<slug>) and its guest-visible sections
 // (/c/<slug>/spaces, /events, /concierge and anything nested under them).

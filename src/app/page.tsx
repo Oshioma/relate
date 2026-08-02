@@ -114,10 +114,6 @@ export default async function LandingPage() {
           </section>
         )}
       </main>
-
-      <footer className="border-t border-border px-6 py-8 text-center text-sm text-muted-foreground">
-        Relate — built for quiet, focused communities.
-      </footer>
     </div>
   );
 }

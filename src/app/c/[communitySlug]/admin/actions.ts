@@ -415,6 +415,64 @@ export async function updateCommunityDetails(
   return undefined;
 }
 
+export type CommunityGuidelinesState = { error: string } | { ok: true } | undefined;
+
+// Save a community's guidelines (house rules / code of conduct). Stored as the
+// same sanitised HTML/Markdown as space descriptions — rendered only through
+// <RichText> on display. RLS restricts the update to the owner and admins; an
+// empty submission clears the guidelines (so the read page and its links hide).
+export async function updateCommunityGuidelines(
+  _prevState: CommunityGuidelinesState,
+  formData: FormData
+): Promise<CommunityGuidelinesState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const guidelines = String(formData.get("guidelines") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ guidelines: guidelines || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/guidelines`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { ok: true };
+}
+
+export type CommunityContactInfoState = { error: string } | { ok: true } | undefined;
+
+// Save the contact details shown above a community's contact form. Same
+// sanitised HTML/Markdown as guidelines, rendered through <RichText>. RLS
+// restricts the update to the owner and admins; empty clears it.
+export async function updateCommunityContactInfo(
+  _prevState: CommunityContactInfoState,
+  formData: FormData
+): Promise<CommunityContactInfoState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const contactInfo = String(formData.get("contact_info") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ contact_info: contactInfo || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/contact`);
+  return { ok: true };
+}
+
 export type PublicAccessState = { error: string } | undefined;
 
 // The community's pre-login / public-access controls, grouped into one place:
