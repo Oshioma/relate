@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bold, Italic, Heading, List, ListOrdered, Link as LinkIcon, Code, Eye, Pencil } from "lucide-react";
 import { RichText } from "./rich-text";
+import { PROSE_CLASS } from "@/lib/prose";
 import { cn } from "@/lib/utils";
 
 // A small WYSIWYG editor for long-form text (space "About" descriptions and
@@ -35,6 +36,110 @@ function normalize(html: string): string {
     return "";
   }
   return html;
+}
+
+// ---- Paste handling ------------------------------------------------------
+// Pasting from a rich source (a ChatGPT answer, a Google Doc, a web page)
+// should keep the *structure* — headings, bold, lists, links — but drop the
+// source's own colours, fonts and wrapper cruft so the content adopts this
+// app's styling. Pasting plain text should still gain sensible structure
+// (paragraphs, bullet lists, numbered section headings) rather than collapsing
+// into one blob. Both paths below produce clean HTML from our own allow-list.
+
+// Structural tags we keep from a rich paste. Everything else (span, div, font,
+// style-carrying wrappers) is unwrapped — its text is kept, the tag dropped.
+const PASTE_KEEP_TAGS = new Set([
+  "H1", "H2", "H3", "H4", "P", "UL", "OL", "LI",
+  "STRONG", "B", "EM", "I", "U", "A", "BR", "HR", "BLOCKQUOTE", "CODE", "PRE",
+]);
+
+function escapeTextForHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Only keep hrefs we'd actually render (mirrors SafeHtml's link policy).
+function safePasteHref(url: string): string | null {
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/") || trimmed.startsWith("#")) return trimmed;
+  return null;
+}
+
+// Walk pasted DOM and re-emit only allow-listed tags with no attributes (except
+// a vetted href). Unknown tags are unwrapped so their text survives.
+function sanitizePastedHtml(html: string): string {
+  const container = document.createElement("div");
+  container.innerHTML = html;
+
+  const render = (node: Node): string => {
+    let out = "";
+    node.childNodes.forEach((child) => {
+      if (child.nodeType === 3) {
+        out += escapeTextForHtml(child.textContent ?? "");
+        return;
+      }
+      if (child.nodeType !== 1) return;
+      const el = child as HTMLElement;
+      let tag = el.tagName;
+      if (tag === "H5" || tag === "H6") tag = "H4"; // clamp deep headings
+      if (tag === "B") tag = "STRONG";
+      if (tag === "I") tag = "EM";
+
+      if (!PASTE_KEEP_TAGS.has(tag)) {
+        out += render(el); // unwrap
+        return;
+      }
+      const lower = tag.toLowerCase();
+      if (tag === "BR" || tag === "HR") {
+        out += `<${lower}>`;
+        return;
+      }
+      const inner = render(el);
+      if (tag === "A") {
+        const href = safePasteHref(el.getAttribute("href") ?? "");
+        out += href ? `<a href="${escapeTextForHtml(href)}">${inner}</a>` : inner;
+        return;
+      }
+      out += `<${lower}>${inner}</${lower}>`;
+    });
+    return out;
+  };
+
+  return render(container).replace(/(?:<br>\s*){3,}/g, "<br><br>").trim();
+}
+
+// Turn a plain-text paste into structured HTML: blank lines separate blocks;
+// a block whose lines all start with "*" / "-" / "•" becomes a bullet list; a
+// short "12. Heading" line becomes a heading; anything else is a paragraph
+// (single newlines within it kept as <br>).
+function plainTextToHtml(text: string): string {
+  const blocks = text.replace(/\r\n?/g, "\n").split(/\n{2,}/);
+  const parts: string[] = [];
+
+  for (const raw of blocks) {
+    const lines = raw.split("\n").filter((l) => l.trim() !== "");
+    if (lines.length === 0) continue;
+
+    const isBulleted = lines.every((l) => /^\s*[*\-•]\s+/.test(l));
+    if (isBulleted) {
+      const items = lines.map((l) => `<li>${escapeTextForHtml(l.replace(/^\s*[*\-•]\s+/, "").trim())}</li>`).join("");
+      parts.push(`<ul>${items}</ul>`);
+      continue;
+    }
+
+    // A lone short "N. Title" line reads as a section heading.
+    if (lines.length === 1) {
+      const line = lines[0].trim();
+      if (/^\d{1,2}\.\s+\S/.test(line) && line.length <= 60 && !/[.:;]$/.test(line)) {
+        parts.push(`<h2>${escapeTextForHtml(line)}</h2>`);
+        continue;
+      }
+    }
+
+    parts.push(`<p>${lines.map((l) => escapeTextForHtml(l.trim())).join("<br>")}</p>`);
+  }
+
+  return parts.join("");
 }
 
 function ToolbarButton({
@@ -123,6 +228,21 @@ export function RichEditor({
     if (editorRef.current) setValue(normalize(editorRef.current.innerHTML));
   }
 
+  // Intercept paste so rich content keeps its structure but sheds the source's
+  // colours/fonts, and plain text gains sensible structure. Falls back to the
+  // browser's default paste if anything goes wrong.
+  function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
+    const html = event.clipboardData.getData("text/html");
+    const text = event.clipboardData.getData("text/plain");
+    if (!html && !text) return;
+
+    event.preventDefault();
+    const clean = html ? sanitizePastedHtml(html) : plainTextToHtml(text);
+    const toInsert = clean || escapeTextForHtml(text);
+    document.execCommand("insertHTML", false, toInsert);
+    syncFromEditor();
+  }
+
   function exec(command: string, arg?: string) {
     editorRef.current?.focus();
     document.execCommand(command, false, arg);
@@ -188,7 +308,7 @@ export function RichEditor({
 
       {mode === "preview" ? (
         <div className="px-3 py-2" style={{ minHeight }}>
-          {value.trim() ? <RichText content={value} /> : <p className="text-sm text-muted-foreground">Nothing to preview yet.</p>}
+          {value.trim() ? <RichText content={value} className={PROSE_CLASS} /> : <p className="text-sm text-muted-foreground">Nothing to preview yet.</p>}
         </div>
       ) : mode === "html" ? (
         <textarea
@@ -215,6 +335,7 @@ export function RichEditor({
             aria-label={placeholder}
             onInput={syncFromEditor}
             onBlur={syncFromEditor}
+            onPaste={handlePaste}
             className={cn(
               "px-3 py-2 text-sm leading-relaxed text-foreground focus:outline-none",
               "[&_h2]:text-base [&_h2]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold",
