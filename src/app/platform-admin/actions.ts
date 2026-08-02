@@ -61,10 +61,13 @@ export async function savePlatformLegal(_prevState: LegalFormState, formData: Fo
   const terms = String(formData.get("terms") ?? "").trim();
   const privacy = String(formData.get("privacy") ?? "").trim();
 
+  // Upsert rather than update: if the singleton seed row is missing for any
+  // reason, a bare UPDATE ... WHERE id = 1 matches zero rows and silently saves
+  // nothing (the editor then reloads empty). Upserting the fixed id = 1 always
+  // writes the row.
   const { error } = await supabase
     .from("platform_settings")
-    .update({ terms: terms || null, privacy: privacy || null })
-    .eq("id", 1);
+    .upsert({ id: 1, terms: terms || null, privacy: privacy || null }, { onConflict: "id" });
   if (error) return { error: error.message };
 
   revalidatePath("/platform-admin");

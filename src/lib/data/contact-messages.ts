@@ -15,3 +15,17 @@ export async function getContactMessages(supabase: Client): Promise<ContactMessa
   if (error) throw error;
   return data ?? [];
 }
+
+// A single community's contact-form submissions, newest first, for the
+// community-admin inbox. RLS returns these rows only to that community's owner
+// and admins, so a non-staff viewer gets an empty list. Capped to 200.
+export async function getCommunityContactMessages(supabase: Client, communityId: string): Promise<ContactMessage[]> {
+  const { data, error } = await supabase
+    .from("contact_messages")
+    .select("*")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return data ?? [];
+}

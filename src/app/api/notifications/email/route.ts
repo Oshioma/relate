@@ -23,6 +23,7 @@ const CTA_LABEL: Record<string, string> = {
   live_reminder: "View the event",
   live_invite: "View the invite",
   member_message: "Open in Relate",
+  contact: "View the message",
 };
 
 export async function POST(request: NextRequest) {
