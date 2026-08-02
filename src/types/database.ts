@@ -521,6 +521,29 @@ export type BusinessGoogleReview = {
 // restaurant, a hotel that is also a restaurant. Directory listings and stay
 // listings are facets of a place — a place can have several of each — and this
 // row is what they agree on. See the places_shared_identity migration.
+// A review of a place, shared by every facet of it: the same conversation and
+// the same rating whether you reach it through the directory or through
+// Accommodation. Replaces the per-facet business_reviews / accommodation_reviews.
+export type PlaceReview = {
+  id: string;
+  place_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlaceReviewReply = {
+  id: string;
+  review_id: string;
+  place_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Place = {
   id: string;
   community_id: string;
@@ -1873,6 +1896,18 @@ export type Database = {
         Insert: Partial<BusinessProfile> & { profile_id: string; business_name: string };
         Update: Partial<BusinessProfile>;
       } & NoRel;
+      place_reviews: {
+        Row: PlaceReview;
+        Insert: Partial<PlaceReview> & { place_id: string; author_id: string; rating: number };
+        Update: Partial<PlaceReview>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"place_id", "places">];
+      };
+      place_review_replies: {
+        Row: PlaceReviewReply;
+        Insert: Partial<PlaceReviewReply> & { review_id: string; place_id: string; author_id: string; body: string };
+        Update: Partial<PlaceReviewReply>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"place_id", "places">];
+      };
       places: {
         Row: Place;
         Insert: Partial<Place> & { community_id: string; name: string };
