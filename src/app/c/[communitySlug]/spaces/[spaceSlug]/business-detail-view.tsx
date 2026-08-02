@@ -340,6 +340,8 @@ export function BusinessDetailView({
           spaceSlug={spaceSlug}
           canClaim={canClaim}
           isStaff={isStaff}
+          ownedByViewer={business.claimed_by !== null && business.claimed_by === userId}
+          claimed={business.claimed_by !== null}
           viewerClaim={viewerClaim}
           pendingClaims={pendingClaims}
         />
