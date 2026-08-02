@@ -224,13 +224,59 @@ export function RichEditor({
     return () => form.removeEventListener("reset", onReset);
   }, [defaultValue]);
 
+  // Bulletproof the submitted value: when the form builds its FormData, write
+  // the editor's *current* content straight in, so a save never depends on the
+  // controlled hidden input having caught the last keystroke/paste. In Write
+  // mode the contenteditable's innerHTML is the source of truth; otherwise the
+  // `value` state (HTML textarea / preview) is. This is what makes a large
+  // pasted Privacy/Terms doc reliably persist.
+  useEffect(() => {
+    const form = hiddenRef.current?.form;
+    if (!form) return;
+    const onFormData = (event: FormDataEvent) => {
+      const current = mode === "write" && editorRef.current ? normalize(editorRef.current.innerHTML) : value;
+      event.formData.set(name, current);
+    };
+    form.addEventListener("formdata", onFormData);
+    return () => form.removeEventListener("formdata", onFormData);
+  }, [name, mode, value]);
+
   function syncFromEditor() {
     if (editorRef.current) setValue(normalize(editorRef.current.innerHTML));
   }
 
+  // Insert HTML at the caret using the Range API rather than the deprecated
+  // execCommand("insertHTML"), which silently fails on large pastes (a long
+  // Terms/Privacy doc) — leaving the editor, and the saved value, empty.
+  function insertHtmlAtCaret(html: string) {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    const frag = document.createDocumentFragment();
+    let lastNode: ChildNode | null = null;
+    while (temp.firstChild) lastNode = frag.appendChild(temp.firstChild);
+
+    const selection = window.getSelection();
+    // No caret inside the editor (e.g. selection lost) — append to the end.
+    if (!selection || selection.rangeCount === 0 || !editor.contains(selection.anchorNode)) {
+      editor.appendChild(frag);
+    } else {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(frag);
+      if (lastNode) {
+        range.setStartAfter(lastNode);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+  }
+
   // Intercept paste so rich content keeps its structure but sheds the source's
-  // colours/fonts, and plain text gains sensible structure. Falls back to the
-  // browser's default paste if anything goes wrong.
+  // colours/fonts, and plain text gains sensible structure.
   function handlePaste(event: React.ClipboardEvent<HTMLDivElement>) {
     const html = event.clipboardData.getData("text/html");
     const text = event.clipboardData.getData("text/plain");
@@ -238,8 +284,7 @@ export function RichEditor({
 
     event.preventDefault();
     const clean = html ? sanitizePastedHtml(html) : plainTextToHtml(text);
-    const toInsert = clean || escapeTextForHtml(text);
-    document.execCommand("insertHTML", false, toInsert);
+    insertHtmlAtCaret(clean || escapeTextForHtml(text));
     syncFromEditor();
   }
 
