@@ -5,6 +5,7 @@ import { createBusiness } from "./business-directory-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BusinessFormFields } from "./business-form-fields";
 import { ImportFromLink } from "./import-from-link";
+import { DuplicateHint } from "./duplicate-hint";
 import type { GalleryImage } from "./business-images-input";
 import type { PickedLocation } from "@/components/map/location-picker";
 import type { ListingDraft } from "@/lib/listing-draft";
@@ -37,10 +38,14 @@ export function NewBusinessForm({
   // them is what makes a fresh draft's defaults take effect.
   const [draftKey, setDraftKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  // Mirrors the name field purely so the duplicate hint has something to watch.
+  // The field itself stays uncontrolled, like the rest of the form.
+  const [name, setName] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   function applyDraft(next: ListingDraft) {
     setDraft(next);
+    if (next.name) setName(next.name);
     setDraftKey((key) => key + 1);
     if (next.lat !== null && next.lng !== null) setPin({ lat: next.lat, lng: next.lng });
     if (next.opening_hours) setSchedule(next.opening_hours);
@@ -66,6 +71,7 @@ export function NewBusinessForm({
       setImages([]);
       setSchedule(null);
       setDraft(null);
+      setName("");
       setDraftKey((key) => key + 1);
       onDone?.();
     }
@@ -80,9 +86,12 @@ export function NewBusinessForm({
 
       <ImportFromLink kind="business" spaceId={spaceId} onApply={applyDraft} />
 
+      <DuplicateHint communityId={communityId} communitySlug={communitySlug} name={name} lat={pin?.lat} lng={pin?.lng} />
+
       <BusinessFormFields
         key={draftKey}
         idPrefix="business"
+        onNameChange={setName}
         draft={draft}
         customCategories={customCategories}
         labelOverrides={labelOverrides}

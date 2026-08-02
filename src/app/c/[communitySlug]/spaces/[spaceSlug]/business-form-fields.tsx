@@ -38,6 +38,7 @@ export function BusinessFormFields({
   userId,
   customCategories,
   labelOverrides,
+  onNameChange,
 }: {
   idPrefix: string;
   business?: Business;
@@ -53,6 +54,10 @@ export function BusinessFormFields({
   schedule: BusinessHoursSchedule | null;
   onScheduleChange: (schedule: BusinessHoursSchedule | null) => void;
   userId: string;
+  // Reports what's typed in the name field so the parent can check it against
+  // places the community already has. Optional — editing an existing listing
+  // has no use for it.
+  onNameChange?: (name: string) => void;
 }) {
   const websiteRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +66,14 @@ export function BusinessFormFields({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_name`}>Name</Label>
-          <Input id={`${idPrefix}_name`} name="name" placeholder="The Rock Restaurant" defaultValue={draft?.name ?? business?.name} required />
+          <Input
+            id={`${idPrefix}_name`}
+            name="name"
+            placeholder="The Rock Restaurant"
+            defaultValue={draft?.name ?? business?.name}
+            onChange={(event) => onNameChange?.(event.target.value)}
+            required
+          />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_category`}>Category</Label>

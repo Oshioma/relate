@@ -517,6 +517,27 @@ export type BusinessGoogleReview = {
 // from BusinessProfile below, which is a member's own business profile page —
 // a Business here is scoped to one place community's directory, addable by
 // any member regardless of who (if anyone) owns it.
+// The thing itself, independent of how any one space presents it: a hotel, a
+// restaurant, a hotel that is also a restaurant. Directory listings and stay
+// listings are facets of a place — a place can have several of each — and this
+// row is what they agree on. See the places_shared_identity migration.
+export type Place = {
+  id: string;
+  community_id: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  location_label: string | null;
+  website: string | null;
+  phone: string | null;
+  lat: number | null;
+  lng: number | null;
+  cover_url: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Business = {
   id: string;
   space_id: string;
@@ -551,6 +572,9 @@ export type Business = {
   google_reviews: BusinessGoogleReview[] | null;
   google_maps_url: string | null;
   google_synced_at: string | null;
+  // The place this listing is a facet of. Nullable while the model is being
+  // rolled out; every row created since the places migration has one.
+  place_id: string | null;
   verified: boolean;
   featured: boolean;
   created_at: string;
@@ -760,6 +784,9 @@ export type AccommodationListing = {
   community_id: string;
   listed_by: string;
   business_id: string | null;
+  // The place this stay is a facet of; shared with any directory listing for
+  // the same place. Nullable while the model is being rolled out.
+  place_id: string | null;
   name: string;
   accommodation_type: AccommodationType;
   description: string | null;
@@ -1846,6 +1873,12 @@ export type Database = {
         Insert: Partial<BusinessProfile> & { profile_id: string; business_name: string };
         Update: Partial<BusinessProfile>;
       } & NoRel;
+      places: {
+        Row: Place;
+        Insert: Partial<Place> & { community_id: string; name: string };
+        Update: Partial<Place>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
       businesses: {
         Row: Business;
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };

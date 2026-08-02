@@ -5,6 +5,7 @@ import { createAccommodationListing } from "./accommodation-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AccommodationFormFields } from "./accommodation-form-fields";
 import { ImportFromLink } from "./import-from-link";
+import { DuplicateHint } from "./duplicate-hint";
 import type { BusinessLinkOption } from "@/lib/data/accommodation";
 import type { ListingDraft } from "@/lib/listing-draft";
 
@@ -29,6 +30,8 @@ export function NewAccommodationForm({
   onDone?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  // Mirrors the name field purely so the duplicate hint has something to watch.
+  const [name, setName] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [draft, setDraft] = useState<ListingDraft | null>(null);
   // Bumped on every autofill. The text fields are uncontrolled, so remounting
@@ -38,6 +41,7 @@ export function NewAccommodationForm({
 
   function applyDraft(next: ListingDraft) {
     setDraft(next);
+    if (next.name) setName(next.name);
     setDraftKey((key) => key + 1);
     // Suggested photos are additions, not a replacement — anything already
     // uploaded stays, and stays first so it keeps the cover slot.
@@ -55,6 +59,7 @@ export function NewAccommodationForm({
       formRef.current?.reset();
       setPhotos([]);
       setDraft(null);
+      setName("");
       setDraftKey((key) => key + 1);
       onDone?.();
     }
@@ -69,8 +74,11 @@ export function NewAccommodationForm({
 
       <ImportFromLink kind="accommodation" spaceId={spaceId} initialUrl={importUrl} onApply={applyDraft} />
 
+      <DuplicateHint communityId={communityId} communitySlug={communitySlug} name={name} />
+
       <AccommodationFormFields
         key={draftKey}
+        onNameChange={setName}
         idPrefix="new_accommodation"
         draft={draft}
         businesses={businesses}
