@@ -35,6 +35,23 @@ export default async function AccommodationDetailPage({
   // edit it.
   const businesses = canManage ? await getCommunityBusinessLinkOptions(supabase, community.id) : [];
 
+  // For the "this is a restaurant too" bridge: the community's directory space
+  // and the categories it offers, so the picker matches what the directory's
+  // own form would show. Only whoever manages the stay ever sees it.
+  const { data: directorySpace } = canManage
+    ? await supabase
+        .from("spaces")
+        .select("id")
+        .eq("community_id", community.id)
+        .eq("space_type", "business_directory")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+  const { data: directoryCategories } = directorySpace
+    ? await supabase.from("business_custom_categories").select("*").eq("space_id", directorySpace.id)
+    : { data: null };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -56,6 +73,8 @@ export default async function AccommodationDetailPage({
         canReply={canManage}
         isStaff={Boolean(isStaff)}
         businesses={businesses}
+        canCreateBusiness={canManage && directorySpace !== null}
+        directoryCategories={directoryCategories ?? []}
       />
     </div>
   );

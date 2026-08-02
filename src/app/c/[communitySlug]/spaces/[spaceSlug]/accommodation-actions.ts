@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
-import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit } from "@/types/database";
+import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit, BusinessCategory } from "@/types/database";
 
 export type AccommodationFormState = { error: string } | undefined;
 
@@ -378,4 +379,126 @@ export async function setAccommodationStatus(listingId: string, status: Accommod
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
+}
+
+// The mirror of createStayFromBusiness: a stay that is also somewhere you'd eat
+// or drink gets a directory listing too, linked to it, so it shows under
+// Restaurants (or whichever category fits) as well as under Accommodation.
+// One place still owns each kind of detail — rooms and availability on the
+// stay, hours and reviews on the business — and the pair stay linked rather
+// than becoming two unrelated copies of the same hotel.
+export async function createBusinessFromStay(
+  listingId: string,
+  category: string,
+  communitySlug: string
+): Promise<{ spaceSlug: string; businessId: string } | { error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: listing, error: listingError } = await supabase
+    .from("accommodation_listings")
+    .select("id, community_id, business_id, name, description, photo_urls, location_label, address, website, phone, lat, lng")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (listingError || !listing) {
+    return { error: listingError?.message ?? "Listing not found." };
+  }
+
+  // Already bridged? Hand back the existing directory listing rather than
+  // making a second one.
+  if (listing.business_id) {
+    const { data: existing } = await supabase
+      .from("businesses")
+      .select("id, space:space_id (slug)")
+      .eq("id", listing.business_id)
+      .maybeSingle();
+    const existingRow = existing as unknown as { id: string; space: { slug: string } | null } | null;
+    if (existingRow?.space?.slug) {
+      return { spaceSlug: existingRow.space.slug, businessId: existingRow.id };
+    }
+  }
+
+  const { data: space, error: spaceError } = await supabase
+    .from("spaces")
+    .select("id, slug")
+    .eq("community_id", listing.community_id)
+    .eq("space_type", "business_directory")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (spaceError) {
+    return { error: spaceError.message };
+  }
+  if (!space) {
+    return { error: "This community has no business directory to add the listing to." };
+  }
+
+  // Same rule the directory's own form uses: a built-in category, or a custom
+  // one staff added to that space. Anything else falls back rather than
+  // inventing a category.
+  let resolved = "other";
+  if (BUSINESS_CATEGORIES.some((c) => c.value === category)) {
+    resolved = category;
+  } else if (/^[a-z0-9][a-z0-9-]{0,39}$/.test(category)) {
+    const { data: custom } = await supabase
+      .from("business_custom_categories")
+      .select("slug")
+      .eq("space_id", space.id)
+      .eq("slug", category)
+      .maybeSingle();
+    if (custom) resolved = category;
+  }
+
+  const { data: created, error: insertError } = await supabase
+    .from("businesses")
+    .insert({
+      space_id: space.id,
+      community_id: listing.community_id,
+      created_by: user.id,
+      name: listing.name,
+      category: resolved as BusinessCategory,
+      description: listing.description,
+      location_label: listing.location_label,
+      address: listing.address,
+      website: listing.website,
+      phone: listing.phone,
+      lat: listing.lat,
+      lng: listing.lng,
+      image_url: listing.photo_urls[0] ?? null,
+    })
+    .select("id")
+    .single();
+  if (insertError || !created) {
+    return { error: insertError?.message ?? "Couldn't create the directory listing." };
+  }
+
+  // Carry the stay's gallery over so the directory card isn't blank.
+  if (listing.photo_urls.length > 0) {
+    await supabase.from("business_images").insert(
+      listing.photo_urls.slice(0, 12).map((url, index) => ({
+        business_id: created.id,
+        url,
+        position: null,
+        sort_order: index,
+        created_by: user.id,
+      }))
+    );
+  }
+
+  const { error: linkError } = await supabase
+    .from("accommodation_listings")
+    .update({ business_id: created.id })
+    .eq("id", listingId);
+  if (linkError) {
+    return { error: linkError.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces/${space.slug}`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { spaceSlug: space.slug, businessId: created.id };
 }

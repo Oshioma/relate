@@ -48,6 +48,7 @@ export function BusinessDetailView({
   canClaim,
   linkedStay,
   canCreateStay,
+  stayDetected,
   customCategories,
   labelOverrides,
 }: {
@@ -75,6 +76,9 @@ export function BusinessDetailView({
   // The viewer manages this listing and the community has an accommodation
   // space, so they can spin up a stay from it.
   canCreateStay: boolean;
+  // We worked out it's a place to stay (it's tagged as accommodation) rather
+  // than merely offering the option to whoever manages the listing.
+  stayDetected: boolean;
   customCategories: BusinessCustomCategory[];
   labelOverrides?: BusinessCategoryLabelOverride[];
 }) {
@@ -302,8 +306,14 @@ export function BusinessDetailView({
         </CardContent>
       </Card>
 
-      {(business.category === "accommodation" || linkedStay) && (
-        <BusinessStayBridge businessId={business.id} communitySlug={communitySlug} linkedStay={linkedStay} canCreate={canCreateStay} />
+      {(stayDetected || linkedStay || canCreateStay) && (
+        <BusinessStayBridge
+          businessId={business.id}
+          communitySlug={communitySlug}
+          linkedStay={linkedStay}
+          canCreate={canCreateStay}
+          detected={stayDetected}
+        />
       )}
 
       {/* Reviews */}
