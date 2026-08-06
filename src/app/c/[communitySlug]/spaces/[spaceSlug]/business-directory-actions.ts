@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory } from "@/lib/business-categories";
+import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory, isReservedStaySlug } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
+import { createPlaceForListing, syncPlaceIdentity } from "@/lib/data/places";
 import { scheduleToText } from "@/lib/opening-hours";
 import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
 
@@ -215,6 +216,22 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
       space_id: spaceId,
       community_id: communityId,
       created_by: user.id,
+      // Every new listing is a facet of a place. `place_id` may come back null
+      // if the insert failed — a listing without one is still perfectly valid,
+      // and nothing reads it yet — so this never blocks creating the listing.
+      place_id: await createPlaceForListing(supabase, {
+        communityId,
+        createdBy: user.id,
+        name: f.name,
+        description: f.description || null,
+        address: f.address || null,
+        locationLabel: f.locationLabel || null,
+        website: f.website || null,
+        phone: f.phone || null,
+        lat: f.lat,
+        lng: f.lng,
+        coverUrl: cover?.url ?? null,
+      }),
       name: f.name,
       category,
       is_local: f.isLocal,
@@ -293,6 +310,19 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   if (error) {
     return { error: error.message };
   }
+
+  // Editing a listing edits the place it is a facet of, so the place doesn't
+  // drift out of step with it — duplicate detection reads the place's name.
+  const { data: row } = await supabase.from("businesses").select("place_id").eq("id", businessId).maybeSingle();
+  await syncPlaceIdentity(supabase, row?.place_id ?? null, {
+    name: f.name,
+    address: f.address || null,
+    locationLabel: f.locationLabel || null,
+    website: f.website || null,
+    phone: f.phone || null,
+    lat: f.lat,
+    lng: f.lng,
+  });
 
   await syncBusinessImages(supabase, businessId, user.id, images);
 
@@ -384,7 +414,17 @@ export async function setCategoryFeatured(
 ) {
   const supabase = await createClient();
 
-  if ((await resolveCategory(supabase, spaceId, category)) !== category) {
+  // Only pinning needs the category to exist. Unpinning must not go through
+  // resolveCategory: a pin outlives whatever created it — a custom category
+  // someone deleted, or the retired "accommodation" slug — and resolveCategory
+  // folds both to "other", so the check would reject the removal of exactly the
+  // stranded nav links that most need removing. Deleting a row that doesn't
+  // exist is a no-op, and the statement is scoped to this space either way, so
+  // a loose slug can't reach anything it shouldn't.
+  if (featured && (await resolveCategory(supabase, spaceId, category)) !== category) {
+    return { error: "Unknown category." };
+  }
+  if (!featured && !/^[a-z0-9][a-z0-9-]{0,39}$/.test(category)) {
     return { error: "Unknown category." };
   }
 
@@ -465,6 +505,12 @@ export async function addBusinessCategory(
   }
   if (BUSINESS_CATEGORIES.some((c) => c.value === slug)) {
     return { error: "That category already exists." };
+  }
+  if (isReservedStaySlug(slug)) {
+    return {
+      error:
+        "Places to stay have their own space. Add an Accommodation space instead — its listings carry price, rooms, amenities, availability and guest reviews, which a directory category can't. Pick another name if you meant something else.",
+    };
   }
 
   const supabase = await createClient();

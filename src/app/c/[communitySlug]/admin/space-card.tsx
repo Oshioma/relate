@@ -10,6 +10,7 @@ import { SpaceSubNavList } from "./space-subnav-list";
 import type { NavSubItem } from "./spaces-manager";
 import { Input, Label } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,9 @@ export function SpaceCard({
   const [staffPostOnly, setStaffPostOnly] = useState(space.staff_post_only);
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
+  // Cover image lives in state so the uploader's result is submitted with the
+  // form via a hidden input; empty string means "no cover" (the action → null).
+  const [imageUrl, setImageUrl] = useState<string | null>(space.image_url);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
   const Icon = meta.icon;
@@ -116,6 +120,36 @@ export function SpaceCard({
           <div>
             <Label htmlFor={`description-${space.id}`}>Description</Label>
             <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
+          </div>
+
+          <div>
+            <Label>Cover image</Label>
+            {/* Submitted with the form via this hidden field; the uploader sets
+                state, and Remove clears it back to no cover. */}
+            <input type="hidden" name="image_url" value={imageUrl ?? ""} />
+            <div className="flex items-center gap-4">
+              <ImageUpload
+                bucket="community-assets"
+                basePath={`${space.community_id}/space-${space.id}-cover`}
+                currentUrl={imageUrl}
+                onUploaded={(url) => setImageUrl(url)}
+                shape="square"
+                size={64}
+                label="cover"
+              />
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setImageUrl(null)}
+                  className="text-sm font-medium text-muted-foreground hover:text-danger"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Shown on the mobile Explore strip and the Spaces grid. Optional — falls back to the type icon.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

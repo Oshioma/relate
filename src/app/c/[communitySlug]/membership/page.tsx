@@ -4,10 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
-import { getCommunityTiers, getActiveTierIds } from "@/lib/data/tiers";
+import { getCommunityTiers, getMyTierSubscriptions } from "@/lib/data/tiers";
+import { getMyActiveSpaceSubscriptions } from "@/lib/data/space-access";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MembershipTierCard } from "./membership-tier-card";
+import { SpaceSubscriptionCard } from "./space-subscription-card";
 
 export const metadata = { title: "Membership" };
 
@@ -31,15 +33,20 @@ export default async function MembershipPage({
     membership?.status === "active" &&
     (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
 
-  const [allTiers, spaces, activeTierIds] = await Promise.all([
+  const [allTiers, spaces, mySubs, mySpaceSubs] = await Promise.all([
     // Tiers are member-readable via RLS; a non-member gets an empty list.
     getCommunityTiers(supabase, community.id),
     getCommunitySpaces(supabase, community.id),
-    user ? getActiveTierIds(supabase, community.id, user.id) : Promise.resolve(new Set<string>()),
+    user ? getMyTierSubscriptions(supabase, community.id, user.id) : Promise.resolve(new Map()),
+    user ? getMyActiveSpaceSubscriptions(supabase, community.id, user.id) : Promise.resolve([]),
   ]);
 
   const tiers = allTiers.filter((t) => !t.archived_at);
+  const spaceById = new Map(spaces.map((s) => [s.id, s] as const));
   const spaceName = new Map(spaces.map((s) => [s.id, s.name] as const));
+  // Only individually-subscribed spaces we can still name (staff-managed edge
+  // cases aside).
+  const spaceSubs = mySpaceSubs.filter((s) => spaceById.has(s.spaceId));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -87,7 +94,9 @@ export default async function MembershipPage({
                 currency={tier.currency}
                 spaceNames={tier.spaceIds.map((id) => spaceName.get(id)).filter((n): n is string => Boolean(n))}
                 communitySlug={community.slug}
-                isSubscribed={activeTierIds.has(tier.id)}
+                isSubscribed={Boolean(mySubs.get(tier.id)?.active)}
+                cancelAtPeriodEnd={Boolean(mySubs.get(tier.id)?.cancelAtPeriodEnd)}
+                currentPeriodEnd={mySubs.get(tier.id)?.currentPeriodEnd ?? null}
                 isStaff={Boolean(isStaff)}
                 isSignedIn={Boolean(user)}
                 paymentsReady={community.stripe_charges_enabled}
@@ -96,6 +105,28 @@ export default async function MembershipPage({
           </div>
         )}
       </div>
+
+      {spaceSubs.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Your space subscriptions</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {spaceSubs.map((sub) => {
+              const space = spaceById.get(sub.spaceId)!;
+              return (
+                <SpaceSubscriptionCard
+                  key={sub.spaceId}
+                  spaceId={sub.spaceId}
+                  spaceName={space.name}
+                  spaceHref={`/c/${community.slug}/spaces/${space.slug}`}
+                  cancelAtPeriodEnd={sub.cancelAtPeriodEnd}
+                  currentPeriodEnd={sub.currentPeriodEnd}
+                  communitySlug={community.slug}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

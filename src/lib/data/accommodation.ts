@@ -108,8 +108,11 @@ export async function getSpaceAccommodationListingsWithStats(
   if (listings.length === 0) return [];
 
   const ids = listings.map((l) => l.id);
+  // Ratings hang off the place, so a hotel's directory reviews count towards
+  // its stay card too — it's one place with one rating.
+  const placeIds = [...new Set(listings.map((l) => l.place_id).filter((id): id is string => id !== null))];
   const [{ data: reviews, error: reviewsError }, { data: saves, error: savesError }] = await Promise.all([
-    supabase.from("accommodation_reviews").select("listing_id, rating").in("listing_id", ids),
+    supabase.from("place_reviews").select("place_id, rating").in("place_id", placeIds),
     viewerId
       ? supabase.from("accommodation_saves").select("listing_id").in("listing_id", ids).eq("user_id", viewerId)
       : Promise.resolve({ data: [], error: null }),
@@ -117,16 +120,16 @@ export async function getSpaceAccommodationListingsWithStats(
   if (reviewsError) throw reviewsError;
   if (savesError) throw savesError;
 
-  const ratingsByListing = new Map<string, number[]>();
+  const ratingsByPlace = new Map<string, number[]>();
   for (const row of reviews ?? []) {
-    const list = ratingsByListing.get(row.listing_id) ?? [];
+    const list = ratingsByPlace.get(row.place_id) ?? [];
     list.push(row.rating);
-    ratingsByListing.set(row.listing_id, list);
+    ratingsByPlace.set(row.place_id, list);
   }
   const savedIds = new Set((saves ?? []).map((row) => row.listing_id));
 
   return listings.map((listing) => {
-    const ratings = ratingsByListing.get(listing.id) ?? [];
+    const ratings = listing.place_id ? ratingsByPlace.get(listing.place_id) ?? [] : [];
     return { ...listing, saved: savedIds.has(listing.id), avgRating: average(ratings), ratingCount: ratings.length };
   });
 }
@@ -161,8 +164,15 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
   if (!data) return null;
 
   const [{ data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }] = await Promise.all([
-    supabase.from("accommodation_reviews").select("*, author:author_id (*)").eq("listing_id", listingId).order("created_at", { ascending: false }),
-    supabase.from("accommodation_review_replies").select("*, author:author_id (*)").eq("listing_id", listingId),
+    // One conversation per place: this stay and any directory listing for the
+    // same place show the same reviews. A listing with no place falls back to
+    // its own rather than appearing to have none.
+    data.place_id
+      ? supabase.from("place_reviews").select("*, author:author_id (*)").eq("place_id", data.place_id).order("created_at", { ascending: false })
+      : supabase.from("accommodation_reviews").select("*, author:author_id (*)").eq("listing_id", listingId).order("created_at", { ascending: false }),
+    data.place_id
+      ? supabase.from("place_review_replies").select("*, author:author_id (*)").eq("place_id", data.place_id)
+      : supabase.from("accommodation_review_replies").select("*, author:author_id (*)").eq("listing_id", listingId),
     viewerId
       ? supabase.from("accommodation_saves").select("id").eq("listing_id", listingId).eq("user_id", viewerId).maybeSingle()
       : Promise.resolve({ data: null, error: null }),

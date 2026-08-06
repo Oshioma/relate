@@ -199,6 +199,90 @@ export async function sendCommunityConfirmationEmail(
 }
 
 // -----------------------------------------------------------------------------
+export type PasswordResetEmailInput = {
+  to: string;
+  // Branding is optional: a reset requested on a community's custom domain is
+  // dressed in that community's name and logo; a bare platform reset falls back
+  // to a plain "Relate" message.
+  communityName: string | null;
+  communityLogoUrl: string | null;
+  resetUrl: string;
+};
+
+// Password-reset email sent the same direct-Resend way as invites and signup
+// confirmations. The link is an /auth/confirm URL with token_hash + type —
+// minted server-side by admin.generateLink (see requestPasswordReset). That is
+// deliberately NOT Supabase's default recovery email: the default routes
+// through GoTrue's /verify endpoint and a PKCE `?code=` exchange that needs a
+// code-verifier cookie from the very browser that requested the reset, so it
+// silently fails when the email is opened on another device. A token_hash link
+// carries no such state and works anywhere.
+export async function sendPasswordResetEmail(
+  input: PasswordResetEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+  const fromAddress = defaultFromAddress();
+  if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  const brand = input.communityName ? escapeHtml(input.communityName) : "Relate";
+  const url = escapeHtml(input.resetUrl);
+  const forName = input.communityName ? ` for ${brand}` : "";
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px 16px;background:#f6f5f1;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:420px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;text-align:center;">
+      ${
+        input.communityLogoUrl
+          ? `<img src="${escapeHtml(input.communityLogoUrl)}" alt="" width="72" height="72" style="border-radius:50%;object-fit:cover;margin-bottom:16px;" />`
+          : ""
+      }
+      <h1 style="margin:0 0 8px;font-size:20px;color:#1f2a1f;">Reset your password</h1>
+      <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#5c665c;">
+        Tap below to choose a new password${forName}. If you didn't ask for this, you can safely ignore this email — your password won't change.
+      </p>
+      <a href="${url}" style="display:inline-block;background:#44553f;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">
+        Reset password
+      </a>
+      <p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#8a938a;">
+        Or copy this link into your browser:<br />
+        <a href="${url}" style="color:#44553f;word-break:break-all;">${url}</a>
+      </p>
+    </div>
+    <p style="max-width:420px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
+      Sent by Relate${input.communityName ? ` on behalf of ${brand}` : ""}.
+    </p>
+  </body>
+</html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+        to: [input.to],
+        subject: input.communityName ? `Reset your ${input.communityName} password` : "Reset your password",
+        html,
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Generic in-app-notification email
 //
 // The in-app notification (bell) is created by a DB trigger; this is the email
@@ -264,6 +348,83 @@ export async function sendNotificationEmail(
         from: `${fromName} <${fromAddress}>`,
         to: [input.to],
         subject: input.subject,
+        html,
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Contact-form email
+//
+// The public /contact form sends here, to the platform support inbox. The
+// recipient is deliberately NOT exposed to the browser — it lives only in this
+// server module (CONTACT_EMAIL_TO, defaulting to the support address). Resend's
+// reply_to is set to the submitter so the team can reply straight from the
+// email. Best-effort: the server action has already stored the message in the
+// database, so a mail failure never loses it.
+//   CONTACT_EMAIL_TO   — where submissions go; defaults to relate@guestlist.net
+//   CONTACT_EMAIL_FROM — sender address; defaults to contact@<site hostname>,
+//                        then falls back to the invites sender.
+// -----------------------------------------------------------------------------
+export type ContactEmailInput = {
+  fromName: string;
+  fromEmail: string;
+  message: string;
+};
+
+export async function sendContactEmail(
+  input: ContactEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+
+  const to = process.env.CONTACT_EMAIL_TO || "relate@guestlist.net";
+  const fromAddress = fromAddressFor("contact", process.env.CONTACT_EMAIL_FROM) ?? defaultFromAddress();
+  if (!fromAddress) return { ok: false, reason: "no sender address — set CONTACT_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  const name = escapeHtml(input.fromName);
+  const email = escapeHtml(input.fromEmail);
+  // Keep the submitter's line breaks in the email body.
+  const message = escapeHtml(input.message).replace(/\n/g, "<br />");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px 16px;background:#f6f5f1;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+      <h1 style="margin:0 0 12px;font-size:18px;line-height:1.4;color:#1f2a1f;">New contact-form message</h1>
+      <p style="margin:0 0 6px;font-size:14px;color:#5c665c;"><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+      <div style="margin:16px 0 0;padding:16px;background:#f6f5f1;border-radius:8px;font-size:14px;line-height:1.6;color:#1f2a1f;">
+        ${message}
+      </div>
+    </div>
+    <p style="max-width:520px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
+      Sent from the Relate contact form. Reply directly to reach ${name}.
+    </p>
+  </body>
+</html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `Relate contact <${fromAddress}>`,
+        to: [to],
+        reply_to: input.fromEmail,
+        subject: `Contact form: ${input.fromName}`,
         html,
       }),
       cache: "no-store",

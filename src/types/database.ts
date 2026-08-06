@@ -91,8 +91,28 @@ export type Community = {
   name: string;
   slug: string;
   description: string | null;
+  // House rules / code of conduct, written by the owner or an admin in the
+  // community admin page and shown at /c/<slug>/guidelines. Sanitised HTML or
+  // Markdown, rendered through <RichText>. Null = none set yet.
+  guidelines: string | null;
+  // Contact details the owner shows above their community's contact form
+  // (/c/<slug>/contact) — phone, hours, address, etc. Sanitised HTML/Markdown
+  // rendered through <RichText>. Null = nothing shown above the form.
+  contact_info: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  // Optional per-community accent, as '#rrggbb' (a DB check constraint enforces
+  // the shape). Null = inherit the platform accent from globals.css. Applied to
+  // the community shell by communityAccentStyle in src/lib/accent-color.ts.
+  accent_color: string | null;
+  // Which part of cover_image_url to keep when it's cropped to the feed
+  // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
+  // Null = 'center'.
+  cover_position: string | null;
+  // Show the member / event / business / post counts in the community header.
+  // Defaults false — a small community is usually better off not advertising
+  // its size.
+  show_stats: boolean;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
@@ -125,6 +145,11 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Owner opt-in: may non-owner admins change the role of / remove other staff
+  // (admins & moderators)? Default false — admins manage regular members only,
+  // the owner manages everyone. Enforced in RLS (see the migration) and in the
+  // member server actions.
+  admins_can_manage_staff: boolean;
   // Stripe Connect Express: the owner's connected account, and whether it can
   // take charges yet (mirrors the account's charges_enabled). Written only by
   // the admin billing actions and the service-role webhook. See
@@ -139,6 +164,13 @@ export type Community = {
   plan_current_period_end: string | null;
   plan_stripe_customer_id: string | null;
   plan_stripe_subscription_id: string | null;
+  // Community Owner Agreement acceptance, recorded when the owner ticks the
+  // mandatory checkbox in the creation wizard. accepted_at is the moment they
+  // agreed; version is the Agreement's "last updated" date (see
+  // OWNER_AGREEMENT_VERSION). Both null for communities created before this
+  // requirement existed.
+  owner_agreement_accepted_at: string | null;
+  owner_agreement_version: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -206,6 +238,7 @@ export type SpaceSubscription = {
   stripe_customer_id: string | null;
   status: string;
   current_period_end: string | null;
+  cancel_at_period_end: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -245,6 +278,7 @@ export type TierSubscription = {
   stripe_customer_id: string | null;
   status: string;
   current_period_end: string | null;
+  cancel_at_period_end: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -268,6 +302,10 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // Optional cover image (community-assets bucket URL), surfaced on the mobile
+  // Explore strip and the Spaces grid. Null = fall back to the type icon.
+  // See 20260731214352_add_space_image_url.sql.
+  image_url: string | null;
   // A one-way / broadcast space: when true, only community staff can create
   // posts here — and comment, unless allow_member_comments re-opens comments.
   // Members always read and react. See
@@ -479,6 +517,50 @@ export type BusinessGoogleReview = {
 // from BusinessProfile below, which is a member's own business profile page —
 // a Business here is scoped to one place community's directory, addable by
 // any member regardless of who (if anyone) owns it.
+// The thing itself, independent of how any one space presents it: a hotel, a
+// restaurant, a hotel that is also a restaurant. Directory listings and stay
+// listings are facets of a place — a place can have several of each — and this
+// row is what they agree on. See the places_shared_identity migration.
+// A review of a place, shared by every facet of it: the same conversation and
+// the same rating whether you reach it through the directory or through
+// Accommodation. Replaces the per-facet business_reviews / accommodation_reviews.
+export type PlaceReview = {
+  id: string;
+  place_id: string;
+  author_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlaceReviewReply = {
+  id: string;
+  review_id: string;
+  place_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Place = {
+  id: string;
+  community_id: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  location_label: string | null;
+  website: string | null;
+  phone: string | null;
+  lat: number | null;
+  lng: number | null;
+  cover_url: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Business = {
   id: string;
   space_id: string;
@@ -513,6 +595,9 @@ export type Business = {
   google_reviews: BusinessGoogleReview[] | null;
   google_maps_url: string | null;
   google_synced_at: string | null;
+  // The place this listing is a facet of. Nullable while the model is being
+  // rolled out; every row created since the places migration has one.
+  place_id: string | null;
   verified: boolean;
   featured: boolean;
   created_at: string;
@@ -722,6 +807,9 @@ export type AccommodationListing = {
   community_id: string;
   listed_by: string;
   business_id: string | null;
+  // The place this stay is a facet of; shared with any directory listing for
+  // the same place. Nullable while the model is being rolled out.
+  place_id: string | null;
   name: string;
   accommodation_type: AccommodationType;
   description: string | null;
@@ -737,6 +825,12 @@ export type AccommodationListing = {
   price_unit: AccommodationPriceUnit;
   booking_url: string | null;
   location_label: string | null;
+  // The full street address, and how to reach the host directly — the same
+  // three a directory listing carries. All optional; a camping spot may have
+  // none of them.
+  address: string | null;
+  website: string | null;
+  phone: string | null;
   lat: number | null;
   lng: number | null;
   status: AccommodationStatus;
@@ -959,6 +1053,17 @@ export type LiveSessionRsvp = {
   created_at: string;
 };
 
+// A specific member a host hand-picked to invite to a live session (as opposed
+// to the space-wide broadcast every session already sends).
+export type LiveSessionInvite = {
+  id: string;
+  session_id: string;
+  community_id: string;
+  user_id: string;
+  invited_by: string | null;
+  created_at: string;
+};
+
 export type CourseStatus = "draft" | "published";
 
 // A course in a 'course' space (see space-types.ts). Deeper than
@@ -1111,7 +1216,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "direct_message";
 
 export type Notification = {
   id: string;
@@ -1303,8 +1408,17 @@ export type Conversation = {
   user_one_id: string;
   user_two_id: string;
   last_message_at: string | null;
+  // When each participant last opened the thread — used to suppress the
+  // direct-message email while a recipient is actively reading.
+  user_one_last_read_at: string | null;
+  user_two_last_read_at: string | null;
   created_at: string;
 };
+
+// An ordinary chat message, or a video-call invite card ("call").
+export type DirectMessageKind = "text" | "call";
+// Call lifecycle: joinable now / scheduled for later / called off.
+export type DirectMessageCallStatus = "active" | "scheduled" | "cancelled";
 
 export type DirectMessage = {
   id: string;
@@ -1313,6 +1427,11 @@ export type DirectMessage = {
   body: string;
   read: boolean;
   created_at: string;
+  kind: DirectMessageKind;
+  // Video-call fields — set only when kind === "call".
+  call_room: string | null;
+  call_scheduled_at: string | null;
+  call_status: DirectMessageCallStatus | null;
 };
 
 export type ConnectionStatus = "pending" | "accepted" | "declined";
@@ -1575,6 +1694,31 @@ export type FarmShare = {
   updated_at: string;
 };
 
+// Platform-wide legal documents, a one-row singleton (id = 1) edited by the
+// super admin at /platform-admin and shown at /terms and /privacy. Content is
+// sanitised HTML/Markdown rendered through <RichText>.
+export type PlatformSettings = {
+  id: number;
+  terms: string | null;
+  privacy: string | null;
+  updated_at: string;
+};
+
+// A message left through the public /contact form. Written only by the contact
+// server action via the service-role client; readable by the super admin.
+export type ContactMessage = {
+  id: string;
+  user_id: string | null;
+  // Set when the message came from a community's own contact page; null for a
+  // platform (marketing) /contact submission.
+  community_id: string | null;
+  name: string;
+  email: string;
+  message: string;
+  handled: boolean;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1636,6 +1780,17 @@ export type Database = {
         Insert: Partial<PlatformPlan> & { slug: string; name: string };
         Update: Partial<PlatformPlan>;
       } & NoRel;
+      platform_settings: {
+        Row: PlatformSettings;
+        Insert: Partial<PlatformSettings>;
+        Update: Partial<PlatformSettings>;
+      } & NoRel;
+      contact_messages: {
+        Row: ContactMessage;
+        Insert: Partial<ContactMessage> & { name: string; email: string; message: string };
+        Update: Partial<ContactMessage>;
+        Relationships: [FKey<"user_id", "profiles">];
+      };
       feature_packs: {
         Row: FeaturePack;
         Insert: Partial<FeaturePack> & { slug: string; name: string };
@@ -1741,6 +1896,24 @@ export type Database = {
         Insert: Partial<BusinessProfile> & { profile_id: string; business_name: string };
         Update: Partial<BusinessProfile>;
       } & NoRel;
+      place_reviews: {
+        Row: PlaceReview;
+        Insert: Partial<PlaceReview> & { place_id: string; author_id: string; rating: number };
+        Update: Partial<PlaceReview>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"place_id", "places">];
+      };
+      place_review_replies: {
+        Row: PlaceReviewReply;
+        Insert: Partial<PlaceReviewReply> & { review_id: string; place_id: string; author_id: string; body: string };
+        Update: Partial<PlaceReviewReply>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"place_id", "places">];
+      };
+      places: {
+        Row: Place;
+        Insert: Partial<Place> & { community_id: string; name: string };
+        Update: Partial<Place>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
       businesses: {
         Row: Business;
         Insert: Partial<Business> & { space_id: string; community_id: string; created_by: string; name: string };
@@ -1926,6 +2099,12 @@ export type Database = {
         Insert: Partial<LiveSessionRsvp> & { session_id: string; community_id: string; user_id: string };
         Update: Partial<LiveSessionRsvp>;
         Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">];
+      };
+      live_session_invites: {
+        Row: LiveSessionInvite;
+        Insert: Partial<LiveSessionInvite> & { session_id: string; community_id: string; user_id: string };
+        Update: Partial<LiveSessionInvite>;
+        Relationships: [FKey<"session_id", "live_sessions">, FKey<"user_id", "profiles">, FKey<"invited_by", "profiles">];
       };
       course_modules: {
         Row: CourseModule;
@@ -2192,6 +2371,7 @@ export type Database = {
           community_logo_url: string | null;
           community_cover_image_url: string | null;
           community_is_public: boolean | null;
+          invite_email: string | null;
           valid: boolean;
           reason: string | null;
         }[];

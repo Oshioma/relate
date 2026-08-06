@@ -8,6 +8,24 @@ export type MemberActionState = { error: string } | undefined;
 
 const ASSIGNABLE_ROLES: Extract<MembershipRole, "admin" | "moderator" | "member">[] = ["admin", "moderator", "member"];
 
+// Whether this user may manage other staff in the community: always true for
+// the owner, and for admins only when the community has opted in via
+// admins_can_manage_staff. The database RLS policy enforces the same rule; this
+// is the friendly-error mirror of it.
+async function canManageStaff(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  communityId: string,
+  userId: string
+): Promise<boolean> {
+  const { data: community } = await supabase
+    .from("communities")
+    .select("owner_id, admins_can_manage_staff")
+    .eq("id", communityId)
+    .maybeSingle();
+  if (!community) return false;
+  return community.owner_id === userId || community.admins_can_manage_staff;
+}
+
 export async function updateMemberRole(membershipId: string, newRole: string, communitySlug: string): Promise<MemberActionState> {
   if (!ASSIGNABLE_ROLES.includes(newRole as (typeof ASSIGNABLE_ROLES)[number])) {
     return { error: "Not a valid role." };
@@ -24,7 +42,7 @@ export async function updateMemberRole(membershipId: string, newRole: string, co
 
   const { data: target, error: fetchError } = await supabase
     .from("community_memberships")
-    .select("role, user_id")
+    .select("role, user_id, community_id")
     .eq("id", membershipId)
     .maybeSingle();
 
@@ -38,6 +56,16 @@ export async function updateMemberRole(membershipId: string, newRole: string, co
 
   if (target.user_id === user.id) {
     return { error: "You can't change your own role." };
+  }
+
+  // Touching staff — demoting/removing an admin or moderator, or promoting
+  // someone into those roles — is owner-only unless the community has opted in
+  // via admins_can_manage_staff. Mirrors the membership RLS policy so the
+  // friendly message here matches what the database would enforce anyway.
+  const touchesStaff =
+    target.role === "admin" || target.role === "moderator" || newRole === "admin" || newRole === "moderator";
+  if (touchesStaff && !(await canManageStaff(supabase, target.community_id, user.id))) {
+    return { error: "Only the owner can manage admins and moderators here." };
   }
 
   const { error } = await supabase
@@ -90,7 +118,7 @@ export async function removeMember(membershipId: string, communitySlug: string):
 
   const { data: target, error: fetchError } = await supabase
     .from("community_memberships")
-    .select("role, user_id")
+    .select("role, user_id, community_id")
     .eq("id", membershipId)
     .maybeSingle();
 
@@ -104,6 +132,13 @@ export async function removeMember(membershipId: string, communitySlug: string):
 
   if (target.user_id === user.id) {
     return { error: "You can't remove yourself here." };
+  }
+
+  // Removing a fellow admin or moderator is owner-only unless the community has
+  // opted in via admins_can_manage_staff (mirrors the membership RLS policy).
+  const targetIsStaff = target.role === "admin" || target.role === "moderator";
+  if (targetIsStaff && !(await canManageStaff(supabase, target.community_id, user.id))) {
+    return { error: "Only the owner can remove admins and moderators." };
   }
 
   const { error } = await supabase.from("community_memberships").delete().eq("id", membershipId);

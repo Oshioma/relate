@@ -27,6 +27,18 @@ export async function submitClaim(_prevState: BusinessClaimFormState, formData: 
     return { error: "You need to be signed in." };
   }
 
+  // Re-claiming after a decline: the (business_id, claimant_id) unique
+  // constraint would otherwise reject the new row. Clear the old declined claim
+  // first — RLS lets a claimant delete their own — so the fresh one can land as
+  // pending. Only 'rejected' rows are removed; a live pending/approved claim is
+  // left untouched and the insert below will surface the duplicate.
+  await supabase
+    .from("business_claims")
+    .delete()
+    .eq("business_id", businessId)
+    .eq("claimant_id", user.id)
+    .eq("status", "rejected");
+
   const { error } = await supabase
     .from("business_claims")
     .insert({ business_id: businessId, community_id: communityId, claimant_id: user.id, message: message || null });

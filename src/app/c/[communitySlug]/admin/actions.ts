@@ -125,6 +125,12 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const rawLocationName = formData.get("location_name");
   const locationName = rawLocationName === null ? undefined : String(rawLocationName).trim().slice(0, 120) || null;
 
+  // Cover image. Same absent-≠-empty rule as location: only the edit form that
+  // renders the uploader submits the field, so an edit elsewhere can't wipe it.
+  // The uploader stores a public URL and empty means "no cover" (→ null).
+  const rawImageUrl = formData.get("image_url");
+  const imageUrl = rawImageUrl === null ? undefined : String(rawImageUrl).trim() || null;
+
   // Paywall price, in whole currency units from the form. Absent field ≠ set to
   // free — only the edit form that renders the price input sends it, so other
   // edits can't silently un-price a space. An empty or non-positive value means
@@ -183,6 +189,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       staff_post_only: staffPostOnly,
       allow_member_comments: allowMemberComments,
       ...(locationName !== undefined && { location_name: locationName }),
+      ...(imageUrl !== undefined && { image_url: imageUrl }),
       ...(priceUpdate ?? {}),
     })
     .eq("id", spaceId);
@@ -248,6 +255,7 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
     staff_post_only: original.staff_post_only,
     allow_member_comments: original.allow_member_comments,
     location_name: original.location_name,
+    image_url: original.image_url,
   });
 
   if (error) {
@@ -405,6 +413,64 @@ export async function updateCommunityDetails(
   revalidatePath(`/c/${communitySlug}`, "layout");
   revalidatePath("/dashboard");
   return undefined;
+}
+
+export type CommunityGuidelinesState = { error: string } | { ok: true } | undefined;
+
+// Save a community's guidelines (house rules / code of conduct). Stored as the
+// same sanitised HTML/Markdown as space descriptions — rendered only through
+// <RichText> on display. RLS restricts the update to the owner and admins; an
+// empty submission clears the guidelines (so the read page and its links hide).
+export async function updateCommunityGuidelines(
+  _prevState: CommunityGuidelinesState,
+  formData: FormData
+): Promise<CommunityGuidelinesState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const guidelines = String(formData.get("guidelines") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ guidelines: guidelines || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/guidelines`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return { ok: true };
+}
+
+export type CommunityContactInfoState = { error: string } | { ok: true } | undefined;
+
+// Save the contact details shown above a community's contact form. Same
+// sanitised HTML/Markdown as guidelines, rendered through <RichText>. RLS
+// restricts the update to the owner and admins; empty clears it.
+export async function updateCommunityContactInfo(
+  _prevState: CommunityContactInfoState,
+  formData: FormData
+): Promise<CommunityContactInfoState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const contactInfo = String(formData.get("contact_info") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communities")
+    .update({ contact_info: contactInfo || null })
+    .eq("id", communityId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/contact`);
+  return { ok: true };
 }
 
 export type PublicAccessState = { error: string } | undefined;
@@ -671,4 +737,36 @@ export async function deleteCommunity(_prevState: DeleteCommunityState, formData
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
+}
+
+// Owner-only switch: whether non-owner admins may manage other staff. The
+// owner check here gives a friendly error and hides the change from admins;
+// the database trigger guard_admins_can_manage_staff is the real boundary and
+// blocks the column for anyone but the owner regardless of entry point.
+export async function setAdminsCanManageStaff(
+  communityId: string,
+  communitySlug: string,
+  value: boolean
+): Promise<{ error: string } | undefined> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You need to be signed in." };
+  }
+
+  const { data: community } = await supabase.from("communities").select("owner_id").eq("id", communityId).single();
+  if (!community || community.owner_id !== user.id) {
+    return { error: "Only the owner can change this setting." };
+  }
+
+  const { error } = await supabase.from("communities").update({ admins_can_manage_staff: value }).eq("id", communityId);
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  return undefined;
 }

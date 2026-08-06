@@ -56,11 +56,15 @@ export function MemberDirectoryList({
   communitySlug,
   currentUserId,
   isAdmin,
+  viewerIsOwner,
+  allowStaff,
 }: {
   members: DirectoryMember[];
   communitySlug: string;
   currentUserId: string;
   isAdmin: boolean;
+  viewerIsOwner: boolean;
+  allowStaff: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<MembershipRole | "all">("all");
@@ -113,7 +117,14 @@ export function MemberDirectoryList({
         <Card>
           <CardContent className="divide-y divide-border p-0">
             {filtered.map((member) => {
-              const canManage = isAdmin && member.role !== "owner" && member.profile.id !== currentUserId;
+              // Non-owner admins can only manage fellow staff (admins/mods)
+              // when the community has opted in via admins_can_manage_staff.
+              const targetIsStaff = member.role === "admin" || member.role === "moderator";
+              const canManage =
+                isAdmin &&
+                member.role !== "owner" &&
+                member.profile.id !== currentUserId &&
+                (viewerIsOwner || !targetIsStaff || allowStaff);
 
               return (
                 <div key={member.membershipId} className="flex items-center justify-between gap-3 px-5 py-3.5">

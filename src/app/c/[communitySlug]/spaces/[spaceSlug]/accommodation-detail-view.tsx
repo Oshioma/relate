@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check } from "lucide-react";
+import { BedDouble, Building2, MapPin, Navigation, ExternalLink, Pencil, Trash2, RotateCcw, CircleCheck, Heart, Users, Bath, CalendarDays, Check, Globe, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, amenityLabel, formatAvailabilityWindow } from "@/lib/accommodation-types";
@@ -14,7 +14,9 @@ import { EditAccommodationForm } from "./edit-accommodation-form";
 import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
+import { StayBusinessBridge } from "./stay-business-bridge";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
+import type { BusinessCustomCategory } from "@/types/database";
 
 const StaticMap = dynamic(() => import("@/components/map/static-map"), {
   ssr: false,
@@ -37,6 +39,8 @@ export function AccommodationDetailView({
   canReply,
   isStaff,
   businesses,
+  canCreateBusiness,
+  directoryCategories,
 }: {
   detail: AccommodationDetail;
   communitySlug: string;
@@ -50,6 +54,9 @@ export function AccommodationDetailView({
   canReply: boolean;
   isStaff: boolean;
   businesses: BusinessLinkOption[];
+  // The viewer manages this stay and the community has a directory to add to.
+  canCreateBusiness: boolean;
+  directoryCategories: BusinessCustomCategory[];
 }) {
   const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness } = detail;
   const [isEditing, setIsEditing] = useState(false);
@@ -259,10 +266,38 @@ export function AccommodationDetailView({
             )}
           </div>
 
-          {listing.location_label && (
-            <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0" /> {listing.location_label}
-            </p>
+          {(listing.location_label || listing.address || listing.website || listing.phone) && (
+            <div className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+              {/* Area and address say the same kind of thing, so show the
+                  address when there is one and fall back to the area. */}
+              {(listing.address || listing.location_label) && (
+                <p className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  {listing.address ?? listing.location_label}
+                </p>
+              )}
+              {listing.phone && (
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  <a href={`tel:${listing.phone.replace(/\s+/g, "")}`} className="hover:text-foreground hover:underline">
+                    {listing.phone}
+                  </a>
+                </p>
+              )}
+              {listing.website && (
+                <p className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <a
+                    href={listing.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate hover:text-foreground hover:underline"
+                  >
+                    {listing.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                  </a>
+                </p>
+              )}
+            </div>
           )}
 
           {listing.lat !== null && listing.lng !== null && (
@@ -274,6 +309,14 @@ export function AccommodationDetailView({
           {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         </CardContent>
       </Card>
+
+      <StayBusinessBridge
+        listingId={listing.id}
+        communitySlug={communitySlug}
+        linkedBusiness={linkedBusiness}
+        canCreate={canCreateBusiness}
+        customCategories={directoryCategories}
+      />
 
       <div>
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">

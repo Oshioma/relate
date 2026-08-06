@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Gem } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { subscribeToTier } from "../membership-actions";
+import { subscribeToTier, cancelTierSubscription, resumeTierSubscription } from "../membership-actions";
 
 function formatPrice(cents: number, currency: string): string {
   try {
@@ -24,6 +25,8 @@ export function MembershipTierCard({
   spaceNames,
   communitySlug,
   isSubscribed,
+  cancelAtPeriodEnd = false,
+  currentPeriodEnd = null,
   isStaff,
   isSignedIn,
   paymentsReady,
@@ -37,10 +40,14 @@ export function MembershipTierCard({
   spaceNames: string[];
   communitySlug: string;
   isSubscribed: boolean;
+  // Set when the member's subscription is scheduled to cancel at period end.
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: string | null;
   isStaff: boolean;
   isSignedIn: boolean;
   paymentsReady: boolean;
 }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,8 +63,28 @@ export function MembershipTierCard({
     setBusy(false);
   }
 
+  async function handleCancel() {
+    if (!confirm(`Cancel your ${name} membership? You'll keep access until the end of the paid period.`)) return;
+    setBusy(true);
+    setError(null);
+    const result = await cancelTierSubscription(tierId, communitySlug);
+    if (result.error) setError(result.error);
+    else router.refresh();
+    setBusy(false);
+  }
+
+  async function handleResume() {
+    setBusy(true);
+    setError(null);
+    const result = await resumeTierSubscription(tierId, communitySlug);
+    if (result.error) setError(result.error);
+    else router.refresh();
+    setBusy(false);
+  }
+
   const price = formatPrice(priceCents, currency);
   const returnTo = `/c/${communitySlug}/membership`;
+  const periodEndLabel = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : null;
 
   return (
     <Card className={isSubscribed ? "border-accent/40" : undefined}>
@@ -98,7 +125,24 @@ export function MembershipTierCard({
 
         <div className="mt-5">
           {isSubscribed ? (
-            <p className="text-sm text-muted-foreground">You&apos;re a member of this tier.</p>
+            cancelAtPeriodEnd ? (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Cancels{periodEndLabel ? ` on ${periodEndLabel}` : " at the end of the period"}. You keep access until
+                  then.
+                </p>
+                <Button type="button" variant="secondary" className="mt-2 w-auto" onClick={handleResume} disabled={busy}>
+                  {busy ? "Working…" : "Resume membership"}
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground">You&apos;re a member of this tier.</p>
+                <Button type="button" variant="ghost" className="mt-2 w-auto" onClick={handleCancel} disabled={busy}>
+                  {busy ? "Working…" : "Cancel membership"}
+                </Button>
+              </div>
+            )
           ) : isStaff ? (
             <p className="text-sm text-muted-foreground">Staff already have access to every space.</p>
           ) : !isSignedIn ? (

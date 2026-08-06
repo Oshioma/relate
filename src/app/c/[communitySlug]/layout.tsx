@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
@@ -10,6 +10,7 @@ import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { getCommunityLiveSession } from "@/lib/data/live-events";
 import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
@@ -18,14 +19,40 @@ import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
-import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
+import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
+import { communityAccentStyle } from "@/lib/accent-color";
+import { JoinCommunityButton } from "./join-community-button";
 
-// Give each community its own tab title. `default` shows the community name on
-// the community's own pages; the template lets any child page that sets a title
-// render as "Page · Community" without repeating the community name everywhere.
+// The snippet a search engine shows under the result, and the text on a
+// social-share card, both come from the page's meta description. Without one,
+// every community page inherited the root layout's generic line — and because
+// that line says nothing about this particular community, Google discards it
+// and scrapes visible page text instead, which is often a business listing
+// ("Kendwa Rocks…") rather than anything about the community. So give each
+// community its own description: the owner's own community.description when
+// set, otherwise a name-based fallback that's still community-specific.
+// Trimmed to ~160 chars (a word boundary) to stay within what search results
+// display without truncating mid-word.
+function communityMetaDescription(community: { name: string; description: string | null }): string {
+  const own = community.description?.trim();
+  if (own) {
+    if (own.length <= 160) return own;
+    const clipped = own.slice(0, 160);
+    const lastSpace = clipped.lastIndexOf(" ");
+    return `${(lastSpace > 100 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}…`;
+  }
+  return `${community.name} on Relate — its feed, spaces, events, members and local businesses, all in one place.`;
+}
+
+// Give each community its own tab title and meta description. `default` shows
+// the community name on the community's own pages; the template lets any child
+// page that sets a title render as "Page · Community" without repeating the
+// community name everywhere. The description is inherited by every child page
+// that doesn't set its own, so the whole community reads correctly in search.
 export async function generateMetadata({
   params,
 }: {
@@ -35,8 +62,21 @@ export async function generateMetadata({
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
+  const description = communityMetaDescription(community);
+  // Only an absolute URL is safe here: a relative image path with no
+  // metadataBase configured makes the build error out. Cover images are
+  // Supabase public URLs (absolute), but guard anyway so an odd value degrades
+  // to no OG image rather than a build failure.
+  const cover = community.cover_image_url;
+  const ogImage = cover && /^https?:\/\//i.test(cover) ? [cover] : undefined;
   return {
     title: { default: community.name, template: `%s · ${community.name}` },
+    description,
+    openGraph: {
+      title: community.name,
+      description,
+      ...(ogImage ? { images: ogImage } : {}),
+    },
   };
 }
 
@@ -69,7 +109,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -78,6 +118,7 @@ export default async function CommunityLayout({
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeatures(supabase, community.id),
     countActiveTiers(supabase, community.id),
+    getCommunityLiveSession(supabase, community.id),
   ]);
 
   // Personal chrome (profile, membership, notifications, messages) only exists
@@ -161,9 +202,28 @@ export default async function CommunityLayout({
     ...orderedUnits.flatMap((unit) => unit.items),
   ];
 
+  // A community that has chosen its own accent re-points the accent tokens for
+  // everything inside its shell (see globals.css).
+  const accentStyle = communityAccentStyle(community.accent_color);
+
   return (
-    <div className="min-h-screen bg-background md:flex">
+    <div
+      className="min-h-screen bg-background md:flex"
+      style={accentStyle}
+      {...(accentStyle ? { "data-community-accent": "" } : {})}
+    >
+      {/* Watches for a session going live / ending and refreshes the header
+          badge instantly. Outside the signed-in gate so guests on a public
+          live space see it too. */}
+      <LiveSessionWatcher communityId={community.id} />
+
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
+        {/* Sidebar header: the logo on the plain card background. The cover
+            photo was tried here and pulled back out — a tinted crop behind a
+            logo made the sidebar compete with the hero rather than support it,
+            and no tint reads well behind every possible logo. The cover earns
+            its place on the feed header, where it's large enough to be the
+            photograph it is. */}
         <div className="border-b border-border px-5 py-5">
           <div className="flex flex-col items-center text-center">
             <Avatar src={community.logo_url} name={community.name} size={140} />
@@ -186,22 +246,32 @@ export default async function CommunityLayout({
             ))}
           </div>
 
-          {navLinks.length > 0 && (
-            <div className="mt-4 space-y-1 border-t border-border pt-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="truncate">{link.label}</span>
-                </a>
-              ))}
-            </div>
-          )}
+          <div className="mt-4 space-y-1 border-t border-border pt-4">
+            {community.guidelines && (
+              <NavLink href={`${base}/guidelines`} icon={<BookOpen className="h-4 w-4" />}>
+                Community guidelines
+              </NavLink>
+            )}
+            <NavLink href={`${base}/contact`} icon={<Mail className="h-4 w-4" />}>
+              Contact
+            </NavLink>
+            {navLinks.length > 0 && (
+              <>
+                {navLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="truncate">{link.label}</span>
+                  </a>
+                ))}
+              </>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-border p-3">
@@ -251,6 +321,22 @@ export default async function CommunityLayout({
           </Link>
           <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
           <div className="flex items-center gap-4">
+            {/* When a session is live anywhere in the community, a pulsing badge
+                in the header makes it impossible to miss and jumps straight into
+                the room. Shown to anyone who can see the session (RLS-scoped). */}
+            {liveSession && (
+              <Link
+                href={`${base}/spaces/${liveSession.spaceSlug}`}
+                title={`${liveSession.title} is live now — join`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-danger-foreground shadow-sm transition-opacity hover:opacity-90"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
+                </span>
+                Live now!
+              </Link>
+            )}
             {isStaff && (
               <Link
                 href={`${base}/admin`}
@@ -313,22 +399,56 @@ export default async function CommunityLayout({
               to post, review and join.
             </div>
           ) : !membership ? (
-            <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
-              You&apos;re viewing {community.name} as a guest. Join to post and see member-only spaces.
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
+              <span>
+                You&apos;re viewing {community.name} as a guest.{" "}
+                {community.is_public
+                  ? "Join to post and see member-only spaces."
+                  : "Ask an admin for an invite to post and see member-only spaces."}
+              </span>
+              {community.is_public && <JoinCommunityButton communityId={community.id} size="sm" />}
             </div>
           ) : null}
           {children}
         </main>
       </div>
 
-      <MobileTabBar
+      {/* Mobile navigation: a compact bottom bar of primary destinations plus a
+          Menu button that opens a slide-out drawer with the full nav tree — the
+          same spaces, featured categories and links the desktop sidebar shows,
+          which is otherwise `hidden md:flex` and unreachable on a phone. */}
+      <MobileNav
+        communityName={community.name}
+        communityLogoUrl={community.logo_url}
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
-          { href: `${base}/spaces`, label: "Spaces", icon: <LayoutGrid className="h-5 w-5" /> },
+          { href: `${base}/spaces`, label: "Spaces", icon: <Layers className="h-5 w-5" /> },
           ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
-          ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
+        items={[
+          { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" />, exact: true },
+          ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
+          ...orderedUnits.flatMap((unit) => unit.items),
+          ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
+          ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
+          { href: `${base}/contact`, label: "Contact", icon: <Mail className="h-4 w-4" /> },
+        ]}
+        links={navLinks.map((link) => ({ id: link.id, label: link.label, url: link.url }))}
+        account={
+          user
+            ? {
+                kind: "user",
+                name: profile?.full_name || profile?.username || "You",
+                username: profile?.username ?? null,
+                avatarUrl: profile?.avatar_url ?? null,
+              }
+            : {
+                kind: "guest",
+                loginHref: `/login?next=${encodeURIComponent(base)}`,
+                signupHref: `/signup?next=${encodeURIComponent(base)}`,
+              }
+        }
       />
     </div>
   );

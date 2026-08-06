@@ -16,10 +16,14 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
-import { getGrowingJourneySpace } from "@/lib/data/spaces";
+import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunityFeatures } from "@/lib/data/features";
+import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
+import { SPACE_TYPES } from "@/lib/space-types";
+import { Tag, Search } from "lucide-react";
 import { getCommunityPosts } from "@/lib/data/posts";
-import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
-import { businessCategoryLabel } from "@/lib/business-categories";
+import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
 import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
@@ -38,7 +42,10 @@ import { CommunityGate } from "./community-gate";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
+import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
+import { CoverQuickEdit } from "./cover-quick-edit";
 import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
+import { coverPositionClass } from "@/lib/cover-position";
 
 export default async function CommunityFeedPage({
   params,
@@ -61,6 +68,11 @@ export default async function CommunityFeedPage({
   // feed. Public communities never gate. invite_only never reaches this page
   // for a non-member (the community doesn't resolve for them under RLS).
   const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  // Staff get the in-place cover controls on the header (same test the layout
+  // uses for the Admin link).
+  const isStaff =
+    community.owner_id === user?.id ||
+    (membership?.status === "active" && (membership.role === "owner" || membership.role === "admin"));
   if (!community.is_public && !isMember) {
     return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
   }
@@ -81,6 +93,10 @@ export default async function CommunityFeedPage({
     recentMembers,
     stats,
     growingJourney,
+    spaces,
+    featuredCategories,
+    features,
+    navItemOrder,
   ] = await Promise.all([
     getCommunityPosts(supabase, community.id, 12),
     getCommunityEvents(supabase, community.id),
@@ -98,10 +114,62 @@ export default async function CommunityFeedPage({
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
     getCommunityStats(supabase, community.id),
     getGrowingJourneySpace(supabase, community.id),
+    getCommunitySpaces(supabase, community.id),
+    getCommunityFeaturedBusinessCategories(supabase, community.id),
+    getCommunityFeatures(supabase, community.id),
+    getCommunityNavItemOrder(supabase, community.id),
   ]);
   const { upcoming } = splitUpcomingPast(events);
 
   const base = `/c/${community.slug}`;
+
+  // Discover strip (mobile only): surface each nav space and its featured
+  // categories (e.g. Restaurants under a Business Directory) as one-tap tiles
+  // right where the visitor lands. Featured categories deep-link to the
+  // pre-filtered directory, matching the desktop sidebar's sub-links.
+  const navSpaces = spaces.filter((s) => s.show_in_nav);
+  const discoverShortcuts: DiscoverShortcut[] = navSpaces.flatMap((space) => {
+    const SpaceIcon = SPACE_TYPES[space.space_type].icon;
+    const spaceLabelOverrides = labelOverrides.filter((o) => o.space_id === space.id);
+    return [
+      {
+        href: `${base}/spaces/${space.slug}`,
+        label: space.name,
+        icon: <SpaceIcon className="h-5 w-5" />,
+        imageUrl: space.image_url,
+      },
+      ...featuredCategories
+        .filter((f) => f.space_id === space.id)
+        .map((f): DiscoverShortcut => ({
+          href: `${base}/spaces/${space.slug}?category=${f.category}`,
+          label: businessCategoryPluralLabel(f.category, customCategories, spaceLabelOverrides),
+          hint: space.name,
+          icon: <Tag className="h-4 w-4" />,
+          accent: true,
+        })),
+    ];
+  });
+
+  // Fold the enabled built-in features (Events, Search) into the strip too —
+  // only when the community actually has them turned on and in the nav, so it
+  // never advertises a destination that isn't there. Events carries a live
+  // upcoming-count so the tile earns its place.
+  const canSeeEvents = Boolean(user) || community.events_public;
+  if (features.events && canSeeEvents && navItemOrder.events?.showInNav !== false) {
+    discoverShortcuts.push({
+      href: `${base}/events`,
+      label: "Events",
+      hint: upcoming.length > 0 ? `${upcoming.length} upcoming` : null,
+      icon: <CalendarDays className="h-5 w-5" />,
+    });
+  }
+  if (features.concierge && navItemOrder.concierge?.showInNav !== false) {
+    discoverShortcuts.push({
+      href: `${base}/concierge`,
+      label: "Search",
+      icon: <Search className="h-5 w-5" />,
+    });
+  }
 
   // Recent activity mixes posts with everything created anywhere in the
   // community (businesses, events, marketplace, jobs, stays,
@@ -138,7 +206,7 @@ export default async function CommunityFeedPage({
       authorName: b.creator?.full_name || b.creator?.username || null,
       authorAvatar: b.creator?.avatar_url ?? null,
       spaceName: b.space?.name ?? null,
-      href: b.space ? `${base}/spaces/${b.space.slug}?category=${b.category}` : base,
+      href: b.space ? `${base}/spaces/${b.space.slug}/businesses/${b.id}` : base,
     })),
     ...recentEvents.map((e): FeedItem => ({
       key: `event-${e.id}`,
@@ -259,62 +327,170 @@ export default async function CommunityFeedPage({
   const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const activity = [...pinned, ...rest].slice(0, 40);
 
-  const statItems = [
-    { label: "Members", value: stats.members },
-    { label: "Events", value: stats.events },
-    { label: "Businesses", value: stats.businesses },
-    { label: "Posts", value: stats.posts },
-  ].filter((s) => s.value > 0);
+  // Counts are opt-in per community (show_stats, default off). A stat strip
+  // exists to argue the place is busy, and small numbers argue the opposite —
+  // so a community only shows them once its owner decides they help. Zero
+  // values stay filtered out regardless.
+  const statItems = community.show_stats
+    ? [
+        { label: "Members", value: stats.members },
+        { label: "Events", value: stats.events },
+        { label: "Businesses", value: stats.businesses },
+        { label: "Posts", value: stats.posts },
+      ].filter((s) => s.value > 0)
+    : [];
 
   return (
     <div>
-      {/* Hero: the cover image sits as a self-contained banner up top, and the
-          name and description live in a clean block below it — so text never
-          fights the artwork for legibility. With no cover, a subtle accent
-          gradient still gives the header a strong presence. */}
-      <section className="border-b border-border">
-        {community.cover_image_url && (
-          <div className="aspect-[3/1] w-full overflow-hidden bg-muted sm:aspect-[4/1]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={community.cover_image_url} alt="" className="h-full w-full object-cover" />
-          </div>
-        )}
-        <div className={cn(!community.cover_image_url && "bg-gradient-to-br from-accent/10 via-background to-background")}>
-          <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
-              {community.description && (
-                <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
-                  {community.description}
-                </p>
-              )}
-            </div>
-            {user && !membership && (
-              <div className="shrink-0">
-                <JoinCommunityButton communityId={community.id} />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Hero: with a cover image the name, description and stats sit *on* the
+          photo — the community reads as the place it's about rather than as a
+          banner glued above a document.
 
-      {/* Stats strip: at-a-glance signals that the community is active. */}
-      {statItems.length > 0 && (
-        <div className="border-b border-border bg-muted/30">
-          <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
-            {statItems.map((stat) => (
-              <div key={stat.label} className="flex items-baseline gap-2">
-                <span className="text-xl font-bold text-foreground">{stat.value.toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
+          The darkening is confined to a band at the foot of the image instead
+          of covering the whole thing: the top of the photo stays as shot, and
+          only the strip actually carrying text gets a backing dark enough to
+          keep white type legible over an unknown image.
+
+          The band's own contents sit in the same centred column the feed below
+          uses, so the page keeps one left margin all the way down rather than
+          stepping in once past the header.
+
+          With no cover, the original accent-gradient header and its own stats
+          strip still apply. */}
+      {community.cover_image_url ? (
+        <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
+          {/* The crop keeps whichever part of the photo the community chose —
+              the band covers the foot of the image, so a subject sitting low in
+              the frame disappears behind the text unless it's pushed up. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={community.cover_image_url}
+            alt=""
+            className={cn(
+              "absolute inset-0 -z-20 h-full w-full object-cover",
+              coverPositionClass(community.cover_position)
+            )}
+          />
+
+          {isStaff && (
+            <CoverQuickEdit communityId={community.id} coverPosition={community.cover_position} />
+          )}
+
+          {/* The backing is a flat tint plus a blur, not a see-through
+              gradient. A gradient lets the photo through, so the band reads
+              dark where something dark sits behind it and washes out over open
+              sky — it changes tone across its own width and stops looking like
+              a deliberate element. A uniform panel with one crisp top edge
+              reads the same left to right whatever the photo is doing.
+
+              The blur is desaturated as well: blurring alone preserves hue, so
+              the panel still picked up the green of shallow water at one end
+              and stayed neutral at the other. Draining the colour on the way
+              through gives one tone across the width while keeping the sense
+              that the photograph continues behind the text, which a fully
+              opaque panel loses. */}
+          <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
+            <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+                <div className="min-w-0 flex-1">
+                  {/* The counts ride on the title's line rather than taking one
+                      of their own. A community name rarely fills the width, so
+                      they sit in space that was already empty — and every line
+                      the band doesn't need is a line of the photograph it
+                      doesn't cover. */}
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                      {community.name}
+                    </h1>
+                    {statItems.length > 0 && (
+                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                        {statItems.map((stat) => (
+                          <div key={stat.label} className="flex items-baseline gap-1.5">
+                            <span className="text-base font-semibold text-white">
+                              {stat.value.toLocaleString()}
+                            </span>
+                            <span className="text-xs text-white/70">{stat.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {community.description && (
+                    <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
+                      {community.description}
+                    </p>
+                  )}
+                </div>
+                {user && !membership && (
+                  <div className="shrink-0">
+                    <JoinCommunityButton communityId={community.id} />
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </section>
+      ) : (
+        <>
+          <section className="border-b border-border">
+            <div className="bg-gradient-to-br from-accent/10 via-background to-background">
+              <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
+                  {community.description && (
+                    <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
+                      {community.description}
+                    </p>
+                  )}
+                </div>
+                {user && !membership && (
+                  <div className="shrink-0">
+                    <JoinCommunityButton communityId={community.id} />
+                  </div>
+                )}
+                {isStaff && (
+                  <div className="shrink-0">
+                    <CoverQuickEdit
+                      communityId={community.id}
+                      coverPosition={community.cover_position}
+                      hasCover={false}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Stats strip: at-a-glance signals that the community is active. */}
+          {statItems.length > 0 && (
+            <div className="border-b border-border bg-muted/30">
+              <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
+                {statItems.map((stat) => (
+                  <div key={stat.label} className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-foreground">{stat.value.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
+      <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
+
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+        {/* `min-w-0` on both columns is load-bearing, not decoration. A grid
+            item defaults to `min-width: auto`, so its track can't shrink below
+            the item's min-content width — and min-content here is the longest
+            unbreakable run of text in the column (a URL, an email, a long
+            business name). On mobile both columns stack into the one track, so
+            a single long token in either the feed or the sidebar widens the
+            track past the viewport. Everything full-bleed (header, hero) stays
+            at viewport width while the cards run off the right edge, which
+            reads as the two sitting on different margins. */}
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             {activity.length === 0 ? (
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
@@ -338,7 +514,7 @@ export default async function CommunityFeedPage({
             )}
           </div>
 
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
             {growingJourney && (
               <ShareJourneyCard
                 communityId={community.id}
@@ -368,7 +544,7 @@ export default async function CommunityFeedPage({
                 {upcoming.slice(0, 4).map((event) => (
                   <Card key={event.id}>
                     <CardContent className="pt-5">
-                      <p className="text-sm font-semibold text-foreground">{event.title}</p>
+                      <p className="break-words text-sm font-semibold text-foreground">{event.title}</p>
                       <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.start_time)}</p>
                     </CardContent>
                   </Card>

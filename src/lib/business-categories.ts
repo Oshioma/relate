@@ -22,6 +22,36 @@ export const BUSINESS_CATEGORIES: { value: BusinessCategory; label: string }[] =
   { value: "other", label: "Other" },
 ];
 
+// Leaving "accommodation" out of BUSINESS_CATEGORIES stops it being *picked*,
+// but not being *created*: a staff member adding a custom category called
+// "Accommodation" slugs straight to "accommodation" and gets the very category
+// the list above deliberately omits — a second, much poorer home for stays,
+// sitting alongside the Accommodation space in the nav.
+//
+// So the slug is reserved, along with the names that mean the same thing. This
+// is the one place that decides it; addBusinessCategory refuses anything here
+// and points at the space instead. ("rental" is absent on purpose — car and
+// equipment rentals are ordinary directory businesses.)
+export const RESERVED_STAY_SLUGS = new Set([
+  "accommodation",
+  "accomodation",
+  "accommodations",
+  "hotel",
+  "hotels",
+  "hostel",
+  "hostels",
+  "guesthouse",
+  "guesthouses",
+  "lodging",
+  "stays",
+  "places-to-stay",
+  "where-to-stay",
+]);
+
+export function isReservedStaySlug(slug: string): boolean {
+  return RESERVED_STAY_SLUGS.has(slug);
+}
+
 // Whether a value is one of the built-in categories (vs a custom slug). Used to
 // route a rename to the right store: built-ins get a label override, customs
 // rename their own row.

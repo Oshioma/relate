@@ -43,12 +43,16 @@ export default async function BusinessDetailPage({
   // takes over. Staff and super admins can always manage.
   const isCaretaker = detail.business.claimed_by === null && detail.business.created_by === viewerId;
   const canManage = isOwner || isCaretaker || Boolean(isStaff) || isSuperAdmin;
-  // A self-listing (you added it or you own it) can't be reviewed by you — super
-  // admins excepted, for seeding.
-  const isSelfListing = detail.business.created_by === viewerId || detail.business.claimed_by === viewerId;
-  // Anyone active may claim an unclaimed listing they don't already have a claim
-  // on — including the member who added it (a curator claiming a listing they own).
-  const canClaim = Boolean(isActive) && detail.business.claimed_by === null && detail.viewerClaim === null;
+  // Anyone signed in who can see this listing may claim an unclaimed one they
+  // don't already have a *live* claim on — including the member who added it (a
+  // curator claiming a listing they own) and a brand-new user who hasn't joined
+  // the community yet ("claim your business" is how an owner gets connected). A
+  // previously declined claim doesn't lock them out: they can claim again. Staff
+  // still approve every claim before ownership is granted.
+  const canClaim =
+    Boolean(user) &&
+    detail.business.claimed_by === null &&
+    (detail.viewerClaim === null || detail.viewerClaim.status === "rejected");
 
   const [customCategories, labelOverrides] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
@@ -57,10 +61,15 @@ export default async function BusinessDetailPage({
 
   // Accommodation bridge: is this stay-like business already linked to a stay,
   // and (if not) is there an accommodation space to create one in?
+  // The bridge used to be offered only on listings already tagged as
+  // accommodation — no help at all to a hotel someone filed under Restaurants,
+  // which is exactly when it's needed. Anyone who manages the listing can reach
+  // it now; the card just states its case more quietly when we haven't detected
+  // anything ourselves.
   const isStayLike = detail.business.category === "accommodation";
   const [linkedStay, accommodationSpace] = await Promise.all([
-    isStayLike ? getStayLinkForBusiness(supabase, detail.business.id) : Promise.resolve(null),
-    isStayLike && canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
+    getStayLinkForBusiness(supabase, detail.business.id),
+    canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
   ]);
 
   return (
@@ -79,9 +88,11 @@ export default async function BusinessDetailPage({
         userId={viewerId}
         canManage={canManage}
         isStaff={Boolean(isStaff)}
-        // Any active member may review, except a listing they added or own — but a
-        // super admin may review even their own listing.
-        canReview={Boolean(isActive) && (!isSelfListing || isSuperAdmin)}
+        // Any active member may review, except the owner of a listing they've
+        // claimed (you can't rate your own business). Adding a listing is
+        // curation, not ownership, so the adder may still review it. Super admins
+        // may review anything, for seeding.
+        canReview={Boolean(isActive) && (!isOwner || isSuperAdmin)}
         // Whoever manages the listing may reply to reviews on its behalf.
         canReply={canManage}
         // Any active member may bookmark.
@@ -89,6 +100,7 @@ export default async function BusinessDetailPage({
         canClaim={canClaim}
         linkedStay={linkedStay}
         canCreateStay={canManage && accommodationSpace !== null}
+        stayDetected={isStayLike}
         customCategories={customCategories.filter((c) => c.space_id === space.id)}
         labelOverrides={labelOverrides.filter((o) => o.space_id === space.id)}
       />

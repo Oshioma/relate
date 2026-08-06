@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Bell, MessageSquare, Megaphone, Users, Store, Radio } from "lucide-react";
+import { ArrowLeft, Bell, MessageSquare, Megaphone, Users, Store, Radio, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getNotifications, type NotificationWithActor } from "@/lib/data/notifications";
@@ -17,6 +17,10 @@ const typeIcon = {
   live_event: <Radio className="h-4 w-4" />,
   live_started: <Radio className="h-4 w-4" />,
   live_reminder: <Radio className="h-4 w-4" />,
+  live_invite: <Radio className="h-4 w-4" />,
+  member_message: <Mail className="h-4 w-4" />,
+  contact: <Mail className="h-4 w-4" />,
+  direct_message: <MessageSquare className="h-4 w-4" />,
 };
 
 export default async function NotificationsPage() {

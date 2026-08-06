@@ -1,8 +1,9 @@
 "use client";
 
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
+import { ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES, STAY_TERMS, accommodationTypesByTerm } from "@/lib/accommodation-types";
 import { AccommodationPhotosInput } from "./accommodation-photos-input";
+import type { ListingDraft } from "@/lib/listing-draft";
 import type { AccommodationListing } from "@/types/database";
 import type { BusinessLinkOption } from "@/lib/data/accommodation";
 
@@ -11,40 +12,61 @@ const selectClass = "w-full rounded-md border border-border bg-card px-3 py-2 te
 // Shared field set for the new and edit accommodation forms, so both stay in
 // lockstep. `idPrefix` keeps input ids unique when several forms (e.g. an inline
 // edit card) live on the page at once; `listing` pre-fills for editing.
+//
+// `draft` is an unsaved link-import result: it outranks `listing` as the default
+// for any field it filled. These inputs are uncontrolled, so defaults only apply
+// on mount — the parent remounts this subtree (via `key`) per draft.
 export function AccommodationFormFields({
   idPrefix,
   listing,
+  draft,
   businesses,
   photos,
   onPhotosChange,
   userId,
+  onNameChange,
 }: {
   idPrefix: string;
   listing?: AccommodationListing;
+  draft?: ListingDraft | null;
   businesses: BusinessLinkOption[];
   photos: string[];
   onPhotosChange: (photos: string[]) => void;
   userId: string;
+  // Reports what's typed in the name field so the parent can check it against
+  // places the community already has. Optional — editing has no use for it.
+  onNameChange?: (name: string) => void;
 }) {
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_name`}>Name</Label>
-          <Input id={`${idPrefix}_name`} name="name" placeholder="Ocean View Guesthouse" defaultValue={listing?.name ?? ""} required />
+          <Input
+            id={`${idPrefix}_name`}
+            name="name"
+            placeholder="Ocean View Guesthouse"
+            defaultValue={draft?.name ?? listing?.name ?? ""}
+            onChange={(event) => onNameChange?.(event.target.value)}
+            required
+          />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_type`}>Type</Label>
           <select
             id={`${idPrefix}_type`}
             name="accommodation_type"
-            defaultValue={listing?.accommodation_type ?? "holiday_rental"}
+            defaultValue={draft?.accommodation_type ?? listing?.accommodation_type ?? "holiday_rental"}
             className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            {ACCOMMODATION_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+            {STAY_TERMS.map((term) => (
+              <optgroup key={term.value} label={term.label}>
+                {accommodationTypesByTerm(term.value).map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
@@ -52,7 +74,7 @@ export function AccommodationFormFields({
 
       <div>
         <Label htmlFor={`${idPrefix}_description`}>Description (optional)</Label>
-        <Textarea id={`${idPrefix}_description`} name="description" rows={2} defaultValue={listing?.description ?? ""} />
+        <Textarea id={`${idPrefix}_description`} name="description" rows={2} defaultValue={draft?.description ?? listing?.description ?? ""} />
       </div>
 
       {businesses.length > 0 && (
@@ -73,11 +95,11 @@ export function AccommodationFormFields({
       <div className="grid gap-3 sm:grid-cols-[1.5fr_1.5fr_1fr]">
         <div>
           <Label htmlFor={`${idPrefix}_price`}>Price (optional)</Label>
-          <Input id={`${idPrefix}_price`} name="price_per_night" type="number" step="0.01" min="0" placeholder="65.00" defaultValue={listing?.price_per_night ?? ""} />
+          <Input id={`${idPrefix}_price`} name="price_per_night" type="number" step="0.01" min="0" placeholder="65.00" defaultValue={draft?.price ?? listing?.price_per_night ?? ""} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_price_unit`}>Per</Label>
-          <select id={`${idPrefix}_price_unit`} name="price_unit" defaultValue={listing?.price_unit ?? "per_night"} className={selectClass}>
+          <select id={`${idPrefix}_price_unit`} name="price_unit" defaultValue={draft?.price_unit ?? listing?.price_unit ?? "per_night"} className={selectClass}>
             {ACCOMMODATION_PRICE_UNITS.map((u) => (
               <option key={u.value} value={u.value}>
                 {u.label}
@@ -87,22 +109,22 @@ export function AccommodationFormFields({
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_currency`}>Currency</Label>
-          <Input id={`${idPrefix}_currency`} name="currency" placeholder="USD" defaultValue={listing?.currency ?? "USD"} />
+          <Input id={`${idPrefix}_currency`} name="currency" placeholder="USD" defaultValue={draft?.currency ?? listing?.currency ?? "USD"} />
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
           <Label htmlFor={`${idPrefix}_bedrooms`}>Bedrooms (optional)</Label>
-          <Input id={`${idPrefix}_bedrooms`} name="bedrooms" type="number" min="0" step="1" placeholder="2" defaultValue={listing?.bedrooms ?? ""} />
+          <Input id={`${idPrefix}_bedrooms`} name="bedrooms" type="number" min="0" step="1" placeholder="2" defaultValue={draft?.bedrooms ?? listing?.bedrooms ?? ""} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_bathrooms`}>Bathrooms (optional)</Label>
-          <Input id={`${idPrefix}_bathrooms`} name="bathrooms" type="number" min="0" step="1" placeholder="1" defaultValue={listing?.bathrooms ?? ""} />
+          <Input id={`${idPrefix}_bathrooms`} name="bathrooms" type="number" min="0" step="1" placeholder="1" defaultValue={draft?.bathrooms ?? listing?.bathrooms ?? ""} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_max_guests`}>Sleeps (optional)</Label>
-          <Input id={`${idPrefix}_max_guests`} name="max_guests" type="number" min="0" step="1" placeholder="4" defaultValue={listing?.max_guests ?? ""} />
+          <Input id={`${idPrefix}_max_guests`} name="max_guests" type="number" min="0" step="1" placeholder="4" defaultValue={draft?.max_guests ?? listing?.max_guests ?? ""} />
         </div>
       </div>
 
@@ -115,7 +137,7 @@ export function AccommodationFormFields({
                 type="checkbox"
                 name="amenities"
                 value={a.value}
-                defaultChecked={listing?.amenities.includes(a.value) ?? false}
+                defaultChecked={draft ? draft.amenities.includes(a.value) : listing?.amenities.includes(a.value) ?? false}
                 className="h-3.5 w-3.5 rounded border-border"
               />
               {a.label}
@@ -142,22 +164,40 @@ export function AccommodationFormFields({
 
       <div>
         <Label htmlFor={`${idPrefix}_booking_url`}>Booking link (optional)</Label>
-        <Input id={`${idPrefix}_booking_url`} name="booking_url" type="url" placeholder="https://…" defaultValue={listing?.booking_url ?? ""} />
+        <Input id={`${idPrefix}_booking_url`} name="booking_url" type="url" placeholder="https://…" defaultValue={draft?.booking_url ?? listing?.booking_url ?? ""} />
       </div>
 
-      <div>
-        <Label htmlFor={`${idPrefix}_location_label`}>Location (optional)</Label>
-        <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={listing?.location_label ?? ""} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_location_label`}>Area (optional)</Label>
+          <Input id={`${idPrefix}_location_label`} name="location_label" placeholder="Nungwi Beach" defaultValue={draft?.location_label ?? listing?.location_label ?? ""} />
+          <p className="mt-1 text-xs text-muted-foreground">The village or neighbourhood — used to filter listings.</p>
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_address`}>Address (optional)</Label>
+          <Input id={`${idPrefix}_address`} name="address" placeholder="Beach Road, Nungwi" defaultValue={draft?.address ?? listing?.address ?? ""} />
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor={`${idPrefix}_website`}>Website (optional)</Label>
+          <Input id={`${idPrefix}_website`} name="website" type="url" placeholder="https://…" defaultValue={draft?.website ?? listing?.website ?? ""} />
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}_phone`}>Phone (optional)</Label>
+          <Input id={`${idPrefix}_phone`} name="phone" type="tel" placeholder="+255 …" defaultValue={draft?.phone ?? listing?.phone ?? ""} />
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label htmlFor={`${idPrefix}_lat`}>Latitude (optional)</Label>
-          <Input id={`${idPrefix}_lat`} name="lat" type="number" step="any" placeholder="-6.1462" defaultValue={listing?.lat ?? ""} />
+          <Input id={`${idPrefix}_lat`} name="lat" type="number" step="any" placeholder="-6.1462" defaultValue={draft?.lat ?? listing?.lat ?? ""} />
         </div>
         <div>
           <Label htmlFor={`${idPrefix}_lng`}>Longitude (optional)</Label>
-          <Input id={`${idPrefix}_lng`} name="lng" type="number" step="any" placeholder="39.3621" defaultValue={listing?.lng ?? ""} />
+          <Input id={`${idPrefix}_lng`} name="lng" type="number" step="any" placeholder="39.3621" defaultValue={draft?.lng ?? listing?.lng ?? ""} />
         </div>
       </div>
       <p className="-mt-1.5 text-xs text-muted-foreground">Set both to show this listing on the Explore Map.</p>

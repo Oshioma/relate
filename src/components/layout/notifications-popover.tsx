@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, MessageSquare, Megaphone, Users, Store, Radio } from "lucide-react";
+import { Bell, MessageSquare, Megaphone, Users, Store, Radio, Mail } from "lucide-react";
 import { IconPopover } from "@/components/layout/icon-popover";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,6 +17,10 @@ const typeIcon = {
   live_event: <Radio className="h-4 w-4" />,
   live_started: <Radio className="h-4 w-4" />,
   live_reminder: <Radio className="h-4 w-4" />,
+  live_invite: <Radio className="h-4 w-4" />,
+  member_message: <Mail className="h-4 w-4" />,
+  contact: <Mail className="h-4 w-4" />,
+  direct_message: <MessageSquare className="h-4 w-4" />,
 };
 
 function BellIcon({ count }: { count: number }) {

@@ -4,7 +4,10 @@ import { useRef, useState } from "react";
 import { createAccommodationListing } from "./accommodation-actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AccommodationFormFields } from "./accommodation-form-fields";
+import { ImportFromLink } from "./import-from-link";
+import { DuplicateHint } from "./duplicate-hint";
 import type { BusinessLinkOption } from "@/lib/data/accommodation";
+import type { ListingDraft } from "@/lib/listing-draft";
 
 export function NewAccommodationForm({
   communityId,
@@ -13,6 +16,7 @@ export function NewAccommodationForm({
   spaceSlug,
   userId,
   businesses,
+  importUrl,
   onDone,
 }: {
   communityId: string;
@@ -21,11 +25,30 @@ export function NewAccommodationForm({
   spaceSlug: string;
   userId: string;
   businesses: BusinessLinkOption[];
+  // Pre-loaded link from the directory hand-off; autofills once on arrival.
+  importUrl?: string;
   onDone?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  // Mirrors the name field purely so the duplicate hint has something to watch.
+  const [name, setName] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
+  const [draft, setDraft] = useState<ListingDraft | null>(null);
+  // Bumped on every autofill. The text fields are uncontrolled, so remounting
+  // them is what makes a fresh draft's defaults take effect.
+  const [draftKey, setDraftKey] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
+
+  function applyDraft(next: ListingDraft) {
+    setDraft(next);
+    if (next.name) setName(next.name);
+    setDraftKey((key) => key + 1);
+    // Suggested photos are additions, not a replacement — anything already
+    // uploaded stays, and stays first so it keeps the cover slot.
+    if (next.photos.length > 0) {
+      setPhotos((current) => [...current, ...next.photos.filter((url) => !current.includes(url))]);
+    }
+  }
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -35,6 +58,9 @@ export function NewAccommodationForm({
     } else {
       formRef.current?.reset();
       setPhotos([]);
+      setDraft(null);
+      setName("");
+      setDraftKey((key) => key + 1);
       onDone?.();
     }
   }
@@ -46,7 +72,20 @@ export function NewAccommodationForm({
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
 
-      <AccommodationFormFields idPrefix="new_accommodation" businesses={businesses} photos={photos} onPhotosChange={setPhotos} userId={userId} />
+      <ImportFromLink kind="accommodation" spaceId={spaceId} initialUrl={importUrl} onApply={applyDraft} />
+
+      <DuplicateHint communityId={communityId} communitySlug={communitySlug} name={name} />
+
+      <AccommodationFormFields
+        key={draftKey}
+        onNameChange={setName}
+        idPrefix="new_accommodation"
+        draft={draft}
+        businesses={businesses}
+        photos={photos}
+        onPhotosChange={setPhotos}
+        userId={userId}
+      />
 
       {error && <p className="text-sm text-danger">{error}</p>}
 

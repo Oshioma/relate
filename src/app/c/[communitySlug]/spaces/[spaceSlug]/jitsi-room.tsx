@@ -44,19 +44,33 @@ function loadJitsiScript(domain: string): Promise<void> {
   return scriptPromises[domain];
 }
 
+// The token config the embed needs — either the public demo server or an
+// authenticated JaaS room. Whatever action mints it (community live events or
+// direct-message calls) returns this same shape.
+export type JitsiJoinConfig =
+  | { mode: "public" }
+  | { mode: "jaas"; appId: string; token: string }
+  | { error: string };
+
 export function JitsiRoom({
   roomName,
   communityId,
   displayName,
   subject,
   onClose,
+  getToken,
 }: {
   roomName: string;
-  communityId: string;
+  // Community live events pass this; direct-message calls pass `getToken`
+  // instead (a DM isn't scoped to a community).
+  communityId?: string;
   displayName?: string | null;
   subject?: string;
   // Called when the participant hangs up inside the meeting.
   onClose?: () => void;
+  // Custom token provider. Defaults to the community live-events token when a
+  // communityId is given. Lets other surfaces (DM calls) reuse this embed.
+  getToken?: () => Promise<JitsiJoinConfig>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Keep the latest onClose in a ref so the meeting effect doesn't re-run (and
@@ -65,6 +79,12 @@ export function JitsiRoom({
   useEffect(() => {
     onCloseRef.current = onClose;
   });
+  // Same treatment for getToken — a fresh closure each render must not tear
+  // down and rebuild the iframe.
+  const getTokenRef = useRef(getToken);
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  });
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,7 +92,9 @@ export function JitsiRoom({
     let api: JitsiApi | null = null;
 
     (async () => {
-      const config = await getJitsiToken({ communityId, roomName });
+      const config: JitsiJoinConfig = getTokenRef.current
+        ? await getTokenRef.current()
+        : await getJitsiToken({ communityId: communityId!, roomName });
       if (cancelled) return;
       if ("error" in config) {
         setError(config.error);

@@ -22,6 +22,36 @@ export async function hasActiveSpaceSubscription(supabase: Client, spaceId: stri
   return true;
 }
 
+export type MySpaceSubscription = {
+  spaceId: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+};
+
+// The viewer's active per-space subscriptions within a community, for the
+// Membership page's "your subscriptions" management list. RLS returns only the
+// caller's own space_subscriptions rows.
+export async function getMyActiveSpaceSubscriptions(
+  supabase: Client,
+  communityId: string,
+  userId: string
+): Promise<MySpaceSubscription[]> {
+  const { data } = await supabase
+    .from("space_subscriptions")
+    .select("space_id, status, current_period_end, cancel_at_period_end")
+    .eq("community_id", communityId)
+    .eq("user_id", userId);
+
+  const now = new Date();
+  return (data ?? [])
+    .filter(
+      (s) =>
+        (s.status === "active" || s.status === "trialing") &&
+        (!s.current_period_end || new Date(s.current_period_end) > now)
+    )
+    .map((s) => ({ spaceId: s.space_id, cancelAtPeriodEnd: s.cancel_at_period_end, currentPeriodEnd: s.current_period_end }));
+}
+
 // Whether the user holds a paid-up subscription to any tier that includes this
 // space. Mirrors has_active_tier_for_space() in RLS, queried from the app so the
 // space page can decide paywall vs content. tier_spaces is member-readable and
