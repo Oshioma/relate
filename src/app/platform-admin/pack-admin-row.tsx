@@ -36,17 +36,20 @@ export function PackAdminRow({ pack }: { pack: FeaturePack }) {
         <div>
           <Label htmlFor={`pprice-${pack.id}`}>Price / month (0 = free)</Label>
           <div className="flex gap-2">
-            <Input
-              id={`pprice-${pack.id}`}
-              name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              defaultValue={pack.price_cents > 0 ? (pack.price_cents / 100).toFixed(2) : ""}
-              placeholder="0.00"
-              className="flex-1"
-            />
-            <Input aria-label="Currency" name="currency" defaultValue={pack.currency} maxLength={3} className="w-20 uppercase" />
+            <div className="flex-1">
+              <Input
+                id={`pprice-${pack.id}`}
+                name="price"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={pack.price_cents > 0 ? (pack.price_cents / 100).toFixed(2) : ""}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="w-20 shrink-0">
+              <Input aria-label="Currency" name="currency" defaultValue={pack.currency} maxLength={3} className="uppercase" />
+            </div>
           </div>
         </div>
         <div>

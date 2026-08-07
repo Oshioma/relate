@@ -263,23 +263,20 @@ export function SpaceCard({
             <div>
               <Label htmlFor={`price-${space.id}`}>Monthly price</Label>
               <div className="flex gap-2">
-                <Input
-                  id={`price-${space.id}`}
-                  name="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  defaultValue={space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : ""}
-                  placeholder="0.00"
-                  className="flex-1"
-                />
-                <Input
-                  aria-label="Currency"
-                  name="currency"
-                  defaultValue={space.currency || "usd"}
-                  maxLength={3}
-                  className="w-20 uppercase"
-                />
+                <div className="flex-1">
+                  <Input
+                    id={`price-${space.id}`}
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : ""}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="w-20 shrink-0">
+                  <Input aria-label="Currency" name="currency" defaultValue={space.currency || "usd"} maxLength={3} className="uppercase" />
+                </div>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 Charge members this every month for access. Leave blank or 0 to keep the space free. Members pay you
