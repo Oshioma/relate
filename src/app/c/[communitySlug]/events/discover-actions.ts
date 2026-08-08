@@ -24,7 +24,9 @@ type StaffContext = {
   community: Community;
 };
 
-async function requireOwner(communitySlug: string): Promise<StaffContext | { error: string }> {
+const STAFF_ROLES = new Set(["owner", "admin", "moderator"]);
+
+async function requireStaff(communitySlug: string): Promise<StaffContext | { error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -35,8 +37,8 @@ async function requireOwner(communitySlug: string): Promise<StaffContext | { err
   if (!community) return { error: "Community not found." };
 
   const membership = await getMembership(supabase, community.id, user.id);
-  if (!membership || membership.status !== "active" || membership.role !== "owner") {
-    return { error: "Only the community owner can discover and add events." };
+  if (!membership || membership.status !== "active" || !STAFF_ROLES.has(membership.role)) {
+    return { error: "Only community staff can discover and add events." };
   }
 
   // AI event discovery is a place-based feature — it searches the web for
@@ -89,7 +91,7 @@ function candidateImageUrl(event: { description: string | null; online_url: stri
 export async function backfillEventImages(
   communitySlug: string,
 ): Promise<{ updated: number; checked: number } | { error: string }> {
-  const ctx = await requireOwner(communitySlug);
+  const ctx = await requireStaff(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, community } = ctx;
 
@@ -131,7 +133,7 @@ export type AddedEvent = { title: string; source_url: string | null };
 export async function discoverAndAddEvents(
   communitySlug: string,
 ): Promise<{ imported: number; added: AddedEvent[] } | { error: string }> {
-  const ctx = await requireOwner(communitySlug);
+  const ctx = await requireStaff(communitySlug);
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
@@ -151,7 +153,7 @@ export async function discoverAndAddEvents(
 
   const result = await discoverEventsWithAI({ locationName, existingTitles });
   if (result.status !== "ok") {
-    // This panel is owner-only, so include the raw diagnostic — it saves a
+    // This panel is staff-only, so include the raw diagnostic — it saves a
     // round-trip through the hosting provider's logs.
     const detail = result.detail ? ` (detail: ${result.detail})` : "";
     return { error: DISCOVERY_ERRORS[result.status] + detail };
