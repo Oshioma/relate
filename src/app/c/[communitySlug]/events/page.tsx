@@ -49,7 +49,6 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   const rsvpsByEvent = groupRsvpsByEvent(rsvps);
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
-  const isOwner = membership?.status === "active" && membership.role === "owner";
   const canRsvp = membership?.status === "active";
   const { upcoming, past } = splitUpcomingPast(events);
 
@@ -89,7 +88,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
         <div id="add-event" className="mb-8 scroll-mt-6 space-y-4">
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Add an event</h2>
           <NewEventForm communityId={community.id} communitySlug={community.slug} communityLocationName={community.location_name} />
-          {isOwner && community.template_key === "place" && (
+          {isStaff && community.template_key === "place" && (
             <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />
           )}
         </div>
