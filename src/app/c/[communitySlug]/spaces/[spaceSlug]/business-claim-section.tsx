@@ -91,7 +91,7 @@ export function BusinessClaimSection({
   function handleWithdraw(claimId: string) {
     setError(null);
     startTransition(async () => {
-      const result = await withdrawClaim(claimId, businessId, communitySlug, spaceSlug);
+      const result = await withdrawClaim(claimId);
       if (result?.error) setError(result.error);
       else router.refresh();
     });

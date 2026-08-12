@@ -567,6 +567,11 @@ export type Business = {
   community_id: string;
   created_by: string;
   name: string;
+  // Human-readable, per-space-unique handle derived from the name and assigned
+  // on insert (see the business_listing_slugs migration). The listing route
+  // resolves either this or the UUID and canonicalizes to the slug. Nullable
+  // only defensively — every row is backfilled.
+  slug: string | null;
   category: BusinessCategory;
   // Cross-cutting flag, independent of category: a locally owned/run business.
   // A Restaurant can be local too, so this composes with category rather than

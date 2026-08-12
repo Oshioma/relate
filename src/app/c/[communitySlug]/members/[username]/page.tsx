@@ -134,7 +134,7 @@ export default async function MemberProfilePage({
               {organisations.map((o) => (
                 <Link
                   key={o.id}
-                  href={`/c/${community.slug}/spaces/${o.space.slug}/businesses/${o.id}`}
+                  href={`/c/${community.slug}/spaces/${o.space.slug}/businesses/${o.slug ?? o.id}`}
                   className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted"
                 >
                   <Avatar src={o.image_url} name={o.name} size={24} />

@@ -5,17 +5,16 @@ import { createClient } from "@/lib/supabase/server";
 
 export type BusinessClaimFormState = { error: string } | undefined;
 
-function detailPath(communitySlug: string, spaceSlug: string, businessId: string) {
-  return `/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`;
-}
+// A listing renders at its slug URL but may also be reached by UUID, so
+// revalidate the dynamic route itself (with "page") rather than one concrete
+// path — that invalidates the listing regardless of which form was requested.
+const DETAIL_ROUTE = "/c/[communitySlug]/spaces/[spaceSlug]/businesses/[businessId]";
 
 // A member opens a claim on an unclaimed listing. RLS blocks claims on already-
 // claimed listings and enforces membership; staff resolve it afterwards.
 export async function submitClaim(_prevState: BusinessClaimFormState, formData: FormData): Promise<BusinessClaimFormState> {
   const businessId = String(formData.get("business_id") ?? "");
   const communityId = String(formData.get("community_id") ?? "");
-  const communitySlug = String(formData.get("community_slug") ?? "");
-  const spaceSlug = String(formData.get("space_slug") ?? "");
   const message = String(formData.get("message") ?? "").trim();
 
   const supabase = await createClient();
@@ -49,7 +48,7 @@ export async function submitClaim(_prevState: BusinessClaimFormState, formData: 
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return undefined;
 }
 
@@ -97,13 +96,13 @@ export async function resolveClaim(claimId: string, approve: boolean, communityS
       .neq("id", claimId);
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, claim.business_id));
+  revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
 }
 
 // A claimant withdraws their own pending claim (staff can also remove any).
-export async function withdrawClaim(claimId: string, businessId: string, communitySlug: string, spaceSlug: string) {
+export async function withdrawClaim(claimId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("business_claims").delete().eq("id", claimId);
 
@@ -111,6 +110,6 @@ export async function withdrawClaim(claimId: string, businessId: string, communi
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return { error: null };
 }
