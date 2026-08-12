@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Share2, Copy, Check, MessageCircle, Mail, Send } from "lucide-react";
+
+const MENU_WIDTH = 224; // w-56
 
 // A small "Share" button that opens a menu of ways to pass a link on: the
 // device's native share sheet (phones), copy-to-clipboard, WhatsApp, Facebook,
@@ -9,11 +12,19 @@ import { Share2, Copy, Check, MessageCircle, Mail, Send } from "lucide-react";
 // sits on and it shares that. When `url` isn't given it shares the current
 // page (window.location.href), which is already the clean, canonical link on a
 // community's own host because the proxy strips the /c/<slug> prefix there.
+//
+// The dropdown is rendered in a portal with fixed positioning so it's never
+// clipped by an `overflow-hidden` ancestor (e.g. a directory card). Channels
+// open via window.open rather than <a> tags, and clicks are swallowed, so the
+// button is safe to drop inside a larger clickable element (a card wrapped in a
+// Link) without triggering that element's navigation.
 export function ShareMenu({
   url,
   title,
   text,
   variant = "button",
+  triggerClassName,
+  menuAlign = "right",
 }: {
   // The link to share. Defaults to the current page URL, resolved in the
   // browser so it's correct across custom domains, subdomains and the apex.
@@ -27,38 +38,63 @@ export function ShareMenu({
   // "button" — a bordered icon + "Share" label, for action rows. "icon" — an
   // icon-only toolbar button that sits alongside things like save/edit/delete.
   variant?: "button" | "icon";
+  // Fully overrides the trigger button's styling (e.g. to match a card's
+  // on-photo overlay controls). The "Share" label is dropped when set.
+  triggerClassName?: string;
+  // Which edge of the trigger the dropdown aligns to.
+  menuAlign?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Resolve the link and native-share support in the browser. Both are read
-  // straight off window/navigator rather than held in effect-set state: the
-  // menu that uses them is only rendered once `open` is true, which can only
-  // happen after a client-side click, so there's no SSR/hydration mismatch and
-  // window.location.href is always the live, canonical URL of this page.
+  // Resolve the link and native-share support in the browser. Read straight off
+  // window/navigator rather than held in effect-set state: they're only used
+  // once the menu is open, which can only happen after a client-side click, so
+  // there's no SSR/hydration mismatch and window.location.href is always the
+  // live, canonical URL of this page.
   const shareUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
-  // Close the menu on an outside click or Escape, matching the app's other
-  // popovers.
+  // Position the fixed dropdown just under the trigger, aligned to the chosen
+  // edge and clamped to stay on screen.
+  function place() {
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (!r) return;
+    let left = menuAlign === "left" ? r.left : r.right - MENU_WIDTH;
+    left = Math.max(8, Math.min(left, window.innerWidth - MENU_WIDTH - 8));
+    setCoords({ top: r.bottom + 8, left });
+  }
+
+  // Close on outside click or Escape, and keep the dropdown pinned to the
+  // trigger as the page scrolls or resizes.
   useEffect(() => {
     if (!open) return;
-    function onClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+    function onPointer(event: MouseEvent) {
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
-    document.addEventListener("mousedown", onClickOutside);
+    function reposition() {
+      place();
+    }
+    document.addEventListener("mousedown", onPointer);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
     return () => {
-      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("mousedown", onPointer);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
     };
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, menuAlign]);
 
   const shareTitle = title ?? "";
   const shareText = text ?? title ?? "";
@@ -74,6 +110,26 @@ export function ShareMenu({
     telegram: `https://t.me/share/url?url=${enc(shareUrl)}&text=${enc(shareText)}`,
     email: `mailto:?subject=${enc(shareTitle || "Check this out")}&body=${enc(message)}`,
   };
+
+  function toggle() {
+    if (open) {
+      setOpen(false);
+    } else {
+      place();
+      setOpen(true);
+    }
+  }
+
+  // Open a share channel in a new tab (or hand a mailto: to the OS). Called from
+  // a user click, so the popup isn't blocked.
+  function openChannel(target: string) {
+    if (target.startsWith("mailto:")) {
+      window.location.href = target;
+    } else {
+      window.open(target, "_blank", "noopener,noreferrer");
+    }
+    setOpen(false);
+  }
 
   async function copyLink() {
     try {
@@ -108,100 +164,88 @@ export function ShareMenu({
     }
   }
 
-  const itemClass =
-    "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted";
+  const itemClass = "flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-muted";
 
   return (
-    <div className="relative" ref={containerRef}>
+    // Swallow clicks so the component works inside a larger Link/clickable card
+    // without triggering its navigation. Harmless when it stands alone.
+    <span
+      className="inline-flex"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         aria-haspopup="menu"
         aria-expanded={open}
         title="Share"
         className={
-          variant === "icon"
+          triggerClassName ??
+          (variant === "icon"
             ? "rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-            : "inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-accent"
+            : "inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-accent")
         }
       >
         <Share2 className="h-4 w-4" />
-        {variant === "button" && " Share"}
+        {variant === "button" && !triggerClassName && " Share"}
       </button>
 
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
-        >
-          {canNativeShare && (
-            <button type="button" role="menuitem" onClick={nativeShare} className={itemClass}>
-              <Share2 className="h-4 w-4 text-muted-foreground" /> Share…
-            </button>
-          )}
-
-          <button type="button" role="menuitem" onClick={copyLink} className={itemClass}>
-            {copied ? (
-              <>
-                <Check className="h-4 w-4 text-accent" /> Link copied
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 text-muted-foreground" /> Copy link
-              </>
+      {open &&
+        coords &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            style={{ position: "fixed", top: coords.top, left: coords.left, width: MENU_WIDTH }}
+            className="z-[60] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {canNativeShare && (
+              <button type="button" role="menuitem" onClick={nativeShare} className={itemClass}>
+                <Share2 className="h-4 w-4 text-muted-foreground" /> Share…
+              </button>
             )}
-          </button>
 
-          <a
-            href={links.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={itemClass}
-          >
-            <MessageCircle className="h-4 w-4 text-muted-foreground" /> WhatsApp
-          </a>
+            <button type="button" role="menuitem" onClick={copyLink} className={itemClass}>
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-accent" /> Link copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 text-muted-foreground" /> Copy link
+                </>
+              )}
+            </button>
 
-          <a
-            href={links.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={itemClass}
-          >
-            <span className="flex h-4 w-4 items-center justify-center text-[15px] font-semibold text-muted-foreground">f</span> Facebook
-          </a>
+            <button type="button" role="menuitem" onClick={() => openChannel(links.whatsapp)} className={itemClass}>
+              <MessageCircle className="h-4 w-4 text-muted-foreground" /> WhatsApp
+            </button>
 
-          <a
-            href={links.x}
-            target="_blank"
-            rel="noopener noreferrer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={itemClass}
-          >
-            {/* lucide dropped the bird; a plain glyph reads as X/Twitter. */}
-            <span className="flex h-4 w-4 items-center justify-center text-[13px] font-semibold text-muted-foreground">𝕏</span> X
-          </a>
+            <button type="button" role="menuitem" onClick={() => openChannel(links.facebook)} className={itemClass}>
+              <span className="flex h-4 w-4 items-center justify-center text-[15px] font-semibold text-muted-foreground">f</span> Facebook
+            </button>
 
-          <a
-            href={links.telegram}
-            target="_blank"
-            rel="noopener noreferrer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={itemClass}
-          >
-            <Send className="h-4 w-4 text-muted-foreground" /> Telegram
-          </a>
+            <button type="button" role="menuitem" onClick={() => openChannel(links.x)} className={itemClass}>
+              {/* lucide dropped the bird; a plain glyph reads as X/Twitter. */}
+              <span className="flex h-4 w-4 items-center justify-center text-[13px] font-semibold text-muted-foreground">𝕏</span> X
+            </button>
 
-          <a href={links.email} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
-            <Mail className="h-4 w-4 text-muted-foreground" /> Email
-          </a>
-        </div>
-      )}
-    </div>
+            <button type="button" role="menuitem" onClick={() => openChannel(links.telegram)} className={itemClass}>
+              <Send className="h-4 w-4 text-muted-foreground" /> Telegram
+            </button>
+
+            <button type="button" role="menuitem" onClick={() => openChannel(links.email)} className={itemClass}>
+              <Mail className="h-4 w-4 text-muted-foreground" /> Email
+            </button>
+          </div>,
+          document.body,
+        )}
+    </span>
   );
 }
