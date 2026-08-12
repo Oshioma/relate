@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getAllCommunities } from "@/lib/data/community";
 import { getFeatureDefaults, getAllCommunityFeatureOverrides } from "@/lib/data/features";
 import { getSpaceTypeDefaults, getAllCommunitySpaceTypeOverrides } from "@/lib/data/space-type-pool";
@@ -24,15 +22,6 @@ import type { SpaceType } from "@/types/database";
 
 export default async function PlatformAdminPage() {
   const supabase = await createClient();
-  const user = await getCurrentUser(supabase);
-  if (!user) {
-    redirect("/login?next=/platform-admin");
-  }
-
-  const profile = await getProfile(supabase, user.id);
-  if (!profile?.is_super_admin) {
-    redirect("/dashboard");
-  }
 
   const [communities, defaults, overrides, defaultsByTemplate, spaceTypeDefaults, spaceTypeOverrides, plans, packs, legalSettings, contactMessages] = await Promise.all([
     getAllCommunities(supabase),
@@ -71,8 +60,7 @@ export default async function PlatformAdminPage() {
   const templateOptions = COMMUNITY_TEMPLATES.map((t) => ({ key: t.key, label: t.label }));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Platform admin</h1>
+    <div>
       <p className="mb-8 text-sm text-muted-foreground">
         Control the pool of space types communities can have, the spaces each community type starts with, and per-community
         overrides.
