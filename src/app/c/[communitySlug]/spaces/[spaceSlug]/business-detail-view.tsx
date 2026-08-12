@@ -15,6 +15,7 @@ import { BusinessReviewForm } from "./business-review-form";
 import { BusinessReviewItem } from "./business-review-item";
 import { BusinessClaimSection } from "./business-claim-section";
 import { BusinessStayBridge } from "./business-stay-bridge";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { deleteBusiness, setBusinessBadge, toggleSaveBusiness } from "./business-directory-actions";
 import { startConversation } from "@/app/messages/actions";
 import type { BusinessDetail } from "@/lib/data/businesses";
@@ -184,6 +185,11 @@ export function BusinessDetailView({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <ShareMenu
+                path={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.id}`}
+                title={business.name}
+                text={businessCategoryLabel(business.category, customCategories, labelOverrides)}
+              />
               {canSave && (
                 <button
                   type="button"

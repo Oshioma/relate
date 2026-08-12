@@ -15,6 +15,7 @@ import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import { StayBusinessBridge } from "./stay-business-bridge";
+import { ShareMenu } from "@/components/ui/share-menu";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
 import type { BusinessCustomCategory } from "@/types/database";
 
@@ -145,6 +146,11 @@ export function AccommodationDetailView({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <ShareMenu
+                path={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.id}`}
+                title={listing.name}
+                text={accommodationTypeLabel(listing.accommodation_type)}
+              />
               {canSave && (
                 <button
                   type="button"
