@@ -154,6 +154,31 @@ export type BusinessDetail = {
   pendingClaims: BusinessClaimWithClaimant[];
 };
 
+// UUIDs are v4 (gen_random_uuid); a name-derived slug is never shaped like one,
+// so the shape tells us which column to resolve against.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Resolve a listing's UUID from the value in the route's [businessId] segment,
+// which may be either the raw UUID (old links) or the human slug, scoped to the
+// space so a slug only ever resolves within its own directory. Returns null
+// when nothing matches. `slug` rides along so the caller can redirect a UUID
+// request to the canonical slug URL.
+export async function resolveBusinessRef(
+  supabase: Client,
+  spaceId: string,
+  idOrSlug: string
+): Promise<{ id: string; slug: string | null } | null> {
+  const column = UUID_RE.test(idOrSlug) ? "id" : "slug";
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("id, slug")
+    .eq("space_id", spaceId)
+    .eq(column, idOrSlug)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
+}
+
 export async function getBusinessDetail(supabase: Client, businessId: string, viewerId: string): Promise<BusinessDetail | null> {
   const { data: business, error } = await supabase.from("businesses").select("*").eq("id", businessId).maybeSingle();
   if (error) throw error;

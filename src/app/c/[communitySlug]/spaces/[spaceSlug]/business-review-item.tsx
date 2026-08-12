@@ -61,7 +61,7 @@ export function BusinessReviewItem({
   function handleDeleteReply() {
     if (!reply || !window.confirm("Delete this reply?")) return;
     startTransition(async () => {
-      const result = await deleteReviewReply(reply.id, businessId, communitySlug, spaceSlug);
+      const result = await deleteReviewReply(reply.id);
       if (result?.error) setError(result.error);
       else router.refresh();
     });

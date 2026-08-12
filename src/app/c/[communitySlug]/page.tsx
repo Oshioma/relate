@@ -206,7 +206,7 @@ export default async function CommunityFeedPage({
       authorName: b.creator?.full_name || b.creator?.username || null,
       authorAvatar: b.creator?.avatar_url ?? null,
       spaceName: b.space?.name ?? null,
-      href: b.space ? `${base}/spaces/${b.space.slug}/businesses/${b.id}` : base,
+      href: b.space ? `${base}/spaces/${b.space.slug}/businesses/${b.slug ?? b.id}` : base,
     })),
     ...recentEvents.map((e): FeedItem => ({
       key: `event-${e.id}`,

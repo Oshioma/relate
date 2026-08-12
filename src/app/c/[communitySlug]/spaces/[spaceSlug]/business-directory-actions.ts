@@ -11,6 +11,11 @@ import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/
 
 export type BusinessFormState = { error: string } | undefined;
 
+// A listing renders at its slug URL but may also be reached by UUID, so
+// revalidate the dynamic route itself (with "page") rather than one concrete
+// path — that invalidates the listing regardless of which form was requested.
+const DETAIL_ROUTE = "/c/[communitySlug]/spaces/[spaceSlug]/businesses/[businessId]";
+
 // A valid category is a built-in value or a custom category slug staff added
 // to this space (business_custom_categories); anything else folds to 'other'.
 async function resolveCategory(
@@ -327,7 +332,7 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   await syncBusinessImages(supabase, businessId, user.id, images);
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
-  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`);
+  revalidatePath(DETAIL_ROUTE, "page");
   return undefined;
 }
 
@@ -362,7 +367,7 @@ export async function setBusinessBadge(
   }
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
-  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`);
+  revalidatePath(DETAIL_ROUTE, "page");
   return { error: null };
 }
 

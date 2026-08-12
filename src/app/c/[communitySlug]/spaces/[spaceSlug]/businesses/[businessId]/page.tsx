@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getBusinessDetail, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
+import { getBusinessDetail, resolveBusinessRef, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityAccommodationSpace, getStayLinkForBusiness } from "@/lib/data/accommodation";
 import { BusinessDetailView } from "../../business-detail-view";
 
@@ -13,7 +13,9 @@ export default async function BusinessDetailPage({
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string; businessId: string }>;
 }) {
-  const { communitySlug, spaceSlug, businessId } = await params;
+  // The [businessId] segment is really an "id or slug" — old links carry the
+  // UUID, new ones the human slug.
+  const { communitySlug, spaceSlug, businessId: businessRef } = await params;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -23,8 +25,18 @@ export default async function BusinessDetailPage({
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
 
+  const ref = await resolveBusinessRef(supabase, space.id, businessRef);
+  if (!ref) notFound();
+
+  // Canonicalize to the slug URL: a request that came in on the UUID (or an
+  // out-of-date slug) is redirected to the listing's current slug so shared and
+  // bookmarked links settle on the readable form.
+  if (ref.slug && businessRef !== ref.slug) {
+    redirect(`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${ref.slug}`);
+  }
+
   const viewerId = user?.id ?? "";
-  const detail = await getBusinessDetail(supabase, businessId, viewerId);
+  const detail = await getBusinessDetail(supabase, ref.id, viewerId);
   if (!detail || detail.business.space_id !== space.id) notFound();
 
   const [membership, profile] = await Promise.all([

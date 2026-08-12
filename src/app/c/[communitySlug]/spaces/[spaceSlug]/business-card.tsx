@@ -64,7 +64,7 @@ export function BusinessCard({
   }
 
   return (
-    <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.id}`} className="block">
+    <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.slug ?? business.id}`} className="block">
       <Card className="h-full overflow-hidden transition-shadow hover:shadow-sm">
         <div className="relative h-44 w-full bg-muted">
           {business.image_url ? (

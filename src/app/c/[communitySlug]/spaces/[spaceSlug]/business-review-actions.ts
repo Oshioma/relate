@@ -5,9 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export type BusinessReviewFormState = { error: string } | undefined;
 
-function detailPath(communitySlug: string, spaceSlug: string, businessId: string) {
-  return `/c/${communitySlug}/spaces/${spaceSlug}/businesses/${businessId}`;
-}
+// A listing renders at its slug URL but may also be reached by UUID, so
+// revalidate the dynamic route itself (with "page") rather than one concrete
+// path — that invalidates the listing regardless of which form was requested.
+const DETAIL_ROUTE = "/c/[communitySlug]/spaces/[spaceSlug]/businesses/[businessId]";
 
 // Add or update the current member's review (rating + optional text). One row
 // per member per listing, enforced by the business_reviews unique constraint and
@@ -62,7 +63,7 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return undefined;
 }
@@ -78,7 +79,7 @@ export async function deleteReview(reviewId: string, businessId: string, communi
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
 }
@@ -89,8 +90,6 @@ export async function deleteReview(reviewId: string, businessId: string, communi
 export async function replyToReview(_prevState: BusinessReviewFormState, formData: FormData): Promise<BusinessReviewFormState> {
   const reviewId = String(formData.get("review_id") ?? "");
   const businessId = String(formData.get("business_id") ?? "");
-  const communitySlug = String(formData.get("community_slug") ?? "");
-  const spaceSlug = String(formData.get("space_slug") ?? "");
   const body = String(formData.get("body") ?? "").trim();
 
   if (!body) {
@@ -121,11 +120,11 @@ export async function replyToReview(_prevState: BusinessReviewFormState, formDat
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return undefined;
 }
 
-export async function deleteReviewReply(replyId: string, businessId: string, communitySlug: string, spaceSlug: string) {
+export async function deleteReviewReply(replyId: string) {
   const supabase = await createClient();
   await supabase.from("place_review_replies").delete().eq("id", replyId);
   const { error } = await supabase.from("business_review_replies").delete().eq("id", replyId);
@@ -134,6 +133,6 @@ export async function deleteReviewReply(replyId: string, businessId: string, com
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, businessId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return { error: null };
 }
