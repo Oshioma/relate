@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { getListingOpenState } from "@/lib/opening-hours";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { StarRatingDisplay } from "./star-rating";
 import { ImageCarousel } from "./image-carousel";
 import { EditBusinessForm } from "./edit-business-form";
@@ -184,6 +185,7 @@ export function BusinessDetailView({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <ShareMenu title={business.name} text={business.description ?? undefined} variant="icon" />
               {canSave && (
                 <button
                   type="button"
