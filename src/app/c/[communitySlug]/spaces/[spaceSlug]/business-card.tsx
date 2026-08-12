@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BadgeCheck, Images, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { BUSINESS_CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "./business-category-icon";
 import { StarRatingDisplay } from "./star-rating";
@@ -32,6 +33,15 @@ export function BusinessCard({
   labelOverrides?: BusinessCategoryLabelOverride[];
 }) {
   const { business, avgRating, ratingCount, imageCount } = data;
+  // The listing's own shareable URL. On the community's host the current path is
+  // already clean (the proxy strips /c/<slug>), so share the clean form there;
+  // on the platform host keep the /c/<slug> prefix the route needs.
+  const listingPath = `/spaces/${spaceSlug}/businesses/${business.id}`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? window.location.origin +
+        (window.location.pathname.startsWith("/c/") ? `/c/${communitySlug}${listingPath}` : listingPath)
+      : "";
   const categoryLabel = businessCategoryLabel(business.category, customCategories, labelOverrides);
   const CategoryIcon = BUSINESS_CATEGORY_ICONS[business.category] ?? DEFAULT_CATEGORY_ICON;
   const [saved, setSaved] = useState(data.saved);
@@ -82,18 +92,27 @@ export function BusinessCard({
               {imageCount}
             </span>
           )}
-          {canSave && (
-            <button
-              type="button"
-              onClick={handleSaveToggle}
-              disabled={isPending}
-              title={saved ? "Remove from saved" : "Save"}
-              aria-pressed={saved}
-              className="absolute right-2 top-2 rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65 disabled:opacity-60"
-            >
-              <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
-            </button>
-          )}
+          <div className="absolute right-2 top-2 flex items-center gap-1.5">
+            <ShareMenu
+              url={shareUrl}
+              title={business.name}
+              text={business.description ?? undefined}
+              menuAlign="right"
+              triggerClassName="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65"
+            />
+            {canSave && (
+              <button
+                type="button"
+                onClick={handleSaveToggle}
+                disabled={isPending}
+                title={saved ? "Remove from saved" : "Save"}
+                aria-pressed={saved}
+                className="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65 disabled:opacity-60"
+              >
+                <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+              </button>
+            )}
+          </div>
         </div>
         <CardContent className="pt-4">
           <div className="flex flex-wrap items-center gap-1.5">
