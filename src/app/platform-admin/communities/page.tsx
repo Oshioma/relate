@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getPlatformOverview, getCommunitiesWithMembers, getSpamCandidates } from "@/lib/data/platform-analytics";
+import { getPlatformOverview, getCommunitiesWithMembers, getAllUsers, getSpamCandidates } from "@/lib/data/platform-analytics";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
@@ -21,11 +21,14 @@ export default async function PlatformCommunitiesPage() {
   if (!profile?.is_super_admin) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [overview, communities, spamCandidates] = await Promise.all([
+  const [overview, communities, users, spamCandidates] = await Promise.all([
     getPlatformOverview(admin),
     getCommunitiesWithMembers(admin),
+    getAllUsers(admin),
     getSpamCandidates(admin),
   ]);
+
+  const unattachedCount = users.filter((u) => u.communityCount === 0).length;
 
   return (
     <div>
@@ -41,6 +44,58 @@ export default async function PlatformCommunitiesPage() {
       </div>
 
       <SpamCleanup candidates={spamCandidates} />
+
+      <details className="mb-8 rounded-lg border border-border p-4">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+          <span className="text-sm font-medium text-foreground">All users ({users.length})</span>
+          <span className="text-xs text-muted-foreground">
+            {unattachedCount > 0 ? `${unattachedCount} in no community` : "everyone is in a community"}
+          </span>
+        </summary>
+        <p className="mb-3 mt-2 text-xs text-muted-foreground">
+          Every registered user, including people who signed up but haven&apos;t joined a community — those show above the
+          rest and are why the total user count is higher than the members listed under communities.
+        </p>
+        <ul className="divide-y divide-border border-t border-border">
+          {users.map(({ profile, communityCount }) => (
+            <li key={profile.id}>
+              <Link
+                href={`/platform-admin/users/${profile.id}`}
+                className="flex items-center gap-3 py-2.5 hover:opacity-80"
+              >
+                <Avatar src={profile.avatar_url} name={profile.full_name || profile.username} size={36} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {profile.full_name || profile.username}
+                    {profile.is_super_admin && (
+                      <span className="ml-2 align-middle text-[10px] font-medium uppercase tracking-wide text-accent">
+                        Super admin
+                      </span>
+                    )}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>
+                </div>
+                <div className="hidden text-right sm:block">
+                  <p className="text-xs text-muted-foreground">
+                    {profile.last_active_at ? `Active ${formatRelativeTime(profile.last_active_at)}` : "Never active"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Joined {formatDate(profile.created_at)}</p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <Badge tone={communityCount === 0 ? "danger" : "neutral"}>
+                    {communityCount === 0
+                      ? "No community"
+                      : `${communityCount} ${communityCount === 1 ? "community" : "communities"}`}
+                  </Badge>
+                  <span className="text-[11px] text-muted-foreground">{profile.contribution_score} pts</span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Communities</h2>
 
       <div className="space-y-3">
         {communities.map(({ community, memberCount, members }) => (

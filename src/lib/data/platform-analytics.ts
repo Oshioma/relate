@@ -45,6 +45,41 @@ export async function getPlatformOverview(admin: Client): Promise<PlatformOvervi
   };
 }
 
+export type PlatformUserRow = {
+  profile: Profile;
+  // How many communities the user is an ACTIVE member of. 0 = signed up but
+  // hasn't joined (or been added to) any community yet — these users never
+  // appear under a community, which is why the total user count is higher than
+  // the sum of members shown in the list.
+  communityCount: number;
+};
+
+// Every registered profile with its active-membership count, newest first.
+// Unattached users (communityCount 0) are surfaced first so the gap between
+// "total users" and "users shown in communities" is easy to audit.
+export async function getAllUsers(admin: Client): Promise<PlatformUserRow[]> {
+  const [{ data: profiles, error: profilesError }, { data: memberships, error: membershipsError }] =
+    await Promise.all([
+      admin.from("profiles").select("*").order("created_at", { ascending: false }),
+      admin.from("community_memberships").select("user_id").eq("status", "active"),
+    ]);
+
+  if (profilesError) throw profilesError;
+  if (membershipsError) throw membershipsError;
+
+  const counts = new Map<string, number>();
+  for (const row of memberships ?? []) {
+    counts.set(row.user_id, (counts.get(row.user_id) ?? 0) + 1);
+  }
+
+  return ((profiles ?? []) as Profile[])
+    .map((profile) => ({ profile, communityCount: counts.get(profile.id) ?? 0 }))
+    .sort((a, b) => {
+      if ((a.communityCount === 0) !== (b.communityCount === 0)) return a.communityCount === 0 ? -1 : 1;
+      return new Date(b.profile.created_at).getTime() - new Date(a.profile.created_at).getTime();
+    });
+}
+
 type MembershipWithProfileRow = {
   role: MembershipRole;
   created_at: string;
