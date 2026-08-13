@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformHost } from "@/lib/custom-domain";
 import { isResendConfigured, sendCommunityConfirmationEmail, sendPasswordResetEmail } from "@/lib/email";
+import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 export type AuthFormState = { error: string } | undefined;
 
@@ -222,12 +223,33 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const customHost = customDomainHost(origin);
   const next = safeNextPath(formData.get("next"), customHost ? "/" : "/dashboard");
 
+  // Bot defenses, cheapest first. The honeypot is a hidden field no human
+  // fills; a filled one means a bot. Don't reveal the trap — pretend the signup
+  // worked (send them to the check-email screen) while creating nothing.
+  const honeypot = String(formData.get("company_website") ?? "").trim();
+  if (honeypot) {
+    redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
+  }
+
   if (!email || !password) {
     return { error: "Enter your email and password." };
   }
 
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
+  }
+
+  // Cloudflare Turnstile CAPTCHA, when configured. Verified server-side so a
+  // forged or missing token can't slip through — this guards both the branded
+  // and default signup paths below. No-op until the env vars are set.
+  if (isTurnstileConfigured()) {
+    const headerList = await headers();
+    const remoteIp = headerList.get("cf-connecting-ip") ?? headerList.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const token = String(formData.get("cf-turnstile-response") ?? "");
+    const verified = await verifyTurnstileToken(token, remoteIp);
+    if (!verified) {
+      return { error: "Please complete the human-verification challenge, then try again." };
+    }
   }
 
   // Confirmation links always point at the platform's own origin so custom

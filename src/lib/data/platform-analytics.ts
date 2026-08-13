@@ -338,3 +338,84 @@ export async function getPlatformUserDetail(admin: Client, userId: string): Prom
     recentActivity,
   };
 }
+
+// --- Spam cleanup ------------------------------------------------------------
+
+export type SpamCandidate = {
+  id: string;
+  username: string;
+  fullName: string | null;
+  email: string | null;
+  createdAt: string;
+};
+
+// Accounts that look like automated signup spam, by the strictest safe rule:
+// the email was NEVER confirmed, the user belongs to NO community, and they
+// have written NO posts or comments. Anything a real (if inactive) member would
+// have — a confirmed email, a membership, any content — excludes them. Super
+// admins are always excluded as a hard guard. The same predicate is re-run
+// server-side before any deletion, so this list is safe to act on.
+//
+// Note: this keys off email confirmation. If email confirmation is turned OFF
+// in the Supabase project, every signup is auto-confirmed and nothing matches —
+// keep confirmation on so bots that never confirm stay quarantined here.
+export async function getSpamCandidates(admin: Client): Promise<SpamCandidate[]> {
+  // 1. Every profile (id + display fields).
+  const { data: profiles, error: profilesError } = await admin
+    .from("profiles")
+    .select("id, username, full_name, is_super_admin, created_at")
+    .order("created_at", { ascending: false });
+  if (profilesError) throw profilesError;
+
+  // 2. Users who belong to at least one community (any status) — a membership,
+  //    even inactive, means this isn't a drive-by bot.
+  const { data: memberships, error: membershipsError } = await admin
+    .from("community_memberships")
+    .select("user_id");
+  if (membershipsError) throw membershipsError;
+  const hasMembership = new Set((memberships ?? []).map((m) => m.user_id));
+
+  // 3. Users who have authored any content.
+  const [{ data: postAuthors, error: postsError }, { data: commentAuthors, error: commentsError }] =
+    await Promise.all([
+      admin.from("posts").select("author_id"),
+      admin.from("comments").select("author_id"),
+    ]);
+  if (postsError) throw postsError;
+  if (commentsError) throw commentsError;
+  const hasContent = new Set<string>();
+  for (const p of postAuthors ?? []) hasContent.add(p.author_id);
+  for (const c of commentAuthors ?? []) hasContent.add(c.author_id);
+
+  // 4. Email-confirmation state + address from the auth admin API, paginated.
+  const confirmedById = new Map<string, boolean>();
+  const emailById = new Map<string, string | null>();
+  const perPage = 200;
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const users = data?.users ?? [];
+    for (const u of users) {
+      confirmedById.set(u.id, Boolean(u.email_confirmed_at));
+      emailById.set(u.id, u.email ?? null);
+    }
+    if (users.length < perPage) break;
+  }
+
+  type ProfileLite = { id: string; username: string; full_name: string | null; is_super_admin: boolean; created_at: string };
+  return ((profiles ?? []) as ProfileLite[])
+    .filter(
+      (p) =>
+        !p.is_super_admin &&
+        confirmedById.get(p.id) === false && // email never confirmed (known + false)
+        !hasMembership.has(p.id) &&
+        !hasContent.has(p.id)
+    )
+    .map((p) => ({
+      id: p.id,
+      username: p.username,
+      fullName: p.full_name,
+      email: emailById.get(p.id) ?? null,
+      createdAt: p.created_at,
+    }));
+}

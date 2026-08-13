@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getPlatformOverview, getCommunitiesWithMembers, getAllUsers } from "@/lib/data/platform-analytics";
+import { getPlatformOverview, getCommunitiesWithMembers, getAllUsers, getSpamCandidates } from "@/lib/data/platform-analytics";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
+import { SpamCleanup } from "./spam-cleanup";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +21,11 @@ export default async function PlatformCommunitiesPage() {
   if (!profile?.is_super_admin) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [overview, communities, users] = await Promise.all([
+  const [overview, communities, users, spamCandidates] = await Promise.all([
     getPlatformOverview(admin),
     getCommunitiesWithMembers(admin),
     getAllUsers(admin),
+    getSpamCandidates(admin),
   ]);
 
   const unattachedCount = users.filter((u) => u.communityCount === 0).length;
@@ -40,6 +42,8 @@ export default async function PlatformCommunitiesPage() {
         <StatTile label="Users" value={overview.users} />
         <StatTile label="Active memberships" value={overview.memberships} />
       </div>
+
+      <SpamCleanup candidates={spamCandidates} />
 
       <details className="mb-8 rounded-lg border border-border p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
