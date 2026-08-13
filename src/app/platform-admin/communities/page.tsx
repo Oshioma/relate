@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getPlatformOverview, getCommunitiesWithMembers } from "@/lib/data/platform-analytics";
+import { getPlatformOverview, getCommunitiesWithMembers, getSpamCandidates } from "@/lib/data/platform-analytics";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
+import { SpamCleanup } from "./spam-cleanup";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,10 @@ export default async function PlatformCommunitiesPage() {
   if (!profile?.is_super_admin) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [overview, communities] = await Promise.all([
+  const [overview, communities, spamCandidates] = await Promise.all([
     getPlatformOverview(admin),
     getCommunitiesWithMembers(admin),
+    getSpamCandidates(admin),
   ]);
 
   return (
@@ -37,6 +39,8 @@ export default async function PlatformCommunitiesPage() {
         <StatTile label="Users" value={overview.users} />
         <StatTile label="Active memberships" value={overview.memberships} />
       </div>
+
+      <SpamCleanup candidates={spamCandidates} />
 
       <div className="space-y-3">
         {communities.map(({ community, memberCount, members }) => (

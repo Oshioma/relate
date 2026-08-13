@@ -5,13 +5,23 @@ import Link from "next/link";
 import { signup, type AuthFormState } from "@/app/auth/actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 
 export function SignupForm({ next, prefilledEmail }: { next: string; prefilledEmail?: string | null }) {
   const [state, formAction] = useActionState<AuthFormState, FormData>(signup, undefined);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
+
+      {/* Honeypot: hidden from people, but bots fill every field they find. A
+          non-empty value makes the server reject the signup. Kept out of the
+          tab order and off autocomplete so real users never touch it. */}
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden" tabIndex={-1}>
+        <label htmlFor="company_website">Leave this field empty</label>
+        <input id="company_website" name="company_website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
 
       <div>
         <Label htmlFor="full_name">Full name</Label>
@@ -54,6 +64,8 @@ export function SignupForm({ next, prefilledEmail }: { next: string; prefilledEm
           placeholder="At least 8 characters"
         />
       </div>
+
+      {turnstileSiteKey && <TurnstileWidget siteKey={turnstileSiteKey} />}
 
       {typeof state?.error === "string" && state.error.trim() !== "" && (
         <p className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>

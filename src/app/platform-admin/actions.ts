@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
+import { getSpamCandidates } from "@/lib/data/platform-analytics";
 import type { TemplateDefaultItem } from "@/lib/template-defaults";
 
 // Replaces the whole default-spaces list for one community type. The control
@@ -182,4 +183,46 @@ export async function saveFeaturePack(_prevState: PlanFormState, formData: FormD
 
   revalidatePath("/platform-admin");
   return { ok: true };
+}
+
+// --- Spam cleanup ------------------------------------------------------------
+// Permanently delete suspected spam accounts. The caller sends the ids it wants
+// removed, but this NEVER trusts them blindly: it recomputes the spam-candidate
+// set server-side (unconfirmed email + no community + no content, super admins
+// excluded) and deletes only ids that still match. A stale or tampered client
+// therefore can't delete a legitimate user. Deleting the auth user cascades to
+// the profile row (profiles.id references auth.users on delete cascade).
+export async function deleteSpamAccounts(
+  ids: string[]
+): Promise<{ error: string } | { deleted: number; skipped: number }> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can delete accounts." };
+
+  const requested = new Set((ids ?? []).filter((id) => typeof id === "string" && id.length > 0));
+  if (requested.size === 0) return { deleted: 0, skipped: 0 };
+
+  const admin = createAdminClient();
+  // Re-derive who is genuinely eligible right now.
+  const eligible = new Set((await getSpamCandidates(admin)).map((c) => c.id));
+
+  let deleted = 0;
+  let skipped = 0;
+  for (const id of requested) {
+    if (!eligible.has(id)) {
+      skipped += 1;
+      continue;
+    }
+    const { error } = await admin.auth.admin.deleteUser(id);
+    if (error) {
+      skipped += 1;
+      continue;
+    }
+    deleted += 1;
+  }
+
+  revalidatePath("/platform-admin/communities");
+  return { deleted, skipped };
 }
