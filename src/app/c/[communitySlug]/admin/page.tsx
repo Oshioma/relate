@@ -252,7 +252,8 @@ export default async function AdminPage({
 
       <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        What signed-out visitors can see before logging in. Individual spaces have their own visibility setting.
+        Who can find this community, and what they can see before joining. Individual spaces have their own visibility
+        setting.
       </p>
       <div className="mb-8">
         <PublicAccessForm community={community} />

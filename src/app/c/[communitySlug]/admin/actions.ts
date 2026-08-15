@@ -13,16 +13,24 @@ import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificatio
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
 import type { NavSubItemKind } from "./spaces-manager";
-import type { SpaceVisibility, SpaceType, Community, FeatureKey, BusinessCategory } from "@/types/database";
+import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
 
 const VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
 const SPACE_TYPES: SpaceType[] = SPACE_TYPE_LIST.map((t) => t.type);
+const PRIVACY_LEVELS: CommunityPrivacy[] = ["public", "private", "invite_only"];
 
 function parseVisibility(raw: FormDataEntryValue | null): SpaceVisibility {
   const value = String(raw ?? "members");
   return VISIBILITIES.includes(value as SpaceVisibility) ? (value as SpaceVisibility) : "members";
+}
+
+// Falls back to the most restrictive level rather than the most permissive: a
+// malformed value must never quietly widen who can see the community.
+function parsePrivacy(raw: FormDataEntryValue | null): CommunityPrivacy {
+  const value = String(raw ?? "invite_only");
+  return PRIVACY_LEVELS.includes(value as CommunityPrivacy) ? (value as CommunityPrivacy) : "invite_only";
 }
 
 function parseSpaceType(raw: FormDataEntryValue | null): SpaceType {
@@ -476,14 +484,23 @@ export async function updateCommunityContactInfo(
 export type PublicAccessState = { error: string } | undefined;
 
 // The community's pre-login / public-access controls, grouped into one place:
-// whether guests see events, and who can see the members list. Both live on
-// the communities row and are admin-only via RLS (communities_update_admin).
+// its privacy level, whether guests see events, and who can see the members
+// list. All live on the communities row and are admin-only via RLS
+// (communities_update_admin).
+//
+// `privacy` was previously write-once — the creation wizard set it and nothing
+// in the app could ever change it again, so a community created as private or
+// invite_only was stuck out of the discovery lists (which filter on is_public)
+// for good. Note we write `privacy`, never `is_public`: the latter is a
+// generated column derived from it (privacy = 'public') and Postgres rejects
+// any direct write.
 export async function updatePublicAccess(
   _prevState: PublicAccessState,
   formData: FormData
 ): Promise<PublicAccessState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
+  const privacy = parsePrivacy(formData.get("privacy"));
   const eventsPublic = formData.get("events_public") === "on";
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
@@ -491,6 +508,7 @@ export async function updatePublicAccess(
   const { error } = await supabase
     .from("communities")
     .update({
+      privacy,
       events_public: eventsPublic,
       members_visibility: membersVisibility,
     })
@@ -502,6 +520,12 @@ export async function updatePublicAccess(
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
+  // Changing privacy moves the community in and out of the two discovery
+  // surfaces, which are rendered on the platform root and cached separately
+  // from anything under /c/<slug> — without these they'd keep showing the
+  // stale list.
+  revalidatePath("/");
+  revalidatePath("/dashboard");
   return undefined;
 }
 

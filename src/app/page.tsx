@@ -8,6 +8,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import type { Community } from "@/types/database";
 
+// How many public communities the showcase strip considers, and how many of
+// them it renders.
+const SHOWCASE_POOL = 12;
+const SHOWCASE_COUNT = 6;
+
+// How much a community has to show on a card. The card renders a logo, a name
+// and a description, so a description counts for most (it's the only line of
+// copy) and a logo for the rest — together they're a decent proxy for "someone
+// actually set this community up". Array.sort is stable, so communities that
+// tie keep the newest-first order the query already applied.
+function showcaseRank(community: Community): number {
+  return (community.description?.trim() ? 2 : 0) + (community.logo_url ? 1 : 0);
+}
+
 export default async function LandingPage() {
   const supabase = await createClient();
   const {
@@ -18,12 +32,24 @@ export default async function LandingPage() {
     redirect("/dashboard");
   }
 
-  const { data: featuredCommunities } = await supabase
+  // The showcase strip. Ordered newest-first because it used to be
+  // oldest-first with a limit of 3, which pinned the strip to the same three
+  // communities forever — a community created today could never appear on the
+  // platform's own front door, no matter how public it was.
+  //
+  // Newest-first on its own would happily feature three empty shells created
+  // minutes ago, so over-fetch a small pool and prefer the ones with something
+  // to show (see showcaseRank).
+  const { data: recentPublic } = await supabase
     .from("communities")
     .select("*")
     .eq("is_public", true)
-    .order("created_at", { ascending: true })
-    .limit(3);
+    .order("created_at", { ascending: false })
+    .limit(SHOWCASE_POOL);
+
+  const featuredCommunities = [...(recentPublic ?? [])]
+    .sort((a, b) => showcaseRank(b) - showcaseRank(a))
+    .slice(0, SHOWCASE_COUNT);
 
   return (
     <div className="min-h-screen bg-background">
@@ -101,7 +127,7 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {featuredCommunities && featuredCommunities.length > 0 && (
+        {featuredCommunities.length > 0 && (
           <section className="mx-auto max-w-5xl px-6 pb-24">
             <h2 className="text-center text-sm font-medium uppercase tracking-wide text-muted-foreground">
               A few communities already at home here
