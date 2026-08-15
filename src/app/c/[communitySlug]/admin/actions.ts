@@ -12,10 +12,44 @@ import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
+import type { PostgrestError } from "@supabase/supabase-js";
 import type { NavSubItemKind } from "./spaces-manager";
 import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory } from "@/types/database";
 
 export type SpaceFormState = { error: string } | undefined;
+
+type WriteOutcome = { error: string } | undefined;
+
+// RLS turns a refused write into a silent no-op: the rows are filtered out by
+// the policy's USING clause, nothing is written, and Postgres reports success
+// — an UPDATE that matches no rows is not an error. Checking only `error`
+// therefore can't tell a rejected save from an accepted one, and the form
+// re-renders from the row that never changed, so the setting appears to revert
+// on its own with nothing on screen to explain it.
+//
+// Every write below made with the caller's own client therefore ends in
+// .select() and passes its result here, so "wrote nothing" becomes a visible
+// failure. This doesn't change who may write — RLS remains the only authority
+// on that — only whether a refusal is legible.
+//
+// The custom-domain actions are deliberately not routed through this: they use
+// the service-role client, which bypasses RLS altogether, and each verifies the
+// row exists and is owned before writing, so there is no silent-refusal case
+// for this to catch.
+function requireWrite(
+  result: { data: unknown[] | null; error: PostgrestError | null },
+  subject: string
+): WriteOutcome {
+  if (result.error) {
+    return { error: result.error.message };
+  }
+  if (!result.data || result.data.length === 0) {
+    return {
+      error: `Couldn't save ${subject} — the database rejected the change and nothing was updated. Your admin access to this community may have changed; reload the page and try again.`,
+    };
+  }
+  return undefined;
+}
 
 const VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
 const SPACE_TYPES: SpaceType[] = SPACE_TYPE_LIST.map((t) => t.type);
@@ -187,24 +221,25 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
     }
   }
 
-  const { error } = await supabase
-    .from("spaces")
-    .update({
-      name,
-      description: description || null,
-      visibility,
-      space_type: spaceType,
-      staff_post_only: staffPostOnly,
-      allow_member_comments: allowMemberComments,
-      ...(locationName !== undefined && { location_name: locationName }),
-      ...(imageUrl !== undefined && { image_url: imageUrl }),
-      ...(priceUpdate ?? {}),
-    })
-    .eq("id", spaceId);
-
-  if (error) {
-    return { error: error.message };
-  }
+  const failure = requireWrite(
+    await supabase
+      .from("spaces")
+      .update({
+        name,
+        description: description || null,
+        visibility,
+        space_type: spaceType,
+        staff_post_only: staffPostOnly,
+        allow_member_comments: allowMemberComments,
+        ...(locationName !== undefined && { location_name: locationName }),
+        ...(imageUrl !== undefined && { image_url: imageUrl }),
+        ...(priceUpdate ?? {}),
+      })
+      .eq("id", spaceId)
+      .select("id"),
+    "this space"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
@@ -292,18 +327,22 @@ export async function reorderNavItems(
   const results = await Promise.all(
     order.map((item) =>
       item.kind === "space"
-        ? supabase.from("spaces").update({ sort_order: item.sort_order }).eq("id", item.ref)
+        ? supabase.from("spaces").update({ sort_order: item.sort_order }).eq("id", item.ref).select("id")
         : supabase
             .from("community_nav_item_order")
             .upsert(
               { community_id: communityId, item_key: item.ref as FeatureKey, sort_order: item.sort_order },
               { onConflict: "community_id,item_key" }
             )
+            .select("item_key")
     )
   );
-  const failed = results.find((r) => r.error);
-  if (failed?.error) {
-    return { error: failed.error.message };
+  // A drag writes every row in the list, so one silently-refused row leaves the
+  // sidebar in an order nobody chose — report the first failure rather than
+  // letting the list snap back unexplained.
+  for (const result of results) {
+    const failure = requireWrite(result, "the new order");
+    if (failure) return failure;
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);
@@ -362,16 +401,19 @@ export async function setNavItemVisibility(
         .update({ show_in_nav: showInNav })
         .eq("community_id", communityId)
         .eq("item_key", itemKey)
-    : await supabase.from("community_nav_item_order").insert({
-        community_id: communityId,
-        item_key: itemKey,
-        sort_order: defaultNavItemSort(itemKey),
-        show_in_nav: showInNav,
-      });
+        .select("item_key")
+    : await supabase
+        .from("community_nav_item_order")
+        .insert({
+          community_id: communityId,
+          item_key: itemKey,
+          sort_order: defaultNavItemSort(itemKey),
+          show_in_nav: showInNav,
+        })
+        .select("item_key");
 
-  if (result.error) {
-    return { error: result.error.message };
-  }
+  const failure = requireWrite(result, "the sidebar change");
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
@@ -403,19 +445,20 @@ export async function updateCommunityDetails(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("communities")
-    .update({
-      name,
-      description: description || null,
-      ...(locationName !== undefined && { location_name: locationName }),
-      ...(locationType !== undefined && { location_type: locationType }),
-    })
-    .eq("id", communityId);
-
-  if (error) {
-    return { error: error.message };
-  }
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({
+        name,
+        description: description || null,
+        ...(locationName !== undefined && { location_name: locationName }),
+        ...(locationType !== undefined && { location_type: locationType }),
+      })
+      .eq("id", communityId)
+      .select("id"),
+    "these details"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
@@ -438,14 +481,15 @@ export async function updateCommunityGuidelines(
   const guidelines = String(formData.get("guidelines") ?? "").trim();
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("communities")
-    .update({ guidelines: guidelines || null })
-    .eq("id", communityId);
-
-  if (error) {
-    return { error: error.message };
-  }
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({ guidelines: guidelines || null })
+      .eq("id", communityId)
+      .select("id"),
+    "these guidelines"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}/guidelines`);
@@ -467,14 +511,15 @@ export async function updateCommunityContactInfo(
   const contactInfo = String(formData.get("contact_info") ?? "").trim();
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("communities")
-    .update({ contact_info: contactInfo || null })
-    .eq("id", communityId);
-
-  if (error) {
-    return { error: error.message };
-  }
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({ contact_info: contactInfo || null })
+      .eq("id", communityId)
+      .select("id"),
+    "these contact details"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}/contact`);
@@ -505,33 +550,19 @@ export async function updatePublicAccess(
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
   const supabase = await createClient();
-  // .select() so the write can be confirmed, not assumed. An UPDATE whose rows
-  // are all filtered out by RLS is not an error in Postgres — it simply matches
-  // nothing and reports success. Without the returned row to check, a rejected
-  // save looked exactly like an accepted one: the action reported success, the
-  // form re-rendered from the unchanged row, and the setting appeared to flip
-  // back on its own with nothing on screen to explain why.
-  const { data: updated, error } = await supabase
-    .from("communities")
-    .update({
-      privacy,
-      events_public: eventsPublic,
-      members_visibility: membersVisibility,
-    })
-    .eq("id", communityId)
-    .select("id")
-    .maybeSingle();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  if (!updated) {
-    return {
-      error:
-        "Couldn't save — the database rejected the change and nothing was updated. This usually means your admin access to this community has changed; reload the page and try again.",
-    };
-  }
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({
+        privacy,
+        events_public: eventsPublic,
+        members_visibility: membersVisibility,
+      })
+      .eq("id", communityId)
+      .select("id"),
+    "these settings"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
@@ -801,10 +832,11 @@ export async function setAdminsCanManageStaff(
     return { error: "Only the owner can change this setting." };
   }
 
-  const { error } = await supabase.from("communities").update({ admins_can_manage_staff: value }).eq("id", communityId);
-  if (error) {
-    return { error: error.message };
-  }
+  const failure = requireWrite(
+    await supabase.from("communities").update({ admins_can_manage_staff: value }).eq("id", communityId).select("id"),
+    "this setting"
+  );
+  if (failure) return failure;
 
   revalidatePath(`/c/${communitySlug}/admin`);
   return undefined;
