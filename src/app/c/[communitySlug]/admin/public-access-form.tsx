@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { Community } from "@/types/database";
 
-// One home for the community's pre-login controls: what a signed-out visitor
-// can see. Spaces have their own per-space visibility; these are the
-// community-wide switches.
+// One home for the community's access controls: how discoverable it is at all
+// (privacy), and what a visitor can see before joining. Spaces have their own
+// per-space visibility; these are the community-wide switches.
 export function PublicAccessForm({ community }: { community: Community }) {
   const [state, formAction] = useActionState<PublicAccessState, FormData>(updatePublicAccess, undefined);
 
@@ -17,7 +17,26 @@ export function PublicAccessForm({ community }: { community: Community }) {
       <input type="hidden" name="community_id" value={community.id} />
       <input type="hidden" name="community_slug" value={community.slug} />
 
-      <label className="flex items-start gap-3 text-sm">
+      <div>
+        <Label htmlFor="privacy">Community privacy</Label>
+        <select
+          id="privacy"
+          name="privacy"
+          defaultValue={community.privacy}
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="public">Public — anyone can find and join it</option>
+          <option value="private">Private — anyone with the link can see it, but the feed is members-only</option>
+          <option value="invite_only">Invite only — hidden; members must be invited</option>
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Only a <span className="font-medium text-foreground">public</span> community is listed for other people to
+          discover and join. Private and invite-only communities are reachable by link only, so share the address
+          yourself. Invite-only goes further: it doesn&apos;t resolve at all for anyone who isn&apos;t a member.
+        </p>
+      </div>
+
+      <label className="flex items-start gap-3 border-t border-border pt-4 text-sm">
         <input
           type="checkbox"
           name="events_public"
