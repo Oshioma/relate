@@ -505,17 +505,32 @@ export async function updatePublicAccess(
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // .select() so the write can be confirmed, not assumed. An UPDATE whose rows
+  // are all filtered out by RLS is not an error in Postgres — it simply matches
+  // nothing and reports success. Without the returned row to check, a rejected
+  // save looked exactly like an accepted one: the action reported success, the
+  // form re-rendered from the unchanged row, and the setting appeared to flip
+  // back on its own with nothing on screen to explain why.
+  const { data: updated, error } = await supabase
     .from("communities")
     .update({
       privacy,
       events_public: eventsPublic,
       members_visibility: membersVisibility,
     })
-    .eq("id", communityId);
+    .eq("id", communityId)
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (!updated) {
+    return {
+      error:
+        "Couldn't save — the database rejected the change and nothing was updated. This usually means your admin access to this community has changed; reload the page and try again.",
+    };
   }
 
   revalidatePath(`/c/${communitySlug}/admin`);
