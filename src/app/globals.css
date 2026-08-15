@@ -308,6 +308,30 @@ body {
   color: inherit;
 }
 
+/* The chevron in the mobile feed's "Swipe" hint (see discover-strip.tsx)
+   drifts right and settles back, so the row reads as scrollable at a glance
+   rather than as a static, complete list. */
+@keyframes swipe-nudge {
+  0%,
+  60%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(3px);
+  }
+}
+
+.swipe-nudge {
+  animation: swipe-nudge 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-nudge {
+    animation: none;
+  }
+}
+
 /* Teardrop map pins (see Pin in explore-map.tsx). Scale from the tip so
    a hovered pin grows without drifting off its coordinate. */
 .map-pin {
