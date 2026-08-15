@@ -82,21 +82,32 @@ export async function getMembership(
   return data;
 }
 
-// Public communities the user could self-join (excludes anything they
-// already have a membership row for, active or otherwise).
+// Public communities the user could self-join. Hidden: the ones they're
+// already an active member of (nothing left to join) and the ones they're
+// banned from (never offer a door that won't open).
+//
+// A merely *invited* membership deliberately does not hide the community. This
+// used to key off the presence of a membership row of any status, so a user who
+// had been invited but hadn't accepted fell through both dashboard lists at
+// once — "Your communities" wants status 'active', and this one excluded them
+// for having a row at all — and the community vanished from their dashboard
+// entirely. joinCommunity() promotes an existing invite in place rather than
+// inserting a second row.
 export async function getDiscoverableCommunities(supabase: Client, userId: string): Promise<Community[]> {
   const { data: memberships, error: membershipError } = await supabase
     .from("community_memberships")
-    .select("community_id")
+    .select("community_id, status")
     .eq("user_id", userId);
 
   if (membershipError) throw membershipError;
 
-  const joinedIds = (memberships ?? []).map((m) => m.community_id);
+  const hiddenIds = (memberships ?? [])
+    .filter((m) => m.status === "active" || m.status === "banned")
+    .map((m) => m.community_id);
 
   let query = supabase.from("communities").select("*").eq("is_public", true);
-  if (joinedIds.length > 0) {
-    query = query.not("id", "in", `(${joinedIds.join(",")})`);
+  if (hiddenIds.length > 0) {
+    query = query.not("id", "in", `(${hiddenIds.join(",")})`);
   }
 
   const { data, error } = await query.order("created_at", { ascending: true });
