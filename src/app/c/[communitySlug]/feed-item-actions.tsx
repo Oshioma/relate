@@ -6,7 +6,8 @@ import { MessageCircle } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
+import { SmileStack } from "@/components/ui/smile-stack";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { toggleFeedReaction, createFeedComment, deleteFeedComment } from "./feed-actions";
 import type { FeedCommentWithAuthor, FeedRefType } from "@/lib/data/feed-interactions";
@@ -21,11 +22,16 @@ export interface FeedItemActionsProps {
   itemTitle: string;
   reactionCount: number;
   viewerReacted: boolean;
+  // Who smiled, for the avatar stack beside the button.
+  reactors: Reactor[];
   comments: FeedCommentWithAuthor[];
   // A signed-in member of this community. Everyone else sees the tallies but
   // gets no controls — the same read-only treatment posts already use.
   canInteract: boolean;
   viewerId: string | null;
+  // The viewer's own name and face, so their smile joins the stack the instant
+  // they click rather than a refresh later. Null for a signed-out visitor.
+  viewer: Reactor | null;
   // Staff can remove any comment; members only their own.
   isStaff: boolean;
 }
@@ -38,15 +44,21 @@ export function FeedItemActions({
   itemTitle,
   reactionCount,
   viewerReacted,
+  reactors,
   comments,
   canInteract,
   viewerId,
+  viewer,
   isStaff,
 }: FeedItemActionsProps) {
   // Optimistic reaction state so the smile toggles instantly, mirroring the
   // post card. The server action revalidates and `router.refresh()` reconciles.
   const [reacted, setReacted] = useState(viewerReacted);
   const [reactions, setReactions] = useState(reactionCount);
+  // The stack the viewer sees. Their own face is appended or dropped alongside
+  // the count so the two never disagree while the toggle is in flight; the
+  // refresh replaces it with the server's list.
+  const [stack, setStack] = useState(reactors);
   const [isReacting, startReacting] = useTransition();
   const [showComments, setShowComments] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +70,16 @@ export function FeedItemActions({
     setError(null);
     setReacted(next);
     setReactions((n) => n + (next ? 1 : -1));
+    setStack((current) =>
+      next && viewer ? [...current, viewer] : current.filter((r) => r.id !== viewerId)
+    );
     startReacting(async () => {
       const result = await toggleFeedReaction(communitySlug, communityId, itemType, itemId, !next);
       if (result.error) {
         // Revert on failure.
         setReacted(!next);
         setReactions((n) => n + (next ? -1 : 1));
+        setStack(reactors);
         setError(result.error);
       } else {
         router.refresh();
@@ -114,6 +130,8 @@ export function FeedItemActions({
           {reactions > 0 && <span>{reactions}</span>}
           <span aria-hidden>{reacted ? "Smiled" : "Smile"}</span>
         </button>
+
+        <SmileStack reactors={stack} count={reactions} />
 
         <button
           type="button"

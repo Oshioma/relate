@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, FeedItemType, Profile } from "@/types/database";
+import type { Reactor } from "@/lib/post-reactions";
 
 type Client = SupabaseClient<Database>;
 
@@ -21,6 +22,9 @@ export type FeedCommentWithAuthor = {
 export type FeedInteraction = {
   reactionCount: number;
   viewerReacted: boolean;
+  // Who smiled, oldest first, for the avatar stack. Shorter than
+  // reactionCount when RLS hides a reactor's profile from this viewer.
+  reactors: Reactor[];
   comments: FeedCommentWithAuthor[];
 };
 
@@ -30,7 +34,7 @@ export function feedRefKey(type: FeedRefType, id: string): string {
   return `${type}:${id}`;
 }
 
-const EMPTY: FeedInteraction = { reactionCount: 0, viewerReacted: false, comments: [] };
+const EMPTY: FeedInteraction = { reactionCount: 0, viewerReacted: false, reactors: [], comments: [] };
 
 export function feedInteractionFor(
   interactions: Map<string, FeedInteraction>,
@@ -43,6 +47,14 @@ export function feedInteractionFor(
 type AuthorRow = { id: string; full_name: string | null; username: string; avatar_url: string | null } | null;
 
 const AUTHOR_COLUMNS = "id, full_name, username, avatar_url";
+
+// A reaction row's embedded profile, in the shape the avatar stack wants.
+// Null when RLS hid the profile — the reaction still counts, it just can't
+// show a face.
+function toReactor(user: AuthorRow): Reactor | null {
+  if (!user) return null;
+  return { id: user.id, name: user.full_name || user.username, avatarUrl: user.avatar_url };
+}
 
 function toComment(row: {
   id: string;
@@ -75,7 +87,12 @@ export async function getFeedInteractions(
 
   const [feedReactions, feedComments, postReactions, postComments] = await Promise.all([
     otherIds.length > 0
-      ? supabase.from("feed_reactions").select("item_type, item_id, user_id").eq("community_id", communityId).in("item_id", otherIds)
+      ? supabase
+          .from("feed_reactions")
+          .select(`item_type, item_id, user_id, user:user_id (${AUTHOR_COLUMNS})`)
+          .eq("community_id", communityId)
+          .in("item_id", otherIds)
+          .order("created_at", { ascending: true })
       : Promise.resolve({ data: [], error: null }),
     otherIds.length > 0
       ? supabase
@@ -86,7 +103,11 @@ export async function getFeedInteractions(
           .order("created_at", { ascending: true })
       : Promise.resolve({ data: [], error: null }),
     postIds.length > 0
-      ? supabase.from("post_reactions").select("post_id, user_id").in("post_id", postIds)
+      ? supabase
+          .from("post_reactions")
+          .select(`post_id, user_id, user:user_id (${AUTHOR_COLUMNS})`)
+          .in("post_id", postIds)
+          .order("created_at", { ascending: true })
       : Promise.resolve({ data: [], error: null }),
     postIds.length > 0
       ? supabase
@@ -100,22 +121,33 @@ export async function getFeedInteractions(
   function bucket(key: string): FeedInteraction {
     let entry = result.get(key);
     if (!entry) {
-      entry = { reactionCount: 0, viewerReacted: false, comments: [] };
+      entry = { reactionCount: 0, viewerReacted: false, reactors: [], comments: [] };
       result.set(key, entry);
     }
     return entry;
   }
 
-  for (const row of (feedReactions.data ?? []) as { item_type: FeedItemType; item_id: string; user_id: string }[]) {
+  const feedReactionRows = (feedReactions.data ?? []) as unknown as {
+    item_type: FeedItemType;
+    item_id: string;
+    user_id: string;
+    user: AuthorRow;
+  }[];
+  for (const row of feedReactionRows) {
     const entry = bucket(feedRefKey(row.item_type, row.item_id));
     entry.reactionCount += 1;
     if (viewerId && row.user_id === viewerId) entry.viewerReacted = true;
+    const reactor = toReactor(row.user);
+    if (reactor) entry.reactors.push(reactor);
   }
 
-  for (const row of (postReactions.data ?? []) as { post_id: string; user_id: string }[]) {
+  const postReactionRows = (postReactions.data ?? []) as unknown as { post_id: string; user_id: string; user: AuthorRow }[];
+  for (const row of postReactionRows) {
     const entry = bucket(feedRefKey("post", row.post_id));
     entry.reactionCount += 1;
     if (viewerId && row.user_id === viewerId) entry.viewerReacted = true;
+    const reactor = toReactor(row.user);
+    if (reactor) entry.reactors.push(reactor);
   }
 
   const feedCommentRows = (feedComments.data ?? []) as unknown as ({

@@ -69,6 +69,12 @@ export default async function PostDetailPage({
         avatarUrl={editorProfile?.avatar_url}
         reactionCount={reactions.count}
         viewerReacted={reactions.viewerReacted}
+        reactors={reactions.reactors}
+        viewer={
+          editorProfile
+            ? { id: editorProfile.id, name: editorProfile.full_name || editorProfile.username, avatarUrl: editorProfile.avatar_url }
+            : null
+        }
         canReact={isActiveMember}
       />
 

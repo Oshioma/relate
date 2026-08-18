@@ -14,7 +14,8 @@ import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { updatePost, deletePost, togglePostReaction } from "../../actions";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
-import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
+import { SmileStack } from "@/components/ui/smile-stack";
 import { cn } from "@/lib/utils";
 import type { PostWithAuthor } from "@/lib/data/posts";
 
@@ -29,6 +30,8 @@ export function PostCard({
   avatarUrl = null,
   reactionCount = 0,
   viewerReacted = false,
+  reactors = [],
+  viewer = null,
   canReact = false,
 }: {
   post: PostWithAuthor;
@@ -41,6 +44,11 @@ export function PostCard({
   avatarUrl?: string | null;
   reactionCount?: number;
   viewerReacted?: boolean;
+  // Who smiled, for the avatar stack beside the button.
+  reactors?: Reactor[];
+  // The viewer's own name and face, so their smile joins the stack the instant
+  // they click rather than a refresh later.
+  viewer?: Reactor | null;
   canReact?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -52,6 +60,7 @@ export function PostCard({
   // Optimistic reaction state so the smile toggles instantly.
   const [reacted, setReacted] = useState(viewerReacted);
   const [reactions, setReactions] = useState(reactionCount);
+  const [stack, setStack] = useState(reactors);
   const [isReacting, startReacting] = useTransition();
   const router = useRouter();
 
@@ -59,12 +68,14 @@ export function PostCard({
     const next = !reacted;
     setReacted(next);
     setReactions((n) => n + (next ? 1 : -1));
+    setStack((current) => (next && viewer ? [...current, viewer] : current.filter((r) => r.id !== viewer?.id)));
     startReacting(async () => {
       const result = await togglePostReaction(post.id, communitySlug, spaceSlug, !next);
       if (result?.error) {
         // Revert on failure.
         setReacted(!next);
         setReactions((n) => n + (next ? -1 : 1));
+        setStack(reactors);
         setError(result.error);
       } else {
         router.refresh();
@@ -179,7 +190,7 @@ export function PostCard({
               </div>
             )}
 
-            <div className="mt-4">
+            <div className="mt-4 flex items-center gap-2">
               {canReact ? (
                 <button
                   type="button"
@@ -204,6 +215,7 @@ export function PostCard({
                   </span>
                 )
               )}
+              <SmileStack reactors={stack} count={reactions} />
             </div>
 
             {(canEdit || canDelete) && (

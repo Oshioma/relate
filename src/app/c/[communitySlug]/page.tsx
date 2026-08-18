@@ -14,7 +14,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
 import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityFeatures } from "@/lib/data/features";
@@ -351,12 +351,20 @@ export default async function CommunityFeedPage({
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
-  const feedInteractions = await getFeedInteractions(
-    supabase,
-    community.id,
-    activity.map((item) => ({ type: item.itemType, id: item.itemId })),
-    user?.id
-  );
+  const [feedInteractions, viewerProfile] = await Promise.all([
+    getFeedInteractions(
+      supabase,
+      community.id,
+      activity.map((item) => ({ type: item.itemType, id: item.itemId })),
+      user?.id
+    ),
+    // The viewer's own face, so their smile joins the avatar stack the instant
+    // they click instead of only after the refresh lands.
+    user ? getProfile(supabase, user.id) : Promise.resolve(null),
+  ]);
+  const viewer = viewerProfile
+    ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
+    : null;
 
   // Counts are opt-in per community (show_stats, default off). A stat strip
   // exists to argue the place is busy, and small numbers argue the opposite —
@@ -550,6 +558,7 @@ export default async function CommunityFeedPage({
                         itemId: item.itemId,
                         canInteract: isMember,
                         viewerId: user?.id ?? null,
+                        viewer,
                         isStaff,
                         ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
                       },
