@@ -33,18 +33,18 @@ export async function getCommunityAccommodationSpace(supabase: Client, community
 
 // The stay already linked to a business (if any), with its space slug so the
 // directory can link straight to it instead of offering to create a duplicate.
-export async function getStayLinkForBusiness(supabase: Client, businessId: string): Promise<{ id: string; spaceSlug: string } | null> {
+export async function getStayLinkForBusiness(supabase: Client, businessId: string): Promise<{ id: string; slug: string | null; spaceSlug: string } | null> {
   const { data, error } = await supabase
     .from("accommodation_listings")
-    .select("id, space:space_id (slug)")
+    .select("id, slug, space:space_id (slug)")
     .eq("business_id", businessId)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 
   if (error) throw error;
-  const row = data as unknown as { id: string; space: { slug: string } | null } | null;
-  return row?.space?.slug ? { id: row.id, spaceSlug: row.space.slug } : null;
+  const row = data as unknown as { id: string; slug: string | null; space: { slug: string } | null } | null;
+  return row?.space?.slug ? { id: row.id, slug: row.slug, spaceSlug: row.space.slug } : null;
 }
 
 // Directory listings a stay can be linked to, for the form's picker. Community-
@@ -132,6 +132,31 @@ export async function getSpaceAccommodationListingsWithStats(
     const ratings = listing.place_id ? ratingsByPlace.get(listing.place_id) ?? [] : [];
     return { ...listing, saved: savedIds.has(listing.id), avgRating: average(ratings), ratingCount: ratings.length };
   });
+}
+
+// UUIDs are v4 (gen_random_uuid); a name-derived slug is never shaped like one,
+// so the shape tells us which column to resolve against.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Resolve a stay's UUID from the value in the route's [listingId] segment, which
+// may be either the raw UUID (old links) or the human slug, scoped to the space
+// so a slug only ever resolves within its own accommodation space. Returns null
+// when nothing matches. `slug` rides along so the caller can redirect a UUID
+// request to the canonical slug URL. Mirrors resolveBusinessRef.
+export async function resolveAccommodationRef(
+  supabase: Client,
+  spaceId: string,
+  idOrSlug: string
+): Promise<{ id: string; slug: string | null } | null> {
+  const column = UUID_RE.test(idOrSlug) ? "id" : "slug";
+  const { data, error } = await supabase
+    .from("accommodation_listings")
+    .select("id, slug")
+    .eq("space_id", spaceId)
+    .eq(column, idOrSlug)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
 }
 
 export type AccommodationReviewWithAuthor = AccommodationReview & {

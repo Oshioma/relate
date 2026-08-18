@@ -275,7 +275,7 @@ export default async function CommunityFeedPage({
       authorName: a.lister?.full_name || a.lister?.username || null,
       authorAvatar: a.lister?.avatar_url ?? null,
       spaceName: a.space?.name ?? null,
-      href: a.space ? `${base}/spaces/${a.space.slug}/stays/${a.id}` : base,
+      href: a.space ? `${base}/spaces/${a.space.slug}/stays/${a.slug ?? a.id}` : base,
     })),
     ...recentRecommendations.map((r): FeedItem => ({
       key: `recommendation-${r.id}`,

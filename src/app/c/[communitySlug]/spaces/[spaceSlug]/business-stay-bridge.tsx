@@ -18,7 +18,7 @@ export function BusinessStayBridge({
 }: {
   businessId: string;
   communitySlug: string;
-  linkedStay: { spaceSlug: string; id: string } | null;
+  linkedStay: { spaceSlug: string; id: string; slug: string | null } | null;
   // The viewer manages this listing and the community has an accommodation
   // space to host the stay.
   canCreate: boolean;
@@ -51,7 +51,7 @@ export function BusinessStayBridge({
           This place has a full stay listing with photos, availability and reviews.
         </p>
         <Link
-          href={`/c/${communitySlug}/spaces/${linkedStay.spaceSlug}/stays/${linkedStay.id}`}
+          href={`/c/${communitySlug}/spaces/${linkedStay.spaceSlug}/stays/${linkedStay.slug ?? linkedStay.id}`}
           className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-accent hover:underline"
         >
           View stay <ArrowRight className="h-3.5 w-3.5" />

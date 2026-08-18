@@ -73,7 +73,7 @@ export function BusinessDetailView({
   canClaim: boolean;
   // The stay already linked to this business, if any (for the accommodation
   // bridge shown on stay-like listings).
-  linkedStay: { spaceSlug: string; id: string } | null;
+  linkedStay: { spaceSlug: string; id: string; slug: string | null } | null;
   // The viewer manages this listing and the community has an accommodation
   // space, so they can spin up a stay from it.
   canCreateStay: boolean;

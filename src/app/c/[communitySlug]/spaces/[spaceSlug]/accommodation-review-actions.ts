@@ -5,9 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AccommodationReviewFormState = { error: string } | undefined;
 
-function detailPath(communitySlug: string, spaceSlug: string, listingId: string) {
-  return `/c/${communitySlug}/spaces/${spaceSlug}/stays/${listingId}`;
-}
+// A stay renders at its slug URL but may also be reached by UUID, so revalidate
+// the dynamic route itself (with "page") rather than one concrete path — that
+// invalidates the stay regardless of which form was requested.
+const DETAIL_ROUTE = "/c/[communitySlug]/spaces/[spaceSlug]/stays/[listingId]";
 
 // Add or update the current member's review (rating + optional text). One row
 // per member per listing, enforced by the accommodation_reviews unique
@@ -62,7 +63,7 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, listingId));
+  revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return undefined;
 }
@@ -78,7 +79,7 @@ export async function deleteAccommodationReview(reviewId: string, listingId: str
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, listingId));
+  revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
 }
@@ -88,8 +89,6 @@ export async function deleteAccommodationReview(reviewId: string, listingId: str
 export async function replyToAccommodationReview(_prevState: AccommodationReviewFormState, formData: FormData): Promise<AccommodationReviewFormState> {
   const reviewId = String(formData.get("review_id") ?? "");
   const listingId = String(formData.get("listing_id") ?? "");
-  const communitySlug = String(formData.get("community_slug") ?? "");
-  const spaceSlug = String(formData.get("space_slug") ?? "");
   const body = String(formData.get("body") ?? "").trim();
 
   if (!body) {
@@ -120,11 +119,11 @@ export async function replyToAccommodationReview(_prevState: AccommodationReview
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, listingId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return undefined;
 }
 
-export async function deleteAccommodationReviewReply(replyId: string, listingId: string, communitySlug: string, spaceSlug: string) {
+export async function deleteAccommodationReviewReply(replyId: string) {
   const supabase = await createClient();
   await supabase.from("place_review_replies").delete().eq("id", replyId);
   const { error } = await supabase.from("accommodation_review_replies").delete().eq("id", replyId);
@@ -133,6 +132,6 @@ export async function deleteAccommodationReviewReply(replyId: string, listingId:
     return { error: error.message };
   }
 
-  revalidatePath(detailPath(communitySlug, spaceSlug, listingId));
+  revalidatePath(DETAIL_ROUTE, "page");
   return { error: null };
 }
