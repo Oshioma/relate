@@ -22,6 +22,7 @@ import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { Tag, Search } from "lucide-react";
 import { getCommunityPosts } from "@/lib/data/posts";
+import { getFeedInteractions, feedInteractionFor } from "@/lib/data/feed-interactions";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
@@ -178,6 +179,8 @@ export default async function CommunityFeedPage({
   const items: FeedItem[] = [
     ...posts.map((p): FeedItem => ({
       key: `post-${p.id}`,
+      itemType: "post" as const,
+      itemId: p.id,
       createdAt: p.created_at,
       isPinned: p.is_pinned,
       icon: MessageSquare,
@@ -195,6 +198,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentBusinesses.map((b): FeedItem => ({
       key: `business-${b.id}`,
+      itemType: "business" as const,
+      itemId: b.id,
       createdAt: b.created_at,
       icon: Store,
       title: b.name,
@@ -210,6 +215,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentEvents.map((e): FeedItem => ({
       key: `event-${e.id}`,
+      itemType: "event" as const,
+      itemId: e.id,
       createdAt: e.created_at,
       icon: CalendarDays,
       title: e.title,
@@ -224,6 +231,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentListings.map((l): FeedItem => ({
       key: `listing-${l.id}`,
+      itemType: "listing" as const,
+      itemId: l.id,
       createdAt: l.created_at,
       icon: ShoppingBag,
       title: l.title,
@@ -238,6 +247,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentJobs.map((j): FeedItem => ({
       key: `job-${j.id}`,
+      itemType: "job" as const,
+      itemId: j.id,
       createdAt: j.created_at,
       icon: Briefcase,
       title: j.title,
@@ -252,6 +263,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentStays.map((a): FeedItem => ({
       key: `stay-${a.id}`,
+      itemType: "stay" as const,
+      itemId: a.id,
       createdAt: a.created_at,
       icon: BedDouble,
       title: a.name,
@@ -266,6 +279,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentRecommendations.map((r): FeedItem => ({
       key: `recommendation-${r.id}`,
+      itemType: "recommendation" as const,
+      itemId: r.id,
       createdAt: r.created_at,
       icon: Star,
       title: r.title,
@@ -280,6 +295,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,
+      itemType: "club" as const,
+      itemId: c.id,
       createdAt: c.created_at,
       icon: UsersRound,
       title: c.name,
@@ -294,6 +311,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentVolunteerProjects.map((v): FeedItem => ({
       key: `volunteer-${v.id}`,
+      itemType: "volunteer" as const,
+      itemId: v.id,
       createdAt: v.created_at,
       icon: HandHeart,
       title: v.title,
@@ -308,6 +327,8 @@ export default async function CommunityFeedPage({
     })),
     ...recentMembers.map((m): FeedItem => ({
       key: `member-${m.id}`,
+      itemType: "member" as const,
+      itemId: m.id,
       createdAt: m.created_at,
       icon: UserPlus,
       title: m.profile.full_name || m.profile.username,
@@ -326,6 +347,16 @@ export default async function CommunityFeedPage({
   const pinned = items.filter((i) => i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const activity = [...pinned, ...rest].slice(0, 40);
+
+  // Smiles and comments for the cards actually on screen — `activity` is
+  // already capped, so this is a fixed handful of batched queries rather than
+  // one per card. Guests get the tallies but no controls.
+  const feedInteractions = await getFeedInteractions(
+    supabase,
+    community.id,
+    activity.map((item) => ({ type: item.itemType, id: item.itemId })),
+    user?.id
+  );
 
   // Counts are opt-in per community (show_stats, default off). A stat strip
   // exists to argue the place is busy, and small numbers argue the opposite —
@@ -508,7 +539,22 @@ export default async function CommunityFeedPage({
             ) : (
               <div className="space-y-5">
                 {activity.map((item) => (
-                  <FeedItemCard key={item.key} item={item} />
+                  <FeedItemCard
+                    key={item.key}
+                    item={{
+                      ...item,
+                      actions: {
+                        communitySlug: community.slug,
+                        communityId: community.id,
+                        itemType: item.itemType,
+                        itemId: item.itemId,
+                        canInteract: isMember,
+                        viewerId: user?.id ?? null,
+                        isStaff,
+                        ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
+                      },
+                    }}
+                  />
                 ))}
               </div>
             )}
