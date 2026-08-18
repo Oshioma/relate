@@ -12,6 +12,7 @@ import { getTiersForSpace } from "@/lib/data/tiers";
 import { SpacePaywall } from "./space-paywall";
 import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { SmileStack } from "@/components/ui/smile-stack";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
@@ -868,6 +869,7 @@ export default async function SpaceDetailPage({
                             {post.reaction_count}
                             <span className="sr-only"> smiles</span>
                           </span>
+                          <SmileStack reactors={post.reactors} count={post.reaction_count} size={20} />
                         </div>
                       </CardContent>
                     </Card>
