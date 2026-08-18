@@ -48,6 +48,8 @@ interface MobileNavProps {
   tabs: MobileTab[];
   communityName: string;
   communityLogoUrl: string | null;
+  /** The community feed, which the drawer's logo links to — the way home. */
+  communityHref: string;
   /** The full nav tree — everything the desktop sidebar shows — for the drawer. */
   items: MobileNavItem[];
   links: MobileExternalLink[];
@@ -58,7 +60,7 @@ function itemIsActive(pathname: string, href: string, exact?: boolean) {
   return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 }
 
-export function MobileNav({ tabs, communityName, communityLogoUrl, items, links, account }: MobileNavProps) {
+export function MobileNav({ tabs, communityName, communityLogoUrl, communityHref, items, links, account }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -161,10 +163,10 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
           )}
         >
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5">
-            <div className="flex min-w-0 items-center gap-2.5">
+            <Link href={communityHref} onClick={close} className="flex min-w-0 items-center gap-2.5">
               <Avatar src={communityLogoUrl} name={communityName} size={36} />
               <span className="truncate text-base font-semibold text-foreground">{communityName}</span>
-            </div>
+            </Link>
             <button
               type="button"
               onClick={close}

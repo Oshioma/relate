@@ -225,10 +225,14 @@ export default async function CommunityLayout({
             its place on the feed header, where it's large enough to be the
             photograph it is. */}
         <div className="border-b border-border px-5 py-5">
-          <div className="flex flex-col items-center text-center">
+          {/* The logo is the way home, the way every site's masthead works —
+              it goes to the community feed from anywhere inside the community. */}
+          <Link href={base} className="flex flex-col items-center text-center">
             <Avatar src={community.logo_url} name={community.name} size={140} />
-            <span className="mt-3 truncate text-lg font-semibold text-foreground">{community.name}</span>
-          </div>
+            <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
+              {community.name}
+            </span>
+          </Link>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4">
@@ -422,6 +426,7 @@ export default async function CommunityLayout({
       <MobileNav
         communityName={community.name}
         communityLogoUrl={community.logo_url}
+        communityHref={base}
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <Layers className="h-5 w-5" /> },
