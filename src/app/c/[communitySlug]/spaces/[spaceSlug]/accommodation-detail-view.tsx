@@ -15,6 +15,7 @@ import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import { StayBusinessBridge } from "./stay-business-bridge";
+import { AccommodationClaimSection } from "./accommodation-claim-section";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
 import type { BusinessCustomCategory } from "@/types/database";
 
@@ -30,6 +31,7 @@ function directionsUrl(lat: number | null, lng: number | null, label: string | n
 
 export function AccommodationDetailView({
   detail,
+  communityId,
   communitySlug,
   spaceSlug,
   userId,
@@ -37,12 +39,14 @@ export function AccommodationDetailView({
   canSave,
   canReview,
   canReply,
+  canClaim,
   isStaff,
   businesses,
   canCreateBusiness,
   directoryCategories,
 }: {
   detail: AccommodationDetail;
+  communityId: string;
   communitySlug: string;
   spaceSlug: string;
   userId: string;
@@ -52,13 +56,15 @@ export function AccommodationDetailView({
   canReview: boolean;
   // The host or staff — may reply to reviews.
   canReply: boolean;
+  // Signed in, the stay has no host yet, and the viewer has no live claim on it.
+  canClaim: boolean;
   isStaff: boolean;
   businesses: BusinessLinkOption[];
   // The viewer manages this stay and the community has a directory to add to.
   canCreateBusiness: boolean;
   directoryCategories: BusinessCustomCategory[];
 }) {
-  const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness } = detail;
+  const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness, viewerClaim, pendingClaims } = detail;
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(detail.saved);
   const [isPending, startTransition] = useTransition();
@@ -310,14 +316,6 @@ export function AccommodationDetailView({
         </CardContent>
       </Card>
 
-      <StayBusinessBridge
-        listingId={listing.id}
-        communitySlug={communitySlug}
-        linkedBusiness={linkedBusiness}
-        canCreate={canCreateBusiness}
-        customCategories={directoryCategories}
-      />
-
       <div>
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Reviews {ratingCount > 0 && `(${ratingCount})`}
@@ -343,7 +341,30 @@ export function AccommodationDetailView({
           ))}
           {reviews.length === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Be the first to leave one.</p>}
         </div>
+
+        <AccommodationClaimSection
+          listingId={listing.id}
+          communityId={communityId}
+          communitySlug={communitySlug}
+          spaceSlug={spaceSlug}
+          canClaim={canClaim}
+          isStaff={isStaff}
+          ownedByViewer={listing.claimed_by !== null && listing.claimed_by === userId}
+          claimed={listing.claimed_by !== null}
+          viewerClaim={viewerClaim}
+          pendingClaims={pendingClaims}
+        />
       </div>
+
+      {/* The directory bridge is housekeeping for whoever manages the stay, not
+          something a guest reading the page needs, so it sits at the foot. */}
+      <StayBusinessBridge
+        listingId={listing.id}
+        communitySlug={communitySlug}
+        linkedBusiness={linkedBusiness}
+        canCreate={canCreateBusiness}
+        customCategories={directoryCategories}
+      />
     </div>
   );
 }

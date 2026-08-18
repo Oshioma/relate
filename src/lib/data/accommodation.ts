@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, AccommodationListing, AccommodationReview, AccommodationReviewReply, Business, Profile, Space } from "@/types/database";
+import type { Database, AccommodationClaim, AccommodationListing, AccommodationReview, AccommodationReviewReply, Business, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -139,6 +139,8 @@ export type AccommodationReviewWithAuthor = AccommodationReview & {
   reply: (AccommodationReviewReply & { author: Profile }) | null;
 };
 
+export type AccommodationClaimWithClaimant = AccommodationClaim & { claimant: Profile };
+
 export type AccommodationDetail = {
   listing: AccommodationListingWithBusiness & { lister: Profile };
   saved: boolean;
@@ -149,6 +151,10 @@ export type AccommodationDetail = {
   // The linked directory listing (if any), with its space slug so the detail
   // page can link straight to the business's own page.
   linkedBusiness: { id: string; name: string; spaceSlug: string } | null;
+  // The viewer's own ownership claim on this stay, if any (RLS shows a member
+  // only their own). Staff additionally see every pending claim in pendingClaims.
+  viewerClaim: AccommodationClaim | null;
+  pendingClaims: AccommodationClaimWithClaimant[];
 };
 
 // One listing plus who posted it, any linked business, the viewer's saved state
@@ -163,7 +169,7 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
   if (error) throw error;
   if (!data) return null;
 
-  const [{ data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }] = await Promise.all([
+  const [{ data: reviews, error: reviewsError }, { data: replies, error: repliesError }, { data: saveRow, error: saveError }, { data: claims, error: claimsError }] = await Promise.all([
     // One conversation per place: this stay and any directory listing for the
     // same place show the same reviews. A listing with no place falls back to
     // its own rather than appearing to have none.
@@ -176,10 +182,16 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
     viewerId
       ? supabase.from("accommodation_saves").select("id").eq("listing_id", listingId).eq("user_id", viewerId).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
+    // RLS narrows this to the viewer's own claim, or every claim on the stay
+    // when the viewer is staff.
+    viewerId
+      ? supabase.from("accommodation_claims").select("*, claimant:claimant_id (*)").eq("listing_id", listingId)
+      : Promise.resolve({ data: [], error: null }),
   ]);
   if (reviewsError) throw reviewsError;
   if (repliesError) throw repliesError;
   if (saveError) throw saveError;
+  if (claimsError) throw claimsError;
 
   const replyByReviewId = new Map<string, AccommodationReviewReply & { author: Profile }>();
   for (const reply of (replies ?? []) as unknown as (AccommodationReviewReply & { author: Profile })[]) {
@@ -208,6 +220,8 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
     if (row?.space?.slug) linkedBusiness = { id: row.id, name: row.name, spaceSlug: row.space.slug };
   }
 
+  const claimRows = (claims ?? []) as unknown as AccommodationClaimWithClaimant[];
+
   return {
     listing: data as unknown as AccommodationListingWithBusiness & { lister: Profile },
     saved: Boolean(saveRow),
@@ -216,5 +230,7 @@ export async function getAccommodationDetail(supabase: Client, listingId: string
     ratingCount: ratingValues.length,
     viewerReview: reviewRows.find((r) => r.author_id === viewerId) ?? null,
     linkedBusiness,
+    viewerClaim: claimRows.find((c) => c.claimant_id === viewerId) ?? null,
+    pendingClaims: claimRows.filter((c) => c.status === "pending"),
   };
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getAccommodationDetail, getCommunityBusinessLinkOptions } from "@/lib/data/accommodation";
@@ -26,11 +26,25 @@ export default async function AccommodationDetailPage({
   const detail = await getAccommodationDetail(supabase, listingId, viewerId);
   if (!detail || detail.listing.space_id !== space.id) notFound();
 
-  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+  const [membership, profile] = await Promise.all([
+    user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
+    user ? getProfile(supabase, user.id) : Promise.resolve(null),
+  ]);
   const isActive = membership?.status === "active";
   const isStaff = isActive && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
-  // The lister (listed_by) manages their own listing; staff can always manage.
-  const canManage = detail.listing.listed_by === viewerId || Boolean(isStaff);
+  const isSuperAdmin = Boolean(profile?.is_super_admin);
+  // Listing a stay is attribution, not ownership: the host is whoever's claim
+  // staff approved (claimed_by). Hand-off — the lister maintains the stay while
+  // it's unclaimed, then the host takes over. Staff and super admins always can.
+  const isHost = detail.listing.claimed_by === viewerId;
+  const isCaretaker = detail.listing.claimed_by === null && detail.listing.listed_by === viewerId;
+  const canManage = isHost || isCaretaker || Boolean(isStaff) || isSuperAdmin;
+  // Anyone signed in who can see an unclaimed stay may ask to host it — including
+  // the member who listed it and a brand-new user who hasn't joined the community
+  // yet, since claiming is how a host gets connected in the first place. A
+  // previously declined claim doesn't lock them out. Staff approve every claim.
+  const canClaim =
+    Boolean(user) && detail.listing.claimed_by === null && (detail.viewerClaim === null || detail.viewerClaim.status === "rejected");
   // Directory listings this stay can link to — only needed when the viewer can
   // edit it.
   const businesses = canManage ? await getCommunityBusinessLinkOptions(supabase, community.id) : [];
@@ -62,15 +76,19 @@ export default async function AccommodationDetailPage({
 
       <AccommodationDetailView
         detail={detail}
+        communityId={community.id}
         communitySlug={community.slug}
         spaceSlug={space.slug}
         userId={viewerId}
         canManage={canManage}
         canSave={Boolean(isActive)}
-        // Any active member may review, except the host of this listing.
-        canReview={Boolean(isActive) && detail.listing.listed_by !== viewerId}
+        // Any active member may review, except whoever the listing speaks for —
+        // its host, or the lister while it's unclaimed. Super admins may review
+        // anything, for seeding.
+        canReview={Boolean(isActive) && (!(isHost || isCaretaker) || isSuperAdmin)}
         // The host or staff may reply to reviews.
         canReply={canManage}
+        canClaim={canClaim}
         isStaff={Boolean(isStaff)}
         businesses={businesses}
         canCreateBusiness={canManage && directorySpace !== null}
