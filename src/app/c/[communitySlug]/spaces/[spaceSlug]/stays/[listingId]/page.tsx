@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getAccommodationDetail, getCommunityBusinessLinkOptions } from "@/lib/data/accommodation";
+import { getAccommodationDetail, getCommunityBusinessLinkOptions, resolveAccommodationRef } from "@/lib/data/accommodation";
 import { AccommodationDetailView } from "../../accommodation-detail-view";
 
 export default async function AccommodationDetailPage({
@@ -12,7 +12,9 @@ export default async function AccommodationDetailPage({
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string; listingId: string }>;
 }) {
-  const { communitySlug, spaceSlug, listingId } = await params;
+  // The [listingId] segment is really an "id or slug" — old links carry the
+  // UUID, new ones the human slug.
+  const { communitySlug, spaceSlug, listingId: listingRef } = await params;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -22,8 +24,18 @@ export default async function AccommodationDetailPage({
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   if (!space) notFound();
 
+  const ref = await resolveAccommodationRef(supabase, space.id, listingRef);
+  if (!ref) notFound();
+
+  // Canonicalize to the slug URL: a request that came in on the UUID is
+  // redirected to the stay's slug so shared and bookmarked links settle on the
+  // readable form.
+  if (ref.slug && listingRef !== ref.slug) {
+    redirect(`/c/${communitySlug}/spaces/${spaceSlug}/stays/${ref.slug}`);
+  }
+
   const viewerId = user?.id ?? "";
-  const detail = await getAccommodationDetail(supabase, listingId, viewerId);
+  const detail = await getAccommodationDetail(supabase, ref.id, viewerId);
   if (!detail || detail.listing.space_id !== space.id) notFound();
 
   const [membership, profile] = await Promise.all([

@@ -61,7 +61,7 @@ export default function AccommodationMap({
           return (
             <Marker key={listing.id} position={[listing.lat, listing.lng]} icon={pinIcon()}>
               <Popup>
-                <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.id}`} className="block w-44">
+                <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.slug ?? listing.id}`} className="block w-44">
                   {cover && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={cover} alt={listing.name} className="mb-1.5 h-24 w-full rounded object-cover" />

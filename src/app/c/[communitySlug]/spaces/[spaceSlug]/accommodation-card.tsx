@@ -45,7 +45,7 @@ export function AccommodationCard({
 
   return (
     <Link
-      href={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.id}`}
+      href={`/c/${communitySlug}/spaces/${spaceSlug}/stays/${listing.slug ?? listing.id}`}
       className="group block overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">

@@ -61,7 +61,7 @@ export function AccommodationReviewItem({
   function handleDeleteReply() {
     if (!reply || !window.confirm("Delete this reply?")) return;
     startTransition(async () => {
-      const result = await deleteAccommodationReviewReply(reply.id, listingId, communitySlug, spaceSlug);
+      const result = await deleteAccommodationReviewReply(reply.id);
       if (result?.error) setError(result.error);
       else router.refresh();
     });

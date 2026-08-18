@@ -857,6 +857,11 @@ export type AccommodationListing = {
   // the same place. Nullable while the model is being rolled out.
   place_id: string | null;
   name: string;
+  // Human-readable, per-space-unique handle derived from the name and assigned
+  // on insert (see the accommodation_listing_slugs migration). The stay route
+  // resolves either this or the UUID and canonicalizes to the slug. Nullable
+  // only defensively — every row is backfilled.
+  slug: string | null;
   accommodation_type: AccommodationType;
   description: string | null;
   // Denormalised cover (kept in sync with photo_urls[0]) so the feed and map
