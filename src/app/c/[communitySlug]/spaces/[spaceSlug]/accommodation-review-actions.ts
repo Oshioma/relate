@@ -33,11 +33,18 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
     return { error: "You need to be signed in." };
   }
 
-  const { data: listing, error: listingError } = await supabase.from("accommodation_listings").select("listed_by, place_id").eq("id", listingId).maybeSingle();
+  const { data: listing, error: listingError } = await supabase
+    .from("accommodation_listings")
+    .select("listed_by, claimed_by, place_id")
+    .eq("id", listingId)
+    .maybeSingle();
   if (listingError || !listing) {
     return { error: listingError?.message ?? "Listing not found." };
   }
-  if (listing.listed_by === user.id) {
+  // You can't review a stay you speak for: its host, or — while it's unclaimed —
+  // whoever listed it. Once a host claims it, the original lister was only a
+  // curator and may review like anyone else.
+  if (listing.claimed_by ? listing.claimed_by === user.id : listing.listed_by === user.id) {
     return { error: "You can't review your own listing." };
   }
 

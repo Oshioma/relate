@@ -33,6 +33,7 @@ export function StayBusinessBridge({
   // Restaurant is the overwhelmingly common reason a stay also belongs in the
   // directory, so it leads — but every category the space offers is available.
   const [category, setCategory] = useState("restaurant");
+  const [showForm, setShowForm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -51,8 +52,8 @@ export function StayBusinessBridge({
 
   if (linkedBusiness) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent-soft/50 p-4">
-        <p className="flex items-center gap-2 text-sm text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-4">
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Building2 className="h-4 w-4 text-accent" />
           This place is in the directory too, with its own hours and reviews.
         </p>
@@ -68,8 +69,21 @@ export function StayBusinessBridge({
 
   if (!canCreate) return null;
 
+  // Collapsed by default: this is a small piece of admin for the host, so it
+  // sits at the foot of the page as one quiet line and only unfolds the
+  // explanation and category picker when they're actually interested.
+  if (!showForm) {
+    return (
+      <div className="border-t border-border pt-4">
+        <button type="button" onClick={() => setShowForm(true)} className="text-sm text-muted-foreground hover:text-foreground hover:underline">
+          Is this a restaurant too?
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-lg border border-dashed border-border p-4">
+    <div className="border-t border-border pt-4">
       <p className="flex items-center gap-2 text-sm font-medium text-foreground">
         <Building2 className="h-4 w-4 text-accent" />
         Is this a restaurant too?
@@ -100,6 +114,14 @@ export function StayBusinessBridge({
         >
           <Building2 className="h-4 w-4" />
           {isPending ? "Adding…" : "Add to the directory"}
+        </button>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => setShowForm(false)}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-60"
+        >
+          Cancel
         </button>
       </div>
 

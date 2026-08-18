@@ -810,7 +810,12 @@ export type AccommodationListing = {
   id: string;
   space_id: string;
   community_id: string;
+  // Who added the stay — attribution. Once someone else's claim is approved
+  // they take over; listing a stay isn't ownership on its own.
   listed_by: string;
+  // The stay's host: the member whose ownership claim staff approved. Null
+  // until then, which is what makes a stay claimable.
+  claimed_by: string | null;
   business_id: string | null;
   // The place this stay is a facet of; shared with any directory listing for
   // the same place. Nullable while the model is being rolled out.
@@ -875,6 +880,20 @@ export type AccommodationReviewReply = {
   body: string;
   created_at: string;
   updated_at: string;
+};
+
+// A request to be recognised as a stay's host, resolved by community staff.
+// Approving one sets accommodation_listings.claimed_by. Mirrors BusinessClaim.
+export type AccommodationClaim = {
+  id: string;
+  listing_id: string;
+  community_id: string;
+  claimant_id: string;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
 };
 
 // A member's bookmark of a stay. Visible only to the member who saved it, so
@@ -2001,7 +2020,13 @@ export type Database = {
         Row: AccommodationListing;
         Insert: Partial<AccommodationListing> & { space_id: string; community_id: string; listed_by: string; name: string };
         Update: Partial<AccommodationListing>;
-        Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"business_id", "businesses">];
+        Relationships: [FKey<"space_id", "spaces">, FKey<"listed_by", "profiles">, FKey<"claimed_by", "profiles">, FKey<"business_id", "businesses">];
+      };
+      accommodation_claims: {
+        Row: AccommodationClaim;
+        Insert: Partial<AccommodationClaim> & { listing_id: string; community_id: string; claimant_id: string };
+        Update: Partial<AccommodationClaim>;
+        Relationships: [FKey<"listing_id", "accommodation_listings">, FKey<"community_id", "communities">, FKey<"claimant_id", "profiles">, FKey<"resolved_by", "profiles">];
       };
       accommodation_reviews: {
         Row: AccommodationReview;
