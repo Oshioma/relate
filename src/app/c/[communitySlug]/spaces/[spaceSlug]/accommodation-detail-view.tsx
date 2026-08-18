@@ -13,6 +13,7 @@ import { ImageCarousel } from "./image-carousel";
 import { EditAccommodationForm } from "./edit-accommodation-form";
 import { AccommodationReviewForm } from "./accommodation-review-form";
 import { AccommodationReviewItem } from "./accommodation-review-item";
+import { ReviewsEmptyState } from "./reviews-empty-state";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import { StayBusinessBridge } from "./stay-business-bridge";
 import { AccommodationClaimSection } from "./accommodation-claim-section";
@@ -35,6 +36,7 @@ export function AccommodationDetailView({
   communitySlug,
   spaceSlug,
   userId,
+  isLoggedIn,
   canManage,
   canSave,
   canReview,
@@ -50,6 +52,9 @@ export function AccommodationDetailView({
   communitySlug: string;
   spaceSlug: string;
   userId: string;
+  // Signed in at all (not necessarily a member). The reviews placeholder uses
+  // it to offer a visitor a way in rather than an invitation they can't accept.
+  isLoggedIn: boolean;
   canManage: boolean;
   canSave: boolean;
   // An active member who isn't the host — may review.
@@ -339,7 +344,7 @@ export function AccommodationDetailView({
               canReply={canReply}
             />
           ))}
-          {reviews.length === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Be the first to leave one.</p>}
+          {reviews.length === 0 && <ReviewsEmptyState isLoggedIn={isLoggedIn} />}
         </div>
 
         <AccommodationClaimSection
