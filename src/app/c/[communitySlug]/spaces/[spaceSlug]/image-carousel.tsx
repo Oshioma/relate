@@ -165,7 +165,7 @@ export function ImageCarousel({ images, alt }: { images: CarouselImage[]; alt: s
               onClick={() => scrollTo(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-current={i === index}
-              className={`h-20 w-28 shrink-0 overflow-hidden rounded-md border transition sm:h-24 sm:w-36 ${
+              className={`h-28 w-40 shrink-0 overflow-hidden rounded-md border transition sm:h-32 sm:w-48 ${
                 i === index ? "border-accent opacity-100 ring-1 ring-accent" : "border-border opacity-70 hover:opacity-100"
               }`}
             >
