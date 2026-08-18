@@ -98,6 +98,7 @@ export default async function BusinessDetailPage({
         communitySlug={community.slug}
         spaceSlug={space.slug}
         userId={viewerId}
+        isLoggedIn={Boolean(user)}
         canManage={canManage}
         isStaff={Boolean(isStaff)}
         // Any active member may review, except the owner of a listing they've

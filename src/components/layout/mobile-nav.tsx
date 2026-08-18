@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Menu, X, ArrowLeft, ExternalLink, Search } from "lucide-react";
+import { Menu, X, ExternalLink, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { cn } from "@/lib/utils";
@@ -264,8 +264,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, items, links,
                   </div>
                 </Link>
                 <Link href="/dashboard" onClick={close} className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-muted">
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium text-foreground">All communities</span>
+                  <span className="text-sm font-medium text-foreground">Powered by Relate.Click</span>
                 </Link>
                 <LogoutButton />
               </>

@@ -14,6 +14,7 @@ import { ImageCarousel } from "./image-carousel";
 import { EditBusinessForm } from "./edit-business-form";
 import { BusinessReviewForm } from "./business-review-form";
 import { BusinessReviewItem } from "./business-review-item";
+import { ReviewsEmptyState } from "./reviews-empty-state";
 import { BusinessClaimSection } from "./business-claim-section";
 import { BusinessStayBridge } from "./business-stay-bridge";
 import { deleteBusiness, setBusinessBadge, toggleSaveBusiness } from "./business-directory-actions";
@@ -41,6 +42,7 @@ export function BusinessDetailView({
   communitySlug,
   spaceSlug,
   userId,
+  isLoggedIn,
   canManage,
   isStaff,
   canReview,
@@ -58,6 +60,9 @@ export function BusinessDetailView({
   communitySlug: string;
   spaceSlug: string;
   userId: string;
+  // Signed in at all (not necessarily a member). The reviews placeholder uses
+  // it to offer a visitor a way in rather than an invitation they can't accept.
+  isLoggedIn: boolean;
   // May edit/delete and manage photos: the owner (claimed_by), or the adder
   // while unclaimed, plus staff and super admins. Verify/feature stay staff-only.
   canManage: boolean;
@@ -342,7 +347,7 @@ export function BusinessDetailView({
               canReply={canReply}
             />
           ))}
-          {reviews.length === 0 && <p className="text-sm text-muted-foreground">No reviews yet. Be the first to leave one.</p>}
+          {reviews.length === 0 && <ReviewsEmptyState isLoggedIn={isLoggedIn} />}
         </div>
 
         <BusinessClaimSection

@@ -92,6 +92,7 @@ export default async function AccommodationDetailPage({
         communitySlug={community.slug}
         spaceSlug={space.slug}
         userId={viewerId}
+        isLoggedIn={Boolean(user)}
         canManage={canManage}
         canSave={Boolean(isActive)}
         // Any active member may review, except whoever the listing speaks for —
