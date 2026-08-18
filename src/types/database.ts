@@ -38,6 +38,19 @@ export type SpaceType =
   | "plant_id"
   | "live";
 export type PostType = "discussion" | "announcement" | "resource";
+// The activity kinds the community feed can carry a smile or a comment on.
+// Discussion posts are absent on purpose: they keep using post_reactions and
+// comments, so their counts match the post's own page.
+export type FeedItemType =
+  | "member"
+  | "business"
+  | "event"
+  | "listing"
+  | "job"
+  | "stay"
+  | "recommendation"
+  | "club"
+  | "volunteer";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -365,6 +378,29 @@ export type PostReaction = {
   user_id: string;
   emoji: string;
   created_at: string;
+};
+
+// A reaction on a non-post feed card, addressed polymorphically by
+// (item_type, item_id). community_id is what the RLS policies read.
+export type FeedReaction = {
+  id: string;
+  community_id: string;
+  item_type: FeedItemType;
+  item_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+};
+
+export type FeedComment = {
+  id: string;
+  community_id: string;
+  item_type: FeedItemType;
+  item_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
 };
 
 // `location` remains the free-text venue name/address; lat/lng/location_label
@@ -1824,6 +1860,18 @@ export type Database = {
         Insert: Partial<PostReaction> & { post_id: string; user_id: string };
         Update: Partial<PostReaction>;
         Relationships: [FKey<"post_id", "posts">, FKey<"user_id", "profiles">];
+      };
+      feed_reactions: {
+        Row: FeedReaction;
+        Insert: Partial<FeedReaction> & { community_id: string; item_type: FeedItemType; item_id: string; user_id: string };
+        Update: Partial<FeedReaction>;
+        Relationships: [FKey<"user_id", "profiles">];
+      };
+      feed_comments: {
+        Row: FeedComment;
+        Insert: Partial<FeedComment> & { community_id: string; item_type: FeedItemType; item_id: string; author_id: string; body: string };
+        Update: Partial<FeedComment>;
+        Relationships: [FKey<"author_id", "profiles">];
       };
       events: { Row: Event; Insert: Partial<Event> & { community_id: string; title: string; start_time: string; created_by: string }; Update: Partial<Event> } & NoRel;
       resources: { Row: Resource; Insert: Partial<Resource> & { community_id: string; space_id: string; title: string; url: string; created_by: string }; Update: Partial<Resource> } & NoRel;
