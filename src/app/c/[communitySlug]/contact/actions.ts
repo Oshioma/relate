@@ -78,7 +78,7 @@ export async function submitCommunityContact(
     type: "contact",
     title: `New contact message for ${community.name}`,
     body: `${name} (${email}): ${preview}`,
-    link: `/c/${community.slug}/admin`,
+    link: `/c/${community.slug}/inbox`,
   });
 
   return { ok: true };

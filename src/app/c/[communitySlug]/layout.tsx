@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
@@ -16,6 +16,7 @@ import { defaultNavItemSort } from "@/lib/nav-items";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
+import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
@@ -146,6 +147,9 @@ export default async function CommunityLayout({
   }
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  // Contact-form messages waiting on staff. Only staff can read them (RLS says
+  // so too), so only staff pay for the count query.
+  const openInboxCount = isStaff ? await countUnhandledCommunityContactMessages(supabase, community.id) : 0;
   // Members is login-gated regardless of visibility (the page itself requires
   // a signed-in user), then further narrowed by the community's setting.
   const showMembersLink = Boolean(user) && canViewMembers(community, membership);
@@ -341,6 +345,21 @@ export default async function CommunityLayout({
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
                 </span>
                 Live now!
+              </Link>
+            )}
+            {isStaff && (
+              <Link
+                href={`${base}/inbox`}
+                title="Community inbox"
+                className="relative flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <Inbox className="h-5 w-5" />
+                <span className="hidden sm:inline">Inbox</span>
+                {openInboxCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-foreground sm:static sm:h-auto sm:min-w-0 sm:rounded-full sm:px-1.5 sm:py-0.5">
+                    {openInboxCount > 99 ? "99+" : openInboxCount}
+                  </span>
+                )}
               </Link>
             )}
             {isStaff && (

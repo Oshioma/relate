@@ -29,3 +29,17 @@ export async function getCommunityContactMessages(supabase: Client, communityId:
   if (error) throw error;
   return data ?? [];
 }
+
+// How many of a community's contact messages are still open (not marked
+// handled). Drives the unread badge on the staff Inbox link, so it's a
+// count-only query — the messages themselves are loaded by the inbox page.
+// RLS scopes it to that community's owner and admins; anyone else counts zero.
+export async function countUnhandledCommunityContactMessages(supabase: Client, communityId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("contact_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("community_id", communityId)
+    .eq("handled", false);
+  if (error) throw error;
+  return count ?? 0;
+}
