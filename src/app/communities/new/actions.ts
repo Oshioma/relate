@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
-import { getCommunityTemplate, getPlaceLocationType, getArtistMode } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType, getArtistMode, getActivityKind } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
@@ -40,9 +40,12 @@ export interface WizardPayload {
   // Musician / Artist template only — 'fan' or 'collective', validated against
   // ARTIST_MODES below and dropped for every other template.
   artistMode?: string;
-  // Seeds map_categories (the Explore Map's togglable layers) so a place
-  // community's map isn't empty on day one. Dropped unless locationType is
-  // also set and valid.
+  // Activity template only — which activity the community is built around,
+  // validated against ACTIVITY_KINDS below and dropped for every other template.
+  activityKind?: string;
+  // Seeds map_categories (the map's togglable layers) so a place or activity
+  // community's map isn't empty on day one. Dropped unless the matching kind
+  // (locationType / activityKind) is also set and valid.
   mapLayers?: string[];
   spaces: WizardSpaceInput[];
   profileFields: WizardProfileFieldInput[];
@@ -101,6 +104,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   // recognised mode — dropped to null otherwise.
   const artistMode =
     templateKey === "fanclub" && payload.artistMode && getArtistMode(payload.artistMode) ? payload.artistMode : null;
+  // Same rule for the Activity template's chosen activity.
+  const activityKind =
+    templateKey === "activity" && payload.activityKind && getActivityKind(payload.activityKind) ? payload.activityKind : null;
 
   const supabase = await createClient();
   const {
@@ -123,6 +129,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       location_type: locationType,
       location_name: locationName,
       artist_mode: artistMode,
+      activity_kind: activityKind,
       owner_agreement_accepted_at: new Date().toISOString(),
       owner_agreement_version: OWNER_AGREEMENT_VERSION,
     })
@@ -181,7 +188,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     }
   }
 
-  const mapLayers = locationType ? (payload.mapLayers ?? []).filter((label) => label.trim()) : [];
+  const mapLayers = locationType || activityKind ? (payload.mapLayers ?? []).filter((label) => label.trim()) : [];
   if (mapLayers.length) {
     const { error: mapCategoriesError } = await supabase.from("map_categories").insert(
       mapLayers.map((name, i) => ({

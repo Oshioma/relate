@@ -5,9 +5,11 @@ import {
   COMMUNITY_TEMPLATES,
   PLACE_LOCATION_TYPES,
   ARTIST_MODES,
+  ACTIVITY_KINDS,
   recommendSetup,
   recommendPlaceSetup,
   recommendArtistSetup,
+  recommendActivitySetup,
   TRANSFORMATION_GOAL_PRESETS,
 } from "@/lib/community-templates";
 import { TEMPLATE_ICONS } from "@/lib/template-icons";
@@ -49,6 +51,7 @@ export function StepTemplate({
 }) {
   const isPlace = state.templateKey === "place";
   const isArtist = state.templateKey === "fanclub";
+  const isActivity = state.templateKey === "activity";
 
   function selectTemplate(key: string) {
     const template = COMMUNITY_TEMPLATES.find((t) => t.key === key)!;
@@ -61,6 +64,7 @@ export function StepTemplate({
       profileFields: toWizardFields(template.defaultProfileFields),
       locationType: "",
       artistMode: "",
+      activityKind: "",
       mapLayers: [],
       rationale: [],
     });
@@ -73,6 +77,17 @@ export function StepTemplate({
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
       profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
+    });
+  }
+
+  function selectActivityKind(key: string) {
+    const rec = recommendActivitySetup(key, defaultSpacesByTemplate?.["activity"]);
+    update({
+      activityKind: key,
+      spaces: toWizardSpaces(rec.spaces, allowedTypes),
+      profileFields: toWizardFields(rec.profileFields),
+      rationale: rec.rationale,
+      mapLayers: rec.mapLayers,
     });
   }
 
@@ -231,7 +246,61 @@ export function StepTemplate({
         </Card>
       )}
 
-      {state.templateKey && !isPlace && !isArtist && (
+      {state.templateKey && isActivity && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Which activity is this community built around?</span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Everything starts from Happening Now — members post what they&apos;re doing and when, and whoever&apos;s free comes along. Picking the
+            activity tailors the rest of the spaces, profile fields and Meet-Up Map layers.
+          </p>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {ACTIVITY_KINDS.map((kind) => {
+              const isActive = state.activityKind === kind.key;
+              return (
+                <button
+                  key={kind.key}
+                  type="button"
+                  onClick={() => selectActivityKind(kind.key)}
+                  className={cn(
+                    "rounded-md border-2 p-3 text-left transition-colors",
+                    isActive ? "border-accent bg-accent-soft" : "border-border bg-card hover:border-muted-foreground/40"
+                  )}
+                >
+                  <p className="text-sm font-semibold text-foreground">{kind.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{kind.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {state.mapLayers.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {state.mapLayers.map((layer) => (
+                <span key={layer} className="rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                  {layer}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {state.rationale.length > 0 && (
+            <ul className="mt-3 space-y-1 rounded-md bg-muted p-3 text-xs text-muted-foreground">
+              {state.rationale.map((line, i) => (
+                <li key={i} className="flex gap-1.5">
+                  <Check className="mt-0.5 h-3 w-3 shrink-0 text-accent" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
+
+      {state.templateKey && !isPlace && !isArtist && !isActivity && (
         <Card className="p-5">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-muted-foreground" />

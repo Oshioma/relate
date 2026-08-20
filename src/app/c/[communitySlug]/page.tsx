@@ -12,6 +12,7 @@ import {
   UsersRound,
   HandHeart,
   UserPlus,
+  Footprints,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -35,6 +36,8 @@ import { accommodationTypeLabel, formatAccommodationPrice } from "@/lib/accommod
 import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
+import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
+import { formatMeetupCountdown, meetupPhase } from "@/lib/meetups";
 import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -90,6 +93,7 @@ export default async function CommunityFeedPage({
     recentStays,
     recentRecommendations,
     recentClubs,
+    upcomingMeetups,
     recentVolunteerProjects,
     recentMembers,
     stats,
@@ -110,6 +114,7 @@ export default async function CommunityFeedPage({
     getCommunityRecentAccommodationListings(supabase, community.id, 12),
     getCommunityRecentRecommendations(supabase, community.id, 12),
     getCommunityRecentClubs(supabase, community.id, 12),
+    getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
     // Member profiles stay login-gated, so guests don't get "new member" cards.
     user ? getCommunityRecentMembers(supabase, community.id, 12) : Promise.resolve([]),
@@ -309,6 +314,27 @@ export default async function CommunityFeedPage({
       spaceName: c.space?.name ?? null,
       href: c.space ? `${base}/spaces/${c.space.slug}` : base,
     })),
+    // Only meetups still worth joining reach the feed — one that's over is
+    // history for the space, not an invitation. Sorted with everything else by
+    // created_at below, so a walk posted just now sits at the top.
+    ...upcomingMeetups
+      .filter((m) => meetupPhase(m) !== "past" && meetupPhase(m) !== "cancelled")
+      .map((m): FeedItem => ({
+        key: `meetup-${m.id}`,
+        itemType: "meetup" as const,
+        itemId: m.id,
+        createdAt: m.created_at,
+        icon: Footprints,
+        title: m.title,
+        description: m.description,
+        imageUrl: null,
+        typeBadge: meetupPhase(m) === "now" ? "Happening now" : "Meetup",
+        detail: [formatDateTime(m.starts_at), formatMeetupCountdown(m), m.meeting_point].filter(Boolean).join(" · "),
+        authorName: m.host?.full_name || m.host?.username || null,
+        authorAvatar: m.host?.avatar_url ?? null,
+        spaceName: m.space?.name ?? null,
+        href: m.space ? `${base}/spaces/${m.space.slug}` : base,
+      })),
     ...recentVolunteerProjects.map((v): FeedItem => ({
       key: `volunteer-${v.id}`,
       itemType: "volunteer" as const,

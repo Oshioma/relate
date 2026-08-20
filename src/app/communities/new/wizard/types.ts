@@ -32,6 +32,9 @@ export interface WizardState {
   // Musician / Artist template only: "fan" (around one artist) or "collective"
   // (a community of artists). Empty for every other template, and until picked.
   artistMode: string;
+  // Activity template only: which activity the community is built around
+  // (ACTIVITY_KINDS). Empty for every other template, and until picked.
+  activityKind: string;
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
@@ -49,6 +52,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   locationType: "",
   locationName: "",
   artistMode: "",
+  activityKind: "",
   mapLayers: [],
   rationale: [],
   spaces: [],

@@ -26,6 +26,8 @@ const CTA_LABEL: Record<string, string> = {
   contact: "View the message",
   contact_reply: "Visit the community",
   direct_message: "Open the conversation",
+  meetup: "See who's going",
+  meetup_join: "See who's going",
 };
 
 export async function POST(request: NextRequest) {
