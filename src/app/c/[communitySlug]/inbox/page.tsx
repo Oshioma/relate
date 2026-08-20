@@ -14,8 +14,17 @@ export const metadata: Metadata = { title: "Inbox" };
 // page, which meant every read of a message came with a wall of settings; it
 // gets its own route so it can be linked to directly (the contact-form
 // notification points here) and read on its own.
-export default async function CommunityInboxPage({ params }: { params: Promise<{ communitySlug: string }> }) {
+export default async function CommunityInboxPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ communitySlug: string }>;
+  // ?message=<id> comes from the "new contact message" notification, which
+  // links to the one message it's about.
+  searchParams: Promise<{ message?: string }>;
+}) {
   const { communitySlug } = await params;
+  const { message: highlightId } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -55,7 +64,12 @@ export default async function CommunityInboxPage({ params }: { params: Promise<{
         </Link>
       </div>
 
-      <CommunityContactInbox messages={messages} communitySlug={community.slug} communityName={community.name} />
+      <CommunityContactInbox
+        messages={messages}
+        communitySlug={community.slug}
+        communityName={community.name}
+        highlightId={highlightId ?? null}
+      />
     </div>
   );
 }

@@ -59,14 +59,21 @@ export async function submitCommunityContact(
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
 
-  const { error } = await admin.from("contact_messages").insert({
-    community_id: community.id,
-    user_id: user?.id ?? null,
-    name,
-    email,
-    message,
-  });
-  if (error) return { error: "Something went wrong saving your message. Please try again." };
+  // The stored row's id comes back so the notification can deep-link straight to
+  // this message in the inbox rather than dropping staff at the top of a list
+  // they then have to hunt through.
+  const { data: saved, error } = await admin
+    .from("contact_messages")
+    .insert({
+      community_id: community.id,
+      user_id: user?.id ?? null,
+      name,
+      email,
+      message,
+    })
+    .select("id")
+    .single();
+  if (error || !saved) return { error: "Something went wrong saving your message. Please try again." };
 
   // Land it in the owner's in-app inbox. The email_notification / push triggers
   // mirror this row to their email and phone. Best-effort: the message is
@@ -78,7 +85,7 @@ export async function submitCommunityContact(
     type: "contact",
     title: `New contact message for ${community.name}`,
     body: `${name} (${email}): ${preview}`,
-    link: `/c/${community.slug}/inbox`,
+    link: `/c/${community.slug}/inbox?message=${saved.id}`,
   });
 
   return { ok: true };
