@@ -5,7 +5,7 @@ import { Inbox as InboxIcon, Settings2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { getCommunityContactMessages } from "@/lib/data/contact-messages";
+import { getCommunityContactMessages, getCommunityContactReplies } from "@/lib/data/contact-messages";
 import { CommunityContactInbox } from "./contact-inbox";
 
 export const metadata: Metadata = { title: "Inbox" };
@@ -39,7 +39,10 @@ export default async function CommunityInboxPage({
     redirect(`/c/${community.slug}`);
   }
 
-  const messages = await getCommunityContactMessages(supabase, community.id);
+  const [messages, replies] = await Promise.all([
+    getCommunityContactMessages(supabase, community.id),
+    getCommunityContactReplies(supabase, community.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -66,6 +69,7 @@ export default async function CommunityInboxPage({
 
       <CommunityContactInbox
         messages={messages}
+        replies={replies}
         communitySlug={community.slug}
         communityName={community.name}
         highlightId={highlightId ?? null}

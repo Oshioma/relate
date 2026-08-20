@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, ContactMessage } from "@/types/database";
+import type { Database, ContactMessage, ContactMessageReply } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -42,4 +42,21 @@ export async function countUnhandledCommunityContactMessages(supabase: Client, c
     .eq("handled", false);
   if (error) throw error;
   return count ?? 0;
+}
+
+// The staff replies written under a community's contact messages, oldest first
+// within each message so they read as a thread. Loaded in one query for the
+// whole inbox page rather than per message. RLS scopes it to that community's
+// owner and admins, same as the messages themselves.
+export async function getCommunityContactReplies(
+  supabase: Client,
+  communityId: string
+): Promise<ContactMessageReply[]> {
+  const { data, error } = await supabase
+    .from("contact_message_replies")
+    .select("*")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }

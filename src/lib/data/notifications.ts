@@ -26,6 +26,7 @@ export const DEFAULT_NOTIFICATION_EMAIL_PREFS: NotificationEmailPrefs = {
   live_invite: true,
   member_message: true,
   contact: true,
+  contact_reply: true,
   direct_message: true,
 };
 

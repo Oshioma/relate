@@ -2,21 +2,108 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Mail, MailCheck } from "lucide-react";
-import { setCommunityContactMessageHandled } from "./actions";
+import { replyToCommunityContactMessage, setCommunityContactMessageHandled } from "./actions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Textarea } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/utils";
-import type { ContactMessage } from "@/types/database";
+import type { ContactMessage, ContactMessageReply } from "@/types/database";
+
+// The reply box under a message, plus the replies already sent. Staff write
+// here instead of leaving for their mail client, and the sender is notified
+// in-app when they have an account, by email when they don't.
+function ReplyThread({
+  message,
+  communitySlug,
+  initialReplies,
+  onReplied,
+}: {
+  message: ContactMessage;
+  communitySlug: string;
+  initialReplies: ContactMessageReply[];
+  onReplied: () => void;
+}) {
+  const [replies, setReplies] = useState(initialReplies);
+  const [body, setBody] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const send = () => {
+    const trimmed = body.trim();
+    if (!trimmed || pending) return;
+    setError(null);
+    setWarning(null);
+    startTransition(async () => {
+      const result = await replyToCommunityContactMessage(communitySlug, message.id, trimmed);
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      // Clear the box only once the reply is actually stored — a failed send
+      // must never eat what was typed.
+      setReplies((current) => [...current, result.reply]);
+      setBody("");
+      setWarning(result.warning ?? null);
+      onReplied();
+    });
+  };
+
+  return (
+    <div className="mt-3 space-y-3">
+      {replies.length > 0 && (
+        <div className="space-y-2 border-l-2 border-border pl-3">
+          {replies.map((reply) => (
+            <div key={reply.id}>
+              <p className="text-xs text-muted-foreground">
+                Replied {formatDateTime(reply.created_at)}
+              </p>
+              <p className="mt-0.5 whitespace-pre-wrap text-sm text-foreground">{reply.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor={`reply-${message.id}`} className="sr-only">
+          Reply to {message.name}
+        </label>
+        <Textarea
+          id={`reply-${message.id}`}
+          rows={3}
+          maxLength={5000}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder={replies.length > 0 ? "Write another reply…" : `Reply to ${message.name}…`}
+          disabled={pending}
+        />
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <Button size="sm" onClick={send} disabled={pending || body.trim().length === 0}>
+            {pending ? "Sending…" : "Send reply"}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {message.user_id ? "They'll get a notification." : `Emailed to ${message.email}.`}
+          </span>
+        </div>
+        {error && <p className="mt-2 text-xs text-danger">{error}</p>}
+        {warning && <p className="mt-2 text-xs text-muted-foreground">{warning}</p>}
+      </div>
+    </div>
+  );
+}
 
 function MessageRow({
   message,
   communitySlug,
   communityName,
+  replies,
   highlighted,
 }: {
   message: ContactMessage;
   communitySlug: string;
   communityName: string;
+  replies: ContactMessageReply[];
   highlighted: boolean;
 }) {
   const [handled, setHandled] = useState(message.handled);
@@ -51,7 +138,7 @@ function MessageRow({
       id={`message-${message.id}`}
       className={`scroll-mt-24 rounded-lg border p-4 ${
         highlighted ? "border-accent ring-2 ring-accent/40" : "border-border"
-      } ${handled ? "opacity-60" : "bg-card"}`}
+      } ${handled ? "bg-card/60" : "bg-card"}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
@@ -70,13 +157,16 @@ function MessageRow({
 
       <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{message.message}</p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        <a
-          href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: your message to ${communityName}`)}`}
-          className="text-xs font-medium text-accent hover:underline"
-        >
-          Reply by email
-        </a>
+      <ReplyThread
+        message={message}
+        communitySlug={communitySlug}
+        initialReplies={replies}
+        // Replying marks the message handled server-side; keep the badge here in
+        // step without a reload.
+        onReplied={() => setHandled(true)}
+      />
+
+      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3">
         <button
           type="button"
           onClick={toggle}
@@ -85,6 +175,12 @@ function MessageRow({
         >
           {handled ? "Reopen" : "Mark handled"}
         </button>
+        <a
+          href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: your message to ${communityName}`)}`}
+          className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+        >
+          Reply by email instead
+        </a>
         {error && <span className="text-xs text-danger">{error}</span>}
       </div>
     </div>
@@ -92,7 +188,7 @@ function MessageRow({
 }
 
 // The community's contact-form inbox: every submission from /c/<slug>/contact,
-// newest first, with the same handled/reopen triage the platform inbox uses.
+// newest first, each with the replies sent so far and a box to write another.
 // Handled messages are hidden by default so the list is the work still to do,
 // not an ever-growing archive.
 //
@@ -102,11 +198,13 @@ function MessageRow({
 // the link being broken.
 export function CommunityContactInbox({
   messages,
+  replies,
   communitySlug,
   communityName,
   highlightId,
 }: {
   messages: ContactMessage[];
+  replies: ContactMessageReply[];
   communitySlug: string;
   communityName: string;
   highlightId?: string | null;
@@ -160,6 +258,7 @@ export function CommunityContactInbox({
             message={message}
             communitySlug={communitySlug}
             communityName={communityName}
+            replies={replies.filter((reply) => reply.message_id === message.id)}
             highlighted={message.id === highlightId}
           />
         ))
