@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, ListTree } from "lucide-react";
+import { CalendarDays, Sparkles, ListTree, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
@@ -27,8 +27,7 @@ import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
-import { CommunityContactMessages } from "./community-contact-messages";
-import { getCommunityContactMessages } from "@/lib/data/contact-messages";
+import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
 import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
@@ -88,7 +87,8 @@ export default async function AdminPage({
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
 
-  const contactMessages = await getCommunityContactMessages(supabase, community.id);
+  // Just the open count — the messages themselves live on the Inbox page.
+  const openMessageCount = await countUnhandledCommunityContactMessages(supabase, community.id);
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -242,12 +242,26 @@ export default async function AdminPage({
       <h2 id="contact" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Contact page</h2>
       <div className="mb-8 space-y-4">
         <CommunityContactInfoForm community={community} />
-        <div>
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Messages{contactMessages.length > 0 ? ` (${contactMessages.length})` : ""}
-          </h3>
-          <CommunityContactMessages messages={contactMessages} />
-        </div>
+        <Link href={`/c/${community.slug}/inbox`}>
+          <Card className="transition-shadow hover:shadow-sm">
+            <CardContent className="flex items-center gap-3 pt-5">
+              <Inbox className="h-4 w-4 shrink-0 text-accent" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">Inbox</p>
+                <p className="text-xs text-muted-foreground">
+                  {openMessageCount > 0
+                    ? `${openMessageCount} message${openMessageCount === 1 ? "" : "s"} waiting for a reply`
+                    : "Read what people have sent through your contact page"}
+                </p>
+              </div>
+              {openMessageCount > 0 && (
+                <span className="ml-auto shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
+                  {openMessageCount}
+                </span>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
