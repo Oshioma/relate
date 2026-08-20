@@ -4,7 +4,7 @@
 // landmarks keep their own richer pins/popups; everything else goes through
 // this. Assembled in src/lib/data/map-items.ts.
 
-export type MapItemKind = "event" | "listing" | "job" | "stay" | "club" | "volunteer" | "recommendation" | "post";
+export type MapItemKind = "event" | "listing" | "job" | "stay" | "club" | "volunteer" | "recommendation" | "post" | "meetup";
 
 export type MapItem = {
   kind: MapItemKind;
@@ -37,6 +37,7 @@ export type MapItem = {
 
 // Display order here is also the filter-pill order on the map.
 export const MAP_ITEM_KINDS: Record<MapItemKind, { emoji: string; color: string; label: string }> = {
+  meetup: { emoji: "🥾", color: "#0f766e", label: "Meetups" },
   event: { emoji: "📅", color: "#7c3aed", label: "Events" },
   listing: { emoji: "🏷️", color: "#ea580c", label: "For sale" },
   stay: { emoji: "🏠", color: "#0d9488", label: "Stays" },

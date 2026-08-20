@@ -4,6 +4,7 @@ import type { MapItem } from "@/lib/map-item-kinds";
 import { jobTypeLabel } from "@/lib/job-types";
 import { accommodationTypeLabel } from "@/lib/accommodation-types";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
+import { meetupPhase } from "@/lib/meetups";
 
 type Client = SupabaseClient<Database>;
 
@@ -15,7 +16,12 @@ type Client = SupabaseClient<Database>;
 // view. Closed/expired/past items are left off — the map shows the living
 // community, not its archive.
 export async function getCommunityMapItems(supabase: Client, communityId: string, communitySlug: string): Promise<MapItem[]> {
-  const [spacesRes, eventsRes, listingsRes, jobsRes, staysRes, recsRes, clubsRes, volunteerRes, postsRes] = await Promise.all([
+  // A meetup drops off the map once it's over, so only ones that could still
+  // be running are fetched (see MEETUP_DEFAULT_DURATION_MINUTES for the window
+  // a meetup with no stated duration gets).
+  const meetupsSince = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+  const [spacesRes, eventsRes, listingsRes, jobsRes, staysRes, recsRes, clubsRes, volunteerRes, postsRes, meetupsRes] = await Promise.all([
     supabase.from("spaces").select("id, slug").eq("community_id", communityId),
     supabase.from("events").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null),
     supabase.from("marketplace_listings").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null).eq("status", "active"),
@@ -27,6 +33,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
     supabase.from("clubs").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null),
     supabase.from("volunteer_projects").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null).in("status", ["open", "in_progress"]),
     supabase.from("posts").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null),
+    supabase.from("meetups").select("*").eq("community_id", communityId).eq("status", "open").gte("starts_at", meetupsSince).not("lat", "is", null).not("lng", "is", null),
   ]);
 
   const slugBySpace = new Map((spacesRes.data ?? []).map((s) => [s.id, s.slug]));
@@ -157,6 +164,26 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       locationLabel: club.location_label,
       href,
       meta: club.category,
+    });
+  }
+
+  for (const meetup of meetupsRes.data ?? []) {
+    const href = spaceHref(meetup.space_id);
+    if (!href) continue;
+    // Still on: the map is for deciding where to go next, not what was.
+    if (meetupPhase(meetup, now) === "past") continue;
+    items.push({
+      ...base,
+      kind: "meetup",
+      id: meetup.id,
+      title: meetup.title,
+      description: meetup.description,
+      lat: meetup.lat!,
+      lng: meetup.lng!,
+      locationLabel: meetup.meeting_point,
+      href,
+      startTime: meetup.starts_at,
+      meta: [meetup.activity, meetup.pace, meetup.distance_km ? `${meetup.distance_km} km` : null].filter(Boolean).join(" · ") || null,
     });
   }
 

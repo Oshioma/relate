@@ -378,6 +378,30 @@ and `supabase/space-types.sql`:
    space type). Togglable map layers (Restaurants, Beaches, Parks, …)
    the wizard seeds from a place community's chosen location type.
 
+## Activity communities
+
+The setup wizard's **Activity** template is for a community built around
+one thing people do together — hiking, running, cycling, climbing,
+padel, surfing. Picking it asks which activity (`ACTIVITY_KINDS` in
+`src/lib/community-templates.ts`, stored as `communities.activity_kind`)
+and layers that activity's extras onto a shared starter set: Happening
+Now, Discussion, Routes & Spots, Meet-Up Map, Crews, Find a Partner,
+Trip Reports, Skills & Safety, Gear Exchange and Challenges.
+
+The type it introduces is **Meetups** (`space_type = 'meetups'`), the
+Happening Now board: a member posts what they're doing, when, where
+they're meeting, the pace and how many spots — everyone else in the
+community is notified, and whoever's free taps "I'm in". It is
+deliberately not the Events calendar: events are scheduled ahead and
+live in the sidebar, a meetup is interesting for the next few hours.
+
+Nothing to run by hand — the migrations under `supabase/migrations/`
+(`*_activity_meetup_enum_values.sql` onwards) add the `meetups` and
+`meetup_participants` tables with their RLS, the `meetup` /
+`meetup_join` notification types and triggers, the `meetup` feed item
+type, realtime streaming for the board, and
+`communities.activity_kind`.
+
 ## Member Directory (in progress)
 
 This has been built in stages — **Stages 1 through 7** are all in

@@ -17,6 +17,7 @@ import {
   BookMarked,
   Sparkles,
   Disc3,
+  Footprints,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,4 +40,5 @@ export const TEMPLATE_ICONS: Record<string, LucideIcon> = {
   BookMarked,
   Sparkles,
   Disc3,
+  Footprints,
 };
