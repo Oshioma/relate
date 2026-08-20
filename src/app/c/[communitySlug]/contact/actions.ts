@@ -84,7 +84,10 @@ export async function submitCommunityContact(
     community_id: community.id,
     type: "contact",
     title: `New contact message for ${community.name}`,
-    body: `${name} (${email}): ${preview}`,
+    // No email address in here: this body goes out by email and push, and the
+    // inbox itself no longer shows the sender's address — staff reply from
+    // there without needing to see it.
+    body: `${name}: ${preview}`,
     link: `/c/${community.slug}/inbox?message=${saved.id}`,
   });
 

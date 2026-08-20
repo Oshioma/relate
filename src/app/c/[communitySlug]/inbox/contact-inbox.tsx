@@ -8,7 +8,21 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Textarea } from "@/components/ui/input";
 import { formatDateTime } from "@/lib/utils";
-import type { ContactMessage, ContactMessageReply } from "@/types/database";
+import type { ContactMessageReply } from "@/types/database";
+
+// What the inbox is given for each message. Deliberately NOT the ContactMessage
+// row: the sender's email address never reaches the browser. Staff reply
+// through the box below, which delivers without anyone reading the address, so
+// there's nothing left for it to be on the page for. `hasAccount` is all that
+// survives of who sent it — enough to say how the reply will reach them.
+export type InboxMessage = {
+  id: string;
+  name: string;
+  message: string;
+  handled: boolean;
+  created_at: string;
+  hasAccount: boolean;
+};
 
 // The reply box under a message, plus the replies already sent. Staff write
 // here instead of leaving for their mail client, and the sender is notified
@@ -19,7 +33,7 @@ function ReplyThread({
   initialReplies,
   onReplied,
 }: {
-  message: ContactMessage;
+  message: InboxMessage;
   communitySlug: string;
   initialReplies: ContactMessageReply[];
   onReplied: () => void;
@@ -83,7 +97,7 @@ function ReplyThread({
             {pending ? "Sending…" : "Send reply"}
           </Button>
           <span className="text-xs text-muted-foreground">
-            {message.user_id ? "They'll get a notification." : `Emailed to ${message.email}.`}
+            {message.hasAccount ? "They'll get a notification." : "Sent to the email address they left."}
           </span>
         </div>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
@@ -96,13 +110,11 @@ function ReplyThread({
 function MessageRow({
   message,
   communitySlug,
-  communityName,
   replies,
   highlighted,
 }: {
-  message: ContactMessage;
+  message: InboxMessage;
   communitySlug: string;
-  communityName: string;
   replies: ContactMessageReply[];
   highlighted: boolean;
 }) {
@@ -143,9 +155,9 @@ function MessageRow({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-medium text-foreground">{message.name}</p>
-          <a href={`mailto:${message.email}`} className="text-xs text-accent hover:underline">
-            {message.email}
-          </a>
+          <p className="text-xs text-muted-foreground">
+            {message.hasAccount ? "Signed-in member" : "Visitor"}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {handled ? <Badge tone="neutral">handled</Badge> : <Badge tone="accent">new</Badge>}
@@ -175,12 +187,6 @@ function MessageRow({
         >
           {handled ? "Reopen" : "Mark handled"}
         </button>
-        <a
-          href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: your message to ${communityName}`)}`}
-          className="text-xs text-muted-foreground hover:text-foreground hover:underline"
-        >
-          Reply by email instead
-        </a>
         {error && <span className="text-xs text-danger">{error}</span>}
       </div>
     </div>
@@ -203,7 +209,7 @@ export function CommunityContactInbox({
   communityName,
   highlightId,
 }: {
-  messages: ContactMessage[];
+  messages: InboxMessage[];
   replies: ContactMessageReply[];
   communitySlug: string;
   communityName: string;
@@ -257,7 +263,6 @@ export function CommunityContactInbox({
             key={message.id}
             message={message}
             communitySlug={communitySlug}
-            communityName={communityName}
             replies={replies.filter((reply) => reply.message_id === message.id)}
             highlighted={message.id === highlightId}
           />

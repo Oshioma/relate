@@ -183,7 +183,7 @@ async function deliverReply(input: {
   });
   if (!sent.ok) {
     console.warn("[inbox] contact reply email failed:", sent.reason);
-    return `Your reply is saved, but the email to ${input.recipientEmail} didn't send — you can reply by email instead.`;
+    return "Your reply is saved, but the email to them didn't send. Try again in a moment.";
   }
   return undefined;
 }

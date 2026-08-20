@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getCommunityContactMessages, getCommunityContactReplies } from "@/lib/data/contact-messages";
-import { CommunityContactInbox } from "./contact-inbox";
+import { CommunityContactInbox, type InboxMessage } from "./contact-inbox";
 
 export const metadata: Metadata = { title: "Inbox" };
 
@@ -39,10 +39,24 @@ export default async function CommunityInboxPage({
     redirect(`/c/${community.slug}`);
   }
 
-  const [messages, replies] = await Promise.all([
+  const [rows, replies] = await Promise.all([
     getCommunityContactMessages(supabase, community.id),
     getCommunityContactReplies(supabase, community.id),
   ]);
+
+  // Drop the sender's email address here rather than just leaving it unrendered:
+  // anything handed to the client component ships in the page payload, readable
+  // by anyone who opens devtools or scrapes the HTML. Staff never need it — the
+  // reply box delivers to whoever wrote in without showing who that is — so it
+  // stays server-side, where the reply action reads it straight from the row.
+  const messages: InboxMessage[] = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    message: row.message,
+    handled: row.handled,
+    created_at: row.created_at,
+    hasAccount: row.user_id !== null,
+  }));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
