@@ -478,10 +478,22 @@ export function BusinessDirectoryView({
           description={businesses.length === 0 ? "Restaurants, cafes, shops and services members add will show up here." : "Try a different search or category."}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-10">
           {groups.map(([label, group]) => (
             <div key={label}>
-              {groups.length > 1 && <h3 className="mb-3 text-sm font-semibold text-foreground">{label}</h3>}
+              {/* The place name has to carry the scroll: at card-title size it
+                  disappeared between the listings above and below it. It reads
+                  as a section header now — large, pinned to a rule, with the
+                  count so a group's size is clear before scrolling it. */}
+              {groups.length > 1 && (
+                <div className="mb-4 border-b border-border pb-2">
+                  <h3 className="flex items-baseline gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                    <MapPin className="h-5 w-5 shrink-0 self-center text-accent sm:h-6 sm:w-6" />
+                    {label}
+                    <span className="text-base font-medium text-muted-foreground">({group.length})</span>
+                  </h3>
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 {group.map((item) => (
                   <BusinessCard
