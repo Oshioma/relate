@@ -43,6 +43,29 @@ const ARTIST_FAN_SPACES: TemplateSpace[] = [
   { name: "The Vault", description: "Exclusive extras — demos, stems, wallpapers and presale codes.", space_type: "resources" },
   { name: "Ask Me Anything", description: "Fans ask, you answer.", space_type: "qa" },
 ];
+// The Activity template's starter set. Everything here is deliberately built
+// around the moment of going out together: the Meetups space is first because
+// it is the reason the community exists, and every other space feeds it —
+// routes to walk, crews to walk with, partners at your pace, gear to borrow.
+// Per-activity extras are layered on top by ACTIVITY_KINDS below.
+const ACTIVITY_SPACES: TemplateSpace[] = [
+  { name: "Happening Now", description: "Post what you're doing and when — others tap \u201cI'm in\u201d and meet you there.", space_type: "meetups" },
+  { name: "Discussion", description: "General conversation for everyone." },
+  { name: "Routes & Spots", description: "The routes, trails and spots worth knowing — written up by members.", space_type: "guides" },
+  { name: "Meet-Up Map", description: "Meeting points, trailheads, parking and the spots themselves.", space_type: "map" },
+  { name: "Crews", description: "Regular groups by pace, level and part of town.", space_type: "clubs" },
+  { name: "Find a Partner", description: "Members who go at your pace, near you, when you're free.", space_type: "directory" },
+  { name: "Trip Reports", description: "Photos and write-ups from the ones you've done.", space_type: "gallery" },
+  { name: "Skills & Safety", description: "Technique, kit lists, first aid and what to do when it goes wrong.", space_type: "resources" },
+  { name: "Gear Exchange", description: "Buy, sell, lend and borrow kit.", space_type: "marketplace" },
+  { name: "Challenges", description: "Time-boxed goals members take on together.", space_type: "challenges" },
+];
+const ACTIVITY_FIELDS: TemplateProfileField[] = [
+  { label: "Experience Level", field_type: "dropdown", options: ["Beginner", "Improver", "Confident", "Advanced"] },
+  { label: "Usual Pace", field_type: "text" },
+  { label: "When I'm Usually Free", field_type: "text" },
+];
+
 const ARTIST_FAN_FIELDS: TemplateProfileField[] = [
   { label: "Fan Since", field_type: "text" },
   { label: "Favorite Track or Album", field_type: "text" },
@@ -199,6 +222,16 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { label: "Neighbourhood / Area", field_type: "text" },
       { label: "I am a…", field_type: "dropdown", options: ["Resident", "Visitor", "Business Owner", "Organisation", "Volunteer"] },
     ],
+  },
+  {
+    key: "activity",
+    label: "Activity",
+    icon: "Footprints",
+    tagline: "Get out and do it together, today",
+    description:
+      "For a community built around one activity — hiking, running, cycling, climbing, padel, surfing. The centre of gravity is Happening Now: a member posts \u201cwalking the ridge at 6, moderate pace, meeting at the gate\u201d, everyone who can make it taps \u201cI\u2019m in\u201d, and they go. Routes, crews, partners and gear sit around it.",
+    defaultSpaces: ACTIVITY_SPACES,
+    defaultProfileFields: ACTIVITY_FIELDS,
   },
   {
     key: "farming",
@@ -687,5 +720,206 @@ export function recommendPlaceSetup(locationTypeKey: string, baseSpaces?: Templa
     profileFields: [...template.defaultProfileFields, ...(locationType?.extraProfileFields ?? [])],
     rationale,
     mapLayers: locationType?.mapLayers ?? [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Activity: "which activity is this community built around?"
+//
+// Same shape as PLACE_LOCATION_TYPES — a shared base (ACTIVITY_SPACES) plus
+// per-kind extras — rather than the artist modes' wholesale replacement,
+// because every activity community wants the same core: meetups, routes,
+// crews, partners, gear. What differs is the fringe: a hiking community needs
+// trail conditions and daylight, a cycling one needs mechanics and roadside
+// help, a snow one needs the avalanche bulletin. Map layers are documented per
+// kind the same way, and seeded as the Meet-Up Map's togglable layers at setup.
+// Flat and code-only, so adding an activity stays a one-entry change.
+// ---------------------------------------------------------------------------
+
+export interface ActivityKind {
+  key: string;
+  label: string;
+  description: string;
+  // The word the meetup composer suggests for a new meetup's activity, e.g.
+  // "Hiking". Singular and human, not the key.
+  activityLabel: string;
+  mapLayers: string[];
+  extraSpaces: TemplateSpace[];
+  extraProfileFields?: TemplateProfileField[];
+}
+
+export const ACTIVITY_KINDS: ActivityKind[] = [
+  {
+    key: "hiking",
+    label: "Hiking & Walking",
+    description: "Day hikes, hill walks and rambles — the classic “who's free to walk this evening?”.",
+    activityLabel: "Hiking",
+    mapLayers: ["Trailheads", "Trails & Routes", "Summits", "Water Points", "Huts & Shelters", "Parking", "Viewpoints"],
+    extraSpaces: [
+      { name: "Trail Conditions", description: "What it's like underfoot right now — mud, closures, river crossings, snow line." },
+      { name: "Weather & Daylight", description: "Forecasts, sunset times and when to turn back.", space_type: "resources" },
+    ],
+    extraProfileFields: [{ label: "Usual Distance", field_type: "dropdown", options: ["Under 5km", "5–10km", "10–20km", "20km+"] }],
+  },
+  {
+    key: "running",
+    label: "Running",
+    description: "Road, trail and track — from easy social miles to race prep.",
+    activityLabel: "Running",
+    mapLayers: ["Routes", "Tracks", "Parkruns", "Water Fountains", "Toilets", "Parking"],
+    extraSpaces: [
+      { name: "Race Calendar", description: "Local races, parkruns and time trials, with entry links.", space_type: "guides" },
+      { name: "Session Plans", description: "Intervals, hills, long runs and training blocks to follow.", space_type: "resources" },
+    ],
+    extraProfileFields: [{ label: "Typical Pace (min/km)", field_type: "text" }],
+  },
+  {
+    key: "cycling",
+    label: "Cycling",
+    description: "Road, gravel and mountain biking — group rides and solo routes.",
+    activityLabel: "Riding",
+    mapLayers: ["Routes", "Climbs", "Bike Shops", "Repair Stations", "Cafés", "Traffic Blackspots"],
+    extraSpaces: [
+      { name: "Bike Shops & Mechanics", description: "Repairs, fittings and spares nearby.", space_type: "business_directory" },
+      { name: "Roadside Help", description: "Puncture, snapped chain, no lights? Ask whoever's closest.", space_type: "volunteer_hub" },
+    ],
+    extraProfileFields: [{ label: "Bike Type", field_type: "dropdown", options: ["Road", "Gravel", "Mountain", "Hybrid", "E-bike"] }],
+  },
+  {
+    key: "climbing",
+    label: "Climbing & Bouldering",
+    description: "Indoor walls, crags and boulders — where a partner isn't optional.",
+    activityLabel: "Climbing",
+    mapLayers: ["Crags", "Boulders", "Indoor Walls", "Approach Paths", "Descents", "Parking"],
+    extraSpaces: [
+      { name: "Gyms & Guides", description: "Indoor walls, instructors and guiding services.", space_type: "business_directory" },
+      { name: "Beta & Grades", description: "Ask about a move, a grade or an approach.", space_type: "qa" },
+    ],
+    extraProfileFields: [
+      { label: "Grade", field_type: "text" },
+      { label: "Lead or Second", field_type: "dropdown", options: ["Lead", "Second", "Either", "Bouldering only"] },
+    ],
+  },
+  {
+    key: "water",
+    label: "Swimming, Surf & Paddle",
+    description: "Open water, surf, kayak and paddleboard — conditions decide everything.",
+    activityLabel: "Swimming",
+    mapLayers: ["Beaches", "Entry Points", "Surf Breaks", "Slipways", "Tide Stations", "Lifeguard Posts"],
+    extraSpaces: [
+      { name: "Tides & Conditions", description: "Tide charts, swell, wind and water temperature.", space_type: "resources" },
+      { name: "Clubs & Lifeguards", description: "Local clubs, schools and who's watching the water.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [{ label: "Comfortable In", field_type: "dropdown", options: ["Pool only", "Sheltered water", "Open water", "Big surf"] }],
+  },
+  {
+    key: "racquet",
+    label: "Padel, Tennis & Racquet",
+    description: "Padel, tennis, squash, pickleball — where you need exactly three more people.",
+    activityLabel: "Playing",
+    mapLayers: ["Courts", "Clubs", "Booking Desks", "Parking"],
+    extraSpaces: [
+      { name: "Courts & Clubs", description: "Where to play, what it costs and how to book.", space_type: "business_directory" },
+      { name: "Club Ladder", description: "Ongoing ladder and box leagues members climb.", space_type: "challenges" },
+    ],
+    extraProfileFields: [{ label: "Level / Rating", field_type: "text" }],
+  },
+  {
+    key: "team",
+    label: "Football & Team Sports",
+    description: "Pick-up football, basketball, netball — a game happens when enough people say yes.",
+    activityLabel: "Pick-up game",
+    mapLayers: ["Pitches", "Courts", "Astro", "Changing Rooms", "Parking"],
+    extraSpaces: [
+      { name: "Pitches & Bookings", description: "Where to play and who to book it through.", space_type: "business_directory" },
+      { name: "League & Fixtures", description: "Standing leagues, fixtures and results.", space_type: "challenges" },
+    ],
+    extraProfileFields: [{ label: "Position", field_type: "text" }],
+  },
+  {
+    key: "yoga",
+    label: "Yoga & Movement",
+    description: "Yoga, pilates, mobility and breathwork — in a studio, a park or on a screen.",
+    activityLabel: "Practice",
+    mapLayers: ["Studios", "Parks", "Quiet Spots"],
+    extraSpaces: [
+      { name: "Classes", description: "Streamed and recorded sessions members join live.", space_type: "live" },
+      { name: "Studios & Teachers", description: "Local studios, teachers and drop-in times.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [{ label: "Style", field_type: "text" }],
+  },
+  {
+    key: "snow",
+    label: "Ski & Snowboard",
+    description: "Resort days, touring and backcountry — planned around the snow report.",
+    activityLabel: "Skiing",
+    mapLayers: ["Resorts", "Lifts", "Runs", "Backcountry Routes", "Avalanche Zones", "Warming Huts"],
+    extraSpaces: [
+      { name: "Snow Report", description: "Conditions, lifts open and the avalanche bulletin.", space_type: "resources" },
+      { name: "Rentals & Passes", description: "Hire shops, lessons and lift passes.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [{ label: "Ski or Board", field_type: "dropdown", options: ["Ski", "Snowboard", "Both", "Touring"] }],
+  },
+  {
+    key: "dance",
+    label: "Dance",
+    description: "Salsa, bachata, swing, street — practice partners and socials.",
+    activityLabel: "Dancing",
+    mapLayers: ["Studios", "Social Venues", "Practice Spaces"],
+    extraSpaces: [
+      { name: "Studios & Socials", description: "Classes, socials and the nights worth going to.", space_type: "business_directory" },
+      { name: "Moves Library", description: "Clips of moves and combinations to work on.", space_type: "gallery" },
+    ],
+    extraProfileFields: [{ label: "Lead or Follow", field_type: "dropdown", options: ["Lead", "Follow", "Both"] }],
+  },
+  {
+    key: "nature",
+    label: "Birding & Nature Walks",
+    description: "Birdwatching, foraging and slow walks — driven by what's about right now.",
+    activityLabel: "Walk",
+    mapLayers: ["Hides", "Reserves", "Wetlands", "Feeding Stations", "Viewpoints"],
+    extraSpaces: [
+      { name: "Sightings Log", description: "What you saw, where and when.", space_type: "journal" },
+      { name: "Species Guide", description: "What lives here, and how to tell it apart.", space_type: "guides" },
+    ],
+    extraProfileFields: [{ label: "Main Interest", field_type: "text" }],
+  },
+];
+
+export function getActivityKind(key: string): ActivityKind | undefined {
+  return ACTIVITY_KINDS.find((k) => k.key === key);
+}
+
+// The activity word a community's meetup composer offers as a preset, e.g.
+// "Hiking" for a hiking community. Null when the community isn't an Activity
+// community (or predates the activity_kind column) — the composer then just
+// asks for free text.
+export function activityLabelForKind(key: string | null | undefined): string | null {
+  return (key && getActivityKind(key)?.activityLabel) || null;
+}
+
+export interface ActivitySetupRecommendation extends SetupRecommendation {
+  mapLayers: string[];
+}
+
+// The Activity counterpart to recommendPlaceSetup: the shared base plus the
+// chosen activity's extras. baseSpaces lets the caller substitute the
+// super-admin-configured defaults for the code ones, same as place.
+export function recommendActivitySetup(activityKindKey: string, baseSpaces?: TemplateSpace[]): ActivitySetupRecommendation {
+  const template = getCommunityTemplate("activity")!;
+  const base = baseSpaces ?? template.defaultSpaces;
+  const kind = getActivityKind(activityKindKey);
+
+  const rationale = ["Started from the Activity template's default spaces, with Happening Now at the top."];
+  if (kind) {
+    rationale.push(`Added what a ${kind.label.toLowerCase()} community typically needs.`);
+    rationale.push(`Suggested Meet-Up Map layers: ${kind.mapLayers.join(", ")}.`);
+  }
+
+  return {
+    spaces: dedupeByName([...base, ...(kind?.extraSpaces ?? [])]),
+    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
+    rationale,
+    mapLayers: kind?.mapLayers ?? [],
   };
 }

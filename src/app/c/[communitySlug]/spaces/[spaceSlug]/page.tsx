@@ -27,6 +27,8 @@ import { getSpaceJobListings } from "@/lib/data/jobs";
 import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions } from "@/lib/data/accommodation";
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
+import { getSpaceMeetups } from "@/lib/data/meetups";
+import { activityLabelForKind } from "@/lib/community-templates";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, getCropProposals, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, getPublicFarmCrops, isFarmBridgeConfigured, type FarmCrop, type PublicFarm } from "@/lib/farm-bridge";
@@ -69,6 +71,7 @@ import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
+import { MeetupsView } from "./meetups-view";
 import { GuidesView } from "./guides-view";
 import { VolunteerHubView } from "./volunteer-hub-view";
 import { CoursesView } from "./courses-view";
@@ -170,6 +173,7 @@ export default async function SpaceDetailPage({
   const isMyCropsSpace = space.space_type === "my_crops";
   const isPlantIdSpace = space.space_type === "plant_id";
   const isLiveSpace = space.space_type === "live";
+  const isMeetupsSpace = space.space_type === "meetups";
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
@@ -194,7 +198,8 @@ export default async function SpaceDetailPage({
     !isPlantScannerSpace &&
     !isMyCropsSpace &&
     !isPlantIdSpace &&
-    !isLiveSpace;
+    !isLiveSpace &&
+    !isMeetupsSpace;
 
   const [
     membership,
@@ -221,6 +226,7 @@ export default async function SpaceDetailPage({
     courses,
     crops,
     liveSessions,
+    meetups,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id, viewerId) : Promise.resolve([]),
@@ -250,6 +256,7 @@ export default async function SpaceDetailPage({
     // crop photo" picker in the discussion composer.
     isCropGuidesSpace || isMyCropsSpace || isDiscussionLike ? getCrops(supabase) : Promise.resolve([]),
     isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
+    isMeetupsSpace ? getSpaceMeetups(supabase, space.id, viewerId) : Promise.resolve([]),
   ]);
 
   const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
@@ -668,6 +675,18 @@ export default async function SpaceDetailPage({
           communitySlug={community.slug}
           spaceId={space.id}
           spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={viewerId}
+        />
+      ) : isMeetupsSpace ? (
+        <MeetupsView
+          meetups={meetups}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          activityLabel={activityLabelForKind(community.activity_kind)}
           canPost={canPost}
           isStaff={Boolean(isStaff)}
           userId={viewerId}

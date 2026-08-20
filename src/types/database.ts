@@ -36,7 +36,8 @@ export type SpaceType =
   | "plant_scanner"
   | "my_crops"
   | "plant_id"
-  | "live";
+  | "live"
+  | "meetups";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -50,7 +51,8 @@ export type FeedItemType =
   | "stay"
   | "recommendation"
   | "club"
-  | "volunteer";
+  | "volunteer"
+  | "meetup";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -145,6 +147,10 @@ export type Community = {
   // for every other template (and for older artist communities created before
   // this column existed).
   artist_mode: string | null;
+  // Activity template only: which activity this community is built around —
+  // 'hiking', 'running', 'cycling', … Validated against ACTIVITY_KINDS at the
+  // application layer, same as location_type. Null for every other template.
+  activity_kind: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
   // the service-role client — a DB trigger rejects anon/authenticated writes
   // to these columns, so include them in an Update payload only from the
@@ -1002,6 +1008,40 @@ export type ClubMember = {
   joined_at: string;
 };
 
+// A member-posted invitation to do the community's activity together, right
+// now-ish: a time, a meeting point, a pace and a number of spots. See
+// supabase/migrations/*_meetups_tables.sql for why this isn't the Events
+// calendar.
+export type MeetupStatus = "open" | "cancelled";
+
+export type Meetup = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  title: string;
+  description: string | null;
+  activity: string | null;
+  meeting_point: string | null;
+  lat: number | null;
+  lng: number | null;
+  starts_at: string;
+  duration_minutes: number | null;
+  pace: string | null;
+  distance_km: number | null;
+  capacity: number | null;
+  status: MeetupStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MeetupParticipant = {
+  id: string;
+  meetup_id: string;
+  user_id: string;
+  joined_at: string;
+};
+
 // A wiki-style document in a 'guides' space (see space-types.ts). Any
 // active member can edit it — not just the creator or staff — which is
 // what "contributors" (GuideContributor) means: everyone who's ever saved
@@ -1281,7 +1321,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join";
 
 export type Notification = {
   id: string;
@@ -2139,6 +2179,18 @@ export type Database = {
         Insert: Partial<ClubMember> & { club_id: string; user_id: string };
         Update: Partial<ClubMember>;
         Relationships: [FKey<"club_id", "clubs">, FKey<"user_id", "profiles">];
+      };
+      meetups: {
+        Row: Meetup;
+        Insert: Partial<Meetup> & { space_id: string; community_id: string; created_by: string; title: string; starts_at: string };
+        Update: Partial<Meetup>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      meetup_participants: {
+        Row: MeetupParticipant;
+        Insert: Partial<MeetupParticipant> & { meetup_id: string; user_id: string };
+        Update: Partial<MeetupParticipant>;
+        Relationships: [FKey<"meetup_id", "meetups">, FKey<"user_id", "profiles">];
       };
       guides: {
         Row: Guide;

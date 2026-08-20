@@ -23,6 +23,7 @@ import {
   Wheat,
   Camera,
   Radio,
+  Footprints,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -87,6 +88,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   my_crops: { type: "my_crops", label: "My Crops", icon: Wheat, description: "A member's own crops, synced read-only from the shamba.online farm app, filterable by farm.", category: "programs" },
   plant_id: { type: "plant_id", label: "Plant ID", icon: Camera, description: "Upload a photo to identify a plant — its name, whether it's edible, and a link to its guide.", category: "programs" },
   live: { type: "live", label: "Live Events", icon: Radio, description: "Host live video sessions — staff go live and members join a Zoom-like meeting right in the community.", category: "programs" },
+  meetups: { type: "meetups", label: "Meetups", icon: Footprints, description: "A live board of member-posted meetups — a time, a meeting point and a pace. Others tap \"I'm in\" and go together.", category: "general" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);
