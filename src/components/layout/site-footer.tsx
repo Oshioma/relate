@@ -8,6 +8,10 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border px-6 pb-24 pt-8 text-center text-sm text-muted-foreground md:pb-8">
       <nav className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <Link href="/pricing" className="hover:text-foreground">
+          Pricing
+        </Link>
+        <span aria-hidden className="text-border">·</span>
         <Link href="/terms" className="hover:text-foreground">
           Terms &amp; Conditions
         </Link>
