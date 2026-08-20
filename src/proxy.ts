@@ -38,6 +38,10 @@ const PLATFORM_PATH_PREFIXES = [
   // that community's own contact page (/c/<slug>/contact).
   "/terms",
   "/privacy",
+  // The platform's price list, linked from the app-wide footer — so it is
+  // reached from inside a community's host too, where it must stay the
+  // platform page rather than rewriting onto /c/<slug>/pricing (404).
+  "/pricing",
   // The platform super-admin page. It lives at /platform-admin (not /admin)
   // precisely so it doesn't collide with a community's own /c/<slug>/admin
   // page, which canonicalizes to a bare /admin on the community's host.

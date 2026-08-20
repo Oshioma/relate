@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { planFeatureLabel } from "@/lib/features";
 import { subscribeCommunityToPlan, openBillingPortal } from "./billing-actions";
 import type { PlatformPlan } from "@/types/database";
 
@@ -14,22 +15,6 @@ function formatPrice(cents: number, currency: string): string {
   } catch {
     return `${(cents / 100).toFixed(0)} ${currency.toUpperCase()}`;
   }
-}
-
-// Human labels for the feature keys a plan grants.
-const FEATURE_LABELS: Record<string, string> = {
-  paid_memberships: "Charge members for spaces",
-  unlimited_members: "Unlimited members",
-  automation: "Automations",
-  white_label: "White label",
-  api: "API access",
-  advanced_permissions: "Advanced permissions",
-  multiple_communities: "Multiple communities",
-  multiple_admins: "Multiple admins",
-};
-
-function featureLabel(key: string): string {
-  return FEATURE_LABELS[key] ?? key.replace(/_/g, " ");
 }
 
 // Owner-facing plan picker + current-plan status. Subscribing/upgrading opens
@@ -129,7 +114,7 @@ export function PlanSection({
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-1.5 text-xs text-foreground">
                       <Check className="mt-0.5 h-3 w-3 shrink-0 text-accent" />
-                      {featureLabel(f)}
+                      {planFeatureLabel(f)}
                     </li>
                   ))}
                 </ul>

@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sharedCookieDomain } from "@/lib/custom-domain";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing"];
 
 // Community sub-sections a signed-out visitor is allowed to reach. The page
 // (and Postgres RLS) still decides what actually renders — a members-only
