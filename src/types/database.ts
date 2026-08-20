@@ -1281,7 +1281,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "direct_message";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message";
 
 export type Notification = {
   id: string;
@@ -1784,6 +1784,17 @@ export type ContactMessage = {
   created_at: string;
 };
 
+// A staff reply to a contact-form message, written from the community inbox.
+// See supabase/migrations/*_contact_message_replies.sql.
+export type ContactMessageReply = {
+  id: string;
+  message_id: string;
+  community_id: string | null;
+  author_id: string | null;
+  body: string;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -1855,6 +1866,12 @@ export type Database = {
         Insert: Partial<ContactMessage> & { name: string; email: string; message: string };
         Update: Partial<ContactMessage>;
         Relationships: [FKey<"user_id", "profiles">];
+      };
+      contact_message_replies: {
+        Row: ContactMessageReply;
+        Insert: Partial<ContactMessageReply> & { message_id: string; body: string };
+        Update: Partial<ContactMessageReply>;
+        Relationships: [FKey<"message_id", "contact_messages">, FKey<"author_id", "profiles">];
       };
       feature_packs: {
         Row: FeaturePack;

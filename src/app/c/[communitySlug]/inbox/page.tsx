@@ -5,7 +5,7 @@ import { Inbox as InboxIcon, Settings2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { getCommunityContactMessages } from "@/lib/data/contact-messages";
+import { getCommunityContactMessages, getCommunityContactReplies } from "@/lib/data/contact-messages";
 import { CommunityContactInbox } from "./contact-inbox";
 
 export const metadata: Metadata = { title: "Inbox" };
@@ -14,8 +14,17 @@ export const metadata: Metadata = { title: "Inbox" };
 // page, which meant every read of a message came with a wall of settings; it
 // gets its own route so it can be linked to directly (the contact-form
 // notification points here) and read on its own.
-export default async function CommunityInboxPage({ params }: { params: Promise<{ communitySlug: string }> }) {
+export default async function CommunityInboxPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ communitySlug: string }>;
+  // ?message=<id> comes from the "new contact message" notification, which
+  // links to the one message it's about.
+  searchParams: Promise<{ message?: string }>;
+}) {
   const { communitySlug } = await params;
+  const { message: highlightId } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -30,7 +39,10 @@ export default async function CommunityInboxPage({ params }: { params: Promise<{
     redirect(`/c/${community.slug}`);
   }
 
-  const messages = await getCommunityContactMessages(supabase, community.id);
+  const [messages, replies] = await Promise.all([
+    getCommunityContactMessages(supabase, community.id),
+    getCommunityContactReplies(supabase, community.id),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -55,7 +67,13 @@ export default async function CommunityInboxPage({ params }: { params: Promise<{
         </Link>
       </div>
 
-      <CommunityContactInbox messages={messages} communitySlug={community.slug} communityName={community.name} />
+      <CommunityContactInbox
+        messages={messages}
+        replies={replies}
+        communitySlug={community.slug}
+        communityName={community.name}
+        highlightId={highlightId ?? null}
+      />
     </div>
   );
 }
