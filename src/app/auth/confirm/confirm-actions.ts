@@ -1,8 +1,10 @@
 "use server";
 
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { authEventContext, recordAuthEvent } from "@/lib/auth-events";
 
 // The email OTP types that can legitimately reach /auth/confirm — signup and
 // invite confirmations, password recovery, email-change, and magic links.
@@ -57,6 +59,15 @@ export async function confirmOtp(formData: FormData): Promise<void> {
 
   if (failed) {
     redirect("/login?error=confirmation-failed");
+  }
+
+  // A confirmed email is the moment a signup becomes a real account, so log it
+  // against the community the link was for — the gap between signups and
+  // confirmations is how the admin tab shows drop-off. Only signup/invite links
+  // mean "email confirmed"; a recovery link is just a password reset.
+  if (type === "signup" || type === "invite" || type === "email") {
+    const host = (await headers()).get("host");
+    await recordAuthEvent(supabase, "email_confirmed", authEventContext(next, host));
   }
 
   redirect(next);

@@ -5,9 +5,21 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getPlatformUserDetail } from "@/lib/data/platform-analytics";
+import { getUserAuthActivity } from "@/lib/data/auth-analytics";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { formatDate, formatRelativeTime } from "@/lib/utils";
+import { formatDate, formatDateTime, formatRelativeTime } from "@/lib/utils";
+import type { AuthEventType } from "@/types/database";
+
+// Same wording as the platform-admin "Signups & logins" tab.
+const AUTH_EVENT_LABELS: Record<AuthEventType, string> = {
+  signup: "Signed up",
+  email_confirmed: "Confirmed email",
+  login: "Signed in",
+  join: "Joined",
+  invited: "Invited",
+  leave: "Left",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +34,10 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
   if (!viewer?.is_super_admin) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const detail = await getPlatformUserDetail(admin, userId);
+  const [detail, authActivity] = await Promise.all([
+    getPlatformUserDetail(admin, userId),
+    getUserAuthActivity(admin, userId),
+  ]);
   if (!detail) notFound();
 
   const { profile, memberships, totals, byCommunity, recentActivity } = detail;
@@ -61,7 +76,32 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
             <Badge tone="neutral">
               {profile.last_active_at ? `Active ${formatRelativeTime(profile.last_active_at)}` : "Never active"}
             </Badge>
+            <Badge tone="neutral">
+              {authActivity.lastLoginAt
+                ? `Last sign-in ${formatRelativeTime(authActivity.lastLoginAt)}`
+                : "No sign-in recorded"}
+            </Badge>
           </div>
+          {/* Where this account came from — recorded at signup from the invite
+              link, community page or domain the person used. */}
+          <p className="mt-2 text-sm text-muted-foreground">
+            Signed up{" "}
+            {authActivity.signupCommunity ? (
+              <>
+                via{" "}
+                <Link
+                  href={`/c/${authActivity.signupCommunity.slug}`}
+                  className="font-medium text-foreground hover:underline"
+                >
+                  {authActivity.signupCommunity.name}
+                </Link>
+              </>
+            ) : (
+              "on the main site (no community attached)"
+            )}
+            {authActivity.signupSource ? ` · ${authActivity.signupSource.replace(/_/g, " ")}` : ""} ·{" "}
+            {authActivity.loginCount} recorded {authActivity.loginCount === 1 ? "sign-in" : "sign-ins"}
+          </p>
         </div>
       </div>
 
@@ -112,6 +152,52 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
                 </li>
               );
             })}
+          </ul>
+        )}
+      </section>
+
+      {/* Account events — signups, sign-ins and membership changes from the
+          auth_events log (see the platform-admin "Signups & logins" tab). */}
+      <section className="mt-10">
+        <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Account events</h3>
+        {authActivity.events.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Nothing recorded yet — event logging started when this feature shipped.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {authActivity.events.map((event) => (
+              <li key={event.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-sm text-foreground">
+                    {AUTH_EVENT_LABELS[event.type]}
+                    {event.communityName && (
+                      <>
+                        {" "}
+                        <span className="text-muted-foreground">
+                          {event.type === "login" ? "on" : "—"}{" "}
+                        </span>
+                        {event.communitySlug ? (
+                          <Link href={`/c/${event.communitySlug}`} className="font-medium hover:underline">
+                            {event.communityName}
+                          </Link>
+                        ) : (
+                          event.communityName
+                        )}
+                      </>
+                    )}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {formatDateTime(event.createdAt)}
+                    {event.source ? ` · ${event.source.replace(/_/g, " ")}` : ""}
+                    {event.backfilled ? " · backfilled" : ""}
+                  </p>
+                </div>
+                {event.communityPrivacy && event.communityPrivacy !== "public" && (
+                  <Badge tone="neutral">{event.communityPrivacy}</Badge>
+                )}
+              </li>
+            ))}
           </ul>
         )}
       </section>
