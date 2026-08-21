@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 // Each tab owns a set of path prefixes; the per-user detail pages
 // (/platform-admin/users/...) live under the "Communities & Members" tab.
 const TABS = [
-  { href: "/platform-admin", label: "Settings", match: ["/platform-admin/communities", "/platform-admin/users", "/platform-admin/system"] },
+  { href: "/platform-admin", label: "Settings", match: ["/platform-admin/communities", "/platform-admin/users", "/platform-admin/analytics", "/platform-admin/system"] },
   { href: "/platform-admin/communities", label: "Communities & Members", match: ["/platform-admin/communities", "/platform-admin/users"] },
+  { href: "/platform-admin/analytics", label: "Signups & logins", match: ["/platform-admin/analytics"] },
   { href: "/platform-admin/system", label: "System check", match: ["/platform-admin/system"] },
 ];
 

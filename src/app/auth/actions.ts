@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isPlatformHost } from "@/lib/custom-domain";
 import { isResendConfigured, sendCommunityConfirmationEmail, sendPasswordResetEmail } from "@/lib/email";
 import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
+import { authEventContext, recordAuthEvent, signupContextMetadata } from "@/lib/auth-events";
 
 export type AuthFormState = { error: string } | undefined;
 
@@ -32,6 +33,17 @@ function customDomainHost(origin: string): string | null {
   }
 }
 
+// The host (with port) the form was submitted from, whatever it is — the
+// platform, a community subdomain, or a custom domain. Used to attribute
+// signups and sign-ins to a community (see src/lib/auth-events.ts).
+function hostOf(origin: string): string | null {
+  try {
+    return new URL(origin).host;
+  } catch {
+    return null;
+  }
+}
+
 function safeNextPath(value: FormDataEntryValue | null, fallback: string) {
   const path = typeof value === "string" ? value : "";
   return path.startsWith("/") ? path : fallback;
@@ -40,9 +52,10 @@ function safeNextPath(value: FormDataEntryValue | null, fallback: string) {
 export async function login(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const origin = await getSiteOrigin();
   // On a custom domain the member is signing in to that one community, so
   // land on its feed rather than the cross-community dashboard.
-  const next = safeNextPath(formData.get("next"), customDomainHost(await getSiteOrigin()) ? "/" : "/dashboard");
+  const next = safeNextPath(formData.get("next"), customDomainHost(origin) ? "/" : "/dashboard");
 
   if (!email || !password) {
     return { error: "Enter your email and password." };
@@ -55,6 +68,12 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
     console.error("[login] signInWithPassword failed:", error);
     return { error: friendlyLoginError(error.message) };
   }
+
+  // Log the sign-in against the community it happened on, so the platform-admin
+  // "Signups & logins" tab can show activity per community. Never allowed to
+  // fail the sign-in itself, and it must run before the redirect below, which
+  // throws to navigate.
+  await recordAuthEvent(supabase, "login", authEventContext(next, hostOf(origin)));
 
   redirect(next);
 }
@@ -152,8 +171,11 @@ async function trySendBrandedConfirmation(args: {
   customHost: string | null;
   platformOrigin: string;
   returnParam: string;
+  // Signup-attribution keys carried into raw_user_meta_data so the auth.users
+  // trigger can log which community this signup came from.
+  contextMetadata: Record<string, string>;
 }): Promise<BrandedConfirmationResult> {
-  const { supabase, email, password, fullName, next, customHost, platformOrigin, returnParam } = args;
+  const { supabase, email, password, fullName, next, customHost, platformOrigin, returnParam, contextMetadata } = args;
 
   const community = await communityForSignup(supabase, next, customHost);
   if (!community) return "fallback";
@@ -174,7 +196,7 @@ async function trySendBrandedConfirmation(args: {
     email,
     password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: fullName, ...contextMetadata },
       redirectTo: `${platformOrigin}/auth/confirm`,
     },
   });
@@ -222,6 +244,12 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   const origin = await getSiteOrigin();
   const customHost = customDomainHost(origin);
   const next = safeNextPath(formData.get("next"), customHost ? "/" : "/dashboard");
+
+  // Which community this signup belongs to, as far as the request can tell.
+  // Passed down as user metadata and resolved to a community id by the
+  // auth.users trigger, so private and invite-only communities attribute their
+  // new members exactly like public ones do.
+  const contextMetadata = signupContextMetadata(authEventContext(next, hostOf(origin)));
 
   // Bot defenses, cheapest first. The honeypot is a hidden field no human
   // fills; a filled one means a bot. Don't reveal the trap — pretend the signup
@@ -278,6 +306,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
       customHost,
       platformOrigin,
       returnParam,
+      contextMetadata,
     });
     if (branded === "already-registered") {
       return { error: ALREADY_REGISTERED_MESSAGE };
@@ -292,7 +321,7 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
     email,
     password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: fullName, ...contextMetadata },
       emailRedirectTo: `${platformOrigin}/auth/confirm?next=${encodeURIComponent(next)}${returnParam}`,
     },
   });
