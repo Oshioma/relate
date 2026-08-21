@@ -40,6 +40,9 @@ export function PlanSection({
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set when an existing subscription was moved onto another price: there is no
+  // checkout to visit, the webhook writes the new plan a moment later.
+  const [switched, setSwitched] = useState(false);
 
   const isLive = planStatus === "active" || planStatus === "trialing";
   const paidPlans = plans.filter((p) => p.price_cents > 0);
@@ -50,6 +53,12 @@ export function PlanSection({
     const result = await subscribeCommunityToPlan(communityId, planId);
     if ("url" in result) {
       window.location.assign(result.url);
+      return;
+    }
+    if ("switched" in result) {
+      setSwitched(true);
+      setBusy(null);
+      router.refresh();
       return;
     }
     setError(result.error);
@@ -83,6 +92,19 @@ export function PlanSection({
 
   return (
     <div className="space-y-4">
+      {switched && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-5">
+            <p className="text-sm text-muted-foreground">
+              Plan change submitted — Stripe is confirming it, and the difference is prorated onto your next invoice.
+            </p>
+            <Button size="sm" variant="secondary" onClick={() => router.refresh()}>
+              Refresh
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {justSubscribed && !isLive && (
         <Card>
           <CardContent className="flex items-center justify-between gap-3 pt-5">

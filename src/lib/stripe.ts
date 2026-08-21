@@ -170,6 +170,48 @@ export function createBillingCheckoutSession(params: {
   });
 }
 
+export type StripeSubscription = {
+  id: string;
+  status: string;
+  cancel_at_period_end?: boolean;
+  current_period_end?: number;
+  items?: { data?: { id: string; price?: { id: string } }[] };
+};
+
+export function retrieveSubscription(subscriptionId: string): Promise<StripeSubscription> {
+  return stripeFetch<StripeSubscription>(`/subscriptions/${subscriptionId}`, { method: "GET" });
+}
+
+// Move an existing subscription onto a different price — the correct way to
+// change plan. Opening a second Checkout instead would leave the old
+// subscription running alongside the new one and bill the owner twice.
+//
+// The item id is required: without it Stripe treats the items array as a fresh
+// set and adds a line rather than swapping one. metadata is rewritten too,
+// because the webhook routes on subscription metadata (plan_id) — leave it and
+// the next event would write the OLD plan back over the new one.
+//
+// create_prorations is Stripe's default: the difference lands as a credit or
+// charge on the next invoice rather than taking money the moment someone clicks
+// "upgrade".
+export function changeSubscriptionPrice(params: {
+  subscriptionId: string;
+  itemId: string;
+  priceId: string;
+  metadata: Record<string, string>;
+}): Promise<StripeSubscription> {
+  return stripeFetch<StripeSubscription>(`/subscriptions/${params.subscriptionId}`, {
+    body: {
+      items: [{ id: params.itemId, price: params.priceId }],
+      proration_behavior: "create_prorations",
+      // A plan change from someone who had scheduled a cancellation means they
+      // are staying.
+      cancel_at_period_end: false,
+      metadata: params.metadata,
+    },
+  });
+}
+
 // Stripe-hosted billing portal so an owner can change/cancel their plan or
 // update their card, then return to the admin page.
 export function createBillingPortalSession(params: { customerId: string; returnUrl: string }): Promise<{ url: string }> {

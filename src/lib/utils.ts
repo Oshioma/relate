@@ -50,6 +50,22 @@ export function initials(name: string | null | undefined, fallback = "?") {
   return (first + last).toUpperCase() || fallback;
 }
 
+// Prices are stored as integer cents plus an ISO currency code (platform
+// plans, feature packs, tiers). Whole units only — every price in the product
+// is a round monthly figure, and "$29" reads better than "$29.00".
+export function formatMoney(cents: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      maximumFractionDigits: 0,
+    }).format(cents / 100);
+  } catch {
+    // An unknown/misconfigured currency code throws rather than falling back.
+    return `${(cents / 100).toFixed(0)} ${currency.toUpperCase()}`;
+  }
+}
+
 export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = {}) {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
