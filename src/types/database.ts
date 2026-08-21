@@ -91,8 +91,68 @@ export type Profile = {
   // IANA timezone captured from the browser (e.g. "Africa/Nairobi"), used to
   // localize server-generated notification times. Null until first captured.
   timezone: string | null;
+  // Where this account came from, captured at signup by the auth.users trigger
+  // (see the auth_events migration). signup_community_id is the community the
+  // signup was attributed to — an invite link, a /c/<slug> page, or the
+  // community's own domain — and is null for a plain platform signup or an
+  // account created before this was recorded. signup_source mirrors
+  // AuthEventSource.
+  signup_community_id: string | null;
+  signup_source: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// --- Auth & membership event log --------------------------------------------
+// One append-only row per thing that happened to an account: signups, sign-ins,
+// email confirmations, and every membership change. Powers the platform-admin
+// "Signups & logins" tab, which reads it with the service-role client so
+// private communities are included. Written only by DB triggers and the
+// record_auth_event RPC — never inserted from client code.
+export type AuthEventType = "signup" | "login" | "email_confirmed" | "join" | "invited" | "leave";
+
+// Where a signup or sign-in happened, which is how it gets attributed to a
+// community. Membership events carry the membership role here instead.
+export type AuthEventSource =
+  | "invite" // followed an /invite/<code> link
+  | "community_page" // was on /c/<slug> when they signed up or in
+  | "custom_domain" // on the community's own verified domain
+  | "subdomain" // on <slug>.<platform-apex>
+  | "platform" // the main site, no community context
+  | "backfill"; // synthesised from existing rows when the log was introduced
+
+export type AuthEvent = {
+  id: string;
+  event_type: AuthEventType;
+  // Null once the account or community has been deleted — the event stays so
+  // historical counts don't move. community_slug keeps the label readable.
+  user_id: string | null;
+  community_id: string | null;
+  community_slug: string | null;
+  source: string | null;
+  path: string | null;
+  host: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+// One row per person per community per UTC day, upserted as they browse (see
+// the member_activity_presence migration). This is what makes "active today"
+// a real number rather than an inference from sign-ins: a member who returns
+// daily on a live session never signs in again, but still shows up here.
+// community_id is null for time spent outside any community.
+export type MemberActivityDay = {
+  id: string;
+  user_id: string;
+  community_id: string | null;
+  day: string; // YYYY-MM-DD, UTC
+  // Whether they were an active member of that community at the time — "12
+  // members active today" vs "12 people looked at it".
+  is_member: boolean;
+  first_seen_at: string;
+  last_seen_at: string;
+  // Throttled touches, not page views.
+  hits: number;
 };
 
 // location_type/location_name back the Place-Based Community blueprint's
@@ -1852,6 +1912,18 @@ export type Database = {
   public: {
     Tables: {
       profiles: { Row: Profile; Insert: Partial<Profile> & { id: string }; Update: Partial<Profile> } & NoRel;
+      member_activity_days: {
+        Row: MemberActivityDay;
+        Insert: Partial<MemberActivityDay> & { user_id: string };
+        Update: Partial<MemberActivityDay>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"community_id", "communities">];
+      };
+      auth_events: {
+        Row: AuthEvent;
+        Insert: Partial<AuthEvent> & { event_type: AuthEventType };
+        Update: Partial<AuthEvent>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"community_id", "communities">];
+      };
       communities: {
         Row: Community;
         // is_public is a generated column (derived from privacy) — omitted
@@ -2554,6 +2626,21 @@ export type Database = {
           option_label: string | null;
           option_sort: number | null;
         }[];
+      };
+      record_member_activity: {
+        Args: { p_community_slug?: string | null };
+        Returns: void;
+      };
+      record_auth_event: {
+        Args: {
+          p_event_type: string;
+          p_source?: string | null;
+          p_path?: string | null;
+          p_host?: string | null;
+          p_community_slug?: string | null;
+          p_invite_code?: string | null;
+        };
+        Returns: void;
       };
       grade_quiz: {
         Args: { p_quiz_id: string; p_selected: string[] };
