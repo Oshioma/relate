@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStripeConfigured, createTierCheckoutSession, setSubscriptionCancellation } from "@/lib/stripe";
+import { communityCanCharge } from "@/lib/data/plan-limits";
 
 export type CheckoutResult = { error: string } | { url: string };
 export type CancelResult = { error: string | null };
@@ -55,6 +56,14 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
     .maybeSingle();
   if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
     return { error: "This community hasn't finished setting up payments yet. Try again later." };
+  }
+
+  // Same gate as the per-space paywall: a lapsed plan stops NEW paid
+  // memberships. Members already on this tier keep it and keep renewing.
+  if (!(await communityCanCharge(supabase, community.id))) {
+    return {
+      error: "This membership isn't open to new subscribers right now. Please check back later, or contact the community's admins.",
+    };
   }
 
   const base = await requestBaseUrl();

@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isStripeConfigured, createSpaceCheckoutSession } from "@/lib/stripe";
+import { communityCanCharge } from "@/lib/data/plan-limits";
 
 export type CheckoutResult = { error: string } | { url: string };
 
@@ -49,6 +50,17 @@ export async function subscribeToSpace(spaceId: string, communitySlug: string, s
     .maybeSingle();
   if (!community?.stripe_account_id || !community.stripe_charges_enabled) {
     return { error: "This community hasn't finished setting up payments yet. Try again later." };
+  }
+
+  // Charging members is a paid-plan capability, and it has to be checked HERE
+  // and not only where a price is set: otherwise a community whose plan lapsed
+  // keeps signing up new paying members forever off a price it set while
+  // subscribed. Members who already subscribed are unaffected — this blocks new
+  // subscriptions, never existing ones.
+  if (!(await communityCanCharge(supabase, community.id))) {
+    return {
+      error: "This space isn't accepting new subscriptions right now. Please check back later, or contact the community's admins.",
+    };
   }
 
   const base = await requestBaseUrl();

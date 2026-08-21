@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { planLimitMessage } from "@/lib/data/plan-limits";
 
 // Postgres unique_violation, raised by the (user_id, community_id) unique
 // constraint on community_memberships.
@@ -62,7 +63,9 @@ export async function joinCommunity(communityId: string) {
       .eq("id", existing.id);
 
     if (error) {
-      return { error: error.message };
+      // The plan-limit trigger writes a message meant for a person; anything
+      // else is a genuine failure and keeps its own.
+      return { error: planLimitMessage(error) ?? error.message };
     }
 
     revalidatePath("/dashboard");
@@ -80,7 +83,9 @@ export async function joinCommunity(communityId: string) {
   // between our read and this insert. The row the caller wanted exists, so
   // that's a success, not something to report.
   if (error && error.code !== UNIQUE_VIOLATION) {
-    return { error: error.message };
+    // A community at its plan's member cap refuses new joins (the trigger in
+    // the plan-limits migration). Show its sentence rather than a raw error.
+    return { error: planLimitMessage(error) ?? error.message };
   }
 
   revalidatePath("/dashboard");

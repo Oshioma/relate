@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
+import { planLimitMessage } from "@/lib/data/plan-limits";
 
 // The community whose invite this is — used to brand the page, because the
 // invitee is joining that community, not "Relate". Null when the code is
@@ -89,13 +90,18 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  const { data: redeemRows } = await supabase.rpc("redeem_invite", { p_code: code });
+  const { data: redeemRows, error: redeemError } = await supabase.rpc("redeem_invite", { p_code: code });
   const result = redeemRows?.[0];
 
   if (!result || result.error) {
+    // redeem_invite returns its own refusals in `result.error`; a community at
+    // its plan's member cap instead comes back as a raised error from the
+    // plan-limits trigger, which already reads as a sentence.
+    const message =
+      result?.error ?? planLimitMessage(redeemError) ?? "Something went wrong redeeming this invite.";
     return (
       <InviteShell community={community}>
-        <p className="text-sm text-danger">{result?.error ?? "Something went wrong redeeming this invite."}</p>
+        <p className="text-sm text-danger">{message}</p>
         <LinkButton href="/dashboard" variant="secondary" className="mt-6">
           Go to dashboard
         </LinkButton>

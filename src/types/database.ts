@@ -2571,6 +2571,14 @@ export type Database = {
         Args: { p_proposal_id: string };
         Returns: string;
       };
+      community_plan_limit: {
+        Args: { p_community_id: string; p_key: string };
+        Returns: number | null;
+      };
+      community_plan_grace_until: {
+        Args: { p_community_id: string };
+        Returns: string | null;
+      };
       community_can_charge: {
         Args: { p_community_id: string };
         Returns: boolean;

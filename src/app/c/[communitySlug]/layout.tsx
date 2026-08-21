@@ -27,6 +27,8 @@ import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { JoinCommunityButton } from "./join-community-button";
+import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
+import { getPlanLapseNotice } from "@/lib/data/plan-limits";
 
 // The snippet a search engine shows under the result, and the text on a
 // social-share card, both come from the page's meta description. Without one,
@@ -150,6 +152,9 @@ export default async function CommunityLayout({
   // Contact-form messages waiting on staff. Only staff can read them (RLS says
   // so too), so only staff pay for the count query.
   const openInboxCount = isStaff ? await countUnhandledCommunityContactMessages(supabase, community.id) : 0;
+  // Only staff see a billing problem, and only when there is one — this is null
+  // for every community on a live plan, which is nearly all of them.
+  const planLapse = isStaff ? await getPlanLapseNotice(supabase, community) : null;
   // Members is login-gated regardless of visibility (the page itself requires
   // a signed-in user), then further narrowed by the community's setting.
   const showMembersLink = Boolean(user) && canViewMembers(community, membership);
@@ -434,6 +439,9 @@ export default async function CommunityLayout({
               {community.is_public && <JoinCommunityButton communityId={community.id} size="sm" />}
             </div>
           ) : null}
+          {planLapse && (
+            <PlanLapseBanner notice={planLapse} communityName={community.name} communitySlug={community.slug} />
+          )}
           {children}
         </main>
       </div>
