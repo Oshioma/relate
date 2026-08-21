@@ -40,7 +40,7 @@ import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
-import { adminSeatsLeft, getPlanCapacity, memberSeatsLeft } from "@/lib/data/plan-limits";
+import { adminSeatsLeft, communityHasFeature, getPlanCapacity, memberSeatsLeft } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
 import { getCommunityTiers } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
@@ -115,6 +115,12 @@ export default async function AdminPage({
   const capacity = await getPlanCapacity(supabase, community.id);
   const memberSeats = memberSeatsLeft(capacity);
   const adminSeats = adminSeatsLeft(capacity);
+
+  // 'white_label' is what a plan calls running the community on your own
+  // domain. Only the owner sees that section at all.
+  const planAllowsCustomDomain = isOwner
+    ? await communityHasFeature(supabase, community.id, "white_label")
+    : false;
 
   const platformPlans = isOwner ? await getActivePlatformPlans(supabase) : [];
   const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
@@ -461,7 +467,11 @@ export default async function AdminPage({
           )}
 
           <h2 id="domain" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom domain</h2>
-          <CustomDomainSection community={community} vercelAutomated={isVercelDomainAutomationConfigured()} />
+          <CustomDomainSection
+            community={community}
+            vercelAutomated={isVercelDomainAutomationConfigured()}
+            planAllowsCustomDomain={planAllowsCustomDomain}
+          />
 
           <h2 id="danger" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-danger">Danger zone</h2>
           <DeleteCommunitySection community={community} />

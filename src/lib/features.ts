@@ -26,6 +26,33 @@ export function planFeatureLabel(key: string): string {
   return PLAN_FEATURE_LABELS[key] ?? key.replace(/_/g, " ");
 }
 
+// Which of those keys the product ACTUALLY gates, and how. A plan advertises
+// whatever keys the operator types into it, and the pricing page renders them
+// verbatim — so a key with nothing behind it is a promise the software doesn't
+// keep. This map is what the platform-admin plan editor uses to say so.
+//
+// Keep it honest: when a capability gets a real gate, move its key here and say
+// where the gate lives.
+export const PLAN_FEATURE_ENFORCEMENT: Record<string, string> = {
+  // community_can_charge() — setting a price, and member checkout.
+  paid_memberships: "Enforced: paid spaces and membership tiers.",
+  // The absence of a `members` cap in the plan's limits.
+  unlimited_members: "Enforced: leave the plan's `members` limit unset.",
+  // The absence of an `admins` cap in the plan's limits.
+  multiple_admins: "Enforced: leave the plan's `admins` limit unset.",
+  // community_has_feature(…, 'white_label') in setCustomDomain.
+  white_label: "Enforced: connecting a custom domain.",
+};
+
+export function planFeatureEnforcement(key: string): string | null {
+  return PLAN_FEATURE_ENFORCEMENT[key] ?? null;
+}
+
+// Keys on a plan that nothing in the product checks. Sold, but not delivered.
+export function unenforcedPlanFeatures(features: string[]): string[] {
+  return features.filter((key) => !PLAN_FEATURE_ENFORCEMENT[key]);
+}
+
 // Human labels for a plan's numeric caps (see platform_plans.limits, e.g.
 // {"members": 200, "admins": 1}). An absent key means unlimited, so only the
 // keys actually present are ever rendered.

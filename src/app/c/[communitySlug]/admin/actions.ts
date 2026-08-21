@@ -7,9 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-types";
 import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
+import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
-import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName } from "@/lib/custom-domain";
+import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName, communitySubdomainUrl } from "@/lib/custom-domain";
 import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/vercel-domains";
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -660,6 +661,21 @@ export async function setCustomDomain(_prevState: CustomDomainState, formData: F
 
   const owned = await requireOwnedCommunity(communityId);
   if (!owned.ok) return { error: owned.error };
+
+  // Running the community on your own domain is the 'white_label' capability a
+  // plan grants. Gate CONNECTING one, not serving one: a domain already
+  // verified keeps resolving if the plan later lapses (the proxy never checks
+  // the plan), because pointing a live domain at a dead end would take a real
+  // community offline over a billing lapse.
+  const supabase = await createClient();
+  if (!(await communityHasFeature(supabase, communityId, "white_label"))) {
+    const subdomain = communitySubdomainUrl(owned.community.slug);
+    return {
+      error:
+        "Connecting your own domain is a paid-plan feature. Upgrade the plan to use it" +
+        (subdomain ? ` — your community already has its own address at ${subdomain.replace(/^https?:\/\//, "")}.` : "."),
+    };
+  }
 
   const clientResult = adminClientOrError();
   if (!clientResult.ok) return { error: clientResult.error };
