@@ -2612,6 +2612,10 @@ export type Database = {
         Args: { p_code: string };
         Returns: { community_slug: string | null; error: string | null }[];
       };
+      user_emails_for_ids: {
+        Args: { p_user_ids: string[] };
+        Returns: { user_id: string; email: string | null }[];
+      };
       find_user_id_by_email: {
         Args: { p_email: string };
         Returns: string | null;

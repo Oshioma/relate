@@ -317,6 +317,10 @@ function EventRow({ event }: { event: AuthEventFeedItem }) {
             </>
           )}
         </p>
+        {/* The address is how an operator actually recognises someone, so it
+            sits on its own line rather than being crowded into the meta row.
+            Selectable — copying it into an email client is the usual next step. */}
+        {event.email && <p className="truncate text-xs text-foreground/80 select-all">{event.email}</p>}
         <p className="truncate text-xs text-muted-foreground">
           {formatDateTime(event.createdAt)}
           {event.source ? ` · ${SOURCE_LABELS[event.source] ?? event.source}` : ""}
