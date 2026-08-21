@@ -136,6 +136,25 @@ export type AuthEvent = {
   created_at: string;
 };
 
+// One row per person per community per UTC day, upserted as they browse (see
+// the member_activity_presence migration). This is what makes "active today"
+// a real number rather than an inference from sign-ins: a member who returns
+// daily on a live session never signs in again, but still shows up here.
+// community_id is null for time spent outside any community.
+export type MemberActivityDay = {
+  id: string;
+  user_id: string;
+  community_id: string | null;
+  day: string; // YYYY-MM-DD, UTC
+  // Whether they were an active member of that community at the time — "12
+  // members active today" vs "12 people looked at it".
+  is_member: boolean;
+  first_seen_at: string;
+  last_seen_at: string;
+  // Throttled touches, not page views.
+  hits: number;
+};
+
 // location_type/location_name back the Place-Based Community blueprint's
 // "what kind of place is this?" wizard step (see src/lib/community-templates.ts).
 // Both are free text rather than a DB enum: location_type is validated
@@ -1893,6 +1912,12 @@ export type Database = {
   public: {
     Tables: {
       profiles: { Row: Profile; Insert: Partial<Profile> & { id: string }; Update: Partial<Profile> } & NoRel;
+      member_activity_days: {
+        Row: MemberActivityDay;
+        Insert: Partial<MemberActivityDay> & { user_id: string };
+        Update: Partial<MemberActivityDay>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"community_id", "communities">];
+      };
       auth_events: {
         Row: AuthEvent;
         Insert: Partial<AuthEvent> & { event_type: AuthEventType };
@@ -2601,6 +2626,10 @@ export type Database = {
           option_label: string | null;
           option_sort: number | null;
         }[];
+      };
+      record_member_activity: {
+        Args: { p_community_slug?: string | null };
+        Returns: void;
       };
       record_auth_event: {
         Args: {

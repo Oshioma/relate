@@ -65,19 +65,19 @@ export default async function PlatformAnalyticsPage({
   }
 
   const rangeLabel = AUTH_EVENT_RANGES.find((r) => r.key === range)!.label.toLowerCase();
-  const active = analytics.byCommunity.filter(
-    (c) => c.counts.signup + c.counts.join + c.counts.login + c.counts.leave > 0
-  );
-  const quiet = analytics.byCommunity.filter(
-    (c) => c.counts.signup + c.counts.join + c.counts.login + c.counts.leave === 0 && c.communityId
-  );
+  // A community belongs in the main list if anything happened in it — an event
+  // or simply somebody being there.
+  const hasActivity = (c: CommunityAuthActivity) =>
+    c.counts.signup + c.counts.join + c.counts.login + c.counts.leave + c.presence.activeInWindow > 0;
+  const active = analytics.byCommunity.filter(hasActivity);
+  const quiet = analytics.byCommunity.filter((c) => !hasActivity(c) && c.communityId);
 
   return (
     <div>
       <p className="mb-6 text-sm text-muted-foreground">
-        Every signup, sign-in and membership change on the platform, attributed to the community it happened on.
-        Private and invite-only communities are included — this page reads past row-level security, so a new member
-        joining a community you aren&apos;t in still shows up here.
+        Every signup, sign-in and membership change on the platform, plus who was actually around, attributed to the
+        community it happened in. Private and invite-only communities are included — this page reads past row-level
+        security, so a new member joining a community you aren&apos;t in still shows up here.
       </p>
 
       {/* Range picker */}
@@ -98,6 +98,33 @@ export default async function PlatformAnalyticsPage({
         ))}
       </nav>
 
+      {/* Presence — who was actually here, independent of the range picker
+          (these are fixed windows: today, yesterday, 7 and 30 days). */}
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Active people</h2>
+      {analytics.presenceAvailable ? (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatTile label="Active today" value={analytics.active.today} hint="distinct people, UTC day" />
+            <StatTile label="Yesterday" value={analytics.active.yesterday} hint="for comparison" />
+            <StatTile label="Last 7 days" value={analytics.active.last7} hint="weekly actives" />
+            <StatTile label="Last 30 days" value={analytics.active.last30} hint="monthly actives" />
+          </div>
+          <p className="mb-8 mt-3 text-xs text-muted-foreground">
+            Counted from real page views by signed-in people, not from sign-ins — someone who returns every day without
+            ever signing in again still counts. Each person is counted once per community per 15 minutes, and days are
+            UTC.
+          </p>
+        </>
+      ) : (
+        <p className="mb-8 rounded-lg border border-border p-4 text-sm text-muted-foreground">
+          Presence isn&apos;t being tracked on this database yet — push the{" "}
+          <code>member_activity_presence</code> migration and these numbers start filling in from that moment.
+        </p>
+      )}
+
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+        Signups &amp; events (last {rangeLabel})
+      </h2>
       <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatTile label="Signups" value={analytics.totals.signup} hint={`new accounts, last ${rangeLabel}`} />
         <StatTile label="Confirmed" value={analytics.totals.email_confirmed} hint="clicked the email link" />
@@ -125,7 +152,10 @@ export default async function PlatformAnalyticsPage({
         )}
       </p>
 
-      <DailyTrend days={analytics.daily} />
+      <div className="grid gap-3 lg:grid-cols-2">
+        <DailyTrend days={analytics.daily} />
+        {analytics.presenceAvailable && <DailyActive days={analytics.dailyActive} />}
+      </div>
 
       {/* Per-community breakdown */}
       <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">
@@ -227,6 +257,14 @@ function CommunityRow({ row }: { row: CommunityAuthActivity }) {
               +{newcomers} {newcomers === 1 ? "newcomer" : "newcomers"}
             </Badge>
           )}
+          {row.presence.activeToday > 0 && (
+            <Badge tone="neutral">
+              {row.presence.activeToday} active today
+              {row.presence.membersActiveToday < row.presence.activeToday
+                ? ` (${row.presence.membersActiveToday} members)`
+                : ""}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -236,7 +274,8 @@ function CommunityRow({ row }: { row: CommunityAuthActivity }) {
         <Metric label="Sign-ins" value={row.counts.login} />
         <Metric label="Invited" value={row.counts.invited} />
         <Metric label="Left" value={row.counts.leave} />
-        <Metric label="People" value={row.uniqueUsers} />
+        <Metric label="Active today" value={row.presence.activeToday} />
+        <Metric label="Active in range" value={row.presence.activeInWindow} />
       </div>
     </div>
   );
@@ -333,6 +372,49 @@ function DailyTrend({ days }: { days: { day: string; counts: Record<AuthEventTyp
             </div>
           );
         })}
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
+        <span>{days[0].day}</span>
+        <span>{days[days.length - 1].day}</span>
+      </div>
+    </div>
+  );
+}
+
+// Distinct people seen per day. Deliberately its own chart rather than a fourth
+// series on the one above: actives are a superset of signups and joins, so
+// stacking them would misread as a total.
+function DailyActive({ days }: { days: { day: string; active: number }[] }) {
+  if (days.length === 0) {
+    return (
+      <div className="rounded-lg border border-border p-4">
+        <p className="text-xs font-medium text-foreground">Daily active people</p>
+        <p className="mt-2 text-xs text-muted-foreground">Nobody recorded yet.</p>
+      </div>
+    );
+  }
+  const peak = Math.max(1, ...days.map((d) => d.active));
+
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground">Daily active people</span>
+        <span>peak {peak.toLocaleString()}</span>
+      </div>
+      <div className="flex h-32 items-end gap-[3px] overflow-x-auto">
+        {days.map((day) => (
+          <div
+            key={day.day}
+            className="flex min-w-[6px] flex-1 flex-col justify-end"
+            title={`${day.day} — ${day.active} active`}
+          >
+            <div
+              style={{ height: `${(day.active / peak) * 100}%` }}
+              className="w-full rounded-t-sm bg-accent/70"
+            />
+            {day.active === 0 && <div className="h-px w-full bg-border" />}
+          </div>
+        ))}
       </div>
       <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
         <span>{days[0].day}</span>

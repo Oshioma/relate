@@ -64,6 +64,24 @@ export type CommunityAuthActivity = {
   // created inside the window has its whole membership counted as "joins",
   // which would otherwise look like a spike.
   createdInWindow: boolean;
+  // Who was actually around, from presence tracking rather than events.
+  presence: CommunityPresence;
+};
+
+// Presence, from member_activity_days: how many distinct people were actually
+// around, per community and platform-wide. Days are UTC — the same boundary the
+// rows are written on — so "today" means the current UTC day, not the viewer's.
+export type ActiveUserCounts = {
+  today: number;
+  yesterday: number;
+  last7: number;
+  last30: number;
+};
+
+export type CommunityPresence = {
+  activeToday: number;
+  membersActiveToday: number;
+  activeInWindow: number;
 };
 
 export type AuthEventFeedItem = {
@@ -99,12 +117,23 @@ export type AuthAnalytics = {
   recent: AuthEventFeedItem[];
   // People who signed up in the window and are still in no community at all.
   signupsWithoutCommunity: number;
+  // Distinct people seen, platform-wide.
+  active: ActiveUserCounts;
+  // Distinct people seen per UTC day, for the trend chart.
+  dailyActive: { day: string; active: number }[];
+  // False when the presence migration hasn't been pushed yet, so the UI can say
+  // "not tracking yet" instead of showing a confident zero.
+  presenceAvailable: boolean;
 };
 
 // Hard ceiling on the rows pulled into memory for the per-community breakdown.
 // Well above a year of events for a platform of this size; the exact totals
 // above stay correct even if it is ever hit.
 const ROW_CAP = 50_000;
+
+// Presence rows are (people x communities x days) — far denser than events, so
+// its own, larger ceiling.
+const PRESENCE_ROW_CAP = 200_000;
 
 type EventRow = Pick<
   AuthEvent,
@@ -141,8 +170,13 @@ export async function getAuthAnalytics(admin: Client, range: AuthEventRange): Pr
 async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<AuthAnalytics> {
   const since = rangeStart(range);
 
-  const [totals, { data: rows, error: rowsError }, { data: communities, error: communitiesError }, memberCounts] =
-    await Promise.all([
+  const [
+    totals,
+    { data: rows, error: rowsError },
+    { data: communities, error: communitiesError },
+    memberCounts,
+    presence,
+  ] = await Promise.all([
       countByType(admin, since),
       (() => {
         let query = admin
@@ -155,6 +189,7 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
       })(),
       admin.from("communities").select("id, name, slug, privacy, created_at"),
       activeMemberCounts(admin),
+      loadPresence(admin, since),
     ]);
 
   if (rowsError) throw rowsError;
@@ -193,6 +228,7 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
         uniqueUsers: 0,
         lastEventAt: null,
         createdInWindow: Boolean(since && community && community.created_at >= since),
+        presence: presence.byCommunity.get(event.community_id ?? "__none__") ?? emptyPresence(),
         users: new Set<string>(),
       });
     }
@@ -226,6 +262,7 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
         uniqueUsers: 0,
         lastEventAt: null,
         createdInWindow: Boolean(since && community.created_at >= since),
+        presence: presence.byCommunity.get(community.id) ?? emptyPresence(),
         users: new Set<string>(),
       });
     }
@@ -238,7 +275,8 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
       memberCount: bucket.communityId ? (memberCounts.get(bucket.communityId) ?? 0) : 0,
     }))
     .sort((a, b) => {
-      const score = (c: CommunityAuthActivity) => c.counts.signup + c.counts.join + c.counts.login;
+      const score = (c: CommunityAuthActivity) =>
+        c.counts.signup + c.counts.join + c.counts.login + c.presence.activeInWindow;
       if (score(b) !== score(a)) return score(b) - score(a);
       return b.memberCount - a.memberCount;
     });
@@ -303,6 +341,125 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
       .sort((a, b) => (a.day < b.day ? -1 : 1)),
     recent,
     signupsWithoutCommunity,
+    active: presence.platform,
+    dailyActive: presence.daily,
+    presenceAvailable: presence.available,
+  };
+}
+
+function emptyPresence(): CommunityPresence {
+  return { activeToday: 0, membersActiveToday: 0, activeInWindow: 0 };
+}
+
+// UTC day strings, the same boundary member_activity_days.day is written on.
+function utcDay(offsetDays = 0): string {
+  const date = new Date(Date.now() - offsetDays * 24 * 60 * 60 * 1000);
+  return date.toISOString().slice(0, 10);
+}
+
+type PresenceRow = { user_id: string; community_id: string | null; day: string; is_member: boolean };
+
+// Presence rows are per (person, community, day), so every count here is a
+// distinct-user count over sets rather than a sum of rows — otherwise someone
+// active in three communities would read as three people.
+async function loadPresence(
+  admin: Client,
+  since: string | null
+): Promise<{
+  platform: ActiveUserCounts;
+  byCommunity: Map<string, CommunityPresence>;
+  daily: { day: string; active: number }[];
+  available: boolean;
+}> {
+  const empty = {
+    platform: { today: 0, yesterday: 0, last7: 0, last30: 0 },
+    byCommunity: new Map<string, CommunityPresence>(),
+    daily: [] as { day: string; active: number }[],
+    available: false,
+  };
+
+  // Always cover at least 30 days so today/7d/30d are answerable, and the whole
+  // window when the operator is looking at a longer one.
+  const windowStart = since ? since.slice(0, 10) : null;
+  const from = windowStart && windowStart < utcDay(30) ? windowStart : utcDay(30);
+
+  const { data, error } = await admin
+    .from("member_activity_days")
+    .select("user_id, community_id, day, is_member")
+    .gte("day", from)
+    .limit(PRESENCE_ROW_CAP);
+
+  if (error) {
+    // The presence migration hasn't been pushed yet — report "not tracking"
+    // rather than a confident zero, and leave the rest of the tab working.
+    if (isMissingTable(error)) return empty;
+    throw error;
+  }
+
+  const rows = (data ?? []) as PresenceRow[];
+  const today = utcDay(0);
+  const yesterday = utcDay(1);
+  const day7 = utcDay(7);
+  const day30 = utcDay(30);
+
+  const platformSets = {
+    today: new Set<string>(),
+    yesterday: new Set<string>(),
+    last7: new Set<string>(),
+    last30: new Set<string>(),
+  };
+  const perCommunity = new Map<
+    string,
+    { activeToday: Set<string>; membersActiveToday: Set<string>; activeInWindow: Set<string> }
+  >();
+  const perDay = new Map<string, Set<string>>();
+
+  for (const row of rows) {
+    if (row.day === today) platformSets.today.add(row.user_id);
+    if (row.day === yesterday) platformSets.yesterday.add(row.user_id);
+    if (row.day >= day7) platformSets.last7.add(row.user_id);
+    if (row.day >= day30) platformSets.last30.add(row.user_id);
+
+    if (!perDay.has(row.day)) perDay.set(row.day, new Set());
+    perDay.get(row.day)!.add(row.user_id);
+
+    const key = row.community_id ?? "__none__";
+    if (!perCommunity.has(key)) {
+      perCommunity.set(key, {
+        activeToday: new Set(),
+        membersActiveToday: new Set(),
+        activeInWindow: new Set(),
+      });
+    }
+    const bucket = perCommunity.get(key)!;
+    if (row.day === today) {
+      bucket.activeToday.add(row.user_id);
+      if (row.is_member) bucket.membersActiveToday.add(row.user_id);
+    }
+    if (!windowStart || row.day >= windowStart) bucket.activeInWindow.add(row.user_id);
+  }
+
+  return {
+    platform: {
+      today: platformSets.today.size,
+      yesterday: platformSets.yesterday.size,
+      last7: platformSets.last7.size,
+      last30: platformSets.last30.size,
+    },
+    byCommunity: new Map(
+      [...perCommunity.entries()].map(([key, sets]) => [
+        key,
+        {
+          activeToday: sets.activeToday.size,
+          membersActiveToday: sets.membersActiveToday.size,
+          activeInWindow: sets.activeInWindow.size,
+        },
+      ])
+    ),
+    daily: [...perDay.entries()]
+      .map(([day, users]) => ({ day, active: users.size }))
+      .sort((a, b) => (a.day < b.day ? -1 : 1)),
+    available: true,
   };
 }
 
@@ -341,12 +498,65 @@ async function activeMemberCounts(admin: Client): Promise<Map<string, number>> {
 
 // --- Single user -------------------------------------------------------------
 
+// One person's presence over the last 30 UTC days, collapsed per community.
+async function loadUserPresence(admin: Client, userId: string) {
+  const empty = { lastSeenAt: null as string | null, daysActive: 0, communityIds: [] as string[], buckets: [] as
+    { communityId: string | null; days: number; lastSeenAt: string }[] };
+
+  const { data, error } = await admin
+    .from("member_activity_days")
+    .select("community_id, day, last_seen_at")
+    .eq("user_id", userId)
+    .gte("day", utcDay(30))
+    .order("day", { ascending: false });
+
+  if (error) {
+    if (isMissingTable(error)) return empty;
+    throw error;
+  }
+
+  const rows = (data ?? []) as { community_id: string | null; day: string; last_seen_at: string }[];
+  if (rows.length === 0) return empty;
+
+  const perCommunity = new Map<string, { communityId: string | null; days: number; lastSeenAt: string }>();
+  const distinctDays = new Set<string>();
+  let lastSeenAt: string | null = null;
+
+  for (const row of rows) {
+    distinctDays.add(row.day);
+    if (!lastSeenAt || row.last_seen_at > lastSeenAt) lastSeenAt = row.last_seen_at;
+
+    const key = row.community_id ?? "__none__";
+    const bucket = perCommunity.get(key);
+    if (!bucket) {
+      perCommunity.set(key, { communityId: row.community_id, days: 1, lastSeenAt: row.last_seen_at });
+    } else {
+      bucket.days += 1;
+      if (row.last_seen_at > bucket.lastSeenAt) bucket.lastSeenAt = row.last_seen_at;
+    }
+  }
+
+  return {
+    lastSeenAt,
+    daysActive: distinctDays.size,
+    communityIds: [...perCommunity.values()].map((b) => b.communityId).filter((id): id is string => Boolean(id)),
+    buckets: [...perCommunity.values()].sort((a, b) => b.days - a.days || (a.lastSeenAt < b.lastSeenAt ? 1 : -1)),
+  };
+}
+
 export type UserAuthActivity = {
   signupCommunity: { id: string; name: string; slug: string } | null;
   signupSource: string | null;
   lastLoginAt: string | null;
   loginCount: number;
   events: AuthEventFeedItem[];
+  // Presence over the last 30 UTC days: how habitual they are, and where.
+  presence: {
+    lastSeenAt: string | null;
+    daysActive: number;
+    // Communities they actually spent time in, most days first.
+    communities: { id: string | null; name: string; slug: string | null; days: number; lastSeenAt: string }[];
+  };
 };
 
 // The account-level story for one person on the per-user admin page: where they
@@ -358,7 +568,14 @@ export async function getUserAuthActivity(admin: Client, userId: string): Promis
     // The per-user page has plenty else to show, so a missing table degrades to
     // an empty section rather than a 500.
     if (isMissingTable(error)) {
-      return { signupCommunity: null, signupSource: null, lastLoginAt: null, loginCount: 0, events: [] };
+      return {
+        signupCommunity: null,
+        signupSource: null,
+        lastLoginAt: null,
+        loginCount: 0,
+        events: [],
+        presence: { lastSeenAt: null, daysActive: 0, communities: [] },
+      };
     }
     throw error;
   }
@@ -385,11 +602,15 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
   if (profileError) throw profileError;
   if (loginCountResult.error) throw loginCountResult.error;
 
+  const presence = await loadUserPresence(admin, userId);
+
   const events = (rows ?? []) as unknown as EventRow[];
   const signupCommunityId = (profile as { signup_community_id?: string | null } | null)?.signup_community_id ?? null;
   const communityIds = [
     ...new Set(
-      [...events.map((e) => e.community_id), signupCommunityId].filter((id): id is string => Boolean(id))
+      [...events.map((e) => e.community_id), ...presence.communityIds, signupCommunityId].filter(
+        (id): id is string => Boolean(id)
+      )
     ),
   ];
   const communityById = new Map<string, Pick<Community, "id" | "name" | "slug" | "privacy">>();
@@ -414,6 +635,20 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
     signupSource: (profile as { signup_source?: string | null } | null)?.signup_source ?? null,
     lastLoginAt: lastLogin?.created_at ?? null,
     loginCount: loginCountResult.count ?? 0,
+    presence: {
+      lastSeenAt: presence.lastSeenAt,
+      daysActive: presence.daysActive,
+      communities: presence.buckets.map((bucket) => {
+        const community = bucket.communityId ? communityById.get(bucket.communityId) : undefined;
+        return {
+          id: bucket.communityId,
+          name: community?.name ?? (bucket.communityId ? "Deleted community" : "Platform (no community)"),
+          slug: community?.slug ?? null,
+          days: bucket.days,
+          lastSeenAt: bucket.lastSeenAt,
+        };
+      }),
+    },
     events: events.slice(0, 15).map((event) => {
       const community = event.community_id ? communityById.get(event.community_id) : undefined;
       return {

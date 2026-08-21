@@ -81,6 +81,11 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
                 ? `Last sign-in ${formatRelativeTime(authActivity.lastLoginAt)}`
                 : "No sign-in recorded"}
             </Badge>
+            {authActivity.presence.lastSeenAt && (
+              <Badge tone="accent">
+                Seen on {authActivity.presence.daysActive} of the last 30 days
+              </Badge>
+            )}
           </div>
           {/* Where this account came from — recorded at signup from the invite
               link, community page or domain the person used. */}
@@ -155,6 +160,37 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
           </ul>
         )}
       </section>
+
+      {/* Presence — where this person actually spends time, from
+          member_activity_days rather than from anything they posted. */}
+      {authActivity.presence.communities.length > 0 && (
+        <section className="mt-10">
+          <h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            Where they&apos;ve been (last 30 days)
+          </h3>
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {authActivity.presence.communities.map((place) => (
+              <li key={place.id ?? "platform"} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div className="min-w-0">
+                  {place.slug ? (
+                    <Link href={`/c/${place.slug}`} className="truncate text-sm font-medium text-foreground hover:underline">
+                      {place.name}
+                    </Link>
+                  ) : (
+                    <p className="truncate text-sm font-medium text-foreground">{place.name}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Last seen {formatRelativeTime(place.lastSeenAt)}
+                  </p>
+                </div>
+                <Badge tone="neutral">
+                  {place.days} {place.days === 1 ? "day" : "days"}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Account events — signups, sign-ins and membership changes from the
           auth_events log (see the platform-admin "Signups & logins" tab). */}

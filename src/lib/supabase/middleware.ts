@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { sharedCookieDomain } from "@/lib/custom-domain";
+import {
+  ACTIVITY_COOKIE,
+  activityCommunitySlug,
+  activityCookieDecision,
+  isTrackableActivityRequest,
+  PLATFORM_ACTIVITY_KEY,
+} from "@/lib/presence";
 import type { Database } from "@/types/database";
 
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing"];
@@ -101,5 +108,55 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  if (user) {
+    trackActivity(request, response, supabase, communityPath);
+  }
+
   return response;
+}
+
+// Presence: record that this person was around, and in which community, so the
+// platform-admin tabs can answer "who is active today?" — the question sign-in
+// events can't, because a member returning on a live session never signs in
+// again.
+//
+// Two things keep this from costing anything. A cookie means the database is
+// only touched once per person per context per window (see src/lib/presence.ts),
+// and after() runs that touch once the response is already on its way, so the
+// page never waits for it.
+function trackActivity(
+  request: NextRequest,
+  response: NextResponse,
+  supabase: ReturnType<typeof createServerClient<Database>>,
+  communityPath: string
+) {
+  if (!isTrackableActivityRequest(request.headers, request.nextUrl.pathname)) return;
+
+  const slug = activityCommunitySlug(communityPath);
+  const decision = activityCookieDecision(
+    request.cookies.get(ACTIVITY_COOKIE)?.value,
+    slug ?? PLATFORM_ACTIVITY_KEY,
+    Date.now()
+  );
+  if (!decision) return;
+
+  // Scoped like the auth cookie so one window spans the apex and every
+  // community subdomain — otherwise each hop would look like a fresh window
+  // and re-record. Custom domains keep their own host-scoped cookie.
+  const domain = sharedCookieDomain(request.headers.get("host") ?? "");
+  response.cookies.set(ACTIVITY_COOKIE, decision.value, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: request.nextUrl.protocol === "https:",
+    path: "/",
+    maxAge: decision.maxAgeSeconds,
+    ...(domain ? { domain } : {}),
+  });
+
+  after(async () => {
+    const { error } = await supabase.rpc("record_member_activity", { p_community_slug: slug ?? "" });
+    if (error) {
+      console.error("[presence] record_member_activity failed:", error);
+    }
+  });
 }
