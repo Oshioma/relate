@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { Globe, CheckCircle2, Copy, Check } from "lucide-react";
 import { setCustomDomain, verifyCustomDomain, removeCustomDomain, type CustomDomainState } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +74,18 @@ function RecordRow({ title, why, type, name, value }: { title: string; why: stri
 // whether verifying also registers the domain with the host automatically —
 // decides which instructions the owner sees. Comes from the server page
 // because env vars aren't readable in a client component.
-export function CustomDomainSection({ community, vercelAutomated }: { community: Community; vercelAutomated: boolean }) {
+export function CustomDomainSection({
+  community,
+  vercelAutomated,
+  planAllowsCustomDomain,
+}: {
+  community: Community;
+  vercelAutomated: boolean;
+  // Whether the plan grants 'white_label'. Said up front rather than after
+  // someone has typed a domain and pressed Connect. A domain already connected
+  // keeps working regardless — this only gates connecting a new one.
+  planAllowsCustomDomain: boolean;
+}) {
   const [connectState, connectAction] = useActionState<CustomDomainState, FormData>(setCustomDomain, undefined);
   const [verifyState, verifyAction] = useActionState<CustomDomainState, FormData>(verifyCustomDomain, undefined);
   const [removeState, removeAction] = useActionState<CustomDomainState, FormData>(removeCustomDomain, undefined);
@@ -119,7 +131,17 @@ export function CustomDomainSection({ community, vercelAutomated }: { community:
           </div>
         </div>
 
-        {!domain && (
+        {!domain && !planAllowsCustomDomain && (
+          <p className="mt-4 rounded-md bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+            Connecting your own domain is a paid-plan feature.{" "}
+            <Link href={`/pricing?community=${encodeURIComponent(community.slug)}`} className="text-accent underline">
+              See plans
+            </Link>
+            {subdomainUrl ? " — or keep using the address above, which is included on every plan." : "."}
+          </p>
+        )}
+
+        {!domain && planAllowsCustomDomain && (
           <form action={connectAction} className="mt-4 space-y-3">
             {hiddenFields}
             <div>

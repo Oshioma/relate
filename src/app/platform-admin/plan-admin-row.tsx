@@ -5,11 +5,15 @@ import { savePlatformPlan, type PlanFormState } from "./actions";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { PlatformPlan } from "@/types/database";
+import { unenforcedPlanFeatures } from "@/lib/features";
 
 // One editable plan row for the platform super admin. The Stripe price id is the
 // field that must be filled from the operator's Stripe dashboard before owners
 // can subscribe to a paid plan.
 export function PlanAdminRow({ plan }: { plan: PlatformPlan }) {
+  // Feature keys on this plan that nothing actually checks — see
+  // PLAN_FEATURE_ENFORCEMENT. Surfaced here rather than silently sold.
+  const unenforced = unenforcedPlanFeatures(plan.features);
   const [state, action] = useActionState<PlanFormState, FormData>(savePlatformPlan, undefined);
 
   return (
@@ -64,6 +68,13 @@ export function PlanAdminRow({ plan }: { plan: PlatformPlan }) {
             defaultValue={plan.features.join(", ")}
             placeholder="paid_memberships, unlimited_members, white_label"
           />
+          {unenforced.length > 0 && (
+            <p className="mt-1.5 text-xs text-danger">
+              Not enforced anywhere in the product yet: <span className="font-mono">{unenforced.join(", ")}</span>. The
+              pricing page still advertises {unenforced.length === 1 ? "it" : "them"} to anyone reading this plan —
+              either build the gate or drop the key.
+            </p>
+          )}
         </div>
       </div>
 

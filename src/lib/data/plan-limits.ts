@@ -24,6 +24,24 @@ export async function communityCanCharge(supabase: Client, communityId: string):
   return Boolean(data);
 }
 
+// Whether the community's plan grants a premium capability. Resolves through
+// the same effective plan as everything else, so the grace window grants it too.
+export async function communityHasFeature(
+  supabase: Client,
+  communityId: string,
+  feature: string
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc("community_has_feature", {
+    p_community_id: communityId,
+    p_feature: feature,
+  });
+  if (error) {
+    console.error(`[plan-limits] community_has_feature(${feature}) failed:`, error);
+    return false;
+  }
+  return Boolean(data);
+}
+
 export type PlanCapacity = {
   // Null means unlimited — an absent limits key has always meant no cap.
   memberLimit: number | null;
