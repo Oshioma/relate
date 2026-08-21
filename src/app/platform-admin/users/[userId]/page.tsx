@@ -62,7 +62,17 @@ export default async function PlatformUserDetailPage({ params }: { params: Promi
             </h2>
             {profile.is_super_admin && <Badge tone="accent">Super admin</Badge>}
           </div>
-          <p className="text-sm text-muted-foreground">@{profile.username}</p>
+          <p className="text-sm text-muted-foreground">
+            @{profile.username}
+            {authActivity.email && (
+              <>
+                {" · "}
+                <a href={`mailto:${authActivity.email}`} className="select-all hover:underline">
+                  {authActivity.email}
+                </a>
+              </>
+            )}
+          </p>
           {(profile.profession || profile.company) && (
             <p className="mt-1.5 flex items-center gap-1.5 text-sm text-foreground">
               <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />

@@ -93,6 +93,10 @@ export type AuthEventFeedItem = {
   host: string | null;
   backfilled: boolean;
   user: Pick<Profile, "id" | "username" | "full_name" | "avatar_url"> | null;
+  // The account's email address. Null when the account has since been deleted,
+  // or when the lookup is unavailable. Only ever fetched for the rows actually
+  // shown — see emailsForUserIds.
+  email: string | null;
   communityId: string | null;
   communityName: string | null;
   communitySlug: string | null;
@@ -285,15 +289,17 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
   const feedRows = events.slice(0, 60);
   const profileIds = [...new Set(feedRows.map((e) => e.user_id).filter((id): id is string => Boolean(id)))];
   const profileById = new Map<string, Pick<Profile, "id" | "username" | "full_name" | "avatar_url">>();
+  let emailById = new Map<string, string>();
   if (profileIds.length > 0) {
-    const { data: profiles, error } = await admin
-      .from("profiles")
-      .select("id, username, full_name, avatar_url")
-      .in("id", profileIds);
+    const [{ data: profiles, error }, emails] = await Promise.all([
+      admin.from("profiles").select("id, username, full_name, avatar_url").in("id", profileIds),
+      emailsForUserIds(admin, profileIds),
+    ]);
     if (error) throw error;
     for (const profile of (profiles ?? []) as Pick<Profile, "id" | "username" | "full_name" | "avatar_url">[]) {
       profileById.set(profile.id, profile);
     }
+    emailById = emails;
   }
 
   const recent: AuthEventFeedItem[] = feedRows.map((event) => {
@@ -307,6 +313,7 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
       host: event.host,
       backfilled: (event.metadata?.backfilled as boolean | undefined) === true,
       user: event.user_id ? (profileById.get(event.user_id) ?? null) : null,
+      email: event.user_id ? (emailById.get(event.user_id) ?? null) : null,
       communityId: event.community_id,
       communityName: community?.name ?? (event.community_slug ? `/c/${event.community_slug}` : null),
       communitySlug: community?.slug ?? event.community_slug,
@@ -483,6 +490,28 @@ async function countByType(admin: Client, since: string | null): Promise<AuthEve
   return { ...emptyCounts(), ...Object.fromEntries(results) };
 }
 
+// Email addresses for a specific set of accounts, via the service-role-only
+// user_emails_for_ids() function (see its migration). Deliberately narrow: only
+// the ids on screen, never the whole user base. An operator recognises their
+// members by email, so a signup feed without it is hard to act on.
+//
+// Never allowed to break the page it decorates — a missing function (migration
+// not pushed yet) or a failed call just means no addresses are shown.
+export async function emailsForUserIds(admin: Client, userIds: string[]): Promise<Map<string, string>> {
+  const emails = new Map<string, string>();
+  if (userIds.length === 0) return emails;
+
+  const { data, error } = await admin.rpc("user_emails_for_ids", { p_user_ids: userIds });
+  if (error) {
+    console.error("[auth-analytics] user_emails_for_ids failed:", error);
+    return emails;
+  }
+  for (const row of (data ?? []) as { user_id: string; email: string | null }[]) {
+    if (row.email) emails.set(row.user_id, row.email);
+  }
+  return emails;
+}
+
 async function activeMemberCounts(admin: Client): Promise<Map<string, number>> {
   const { data, error } = await admin
     .from("community_memberships")
@@ -545,6 +574,8 @@ async function loadUserPresence(admin: Client, userId: string) {
 }
 
 export type UserAuthActivity = {
+  // The account's email address, for the per-user admin page.
+  email: string | null;
   signupCommunity: { id: string; name: string; slug: string } | null;
   signupSource: string | null;
   lastLoginAt: string | null;
@@ -569,6 +600,7 @@ export async function getUserAuthActivity(admin: Client, userId: string): Promis
     // an empty section rather than a 500.
     if (isMissingTable(error)) {
       return {
+        email: null,
         signupCommunity: null,
         signupSource: null,
         lastLoginAt: null,
@@ -602,7 +634,10 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
   if (profileError) throw profileError;
   if (loginCountResult.error) throw loginCountResult.error;
 
-  const presence = await loadUserPresence(admin, userId);
+  const [presence, emails] = await Promise.all([
+    loadUserPresence(admin, userId),
+    emailsForUserIds(admin, [userId]),
+  ]);
 
   const events = (rows ?? []) as unknown as EventRow[];
   const signupCommunityId = (profile as { signup_community_id?: string | null } | null)?.signup_community_id ?? null;
@@ -629,6 +664,7 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
   const signupCommunity = signupCommunityId ? (communityById.get(signupCommunityId) ?? null) : null;
 
   return {
+    email: emails.get(userId) ?? null,
     signupCommunity: signupCommunity
       ? { id: signupCommunity.id, name: signupCommunity.name, slug: signupCommunity.slug }
       : null,
@@ -660,6 +696,7 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
         host: event.host,
         backfilled: (event.metadata?.backfilled as boolean | undefined) === true,
         user: null,
+        email: null,
         communityId: event.community_id,
         communityName: community?.name ?? (event.community_slug ? `/c/${event.community_slug}` : null),
         communitySlug: community?.slug ?? event.community_slug,
