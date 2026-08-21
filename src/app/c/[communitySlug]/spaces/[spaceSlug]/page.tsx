@@ -10,6 +10,7 @@ import { getSpaceBySlug } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
 import { getTiersForSpace } from "@/lib/data/tiers";
 import { SpacePaywall } from "./space-paywall";
+import { communityCanCharge } from "@/lib/data/plan-limits";
 import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
@@ -126,6 +127,9 @@ export default async function SpaceDetailPage({
       (user ? await hasActiveSpaceSubscription(supabase, space.id, user.id) : false) ||
       (user ? await hasActiveTierForSpace(supabase, space.id, user.id) : false);
     if (!hasSpaceAccess) {
+      // A community whose plan lapsed past its grace window can't take new
+      // subscribers. Ask here rather than letting the button fail at checkout.
+      const acceptingSubscriptions = await communityCanCharge(supabase, community.id);
       const joinableTiers = spaceTiers
         .filter((t) => !t.archived_at)
         .map((t) => ({ id: t.id, name: t.name, description: t.description, priceCents: t.price_cents, currency: t.currency, spaceCount: t.spaceCount }));
@@ -141,6 +145,7 @@ export default async function SpaceDetailPage({
             spaceSlug={space.slug}
             isSignedIn={Boolean(user)}
             paymentsReady={community.stripe_charges_enabled}
+            acceptingSubscriptions={acceptingSubscriptions}
             tiers={joinableTiers}
             justSubscribed={subscribed === "1"}
           />

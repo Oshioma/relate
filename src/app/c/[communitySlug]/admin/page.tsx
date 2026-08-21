@@ -40,6 +40,7 @@ import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
+import { adminSeatsLeft, getPlanCapacity, memberSeatsLeft } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
 import { getCommunityTiers } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
@@ -108,6 +109,13 @@ export default async function AdminPage({
   // Platform plans (owner-only). The community can charge members only while on
   // a live plan whose features include 'paid_memberships' — the same rule as
   // the community_can_charge() SQL gate, computed here to drive the UI.
+  // Where this community stands against its plan's caps. Shown before anyone
+  // runs into the wall, so "you can't add another member" is never the first
+  // time an admin hears about it.
+  const capacity = await getPlanCapacity(supabase, community.id);
+  const memberSeats = memberSeatsLeft(capacity);
+  const adminSeats = adminSeatsLeft(capacity);
+
   const platformPlans = isOwner ? await getActivePlatformPlans(supabase) : [];
   const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
   const planIsLive = community.plan_status === "active" || community.plan_status === "trialing";
@@ -211,6 +219,31 @@ export default async function AdminPage({
       </div>
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
+      {(memberSeats !== null || adminSeats !== null) && (
+        <p className={`mb-3 text-sm ${memberSeats === 0 || adminSeats === 0 ? "text-danger" : "text-muted-foreground"}`}>
+          {memberSeats !== null && (
+            <>
+              <span className="font-medium text-foreground">
+                {capacity.memberCount} of {capacity.memberLimit}
+              </span>{" "}
+              members used
+              {memberSeats === 0
+                ? " — this community can't take new members until its plan changes."
+                : ` (${memberSeats} left)`}
+              .{" "}
+            </>
+          )}
+          {adminSeats !== null && (
+            <>
+              {capacity.adminCount} of {capacity.adminLimit} admin{capacity.adminLimit === 1 ? "" : "s"} used
+              {adminSeats === 0 ? " — add a Moderator instead, or upgrade for another admin" : ""}.{" "}
+            </>
+          )}
+          <Link href={`/pricing?community=${encodeURIComponent(community.slug)}`} className="text-accent underline">
+            See plans
+          </Link>
+        </p>
+      )}
       <div className="mb-8 space-y-4">
         <MembersSection
           members={members}

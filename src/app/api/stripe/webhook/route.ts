@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { constructWebhookEvent, type StripeEvent } from "@/lib/stripe";
+import { isResendConfigured, sendPlanLapsedEmail } from "@/lib/email";
 
 // Stripe webhook target for the space paywall. Stripe posts subscription and
 // Connect-account lifecycle events here; we verify the signature and reconcile
@@ -115,6 +116,16 @@ export async function POST(request: NextRequest) {
           // plan_id for the record but flip status to 'canceled' — the
           // community_can_charge gate reads status, so this is the soft
           // downgrade. Match by subscription id when metadata is thin.
+          //
+          // Read the previous status first: the owner is emailed when a plan
+          // STOPS paying, and Stripe sends several events for the same state
+          // (past_due retries in particular), so only the transition counts.
+          const { data: before } = await admin
+            .from("communities")
+            .select("plan_status")
+            .eq("id", meta.community_id)
+            .maybeSingle();
+
           await admin
             .from("communities")
             .update({
@@ -125,6 +136,10 @@ export async function POST(request: NextRequest) {
               plan_stripe_customer_id: sub.customer ?? null,
             })
             .eq("id", meta.community_id);
+
+          if (isLapsed(status) && !isLapsed(before?.plan_status ?? "")) {
+            await notifyPlanLapsed(admin, meta.community_id, meta.plan_id, status, periodEnd);
+          }
         } else if (meta.pack_id && meta.community_id) {
           await admin.from("community_feature_addons").upsert(
             {
@@ -198,4 +213,60 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+// Subscription states that mean the plan has stopped paying — a failed card
+// mid-dunning, or an ended subscription. Each one starts the grace window.
+function isLapsed(status: string): boolean {
+  return status === "past_due" || status === "unpaid" || status === "canceled";
+}
+
+// Email the owner that their plan lapsed, while the grace window still gives
+// them time to fix it. Best-effort in every direction: a missing Resend key, a
+// deleted owner, an unreachable Stripe — none of it may fail the webhook, or
+// Stripe retries an event we already applied.
+async function notifyPlanLapsed(
+  admin: ReturnType<typeof createAdminClient>,
+  communityId: string,
+  planId: string,
+  status: string,
+  periodEnd: string | null
+): Promise<void> {
+  if (!isResendConfigured()) return;
+
+  try {
+    const [{ data: community }, { data: plan }, { data: graceUntil }] = await Promise.all([
+      admin.from("communities").select("name, slug, logo_url, owner_id").eq("id", communityId).maybeSingle(),
+      admin.from("platform_plans").select("name").eq("id", planId).maybeSingle(),
+      admin.rpc("community_plan_grace_until", { p_community_id: communityId }),
+    ]);
+    if (!community?.owner_id) return;
+
+    // The owner's address lives in auth.users, not profiles.
+    const { data: owner } = await admin.auth.admin.getUserById(community.owner_id);
+    const email = owner?.user?.email;
+    if (!email) return;
+
+    // The grace deadline the banner shows, in the same words.
+    const graceValue = typeof graceUntil === "string" ? graceUntil : periodEnd;
+    const graceUntilLabel = graceValue
+      ? new Date(graceValue).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+      : null;
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    const sent = await sendPlanLapsedEmail({
+      to: email,
+      communityName: community.name,
+      communityLogoUrl: community.logo_url,
+      planName: plan?.name ?? "paid",
+      reason: status === "canceled" ? "canceled" : "payment_failed",
+      graceUntilLabel,
+      manageUrl: `${siteUrl}/pricing?community=${encodeURIComponent(community.slug)}`,
+    });
+    if (!sent.ok) {
+      console.error("[stripe/webhook] plan-lapsed email failed:", sent.reason);
+    }
+  } catch (err) {
+    console.error("[stripe/webhook] plan-lapsed notification failed:", (err as Error).message);
+  }
 }

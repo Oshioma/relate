@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { MembershipRole } from "@/types/database";
+import { planLimitMessage } from "@/lib/data/plan-limits";
 
 export type MemberActionState = { error: string } | undefined;
 
@@ -74,7 +75,9 @@ export async function updateMemberRole(membershipId: string, newRole: string, co
     .eq("id", membershipId);
 
   if (error) {
-    return { error: error.message };
+    // Promoting past the plan's admin seats is refused by the plan-limits
+    // trigger, which phrases it for a person (and suggests Moderator).
+    return { error: planLimitMessage(error) ?? error.message };
   }
 
   revalidatePath(`/c/${communitySlug}/members`);

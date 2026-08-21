@@ -42,6 +42,7 @@ export function SpacePaywall({
   spaceSlug,
   isSignedIn,
   paymentsReady,
+  acceptingSubscriptions = true,
   tiers = [],
   justSubscribed = false,
 }: {
@@ -54,6 +55,10 @@ export function SpacePaywall({
   spaceSlug: string;
   isSignedIn: boolean;
   paymentsReady: boolean;
+  // False when the community's plan has lapsed past its grace window: existing
+  // subscribers keep their access, but nobody new can subscribe. Better said
+  // plainly here than as an error after a click.
+  acceptingSubscriptions?: boolean;
   // Membership tiers that unlock this space (join options).
   tiers?: PaywallTier[];
   // The viewer just came back from Checkout — access is granted by the webhook,
@@ -133,6 +138,11 @@ export function SpacePaywall({
         ) : !paymentsReady ? (
           <p className="mt-6 text-sm text-muted-foreground">
             This community hasn&apos;t finished setting up payments yet. Check back soon.
+          </p>
+        ) : !acceptingSubscriptions ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            This space isn&apos;t accepting new subscriptions right now. Check back soon, or ask the community&apos;s
+            admins about it.
           </p>
         ) : (
           <div className="mt-6 space-y-4">

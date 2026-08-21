@@ -376,6 +376,103 @@ export async function sendNotificationEmail(
 //   CONTACT_EMAIL_FROM — sender address; defaults to contact@<site hostname>,
 //                        then falls back to the invites sender.
 // -----------------------------------------------------------------------------
+export type PlanLapsedEmailInput = {
+  to: string;
+  communityName: string;
+  communityLogoUrl: string | null;
+  planName: string;
+  // 'payment_failed' when Stripe couldn't take the money and is retrying,
+  // 'canceled' when the owner ended the plan themselves.
+  reason: "payment_failed" | "canceled";
+  // End of the grace window, already formatted for a human.
+  graceUntilLabel: string | null;
+  manageUrl: string;
+};
+
+// Tells an owner their plan stopped paying, while there is still time to do
+// something about it. The point of the message is the grace window: nothing has
+// switched off yet, here is when it would, and here is exactly what would go.
+export async function sendPlanLapsedEmail(
+  input: PlanLapsedEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+
+  const fromAddress = fromAddressFor("billing", process.env.BILLING_EMAIL_FROM) ?? defaultFromAddress();
+  if (!fromAddress) return { ok: false, reason: "no sender address — set BILLING_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  const community = escapeHtml(input.communityName);
+  const plan = escapeHtml(input.planName);
+  const logo = input.communityLogoUrl
+    ? `<img src="${escapeHtml(input.communityLogoUrl)}" alt="" width="48" height="48" style="display:block;margin:0 auto 16px;border-radius:12px;" />`
+    : "";
+
+  const headline =
+    input.reason === "payment_failed"
+      ? `We couldn't take payment for ${community}'s ${plan} plan`
+      : `${community}'s ${plan} plan has ended`;
+
+  const opening =
+    input.reason === "payment_failed"
+      ? `The card on file was declined, so we'll keep retrying. Nothing has changed for ${community} yet.`
+      : `Thanks for having been on ${plan}. Nothing has changed for ${community} yet.`;
+
+  const deadline = input.graceUntilLabel
+    ? `Everything keeps working as it is until <strong>${escapeHtml(input.graceUntilLabel)}</strong>.`
+    : `Everything keeps working as it is for now.`;
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px 16px;background:#f6f5f1;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+      ${logo}
+      <h1 style="margin:0 0 12px;font-size:18px;line-height:1.4;color:#1f2a1f;text-align:center;">${escapeHtml(headline)}</h1>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#5c665c;">${escapeHtml(opening)} ${deadline}</p>
+      <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#5c665c;">After that, ${community} moves to the Free plan, which means:</p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.6;color:#5c665c;">
+        <li>Paid spaces and memberships stop taking <strong>new</strong> subscribers.</li>
+        <li>New members are capped at the Free plan's limit.</li>
+      </ul>
+      <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#5c665c;">
+        Your community, everything in it, and every member stay exactly as they are — and everyone already subscribed
+        keeps their subscription and their access. Nothing is deleted, ever.
+      </p>
+      <p style="margin:0;text-align:center;">
+        <a href="${escapeHtml(input.manageUrl)}" style="display:inline-block;padding:12px 20px;background:#1f2a1f;color:#ffffff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
+          ${input.reason === "payment_failed" ? "Update billing" : "Choose a plan"}
+        </a>
+      </p>
+    </div>
+    <p style="max-width:520px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
+      You're getting this because you manage ${community} on Relate.
+    </p>
+  </body>
+</html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `Relate billing <${fromAddress}>`,
+        to: [input.to],
+        subject: headline,
+        html,
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return { ok: false, reason: `Resend responded ${res.status}: ${await res.text()}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: (err as Error).message };
+  }
+}
+
 export type ContactEmailInput = {
   fromName: string;
   fromEmail: string;
