@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { getActiveFeaturePacks } from "@/lib/data/feature-packs";
-import { planFeatureLabel, planLimitLabel } from "@/lib/features";
+import { getUserCommunities } from "@/lib/data/community";
+import { isStripeConfigured } from "@/lib/stripe";
 import { SPACE_TYPES } from "@/lib/space-types";
+import { formatMoney } from "@/lib/utils";
 import { LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PlanGrid, type BillableCommunity } from "./plan-grid";
 import type { FeaturePack, PlatformPlan, SpaceType } from "@/types/database";
 
 export const metadata: Metadata = {
   title: "Pricing — Relate",
   description: "Plans for community hosts. Start free, upgrade when you're ready to charge members.",
 };
-
-function formatPrice(cents: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(cents / 100);
-  } catch {
-    return `${(cents / 100).toFixed(0)} ${currency.toUpperCase()}`;
-  }
-}
 
 function spaceTypeLabel(key: string): string {
   return SPACE_TYPES[key as SpaceType]?.label ?? key.replace(/_/g, " ");
@@ -33,10 +28,21 @@ function spaceTypeLabel(key: string): string {
 // the active rows via RLS (see 20260820214814_public_pricing_read.sql).
 //
 // Deliberately not gated on a session: it's linked from the site footer, which
-// renders on every page for signed-in and signed-out visitors alike. Signing up
-// is what the page sells, so the CTAs point an existing user at their dashboard
-// and everyone else at /signup.
-export default async function PricingPage() {
+// renders on every page for signed-in and signed-out visitors alike. For a
+// signed-out visitor it sells signing up; for someone who already hosts a
+// community it doubles as the place to see the plan they're on and change it,
+// which is why the plan cards are a client component (see plan-grid.tsx).
+//
+// A plan belongs to a community, not to an account — one person can host
+// several — so "your plan" is only meaningful once a community is picked.
+export const dynamic = "force-dynamic";
+
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ community?: string; plan?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -53,8 +59,31 @@ export default async function PricingPage() {
     packs = [];
   }
 
-  const ctaHref = user ? "/dashboard" : "/signup";
-  const ctaLabel = user ? "Go to your dashboard" : "Get started";
+  // Only an owner or admin can bill a community (the billing actions enforce
+  // the same rule server-side), so those are the only ones worth offering.
+  let billable: BillableCommunity[] = [];
+  if (user) {
+    try {
+      const communities = await getUserCommunities(supabase, user.id);
+      billable = communities
+        .filter((c) => c.membership.role === "owner" || c.membership.role === "admin")
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          planId: c.plan_id,
+          planStatus: c.plan_status,
+          currentPeriodEnd: c.plan_current_period_end,
+          hasBillingAccount: Boolean(c.plan_stripe_customer_id),
+        }));
+    } catch {
+      // Same rule as the catalogue above: never 500 the price list.
+      billable = [];
+    }
+  }
+
+  const ctaHref = user ? (billable.length > 0 ? "/dashboard" : "/communities/new") : "/signup";
+  const ctaLabel = user ? (billable.length > 0 ? "Go to your dashboard" : "Create your community") : "Get started";
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,11 +123,14 @@ export default async function PricingPage() {
 
         {plans.length > 0 ? (
           <section className="mx-auto max-w-6xl px-6 pb-20">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} ctaHref={ctaHref} ctaLabel={ctaLabel} />
-              ))}
-            </div>
+            <PlanGrid
+              plans={plans}
+              communities={billable}
+              signedIn={Boolean(user)}
+              stripeConfigured={isStripeConfigured()}
+              initialCommunitySlug={params.community}
+              justSubscribed={params.plan === "subscribed"}
+            />
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Every plan includes your spaces, members, posts and resources — the core of a Relate community. Paid
               plans add what&apos;s listed above.
@@ -146,8 +178,11 @@ export default async function PricingPage() {
               space or membership tier, and the money goes straight to you.
             </Faq>
             <Faq question="Can I change or cancel my plan?">
-              Any time, from your community&apos;s admin. If a plan lapses you keep your community and your members —
-              you just can&apos;t start charging for anything new until you&apos;re back on a paid plan.
+              Any time — from this page while you&apos;re signed in, or from your community&apos;s admin. Moving between
+              paid plans changes your existing subscription rather than starting a second one, and the difference is
+              prorated onto your next invoice. Cancelling happens in the billing portal. If a plan lapses you keep your
+              community and your members — you just can&apos;t start charging for anything new until you&apos;re back on
+              a paid plan.
             </Faq>
             <Faq question="Still not sure which plan fits?">
               <Link href="/contact" className="text-accent hover:underline">
@@ -174,47 +209,6 @@ export default async function PricingPage() {
   );
 }
 
-function PlanCard({ plan, ctaHref, ctaLabel }: { plan: PlatformPlan; ctaHref: string; ctaLabel: string }) {
-  const isFree = plan.price_cents === 0;
-  // Caps are only listed when a plan actually sets one — an absent key means
-  // unlimited, so the paid tiers simply have nothing to show here.
-  const limits = Object.entries(plan.limits ?? {});
-
-  return (
-    <Card className="flex flex-col">
-      <CardContent className="flex h-full flex-col pt-5">
-        <h3 className="text-sm font-semibold text-foreground">{plan.name}</h3>
-        <p className="mt-1 text-2xl font-semibold text-foreground">
-          {formatPrice(plan.price_cents, plan.currency)}
-          <span className="text-xs font-normal text-muted-foreground"> / mo</span>
-        </p>
-        {plan.description && <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>}
-
-        <ul className="mt-4 flex-1 space-y-1.5">
-          {plan.features.map((feature) => (
-            <li key={feature} className="flex items-start gap-1.5 text-sm text-foreground">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-              {planFeatureLabel(feature)}
-            </li>
-          ))}
-          {limits.map(([key, value]) => (
-            <li key={key} className="flex items-start gap-1.5 text-sm text-muted-foreground">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-border" />
-              {planLimitLabel(key, value)}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-5">
-          <LinkButton href={ctaHref} size="sm" variant={isFree ? "secondary" : "primary"} className="w-full">
-            {ctaLabel}
-          </LinkButton>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function PackCard({ pack }: { pack: FeaturePack }) {
   return (
     <Card>
@@ -224,7 +218,7 @@ function PackCard({ pack }: { pack: FeaturePack }) {
         </div>
         <h3 className="text-sm font-semibold text-foreground">{pack.name}</h3>
         <p className="mt-1 text-sm font-medium text-foreground">
-          {pack.price_cents === 0 ? "Included" : formatPrice(pack.price_cents, pack.currency)}
+          {pack.price_cents === 0 ? "Included" : formatMoney(pack.price_cents, pack.currency)}
           {pack.price_cents > 0 && <span className="text-xs font-normal text-muted-foreground"> / mo</span>}
         </p>
         {pack.description && <p className="mt-2 text-sm text-muted-foreground">{pack.description}</p>}

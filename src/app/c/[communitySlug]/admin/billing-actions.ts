@@ -11,6 +11,8 @@ import {
   retrieveAccount,
   createBillingCheckoutSession,
   createBillingPortalSession,
+  retrieveSubscription,
+  changeSubscriptionPrice,
 } from "@/lib/stripe";
 
 async function requestBaseUrl(): Promise<string> {
@@ -23,6 +25,16 @@ async function requestBaseUrl(): Promise<string> {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "";
 }
 
+// Where Stripe sends the owner back to. These flows are started from two
+// places now — the community admin page and the public price list — so the
+// caller says where it wants to land. Anything that isn't a plain in-app path
+// is ignored rather than trusted: this value ends up in a redirect URL, and
+// "//evil.example" is a path to the browser but an origin to the URL parser.
+function safeReturnPath(path: string | undefined, fallback: string): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) return fallback;
+  return path;
+}
+
 type AdminCommunity = {
   id: string;
   slug: string;
@@ -30,6 +42,9 @@ type AdminCommunity = {
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
   plan_stripe_customer_id: string | null;
+  plan_id: string | null;
+  plan_status: string;
+  plan_stripe_subscription_id: string | null;
 };
 
 // Confirm the caller is an admin/owner of the community, returning the client
@@ -50,7 +65,9 @@ async function requireAdminCommunity(
 
   const { data: community } = await supabase
     .from("communities")
-    .select("id, slug, name, stripe_account_id, stripe_charges_enabled, plan_stripe_customer_id")
+    .select(
+      "id, slug, name, stripe_account_id, stripe_charges_enabled, plan_stripe_customer_id, plan_id, plan_status, plan_stripe_subscription_id"
+    )
     .eq("id", communityId)
     .maybeSingle();
   if (!community) return { ok: false, error: "Community not found." };
@@ -128,11 +145,33 @@ export async function refreshStripeAccountStatus(communityId: string, communityS
 }
 
 // --- Platform plan (the platform charges the owner) -------------------------
-export type PlanCheckoutResult = { error: string } | { url: string };
+// Three outcomes: an error, a Checkout URL to send the owner to (their first
+// paid plan), or `switched` — an existing subscription was moved onto the new
+// price in place, with no checkout to visit. The caller shows the "finalizing"
+// state for that last one, since the webhook writes the new plan a moment later.
+export type PlanCheckoutResult = { error: string } | { url: string } | { switched: true };
 
-// Start Stripe Checkout for a platform plan. The webhook records the plan on
-// the community once payment completes.
-export async function subscribeCommunityToPlan(communityId: string, planId: string): Promise<PlanCheckoutResult> {
+// Stripe states in which a subscription is genuinely in force, and therefore
+// something to modify rather than replace.
+function isLiveSubscription(status: string): boolean {
+  return status === "active" || status === "trialing";
+}
+
+// Put a community on a plan.
+//
+// With a live subscription this CHANGES that subscription's price — upgrade or
+// downgrade — rather than starting a second one. Sending an existing subscriber
+// back through Checkout creates a parallel subscription: the community row
+// would point at the new one while Stripe quietly kept charging for the old,
+// billing the owner twice with nothing in the app to show it.
+//
+// Without one, it's a normal Checkout; the webhook records the plan when
+// payment completes.
+export async function subscribeCommunityToPlan(
+  communityId: string,
+  planId: string,
+  returnPath?: string
+): Promise<PlanCheckoutResult> {
   if (!isStripeConfigured()) {
     return { error: "Billing isn't available on this platform yet — no Stripe key is configured." };
   }
@@ -152,18 +191,48 @@ export async function subscribeCommunityToPlan(communityId: string, planId: stri
     return { error: "This plan isn't ready for checkout yet — no Stripe price is configured." };
   }
 
+  if (plan.id === community.plan_id && isLiveSubscription(community.plan_status)) {
+    return { error: "That's already your plan." };
+  }
+
+  // Already paying: move the existing subscription across.
+  if (community.plan_stripe_subscription_id && isLiveSubscription(community.plan_status)) {
+    try {
+      const subscription = await retrieveSubscription(community.plan_stripe_subscription_id);
+      const item = subscription.items?.data?.[0];
+      if (item?.id) {
+        await changeSubscriptionPrice({
+          subscriptionId: subscription.id,
+          itemId: item.id,
+          priceId: plan.stripe_price_id,
+          metadata: { community_id: community.id, plan_id: plan.id },
+        });
+        // The plan_* columns are webhook-only (a DB trigger rejects writes from
+        // anon/authenticated), so the row updates when customer.subscription
+        // .updated arrives — moments later. The caller refreshes.
+        revalidatePath(`/c/${community.slug}/admin`);
+        return { switched: true };
+      }
+      // A subscription with no items is broken beyond what this flow should
+      // guess at; fall through to Checkout rather than compounding it.
+    } catch (err) {
+      return { error: (err as Error).message || "Couldn't change your plan." };
+    }
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const base = await requestBaseUrl();
-  const adminUrl = `${base}/c/${community.slug}/admin`;
+  const returnUrl = `${base}${safeReturnPath(returnPath, `/c/${community.slug}/admin`)}`;
+  const separator = returnUrl.includes("?") ? "&" : "?";
 
   try {
     const session = await createBillingCheckoutSession({
       priceId: plan.stripe_price_id,
-      successUrl: `${adminUrl}?plan=subscribed`,
-      cancelUrl: adminUrl,
+      successUrl: `${returnUrl}${separator}plan=subscribed`,
+      cancelUrl: returnUrl,
       customerId: community.plan_stripe_customer_id ?? undefined,
       customerEmail: community.plan_stripe_customer_id ? undefined : user?.email ?? undefined,
       metadata: { community_id: community.id, plan_id: plan.id },
@@ -177,7 +246,7 @@ export async function subscribeCommunityToPlan(communityId: string, planId: stri
 export type PortalResult = { error: string } | { url: string };
 
 // Open the Stripe billing portal so the owner can change or cancel their plan.
-export async function openBillingPortal(communityId: string): Promise<PortalResult> {
+export async function openBillingPortal(communityId: string, returnPath?: string): Promise<PortalResult> {
   if (!isStripeConfigured()) return { error: "Billing isn't configured on this platform." };
 
   const ctx = await requireAdminCommunity(communityId);
@@ -192,7 +261,7 @@ export async function openBillingPortal(communityId: string): Promise<PortalResu
   try {
     const session = await createBillingPortalSession({
       customerId: community.plan_stripe_customer_id,
-      returnUrl: `${base}/c/${community.slug}/admin`,
+      returnUrl: `${base}${safeReturnPath(returnPath, `/c/${community.slug}/admin`)}`,
     });
     return { url: session.url };
   } catch (err) {
