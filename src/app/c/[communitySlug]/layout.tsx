@@ -324,11 +324,29 @@ export default async function CommunityLayout({
       </aside>
 
       <div className="flex min-h-screen flex-1 flex-col pb-16 md:pb-0">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:justify-end md:px-6">
-          <Link href="/dashboard" className="text-muted-foreground md:hidden">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
+        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6">
+          {/* The left of the header is deliberately not part of the cluster on
+              the right: everything on the right is what a community owner sees,
+              so a super admin browsing a community sees the same header they
+              do, with their own platform link kept out of it. On desktop this
+              group is empty for everyone else, and justify-between still puts
+              the cluster at the far end. */}
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href="/dashboard" className="shrink-0 text-muted-foreground md:hidden">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <span className="truncate text-sm font-semibold text-foreground md:hidden">{community.name}</span>
+            {profile?.is_super_admin && (
+              <Link
+                href="/platform-admin"
+                title="Super admin"
+                className="flex shrink-0 items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <BadgeCheck className="h-5 w-5" />
+                <span className="hidden sm:inline">Super Admin</span>
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             {/* When a session is live anywhere in the community, a pulsing badge
                 in the header makes it impossible to miss and jumps straight into
@@ -369,16 +387,6 @@ export default async function CommunityLayout({
               >
                 <Shield className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin</span>
-              </Link>
-            )}
-            {profile?.is_super_admin && (
-              <Link
-                href="/platform-admin"
-                title="Super admin"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                <BadgeCheck className="h-5 w-5" />
-                <span className="hidden sm:inline">Super Admin</span>
               </Link>
             )}
             {showMembersLink && (
