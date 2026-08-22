@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Notification } from "@/types/database";
 import type { NotificationWithActor } from "@/lib/data/notifications";
@@ -25,6 +25,13 @@ export function useNotificationStream(
 ) {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
+  // Notifications this viewer has just opened. Kept separately from the list
+  // itself because the list is re-seeded from the server on every navigation,
+  // and clicking a notification navigates — the write and that render race, so
+  // folding the change into the list would let a row flicker back to unread.
+  // Held over the top of whatever the server says instead, until the server
+  // says the same thing.
+  const [readIds, setReadIds] = useState<ReadonlySet<string>>(() => new Set());
   // A stable, per-instance channel name so multiple bells on one page (e.g. the
   // dashboard's desktop + mobile counts) don't collide on the same topic.
   const instanceId = useId();
@@ -74,5 +81,28 @@ export function useNotificationStream(
     };
   }, [userId, instanceId]);
 
-  return { notifications, unreadCount };
+  /**
+   * Mark one notification read — what opening it means. Optimistic: the row
+   * loses its unread tint and the bell count drops before the write lands,
+   * because the click is also a navigation and the eye is already elsewhere.
+   */
+  function markRead(id: string) {
+    setReadIds((previous) => (previous.has(id) ? previous : new Set(previous).add(id)));
+    const supabase = createClient();
+    // Nothing to do if this fails: RLS only ever lets a member touch their own
+    // rows, and the worst case is a notification that stays looking unread.
+    void supabase.from("notifications").update({ read: true }).eq("id", id);
+  }
+
+  const visible = useMemo(
+    () => notifications.map((n) => (!n.read && readIds.has(n.id) ? { ...n, read: true } : n)),
+    [notifications, readIds]
+  );
+
+  // The count covers more than the handful of rows on screen, so it can't be
+  // recounted from them — subtract only the ones just opened that the server
+  // hasn't caught up with yet.
+  const pendingRead = notifications.filter((n) => !n.read && readIds.has(n.id)).length;
+
+  return { notifications: visible, unreadCount: Math.max(0, unreadCount - pendingRead), markRead };
 }

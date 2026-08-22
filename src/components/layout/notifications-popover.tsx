@@ -48,7 +48,7 @@ export function NotificationsPopover({
   notifications: NotificationWithActor[];
   unreadCount: number;
 }) {
-  const { notifications, unreadCount } = useNotificationStream(userId, initialNotifications, initialUnreadCount);
+  const { notifications, unreadCount, markRead } = useNotificationStream(userId, initialNotifications, initialUnreadCount);
 
   return (
     <IconPopover icon={<BellIcon count={unreadCount} />} label="Notifications" panelTitle="Notifications">
@@ -83,8 +83,11 @@ export function NotificationsPopover({
                 </div>
               </div>
             );
+            // Opening a notification is what marks it read: the tint goes and
+            // the count drops, so the list says which ones have been dealt with
+            // rather than staying lit until something else clears them all.
             return notification.link ? (
-              <Link key={notification.id} href={notification.link}>
+              <Link key={notification.id} href={notification.link} onClick={() => markRead(notification.id)}>
                 {row}
               </Link>
             ) : (
