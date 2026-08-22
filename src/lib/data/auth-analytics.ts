@@ -78,6 +78,41 @@ export type ActiveUserCounts = {
   last30: number;
 };
 
+// The four presence windows, defined once. The tiles count with these and the
+// drill-down lists with these, so a card saying "12 active today" and the page
+// behind it can never disagree.
+export type ActiveWindowKey = "today" | "yesterday" | "7d" | "30d";
+
+export const ACTIVE_WINDOWS: { key: ActiveWindowKey; label: string; hint: string }[] = [
+  { key: "today", label: "Active today", hint: "distinct people, UTC day" },
+  { key: "yesterday", label: "Yesterday", hint: "for comparison" },
+  { key: "7d", label: "Last 7 days", hint: "weekly actives" },
+  { key: "30d", label: "Last 30 days", hint: "monthly actives" },
+];
+
+export function parseActiveWindow(value: string | undefined): ActiveWindowKey {
+  return ACTIVE_WINDOWS.some((w) => w.key === value) ? (value as ActiveWindowKey) : "today";
+}
+
+// Inclusive UTC day bounds for a window.
+export function activeWindowRange(key: ActiveWindowKey): { from: string; to: string } {
+  switch (key) {
+    case "yesterday":
+      return { from: utcDay(1), to: utcDay(1) };
+    case "7d":
+      return { from: utcDay(7), to: utcDay(0) };
+    case "30d":
+      return { from: utcDay(30), to: utcDay(0) };
+    default:
+      return { from: utcDay(0), to: utcDay(0) };
+  }
+}
+
+function inWindow(day: string, key: ActiveWindowKey): boolean {
+  const { from, to } = activeWindowRange(key);
+  return day >= from && day <= to;
+}
+
 export type CommunityPresence = {
   activeToday: number;
   membersActiveToday: number;
@@ -412,9 +447,6 @@ async function loadPresence(
 
   const rows = (data ?? []) as PresenceRow[];
   const today = utcDay(0);
-  const yesterday = utcDay(1);
-  const day7 = utcDay(7);
-  const day30 = utcDay(30);
 
   const platformSets = {
     today: new Set<string>(),
@@ -429,10 +461,10 @@ async function loadPresence(
   const perDay = new Map<string, Set<string>>();
 
   for (const row of rows) {
-    if (row.day === today) platformSets.today.add(row.user_id);
-    if (row.day === yesterday) platformSets.yesterday.add(row.user_id);
-    if (row.day >= day7) platformSets.last7.add(row.user_id);
-    if (row.day >= day30) platformSets.last30.add(row.user_id);
+    if (inWindow(row.day, "today")) platformSets.today.add(row.user_id);
+    if (inWindow(row.day, "yesterday")) platformSets.yesterday.add(row.user_id);
+    if (inWindow(row.day, "7d")) platformSets.last7.add(row.user_id);
+    if (inWindow(row.day, "30d")) platformSets.last30.add(row.user_id);
 
     if (!perDay.has(row.day)) perDay.set(row.day, new Set());
     perDay.get(row.day)!.add(row.user_id);
@@ -569,6 +601,172 @@ async function activeMemberCounts(admin: Client): Promise<Map<string, number>> {
     counts.set(row.community_id, (counts.get(row.community_id) ?? 0) + 1);
   }
   return counts;
+}
+
+// --- Who was active, by name -------------------------------------------------
+
+export type ActivePerson = {
+  profile: Pick<Profile, "id" | "username" | "full_name" | "avatar_url" | "contribution_score">;
+  email: string | null;
+  // Most recent moment they were seen anywhere in the window.
+  lastSeenAt: string;
+  // How many distinct UTC days of the window they showed up on — one visit vs
+  // a habit.
+  daysActive: number;
+  // Where they were seen, most-recent first. Null id = the platform itself
+  // (dashboard, settings, messages), which is a real place to be.
+  places: { id: string | null; name: string; slug: string | null; isMember: boolean }[];
+};
+
+export type ActivePeople = {
+  window: ActiveWindowKey;
+  from: string;
+  to: string;
+  people: ActivePerson[];
+  // The community the list was filtered to, when it was.
+  community: { id: string; name: string; slug: string; privacy: string } | null;
+  // Addresses that couldn't be loaded are a fact worth stating, not hiding.
+  emailLookup: EmailLookupSource;
+  emailLookupError: string | null;
+  truncated: boolean;
+};
+
+// Everyone seen in a window, newest activity first — the list behind the
+// "N active today" tile. Optionally narrowed to one community, which is what
+// the per-community "active today" number links to.
+const ACTIVE_PEOPLE_CAP = 2_000;
+
+export async function getActivePeople(
+  admin: Client,
+  window: ActiveWindowKey,
+  communityId?: string
+): Promise<ActivePeople> {
+  const { from, to } = activeWindowRange(window);
+
+  const empty: ActivePeople = {
+    window,
+    from,
+    to,
+    people: [],
+    community: null,
+    emailLookup: "rpc",
+    emailLookupError: null,
+    truncated: false,
+  };
+
+  let query = admin
+    .from("member_activity_days")
+    .select("user_id, community_id, day, is_member, last_seen_at")
+    .gte("day", from)
+    .lte("day", to)
+    .order("last_seen_at", { ascending: false })
+    .limit(ACTIVE_PEOPLE_CAP);
+  if (communityId) query = query.eq("community_id", communityId);
+
+  const { data, error } = await query;
+  if (error) {
+    // No presence table yet — the page says so rather than showing "nobody".
+    if (isMissingTable(error)) return empty;
+    throw error;
+  }
+
+  const rows = (data ?? []) as {
+    user_id: string;
+    community_id: string | null;
+    day: string;
+    is_member: boolean;
+    last_seen_at: string;
+  }[];
+  if (rows.length === 0) return { ...empty, truncated: false };
+
+  // Fold the per-(person, community, day) rows into one entry per person.
+  type Draft = {
+    lastSeenAt: string;
+    days: Set<string>;
+    places: Map<string, { id: string | null; isMember: boolean; lastSeenAt: string }>;
+  };
+  const drafts = new Map<string, Draft>();
+  for (const row of rows) {
+    let draft = drafts.get(row.user_id);
+    if (!draft) {
+      draft = { lastSeenAt: row.last_seen_at, days: new Set(), places: new Map() };
+      drafts.set(row.user_id, draft);
+    }
+    if (row.last_seen_at > draft.lastSeenAt) draft.lastSeenAt = row.last_seen_at;
+    draft.days.add(row.day);
+
+    const key = row.community_id ?? "__platform__";
+    const place = draft.places.get(key);
+    if (!place) {
+      draft.places.set(key, { id: row.community_id, isMember: row.is_member, lastSeenAt: row.last_seen_at });
+    } else {
+      if (row.last_seen_at > place.lastSeenAt) place.lastSeenAt = row.last_seen_at;
+      place.isMember = place.isMember || row.is_member;
+    }
+  }
+
+  const userIds = [...drafts.keys()];
+  const communityIds = [
+    ...new Set(
+      [...drafts.values()].flatMap((d) => [...d.places.values()].map((p) => p.id)).filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const [{ data: profiles, error: profilesError }, emailLookup, { data: communities, error: communitiesError }, filtered] =
+    await Promise.all([
+      admin.from("profiles").select("id, username, full_name, avatar_url, contribution_score").in("id", userIds),
+      emailsForUserIds(admin, userIds),
+      communityIds.length > 0
+        ? admin.from("communities").select("id, name, slug, privacy").in("id", communityIds)
+        : Promise.resolve({ data: [], error: null }),
+      communityId
+        ? admin.from("communities").select("id, name, slug, privacy").eq("id", communityId).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+  if (profilesError) throw profilesError;
+  if (communitiesError) throw communitiesError;
+
+  type ProfileLite = Pick<Profile, "id" | "username" | "full_name" | "avatar_url" | "contribution_score">;
+  const profileById = new Map((((profiles ?? []) as ProfileLite[])).map((p) => [p.id, p]));
+  type CommunityLite = Pick<Community, "id" | "name" | "slug" | "privacy">;
+  const communityById = new Map((((communities ?? []) as CommunityLite[])).map((c) => [c.id, c]));
+
+  const people: ActivePerson[] = [...drafts.entries()]
+    .map(([userId, draft]) => {
+      const profile = profileById.get(userId);
+      if (!profile) return null;
+      const places = [...draft.places.values()]
+        .sort((a, b) => (a.lastSeenAt < b.lastSeenAt ? 1 : -1))
+        .map((place) => {
+          const community = place.id ? communityById.get(place.id) : undefined;
+          return {
+            id: place.id,
+            name: community?.name ?? (place.id ? "Deleted community" : "Platform (no community)"),
+            slug: community?.slug ?? null,
+            isMember: place.isMember,
+          };
+        });
+      return {
+        profile,
+        email: emailLookup.emails.get(userId) ?? null,
+        lastSeenAt: draft.lastSeenAt,
+        daysActive: draft.days.size,
+        places,
+      } satisfies ActivePerson;
+    })
+    .filter((person): person is ActivePerson => person !== null)
+    .sort((a, b) => (a.lastSeenAt < b.lastSeenAt ? 1 : -1));
+
+  return {
+    window,
+    from,
+    to,
+    people,
+    community: (filtered as { data?: CommunityLite | null }).data ?? null,
+    emailLookup: emailLookup.source,
+    emailLookupError: emailLookup.error,
+    truncated: rows.length >= ACTIVE_PEOPLE_CAP,
+  };
 }
 
 // --- Single user -------------------------------------------------------------

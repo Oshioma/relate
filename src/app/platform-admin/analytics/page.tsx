@@ -104,11 +104,34 @@ export default async function PlatformAnalyticsPage({
       {analytics.presenceAvailable ? (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatTile label="Active today" value={analytics.active.today} hint="distinct people, UTC day" />
-            <StatTile label="Yesterday" value={analytics.active.yesterday} hint="for comparison" />
-            <StatTile label="Last 7 days" value={analytics.active.last7} hint="weekly actives" />
-            <StatTile label="Last 30 days" value={analytics.active.last30} hint="monthly actives" />
+            {/* Each tile opens the list of who those people are, with their
+                email addresses — a count you can't act on isn't much use. */}
+            <StatTile
+              label="Active today"
+              value={analytics.active.today}
+              hint="distinct people, UTC day"
+              href="/platform-admin/analytics/active?window=today"
+            />
+            <StatTile
+              label="Yesterday"
+              value={analytics.active.yesterday}
+              hint="for comparison"
+              href="/platform-admin/analytics/active?window=yesterday"
+            />
+            <StatTile
+              label="Last 7 days"
+              value={analytics.active.last7}
+              hint="weekly actives"
+              href="/platform-admin/analytics/active?window=7d"
+            />
+            <StatTile
+              label="Last 30 days"
+              value={analytics.active.last30}
+              hint="monthly actives"
+              href="/platform-admin/analytics/active?window=30d"
+            />
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">Click any of these to see who, with their email addresses.</p>
           <p className="mb-8 mt-3 text-xs text-muted-foreground">
             Counted from real page views by signed-in people, not from sign-ins — someone who returns every day without
             ever signing in again still counts. Each person is counted once per community per 15 minutes, and days are
@@ -290,7 +313,16 @@ function CommunityRow({ row }: { row: CommunityAuthActivity }) {
         <Metric label="Sign-ins" value={row.counts.login} />
         <Metric label="Invited" value={row.counts.invited} />
         <Metric label="Left" value={row.counts.leave} />
-        <Metric label="Active today" value={row.presence.activeToday} />
+        {row.communityId && row.presence.activeToday > 0 ? (
+          <Link
+            href={`/platform-admin/analytics/active?window=today&community=${encodeURIComponent(row.communityId)}`}
+            className="text-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+          >
+            <span className="font-medium">{row.presence.activeToday}</span> active today
+          </Link>
+        ) : (
+          <Metric label="Active today" value={row.presence.activeToday} />
+        )}
         <Metric label="Active in range" value={row.presence.activeInWindow} />
       </div>
     </div>
@@ -453,12 +485,34 @@ function LegendSwatch({ className, label }: { className: string; label: string }
   );
 }
 
-function StatTile({ label, value, hint }: { label: string; value: number; hint?: string }) {
-  return (
-    <div className="rounded-lg border border-border p-4">
+function StatTile({
+  label,
+  value,
+  hint,
+  href,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+  // When set, the tile becomes a link to the people behind the number.
+  href?: string;
+}) {
+  const body = (
+    <>
       <p className="text-2xl font-semibold tracking-tight text-foreground">{value.toLocaleString()}</p>
       <p className="text-xs font-medium text-foreground">{label}</p>
       {hint && <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{hint}</p>}
-    </div>
+    </>
+  );
+
+  if (!href) return <div className="rounded-lg border border-border p-4">{body}</div>;
+
+  return (
+    <Link
+      href={href}
+      className="rounded-lg border border-border p-4 transition-colors hover:border-accent hover:bg-accent-soft/40"
+    >
+      {body}
+    </Link>
   );
 }
