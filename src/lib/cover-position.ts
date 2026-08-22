@@ -26,6 +26,16 @@ export function isCoverPosition(value: string | null | undefined): value is Cove
   return value === "top" || value === "center" || value === "bottom";
 }
 
+/**
+ * The same crop with no breakpoint on it, for a preview that stands in for the
+ * wide header rather than being it — a preview is the shape it's showing at
+ * every screen size, so it must not switch at sm.
+ */
+export function coverPositionPreviewClass(value: string | null | undefined): string {
+  const key = isCoverPosition(value) ? value : "center";
+  return MOBILE_CLASSES[key];
+}
+
 // --- The phone crop ----------------------------------------------------------
 //
 // On a wide screen the header band is far wider than any photograph, so the
@@ -87,6 +97,15 @@ export function isMobileCoverPosition(value: string | null | undefined): value i
  * what every community had before the phone crop existed, so nothing moves
  * under anyone until they choose.
  */
+/** The phone crop on its own, for the phone-shaped preview in the picker. */
+export function mobileCoverPositionClass(
+  mobileValue: string | null | undefined,
+  fallback: string | null | undefined
+): string {
+  if (isMobileCoverPosition(mobileValue)) return MOBILE_CLASSES[mobileValue];
+  return coverPositionPreviewClass(fallback);
+}
+
 export function coverPositionClass(value: string | null | undefined, mobileValue?: string | null): string {
   const desktop = isCoverPosition(value) ? CLASSES[value] : CLASSES.center;
   if (isMobileCoverPosition(mobileValue)) return `${MOBILE_CLASSES[mobileValue]} ${desktop}`;

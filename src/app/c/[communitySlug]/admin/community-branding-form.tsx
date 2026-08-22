@@ -7,10 +7,21 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/input";
 import { ACCENT_PRESETS, normalizeAccentColor } from "@/lib/accent-color";
-import { COVER_POSITIONS, isMobileCoverPosition, type CoverPosition, type MobileCoverPosition } from "@/lib/cover-position";
+import {
+  COVER_POSITIONS,
+  coverPositionPreviewClass,
+  isMobileCoverPosition,
+  type CoverPosition,
+  type MobileCoverPosition,
+} from "@/lib/cover-position";
 import { CoverFocalPicker } from "@/components/ui/cover-focal-picker";
+import { CoverCropPreview } from "@/components/ui/cover-crop-preview";
 import { cn } from "@/lib/utils";
 import type { Community } from "@/types/database";
+
+// The two header shapes each crop stands for: a long band on a wide screen, a
+// nearly-square one on a phone.
+const WIDE_ASPECT = 1200 / 420;
 
 export function CommunityBrandingForm({ community }: { community: Community }) {
   const router = useRouter();
@@ -173,6 +184,14 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
                 On a laptop the header is a wide band, so your photo is cropped top and bottom and
                 the community name sits over its lower edge. Choose the part that matters most.
               </p>
+              {community.cover_image_url && (
+                <CoverCropPreview
+                  url={community.cover_image_url}
+                  positionClass={coverPositionPreviewClass(coverPosition)}
+                  aspect={WIDE_ASPECT}
+                  className="mt-2"
+                />
+              )}
               <select
                 id="cover_position"
                 value={coverPosition}
@@ -198,6 +217,8 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
                   value={mobileCoverPosition}
                   onPick={persistMobileCoverPosition}
                   onClear={() => persistMobileCoverPosition(null)}
+                  previewUrl={community.cover_image_url}
+                  fallbackPosition={coverPosition}
                 />
               </div>
             </div>
