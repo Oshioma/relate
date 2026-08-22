@@ -7,11 +7,12 @@ import { LinkButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import type { Community } from "@/types/database";
+import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
 
-// How many public communities the showcase strip considers, and how many of
-// them it renders.
+// How many public communities the showcase strip's fallback considers before
+// ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
+// admin's featured picker.
 const SHOWCASE_POOL = 12;
-const SHOWCASE_COUNT = 6;
 
 // How much a community has to show on a card. The card renders a logo, a name
 // and a description, so a description counts for most (it's the only line of
@@ -32,24 +33,42 @@ export default async function LandingPage() {
     redirect("/dashboard");
   }
 
-  // The showcase strip. Ordered newest-first because it used to be
-  // oldest-first with a limit of 3, which pinned the strip to the same three
-  // communities forever — a community created today could never appear on the
-  // platform's own front door, no matter how public it was.
+  // The showcase strip. A super admin picks what belongs here (Platform admin →
+  // Communities), most recent pick first — this is the platform's own front
+  // door, so it shows the communities we'd choose to show.
+  const { data: picked } = await supabase
+    .from("communities")
+    .select("*")
+    .eq("is_public", true)
+    .not("featured_at", "is", null)
+    .order("featured_at", { ascending: false })
+    .limit(SHOWCASE_COUNT);
+
+  // Typed explicitly: the query above narrows featured_at to non-null, which
+  // makes its rows a different type from the fallback's.
+  let featuredCommunities: Community[] = picked ?? [];
+
+  // Nothing picked yet — fall back to the heuristic the strip used before, so
+  // it's never empty. Ordered newest-first because it used to be oldest-first
+  // with a limit of 3, which pinned the strip to the same three communities
+  // forever — a community created today could never appear on the platform's
+  // own front door, no matter how public it was.
   //
   // Newest-first on its own would happily feature three empty shells created
   // minutes ago, so over-fetch a small pool and prefer the ones with something
   // to show (see showcaseRank).
-  const { data: recentPublic } = await supabase
-    .from("communities")
-    .select("*")
-    .eq("is_public", true)
-    .order("created_at", { ascending: false })
-    .limit(SHOWCASE_POOL);
+  if (featuredCommunities.length === 0) {
+    const { data: recentPublic } = await supabase
+      .from("communities")
+      .select("*")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false })
+      .limit(SHOWCASE_POOL);
 
-  const featuredCommunities = [...(recentPublic ?? [])]
-    .sort((a, b) => showcaseRank(b) - showcaseRank(a))
-    .slice(0, SHOWCASE_COUNT);
+    featuredCommunities = [...(recentPublic ?? [])]
+      .sort((a, b) => showcaseRank(b) - showcaseRank(a))
+      .slice(0, SHOWCASE_COUNT);
+  }
 
   return (
     <div className="min-h-screen bg-background">
