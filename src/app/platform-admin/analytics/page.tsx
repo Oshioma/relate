@@ -377,6 +377,7 @@ function EventRow({ event }: { event: AuthEventFeedItem }) {
           {formatDateTime(event.createdAt)}
           {event.source ? ` · ${SOURCE_LABELS[event.source] ?? event.source}` : ""}
           {event.host ? ` · ${event.host}` : ""}
+          {event.backfilled ? " · recorded retrospectively" : ""}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">

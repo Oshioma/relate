@@ -163,6 +163,10 @@ export function EventTiles({
                             <p className="truncate text-xs text-muted-foreground">
                               {formatRelativeTime(event.createdAt)} · {formatDateTime(event.createdAt)}
                               {event.source ? ` · ${sourceLabels[event.source] ?? event.source}` : ""}
+                              {/* The timestamp is real, but nobody watched it
+                                  happen — it was reconstructed when logging
+                                  was switched on. Worth saying. */}
+                              {event.backfilled ? " · recorded retrospectively" : ""}
                             </p>
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1">
