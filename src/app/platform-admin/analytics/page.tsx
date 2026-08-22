@@ -197,6 +197,22 @@ export default async function PlatformAnalyticsPage({
       <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         Latest events ({analytics.recent.length})
       </h2>
+      {/* Missing addresses must never be silent — "nobody has an email" and
+          "the lookup is broken" look identical otherwise. */}
+      {analytics.emailLookup === "unavailable" && (
+        <p className="mb-3 text-xs text-danger">
+          Email addresses couldn&apos;t be loaded, so they&apos;re missing from the rows below. Push the{" "}
+          <code>user_emails_for_admin_analytics</code> migration if it hasn&apos;t landed yet.
+          {analytics.emailLookupError ? ` (${analytics.emailLookupError})` : ""}
+        </p>
+      )}
+      {analytics.emailLookup === "admin_api" && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Addresses came from the Auth admin API — the direct lookup wasn&apos;t available, which is slower but
+          correct. It usually means the migration has just landed and PostgREST hasn&apos;t reloaded its schema yet.
+          {analytics.emailLookupError ? ` (${analytics.emailLookupError})` : ""}
+        </p>
+      )}
       {analytics.recent.length === 0 ? (
         <p className="rounded-lg border border-border p-4 text-sm text-muted-foreground">
           No events recorded in this window yet.
