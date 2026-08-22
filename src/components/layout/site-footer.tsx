@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlatformHomeLink } from "./platform-home-link";
 
 // The single, app-wide footer. Rendered once from the root layout so it sits at
 // the foot of every page — marketing, dashboard and inside the community shell.
@@ -30,13 +31,13 @@ export function SiteFooter() {
       </nav>
       {/* The platform credit, and the only way back out of a community shell
           on desktop now that the sidebar's "Powered by Relate.Click" line is
-          gone. "/" sends a signed-in member to their dashboard and everyone
-          else to the marketing home, so one href serves both. */}
+          gone. The platform home sends a signed-in member to their dashboard
+          and everyone else to the marketing page, so one link serves both —
+          and PlatformHomeLink is what makes it mean the platform rather than
+          the community whose host you're reading this on. */}
       <p>
-        <Link href="/" className="font-medium text-foreground hover:underline">
-          Relate
-        </Link>{" "}
-        — built for quiet, focused communities.
+        <PlatformHomeLink className="font-medium text-foreground hover:underline">Relate</PlatformHomeLink> — built for
+        quiet, focused communities.
       </p>
     </footer>
   );
