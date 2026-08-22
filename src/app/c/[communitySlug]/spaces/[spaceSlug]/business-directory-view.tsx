@@ -288,7 +288,7 @@ export function BusinessDirectoryView({
 
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-wrap items-center gap-2">
           <div className="relative max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -326,7 +326,7 @@ export function BusinessDirectoryView({
       {/* Categories are the page's main navigation, not another filter chip: a
           directory is browsed by kind first — restaurants, fundis, taxis — so
           the kinds are the biggest thing on it and each carries its own count. */}
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         <CategoryTile
           Icon={LayoutGrid}
           label="Everything"
@@ -378,7 +378,7 @@ export function BusinessDirectoryView({
       {/* The staff controls themselves, once asked for. They act on whichever
           category is selected, which is why picking one comes first. */}
       {isStaff && showCategoryTools && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border p-3">
+        <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border p-3">
           {category === "all" && renamingCategory === null && !addingCategory && (
             <span className="text-xs text-muted-foreground">Pick a category above to rename, pin or delete it — or</span>
           )}
@@ -515,7 +515,7 @@ export function BusinessDirectoryView({
       {/* Refinements, below the categories and visibly quieter than them: these
           narrow whatever kind is selected rather than choosing one. */}
       {(canPost && savedCount > 0) || localCount > 0 ? (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
           {canPost && savedCount > 0 && (
             <button
               type="button"
@@ -547,7 +547,7 @@ export function BusinessDirectoryView({
       {/* Where, under what: a narrowing of the chosen kind, so it reads below
           the tiles — but still a comfortable target rather than a 12px pill. */}
       {locations.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setLocation("all")}
@@ -572,7 +572,7 @@ export function BusinessDirectoryView({
       )}
 
       {showForm && (
-        <div className="mb-5">
+        <div className="mb-4">
           <NewBusinessForm communityId={communityId} communitySlug={communitySlug} spaceId={spaceId} spaceSlug={spaceSlug} userId={userId} customCategories={customCategories} labelOverrides={labelOverrides} onDone={() => setShowForm(false)} />
         </div>
       )}
@@ -584,7 +584,7 @@ export function BusinessDirectoryView({
           description={businesses.length === 0 ? "Restaurants, cafes, shops and services members add will show up here." : "Try a different search or category."}
         />
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-8">
           {groups.map(([label, group]) => (
             <div key={label}>
               {/* The place name has to carry the scroll: at card-title size it
@@ -592,7 +592,7 @@ export function BusinessDirectoryView({
                   as a section header now — large, pinned to a rule, with the
                   count so a group's size is clear before scrolling it. */}
               {groups.length > 1 && (
-                <div className="mb-4 border-b border-border pb-2">
+                <div className="mb-3 border-b border-border pb-1.5">
                   <h3 className="flex items-baseline gap-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                     <MapPin className="h-5 w-5 shrink-0 self-center text-accent sm:h-6 sm:w-6" />
                     {label}
