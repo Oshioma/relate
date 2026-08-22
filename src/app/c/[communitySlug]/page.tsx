@@ -14,6 +14,8 @@ import {
   UserPlus,
   Footprints,
   MessageSquareQuote,
+  GraduationCap,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -36,6 +38,9 @@ import { getCommunityRecentAccommodationListings } from "@/lib/data/accommodatio
 import { accommodationTypeLabel, formatAccommodationPrice } from "@/lib/accommodation-types";
 import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { getCommunityRecentReviews, ratingStars } from "@/lib/data/reviews";
+import { getCommunityRecentCourses } from "@/lib/data/courses";
+import { getCommunityRecentGuides } from "@/lib/data/guides";
+import { toPlainText } from "@/components/ui/rich-text";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
 import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
@@ -98,6 +103,8 @@ export default async function CommunityFeedPage({
     recentStays,
     recentRecommendations,
     recentReviews,
+    recentCourses,
+    recentGuides,
     recentClubs,
     upcomingMeetups,
     recentVolunteerProjects,
@@ -120,6 +127,8 @@ export default async function CommunityFeedPage({
     getCommunityRecentAccommodationListings(supabase, community.id, 12),
     getCommunityRecentRecommendations(supabase, community.id, 12),
     getCommunityRecentReviews(supabase, community.id, 12),
+    getCommunityRecentCourses(supabase, community.id, 12),
+    getCommunityRecentGuides(supabase, community.id, 12),
     getCommunityRecentClubs(supabase, community.id, 12),
     getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
@@ -197,7 +206,9 @@ export default async function CommunityFeedPage({
       isPinned: p.is_pinned,
       icon: MessageSquare,
       title: p.title,
-      description: p.body,
+      // Same treatment as the space page's post previews: a card shows an
+      // excerpt, not the post's markup.
+      description: p.body ? toPlainText(p.body) : null,
       // Lead with the post's own photo when it has one — media_url can also be
       // a video or document, which this thumbnail can't show, so gate on image.
       imageUrl: p.media_url && isImageUrl(p.media_url) ? p.media_url : null,
@@ -330,6 +341,43 @@ export default async function CommunityFeedPage({
         r.subject.kind === "business"
           ? `${base}/spaces/${r.subject.spaceSlug}/businesses/${r.subject.slugOrId}`
           : `${base}/spaces/${r.subject.spaceSlug}/stays/${r.subject.slugOrId}`,
+    })),
+    // What a community knows is as much its activity as what it sells: a
+    // published course and a written guide are the front page's business too.
+    // Drafts stay out of the query — a course nobody can open isn't news yet.
+    ...recentCourses.map((c): FeedItem => ({
+      key: `course-${c.id}`,
+      itemType: "course" as const,
+      itemId: c.id,
+      createdAt: c.created_at,
+      icon: GraduationCap,
+      title: c.title,
+      description: c.summary,
+      imageUrl: c.cover_image_url,
+      typeBadge: "Course published",
+      detail: c.price_cents > 0 ? `${(c.currency || "usd").toUpperCase()} ${(c.price_cents / 100).toFixed(2)}` : null,
+      authorName: c.creator?.full_name || c.creator?.username || null,
+      authorAvatar: c.creator?.avatar_url ?? null,
+      spaceName: c.space?.name ?? null,
+      href: c.space ? `${base}/spaces/${c.space.slug}/courses/${c.id}` : base,
+    })),
+    ...recentGuides.map((g): FeedItem => ({
+      key: `guide-${g.id}`,
+      itemType: "guide" as const,
+      itemId: g.id,
+      createdAt: g.created_at,
+      icon: BookOpen,
+      title: g.title,
+      // The body is rich text; the card shows a plain excerpt and the guide
+      // itself does the formatting.
+      description: toPlainText(g.body),
+      imageUrl: null,
+      typeBadge: "Guide added",
+      detail: null,
+      authorName: g.creator?.full_name || g.creator?.username || null,
+      authorAvatar: g.creator?.avatar_url ?? null,
+      spaceName: g.space?.name ?? null,
+      href: g.space ? `${base}/spaces/${g.space.slug}/guides/${g.id}` : base,
     })),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,
