@@ -6,13 +6,16 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
   AUTH_EVENT_RANGES,
   AuthEventsNotInstalledError,
+  getActivePeople,
   getAuthAnalytics,
   parseAuthEventRange,
+  type ActivePeople,
   type AuthAnalytics,
   type AuthEventFeedItem,
   type CommunityAuthActivity,
 } from "@/lib/data/auth-analytics";
 import { ActiveTiles } from "./active-tiles";
+import { EventTiles } from "./event-tiles";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
@@ -65,6 +68,14 @@ export default async function PlatformAnalyticsPage({
     throw error;
   }
 
+  // "Active today" is the tile people open, so its list is rendered with the
+  // page: opening it costs no round trip at all. The other windows load on
+  // demand (and warm on hover).
+  let activeToday: ActivePeople | undefined;
+  if (analytics.presenceAvailable && analytics.active.today > 0) {
+    activeToday = await getActivePeople(admin, "today");
+  }
+
   const rangeLabel = AUTH_EVENT_RANGES.find((r) => r.key === range)!.label.toLowerCase();
   // A community belongs in the main list if anything happened in it — an event
   // or simply somebody being there.
@@ -108,6 +119,7 @@ export default async function PlatformAnalyticsPage({
               email addresses, in place — a count you can't act on isn't much
               use, and a page hop to find out costs the context you were in. */}
           <ActiveTiles
+            initial={activeToday}
             tiles={[
               { key: "today", label: "Active today", hint: "distinct people, UTC day", value: analytics.active.today },
               { key: "yesterday", label: "Yesterday", hint: "for comparison", value: analytics.active.yesterday },
@@ -132,13 +144,21 @@ export default async function PlatformAnalyticsPage({
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         Signups &amp; events (last {rangeLabel})
       </h2>
-      <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatTile label="Signups" value={analytics.totals.signup} hint={`new accounts, last ${rangeLabel}`} />
-        <StatTile label="Confirmed" value={analytics.totals.email_confirmed} hint="clicked the email link" />
-        <StatTile label="Sign-ins" value={analytics.totals.login} hint="password sign-ins" />
-        <StatTile label="Joins" value={analytics.totals.join} hint="memberships activated" />
-        <StatTile label="Invited" value={analytics.totals.invited} hint="not yet accepted" />
-        <StatTile label="Left" value={analytics.totals.leave} hint="memberships ended" negative />
+      {/* Same expand-in-place treatment as the presence tiles: tap one to see
+          exactly who it was, with their email addresses. */}
+      <div className="mb-3">
+        <EventTiles
+          range={range}
+          sourceLabels={SOURCE_LABELS}
+          tiles={[
+            { key: "signup", label: "Signups", hint: `new accounts, last ${rangeLabel}`, value: analytics.totals.signup },
+            { key: "email_confirmed", label: "Confirmed", hint: "clicked the email link", value: analytics.totals.email_confirmed },
+            { key: "login", label: "Sign-ins", hint: "password sign-ins", value: analytics.totals.login },
+            { key: "join", label: "Joins", hint: "memberships activated", value: analytics.totals.join },
+            { key: "invited", label: "Invited", hint: "not yet accepted", value: analytics.totals.invited },
+            { key: "leave", label: "Left", hint: "memberships ended", value: analytics.totals.leave, negative: true },
+          ]}
+        />
       </div>
 
       <p className="mb-8 text-xs text-muted-foreground">
@@ -469,52 +489,3 @@ function LegendSwatch({ className, label }: { className: string; label: string }
   );
 }
 
-function StatTile({
-  label,
-  value,
-  hint,
-  href,
-  negative = false,
-}: {
-  label: string;
-  value: number;
-  hint?: string;
-  // When set, the tile becomes a link to the people behind the number.
-  href?: string;
-  // Movement that isn't good news. "12 people left" should never wear the same
-  // colour as "12 people arrived", so it tints toward danger instead.
-  negative?: boolean;
-}) {
-  // A tile with something in it picks up the platform accent — already a sage
-  // green — so a glance across the row shows where the activity is. Zero stays
-  // deliberately plain: an empty tile shouldn't compete for attention.
-  const live = value > 0;
-  const tone = live
-    ? negative
-      ? "border-danger/40 bg-danger/5"
-      : "border-accent/40 bg-accent-soft/40"
-    : "border-border";
-
-  const body = (
-    <>
-      <p
-        className={cn(
-          "text-2xl font-semibold tracking-tight",
-          live ? (negative ? "text-danger" : "text-accent") : "text-foreground"
-        )}
-      >
-        {value.toLocaleString()}
-      </p>
-      <p className="text-xs font-medium text-foreground">{label}</p>
-      {hint && <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{hint}</p>}
-    </>
-  );
-
-  if (!href) return <div className={cn("rounded-lg border p-4", tone)}>{body}</div>;
-
-  return (
-    <Link href={href} className={cn("rounded-lg border p-4 transition-colors hover:border-accent hover:bg-accent-soft", tone)}>
-      {body}
-    </Link>
-  );
-}

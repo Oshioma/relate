@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActiveWindowKey, ActivePeople } from "@/lib/data/auth-analytics";
 import { loadActivePeople } from "./active-people-actions";
 import { ActivePeopleList } from "./active-people-list";
+import { TilePanel, TilePanelSkeleton, useTilePanel } from "./tile-panel";
 
 export type ActiveTile = {
   key: ActiveWindowKey;
@@ -15,49 +15,35 @@ export type ActiveTile = {
   value: number;
 };
 
-// The four presence tiles, each of which expands the list of people behind it
-// underneath the row — in place, rather than sending the operator to another
-// page and back. The list is fetched the first time a tile is opened and then
-// kept, so flicking between windows is instant after the first look.
-export function ActiveTiles({ tiles }: { tiles: ActiveTile[] }) {
-  const [open, setOpen] = useState<ActiveWindowKey | null>(null);
-  const [cache, setCache] = useState<Partial<Record<ActiveWindowKey, ActivePeople>>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  function toggle(key: ActiveWindowKey) {
-    if (open === key) {
-      setOpen(null);
-      return;
-    }
-    setOpen(key);
-    setError(null);
-    if (cache[key]) return;
-
-    startTransition(async () => {
+// The four presence tiles, each expanding the list of people behind it in
+// place. `initial` is the list for the first tile, rendered with the page — the
+// one most likely to be opened costs no round trip at all.
+export function ActiveTiles({ tiles, initial }: { tiles: ActiveTile[]; initial?: ActivePeople }) {
+  const panel = useTilePanel<ActiveWindowKey, ActivePeople>(
+    async (key) => {
       const result = await loadActivePeople(key);
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
-      setCache((current) => ({ ...current, [key]: result.people }));
-    });
-  }
+      return "error" in result ? { error: result.error } : { data: result.people };
+    },
+    initial ? ({ [initial.window]: initial } as Partial<Record<ActiveWindowKey, ActivePeople>>) : undefined
+  );
 
-  const shown = open ? cache[open] : undefined;
-  const openTile = tiles.find((t) => t.key === open);
+  const openTile = tiles.find((t) => t.key === panel.shownKey);
 
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map((tile) => {
           const live = tile.value > 0;
-          const isOpen = open === tile.key;
+          const isOpen = panel.open === tile.key;
           return (
             <button
               key={tile.key}
               type="button"
-              onClick={() => toggle(tile.key)}
+              onClick={() => panel.toggle(tile.key)}
+              // Warm the list before the click lands — most of the wait
+              // disappears into the time it takes to move the mouse.
+              onMouseEnter={() => panel.prefetch(tile.key)}
+              onFocus={() => panel.prefetch(tile.key)}
               aria-expanded={isOpen}
               aria-controls="active-people-panel"
               className={cn(
@@ -71,12 +57,7 @@ export function ActiveTiles({ tiles }: { tiles: ActiveTile[] }) {
               )}
             >
               <div className="flex items-start justify-between gap-2">
-                <p
-                  className={cn(
-                    "text-2xl font-semibold tracking-tight",
-                    live ? "text-accent" : "text-foreground"
-                  )}
-                >
+                <p className={cn("text-2xl font-semibold tracking-tight", live ? "text-accent" : "text-foreground")}>
                   {tile.value.toLocaleString()}
                 </p>
                 <ChevronDown
@@ -93,73 +74,40 @@ export function ActiveTiles({ tiles }: { tiles: ActiveTile[] }) {
         })}
       </div>
 
-      {/* The 0fr → 1fr grid row is what makes this animate smoothly without
-          hard-coding a height: the content measures itself, and the row grows
-          to meet it. A max-height guess would either clip a long list or ease
-          out over empty space. */}
-      <div
-        id="active-people-panel"
-        // Kept mounted so it can animate both ways, but `inert` while closed:
-        // a zero-height overflow-hidden box still holds tabbable links and is
-        // still read by a screen reader otherwise.
-        inert={!open}
-        className={cn(
-          "grid transition-all duration-300 ease-out",
-          open ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
-        )}
-      >
-        <div className="overflow-hidden">
-          {/* Nothing at all until a tile has been opened once — a collapsed
-              panel shouldn't ship a skeleton nobody asked for. */}
-          {(open || shown) && (
+      <div id="active-people-panel">
+        <TilePanel open={panel.open !== null}>
+          {/* Mounted only once a tile has been opened. shownKey outlives `open`
+              so a closing panel still has its content to collapse over — but
+              before the first open there is nothing to keep. */}
+          {(panel.open !== null || panel.shownKey !== null) && (
           <div className="rounded-lg border border-border bg-card p-4">
-            {error ? (
-              <p className="text-sm text-danger">{error}</p>
-            ) : pending && !shown ? (
-              <LoadingRows />
-            ) : shown ? (
+            {panel.error ? (
+              <p className="text-sm text-danger">{panel.error}</p>
+            ) : panel.shown ? (
               <>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-medium text-foreground">
-                    {shown.people.length} {shown.people.length === 1 ? "person" : "people"}{" "}
+                    {panel.shown.people.length} {panel.shown.people.length === 1 ? "person" : "people"}{" "}
                     {openTile ? openTile.label.toLowerCase() : ""}
                   </p>
-                  {open && (
+                  {panel.shownKey && (
                     <Link
-                      href={`/platform-admin/analytics/active?window=${open}`}
+                      href={`/platform-admin/analytics/active?window=${panel.shownKey}`}
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                     >
                       Open as a page <ExternalLink className="h-3 w-3" />
                     </Link>
                   )}
                 </div>
-                <ActivePeopleList result={shown} />
+                <ActivePeopleList result={panel.shown} />
               </>
             ) : (
-              <LoadingRows />
+              <TilePanelSkeleton />
             )}
           </div>
           )}
-        </div>
+        </TilePanel>
       </div>
-    </div>
-  );
-}
-
-// Skeleton rows rather than a spinner: the panel is already expanding, so
-// something roughly list-shaped keeps the motion from landing on nothing.
-function LoadingRows() {
-  return (
-    <div className="space-y-3" aria-busy="true">
-      {[0, 1, 2].map((row) => (
-        <div key={row} className="flex items-center gap-3">
-          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
