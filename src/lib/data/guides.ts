@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Guide, GuideRevision, GuideComment, Profile } from "@/types/database";
+import type { Database, Guide, GuideRevision, GuideComment, Profile, Space } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -14,6 +14,30 @@ export type GuideWithStats = {
   ratingCount: number;
   contributorCount: number;
 };
+
+// Newest guides across the whole community, with who wrote them and which
+// space they live in — the feed interleaves these with posts. RLS trims the
+// result to spaces the viewer can see.
+export type GuideWithContext = Guide & {
+  creator: Pick<Profile, "full_name" | "username" | "avatar_url"> | null;
+  space: Pick<Space, "name" | "slug"> | null;
+};
+
+export async function getCommunityRecentGuides(
+  supabase: Client,
+  communityId: string,
+  limit = 6
+): Promise<GuideWithContext[]> {
+  const { data, error } = await supabase
+    .from("guides")
+    .select("*, creator:created_by (full_name, username, avatar_url), space:space_id (name, slug)")
+    .eq("community_id", communityId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as GuideWithContext[];
+}
 
 export async function getSpaceGuides(supabase: Client, spaceId: string): Promise<GuideWithStats[]> {
   const { data: guides, error } = await supabase

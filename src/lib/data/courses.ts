@@ -10,6 +10,7 @@ import type {
   QuizQuestion,
   QuizOption,
   Profile,
+  Space,
 } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
@@ -80,6 +81,32 @@ export type CourseDetail = {
 
 // RLS hides draft courses from non-staff, so this returns only what the viewer
 // is allowed to see. Staff additionally see their own drafts.
+// Published courses across the whole community, newest first, with who made
+// them and which space they live in — the feed interleaves these with posts.
+// Drafts stay out: a course nobody can open yet isn't news. RLS trims the
+// result to spaces the viewer can see, so a guest gets only public ones.
+export type CourseWithContext = Course & {
+  creator: Pick<Profile, "full_name" | "username" | "avatar_url"> | null;
+  space: Pick<Space, "name" | "slug"> | null;
+};
+
+export async function getCommunityRecentCourses(
+  supabase: Client,
+  communityId: string,
+  limit = 6
+): Promise<CourseWithContext[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*, creator:created_by (full_name, username, avatar_url), space:space_id (name, slug)")
+    .eq("community_id", communityId)
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as CourseWithContext[];
+}
+
 export async function getSpaceCourses(supabase: Client, spaceId: string, viewerId: string): Promise<CourseListItem[]> {
   const { data: courses, error } = await supabase
     .from("courses")
