@@ -7,7 +7,8 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/input";
 import { ACCENT_PRESETS, normalizeAccentColor } from "@/lib/accent-color";
-import { COVER_POSITIONS, type CoverPosition } from "@/lib/cover-position";
+import { COVER_POSITIONS, isMobileCoverPosition, type CoverPosition, type MobileCoverPosition } from "@/lib/cover-position";
+import { CoverFocalPicker } from "@/components/ui/cover-focal-picker";
 import { cn } from "@/lib/utils";
 import type { Community } from "@/types/database";
 
@@ -22,6 +23,9 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
   const [customColor, setCustomColor] = useState(community.accent_color ?? "#4d6a52");
   const customTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [coverPosition, setCoverPosition] = useState<string>(community.cover_position ?? "center");
+  const [mobileCoverPosition, setMobileCoverPosition] = useState<MobileCoverPosition | null>(
+    isMobileCoverPosition(community.cover_position_mobile) ? community.cover_position_mobile : null
+  );
   const [showStats, setShowStats] = useState(community.show_stats);
   const [statsError, setStatsError] = useState<string | null>(null);
 
@@ -76,6 +80,23 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
 
     if (error) {
       setCoverPosition(previous);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function persistMobileCoverPosition(value: MobileCoverPosition | null) {
+    const previous = mobileCoverPosition;
+    setMobileCoverPosition(value);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("communities")
+      .update({ cover_position_mobile: value })
+      .eq("id", community.id);
+
+    if (error) {
+      setMobileCoverPosition(previous);
       return;
     }
     router.refresh();
@@ -149,8 +170,8 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
             <div className="mt-4">
               <Label htmlFor="cover_position">Keep this part of the photo</Label>
               <p className="mt-1 text-xs text-muted-foreground">
-                The header crops your photo and lays the community name over its lower edge.
-                Choose the part that matters most.
+                On a laptop the header is a wide band, so your photo is cropped top and bottom and
+                the community name sits over its lower edge. Choose the part that matters most.
               </p>
               <select
                 id="cover_position"
@@ -164,6 +185,21 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
                   </option>
                 ))}
               </select>
+
+              <div className="mt-4">
+                <Label>On a phone</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The header is nearly square there, so a wide photo is cropped at the sides instead —
+                  which is why a cover can look right on a laptop and lose its subject on a phone.
+                  Pick the part of the picture to keep. Leave it unset to use the same crop as above.
+                </p>
+                <CoverFocalPicker
+                  className="mt-2"
+                  value={mobileCoverPosition}
+                  onPick={persistMobileCoverPosition}
+                  onClear={() => persistMobileCoverPosition(null)}
+                />
+              </div>
             </div>
           )}
         </div>

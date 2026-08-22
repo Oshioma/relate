@@ -463,12 +463,16 @@ export default async function CommunityFeedPage({
             alt=""
             className={cn(
               "absolute inset-0 -z-20 h-full w-full object-cover",
-              coverPositionClass(community.cover_position)
+              coverPositionClass(community.cover_position, community.cover_position_mobile)
             )}
           />
 
           {isStaff && (
-            <CoverQuickEdit communityId={community.id} coverPosition={community.cover_position} />
+            <CoverQuickEdit
+              communityId={community.id}
+              coverPosition={community.cover_position}
+              mobileCoverPosition={community.cover_position_mobile}
+            />
           )}
 
           {/* The backing is a flat tint plus a blur, not a see-through
@@ -548,6 +552,7 @@ export default async function CommunityFeedPage({
                     <CoverQuickEdit
                       communityId={community.id}
                       coverPosition={community.cover_position}
+                      mobileCoverPosition={community.cover_position_mobile}
                       hasCover={false}
                     />
                   </div>

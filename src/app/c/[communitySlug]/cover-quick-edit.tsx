@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Pencil, ImagePlus, Loader2, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { IMAGE_ACCEPTED_TYPES, uploadImage, validateImageFile } from "@/lib/upload-image";
-import { COVER_POSITIONS, type CoverPosition } from "@/lib/cover-position";
+import { COVER_POSITIONS, isMobileCoverPosition, type CoverPosition, type MobileCoverPosition } from "@/lib/cover-position";
+import { CoverFocalPicker } from "@/components/ui/cover-focal-picker";
 import { cn } from "@/lib/utils";
 
 // Edit the cover from the page it appears on. Both of these settings are about
@@ -16,10 +17,13 @@ import { cn } from "@/lib/utils";
 export function CoverQuickEdit({
   communityId,
   coverPosition,
+  mobileCoverPosition,
   hasCover = true,
 }: {
   communityId: string;
   coverPosition: string | null;
+  // The phone crop, or null to follow the wide-screen one.
+  mobileCoverPosition: string | null;
   // With no cover there is nothing to crop and no photo to sit a white icon on,
   // so the control becomes a labelled button on the plain header instead.
   hasCover?: boolean;
@@ -29,6 +33,9 @@ export function CoverQuickEdit({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [position, setPosition] = useState<string>(coverPosition ?? "center");
+  const [mobilePosition, setMobilePosition] = useState<MobileCoverPosition | null>(
+    isMobileCoverPosition(mobileCoverPosition) ? mobileCoverPosition : null
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +109,25 @@ export function CoverQuickEdit({
     router.refresh();
   }
 
+  async function pickMobilePosition(value: MobileCoverPosition | null) {
+    const previous = mobilePosition;
+    setMobilePosition(value);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: updateError } = await supabase
+      .from("communities")
+      .update({ cover_position_mobile: value })
+      .eq("id", communityId);
+
+    if (updateError) {
+      setMobilePosition(previous);
+      setError(updateError.message);
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <div
       ref={rootRef}
@@ -162,6 +188,22 @@ export function CoverQuickEdit({
                 </button>
               );
             })}
+          </div>
+
+          {/* The phone gets its own crop because it crops a different way: the
+              header is nearly square there, so a landscape photo is cut at the
+              sides and the choice above — which only moves the photo up and
+              down — can do nothing at all about it. */}
+          <div className="mt-2 border-t border-border pt-2">
+            <p className="px-2 pb-2 text-xs text-muted-foreground">
+              On a phone the header is nearly square and usually crops the sides. Pick what to keep there.
+            </p>
+            <CoverFocalPicker
+              className="px-2"
+              value={mobilePosition}
+              onPick={pickMobilePosition}
+              onClear={() => pickMobilePosition(null)}
+            />
           </div>
 
           {error && <p className="mt-2 px-2 text-xs text-danger">{error}</p>}
