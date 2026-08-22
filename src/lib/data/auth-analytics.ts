@@ -238,11 +238,16 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
   if (rowsError) throw rowsError;
   if (communitiesError) throw communitiesError;
 
-  const events = ((rows ?? []) as unknown as EventRow[]).filter(
-    // Backfilled rows are synthesised history (see the migration) — they belong
-    // in "all time" but would invent activity inside a recent window.
-    (e) => !since || (e.metadata?.backfilled as boolean | undefined) !== true
-  );
+  // Backfilled rows are counted like any other. They were once excluded from
+  // recent windows on the theory that they were invented activity — but the
+  // backfill stamped each one with the real profiles.created_at /
+  // community_memberships.created_at, so a backfilled join dated last Tuesday
+  // IS a join that happened last Tuesday. Dropping them understated every
+  // window, and — because the headline counts never dropped them — made the
+  // tiles disagree with the lists behind them. They keep their `backfilled`
+  // flag so the UI can say the event was recorded retrospectively rather than
+  // watched happening.
+  const events = (rows ?? []) as unknown as EventRow[];
 
   const communityById = new Map(
     ((communities ?? []) as unknown as Pick<Community, "id" | "name" | "slug" | "privacy" | "created_at">[]).map((c) => [
@@ -815,11 +820,9 @@ export async function getEventPeople(
     throw error;
   }
 
-  // Same rule as the feed: backfilled rows are synthesised history and belong
-  // in "all time" only, never inside a recent window.
-  const rows = ((data ?? []) as unknown as EventRow[]).filter(
-    (e) => !since || (e.metadata?.backfilled as boolean | undefined) !== true
-  );
+  // Same rule as the feed: backfilled rows carry real timestamps, so they count
+  // in whatever window they fall in.
+  const rows = (data ?? []) as unknown as EventRow[];
 
   const userIds = [...new Set(rows.map((r) => r.user_id).filter((id): id is string => Boolean(id)))];
   const communityIds = [...new Set(rows.map((r) => r.community_id).filter((id): id is string => Boolean(id)))];
