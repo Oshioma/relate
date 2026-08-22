@@ -552,6 +552,7 @@ export async function updatePublicAccess(
   const communitySlug = String(formData.get("community_slug") ?? "");
   const privacy = parsePrivacy(formData.get("privacy"));
   const eventsPublic = formData.get("events_public") === "on";
+  const feedPublic = formData.get("feed_public") === "on";
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
 
   const supabase = await createClient();
@@ -561,6 +562,7 @@ export async function updatePublicAccess(
       .update({
         privacy,
         events_public: eventsPublic,
+        feed_public: feedPublic,
         members_visibility: membersVisibility,
       })
       .eq("id", communityId)
