@@ -117,10 +117,15 @@ export function SpaceCard({
             <Input id={`name-${space.id}`} name="name" defaultValue={space.name} required />
           </div>
 
-          <div>
-            <Label htmlFor={`description-${space.id}`}>Description</Label>
-            <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
-          </div>
+          {/* A directory renders no masthead, so a description written here
+              would go nowhere but still be asked for. Every other space type
+              shows it under the title. */}
+          {space.space_type !== "business_directory" && (
+            <div>
+              <Label htmlFor={`description-${space.id}`}>Description</Label>
+              <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
+            </div>
+          )}
 
           <div>
             <Label>Cover image</Label>

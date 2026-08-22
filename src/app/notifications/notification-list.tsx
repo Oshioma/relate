@@ -44,10 +44,17 @@ export function NotificationList({ notifications }: { notifications: Notificatio
 
   function markRead(id: string) {
     setReadIds((previous) => (previous.has(id) ? previous : new Set(previous).add(id)));
+    // Not awaited *here* — the click is also a navigation — but awaited inside
+    // persistRead, because a supabase-js query only sends its request when
+    // something awaits it. Handing the builder to `void` built a request and
+    // dropped it.
+    void persistRead([id]);
+  }
+
+  async function persistRead(ids: string[]) {
     const supabase = createClient();
-    // Not awaited: the click is also a navigation, and a notification that
-    // stays looking unread is the whole cost of this failing.
-    void supabase.from("notifications").update({ read: true }).eq("id", id);
+    const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
+    if (error) console.warn("[notifications] could not mark read:", error.message);
   }
 
   function markAllRead() {
@@ -59,8 +66,7 @@ export function NotificationList({ notifications }: { notifications: Notificatio
       return next;
     });
     startTransition(async () => {
-      const supabase = createClient();
-      await supabase.from("notifications").update({ read: true }).in("id", ids);
+      await persistRead(ids);
       // The bell in the header is rendered by the layout, so it only catches up
       // on a re-render.
       router.refresh();

@@ -24,6 +24,7 @@ export function NewSpaceForm({
   // Group the allowed types under their categories for the picker.
   const groups = groupSpaceTypesByCategory(allowedTypes.map((t) => SPACE_TYPES[t]));
   const defaultType = allowedTypes.includes("discussion") ? "discussion" : allowedTypes[0];
+  const [type, setType] = useState<SpaceType>(defaultType);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -53,17 +54,17 @@ export function NewSpaceForm({
         <Input id="space_name" name="name" placeholder="Announcements" required />
       </div>
 
-      <div>
-        <Label htmlFor="space_description">Description (optional)</Label>
-        <RichEditor id="space_description" name="description" rows={4} placeholder="Add an intro or an About section for this space…" />
-      </div>
-
+      {/* Type comes before description now: a directory shows no description
+          anywhere, so the field is hidden for it — and a field that vanishes
+          after you have typed into it would be worse than one that was never
+          offered. */}
       <div>
         <Label htmlFor="space_type">Type</Label>
         <select
           id="space_type"
           name="space_type"
-          defaultValue={defaultType}
+          value={type}
+          onChange={(e) => setType(e.target.value as SpaceType)}
           className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {groups.map((group) => (
@@ -77,6 +78,13 @@ export function NewSpaceForm({
           ))}
         </select>
       </div>
+
+      {type !== "business_directory" && (
+        <div>
+          <Label htmlFor="space_description">Description (optional)</Label>
+          <RichEditor id="space_description" name="description" rows={4} placeholder="Add an intro or an About section for this space…" />
+        </div>
+      )}
 
       <div>
         <Label htmlFor="visibility">Who can see it</Label>

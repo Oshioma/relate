@@ -77,7 +77,11 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
+  // Absent field ≠ empty field, as for location and cover below: a directory
+  // space's edit form doesn't render the description (nothing displays it), so
+  // saving that form must not wipe one a space already had.
+  const rawDescription = formData.get("description");
+  const description = rawDescription === null ? undefined : String(rawDescription).trim();
   const visibility = parseVisibility(formData.get("visibility"));
   const spaceType = parseSpaceType(formData.get("space_type"));
   const showInNav = formData.get("show_in_nav") === "on";
@@ -227,7 +231,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       .from("spaces")
       .update({
         name,
-        description: description || null,
+        ...(description !== undefined && { description: description || null }),
         visibility,
         space_type: spaceType,
         staff_post_only: staffPostOnly,

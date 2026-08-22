@@ -88,10 +88,20 @@ export function useNotificationStream(
    */
   function markRead(id: string) {
     setReadIds((previous) => (previous.has(id) ? previous : new Set(previous).add(id)));
+    // Awaited inside its own function rather than fired at the builder: a
+    // supabase-js query is lazy — it only sends the request when something
+    // awaits it, so `void supabase.from(…).update(…)` builds a request and
+    // throws it away, silently, which is how a notification could look read
+    // until the next page proved it never was.
+    void persistRead([id]);
+  }
+
+  async function persistRead(ids: string[]) {
     const supabase = createClient();
-    // Nothing to do if this fails: RLS only ever lets a member touch their own
-    // rows, and the worst case is a notification that stays looking unread.
-    void supabase.from("notifications").update({ read: true }).eq("id", id);
+    const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
+    // RLS only ever lets a member touch their own rows, so a failure here is
+    // the network. Worth a line in the console; not worth interrupting anyone.
+    if (error) console.warn("[notifications] could not mark read:", error.message);
   }
 
   const visible = useMemo(
