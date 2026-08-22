@@ -154,7 +154,7 @@ export default async function PlatformAnalyticsPage({
         <StatTile label="Sign-ins" value={analytics.totals.login} hint="password sign-ins" />
         <StatTile label="Joins" value={analytics.totals.join} hint="memberships activated" />
         <StatTile label="Invited" value={analytics.totals.invited} hint="not yet accepted" />
-        <StatTile label="Left" value={analytics.totals.leave} hint="memberships ended" />
+        <StatTile label="Left" value={analytics.totals.leave} hint="memberships ended" negative />
       </div>
 
       <p className="mb-8 text-xs text-muted-foreground">
@@ -490,28 +490,46 @@ function StatTile({
   value,
   hint,
   href,
+  negative = false,
 }: {
   label: string;
   value: number;
   hint?: string;
   // When set, the tile becomes a link to the people behind the number.
   href?: string;
+  // Movement that isn't good news. "12 people left" should never wear the same
+  // colour as "12 people arrived", so it tints toward danger instead.
+  negative?: boolean;
 }) {
+  // A tile with something in it picks up the platform accent — already a sage
+  // green — so a glance across the row shows where the activity is. Zero stays
+  // deliberately plain: an empty tile shouldn't compete for attention.
+  const live = value > 0;
+  const tone = live
+    ? negative
+      ? "border-danger/40 bg-danger/5"
+      : "border-accent/40 bg-accent-soft/40"
+    : "border-border";
+
   const body = (
     <>
-      <p className="text-2xl font-semibold tracking-tight text-foreground">{value.toLocaleString()}</p>
+      <p
+        className={cn(
+          "text-2xl font-semibold tracking-tight",
+          live ? (negative ? "text-danger" : "text-accent") : "text-foreground"
+        )}
+      >
+        {value.toLocaleString()}
+      </p>
       <p className="text-xs font-medium text-foreground">{label}</p>
       {hint && <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{hint}</p>}
     </>
   );
 
-  if (!href) return <div className="rounded-lg border border-border p-4">{body}</div>;
+  if (!href) return <div className={cn("rounded-lg border p-4", tone)}>{body}</div>;
 
   return (
-    <Link
-      href={href}
-      className="rounded-lg border border-border p-4 transition-colors hover:border-accent hover:bg-accent-soft/40"
-    >
+    <Link href={href} className={cn("rounded-lg border p-4 transition-colors hover:border-accent hover:bg-accent-soft", tone)}>
       {body}
     </Link>
   );
