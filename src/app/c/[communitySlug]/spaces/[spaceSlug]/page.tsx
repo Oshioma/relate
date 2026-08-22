@@ -377,9 +377,12 @@ export default async function SpaceDetailPage({
       ) : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
-              description *is* the whole page. Every other space keeps the
-              title with a muted intro beneath it. */}
-          {!isCustomPageSpace && (
+              description *is* the whole page. A directory drops the title for a
+              different reason — the nav link that brought you here already says
+              "Directory", and the categories below say it again in bigger
+              letters, so the heading was a third telling. Every other space
+              keeps the title with a muted intro beneath it. */}
+          {!isCustomPageSpace && !isBusinessDirectorySpace && (
             <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
               <TypeIcon className="h-5 w-5 text-muted-foreground" />
               {space.name}
