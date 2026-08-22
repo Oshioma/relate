@@ -65,6 +65,9 @@ export async function submitReview(_prevState: BusinessReviewFormState, formData
 
   revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  // Reviews appear on the community feed too, so it holds a stale card until
+  // this refreshes it.
+  revalidatePath(`/c/${communitySlug}`);
   return undefined;
 }
 
@@ -81,6 +84,9 @@ export async function deleteReview(reviewId: string, businessId: string, communi
 
   revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  // Reviews appear on the community feed too, so it holds a stale card until
+  // this refreshes it.
+  revalidatePath(`/c/${communitySlug}`);
   return { error: null };
 }
 

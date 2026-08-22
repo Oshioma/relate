@@ -13,6 +13,7 @@ import {
   HandHeart,
   UserPlus,
   Footprints,
+  MessageSquareQuote,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -34,6 +35,7 @@ import { jobTypeLabel } from "@/lib/job-types";
 import { getCommunityRecentAccommodationListings } from "@/lib/data/accommodation";
 import { accommodationTypeLabel, formatAccommodationPrice } from "@/lib/accommodation-types";
 import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
+import { getCommunityRecentReviews, ratingStars } from "@/lib/data/reviews";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
 import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
@@ -92,6 +94,7 @@ export default async function CommunityFeedPage({
     recentJobs,
     recentStays,
     recentRecommendations,
+    recentReviews,
     recentClubs,
     upcomingMeetups,
     recentVolunteerProjects,
@@ -113,6 +116,7 @@ export default async function CommunityFeedPage({
     getCommunityRecentJobListings(supabase, community.id, 12),
     getCommunityRecentAccommodationListings(supabase, community.id, 12),
     getCommunityRecentRecommendations(supabase, community.id, 12),
+    getCommunityRecentReviews(supabase, community.id, 12),
     getCommunityRecentClubs(supabase, community.id, 12),
     getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
@@ -297,6 +301,32 @@ export default async function CommunityFeedPage({
       authorAvatar: r.recommendedBy?.avatar_url ?? null,
       spaceName: r.space?.name ?? null,
       href: r.space ? `${base}/spaces/${r.space.slug}` : base,
+    })),
+    // A review is the most considered thing a member writes about a place, and
+    // it used to live only on that listing's page. On the feed it reads as
+    // "Sam · 4 stars · The Rock" — the card links straight to the listing so a
+    // neighbour can read the rest and add their own.
+    ...recentReviews.map((r): FeedItem => ({
+      key: `review-${r.id}`,
+      itemType: "review" as const,
+      itemId: r.id,
+      createdAt: r.created_at,
+      icon: MessageSquareQuote,
+      title: r.subject.name,
+      description: r.body,
+      imageUrl: r.subject.imageUrl,
+      imagePosition: r.subject.imagePosition,
+      typeBadge: "Review",
+      // Carries the score even when the reviewer left no words, which is what
+      // a rating-only review is.
+      detail: ratingStars(r.rating),
+      authorName: r.author?.full_name || r.author?.username || null,
+      authorAvatar: r.author?.avatar_url ?? null,
+      spaceName: r.subject.spaceName,
+      href:
+        r.subject.kind === "business"
+          ? `${base}/spaces/${r.subject.spaceSlug}/businesses/${r.subject.slugOrId}`
+          : `${base}/spaces/${r.subject.spaceSlug}/stays/${r.subject.slugOrId}`,
     })),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,

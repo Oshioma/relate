@@ -65,6 +65,9 @@ export async function submitAccommodationReview(_prevState: AccommodationReviewF
 
   revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  // Reviews appear on the community feed too, so it holds a stale card until
+  // this refreshes it.
+  revalidatePath(`/c/${communitySlug}`);
   return undefined;
 }
 
@@ -81,6 +84,9 @@ export async function deleteAccommodationReview(reviewId: string, listingId: str
 
   revalidatePath(DETAIL_ROUTE, "page");
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  // Reviews appear on the community feed too, so it holds a stale card until
+  // this refreshes it.
+  revalidatePath(`/c/${communitySlug}`);
   return { error: null };
 }
 
