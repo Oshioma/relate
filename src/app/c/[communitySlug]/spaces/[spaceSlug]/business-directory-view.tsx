@@ -2,17 +2,76 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin } from "lucide-react";
+import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions, businessCategoryLabel } from "@/lib/business-categories";
 import { NewBusinessForm } from "./new-business-form";
 import { BusinessCard } from "./business-card";
+import { BUSINESS_CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "./business-category-icon";
 import { setCategoryFeatured, addBusinessCategory, deleteBusinessCategory, renameBusinessCategory } from "./business-directory-actions";
 import type { BusinessWithStats } from "@/lib/data/businesses";
 import type { BusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 type SortKey = "featured" | "rating" | "newest" | "name";
+
+function countLabel(count: number): string {
+  return `${count} ${count === 1 ? "listing" : "listings"}`;
+}
+
+/**
+ * One category, as a target rather than a chip.
+ *
+ * The row of 12px pills gave a directory's most important choice — what kind of
+ * thing am I looking for — the same weight as "Saved", the same weight as a
+ * staff rename control, and a hit area you had to aim at on a phone. A tile
+ * carries the icon the listing cards already use, the name at a readable size,
+ * and how much is in there.
+ */
+function CategoryTile({
+  Icon,
+  label,
+  detail,
+  active,
+  dimmed,
+  pinned,
+  onClick,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  detail: string;
+  active: boolean;
+  // Empty, and only visible because staff need to reach it.
+  dimmed?: boolean;
+  pinned?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`flex flex-col gap-2.5 rounded-lg border p-4 text-left transition-colors ${
+        active ? "border-accent bg-accent-soft" : "border-border bg-card hover:border-muted-foreground/40"
+      } ${dimmed ? "opacity-60" : ""}`}
+    >
+      <span
+        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
+          active ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+        }`}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0">
+        <span className={`flex items-center gap-1.5 truncate text-[15px] font-semibold tracking-tight ${active ? "text-accent" : "text-foreground"}`}>
+          {pinned && <Pin className="h-3 w-3 shrink-0" />}
+          {label}
+        </span>
+        <span className={`mt-0.5 block truncate text-[13px] ${active ? "text-accent/75" : "text-muted-foreground"}`}>{detail}</span>
+      </span>
+    </button>
+  );
+}
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "featured", label: "Featured" },
@@ -65,6 +124,10 @@ export function BusinessDirectoryView({
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryLabel, setNewCategoryLabel] = useState("");
   const [renamingCategory, setRenamingCategory] = useState<BusinessCategory | null>(null);
+  // Staff-only category management, folded away until asked for: it is four
+  // controls that only staff can use, and it was sitting in the middle of the
+  // row everyone uses to browse.
+  const [showCategoryTools, setShowCategoryTools] = useState(false);
   const [renameLabel, setRenameLabel] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -260,194 +323,237 @@ export function BusinessDirectoryView({
         )}
       </div>
 
-      <div className="mb-5 flex flex-wrap items-center gap-1.5">
-        <button
-          type="button"
+      {/* Categories are the page's main navigation, not another filter chip: a
+          directory is browsed by kind first — restaurants, fundis, taxis — so
+          the kinds are the biggest thing on it and each carries its own count. */}
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <CategoryTile
+          Icon={LayoutGrid}
+          label="Everything"
+          detail={countLabel(businesses.length)}
+          active={category === "all"}
           onClick={() => setCategory("all")}
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${category === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
-        >
-          All ({businesses.length})
-        </button>
-        {canPost && savedCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setSavedOnly((v) => !v)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
-          >
-            <Heart className={`h-3 w-3 ${savedOnly ? "fill-accent" : ""}`} />
-            Saved ({savedCount})
-          </button>
-        )}
-        {localCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setLocalOnly((v) => !v)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${localOnly ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
-          >
-            <MapPin className={`h-3 w-3 ${localOnly ? "fill-accent" : ""}`} />
-            Local ({localCount})
-          </button>
-        )}
+        />
         {chipOptions.map((c) => {
           const count = countByCategory.get(c.value) ?? 0;
           const isCustom = customCategories.some((cc) => cc.slug === c.value);
-          // Built-ins only clutter the row once something uses them; customs
-          // were added deliberately, so they show right away. A pinned category
-          // always shows, empty or not, so its nav link can be removed.
-          if (count === 0 && !isCustom && !featured.includes(c.value)) return null;
           const isActive = category === c.value;
+          // An empty category is a dead end for a visitor, so it isn't shown at
+          // all. Staff keep seeing their own empty categories and anything
+          // pinned to the nav, dimmed — otherwise a category could never be
+          // reached again to be renamed, deleted or unpinned.
+          const staffOnly = isCustom || featured.includes(c.value);
+          if (count === 0 && !isActive && !(isStaff && staffOnly)) return null;
           return (
-            <button
+            <CategoryTile
               key={c.value}
-              type="button"
+              Icon={BUSINESS_CATEGORY_ICONS[c.value] ?? DEFAULT_CATEGORY_ICON}
+              label={c.label}
+              detail={count > 0 ? countLabel(count) : "Nothing listed yet"}
+              active={isActive}
+              dimmed={count === 0 && !isActive}
+              pinned={featured.includes(c.value)}
               onClick={() => setCategory(isActive ? "all" : c.value)}
-              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
-            >
-              {featured.includes(c.value) && <Pin className="h-3 w-3" />}
-              {c.label} ({count})
-            </button>
+            />
           );
         })}
-        {isStaff && category !== "all" && renamingCategory === null && (
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => toggleFeatured(category)}
-            title="Featured categories appear as links under this directory in the left nav"
-            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
-          >
-            {featured.includes(category) ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
-            {featured.includes(category) ? "Remove nav link" : "Add to nav"}
-          </button>
-        )}
-        {isStaff && category !== "all" && renamingCategory === null && (
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={() => startRename(category)}
-            title="Rename how this category shows in the nav, chips and headings"
-            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
-          >
-            <Pencil className="h-3 w-3" />
-            Rename
-          </button>
-        )}
-        {isStaff && renamingCategory !== null && (
-          <span className="inline-flex items-center gap-1.5">
-            <input
-              autoFocus
-              value={renameLabel}
-              onChange={(e) => setRenameLabel(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleRename();
-                }
-                if (e.key === "Escape") setRenamingCategory(null);
-              }}
-              maxLength={40}
-              placeholder="Experiences"
-              className="w-36 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              disabled={isPending || !renameLabel.trim()}
-              onClick={handleRename}
-              className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={() => setRenamingCategory(null)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </span>
-        )}
-        {isStaff &&
-          category !== "all" &&
-          renamingCategory === null &&
-          (() => {
-            const activeCustom = customCategories.find((cc) => cc.slug === category);
-            if (!activeCustom) return null;
-            return (
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => handleDeleteCategory(activeCustom)}
-                title="Delete this category — its businesses move to Other"
-                className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-danger hover:text-danger disabled:opacity-60"
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete category
-              </button>
-            );
-          })()}
-        {isStaff && !addingCategory && renamingCategory === null && (
+        {isStaff && (
           <button
             type="button"
             onClick={() => {
               setChipError(null);
-              setAddingCategory(true);
+              setShowCategoryTools((v) => !v);
             }}
-            title="Add a category beyond the built-ins, e.g. Fundi"
-            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent"
+            className={`flex flex-col justify-center gap-1.5 rounded-lg border border-dashed p-4 text-left text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
           >
-            <Plus className="h-3 w-3" />
-            New category
+            <span className="inline-flex items-center gap-2">
+              <Pencil className="h-4 w-4" />
+              {showCategoryTools ? "Done editing" : "Edit categories"}
+            </span>
+            <span className="text-xs font-normal text-muted-foreground">Add, rename, pin to the nav</span>
           </button>
-        )}
-        {isStaff && addingCategory && (
-          <span className="inline-flex items-center gap-1.5">
-            <input
-              autoFocus
-              value={newCategoryLabel}
-              onChange={(e) => setNewCategoryLabel(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddCategory();
-                }
-                if (e.key === "Escape") setAddingCategory(false);
-              }}
-              maxLength={40}
-              placeholder="Fundi"
-              className="w-32 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              type="button"
-              disabled={isPending || !newCategoryLabel.trim()}
-              onClick={handleAddCategory}
-              className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAddingCategory(false);
-                setNewCategoryLabel("");
-              }}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </span>
         )}
       </div>
 
+      {/* The staff controls themselves, once asked for. They act on whichever
+          category is selected, which is why picking one comes first. */}
+      {isStaff && showCategoryTools && (
+        <div className="mb-4 flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border p-3">
+          {category === "all" && renamingCategory === null && !addingCategory && (
+            <span className="text-xs text-muted-foreground">Pick a category above to rename, pin or delete it — or</span>
+          )}
+          {category !== "all" && renamingCategory === null && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => toggleFeatured(category)}
+              title="Featured categories appear as links under this directory in the left nav"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
+            >
+              {featured.includes(category) ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+              {featured.includes(category) ? "Remove nav link" : "Add to nav"}
+            </button>
+          )}
+          {category !== "all" && renamingCategory === null && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => startRename(category)}
+              title="Rename how this category shows in the nav, tiles and headings"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent disabled:opacity-60"
+            >
+              <Pencil className="h-3 w-3" />
+              Rename
+            </button>
+          )}
+          {renamingCategory !== null && (
+            <span className="inline-flex items-center gap-1.5">
+              <input
+                autoFocus
+                value={renameLabel}
+                onChange={(e) => setRenameLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleRename();
+                  }
+                  if (e.key === "Escape") setRenamingCategory(null);
+                }}
+                maxLength={40}
+                placeholder="Experiences"
+                className="w-36 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                disabled={isPending || !renameLabel.trim()}
+                onClick={handleRename}
+                className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setRenamingCategory(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          )}
+          {category !== "all" &&
+            renamingCategory === null &&
+            (() => {
+              const activeCustom = customCategories.find((cc) => cc.slug === category);
+              if (!activeCustom) return null;
+              return (
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => handleDeleteCategory(activeCustom)}
+                  title="Delete this category — its businesses move to Other"
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-danger hover:text-danger disabled:opacity-60"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Delete category
+                </button>
+              );
+            })()}
+          {!addingCategory && renamingCategory === null && (
+            <button
+              type="button"
+              onClick={() => {
+                setChipError(null);
+                setAddingCategory(true);
+              }}
+              title="Add a category beyond the built-ins, e.g. Fundi"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:border-accent hover:text-accent"
+            >
+              <Plus className="h-3 w-3" />
+              New category
+            </button>
+          )}
+          {addingCategory && (
+            <span className="inline-flex items-center gap-1.5">
+              <input
+                autoFocus
+                value={newCategoryLabel}
+                onChange={(e) => setNewCategoryLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddCategory();
+                  }
+                  if (e.key === "Escape") setAddingCategory(false);
+                }}
+                maxLength={40}
+                placeholder="Fundi"
+                className="w-32 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                disabled={isPending || !newCategoryLabel.trim()}
+                onClick={handleAddCategory}
+                className="rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-medium text-accent disabled:opacity-60"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAddingCategory(false);
+                  setNewCategoryLabel("");
+                }}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Refinements, below the categories and visibly quieter than them: these
+          narrow whatever kind is selected rather than choosing one. */}
+      {(canPost && savedCount > 0) || localCount > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {canPost && savedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSavedOnly((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${savedOnly ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              <Heart className={`h-3.5 w-3.5 ${savedOnly ? "fill-accent" : ""}`} />
+              Saved <span className="text-muted-foreground/70">{savedCount}</span>
+            </button>
+          )}
+          {localCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setLocalOnly((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${localOnly ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
+            >
+              <MapPin className={`h-3.5 w-3.5 ${localOnly ? "fill-accent" : ""}`} />
+              Locally owned <span className="text-muted-foreground/70">{localCount}</span>
+            </button>
+          )}
+          <span className="ml-auto text-sm text-muted-foreground">
+            {filtered.length === businesses.length ? countLabel(businesses.length) : `${filtered.length} of ${businesses.length} shown`}
+          </span>
+        </div>
+      ) : null}
+
       {chipError && <p className="-mt-3 mb-3 text-xs text-danger">{chipError}</p>}
 
+      {/* Where, under what: a narrowing of the chosen kind, so it reads below
+          the tiles — but still a comfortable target rather than a 12px pill. */}
       {locations.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setLocation("all")}
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
           >
-            All locations
+            Anywhere
           </button>
           {locations.map(([label, count]) => {
             const isActive = location === label;
@@ -456,9 +562,9 @@ export function BusinessDirectoryView({
                 key={label}
                 type="button"
                 onClick={() => setLocation(isActive ? "all" : label)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium ${isActive ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
               >
-                {label} ({count})
+                {label} <span className="text-muted-foreground/70">{count}</span>
               </button>
             );
           })}
