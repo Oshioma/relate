@@ -128,6 +128,10 @@ export type AuthAnalytics = {
   // False when the presence migration hasn't been pushed yet, so the UI can say
   // "not tracking yet" instead of showing a confident zero.
   presenceAvailable: boolean;
+  // Where the feed's email addresses came from, and why they're missing when
+  // they are. See EmailLookupSource.
+  emailLookup: EmailLookupSource;
+  emailLookupError: string | null;
 };
 
 // Hard ceiling on the rows pulled into memory for the per-community breakdown.
@@ -289,9 +293,9 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
   const feedRows = events.slice(0, 60);
   const profileIds = [...new Set(feedRows.map((e) => e.user_id).filter((id): id is string => Boolean(id)))];
   const profileById = new Map<string, Pick<Profile, "id" | "username" | "full_name" | "avatar_url">>();
-  let emailById = new Map<string, string>();
+  let emailLookup: EmailLookup = { emails: new Map(), source: "rpc", error: null };
   if (profileIds.length > 0) {
-    const [{ data: profiles, error }, emails] = await Promise.all([
+    const [{ data: profiles, error }, lookup] = await Promise.all([
       admin.from("profiles").select("id, username, full_name, avatar_url").in("id", profileIds),
       emailsForUserIds(admin, profileIds),
     ]);
@@ -299,8 +303,9 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
     for (const profile of (profiles ?? []) as Pick<Profile, "id" | "username" | "full_name" | "avatar_url">[]) {
       profileById.set(profile.id, profile);
     }
-    emailById = emails;
+    emailLookup = lookup;
   }
+  const emailById = emailLookup.emails;
 
   const recent: AuthEventFeedItem[] = feedRows.map((event) => {
     const community = event.community_id ? communityById.get(event.community_id) : undefined;
@@ -351,6 +356,8 @@ async function loadAuthAnalytics(admin: Client, range: AuthEventRange): Promise<
     active: presence.platform,
     dailyActive: presence.daily,
     presenceAvailable: presence.available,
+    emailLookup: emailLookup.source,
+    emailLookupError: emailLookup.error,
   };
 }
 
@@ -490,26 +497,65 @@ async function countByType(admin: Client, since: string | null): Promise<AuthEve
   return { ...emptyCounts(), ...Object.fromEntries(results) };
 }
 
-// Email addresses for a specific set of accounts, via the service-role-only
-// user_emails_for_ids() function (see its migration). Deliberately narrow: only
-// the ids on screen, never the whole user base. An operator recognises their
-// members by email, so a signup feed without it is hard to act on.
+// How the addresses on screen were obtained, so the page can say when they are
+// missing instead of just showing nothing. Silence is the worst outcome here:
+// "no emails" and "the lookup is broken" look identical to the operator.
+export type EmailLookupSource =
+  // The targeted RPC — the normal path.
+  | "rpc"
+  // The RPC was unavailable (migration not pushed, or PostgREST's schema cache
+  // hasn't picked the function up yet) and the Auth admin API answered instead.
+  | "admin_api"
+  // Neither worked; no addresses are shown.
+  | "unavailable";
+
+export type EmailLookup = {
+  emails: Map<string, string>;
+  source: EmailLookupSource;
+  error: string | null;
+};
+
+// Email addresses for a specific set of accounts.
 //
-// Never allowed to break the page it decorates — a missing function (migration
-// not pushed yet) or a failed call just means no addresses are shown.
-export async function emailsForUserIds(admin: Client, userIds: string[]): Promise<Map<string, string>> {
+// Preferred path is user_emails_for_ids() (see its migration): service-role
+// only, and narrow — just the ids on screen, never the whole user base.
+//
+// The fallback is the Auth admin API, which is what the spam sweep uses. It
+// pages through every user, so it is genuinely expensive and is only reached
+// when the RPC fails. Having it means a stale PostgREST schema cache, or a
+// migration that hasn't been pushed yet, degrades performance rather than
+// quietly removing a column the operator is relying on.
+export async function emailsForUserIds(admin: Client, userIds: string[]): Promise<EmailLookup> {
   const emails = new Map<string, string>();
-  if (userIds.length === 0) return emails;
+  if (userIds.length === 0) return { emails, source: "rpc", error: null };
 
   const { data, error } = await admin.rpc("user_emails_for_ids", { p_user_ids: userIds });
-  if (error) {
-    console.error("[auth-analytics] user_emails_for_ids failed:", error);
-    return emails;
+  if (!error) {
+    for (const row of (data ?? []) as { user_id: string; email: string | null }[]) {
+      if (row.email) emails.set(row.user_id, row.email);
+    }
+    return { emails, source: "rpc", error: null };
   }
-  for (const row of (data ?? []) as { user_id: string; email: string | null }[]) {
-    if (row.email) emails.set(row.user_id, row.email);
+
+  console.error("[auth-analytics] user_emails_for_ids failed, falling back to the Auth admin API:", error);
+
+  try {
+    const wanted = new Set(userIds);
+    const perPage = 200;
+    for (let page = 1; page <= 50 && emails.size < wanted.size; page++) {
+      const { data: batch, error: listError } = await admin.auth.admin.listUsers({ page, perPage });
+      if (listError) throw listError;
+      const users = batch?.users ?? [];
+      for (const user of users) {
+        if (user.email && wanted.has(user.id)) emails.set(user.id, user.email);
+      }
+      if (users.length < perPage) break;
+    }
+    return { emails, source: "admin_api", error: error.message };
+  } catch (fallbackError) {
+    console.error("[auth-analytics] email fallback failed too:", fallbackError);
+    return { emails, source: "unavailable", error: error.message };
   }
-  return emails;
 }
 
 async function activeMemberCounts(admin: Client): Promise<Map<string, number>> {
@@ -634,7 +680,7 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
   if (profileError) throw profileError;
   if (loginCountResult.error) throw loginCountResult.error;
 
-  const [presence, emails] = await Promise.all([
+  const [presence, emailLookup] = await Promise.all([
     loadUserPresence(admin, userId),
     emailsForUserIds(admin, [userId]),
   ]);
@@ -664,7 +710,7 @@ async function loadUserAuthActivity(admin: Client, userId: string): Promise<User
   const signupCommunity = signupCommunityId ? (communityById.get(signupCommunityId) ?? null) : null;
 
   return {
-    email: emails.get(userId) ?? null,
+    email: emailLookup.emails.get(userId) ?? null,
     signupCommunity: signupCommunity
       ? { id: signupCommunity.id, name: signupCommunity.name, slug: signupCommunity.slug }
       : null,
