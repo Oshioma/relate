@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import { SpamCleanup } from "./spam-cleanup";
+import { FeaturedCommunities, type FeaturedCandidate } from "./featured-communities";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,17 @@ export default async function PlatformCommunitiesPage() {
 
   const unattachedCount = users.filter((u) => u.communityCount === 0).length;
 
+  // Everything the homepage picker needs, in one flat shape — it renders both
+  // the current picks and the public communities still available to pick.
+  const featuredCandidates: FeaturedCandidate[] = communities.map(({ community, memberCount }) => ({
+    id: community.id,
+    name: community.name,
+    slug: community.slug,
+    isPublic: community.is_public,
+    featuredAt: community.featured_at,
+    memberCount,
+  }));
+
   return (
     <div>
       <p className="mb-6 text-sm text-muted-foreground">
@@ -42,6 +54,8 @@ export default async function PlatformCommunitiesPage() {
         <StatTile label="Users" value={overview.users} />
         <StatTile label="Active memberships" value={overview.memberships} />
       </div>
+
+      <FeaturedCommunities communities={featuredCandidates} />
 
       <SpamCleanup candidates={spamCandidates} />
 

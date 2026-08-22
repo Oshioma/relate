@@ -251,6 +251,13 @@ export type Community = {
   // requirement existed.
   owner_agreement_accepted_at: string | null;
   owner_agreement_version: string | null;
+  // Non-null = a super admin picked this community for the marketing
+  // homepage's showcase strip, and the timestamp orders it (most recent pick
+  // first). Written only by the platform admin actions through the
+  // service-role client — a DB trigger rejects anon/authenticated writes, so a
+  // community's own owner can't promote themselves onto the homepage. See
+  // 20260822115253_community_featured_on_homepage.sql.
+  featured_at: string | null;
   created_at: string;
   updated_at: string;
 };
