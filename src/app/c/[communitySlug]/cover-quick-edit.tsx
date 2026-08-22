@@ -14,6 +14,7 @@ import {
 } from "@/lib/cover-position";
 import { CoverFocalPicker } from "@/components/ui/cover-focal-picker";
 import { CoverCropPreview } from "@/components/ui/cover-crop-preview";
+import { useCoverCrop } from "./cover-crop";
 import { cn } from "@/lib/utils";
 
 // Edit the cover from the page it appears on. Both of these settings are about
@@ -28,17 +29,12 @@ const WIDE_ASPECT = 1200 / 420;
 export function CoverQuickEdit({
   communityId,
   coverUrl,
-  coverPosition,
-  mobileCoverPosition,
   hasCover = true,
 }: {
   communityId: string;
   // The cover being cropped, so each choice can be previewed in the shape it
   // applies to rather than judged from a header that can't show it.
   coverUrl: string | null;
-  coverPosition: string | null;
-  // The phone crop, or null to follow the wide-screen one.
-  mobileCoverPosition: string | null;
   // With no cover there is nothing to crop and no photo to sit a white icon on,
   // so the control becomes a labelled button on the plain header instead.
   hasCover?: boolean;
@@ -51,10 +47,11 @@ export function CoverQuickEdit({
   // which leaves the control feeling like nothing happened. This says it did.
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [position, setPosition] = useState<string>(coverPosition ?? "center");
-  const [mobilePosition, setMobilePosition] = useState<MobileCoverPosition | null>(
-    isMobileCoverPosition(mobileCoverPosition) ? mobileCoverPosition : null
-  );
+  // The crop lives in the shared state the header image reads, so a pick moves
+  // the photo behind this panel at the same moment it moves the previews in it.
+  const { crop, applyCrop } = useCoverCrop();
+  const position = crop.position ?? "center";
+  const mobilePosition = isMobileCoverPosition(crop.mobilePosition) ? crop.mobilePosition : null;
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -119,20 +116,32 @@ export function CoverQuickEdit({
     }
   }
 
+  // A row-level-security refusal is not an error: the update simply matches no
+  // rows and comes back clean, which would leave the panel saying "Saved" about
+  // a write that never happened. Asking for the row back is what tells the two
+  // apart.
+  async function persist(patch: { cover_position?: string; cover_position_mobile?: string | null }) {
+    const supabase = createClient();
+    const { data, error: updateError } = await supabase
+      .from("communities")
+      .update(patch)
+      .eq("id", communityId)
+      .select("id");
+
+    if (updateError) return updateError.message;
+    if (!data || data.length === 0) return "That didn't save — you may no longer have permission to edit this community.";
+    return null;
+  }
+
   async function pickPosition(value: CoverPosition) {
-    const previous = position;
-    setPosition(value);
+    const previous = crop.position;
+    applyCrop({ position: value });
     setError(null);
 
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("communities")
-      .update({ cover_position: value })
-      .eq("id", communityId);
-
-    if (updateError) {
-      setPosition(previous);
-      setError(updateError.message);
+    const failure = await persist({ cover_position: value });
+    if (failure) {
+      applyCrop({ position: previous });
+      setError(failure);
       return;
     }
     flagSaved();
@@ -140,19 +149,14 @@ export function CoverQuickEdit({
   }
 
   async function pickMobilePosition(value: MobileCoverPosition | null) {
-    const previous = mobilePosition;
-    setMobilePosition(value);
+    const previous = crop.mobilePosition;
+    applyCrop({ mobilePosition: value });
     setError(null);
 
-    const supabase = createClient();
-    const { error: updateError } = await supabase
-      .from("communities")
-      .update({ cover_position_mobile: value })
-      .eq("id", communityId);
-
-    if (updateError) {
-      setMobilePosition(previous);
-      setError(updateError.message);
+    const failure = await persist({ cover_position_mobile: value });
+    if (failure) {
+      applyCrop({ mobilePosition: previous });
+      setError(failure);
       return;
     }
     flagSaved();
