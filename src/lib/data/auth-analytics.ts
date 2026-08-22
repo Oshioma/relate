@@ -659,7 +659,9 @@ export async function getActivePeople(
     .select("user_id, community_id, day, is_member, last_seen_at")
     .gte("day", from)
     .lte("day", to)
-    .order("last_seen_at", { ascending: false })
+    // Deliberately unordered: the fold below sorts people by last-seen anyway,
+    // so ordering here only costs Postgres a sort it can't take from the day
+    // index.
     .limit(ACTIVE_PEOPLE_CAP);
   if (communityId) query = query.eq("community_id", communityId);
 
@@ -766,6 +768,107 @@ export async function getActivePeople(
     emailLookup: emailLookup.source,
     emailLookupError: emailLookup.error,
     truncated: rows.length >= ACTIVE_PEOPLE_CAP,
+  };
+}
+
+// --- The events behind an event tile -----------------------------------------
+
+export type EventPeople = {
+  type: AuthEventType;
+  range: AuthEventRange;
+  events: AuthEventFeedItem[];
+  // Distinct accounts across those events — ten sign-ins by one person is one
+  // person, and the difference matters when reading a "Sign-ins" tile.
+  uniquePeople: number;
+  emailLookup: EmailLookupSource;
+  emailLookupError: string | null;
+  truncated: boolean;
+};
+
+const EVENT_PEOPLE_CAP = 500;
+
+// Everything of one event type in the selected range, newest first, with the
+// email of whoever it happened to — the list behind the Signups / Sign-ins /
+// Joins tiles.
+export async function getEventPeople(
+  admin: Client,
+  type: AuthEventType,
+  range: AuthEventRange,
+  communityId?: string
+): Promise<EventPeople> {
+  const since = rangeStart(range);
+
+  let query = admin
+    .from("auth_events")
+    .select("id, event_type, user_id, community_id, community_slug, source, path, host, metadata, created_at")
+    .eq("event_type", type)
+    .order("created_at", { ascending: false })
+    .limit(EVENT_PEOPLE_CAP);
+  if (since) query = query.gte("created_at", since);
+  if (communityId) query = query.eq("community_id", communityId);
+
+  const { data, error } = await query;
+  if (error) {
+    if (isMissingTable(error)) {
+      return { type, range, events: [], uniquePeople: 0, emailLookup: "rpc", emailLookupError: null, truncated: false };
+    }
+    throw error;
+  }
+
+  // Same rule as the feed: backfilled rows are synthesised history and belong
+  // in "all time" only, never inside a recent window.
+  const rows = ((data ?? []) as unknown as EventRow[]).filter(
+    (e) => !since || (e.metadata?.backfilled as boolean | undefined) !== true
+  );
+
+  const userIds = [...new Set(rows.map((r) => r.user_id).filter((id): id is string => Boolean(id)))];
+  const communityIds = [...new Set(rows.map((r) => r.community_id).filter((id): id is string => Boolean(id)))];
+
+  const [{ data: profiles, error: profilesError }, emailLookup, { data: communities, error: communitiesError }] =
+    await Promise.all([
+      userIds.length > 0
+        ? admin.from("profiles").select("id, username, full_name, avatar_url").in("id", userIds)
+        : Promise.resolve({ data: [], error: null }),
+      emailsForUserIds(admin, userIds),
+      communityIds.length > 0
+        ? admin.from("communities").select("id, name, slug, privacy").in("id", communityIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+  if (profilesError) throw profilesError;
+  if (communitiesError) throw communitiesError;
+
+  type ProfileLite = Pick<Profile, "id" | "username" | "full_name" | "avatar_url">;
+  const profileById = new Map(((profiles ?? []) as ProfileLite[]).map((p) => [p.id, p]));
+  type CommunityLite = Pick<Community, "id" | "name" | "slug" | "privacy">;
+  const communityById = new Map(((communities ?? []) as CommunityLite[]).map((c) => [c.id, c]));
+
+  const events: AuthEventFeedItem[] = rows.map((event) => {
+    const community = event.community_id ? communityById.get(event.community_id) : undefined;
+    return {
+      id: event.id,
+      type: event.event_type,
+      createdAt: event.created_at,
+      source: event.source,
+      path: event.path,
+      host: event.host,
+      backfilled: (event.metadata?.backfilled as boolean | undefined) === true,
+      user: event.user_id ? (profileById.get(event.user_id) ?? null) : null,
+      email: event.user_id ? (emailLookup.emails.get(event.user_id) ?? null) : null,
+      communityId: event.community_id,
+      communityName: community?.name ?? (event.community_slug ? `/c/${event.community_slug}` : null),
+      communitySlug: community?.slug ?? event.community_slug,
+      communityPrivacy: community?.privacy ?? null,
+    };
+  });
+
+  return {
+    type,
+    range,
+    events,
+    uniquePeople: userIds.length,
+    emailLookup: emailLookup.source,
+    emailLookupError: emailLookup.error,
+    truncated: (data ?? []).length >= EVENT_PEOPLE_CAP,
   };
 }
 
