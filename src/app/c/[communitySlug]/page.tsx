@@ -603,17 +603,19 @@ export default async function CommunityFeedPage({
           <div className="min-w-0 lg:col-span-2">
             {activity.length === 0 ? (
               // An empty feed means two different things. For a member the
-              // community really is quiet. For a signed-out visitor it usually
-              // means every space is members-only — the feed is open, there is
-              // simply nothing in it a stranger may read — and "be the first to
-              // share something" is the wrong thing to tell someone who can't.
+              // community really is quiet. For a signed-out visitor it means
+              // nothing here is public — which is a rule to state, not a
+              // diagnosis to guess at: it could be that every space is
+              // members-only, or that the public ones hold the kinds of thing
+              // the feed doesn't carry. Either way "be the first to share
+              // something" is the wrong thing to say to someone who can't.
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
                 title={user ? "No activity yet" : "Nothing public here yet"}
                 description={
                   user
                     ? "Be the first to share something — start a post, add a business, or list an event."
-                    : `Everything in ${community.name} is members-only for now. Log in or join to see what's happening.`
+                    : `Signed-out visitors only see activity from spaces set to Public. Log in or join to see what's happening in ${community.name}.`
                 }
                 action={
                   user ? (
