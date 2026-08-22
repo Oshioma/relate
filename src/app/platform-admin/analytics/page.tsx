@@ -12,6 +12,7 @@ import {
   type AuthEventFeedItem,
   type CommunityAuthActivity,
 } from "@/lib/data/auth-analytics";
+import { ActiveTiles } from "./active-tiles";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
@@ -103,35 +104,18 @@ export default async function PlatformAnalyticsPage({
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">Active people</h2>
       {analytics.presenceAvailable ? (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {/* Each tile opens the list of who those people are, with their
-                email addresses — a count you can't act on isn't much use. */}
-            <StatTile
-              label="Active today"
-              value={analytics.active.today}
-              hint="distinct people, UTC day"
-              href="/platform-admin/analytics/active?window=today"
-            />
-            <StatTile
-              label="Yesterday"
-              value={analytics.active.yesterday}
-              hint="for comparison"
-              href="/platform-admin/analytics/active?window=yesterday"
-            />
-            <StatTile
-              label="Last 7 days"
-              value={analytics.active.last7}
-              hint="weekly actives"
-              href="/platform-admin/analytics/active?window=7d"
-            />
-            <StatTile
-              label="Last 30 days"
-              value={analytics.active.last30}
-              hint="monthly actives"
-              href="/platform-admin/analytics/active?window=30d"
-            />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">Click any of these to see who, with their email addresses.</p>
+          {/* Each tile expands the list of who those people are, with their
+              email addresses, in place — a count you can't act on isn't much
+              use, and a page hop to find out costs the context you were in. */}
+          <ActiveTiles
+            tiles={[
+              { key: "today", label: "Active today", hint: "distinct people, UTC day", value: analytics.active.today },
+              { key: "yesterday", label: "Yesterday", hint: "for comparison", value: analytics.active.yesterday },
+              { key: "7d", label: "Last 7 days", hint: "weekly actives", value: analytics.active.last7 },
+              { key: "30d", label: "Last 30 days", hint: "monthly actives", value: analytics.active.last30 },
+            ]}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">Tap a tile to see who, with their email addresses.</p>
           <p className="mb-8 mt-3 text-xs text-muted-foreground">
             Counted from real page views by signed-in people, not from sign-ins — someone who returns every day without
             ever signing in again still counts. Each person is counted once per community per 15 minutes, and days are
