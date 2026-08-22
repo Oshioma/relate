@@ -265,9 +265,6 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityHref
                     {account.username && <p className="truncate text-xs text-muted-foreground">@{account.username}</p>}
                   </div>
                 </Link>
-                <Link href="/dashboard" onClick={close} className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-muted">
-                  <span className="text-sm font-medium text-foreground">Powered by Relate.Click</span>
-                </Link>
                 <LogoutButton />
               </>
             ) : (

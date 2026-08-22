@@ -28,7 +28,16 @@ export function SiteFooter() {
           Contact
         </Link>
       </nav>
-      <p>Relate — built for quiet, focused communities.</p>
+      {/* The platform credit, and the only way back out of a community shell
+          on desktop now that the sidebar's "Powered by Relate.Click" line is
+          gone. "/" sends a signed-in member to their dashboard and everyone
+          else to the marketing home, so one href serves both. */}
+      <p>
+        <Link href="/" className="font-medium text-foreground hover:underline">
+          Relate
+        </Link>{" "}
+        — built for quiet, focused communities.
+      </p>
     </footer>
   );
 }
