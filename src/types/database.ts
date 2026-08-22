@@ -185,6 +185,11 @@ export type Community = {
   // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
   // Null = 'center'.
   cover_position: string | null;
+  // The same choice for a phone, where the header is roughly square and the
+  // photo is usually cut at the sides rather than top and bottom — so this is a
+  // focal point ('top-left' … 'bottom-right'), not a vertical position. Null =
+  // use cover_position at every width, which is how it behaved before.
+  cover_position_mobile: string | null;
   // Show the member / event / business / post counts in the community header.
   // Defaults false — a small community is usually better off not advertising
   // its size.
