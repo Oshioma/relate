@@ -453,82 +453,91 @@ export default async function CommunityFeedPage({
           With no cover, the original accent-gradient header and its own stats
           strip still apply. */}
       {community.cover_image_url ? (
-        <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
-          {/* The crop keeps whichever part of the photo the community chose —
-              the band covers the foot of the image, so a subject sitting low in
-              the frame disappears behind the text unless it's pushed up. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={community.cover_image_url}
-            alt=""
-            className={cn(
-              "absolute inset-0 -z-20 h-full w-full object-cover",
-              coverPositionClass(community.cover_position, community.cover_position_mobile)
-            )}
-          />
+        // The wrapper exists for the cover control alone. The hero clips its
+        // own overflow (the photo is bigger than the band it fills), and a
+        // popover anchored inside it is clipped too — on a phone that cut the
+        // crop controls off at the foot of the header, leaving a panel with no
+        // visible bottom. Anchoring the control to a wrapper outside the clip
+        // lets its popover hang over the page below.
+        <div className="relative">
+          <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
+            {/* The crop keeps whichever part of the photo the community chose —
+                the band covers the foot of the image, so a subject sitting low in
+                the frame disappears behind the text unless it's pushed up. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={community.cover_image_url}
+              alt=""
+              className={cn(
+                "absolute inset-0 -z-20 h-full w-full object-cover",
+                coverPositionClass(community.cover_position, community.cover_position_mobile)
+              )}
+            />
+
+            {/* The backing is a flat tint plus a blur, not a see-through
+                gradient. A gradient lets the photo through, so the band reads
+                dark where something dark sits behind it and washes out over open
+                sky — it changes tone across its own width and stops looking like
+                a deliberate element. A uniform panel with one crisp top edge
+                reads the same left to right whatever the photo is doing.
+
+                The blur is desaturated as well: blurring alone preserves hue, so
+                the panel still picked up the green of shallow water at one end
+                and stayed neutral at the other. Draining the colour on the way
+                through gives one tone across the width while keeping the sense
+                that the photograph continues behind the text, which a fully
+                opaque panel loses. */}
+            <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
+              <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+                  <div className="min-w-0 flex-1">
+                    {/* The counts ride on the title's line rather than taking one
+                        of their own. A community name rarely fills the width, so
+                        they sit in space that was already empty — and every line
+                        the band doesn't need is a line of the photograph it
+                        doesn't cover. */}
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+                      <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        {community.name}
+                      </h1>
+                      {statItems.length > 0 && (
+                        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                          {statItems.map((stat) => (
+                            <div key={stat.label} className="flex items-baseline gap-1.5">
+                              <span className="text-base font-semibold text-white">
+                                {stat.value.toLocaleString()}
+                              </span>
+                              <span className="text-xs text-white/70">{stat.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {community.description && (
+                      <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
+                        {community.description}
+                      </p>
+                    )}
+                  </div>
+                  {user && !membership && (
+                    <div className="shrink-0">
+                      <JoinCommunityButton communityId={community.id} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
 
           {isStaff && (
             <CoverQuickEdit
               communityId={community.id}
+              coverUrl={community.cover_image_url}
               coverPosition={community.cover_position}
               mobileCoverPosition={community.cover_position_mobile}
             />
           )}
-
-          {/* The backing is a flat tint plus a blur, not a see-through
-              gradient. A gradient lets the photo through, so the band reads
-              dark where something dark sits behind it and washes out over open
-              sky — it changes tone across its own width and stops looking like
-              a deliberate element. A uniform panel with one crisp top edge
-              reads the same left to right whatever the photo is doing.
-
-              The blur is desaturated as well: blurring alone preserves hue, so
-              the panel still picked up the green of shallow water at one end
-              and stayed neutral at the other. Draining the colour on the way
-              through gives one tone across the width while keeping the sense
-              that the photograph continues behind the text, which a fully
-              opaque panel loses. */}
-          <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
-            <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-                <div className="min-w-0 flex-1">
-                  {/* The counts ride on the title's line rather than taking one
-                      of their own. A community name rarely fills the width, so
-                      they sit in space that was already empty — and every line
-                      the band doesn't need is a line of the photograph it
-                      doesn't cover. */}
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                      {community.name}
-                    </h1>
-                    {statItems.length > 0 && (
-                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-                        {statItems.map((stat) => (
-                          <div key={stat.label} className="flex items-baseline gap-1.5">
-                            <span className="text-base font-semibold text-white">
-                              {stat.value.toLocaleString()}
-                            </span>
-                            <span className="text-xs text-white/70">{stat.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {community.description && (
-                    <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
-                      {community.description}
-                    </p>
-                  )}
-                </div>
-                {user && !membership && (
-                  <div className="shrink-0">
-                    <JoinCommunityButton communityId={community.id} />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+        </div>
       ) : (
         <>
           <section className="border-b border-border">
@@ -551,6 +560,7 @@ export default async function CommunityFeedPage({
                   <div className="shrink-0">
                     <CoverQuickEdit
                       communityId={community.id}
+                      coverUrl={community.cover_image_url}
                       coverPosition={community.cover_position}
                       mobileCoverPosition={community.cover_position_mobile}
                       hasCover={false}
