@@ -230,6 +230,11 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Lets signed-out visitors read the feed of a community that isn't public.
+  // Privacy answers "is this community listed"; this answers "may a stranger
+  // read it" — they used to be the same answer. Ignored for invite_only, in the
+  // database as well as the form (see is_community_guest_readable).
+  feed_public: boolean;
   // Owner opt-in: may non-owner admins change the role of / remove other staff
   // (admins & moderators)? Default false — admins manage regular members only,
   // the owner manages everyone. Enforced in RLS (see the migration) and in the

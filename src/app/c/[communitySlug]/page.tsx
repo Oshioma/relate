@@ -74,12 +74,15 @@ export default async function CommunityFeedPage({
   // feed. Public communities never gate. invite_only never reaches this page
   // for a non-member (the community doesn't resolve for them under RLS).
   const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  // A private community may still choose to show its feed (Admin → Access).
+  // Invite-only never does — it doesn't resolve for a stranger at all.
+  const guestsMayRead = community.is_public || (community.feed_public && community.privacy !== "invite_only");
   // Staff get the in-place cover controls on the header (same test the layout
   // uses for the Admin link).
   const isStaff =
     community.owner_id === user?.id ||
     (membership?.status === "active" && (membership.role === "owner" || membership.role === "admin"));
-  if (!community.is_public && !isMember) {
+  if (!guestsMayRead && !isMember) {
     return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
   }
 
@@ -599,17 +602,35 @@ export default async function CommunityFeedPage({
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="min-w-0 lg:col-span-2">
             {activity.length === 0 ? (
+              // An empty feed means two different things. For a member the
+              // community really is quiet. For a signed-out visitor it usually
+              // means every space is members-only — the feed is open, there is
+              // simply nothing in it a stranger may read — and "be the first to
+              // share something" is the wrong thing to tell someone who can't.
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
-                title="No activity yet"
-                description="Be the first to share something — start a post, add a business, or list an event."
+                title={user ? "No activity yet" : "Nothing public here yet"}
+                description={
+                  user
+                    ? "Be the first to share something — start a post, add a business, or list an event."
+                    : `Everything in ${community.name} is members-only for now. Log in or join to see what's happening.`
+                }
                 action={
-                  <Link
-                    href={`${base}/spaces`}
-                    className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
-                  >
-                    Explore spaces
-                  </Link>
+                  user ? (
+                    <Link
+                      href={`${base}/spaces`}
+                      className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+                    >
+                      Explore spaces
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/login?next=${encodeURIComponent(base)}`}
+                      className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+                    >
+                      Log in
+                    </Link>
+                  )
                 }
               />
             ) : (
