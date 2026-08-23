@@ -53,7 +53,9 @@ export type FeedItemType =
   | "club"
   | "volunteer"
   | "meetup"
-  | "review";
+  | "review"
+  | "course"
+  | "guide";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -185,6 +187,11 @@ export type Community = {
   // header's band: 'top' | 'center' | 'bottom' (see src/lib/cover-position.ts).
   // Null = 'center'.
   cover_position: string | null;
+  // The same choice for a phone, where the header is roughly square and the
+  // photo is usually cut at the sides rather than top and bottom — so this is a
+  // focal point ('top-left' … 'bottom-right'), not a vertical position. Null =
+  // use cover_position at every width, which is how it behaved before.
+  cover_position_mobile: string | null;
   // Show the member / event / business / post counts in the community header.
   // Defaults false — a small community is usually better off not advertising
   // its size.
@@ -225,6 +232,11 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Lets signed-out visitors read the feed of a community that isn't public.
+  // Privacy answers "is this community listed"; this answers "may a stranger
+  // read it" — they used to be the same answer. Ignored for invite_only, in the
+  // database as well as the form (see is_community_guest_readable).
+  feed_public: boolean;
   // Owner opt-in: may non-owner admins change the role of / remove other staff
   // (admins & moderators)? Default false — admins manage regular members only,
   // the owner manages everyone. Enforced in RLS (see the migration) and in the
@@ -251,6 +263,13 @@ export type Community = {
   // requirement existed.
   owner_agreement_accepted_at: string | null;
   owner_agreement_version: string | null;
+  // Non-null = a super admin picked this community for the marketing
+  // homepage's showcase strip, and the timestamp orders it (most recent pick
+  // first). Written only by the platform admin actions through the
+  // service-role client — a DB trigger rejects anon/authenticated writes, so a
+  // community's own owner can't promote themselves onto the homepage. See
+  // 20260822115253_community_featured_on_homepage.sql.
+  featured_at: string | null;
   created_at: string;
   updated_at: string;
 };

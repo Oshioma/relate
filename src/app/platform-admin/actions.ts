@@ -226,3 +226,47 @@ export async function deleteSpamAccounts(
   revalidatePath("/platform-admin/communities");
   return { deleted, skipped };
 }
+
+// --- Homepage showcase -------------------------------------------------------
+// Pick (or un-pick) a community for the showcase strip on relate.click. The
+// timestamp doubles as the ordering, so featuring a community again moves it to
+// the front of the strip.
+//
+// Written through the service-role client: the featured_at guard trigger
+// refuses anon/authenticated writes precisely so an owner can't feature their
+// own community, and a super admin's own session is still `authenticated`.
+export async function setCommunityFeatured(
+  communityId: string,
+  featured: boolean
+): Promise<{ error: string } | { ok: true }> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can feature a community." };
+
+  const admin = createAdminClient();
+  const { data: community, error: readError } = await admin
+    .from("communities")
+    .select("id, is_public")
+    .eq("id", communityId)
+    .maybeSingle();
+  if (readError) return { error: readError.message };
+  if (!community) return { error: "Community not found." };
+  // A private community would be featured into a strip that signed-out visitors
+  // read under RLS, so the card would simply never render. Refuse it here
+  // rather than storing a pick that does nothing.
+  if (featured && !community.is_public) {
+    return { error: "Only a public community can appear on the homepage." };
+  }
+
+  const { error } = await admin
+    .from("communities")
+    .update({ featured_at: featured ? new Date().toISOString() : null })
+    .eq("id", communityId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/platform-admin/communities");
+  revalidatePath("/");
+  return { ok: true };
+}

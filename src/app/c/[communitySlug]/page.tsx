@@ -14,6 +14,8 @@ import {
   UserPlus,
   Footprints,
   MessageSquareQuote,
+  GraduationCap,
+  BookOpen,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -36,6 +38,9 @@ import { getCommunityRecentAccommodationListings } from "@/lib/data/accommodatio
 import { accommodationTypeLabel, formatAccommodationPrice } from "@/lib/accommodation-types";
 import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { getCommunityRecentReviews, ratingStars } from "@/lib/data/reviews";
+import { getCommunityRecentCourses } from "@/lib/data/courses";
+import { getCommunityRecentGuides } from "@/lib/data/guides";
+import { toPlainText } from "@/components/ui/rich-text";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
 import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
@@ -50,8 +55,8 @@ import { FeedItemCard, type FeedItem } from "./feed-item-card";
 import { ShareJourneyCard } from "./share-journey-card";
 import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
 import { CoverQuickEdit } from "./cover-quick-edit";
-import { cn, formatDateTime, isImageUrl } from "@/lib/utils";
-import { coverPositionClass } from "@/lib/cover-position";
+import { CoverCropProvider, CommunityCoverImage } from "./cover-crop";
+import { formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
   params,
@@ -74,12 +79,15 @@ export default async function CommunityFeedPage({
   // feed. Public communities never gate. invite_only never reaches this page
   // for a non-member (the community doesn't resolve for them under RLS).
   const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  // A private community may still choose to show its feed (Admin → Access).
+  // Invite-only never does — it doesn't resolve for a stranger at all.
+  const guestsMayRead = community.is_public || (community.feed_public && community.privacy !== "invite_only");
   // Staff get the in-place cover controls on the header (same test the layout
   // uses for the Admin link).
   const isStaff =
     community.owner_id === user?.id ||
     (membership?.status === "active" && (membership.role === "owner" || membership.role === "admin"));
-  if (!community.is_public && !isMember) {
+  if (!guestsMayRead && !isMember) {
     return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
   }
 
@@ -95,6 +103,8 @@ export default async function CommunityFeedPage({
     recentStays,
     recentRecommendations,
     recentReviews,
+    recentCourses,
+    recentGuides,
     recentClubs,
     upcomingMeetups,
     recentVolunteerProjects,
@@ -117,6 +127,8 @@ export default async function CommunityFeedPage({
     getCommunityRecentAccommodationListings(supabase, community.id, 12),
     getCommunityRecentRecommendations(supabase, community.id, 12),
     getCommunityRecentReviews(supabase, community.id, 12),
+    getCommunityRecentCourses(supabase, community.id, 12),
+    getCommunityRecentGuides(supabase, community.id, 12),
     getCommunityRecentClubs(supabase, community.id, 12),
     getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
@@ -194,7 +206,9 @@ export default async function CommunityFeedPage({
       isPinned: p.is_pinned,
       icon: MessageSquare,
       title: p.title,
-      description: p.body,
+      // Same treatment as the space page's post previews: a card shows an
+      // excerpt, not the post's markup.
+      description: p.body ? toPlainText(p.body) : null,
       // Lead with the post's own photo when it has one — media_url can also be
       // a video or document, which this thumbnail can't show, so gate on image.
       imageUrl: p.media_url && isImageUrl(p.media_url) ? p.media_url : null,
@@ -328,6 +342,43 @@ export default async function CommunityFeedPage({
           ? `${base}/spaces/${r.subject.spaceSlug}/businesses/${r.subject.slugOrId}`
           : `${base}/spaces/${r.subject.spaceSlug}/stays/${r.subject.slugOrId}`,
     })),
+    // What a community knows is as much its activity as what it sells: a
+    // published course and a written guide are the front page's business too.
+    // Drafts stay out of the query — a course nobody can open isn't news yet.
+    ...recentCourses.map((c): FeedItem => ({
+      key: `course-${c.id}`,
+      itemType: "course" as const,
+      itemId: c.id,
+      createdAt: c.created_at,
+      icon: GraduationCap,
+      title: c.title,
+      description: c.summary,
+      imageUrl: c.cover_image_url,
+      typeBadge: "Course published",
+      detail: c.price_cents > 0 ? `${(c.currency || "usd").toUpperCase()} ${(c.price_cents / 100).toFixed(2)}` : null,
+      authorName: c.creator?.full_name || c.creator?.username || null,
+      authorAvatar: c.creator?.avatar_url ?? null,
+      spaceName: c.space?.name ?? null,
+      href: c.space ? `${base}/spaces/${c.space.slug}/courses/${c.id}` : base,
+    })),
+    ...recentGuides.map((g): FeedItem => ({
+      key: `guide-${g.id}`,
+      itemType: "guide" as const,
+      itemId: g.id,
+      createdAt: g.created_at,
+      icon: BookOpen,
+      title: g.title,
+      // The body is rich text; the card shows a plain excerpt and the guide
+      // itself does the formatting.
+      description: toPlainText(g.body),
+      imageUrl: null,
+      typeBadge: "Guide added",
+      detail: null,
+      authorName: g.creator?.full_name || g.creator?.username || null,
+      authorAvatar: g.creator?.avatar_url ?? null,
+      spaceName: g.space?.name ?? null,
+      href: g.space ? `${base}/spaces/${g.space.slug}/guides/${g.id}` : base,
+    })),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,
       itemType: "club" as const,
@@ -453,78 +504,83 @@ export default async function CommunityFeedPage({
           With no cover, the original accent-gradient header and its own stats
           strip still apply. */}
       {community.cover_image_url ? (
-        <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
-          {/* The crop keeps whichever part of the photo the community chose —
-              the band covers the foot of the image, so a subject sitting low in
-              the frame disappears behind the text unless it's pushed up. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={community.cover_image_url}
-            alt=""
-            className={cn(
-              "absolute inset-0 -z-20 h-full w-full object-cover",
-              coverPositionClass(community.cover_position)
-            )}
-          />
+        // The wrapper exists for the cover control alone. The hero clips its
+        // own overflow (the photo is bigger than the band it fills), and a
+        // popover anchored inside it is clipped too — on a phone that cut the
+        // crop controls off at the foot of the header, leaving a panel with no
+        // visible bottom. Anchoring the control to a wrapper outside the clip
+        // lets its popover hang over the page below.
+        <CoverCropProvider
+          position={community.cover_position}
+          mobilePosition={community.cover_position_mobile}
+        >
+          <div className="relative">
+            <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
+              {/* The crop keeps whichever part of the photo the community chose —
+                  the band covers the foot of the image, so a subject sitting low in
+                  the frame disappears behind the text unless it's pushed up. The
+                  provider above shares that choice with the staff picker, so the
+                  header re-crops as it's picked rather than a refresh later. */}
+              <CommunityCoverImage src={community.cover_image_url} />
 
-          {isStaff && (
-            <CoverQuickEdit communityId={community.id} coverPosition={community.cover_position} />
-          )}
+              {/* The backing is a flat tint plus a blur, not a see-through
+                  gradient. A gradient lets the photo through, so the band reads
+                  dark where something dark sits behind it and washes out over open
+                  sky — it changes tone across its own width and stops looking like
+                  a deliberate element. A uniform panel with one crisp top edge
+                  reads the same left to right whatever the photo is doing.
 
-          {/* The backing is a flat tint plus a blur, not a see-through
-              gradient. A gradient lets the photo through, so the band reads
-              dark where something dark sits behind it and washes out over open
-              sky — it changes tone across its own width and stops looking like
-              a deliberate element. A uniform panel with one crisp top edge
-              reads the same left to right whatever the photo is doing.
-
-              The blur is desaturated as well: blurring alone preserves hue, so
-              the panel still picked up the green of shallow water at one end
-              and stayed neutral at the other. Draining the colour on the way
-              through gives one tone across the width while keeping the sense
-              that the photograph continues behind the text, which a fully
-              opaque panel loses. */}
-          <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
-            <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-                <div className="min-w-0 flex-1">
-                  {/* The counts ride on the title's line rather than taking one
-                      of their own. A community name rarely fills the width, so
-                      they sit in space that was already empty — and every line
-                      the band doesn't need is a line of the photograph it
-                      doesn't cover. */}
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                      {community.name}
-                    </h1>
-                    {statItems.length > 0 && (
-                      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-                        {statItems.map((stat) => (
-                          <div key={stat.label} className="flex items-baseline gap-1.5">
-                            <span className="text-base font-semibold text-white">
-                              {stat.value.toLocaleString()}
-                            </span>
-                            <span className="text-xs text-white/70">{stat.label}</span>
+                  The blur is desaturated as well: blurring alone preserves hue, so
+                  the panel still picked up the green of shallow water at one end
+                  and stayed neutral at the other. Draining the colour on the way
+                  through gives one tone across the width while keeping the sense
+                  that the photograph continues behind the text, which a fully
+                  opaque panel loses. */}
+              <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
+                <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+                    <div className="min-w-0 flex-1">
+                      {/* The counts ride on the title's line rather than taking one
+                          of their own. A community name rarely fills the width, so
+                          they sit in space that was already empty — and every line
+                          the band doesn't need is a line of the photograph it
+                          doesn't cover. */}
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
+                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                          {community.name}
+                        </h1>
+                        {statItems.length > 0 && (
+                          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+                            {statItems.map((stat) => (
+                              <div key={stat.label} className="flex items-baseline gap-1.5">
+                                <span className="text-base font-semibold text-white">
+                                  {stat.value.toLocaleString()}
+                                </span>
+                                <span className="text-xs text-white/70">{stat.label}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
+                      </div>
+                      {community.description && (
+                        <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
+                          {community.description}
+                        </p>
+                      )}
+                    </div>
+                    {user && !membership && (
+                      <div className="shrink-0">
+                        <JoinCommunityButton communityId={community.id} />
                       </div>
                     )}
                   </div>
-                  {community.description && (
-                    <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
-                      {community.description}
-                    </p>
-                  )}
                 </div>
-                {user && !membership && (
-                  <div className="shrink-0">
-                    <JoinCommunityButton communityId={community.id} />
-                  </div>
-                )}
               </div>
-            </div>
+            </section>
+
+            {isStaff && <CoverQuickEdit communityId={community.id} coverUrl={community.cover_image_url} />}
           </div>
-        </section>
+        </CoverCropProvider>
       ) : (
         <>
           <section className="border-b border-border">
@@ -545,11 +601,18 @@ export default async function CommunityFeedPage({
                 )}
                 {isStaff && (
                   <div className="shrink-0">
-                    <CoverQuickEdit
-                      communityId={community.id}
-                      coverPosition={community.cover_position}
-                      hasCover={false}
-                    />
+                    {/* No cover, so nothing to crop — but the control shares
+                        the picker's state, so it still needs the provider. */}
+                    <CoverCropProvider
+                      position={community.cover_position}
+                      mobilePosition={community.cover_position_mobile}
+                    >
+                      <CoverQuickEdit
+                        communityId={community.id}
+                        coverUrl={community.cover_image_url}
+                        hasCover={false}
+                      />
+                    </CoverCropProvider>
                   </div>
                 )}
               </div>
@@ -587,17 +650,37 @@ export default async function CommunityFeedPage({
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="min-w-0 lg:col-span-2">
             {activity.length === 0 ? (
+              // An empty feed means two different things. For a member the
+              // community really is quiet. For a signed-out visitor it means
+              // nothing here is public — which is a rule to state, not a
+              // diagnosis to guess at: it could be that every space is
+              // members-only, or that the public ones hold the kinds of thing
+              // the feed doesn't carry. Either way "be the first to share
+              // something" is the wrong thing to say to someone who can't.
               <EmptyState
                 icon={<MessageSquare className="h-6 w-6" />}
-                title="No activity yet"
-                description="Be the first to share something — start a post, add a business, or list an event."
+                title={user ? "No activity yet" : "Nothing public here yet"}
+                description={
+                  user
+                    ? "Be the first to share something — start a post, add a business, or list an event."
+                    : `Signed-out visitors only see activity from spaces set to Public. Log in or join to see what's happening in ${community.name}.`
+                }
                 action={
-                  <Link
-                    href={`${base}/spaces`}
-                    className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
-                  >
-                    Explore spaces
-                  </Link>
+                  user ? (
+                    <Link
+                      href={`${base}/spaces`}
+                      className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+                    >
+                      Explore spaces
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/login?next=${encodeURIComponent(base)}`}
+                      className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+                    >
+                      Log in
+                    </Link>
+                  )
                 }
               />
             ) : (

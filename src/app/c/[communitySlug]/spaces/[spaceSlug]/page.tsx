@@ -370,15 +370,24 @@ export default async function SpaceDetailPage({
   const businessMembers = isDirectorySpace ? getBusinesses(discoverableMembers) : [];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    // A directory opens straight onto its own controls, so it also gives back
+    // the page's top padding — every line above the first listing is a line of
+    // the directory nobody can see.
+    <div className={`mx-auto max-w-3xl px-4 pb-8 sm:px-6 sm:pb-10 ${isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"}`}>
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
-      ) : (
+      ) : isBusinessDirectorySpace ? null : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
-              description *is* the whole page. Every other space keeps the
-              title with a muted intro beneath it. */}
+              description *is* the whole page. Every other space keeps the title
+              with a muted intro beneath it.
+
+              A directory renders no masthead at all: the nav link that brought
+              you here says "Directory", the category tiles below say it again
+              in bigger letters, and a standing line about what a directory is
+              ("Local businesses with profiles, hours and reviews") pushed the
+              listings down the page every single visit. */}
           {!isCustomPageSpace && (
             <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
               <TypeIcon className="h-5 w-5 text-muted-foreground" />
