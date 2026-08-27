@@ -94,8 +94,9 @@ function staySubject(row: StayFacetRow): ReviewSubject | null {
  * — filtered to `place_id is null` so a review that was backfilled into
  * place_reviews isn't also counted here under its old id.
  *
- * RLS does the access control: place_reviews are members-only, so a signed-out
- * visitor to a public community simply gets none of these cards.
+ * RLS does the access control: a review is readable wherever its listing is,
+ * including by signed-out visitors when the listing's space is public — see
+ * the review_visibility_for_guests migration.
  */
 export async function getCommunityRecentReviews(
   supabase: Client,
