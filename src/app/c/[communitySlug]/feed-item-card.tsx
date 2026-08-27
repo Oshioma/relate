@@ -4,6 +4,7 @@ import { Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { photoObjectPosition } from "@/lib/photo-position";
 import { FeedItemActions, type FeedItemActionsProps } from "./feed-item-actions";
 import type { FeedRefType } from "@/lib/data/feed-interactions";
 
@@ -63,7 +64,7 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
                 src={item.imageUrl}
                 alt={item.title}
                 className="h-full w-full object-cover"
-                style={{ objectPosition: item.imagePosition ?? "50% 50%" }}
+                style={{ objectPosition: photoObjectPosition(item.imagePosition) }}
               />
             </div>
           )}

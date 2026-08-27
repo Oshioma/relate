@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { BadgeCheck, Clock, ExternalLink, Globe, MapPin, Navigation, Phone, Star, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { businessCategoryLabel } from "@/lib/business-categories";
+import { photoObjectPosition } from "@/lib/photo-position";
 import { getBusinessGoogleInfo, type BusinessGoogleInfo } from "./business-google-actions";
 import type { Business } from "@/types/database";
 
@@ -107,7 +108,7 @@ export function BusinessMapPopup({ business }: { business: Business }) {
             src={business.image_url}
             alt={business.name}
             className="h-full w-full object-cover"
-            style={{ objectPosition: business.image_position ?? "50% 50%" }}
+            style={{ objectPosition: photoObjectPosition(business.image_position) }}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">

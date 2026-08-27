@@ -3,6 +3,8 @@
 import { useRef, useState } from "react";
 import { ImageIcon, Loader2, Upload, Globe, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { detectFacePosition } from "@/lib/face-position";
+import { DEFAULT_PHOTO_POSITION, photoObjectPosition } from "@/lib/photo-position";
 import { fetchWebsiteImages } from "./business-directory-actions";
 
 export type GalleryImage = { url: string; position: string | null };
@@ -12,7 +14,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 function parsePosition(position: string | null): { x: number; y: number } {
-  const match = position?.match(/^(\d+(?:\.\d+)?)% (\d+(?:\.\d+)?)%$/);
+  const match = (position ?? DEFAULT_PHOTO_POSITION).match(/^(\d+(?:\.\d+)?)% (\d+(?:\.\d+)?)%$/);
   return match ? { x: Number(match[1]), y: Number(match[2]) } : { x: 50, y: 50 };
 }
 
@@ -26,6 +28,11 @@ function clamp(n: number, min: number, max: number): number {
 // the business's website, reorder them, drag the big preview to reframe the
 // cover's crop, and carry the whole set into the form as a hidden JSON `images`
 // field. Generalises the old single-image BusinessImageInput.
+//
+// Uploads are framed automatically: face detection (face-position.ts) picks a
+// focal point so people's heads survive the feed's short strip crop. Website
+// images can't be — their pixels are cross-origin — so they keep the default
+// crop until dragged.
 export function BusinessImagesInput({
   images,
   onChange,
@@ -49,9 +56,9 @@ export function BusinessImagesInput({
   const cover = images[0] ?? null;
   const atLimit = images.length >= MAX_IMAGES;
 
-  function addImages(urls: string[]) {
+  function addImages(added: GalleryImage[]) {
     const existing = new Set(images.map((i) => i.url));
-    const fresh = urls.filter((url) => !existing.has(url)).map((url) => ({ url, position: null }));
+    const fresh = added.filter((image) => !existing.has(image.url));
     if (fresh.length === 0) return;
     onChange([...images, ...fresh].slice(0, MAX_IMAGES));
   }
@@ -106,7 +113,7 @@ export function BusinessImagesInput({
       setError("No more new images found on that website.");
       return;
     }
-    addImages([next]);
+    addImages([{ url: next, position: null }]);
   }
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -124,7 +131,7 @@ export function BusinessImagesInput({
     setBusy("upload");
     try {
       const supabase = createClient();
-      const uploaded: string[] = [];
+      const uploaded: GalleryImage[] = [];
       for (const file of files.slice(0, room)) {
         if (!ACCEPTED_TYPES.includes(file.type)) {
           setError("Please choose PNG, JPEG, WebP, or GIF images.");
@@ -136,12 +143,15 @@ export function BusinessImagesInput({
         }
         const ext = file.name.split(".").pop()?.toLowerCase() || "png";
         const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("business-images").upload(path, file, { contentType: file.type });
+        const [{ error: uploadError }, position] = await Promise.all([
+          supabase.storage.from("business-images").upload(path, file, { contentType: file.type }),
+          detectFacePosition(file),
+        ]);
         if (uploadError) {
           setError(uploadError.message);
           continue;
         }
-        uploaded.push(supabase.storage.from("business-images").getPublicUrl(path).data.publicUrl);
+        uploaded.push({ url: supabase.storage.from("business-images").getPublicUrl(path).data.publicUrl, position });
       }
       if (uploaded.length > 0) addImages(uploaded);
     } finally {
@@ -188,7 +198,7 @@ export function BusinessImagesInput({
             alt="Cover"
             draggable={false}
             className="h-full w-full select-none object-cover"
-            style={{ objectPosition: cover.position ?? "50% 50%" }}
+            style={{ objectPosition: photoObjectPosition(cover.position) }}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-1 text-muted-foreground">
@@ -204,12 +214,32 @@ export function BusinessImagesInput({
         {cover && <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">Cover</span>}
       </div>
 
+      {cover && (
+        <div className="mt-2">
+          {/* The feed shows the cover as a much shorter strip than the box
+              above (feed-item-card's h-40 banner), so a crop that looks fine
+              there can still behead the subject in the feed. Same height, same
+              position — dragging above updates this live. */}
+          <div className="h-40 w-full overflow-hidden rounded-md border border-border bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={cover.url}
+              alt="Cover as it crops in the feed"
+              draggable={false}
+              className="h-full w-full select-none object-cover"
+              style={{ objectPosition: photoObjectPosition(cover.position) }}
+            />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">How the cover crops in the feed</p>
+        </div>
+      )}
+
       {images.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((image, index) => (
             <div key={image.url} className="group relative h-16 w-16 overflow-hidden rounded-md border border-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.url} alt="" className="h-full w-full object-cover" style={{ objectPosition: image.position ?? "50% 50%" }} draggable={false} />
+              <img src={image.url} alt="" className="h-full w-full object-cover" style={{ objectPosition: photoObjectPosition(image.position) }} draggable={false} />
               <button
                 type="button"
                 title="Remove photo"
@@ -251,7 +281,7 @@ export function BusinessImagesInput({
           Upload photos
         </button>
         {cover ? (
-          <span className="text-xs text-muted-foreground">Drag the cover to adjust its crop. {images.length}/{MAX_IMAGES} photos.</span>
+          <span className="text-xs text-muted-foreground">Uploads frame faces automatically — drag the cover to adjust. {images.length}/{MAX_IMAGES} photos.</span>
         ) : (
           <span className="text-xs text-muted-foreground">The first photo becomes the cover.</span>
         )}
