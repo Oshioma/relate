@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShareMenu } from "@/components/ui/share-menu";
 import { businessCategoryLabel } from "@/lib/business-categories";
+import { photoObjectPosition } from "@/lib/photo-position";
 import { BUSINESS_CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "./business-category-icon";
 import { StarRatingDisplay } from "./star-rating";
 import { toggleSaveBusiness } from "./business-directory-actions";
@@ -73,7 +74,7 @@ export function BusinessCard({
               src={business.image_url}
               alt={business.name}
               className="h-full w-full object-cover"
-              style={{ objectPosition: business.image_position ?? "50% 50%" }}
+              style={{ objectPosition: photoObjectPosition(business.image_position) }}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">

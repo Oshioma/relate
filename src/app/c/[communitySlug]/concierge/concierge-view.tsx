@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CONCIERGE_RESULT_META, CONCIERGE_EXAMPLE_QUESTIONS } from "@/lib/concierge-result-types";
+import { photoObjectPosition } from "@/lib/photo-position";
 import { searchConcierge } from "./actions";
 import type { ConciergeResults, ConciergeResult, ConciergeResultType } from "@/lib/data/concierge";
 
@@ -148,7 +149,7 @@ function BusinessResultCard({ item }: { item: ConciergeResult }) {
               src={item.imageUrl}
               alt={item.title}
               className="h-full w-full object-cover"
-              style={{ objectPosition: item.imagePosition ?? "50% 50%" }}
+              style={{ objectPosition: photoObjectPosition(item.imagePosition) }}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
