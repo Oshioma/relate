@@ -124,7 +124,8 @@ export default async function AdminPage({
 
   const platformPlans = isOwner ? await getActivePlatformPlans(supabase) : [];
   const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
-  const planIsLive = community.plan_status === "active" || community.plan_status === "trialing";
+  const planIsLive =
+    community.plan_status === "active" || community.plan_status === "trialing" || community.plan_status === "comped";
   const canCharge = Boolean(planIsLive && currentPlan?.features.includes("paid_memberships"));
 
   // Feature marketplace (owner-only): available packs + which this community has

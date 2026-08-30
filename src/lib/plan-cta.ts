@@ -33,11 +33,13 @@ export type PlanCtaState =
   // Start or change a subscription.
   | { kind: "checkout"; verb: "Choose" | "Upgrade to" | "Downgrade to" };
 
-// Stripe states in which a subscription is genuinely in force. Anything else
-// (canceled, past_due, unpaid, none) falls back to free — the same rule
-// community_can_charge applies in the database.
+// States in which a plan is genuinely in force: a live Stripe subscription
+// (active/trialing) or a complimentary grant from the super admin ('comped',
+// no Stripe behind it). Anything else (canceled, past_due, unpaid, none)
+// falls back to free — the same rule community_effective_plan_id applies in
+// the database.
 export function isLivePlanStatus(status: string | null | undefined): boolean {
-  return status === "active" || status === "trialing";
+  return status === "active" || status === "trialing" || status === "comped";
 }
 
 export function planCtaState(args: {

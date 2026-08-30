@@ -122,9 +122,20 @@ export async function POST(request: NextRequest) {
           // (past_due retries in particular), so only the transition counts.
           const { data: before } = await admin
             .from("communities")
-            .select("plan_status")
+            .select("plan_status, plan_stripe_subscription_id")
             .eq("id", meta.community_id)
             .maybeSingle();
+
+          // A complimentary plan ('comped', granted by the super admin) has no
+          // subscription of its own, so any subscription event reaching a
+          // comped row is a stale echo of an old, since-canceled subscription —
+          // applying it would silently revoke the comp. A comped owner who
+          // deliberately buys a real plan goes through Checkout, whose
+          // checkout.session.completed above overwrites the comp with genuine
+          // Stripe state; from then on events match the stored id again.
+          if (before?.plan_status === "comped" && before.plan_stripe_subscription_id !== sub.id) {
+            break;
+          }
 
           await admin
             .from("communities")

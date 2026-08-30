@@ -102,7 +102,9 @@ export type PlanLapseNotice = {
 type PlanFields = Pick<Community, "id" | "plan_id" | "plan_status" | "plan_current_period_end">;
 
 function planIsLive(status: string): boolean {
-  return status === "active" || status === "trialing";
+  // 'comped' is a complimentary grant from the super admin — in force with
+  // nothing to pay, so there is never anything to say about it lapsing.
+  return status === "active" || status === "trialing" || status === "comped";
 }
 
 // What to tell an owner about a plan that stopped paying. Null when there is
