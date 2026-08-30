@@ -270,3 +270,79 @@ export async function setCommunityFeatured(
   revalidatePath("/");
   return { ok: true };
 }
+
+// --- Complimentary plans -------------------------------------------------------
+// Put a community on a paid plan with no Stripe subscription behind it — the
+// super admin's own communities, partners, promos. Writes plan_status 'comped'
+// through the service-role client (the plan columns are trigger-protected
+// against ordinary API writes); community_effective_plan_id treats 'comped'
+// as in force, so the plan's features and limits apply exactly as if paid.
+export async function setComplimentaryPlan(_prevState: PlanFormState, formData: FormData): Promise<PlanFormState> {
+  const supabase = await createClient();
+  const user = await getCurrentUser(supabase);
+  if (!user) return { error: "You need to be signed in." };
+  const profile = await getProfile(supabase, user.id);
+  if (!profile?.is_super_admin) return { error: "Only a platform super admin can grant complimentary plans." };
+
+  const communityId = String(formData.get("community_id") ?? "");
+  // Empty = remove the comp (back to free).
+  const planId = String(formData.get("plan_id") ?? "");
+  if (!communityId) return { error: "Missing community." };
+
+  const admin = createAdminClient();
+  const { data: community, error: readError } = await admin
+    .from("communities")
+    .select("id, plan_status, plan_stripe_subscription_id")
+    .eq("id", communityId)
+    .maybeSingle();
+  if (readError) return { error: readError.message };
+  if (!community) return { error: "Community not found." };
+
+  // A live Stripe subscription is the real source of truth for this row —
+  // comping over it would leave Stripe charging for a plan the app no longer
+  // shows, and the next webhook would overwrite the comp anyway.
+  if (
+    community.plan_stripe_subscription_id &&
+    (community.plan_status === "active" || community.plan_status === "trialing")
+  ) {
+    return {
+      error:
+        "This community has a live paid subscription. Cancel it first (the owner's billing portal, or Stripe) before granting a complimentary plan.",
+    };
+  }
+
+  if (!planId) {
+    if (community.plan_status !== "comped") {
+      return { error: "This community has no complimentary plan to remove." };
+    }
+    const { error } = await admin
+      .from("communities")
+      .update({ plan_id: null, plan_status: "none", plan_current_period_end: null })
+      .eq("id", communityId);
+    if (error) return { error: error.message };
+  } else {
+    const { data: plan } = await admin
+      .from("platform_plans")
+      .select("id, is_active, price_cents")
+      .eq("id", planId)
+      .maybeSingle();
+    if (!plan || !plan.is_active) return { error: "That plan isn't available." };
+    if (plan.price_cents === 0) return { error: "The free plan needs no comp — remove the complimentary plan instead." };
+
+    const { error } = await admin
+      .from("communities")
+      .update({
+        plan_id: plan.id,
+        plan_status: "comped",
+        // A comp never lapses into the grace window, and nothing in Stripe
+        // backs it — clear any leftovers from an old canceled subscription.
+        plan_current_period_end: null,
+        plan_stripe_subscription_id: null,
+      })
+      .eq("id", communityId);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/platform-admin/communities");
+  return { ok: true };
+}

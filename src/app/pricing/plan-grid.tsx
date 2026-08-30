@@ -219,6 +219,11 @@ function PlanStatusNote({ status, periodEnd }: { status: string; periodEnd: stri
   if (status === "trialing") {
     return <p className="mt-1 text-sm text-muted-foreground">On trial.</p>;
   }
+  if (status === "comped") {
+    return (
+      <p className="mt-1 text-sm text-muted-foreground">Complimentary plan — granted by the platform, nothing to pay.</p>
+    );
+  }
   return null;
 }
 

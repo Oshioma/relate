@@ -44,7 +44,9 @@ export function PlanSection({
   // checkout to visit, the webhook writes the new plan a moment later.
   const [switched, setSwitched] = useState(false);
 
-  const isLive = planStatus === "active" || planStatus === "trialing";
+  // 'comped' is a complimentary grant from the platform operator — the plan
+  // is in force with no Stripe subscription behind it.
+  const isLive = planStatus === "active" || planStatus === "trialing" || planStatus === "comped";
   const paidPlans = plans.filter((p) => p.price_cents > 0);
 
   async function handleSubscribe(planId: string) {
@@ -157,6 +159,12 @@ export function PlanSection({
           );
         })}
       </div>
+
+      {planStatus === "comped" && (
+        <p className="text-xs text-muted-foreground">
+          Your plan is complimentary — granted by the platform, nothing to pay.
+        </p>
+      )}
 
       {hasBillingAccount && (
         <Button size="sm" variant="ghost" onClick={handlePortal} disabled={busy !== null}>

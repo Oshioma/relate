@@ -2,37 +2,10 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { normalizeCustomDomain, platformSubdomainSlug } from "@/lib/custom-domain";
+import { verifiedCommunityHost } from "@/lib/verified-community-host";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { confirmOtp } from "./confirm-actions";
-
-// A `return_host` param means the email link was requested on a community's
-// custom domain: confirmation and password-reset emails always link to the
-// platform origin (so custom domains never touch Supabase's redirect
-// allowlist), and this resolves where to send the token onward. The host is
-// only trusted if it is a verified custom domain in our own database — the same
-// security-definer lookup the proxy uses — so the token can only ever be
-// forwarded to another face of this very app, never an arbitrary site. Returns
-// null for anything else, which falls back to confirming right here.
-async function verifiedReturnHost(rawHost: string | null): Promise<string | null> {
-  if (!rawHost) return null;
-
-  const [hostPart, portPart] = rawHost.split(":");
-  const hostname = normalizeCustomDomain(hostPart ?? "");
-  if (!hostname) return null;
-  const port = portPart && /^\d{1,5}$/.test(portPart) ? `:${portPart}` : "";
-
-  // <slug>.<platform-apex> subdomains are trusted without a database check:
-  // the wildcard resolves to this app no matter what the label is, so the
-  // worst case for a non-existent slug is a 404 on our own domain.
-  if (platformSubdomainSlug(hostname)) return `${hostname}${port}`;
-
-  const supabase = await createClient();
-  const { data: slug } = await supabase.rpc("community_slug_for_domain", { p_domain: hostname });
-  return slug ? `${hostname}${port}` : null;
-}
 
 // Human-facing copy for the confirm button, by the kind of email link that led
 // here. The point of the interstitial is that a *person* presses this, so the
@@ -116,7 +89,10 @@ export default async function ConfirmPage({
   // requested the email from. The forwarded URL carries no return_host, so it
   // lands on the interstitial below on the second pass. This hop is a redirect
   // that spends nothing, so a scanner following it still can't consume the link.
-  const returnHost = await verifiedReturnHost(params.return_host ?? null);
+  // A `return_host` is only honored when it is a verified custom domain (or a
+  // platform subdomain) in our own database — the token can only ever be
+  // forwarded to another face of this very app, never an arbitrary site.
+  const returnHost = await verifiedCommunityHost(params.return_host ?? null);
   if (returnHost) {
     const headerList = await headers();
     const proto = headerList.get("x-forwarded-proto") ?? "https";

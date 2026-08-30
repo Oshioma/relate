@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate, formatRelativeTime } from "@/lib/utils";
 import { SpamCleanup } from "./spam-cleanup";
 import { FeaturedCommunities, type FeaturedCandidate } from "./featured-communities";
+import { CompPlanControl } from "./comp-plan-control";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +23,21 @@ export default async function PlatformCommunitiesPage() {
   if (!profile?.is_super_admin) redirect("/dashboard");
 
   const admin = createAdminClient();
-  const [overview, communities, users, spamCandidates] = await Promise.all([
+  const [overview, communities, users, spamCandidates, { data: paidPlans }] = await Promise.all([
     getPlatformOverview(admin),
     getCommunitiesWithMembers(admin),
     getAllUsers(admin),
     getSpamCandidates(admin),
+    // For the per-community complimentary-plan control below.
+    admin
+      .from("platform_plans")
+      .select("id, name")
+      .eq("is_active", true)
+      .gt("price_cents", 0)
+      .order("sort_order"),
   ]);
+  const compPlans = paidPlans ?? [];
+  const planNameById = new Map(compPlans.map((p) => [p.id, p.name]));
 
   const unattachedCount = users.filter((u) => u.communityCount === 0).length;
 
@@ -120,6 +130,12 @@ export default async function PlatformCommunitiesPage() {
                 <p className="text-xs text-muted-foreground">/c/{community.slug}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {community.plan_id && ["active", "trialing", "comped"].includes(community.plan_status) && (
+                  <Badge tone="accent">
+                    {planNameById.get(community.plan_id) ?? "Paid"}
+                    {community.plan_status === "comped" ? " · comped" : ""}
+                  </Badge>
+                )}
                 <Badge tone={community.privacy === "public" ? "accent" : "neutral"}>{community.privacy}</Badge>
                 <Badge tone="neutral">
                   {memberCount} {memberCount === 1 ? "member" : "members"}
@@ -175,7 +191,17 @@ export default async function PlatformCommunitiesPage() {
               </ul>
             )}
 
-            <div className="mt-4 border-t border-border pt-3">
+            <div className="mt-4 space-y-3 border-t border-border pt-3">
+              <CompPlanControl
+                communityId={community.id}
+                planStatus={community.plan_status}
+                planId={community.plan_id}
+                plans={compPlans}
+                hasLiveSubscription={
+                  Boolean(community.plan_stripe_subscription_id) &&
+                  ["active", "trialing"].includes(community.plan_status)
+                }
+              />
               <Link href={`/c/${community.slug}`} className="text-xs text-accent underline">
                 Open community →
               </Link>

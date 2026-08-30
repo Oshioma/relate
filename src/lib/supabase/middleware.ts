@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { after, NextResponse, type NextRequest } from "next/server";
-import { sharedCookieDomain } from "@/lib/custom-domain";
+import { isPlatformHost, sharedCookieDomain } from "@/lib/custom-domain";
+import { BRIDGE_CHECKED_COOKIE, platformBridgeUrl } from "@/lib/auth-bridge";
 import {
   ACTIVITY_COOKIE,
   activityCommunitySlug,
@@ -44,6 +45,10 @@ function isPublicPath(pathname: string) {
   // signed-out) visitor lands — bouncing them to /login here hid the
   // "confirm your email" step entirely and read as a login loop.
   if (pathname.startsWith("/invite/")) return true;
+  // The cross-host auth bridge exists precisely for visitors with no session
+  // on the current host (see src/lib/auth-bridge.ts); gating it behind
+  // /login would loop.
+  if (pathname === "/auth/bridge" || pathname.startsWith("/auth/bridge/")) return true;
   return false;
 }
 
@@ -99,6 +104,19 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
     !PUBLIC_COMMUNITY_PATH.test(communityPath) &&
     !COMMUNITY_ICON_PATH.test(communityPath)
   ) {
+    // On a community's custom domain, detour a plain logged-out page visit
+    // through the platform's auth bridge first: if this person already has a
+    // platform session, one click signs them in here instead of a second
+    // password prompt (see src/lib/auth-bridge.ts). At most once per
+    // BRIDGE_CHECKED window — the finish route sets the cookie when the
+    // platform had nothing to offer — and only for GET navigations, so a
+    // logged-out form POST still gets the ordinary local /login answer.
+    const host = request.headers.get("host") ?? "";
+    if (request.method === "GET" && !isPlatformHost(host) && !request.cookies.has(BRIDGE_CHECKED_COOKIE)) {
+      const bridge = platformBridgeUrl(host, pathname + request.nextUrl.search);
+      if (bridge) return NextResponse.redirect(bridge);
+    }
+
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);

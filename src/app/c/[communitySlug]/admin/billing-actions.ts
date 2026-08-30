@@ -151,10 +151,12 @@ export async function refreshStripeAccountStatus(communityId: string, communityS
 // state for that last one, since the webhook writes the new plan a moment later.
 export type PlanCheckoutResult = { error: string } | { url: string } | { switched: true };
 
-// Stripe states in which a subscription is genuinely in force, and therefore
-// something to modify rather than replace.
+// States in which the community's plan is genuinely in force — a live Stripe
+// subscription to modify rather than replace, or a complimentary grant
+// ('comped', no Stripe subscription, so the modify-in-place branch below
+// never applies to it).
 function isLiveSubscription(status: string): boolean {
-  return status === "active" || status === "trialing";
+  return status === "active" || status === "trialing" || status === "comped";
 }
 
 // Put a community on a plan.
