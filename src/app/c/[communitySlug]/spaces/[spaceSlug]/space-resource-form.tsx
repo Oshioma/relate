@@ -64,12 +64,12 @@ export function SpaceResourceForm({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor="url">URL</Label>
+          <Label htmlFor="url">URL or player link</Label>
           <Input
             id="url"
             name="url"
             type="text"
-            placeholder="example.com or upload a file"
+            placeholder="Paste a SoundCloud or Mixcloud link, or upload a file"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             required
@@ -101,7 +101,7 @@ export function SpaceResourceForm({
             if (file) setResourceType(resourceTypeForMime(file.type));
           }}
         />
-        <span className="text-xs text-muted-foreground">Audio, video, images or docs up to 200MB — hosted here.</span>
+        <span className="text-xs text-muted-foreground">Paste a SoundCloud or Mixcloud link for an inline player, or host a file here.</span>
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
