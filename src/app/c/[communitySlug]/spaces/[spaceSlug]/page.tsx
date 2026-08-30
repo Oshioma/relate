@@ -57,7 +57,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatRelativeTime, isImageUrl, isVideoUrl, isAudioUrl } from "@/lib/utils";
-import { MediaAttachment } from "@/components/ui/media-attachment";
+import { MediaAttachment } from "@/components/ui/media-attachment";\nimport { ExternalAudioPlayer, getExternalAudioEmbed } from "@/components/ui/external-audio-player";
 import { NewPostForm } from "./new-post-form";
 import { SpaceResourceForm } from "./space-resource-form";
 import { TidesWeatherPanel } from "./tides-weather-panel";
@@ -438,10 +438,11 @@ export default async function SpaceDetailPage({
               {resources.map((resource) => {
                 // Audio/video hosted here (or linked) play inline; everything else
                 // stays a click-through link card.
+                const externalAudio = getExternalAudioEmbed(resource.url);
                 const isAudio = isAudioUrl(resource.url);
                 const isVideo = isVideoUrl(resource.url);
 
-                if (isAudio || isVideo) {
+                if (externalAudio || isAudio || isVideo) {
                   return (
                     <Card key={resource.id} className="h-full">
                       <CardContent className="pt-5">
@@ -450,14 +451,16 @@ export default async function SpaceDetailPage({
                           <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{resource.description}</p>
                         )}
                         <div className="mt-3">
-                          {isVideo ? (
+                          {externalAudio ? (
+                            <ExternalAudioPlayer embed={externalAudio} title={resource.title} />
+                          ) : isVideo ? (
                             <video src={resource.url} controls preload="metadata" className="w-full rounded-md bg-muted" />
                           ) : (
                             <audio src={resource.url} controls preload="metadata" className="w-full" />
                           )}
                         </div>
                         <Badge tone="accent" className="mt-3">
-                          {isVideo ? "video" : "audio"}
+                          {externalAudio?.providerLabel ?? (isVideo ? "video" : "audio")}
                         </Badge>
                       </CardContent>
                     </Card>
