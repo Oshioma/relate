@@ -2,6 +2,25 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
 
+// Why a confirmation link can land back here, and what actually helps:
+//   • link-expired         — the token was spent or timed out. Almost always a
+//                            mail scanner opening the link first, or a link
+//                            that sat in the inbox past its window. A fresh
+//                            link is the fix, so lead with that.
+//   • confirmation-failed  — the URL carried no credential at all (truncated
+//                            by a mail client, hand-edited). A fresh link
+//                            fixes that too, but say what happened honestly.
+function confirmationNotice(error: string | undefined): string | null {
+  switch (error) {
+    case "link-expired":
+      return "That confirmation link has already been used or has expired — some email providers open links automatically, which uses them up. Send yourself a new one below, it only takes a moment.";
+    case "confirmation-failed":
+      return "That confirmation link didn't come through in one piece — email apps sometimes cut long links in half. Send yourself a new one below.";
+    default:
+      return null;
+  }
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -9,6 +28,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const notice = confirmationNotice(params.error);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -25,10 +45,16 @@ export default async function LoginPage({
 
         <Card>
           <CardContent className="pt-6">
-            {params.error === "confirmation-failed" && (
-              <p className="mb-4 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
-                That confirmation link is invalid or expired. Try signing in, or sign up again.
-              </p>
+            {notice && (
+              <div className="mb-4 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+                <p>{notice}</p>
+                <Link
+                  href={`/signup/resend?next=${encodeURIComponent(next)}`}
+                  className="mt-2 inline-block font-medium underline"
+                >
+                  Send me a new activation link
+                </Link>
+              </div>
             )}
             <LoginForm next={next} />
           </CardContent>

@@ -2640,6 +2640,13 @@ export type Database = {
         Args: { p_email: string };
         Returns: string | null;
       };
+      auth_user_confirmation_state: {
+        Args: { p_email: string };
+        Returns: {
+          user_id: string;
+          confirmed: boolean;
+        }[];
+      };
       community_slug_for_domain: {
         Args: { p_domain: string };
         Returns: string | null;
