@@ -177,18 +177,42 @@ built-in shared service is dev-only and rate-limited to a few messages an
 hour, so production needs your own provider. These settings are for
 [Resend](https://resend.com); other providers follow the same shape.
 
-**One exception — community-branded signup confirmations.** When someone
-signs up specifically to join a community (they followed an invite link, a
-`/c/<slug>` community page, or a community's own custom domain) and
-`RESEND_API_KEY` is set, the confirmation email is sent the same
-direct-Resend, community-branded way as invites above — "Confirm your email
-to join Mzungu Zanzibar", from the community's name and logo, rather than
-the global "from Relate" template. Everything else (a bare signup with no
-community context, or when Resend isn't configured) still uses Supabase
-Auth's default confirmation template described here. This reuses the same
-`SUPABASE_SERVICE_ROLE_KEY` the email-invite path needs — `generateLink`
-mints the confirmation link server-side, and Relate wraps its own email
-around it.
+**One big exception — signup confirmations.** Whenever `RESEND_API_KEY` and
+`SUPABASE_SERVICE_ROLE_KEY` are both set, Relate mints the confirmation link
+itself with `generateLink` and sends its own email through Resend, for
+*every* signup. A signup that carries community context (an invite link, a
+`/c/<slug>` page, a community's own custom domain) is branded with that
+community's name and logo — "Confirm your email to join Mzungu Zanzibar";
+a bare platform signup gets a plain "Relate" version of the same message.
+Only an unconfigured Resend or service-role key falls back to Supabase
+Auth's default template described below.
+
+That is a correctness fix, not just branding. Supabase's default template
+links at GoTrue's `/verify` endpoint, which **spends the one-time token on a
+plain GET**. Mail scanners and inbox prefetchers (Outlook Safe Links,
+Proofpoint, Gmail, antivirus) open every link in an incoming message, so the
+token is routinely burned before the member ever clicks — they then see
+"that confirmation link is invalid or expired" on a link minted seconds
+earlier. The `/auth/confirm` interstitial cannot prevent that, because the
+spending happens on Supabase's host, not ours. What survives the round trip
+is instead an `?error=access_denied&error_code=otp_expired` bounce, or a PKCE
+`?code=` that only exchanges in the very browser the signup form was
+submitted from (so opening the email on a phone fails too). An app-minted
+`token_hash` link has neither problem: nothing but the POST behind our own
+"Confirm my email" button can spend it, and it carries no per-browser state.
+
+**Getting unstuck — `/signup/resend`.** Anyone whose link was eaten or never
+arrived can request a fresh one there (linked from the sign-in error, the
+"check your inbox" screen, and any bounced confirmation link). It is
+email-only: the address owner is the one who receives the link, so nothing
+else needs proving, and it always reports the same success so the page can't
+be used to probe which addresses have accounts. Behind it,
+`auth_user_confirmation_state()` (a service-role-only lookup on
+`auth.users.email_confirmed_at`) decides whether an address is a finished
+account, an unconfirmed one, or unknown. That same lookup is what lets
+**signing up a second time actually work**: a repeat signup on an
+unconfirmed address now re-sends a fresh link instead of dead-ending on
+"you already have an account", which is the other half of the same report.
 
 | Field        | Value                                              |
 | ------------ | -------------------------------------------------- |
@@ -582,8 +606,14 @@ New Supabase projects require email confirmation by default. In
 - **Redirect URLs**: add `<site-url>/auth/confirm` (and your production
   equivalent)
 
-The confirmation email links to `/auth/confirm`, which exchanges the
-token for a session and redirects into the app.
+The confirmation email links to `/auth/confirm`, which shows a one-tap
+"Confirm my email" button and exchanges the token for a session on the
+POST behind it — never on page load, so a link scanner's automated GET
+can't spend the token before the member arrives.
+
+Note this section only governs the fallback path. With Resend and a
+service-role key configured, Relate mints and sends confirmation emails
+itself (see "Sending real email" above), and these templates are unused.
 
 ## 4. Run the app
 
@@ -714,6 +744,7 @@ src/
   app/
     page.tsx                        Logged-out landing page
     login/, signup/                 Auth pages (Supabase email/password)
+    signup/resend/                  Request a fresh activation link
     auth/                           Server actions + email confirmation route
     dashboard/                      Logged-in home: your communities + discovery
     settings/                       Profile settings: identity, professional info, social

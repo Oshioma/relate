@@ -24,7 +24,20 @@ export function LoginForm({ next }: { next: string }) {
       </div>
 
       {state?.error && (
-        <p className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">{state.error}</p>
+        <div className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+          <p>{state.error}</p>
+          {/* The account exists but was never confirmed — the one sign-in
+              failure the member can resolve themselves, so link them straight
+              to a fresh activation link rather than leaving them to guess. */}
+          {state.unconfirmed && (
+            <Link
+              href={`/signup/resend?next=${encodeURIComponent(next)}`}
+              className="mt-2 inline-block font-medium underline"
+            >
+              Send me a new activation link
+            </Link>
+          )}
+        </div>
       )}
 
       <SubmitButton pendingText="Signing in…">Sign in</SubmitButton>
