@@ -5,8 +5,11 @@ import "server-only";
 // community's own name and logo, instead of Supabase Auth's global
 // one-template-fits-all "from Relate" email:
 //   1. invite emails (sendCommunityInviteEmail), and
-//   2. signup confirmation emails for people joining a specific community
-//      (sendCommunityConfirmationEmail).
+//   2. signup confirmation emails (sendCommunityConfirmationEmail), which are
+//      community-branded when the signup has community context and plainly
+//      "Relate" when it doesn't — see that function for why every
+//      confirmation now goes out this way rather than through Supabase's
+//      default template.
 // No SDK — one fetch call.
 //
 // Configuration (all optional; when RESEND_API_KEY is absent callers fall
@@ -120,18 +123,35 @@ export async function sendCommunityInviteEmail(
 // -----------------------------------------------------------------------------
 export type ConfirmationEmailInput = {
   to: string;
-  communityName: string;
+  // Branding is optional, exactly like the password-reset email below. A
+  // signup that carries community context (an invite link, a /c/<slug> page,
+  // a community's own domain) is dressed in that community's name and logo;
+  // a bare platform signup gets a plain "Relate" message. Both are sent this
+  // same way — see the note on the app-minted link below for why there is no
+  // longer an unbranded path that falls back to Supabase's own template.
+  communityName: string | null;
   communityLogoUrl: string | null;
   confirmUrl: string;
 };
 
-// The signup-confirmation counterpart to sendCommunityInviteEmail, for someone
-// creating an account to join a specific community. It carries the exact same
-// verification link Supabase Auth's default "Confirm signup" template would
-// (an /auth/confirm URL with token_hash + type — the caller builds it from
-// admin.generateLink), just wrapped in the community's own name and logo so the
-// message reads "Confirm your email to join Mzungu Zanzibar" rather than a
-// generic "from Relate" one.
+// The signup-confirmation counterpart to sendCommunityInviteEmail. It carries
+// an /auth/confirm URL with token_hash + type, minted server-side by
+// admin.generateLink (see trySendAppMintedConfirmation).
+//
+// That link shape is the whole point, not just the branding. Supabase Auth's
+// default "Confirm signup" template links to GoTrue's /verify endpoint, which
+// SPENDS the one-time token on a plain GET and then bounces to the app with a
+// PKCE `?code=`. Two things break there, and both surfaced as "that link is
+// invalid or expired" on a link the member had only just been sent:
+//   1. Mail scanners and inbox prefetchers (Outlook Safe Links, Proofpoint,
+//      Gmail, antivirus) GET every URL in an incoming message. That GET burns
+//      the token at GoTrue before the human ever clicks, and no interstitial
+//      on our side can prevent it — the spending happens on Supabase's host.
+//   2. The `?code=` exchange needs a code-verifier cookie from the very
+//      browser that submitted the signup form, so opening the email on a
+//      different device fails even when nothing pre-spent the link.
+// A token_hash link carries no per-browser state and is only ever spent by the
+// POST behind our /auth/confirm button, so it survives both.
 export async function sendCommunityConfirmationEmail(
   input: ConfirmationEmailInput
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
@@ -140,7 +160,7 @@ export async function sendCommunityConfirmationEmail(
   const fromAddress = defaultFromAddress();
   if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
 
-  const name = escapeHtml(input.communityName);
+  const brand = input.communityName ? escapeHtml(input.communityName) : "Relate";
   const url = escapeHtml(input.confirmUrl);
 
   const html = `<!doctype html>
@@ -152,9 +172,15 @@ export async function sendCommunityConfirmationEmail(
           ? `<img src="${escapeHtml(input.communityLogoUrl)}" alt="" width="72" height="72" style="border-radius:50%;object-fit:cover;margin-bottom:16px;" />`
           : ""
       }
-      <h1 style="margin:0 0 8px;font-size:20px;color:#1f2a1f;">Confirm your email to join ${name}</h1>
+      <h1 style="margin:0 0 8px;font-size:20px;color:#1f2a1f;">
+        ${input.communityName ? `Confirm your email to join ${brand}` : "Confirm your email"}
+      </h1>
       <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#5c665c;">
-        You're almost in — confirm your email address to finish joining the ${name} community.
+        ${
+          input.communityName
+            ? `You're almost in — confirm your email address to finish joining the ${brand} community.`
+            : "You're almost in — confirm your email address to finish setting up your Relate account."
+        }
       </p>
       <a href="${url}" style="display:inline-block;background:#44553f;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 28px;border-radius:8px;">
         Confirm email
@@ -165,7 +191,7 @@ export async function sendCommunityConfirmationEmail(
       </p>
     </div>
     <p style="max-width:420px;margin:16px auto 0;text-align:center;font-size:11px;color:#a5aca5;">
-      Sent by Relate on behalf of ${name}. If you didn't create this account, you can ignore it.
+      Sent by Relate${input.communityName ? ` on behalf of ${brand}` : ""}. If you didn't create this account, you can ignore it.
     </p>
   </body>
 </html>`;
@@ -180,9 +206,11 @@ export async function sendCommunityConfirmationEmail(
       body: JSON.stringify({
         // Display name is the community; the address stays on the verified
         // platform domain so DKIM/SPF keep passing.
-        from: `${input.communityName.replace(/[<>@"]/g, "")} <${fromAddress}>`,
+        from: `${(input.communityName ?? "Relate").replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
         to: [input.to],
-        subject: `Confirm your email to join ${input.communityName}`,
+        subject: input.communityName
+          ? `Confirm your email to join ${input.communityName}`
+          : "Confirm your email address",
         html,
       }),
       cache: "no-store",

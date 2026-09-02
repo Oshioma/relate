@@ -9,7 +9,10 @@ import { isResendConfigured, sendCommunityConfirmationEmail, sendPasswordResetEm
 import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 import { authEventContext, recordAuthEvent, signupContextMetadata } from "@/lib/auth-events";
 
-export type AuthFormState = { error: string } | undefined;
+// `unconfirmed` marks the one error a member can fix themselves from the
+// sign-in form: the account exists but its email was never confirmed. The
+// form turns it into a link to /signup/resend.
+export type AuthFormState = { error: string; unconfirmed?: boolean } | undefined;
 
 // Shown whenever a signup collides with an existing account. One account works
 // across the main site and every community site, so the fix is always to sign
@@ -66,7 +69,9 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
 
   if (error) {
     console.error("[login] signInWithPassword failed:", error);
-    return { error: friendlyLoginError(error.message) };
+    const unconfirmed =
+      error.code === "email_not_confirmed" || error.message.toLowerCase().includes("email not confirmed");
+    return { error: friendlyLoginError(error.message), unconfirmed };
   }
 
   // Log the sign-in against the community it happened on, so the platform-admin
@@ -98,7 +103,7 @@ function friendlyLoginError(message: string): string {
     return "That email and password don't match. It's one account for every community site and the main site — use the same details you first signed up with, or tap \"Forgot your password?\" below to reset it. New here? Use \"Create account\" instead.";
   }
   if (lower.includes("email not confirmed")) {
-    return "Almost there — we sent you a confirmation email when you signed up. Click the link in it, then sign in again.";
+    return "Almost there — we sent you a confirmation email when you signed up. Click the link in it, then sign in again. If it never arrived, or it said the link had expired, get a fresh one below.";
   }
   return usefulAuthMessage(message, "We couldn't sign you in just now. Please try again in a moment.");
 }
@@ -151,18 +156,66 @@ async function communityForSignup(
   return null;
 }
 
-type BrandedConfirmationResult = "sent" | "already-registered" | "fallback";
+// -----------------------------------------------------------------------------
+// Signup confirmation emails
+//
+// EVERY signup confirmation Relate sends is minted here with
+// admin.generateLink and delivered through Resend — community-branded when
+// there's a community in the picture, plain "Relate" when there isn't.
+//
+// It used to be the community-branded case only; a bare platform signup fell
+// through to supabase.auth.signUp() and Supabase Auth's default template. That
+// fallback was the bug behind "I clicked the link straight away and it says
+// expired". The default template links at GoTrue's /verify endpoint, which
+// spends the one-time token on a plain GET, so a mail scanner or inbox
+// prefetcher opening the message burns the link before the member touches it —
+// and our /auth/confirm interstitial cannot defend against that, because the
+// spending happens on Supabase's host, not ours. What reaches the member is
+// then either a dead `?error=access_denied&error_code=otp_expired` bounce, or a
+// PKCE `?code=` that only exchanges in the very browser the form was submitted
+// from. A token_hash link has neither problem. See src/lib/email.ts.
+// -----------------------------------------------------------------------------
 
-// Best-effort community-branded signup confirmation. Returns "sent" when the
-// new member will get our own "Confirm your email to join <community>" message,
-// "already-registered" when the address is taken, and "fallback" for everything
-// else — no community context, Resend/admin not configured, or a transient
-// failure — so the caller drops through to Supabase Auth's default signUp()
-// confirmation email. Because generateLink creates the (unconfirmed) user up
-// front, if we then can't email them we delete that user again so the fallback
-// signUp() can recreate and email them cleanly, rather than dead-ending on
-// "already registered".
-async function trySendBrandedConfirmation(args: {
+type ConfirmationSendResult = "sent" | "already-registered" | "send-failed" | "fallback";
+
+// What we already know about an address. "unknown" means the lookup itself
+// failed (e.g. the migration adding the RPC hasn't been applied yet) — it is
+// deliberately distinct from "none" so the caller never treats a pre-existing
+// account as one it just created.
+type AccountState = "none" | "unconfirmed" | "confirmed" | "unknown";
+
+// Read auth.users.email_confirmed_at through the service-role-only RPC (see
+// supabase/migrations/20260902082906_auth_user_confirmation_state.sql). This is
+// what lets a second signup attempt tell "you already have a real account, go
+// sign in" apart from "you signed up but never confirmed — here's a fresh
+// link", instead of refusing both with "already registered".
+async function accountStateFor(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string
+): Promise<AccountState> {
+  const { data, error } = await admin.rpc("auth_user_confirmation_state", { p_email: email });
+  if (error) {
+    console.error("[auth] auth_user_confirmation_state failed:", error);
+    return "unknown";
+  }
+  const row = data?.[0];
+  if (!row) return "none";
+  return row.confirmed ? "confirmed" : "unconfirmed";
+}
+
+// Mint the confirmation link and wrap our own email around it. Returns "sent"
+// on success, "already-registered" when the address is a finished account,
+// "send-failed" when an existing unconfirmed account couldn't be re-emailed,
+// and "fallback" when this path isn't usable at all (no service-role key, or a
+// transient failure on a brand-new signup) so the caller can drop through to
+// Supabase Auth's default signUp() email.
+//
+// generateLink creates the (unconfirmed) user up front without sending
+// anything itself — the whole point, so we can send our own message. If the
+// email then fails for a user this call created, we delete that user again so
+// the fallback signUp() can recreate and email them cleanly rather than
+// dead-ending on "already registered".
+async function trySendAppMintedConfirmation(args: {
   supabase: Awaited<ReturnType<typeof createClient>>;
   email: string;
   password: string;
@@ -174,11 +227,8 @@ async function trySendBrandedConfirmation(args: {
   // Signup-attribution keys carried into raw_user_meta_data so the auth.users
   // trigger can log which community this signup came from.
   contextMetadata: Record<string, string>;
-}): Promise<BrandedConfirmationResult> {
+}): Promise<ConfirmationSendResult> {
   const { supabase, email, password, fullName, next, customHost, platformOrigin, returnParam, contextMetadata } = args;
-
-  const community = await communityForSignup(supabase, next, customHost);
-  if (!community) return "fallback";
 
   let admin;
   try {
@@ -187,24 +237,54 @@ async function trySendBrandedConfirmation(args: {
     return "fallback";
   }
 
-  // generateLink creates the unconfirmed user and hands back the verification
-  // token without sending anything itself — the whole point, so we can wrap our
-  // own email around it. redirectTo only shapes the action_link we ignore, but
-  // must be an allowlisted origin, so reuse the platform confirm route.
+  const state = await accountStateFor(admin, email);
+  if (state === "confirmed") return "already-registered";
+
+  // Branding is a nice-to-have now, not a precondition: no community context
+  // just means a plain "Relate" confirmation email rather than a different
+  // (and much more fragile) delivery path.
+  const community = await communityForSignup(supabase, next, customHost);
+
+  // redirectTo only shapes the action_link we ignore, but must be an
+  // allowlisted origin, so reuse the platform confirm route.
+  const redirectTo = `${platformOrigin}/auth/confirm`;
   const { data, error } = await admin.auth.admin.generateLink({
     type: "signup",
     email,
     password,
-    options: {
-      data: { full_name: fullName, ...contextMetadata },
-      redirectTo: `${platformOrigin}/auth/confirm`,
-    },
+    options: { data: { full_name: fullName, ...contextMetadata }, redirectTo },
   });
 
-  if (error || !data?.properties?.hashed_token) {
-    if (error && /already.*(registered|exists)/i.test(error.message)) return "already-registered";
-    if (error) console.error("[signup] generateLink failed, falling back:", error);
-    return "fallback";
+  let tokenHash = data?.properties?.hashed_token ?? "";
+  let otpType: "signup" | "magiclink" = "signup";
+  // Only a user THIS call brought into being may be deleted again below.
+  const createdUserId = state === "none" ? (data?.user?.id ?? null) : null;
+
+  if (error || !tokenHash) {
+    const alreadyExists =
+      error?.code === "email_exists" || (error ? /already.*(registered|exists)/i.test(error.message) : false);
+
+    if (state === "unconfirmed") {
+      // GoTrue regenerates a signup link for an unconfirmed address (adopting
+      // the password just typed), but don't stake the fix on that: if it
+      // refuses one for an address our own lookup says is still unconfirmed,
+      // mint a magic-link token instead. Any existing user can be issued one,
+      // and verifying it confirms the email — which is the job here. The
+      // password they typed is simply not applied in that case; they land
+      // signed in and can set one from settings.
+      const magic = await admin.auth.admin.generateLink({ type: "magiclink", email, options: { redirectTo } });
+      tokenHash = magic.data?.properties?.hashed_token ?? "";
+      otpType = "magiclink";
+      if (magic.error || !tokenHash) {
+        console.error("[signup] magiclink generateLink failed for unconfirmed address:", magic.error ?? error);
+        return "send-failed";
+      }
+    } else if (alreadyExists) {
+      return "already-registered";
+    } else {
+      if (error) console.error("[signup] generateLink failed, falling back:", error);
+      return "fallback";
+    }
   }
 
   // Rebuild the confirmation link the way Supabase's default template would,
@@ -213,28 +293,35 @@ async function trySendBrandedConfirmation(args: {
   // (return_host) included.
   const confirmUrl =
     `${platformOrigin}/auth/confirm` +
-    `?token_hash=${encodeURIComponent(data.properties.hashed_token)}` +
-    `&type=signup&next=${encodeURIComponent(next)}${returnParam}`;
+    `?token_hash=${encodeURIComponent(tokenHash)}` +
+    `&type=${otpType}&next=${encodeURIComponent(next)}${returnParam}`;
 
   const sent = await sendCommunityConfirmationEmail({
     to: email,
-    communityName: community.name,
-    communityLogoUrl: community.logoUrl,
+    communityName: community?.name ?? null,
+    communityLogoUrl: community?.logoUrl ?? null,
     confirmUrl,
   });
 
   if (!sent.ok) {
-    // The user exists now but has no usable link — remove it so the fallback
-    // signUp() below recreates and emails them the default way instead.
-    if (data.user?.id) {
-      await admin.auth.admin.deleteUser(data.user.id).catch(() => undefined);
+    console.error("[signup] confirmation email failed:", sent.reason);
+    if (createdUserId) {
+      // Brand-new user with no usable link — remove it so the fallback
+      // signUp() below recreates and emails them the default way instead.
+      await admin.auth.admin.deleteUser(createdUserId).catch(() => undefined);
+      return "fallback";
     }
-    console.error("[signup] branded confirmation email failed, falling back:", sent.reason);
-    return "fallback";
+    // The account predates this request. Never delete it, and never drop to
+    // signUp() (which would just say "already registered") — say plainly that
+    // the send failed so they can try again.
+    return "send-failed";
   }
 
   return "sent";
 }
+
+const CONFIRMATION_SEND_FAILED_MESSAGE =
+  "We couldn't send your confirmation email just now — that's on us, not you. Please try again in a minute.";
 
 export async function signup(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
@@ -285,19 +372,19 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   // signup that happened on a custom domain, `return_host` tells
   // /auth/confirm to forward the (still unverified) token there, so the
   // session cookie ends up on the domain the member actually uses — see
-  // src/app/auth/confirm/route.ts.
+  // src/app/auth/confirm/page.tsx.
   const platformOrigin = customHost ? (process.env.NEXT_PUBLIC_SITE_URL ?? origin) : origin;
   const returnParam = customHost ? `&return_host=${encodeURIComponent(customHost)}` : "";
 
   const supabase = await createClient();
 
-  // When this signup is joining a specific community and Resend is configured,
-  // send our own community-branded confirmation email instead of Supabase
-  // Auth's global "from Relate" template. Anything not set up or not resolvable
-  // falls through to the default signUp() path below. redirect() throws, so it
+  // Preferred path for every signup, community context or not: our own
+  // app-minted token_hash link, wrapped in our own email. Only an unconfigured
+  // Resend — or a transient failure on a brand-new address — drops to
+  // Supabase Auth's default signUp() email below. redirect() throws, so it
   // stays here at the top level of the action, never inside a try/catch.
   if (isResendConfigured()) {
-    const branded = await trySendBrandedConfirmation({
+    const minted = await trySendAppMintedConfirmation({
       supabase,
       email,
       password,
@@ -308,10 +395,13 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
       returnParam,
       contextMetadata,
     });
-    if (branded === "already-registered") {
+    if (minted === "already-registered") {
       return { error: ALREADY_REGISTERED_MESSAGE };
     }
-    if (branded === "sent") {
+    if (minted === "send-failed") {
+      return { error: CONFIRMATION_SEND_FAILED_MESSAGE };
+    }
+    if (minted === "sent") {
       redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
     }
     // "fallback": continue to the default signUp() path below.
@@ -347,6 +437,100 @@ export async function signup(_prevState: AuthFormState, formData: FormData): Pro
   }
 
   redirect(`/signup/check-email?next=${encodeURIComponent(next)}`);
+}
+
+export type ResendConfirmationState = { error?: string; done?: boolean } | undefined;
+
+// "Send me a new activation link" — the way out for anyone whose confirmation
+// email never arrived, or whose link was spent by a mail scanner before they
+// could click it. Without this the only recovery was signing up again, which
+// answered "you already have an account" and sent nothing at all.
+//
+// Deliberately email-only (no password): the address owner is the one who
+// receives the link, so nothing here needs to prove anything else. It reports
+// the same success whatever the address turns out to be — the response must
+// not reveal which emails have accounts.
+export async function resendConfirmation(
+  _prevState: ResendConfirmationState,
+  formData: FormData
+): Promise<ResendConfirmationState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    return { error: "Enter your email address." };
+  }
+
+  // Same platform-origin routing as signup: the link always points at the
+  // platform host, and /auth/confirm forwards it to the community domain the
+  // request came from.
+  const origin = await getSiteOrigin();
+  const customHost = customDomainHost(origin);
+  const next = safeNextPath(formData.get("next"), customHost ? "/" : "/dashboard");
+  const platformOrigin = customHost ? (process.env.NEXT_PUBLIC_SITE_URL ?? origin) : origin;
+  const returnParam = customHost ? `&return_host=${encodeURIComponent(customHost)}` : "";
+
+  const supabase = await createClient();
+
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    admin = null;
+  }
+
+  if (!admin || !isResendConfigured()) {
+    // No service-role key or no Resend: fall back to Supabase Auth's own
+    // resend, which uses the fragile default template — better than nothing.
+    await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${platformOrigin}/auth/confirm?next=${encodeURIComponent(next)}${returnParam}` },
+    });
+    return { done: true };
+  }
+
+  const state = await accountStateFor(admin, email);
+  // Only an account still waiting on its first confirmation gets a new link.
+  // "none", "confirmed" and "unknown" fall through to the same success screen.
+  if (state !== "unconfirmed") {
+    return { done: true };
+  }
+
+  // A magic-link token, not a signup one: it needs no password (we don't have
+  // theirs and must not change it), and verifying it confirms the address,
+  // which is the whole job. It is only ever minted for an address the lookup
+  // above already found, so this can't conjure accounts out of arbitrary
+  // emails the way an unguarded magiclink would.
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+    options: { redirectTo: `${platformOrigin}/auth/confirm` },
+  });
+
+  if (error || !data?.properties?.hashed_token) {
+    console.error("[resend-confirmation] generateLink failed:", error);
+    return { error: CONFIRMATION_SEND_FAILED_MESSAGE };
+  }
+
+  const community = await communityForSignup(supabase, next, customHost);
+
+  const confirmUrl =
+    `${platformOrigin}/auth/confirm` +
+    `?token_hash=${encodeURIComponent(data.properties.hashed_token)}` +
+    `&type=magiclink&next=${encodeURIComponent(next)}${returnParam}`;
+
+  const sent = await sendCommunityConfirmationEmail({
+    to: email,
+    communityName: community?.name ?? null,
+    communityLogoUrl: community?.logoUrl ?? null,
+    confirmUrl,
+  });
+
+  if (!sent.ok) {
+    console.error("[resend-confirmation] email failed:", sent.reason);
+    return { error: CONFIRMATION_SEND_FAILED_MESSAGE };
+  }
+
+  return { done: true };
 }
 
 export type PasswordResetState = { error?: string; done?: boolean } | undefined;

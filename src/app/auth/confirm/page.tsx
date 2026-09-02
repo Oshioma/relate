@@ -30,6 +30,10 @@ function interstitialCopy(type: EmailOtpType | null, next: string): { heading: s
     case "signup":
     case "invite":
     case "email":
+    // A magiclink token reaches this page from exactly one place — the
+    // "send me a new activation link" flow (see resendConfirmation) — so it
+    // means the same thing to the person holding it.
+    case "magiclink":
       return {
         heading: "Confirm your email",
         body: "One tap to verify your email address and finish setting up your account.",
@@ -66,7 +70,16 @@ function interstitialCopy(type: EmailOtpType | null, next: string): { heading: s
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token_hash?: string; type?: string; code?: string; next?: string; return_host?: string }>;
+  searchParams: Promise<{
+    token_hash?: string;
+    type?: string;
+    code?: string;
+    next?: string;
+    return_host?: string;
+    error?: string;
+    error_code?: string;
+    error_description?: string;
+  }>;
 }) {
   const params = await searchParams;
   const tokenHash = params.token_hash ?? "";
@@ -74,10 +87,26 @@ export default async function ConfirmPage({
   const code = params.code ?? "";
   const next = params.next?.startsWith("/") ? params.next : "/dashboard";
 
+  // A link that went through GoTrue's own /verify endpoint (Supabase's default
+  // email template — see src/lib/email.ts for why we no longer mint those)
+  // bounces back here carrying an error instead of a credential, typically
+  // `?error=access_denied&error_code=otp_expired` when a mail scanner spent the
+  // token first. Don't silently lump that in with a malformed URL: say the link
+  // expired, which is the one case a fresh link actually fixes.
+  const errorCode = params.error_code ?? params.error ?? "";
+  if (errorCode) {
+    console.error("[auth/confirm] link bounced back with an error:", {
+      error: params.error,
+      error_code: params.error_code,
+      error_description: params.error_description,
+    });
+    redirect(`/login?error=link-expired&next=${encodeURIComponent(next)}`);
+  }
+
   const hasToken = Boolean(tokenHash && type);
   const hasCode = Boolean(code);
   if (!hasToken && !hasCode) {
-    redirect("/login?error=confirmation-failed");
+    redirect(`/login?error=confirmation-failed&next=${encodeURIComponent(next)}`);
   }
 
   // Forward the credential to the custom domain *unspent* and let that host's

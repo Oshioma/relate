@@ -58,14 +58,20 @@ export async function confirmOtp(formData: FormData): Promise<void> {
   }
 
   if (failed) {
-    redirect("/login?error=confirmation-failed");
+    // The token was real when the email went out, so an expired/spent one is
+    // the likely story here too — offer the same "get a fresh link" route.
+    redirect(`/login?error=link-expired&next=${encodeURIComponent(next)}`);
   }
 
   // A confirmed email is the moment a signup becomes a real account, so log it
   // against the community the link was for — the gap between signups and
   // confirmations is how the admin tab shows drop-off. Only signup/invite links
   // mean "email confirmed"; a recovery link is just a password reset.
-  if (type === "signup" || type === "invite" || type === "email") {
+  // "magiclink" is here because /auth/confirm only ever sees one: the fresh
+  // activation link from resendConfirmation, which is a confirmation in every
+  // sense that matters. It is only issued to still-unconfirmed accounts, so it
+  // can't double-count anyone.
+  if (type === "signup" || type === "invite" || type === "email" || type === "magiclink") {
     const host = (await headers()).get("host");
     await recordAuthEvent(supabase, "email_confirmed", authEventContext(next, host));
   }
