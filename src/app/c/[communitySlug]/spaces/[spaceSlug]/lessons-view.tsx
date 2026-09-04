@@ -57,6 +57,43 @@ function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
   );
 }
 
+// One subject, as something big enough to aim at. A library is browsed by
+// subject far more often than it is searched, so these sit above the search
+// box rather than beside it, and a subject with nothing in it never appears.
+function SubjectTile({
+  icon,
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex min-w-[6.5rem] flex-1 flex-col items-center gap-1 rounded-lg border-2 px-3 py-3 transition-colors sm:min-w-[7.5rem] sm:flex-none",
+        active
+          ? "border-accent bg-accent-soft"
+          : "border-border bg-card hover:border-muted-foreground/40"
+      )}
+    >
+      <span aria-hidden className="text-2xl leading-none">
+        {icon}
+      </span>
+      <span className="text-sm font-semibold leading-tight text-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground">{count}</span>
+    </button>
+  );
+}
+
 export function LessonsView({
   lessons,
   spaceId,
@@ -79,6 +116,7 @@ export function LessonsView({
 }) {
   const [query, setQuery] = useState("");
   const [band, setBand] = useState<string | null>(null);
+  const [subject, setSubject] = useState<Subject | null>(null);
   const [composing, setComposing] = useState(false);
 
   // Precomputed once per lesson: the search box matches on everything in the
@@ -88,7 +126,10 @@ export function LessonsView({
     [lessons]
   );
 
-  const filtered = useMemo(() => {
+  // Everything the search box and age band allow, before a subject is picked.
+  // The subject buttons count against THIS, so each one shows what you would
+  // get by clicking it rather than a total that ignores the rest of the page.
+  const matching = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return lessons.filter((lesson) => {
       if (band && lesson.age_band !== band) return false;
@@ -96,6 +137,25 @@ export function LessonsView({
       return (searchable.get(lesson.id) ?? "").includes(needle);
     });
   }, [lessons, query, band, searchable]);
+
+  // Only subjects that actually have something, in the order SUBJECT_ICONS
+  // declares them, so the row doesn't reshuffle as lessons are added.
+  const subjectCounts = useMemo(() => {
+    const counts = new Map<Subject, number>();
+    for (const lesson of matching) {
+      const key = normaliseSubject(lesson.subject);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort(
+      (a, b) =>
+        Object.keys(SUBJECT_ICONS).indexOf(a[0]) - Object.keys(SUBJECT_ICONS).indexOf(b[0])
+    );
+  }, [matching]);
+
+  const filtered = useMemo(
+    () => (subject ? matching.filter((l) => normaliseSubject(l.subject) === subject) : matching),
+    [matching, subject]
+  );
 
   // Grouped by subject, subjects in the order SUBJECT_ICONS declares them so
   // the page doesn't reshuffle as lessons are added.
@@ -133,6 +193,28 @@ export function LessonsView({
 
       {composing && (
         <LessonComposer spaceId={spaceId} defaultAgeBand={defaultAgeBand} onClose={() => setComposing(false)} />
+      )}
+
+      {subjectCounts.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          <SubjectTile
+            icon="\u{1F4DA}"
+            label="All"
+            count={matching.length}
+            active={subject === null}
+            onClick={() => setSubject(null)}
+          />
+          {subjectCounts.map(([name, count]) => (
+            <SubjectTile
+              key={name}
+              icon={SUBJECT_ICONS[name]}
+              label={name}
+              count={count}
+              active={subject === name}
+              onClick={() => setSubject(subject === name ? null : name)}
+            />
+          ))}
+        </div>
       )}
 
       {lessons.length > 0 && (
