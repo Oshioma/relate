@@ -29,13 +29,16 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceMeetups } from "@/lib/data/meetups";
-import { activityLabelForKind } from "@/lib/community-templates";
+import { getSpaceLessons } from "@/lib/data/lessons";
+import { DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
+import { activityLabelForKind, schoolDefaultAgeBand } from "@/lib/community-templates";
 import { getSpaceGuides } from "@/lib/data/guides";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, getCropProposals, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, getPublicFarmCrops, isFarmBridgeConfigured, type FarmCrop, type PublicFarm } from "@/lib/farm-bridge";
 import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import { isPlantIdConfigured } from "@/lib/ai/plant-id";
+import { isLessonWriterConfigured } from "@/lib/ai/lesson-writer";
 import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
@@ -79,6 +82,7 @@ import { VolunteerHubView } from "./volunteer-hub-view";
 import { CoursesView } from "./courses-view";
 import { LiveEventsView } from "./live-events-view";
 import { CropGuidesView } from "./crop-guides-view";
+import { LessonsView } from "./lessons-view";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
 import { PlantIdPanel } from "./plant-id-panel";
@@ -180,6 +184,7 @@ export default async function SpaceDetailPage({
   const isPlantIdSpace = space.space_type === "plant_id";
   const isLiveSpace = space.space_type === "live";
   const isMeetupsSpace = space.space_type === "meetups";
+  const isLessonsSpace = space.space_type === "lessons";
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
@@ -205,7 +210,8 @@ export default async function SpaceDetailPage({
     !isMyCropsSpace &&
     !isPlantIdSpace &&
     !isLiveSpace &&
-    !isMeetupsSpace;
+    !isMeetupsSpace &&
+    !isLessonsSpace;
 
   const [
     membership,
@@ -280,6 +286,10 @@ export default async function SpaceDetailPage({
   // The name the viewer shows up as in the meeting.
   const liveViewer = isLiveSpace && user ? await getProfile(supabase, user.id) : null;
   const liveDisplayName = liveViewer?.full_name || liveViewer?.username || null;
+
+  // The teaching library for a Lessons space. RLS scopes it to what the viewer
+  // may see, so a guest on a public school community gets the same list.
+  const lessons = isLessonsSpace ? await getSpaceLessons(supabase, space.id) : [];
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -730,6 +740,16 @@ export default async function SpaceDetailPage({
           spaceId={space.id}
           spaceSlug={space.slug}
           isStaff={Boolean(isStaff)}
+        />
+      ) : isLessonsSpace ? (
+        <LessonsView
+          lessons={lessons}
+          spaceId={space.id}
+          communitySlug={community.slug}
+          spaceSlug={space.slug}
+          canWrite={Boolean(isStaff)}
+          defaultAgeBand={schoolDefaultAgeBand(community.school_kind) ?? DEFAULT_AGE_BAND}
+          writerConfigured={isLessonWriterConfigured()}
         />
       ) : isCropGuidesSpace ? (
         <CropGuidesView

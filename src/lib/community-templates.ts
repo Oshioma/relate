@@ -66,6 +66,32 @@ const ACTIVITY_FIELDS: TemplateProfileField[] = [
   { label: "When I'm Usually Free", field_type: "text" },
 ];
 
+// The School template's starter set. A school community is the adults around a
+// school talking to each other — parents, teachers, staff and governors — with
+// the teaching library at its centre. Students are deliberately NOT members:
+// nothing here assumes a child has an account, and the Lessons space is written
+// for the adult who will teach or print it.
+//
+// Per-school-kind extras are layered on top by SCHOOL_KINDS below.
+const SCHOOL_SPACES: TemplateSpace[] = [
+  { name: "Announcements", description: "Term dates, closures and news \u2014 straight from the school.", staff_post_only: true },
+  { name: "Lessons", description: "The teaching library: paste source material, get an age-appropriate lesson to teach or print.", space_type: "lessons" },
+  { name: "Classes & Year Groups", description: "A space per class or year group, for the people in it.", space_type: "clubs" },
+  { name: "Homework Help", description: "Ask about a piece of work and get an answer from someone who knows.", space_type: "qa" },
+  { name: "Parent Chat", description: "General conversation between parents and guardians." },
+  { name: "Staff Room", description: "Teachers and staff only \u2014 set this space to Private in Admin once you have invited them.", staff_post_only: true },
+  { name: "Policies & Reading Lists", description: "Uniform lists, term dates, policies and recommended reading.", space_type: "resources" },
+  { name: "School Life", description: "Photos from trips, concerts, sports day and the everyday.", space_type: "gallery" },
+  { name: "Reading Challenge", description: "Time-boxed challenges children take on together.", space_type: "challenges" },
+  { name: "PTA & Volunteering", description: "Fairs, fundraising and the jobs that need a pair of hands.", space_type: "volunteer_hub" },
+];
+
+const SCHOOL_FIELDS: TemplateProfileField[] = [
+  { label: "I am a\u2026", field_type: "dropdown", options: ["Parent or Guardian", "Teacher", "Support Staff", "Governor", "Office"] },
+  { label: "Class or Year Group", field_type: "text" },
+  { label: "Subjects I Teach", field_type: "text" },
+];
+
 const ARTIST_FAN_FIELDS: TemplateProfileField[] = [
   { label: "Fan Since", field_type: "text" },
   { label: "Favorite Track or Album", field_type: "text" },
@@ -200,6 +226,16 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Testimonies", description: "Stories of faith in action." },
     ],
     defaultProfileFields: [{ label: "Small Group", field_type: "text" }],
+  },
+  {
+    key: "school",
+    label: "School",
+    icon: "School",
+    tagline: "One school, and the adults around it",
+    description:
+      "For a school and its community \u2014 parents, teachers, staff and governors in one place. Announcements, class groups, homework help and a PTA, built around a teaching library: paste any source material and get a lesson written for the right age, ready to teach or print. Built for adults; children never need an account.",
+    defaultSpaces: SCHOOL_SPACES,
+    defaultProfileFields: SCHOOL_FIELDS,
   },
   {
     key: "place",
@@ -921,5 +957,145 @@ export function recommendActivitySetup(activityKindKey: string, baseSpaces?: Tem
     profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
     mapLayers: kind?.mapLayers ?? [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// School: "what kind of school is this?"
+//
+// Same shape as PLACE_LOCATION_TYPES and ACTIVITY_KINDS — a shared base
+// (SCHOOL_SPACES) plus per-kind extras — because every school community wants
+// the same core: announcements, class groups, homework help, a lesson library
+// and a PTA. What differs is the edges: a nursery needs a daily diary, a
+// secondary school needs revision and careers, a homeschool group needs a
+// curriculum plan and a swap shelf. Flat and code-only, so adding a kind stays
+// a one-entry change.
+//
+// No map layers here, unlike place and activity: a school is one address, not
+// a territory to explore.
+// ---------------------------------------------------------------------------
+
+export interface SchoolKind {
+  key: string;
+  label: string;
+  description: string;
+  // The reading age the Lessons space defaults to for this kind of school.
+  // Must be an AGE_BANDS key in src/lib/school/lesson-types.ts.
+  defaultAgeBand: string;
+  extraSpaces: TemplateSpace[];
+  extraProfileFields?: TemplateProfileField[];
+}
+
+export const SCHOOL_KINDS: SchoolKind[] = [
+  {
+    key: "primary",
+    label: "Primary School",
+    description: "Ages 4–11 — one class, one teacher, parents closely involved.",
+    defaultAgeBand: "8-10",
+    extraSpaces: [
+      { name: "Show & Tell", description: "What the children made, wrote and brought in this week.", space_type: "gallery" },
+      { name: "Lost Property", description: "Missing jumpers, water bottles and lunch boxes." },
+    ],
+  },
+  {
+    key: "secondary",
+    label: "Secondary School",
+    description: "Ages 11–18 — subject teachers, exams and what comes next.",
+    defaultAgeBand: "11-13",
+    extraSpaces: [
+      { name: "Exams & Revision", description: "Timetables, past papers and revision guides.", space_type: "resources" },
+      { name: "Careers & Next Steps", description: "Work experience, apprenticeships, college and university.", space_type: "jobs" },
+      { name: "Clubs & Societies", description: "Everything that happens after the bell.", space_type: "clubs" },
+    ],
+    extraProfileFields: [{ label: "Exam Year", field_type: "text" }],
+  },
+  {
+    key: "homeschool",
+    label: "Homeschool",
+    description: "A family, or a group of families, teaching at home.",
+    defaultAgeBand: "8-10",
+    extraSpaces: [
+      { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
+      { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
+      { name: "Swap Shelf", description: "Books, kit and materials to pass on when you're done.", space_type: "marketplace" },
+    ],
+    extraProfileFields: [{ label: "Children's Ages", field_type: "text" }],
+  },
+  {
+    key: "coop",
+    label: "Co-op or Pod",
+    description: "Several families sharing the teaching between them.",
+    defaultAgeBand: "8-10",
+    extraSpaces: [
+      { name: "Teaching Rota", description: "Who is teaching what, and when." },
+      { name: "Shared Costs", description: "Materials, venue hire and who has paid what." },
+      { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
+    ],
+    extraProfileFields: [{ label: "What I Can Teach", field_type: "text" }],
+  },
+  {
+    key: "nursery",
+    label: "Nursery or Early Years",
+    description: "Ages 0–5 — daily rhythms, and parents who want to know how the day went.",
+    defaultAgeBand: "5-7",
+    extraSpaces: [
+      { name: "Daily Diary", description: "How the day went — logged for each child.", space_type: "journal" },
+      { name: "Naps, Meals & Routines", description: "Timings, menus and what to pack.", space_type: "resources" },
+    ],
+  },
+  {
+    key: "tutoring",
+    label: "Tutoring or Supplementary",
+    description: "After-school, weekend or supplementary teaching.",
+    defaultAgeBand: "8-10",
+    extraSpaces: [
+      { name: "Courses", description: "Structured programmes students enrol in and work through.", space_type: "course" },
+      { name: "Tutors", description: "Who teaches what, and how to reach them.", space_type: "directory" },
+    ],
+    extraProfileFields: [{ label: "Subjects Needed", field_type: "text" }],
+  },
+  {
+    key: "sen",
+    label: "Special Educational Needs",
+    description: "A school or group built around additional needs and support.",
+    defaultAgeBand: "8-10",
+    extraSpaces: [
+      { name: "Support Plans", description: "Guidance, templates and what has worked for others.", space_type: "resources" },
+      { name: "Therapies & Services", description: "Speech, occupational therapy and local specialists.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [{ label: "Additional Needs I Support", field_type: "text" }],
+  },
+];
+
+export function getSchoolKind(key: string): SchoolKind | undefined {
+  return SCHOOL_KINDS.find((k) => k.key === key);
+}
+
+// The reading age a school's Lessons composer starts on, so a nursery doesn't
+// open on a lesson pitched at thirteen-year-olds. Null when the community isn't
+// a school (or predates the school_kind column) — the composer then falls back
+// to DEFAULT_AGE_BAND.
+export function schoolDefaultAgeBand(key: string | null | undefined): string | null {
+  return (key && getSchoolKind(key)?.defaultAgeBand) || null;
+}
+
+// The School counterpart to recommendPlaceSetup: the shared base plus the
+// chosen kind's extras. baseSpaces lets the caller substitute the
+// super-admin-configured defaults for the code ones, same as place and activity.
+export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: TemplateSpace[]): SetupRecommendation {
+  const template = getCommunityTemplate("school")!;
+  const base = baseSpaces ?? template.defaultSpaces;
+  const kind = getSchoolKind(schoolKindKey);
+
+  const rationale = ["Started from the School template's default spaces, with the Lessons library near the top."];
+  if (kind) {
+    rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
+    rationale.push(`Lessons will be written for ${kind.defaultAgeBand.replace("-", "–")} year olds by default — changeable on every lesson.`);
+  }
+
+  return {
+    spaces: dedupeByName([...base, ...(kind?.extraSpaces ?? [])]),
+    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
+    rationale,
   };
 }

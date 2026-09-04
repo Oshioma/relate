@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
-import { getCommunityTemplate, getPlaceLocationType, getArtistMode, getActivityKind } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType, getArtistMode, getActivityKind, getSchoolKind } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
@@ -43,6 +43,9 @@ export interface WizardPayload {
   // Activity template only — which activity the community is built around,
   // validated against ACTIVITY_KINDS below and dropped for every other template.
   activityKind?: string;
+  // School template only — what kind of school this is, validated against
+  // SCHOOL_KINDS below and dropped for every other template.
+  schoolKind?: string;
   // Seeds map_categories (the map's togglable layers) so a place or activity
   // community's map isn't empty on day one. Dropped unless the matching kind
   // (locationType / activityKind) is also set and valid.
@@ -107,6 +110,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   // Same rule for the Activity template's chosen activity.
   const activityKind =
     templateKey === "activity" && payload.activityKind && getActivityKind(payload.activityKind) ? payload.activityKind : null;
+  // Same rule for the School template's kind of school.
+  const schoolKind =
+    templateKey === "school" && payload.schoolKind && getSchoolKind(payload.schoolKind) ? payload.schoolKind : null;
 
   const supabase = await createClient();
   const {
@@ -130,6 +136,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       location_name: locationName,
       artist_mode: artistMode,
       activity_kind: activityKind,
+      school_kind: schoolKind,
       owner_agreement_accepted_at: new Date().toISOString(),
       owner_agreement_version: OWNER_AGREEMENT_VERSION,
     })

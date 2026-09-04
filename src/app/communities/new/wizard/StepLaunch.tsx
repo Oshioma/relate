@@ -6,7 +6,7 @@ import { Sparkles, Rocket } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCommunityTemplate, getPlaceLocationType, getActivityKind } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType, getActivityKind, getSchoolKind } from "@/lib/community-templates";
 import { TEMPLATE_ICONS } from "@/lib/template-icons";
 import { OWNER_AGREEMENT_ACCEPTANCE } from "@/lib/owner-agreement";
 import { createCommunityFromWizard } from "../actions";
@@ -22,6 +22,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
   const Icon = template ? (TEMPLATE_ICONS[template.icon] ?? Sparkles) : Sparkles;
   const locationType = state.templateKey === "place" ? getPlaceLocationType(state.locationType) : undefined;
   const activityKind = state.templateKey === "activity" ? getActivityKind(state.activityKind) : undefined;
+  const schoolKind = state.templateKey === "school" ? getSchoolKind(state.schoolKind) : undefined;
 
   async function submit() {
     setSubmitting(true);
@@ -36,6 +37,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       locationName: state.templateKey === "place" ? state.locationName : "",
       artistMode: state.templateKey === "fanclub" ? state.artistMode : "",
       activityKind: state.templateKey === "activity" ? state.activityKind : "",
+      schoolKind: state.templateKey === "school" ? state.schoolKind : "",
       // Both Place and Activity communities seed the map's togglable layers —
       // one from the kind of place, the other from the activity.
       mapLayers: state.templateKey === "place" || state.templateKey === "activity" ? state.mapLayers : [],
@@ -78,6 +80,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
         <div className="mt-4 flex flex-wrap gap-1.5">
           <Badge tone="accent">{template?.label ?? "Custom"}</Badge>
           {activityKind && <Badge tone="accent">{activityKind.label}</Badge>}
+          {schoolKind && <Badge tone="accent">{schoolKind.label}</Badge>}
           <Badge>{state.privacy.replace("_", " ")}</Badge>
           <Badge>{state.spaces.length} spaces</Badge>
           {state.profileFields.length > 0 && <Badge>{state.profileFields.length} profile fields</Badge>}

@@ -35,6 +35,9 @@ export interface WizardState {
   // Activity template only: which activity the community is built around
   // (ACTIVITY_KINDS). Empty for every other template, and until picked.
   activityKind: string;
+  // School template only: what kind of school this is (SCHOOL_KINDS). Empty
+  // for every other template, and until picked.
+  schoolKind: string;
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
@@ -53,6 +56,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   locationName: "",
   artistMode: "",
   activityKind: "",
+  schoolKind: "",
   mapLayers: [],
   rationale: [],
   spaces: [],

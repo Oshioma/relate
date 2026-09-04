@@ -37,7 +37,8 @@ export type SpaceType =
   | "my_crops"
   | "plant_id"
   | "live"
-  | "meetups";
+  | "meetups"
+  | "lessons";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -219,6 +220,10 @@ export type Community = {
   // 'hiking', 'running', 'cycling', … Validated against ACTIVITY_KINDS at the
   // application layer, same as location_type. Null for every other template.
   activity_kind: string | null;
+  // School template only: what kind of school this is — 'primary',
+  // 'secondary', 'homeschool', … Validated against SCHOOL_KINDS at the
+  // application layer, same as location_type. Null for every other template.
+  school_kind: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
   // the service-role client — a DB trigger rejects anon/authenticated writes
   // to these columns, so include them in an Update payload only from the
@@ -1111,6 +1116,24 @@ export type Meetup = {
   distance_km: number | null;
   capacity: number | null;
   status: MeetupStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+// A lesson in a Lessons space. `lesson` holds the written document (shape:
+// StoredLesson in src/lib/school/lesson-types.ts) as jsonb; title, subject and
+// age_band are denormalised out of it so the library can filter and group
+// without reading every document. See 20260904181544_space_lessons.sql.
+export type SpaceLesson = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  age_band: string;
+  title: string;
+  subject: string;
+  source_text: string;
+  lesson: unknown;
   created_at: string;
   updated_at: string;
 };
@@ -2276,6 +2299,12 @@ export type Database = {
         Row: Meetup;
         Insert: Partial<Meetup> & { space_id: string; community_id: string; created_by: string; title: string; starts_at: string };
         Update: Partial<Meetup>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      space_lessons: {
+        Row: SpaceLesson;
+        Insert: Partial<SpaceLesson> & { space_id: string; community_id: string; created_by: string };
+        Update: Partial<SpaceLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
       meetup_participants: {
