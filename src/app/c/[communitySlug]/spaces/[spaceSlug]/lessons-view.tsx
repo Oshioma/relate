@@ -203,21 +203,22 @@ export function LessonsView({
 
   return (
     <div className="space-y-5">
-      {canWrite && !composing && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {lessons.length === 0
-              ? "No lessons yet."
-              : `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`}
-          </p>
-          {writerConfigured && (
-            <Button onClick={() => setComposing(true)} size="sm">
-              <Plus className="h-4 w-4" />
-              Write a lesson
-            </Button>
-          )}
-        </div>
-      )}
+      {/* How much is here is everyone's business; writing is staff's. Gating the
+          whole row on canWrite meant a parent never saw the count, and it
+          disappeared from under the writer's own feet while composing. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {lessons.length === 0
+            ? "No lessons yet."
+            : `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`}
+        </p>
+        {canWrite && writerConfigured && !composing && (
+          <Button onClick={() => setComposing(true)} size="sm" className="shrink-0">
+            <Plus className="h-4 w-4" />
+            Write a lesson
+          </Button>
+        )}
+      </div>
 
       {composing && (
         <LessonComposer spaceId={spaceId} defaultAgeBand={defaultAgeBand} onClose={() => setComposing(false)} />
@@ -226,7 +227,7 @@ export function LessonsView({
       {subjectCounts.length > 1 && (
         <div className="flex flex-wrap gap-2">
           <SubjectTile
-            icon="\u{1F4DA}"
+            icon="📚"
             label="All"
             count={matching.length}
             active={subject === null}
