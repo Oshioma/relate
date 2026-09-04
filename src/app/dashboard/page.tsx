@@ -60,7 +60,7 @@ export default async function DashboardPage() {
               <Card className="h-full transition-shadow group-hover:shadow-sm">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between gap-3">
-                    <Avatar src={community.logo_url} name={community.name} size={56} />
+                    <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} />
                     <Badge tone="accent">{community.membership.role}</Badge>
                   </div>
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
             {discoverable.map((community) => (
               <Card key={community.id}>
                 <CardContent className="pt-6">
-                  <Avatar src={community.logo_url} name={community.name} size={56} />
+                  <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} />
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
                   {community.description && (
                     <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>

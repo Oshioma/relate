@@ -237,7 +237,7 @@ export default async function CommunityLayout({
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} size={140} />
+            <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={140} />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
             </span>
@@ -455,6 +455,7 @@ export default async function CommunityLayout({
       <MobileNav
         communityName={community.name}
         communityLogoUrl={community.logo_url}
+        communityInitials={community.logo_initials}
         communityHref={base}
         tabs={[
           { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
