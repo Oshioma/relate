@@ -1,77 +1,47 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Search, NotebookText, Plus, EyeOff } from "lucide-react";
+import { Search, NotebookText, Plus, Bookmark, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LessonComposer } from "./lesson-composer";
-import { AgeBadge, LessonThumbnail } from "./lesson-document";
+import { LessonCard } from "./lesson-card";
+import { IdeasForToday } from "./ideas-for-today";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
+  DISCOVERY_CATEGORIES,
+  DURATION_FILTERS,
   SUBJECT_ICONS,
   lessonSearchText,
-  providerName,
+  matchesDuration,
   normaliseSubject,
+  providerName,
+  type DiscoveryCategory,
+  type DurationFilterKey,
   type LessonRow,
   type Subject,
 } from "@/lib/school/lesson-types";
 
-// The teaching library. Lessons are grouped by subject rather than listed flat:
-// a school accumulates hundreds, and "what do we have for History?" is the
-// question actually being asked.
-
-// One lesson, as a full-width row rather than a card in a grid.
+// The teaching library.
 //
-// A three-column grid gave each title about twenty characters a line, so
-// "Free Heat: How the Sun Can Warm Your Home for Nothing" came out as six
-// stacked fragments. Lesson titles are sentences, and a teacher scanning a
-// library is reading the titles — so they get the width, at a size worth
-// reading, with the picture as a thumbnail beside them.
-function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
-  return (
-    <Link
-      href={href}
-      className="group flex items-start gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40"
-    >
-      <LessonThumbnail
-        lesson={lesson.lesson}
-        subject={lesson.subject}
-        className="h-16 w-16 shrink-0 rounded-md sm:h-20 sm:w-20"
-      />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-accent sm:text-lg">
-            {lesson.title || "Untitled lesson"}
-          </h3>
-          <AgeBadge band={lesson.age_band} />
-        </div>
-        {lesson.lesson?.summary && (
-          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {lesson.lesson.summary}
-          </p>
-        )}
-        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-          {providerName(lesson)}
-          {!lesson.is_public && (
-            <>
-              <span aria-hidden>·</span>
-              <EyeOff className="h-3 w-3" />
-              Private
-            </>
-          )}
-        </p>
-      </div>
-    </Link>
-  );
-}
+// Two ways in, on purpose. A school subject answers "where does this sit on a
+// timetable"; a discovery category answers "what would we be doing this
+// afternoon", which is the question a family actually asks. The rail across the
+// top is the second one, because it is the one used most; subject stays a
+// filter alongside age, time and who wrote it.
 
-// One subject, as something big enough to aim at. A library is browsed by
-// subject far more often than it is searched, so these sit above the search
-// box rather than beside it, and a subject with nothing in it never appears.
-function SubjectTile({
+// The breakpoints hold the CARD width roughly constant (~355px) rather than
+// holding the column count constant — that is what stops long titles
+// fragmenting. "Spot the Claim: Thinking Like a Detective About What You Watch
+// Online" is 68 characters; at 355px it wraps to three comfortable lines, and
+// at the 240px a third column would have given inside the old reading-width
+// container it came out as six stacked fragments. So: one column on a phone,
+// two from 768px, and a third only from 1280px, where the page measure is wide
+// enough to add one without narrowing the others.
+const GRID = "grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3";
+
+function DiscoveryPill({
   icon,
   label,
   count,
@@ -90,18 +60,56 @@ function SubjectTile({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex min-w-[6.5rem] flex-1 flex-col items-center gap-1 rounded-lg border-2 px-3 py-3 transition-colors sm:min-w-[7.5rem] sm:flex-none",
+        "flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors",
         active
-          ? "border-accent bg-accent-soft"
-          : "border-border bg-card hover:border-muted-foreground/40"
+          ? "bg-accent text-accent-foreground"
+          : "bg-card text-foreground ring-1 ring-border/60 hover:bg-muted"
       )}
     >
-      <span aria-hidden className="text-2xl leading-none">
+      <span aria-hidden className="text-base leading-none">
         {icon}
       </span>
-      <span className="text-sm font-semibold leading-tight text-foreground">{label}</span>
-      <span className="text-xs text-muted-foreground">{count}</span>
+      {label}
+      <span className={cn("text-xs", active ? "opacity-80" : "text-muted-foreground")}>
+        {count}
+      </span>
     </button>
+  );
+}
+
+// A quiet dropdown. There are several of these, and a row of small controls
+// keeps them out of the way of the lessons — the filters this replaces were
+// bigger on the page than the things they filtered.
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={cn(
+        "rounded-full px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        value
+          ? "bg-accent-soft font-medium text-accent"
+          : "bg-card text-muted-foreground ring-1 ring-border/60 hover:bg-muted"
+      )}
+    >
+      <option value="">{label}</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -111,6 +119,7 @@ export function LessonsView({
   communitySlug,
   spaceSlug,
   canWrite,
+  isMember,
   defaultAgeBand,
   writerConfigured,
 }: {
@@ -118,17 +127,23 @@ export function LessonsView({
   spaceId: string;
   communitySlug: string;
   spaceSlug: string;
-  // Staff only — see the authoring note in 20260904181544_space_lessons.sql.
+  // Staff only — see the authoring note in the space_lessons migration.
   canWrite: boolean;
+  // Signed-in members can save; a guest reading a public library has nowhere
+  // to save to, and a disabled bookmark is worse than none.
+  isMember: boolean;
   defaultAgeBand: string;
-  // False when ANTHROPIC_API_KEY isn't set: the library still reads, but
-  // there is no point offering a composer that cannot work.
+  // False when ANTHROPIC_API_KEY isn't set: the library still reads, but there
+  // is no point offering a composer that cannot work.
   writerConfigured: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [band, setBand] = useState<string | null>(null);
-  const [subject, setSubject] = useState<Subject | null>(null);
-  const [provider, setProvider] = useState<string | null>(null);
+  const [discovery, setDiscovery] = useState<DiscoveryCategory | null>(null);
+  const [subject, setSubject] = useState("");
+  const [band, setBand] = useState("");
+  const [duration, setDuration] = useState("");
+  const [provider, setProvider] = useState("");
+  const [savedOnly, setSavedOnly] = useState(false);
   const [composing, setComposing] = useState(false);
 
   // Precomputed once per lesson: the search box matches on everything in the
@@ -138,156 +153,213 @@ export function LessonsView({
     [lessons]
   );
 
-  // Everything the search box and age band allow, before a subject is picked.
-  // The subject buttons count against THIS, so each one shows what you would
-  // get by clicking it rather than a total that ignores the rest of the page.
-  const matching = useMemo(() => {
+  // Everything except the discovery rail, so the rail can count what picking
+  // each one would actually give you.
+  const beforeDiscovery = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return lessons.filter((lesson) => {
       if (band && lesson.age_band !== band) return false;
+      if (subject && normaliseSubject(lesson.subject) !== subject) return false;
       if (provider && providerName(lesson) !== provider) return false;
+      if (savedOnly && !lesson.saved) return false;
+      if (!matchesDuration(lesson.duration_minutes, (duration || null) as DurationFilterKey | null))
+        return false;
       if (!needle) return true;
       return (searchable.get(lesson.id) ?? "").includes(needle);
     });
-  }, [lessons, query, band, provider, searchable]);
+  }, [lessons, query, band, subject, provider, savedOnly, duration, searchable]);
 
-  // Everyone who has written a lesson here, with how many. Counted before the
-  // provider filter itself, so choosing one doesn't collapse the list you chose
-  // it from. Alphabetical: there is no meaningful order to authors.
-  const providers = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+  const filtered = useMemo(
+    () =>
+      discovery
+        ? beforeDiscovery.filter((l) => (l.discovery_categories ?? []).includes(discovery))
+        : beforeDiscovery,
+    [beforeDiscovery, discovery]
+  );
+
+  const discoveryCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const lesson of lessons) {
-      if (band && lesson.age_band !== band) continue;
-      if (needle && !(searchable.get(lesson.id) ?? "").includes(needle)) continue;
-      const name = providerName(lesson);
-      counts.set(name, (counts.get(name) ?? 0) + 1);
+    for (const lesson of beforeDiscovery) {
+      for (const key of lesson.discovery_categories ?? []) {
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
     }
-    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [lessons, query, band, searchable]);
+    return counts;
+  }, [beforeDiscovery]);
 
-  // Only subjects that actually have something, in the order SUBJECT_ICONS
-  // declares them, so the row doesn't reshuffle as lessons are added.
-  const subjectCounts = useMemo(() => {
+  // Only subjects and people that actually have lessons, so a dropdown never
+  // offers a filter that returns nothing.
+  const subjectOptions = useMemo(() => {
     const counts = new Map<Subject, number>();
-    for (const lesson of matching) {
+    for (const lesson of lessons) {
       const key = normaliseSubject(lesson.subject);
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
-    return [...counts.entries()].sort(
-      (a, b) =>
-        Object.keys(SUBJECT_ICONS).indexOf(a[0]) - Object.keys(SUBJECT_ICONS).indexOf(b[0])
-    );
-  }, [matching]);
+    return [...counts.entries()]
+      .sort(
+        (a, b) =>
+          Object.keys(SUBJECT_ICONS).indexOf(a[0]) - Object.keys(SUBJECT_ICONS).indexOf(b[0])
+      )
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [lessons]);
 
-  const filtered = useMemo(
-    () => (subject ? matching.filter((l) => normaliseSubject(l.subject) === subject) : matching),
-    [matching, subject]
-  );
-
-  // Grouped by subject, subjects in the order SUBJECT_ICONS declares them so
-  // the page doesn't reshuffle as lessons are added.
-  const grouped = useMemo(() => {
-    const groups = new Map<Subject, LessonRow[]>();
-    for (const lesson of filtered) {
-      const subject = normaliseSubject(lesson.subject);
-      const existing = groups.get(subject);
-      if (existing) existing.push(lesson);
-      else groups.set(subject, [lesson]);
+  const providerOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const lesson of lessons) {
+      const name = providerName(lesson);
+      counts.set(name, (counts.get(name) ?? 0) + 1);
     }
-    return [...groups.entries()].sort(
-      (a, b) =>
-        Object.keys(SUBJECT_ICONS).indexOf(a[0]) - Object.keys(SUBJECT_ICONS).indexOf(b[0])
-    );
-  }, [filtered]);
+    return [...counts.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ value: name, label: `${name} (${count})` }));
+  }, [lessons]);
+
+  const savedCount = useMemo(() => lessons.filter((l) => l.saved).length, [lessons]);
+
+  const activeFilters =
+    Boolean(query.trim()) ||
+    Boolean(discovery) ||
+    Boolean(subject) ||
+    Boolean(band) ||
+    Boolean(duration) ||
+    Boolean(provider) ||
+    savedOnly;
+
+  function clearAll() {
+    setQuery("");
+    setDiscovery(null);
+    setSubject("");
+    setBand("");
+    setDuration("");
+    setProvider("");
+    setSavedOnly(false);
+  }
 
   return (
-    <div className="space-y-5">
-      {/* How much is here is everyone's business; writing is staff's. Gating the
-          whole row on canWrite meant a parent never saw the count, and it
-          disappeared from under the writer's own feet while composing. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {lessons.length === 0
-            ? "No lessons yet."
-            : `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`}
-        </p>
-        {canWrite && writerConfigured && !composing && (
-          <Button onClick={() => setComposing(true)} size="sm" className="shrink-0">
-            <Plus className="h-4 w-4" />
-            Write a lesson
-          </Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* The library is the front door of a homeschool community, so it says
+          what it is for rather than counting rows at someone. */}
+      <header className="rounded-2xl bg-accent-soft/70 p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Lessons
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Real learning for real life. Ideas, activities and inspiration from our community.
+            </p>
+          </div>
+          {canWrite && writerConfigured && !composing && (
+            <Button onClick={() => setComposing(true)} className="shrink-0">
+              <Plus className="h-4 w-4" />
+              Write a lesson
+            </Button>
+          )}
+        </div>
+      </header>
 
       {composing && (
-        <LessonComposer spaceId={spaceId} defaultAgeBand={defaultAgeBand} onClose={() => setComposing(false)} />
-      )}
-
-      {subjectCounts.length > 1 && (
-        <div className="flex flex-wrap gap-2">
-          <SubjectTile
-            icon="📚"
-            label="All"
-            count={matching.length}
-            active={subject === null}
-            onClick={() => setSubject(null)}
-          />
-          {subjectCounts.map(([name, count]) => (
-            <SubjectTile
-              key={name}
-              icon={SUBJECT_ICONS[name]}
-              label={name}
-              count={count}
-              active={subject === name}
-              onClick={() => setSubject(subject === name ? null : name)}
-            />
-          ))}
-        </div>
+        <LessonComposer
+          spaceId={spaceId}
+          defaultAgeBand={defaultAgeBand}
+          onClose={() => setComposing(false)}
+        />
       )}
 
       {lessons.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search lessons…"
-              className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <IdeasForToday lessons={lessons} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+      )}
+
+      {lessons.length > 0 && (
+        <div className="space-y-3">
+          {/* Scrolls sideways on a phone rather than wrapping into a block of
+              buttons taller than the first lesson. */}
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <DiscoveryPill
+              icon="✨"
+              label="All"
+              count={beforeDiscovery.length}
+              active={discovery === null}
+              onClick={() => setDiscovery(null)}
             />
+            {DISCOVERY_CATEGORIES.map((category) => (
+              <DiscoveryPill
+                key={category.key}
+                icon={category.icon}
+                label={category.label}
+                count={discoveryCounts.get(category.key) ?? 0}
+                active={discovery === category.key}
+                onClick={() => setDiscovery(discovery === category.key ? null : category.key)}
+              />
+            ))}
           </div>
-          {providers.length > 1 && (
-            <select
-              value={provider ?? ""}
-              onChange={(e) => setProvider(e.target.value || null)}
-              aria-label="Filter by who wrote the lesson"
-              className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">All providers</option>
-              {providers.map(([name, count]) => (
-                <option key={name} value={name}>
-                  {name} ({count})
-                </option>
-              ))}
-            </select>
-          )}
-          <div className="flex gap-1.5">
-            {AGE_BANDS.map((entry) => (
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-[12rem] flex-1">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search lessons, topics or keywords…"
+                className="w-full rounded-full bg-card py-2.5 pl-10 pr-4 text-sm text-foreground ring-1 ring-border/60 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </div>
+
+            <FilterSelect
+              label="Subject"
+              value={subject}
+              onChange={setSubject}
+              options={subjectOptions}
+            />
+            <FilterSelect
+              label="Ages"
+              value={band}
+              onChange={setBand}
+              options={AGE_BANDS.map((b) => ({ value: b.key, label: b.label }))}
+            />
+            <FilterSelect
+              label="Time"
+              value={duration}
+              onChange={setDuration}
+              options={DURATION_FILTERS.map((d) => ({ value: d.key, label: d.label }))}
+            />
+            {providerOptions.length > 1 && (
+              <FilterSelect
+                label="Provider"
+                value={provider}
+                onChange={setProvider}
+                options={providerOptions}
+              />
+            )}
+
+            {isMember && savedCount > 0 && (
               <button
-                key={entry.key}
                 type="button"
-                onClick={() => setBand(band === entry.key ? null : entry.key)}
+                onClick={() => setSavedOnly(!savedOnly)}
+                aria-pressed={savedOnly}
                 className={cn(
-                  "rounded-md border-2 px-2.5 py-1.5 text-xs font-medium transition-colors",
-                  band === entry.key
-                    ? "border-accent bg-accent-soft text-foreground"
-                    : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"
+                  "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition-colors",
+                  savedOnly
+                    ? "bg-accent-soft font-medium text-accent"
+                    : "bg-card text-muted-foreground ring-1 ring-border/60 hover:bg-muted"
                 )}
               >
-                {entry.label}
+                <Bookmark className={cn("h-3.5 w-3.5", savedOnly && "fill-accent")} />
+                Saved
+                <span className="text-xs">{savedCount}</span>
               </button>
-            ))}
+            )}
+
+            {activeFilters && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+                Clear
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -301,34 +373,40 @@ export function LessonsView({
               ? writerConfigured
                 ? "Paste a chapter, an article or your own notes, and get back a lesson written for the right age — ready to teach or print."
                 : "The lesson writer isn't configured on this deployment yet."
-              : "Teachers and staff will add lessons here."
+              : "Lessons will appear here as they're written."
           }
         />
       ) : filtered.length === 0 ? (
-        <Card className="p-8 text-center text-sm text-muted-foreground">
-          Nothing matches that search.
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {grouped.map(([subject, subjectLessons]) => (
-            <section key={subject}>
-              <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground">
-                <span aria-hidden>{SUBJECT_ICONS[subject]}</span>
-                {subject}
-                <span className="font-normal text-muted-foreground">({subjectLessons.length})</span>
-              </h2>
-              <div className="grid gap-2.5">
-                {subjectLessons.map((lesson) => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={lesson}
-                    href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+        <div className="rounded-2xl bg-card p-10 text-center ring-1 ring-border/50">
+          <p className="text-sm text-muted-foreground">Nothing matches that just now.</p>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="mt-3 text-sm font-medium text-accent hover:underline"
+          >
+            Clear the filters
+          </button>
         </div>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length === lessons.length
+              ? `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`
+              : `${filtered.length} of ${lessons.length} lessons.`}
+          </p>
+          <div className={GRID}>
+            {filtered.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
+                communitySlug={communitySlug}
+                spaceSlug={spaceSlug}
+                canSave={isMember}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

@@ -12,7 +12,7 @@ type Client = SupabaseClient<Database>;
 export async function getSpaceLessons(supabase: Client, spaceId: string): Promise<LessonRow[]> {
   const { data, error } = await supabase
     .from("space_lessons")
-    .select("*, creator:created_by (full_name, username)")
+    .select("*, creator:created_by (full_name, username, avatar_url)")
     .eq("space_id", spaceId)
     .order("created_at", { ascending: false });
 
@@ -23,7 +23,7 @@ export async function getSpaceLessons(supabase: Client, spaceId: string): Promis
 export async function getLesson(supabase: Client, lessonId: string): Promise<LessonRow | null> {
   const { data, error } = await supabase
     .from("space_lessons")
-    .select("*, creator:created_by (full_name, username)")
+    .select("*, creator:created_by (full_name, username, avatar_url)")
     .eq("id", lessonId)
     .maybeSingle();
 
@@ -40,4 +40,41 @@ export async function countSpaceLessons(supabase: Client, spaceId: string): Prom
 
   if (error) throw error;
   return count ?? 0;
+}
+
+// --- Saved lessons -----------------------------------------------------------
+//
+// A save is private to whoever made it (see the lesson_saves migration), so
+// these all read as the caller and RLS does the scoping. Nothing here needs to
+// know about staff or spaces.
+
+// The ids this viewer has saved, out of a set the page already has. Returns an
+// empty set for a signed-out visitor rather than querying for nobody.
+export async function getSavedLessonIds(
+  supabase: Client,
+  userId: string,
+  lessonIds: string[]
+): Promise<Set<string>> {
+  if (!userId || lessonIds.length === 0) return new Set();
+
+  const { data, error } = await supabase
+    .from("lesson_saves")
+    .select("lesson_id")
+    .eq("user_id", userId)
+    .in("lesson_id", lessonIds);
+
+  // A failure here costs a bookmark icon, not the library — the lessons still
+  // render, just without their saved state.
+  if (error) {
+    console.error("Could not read saved lessons", error);
+    return new Set();
+  }
+
+  return new Set((data ?? []).map((row) => row.lesson_id));
+}
+
+// Marks up rows the page already fetched, so the card can render its own state
+// without every card asking the database.
+export function withSavedState(lessons: LessonRow[], savedIds: Set<string>): LessonRow[] {
+  return lessons.map((lesson) => ({ ...lesson, saved: savedIds.has(lesson.id) }));
 }

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { getLesson } from "@/lib/data/lessons";
 import {
+  cleanDiscoveryCategories,
   EditableLessonSchema,
   normaliseSubject,
   type StoredLesson,
@@ -106,6 +107,85 @@ export async function setLessonVisibility(
   const { error } = await supabase
     .from("space_lessons")
     .update({ is_public: isPublic })
+    .eq("id", lessonId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
+// Puts a lesson on, or takes it off, the caller's own list.
+//
+// Any member who can see the lesson may save it — this is a reading list, not
+// an edit. Row presence is the state, so this inserts or deletes rather than
+// flipping a flag, and RLS scopes both to the caller.
+export async function toggleLessonSave(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const saved = formData.get("saved") === "1";
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to save a lesson." };
+
+  const { error } = saved
+    ? await supabase
+        .from("lesson_saves")
+        .delete()
+        .eq("lesson_id", lessonId)
+        .eq("user_id", user.id)
+    : await supabase.from("lesson_saves").insert({ lesson_id: lessonId, user_id: user.id });
+
+  // Saving something already saved is what the button was for, not an error.
+  if (error && error.code !== "23505") return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
+// Corrects what the model decided. The classification is a guess made while
+// writing; whoever teaches the lesson knows better.
+export async function updateLessonClassification(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const rawMinutes = String(formData.get("duration_minutes") ?? "").trim();
+  const categories = formData.getAll("discovery").map(String);
+
+  let duration: number | null = null;
+  if (rawMinutes) {
+    const parsed = Number(rawMinutes);
+    if (!Number.isInteger(parsed) || parsed < 5 || parsed > 480) {
+      return { error: "That duration isn't a sensible number of minutes." };
+    }
+    duration = parsed;
+  }
+
+  const supabase = await createClient();
+
+  const lesson = await getLesson(supabase, lessonId);
+  if (!lesson) return { error: "Lesson not found." };
+
+  const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const { error } = await supabase
+    .from("space_lessons")
+    .update({
+      // Cleaned, not trusted: the column constrains these to the eight.
+      discovery_categories: cleanDiscoveryCategories(categories),
+      duration_minutes: duration,
+    })
     .eq("id", lessonId);
 
   if (error) return { error: error.message };

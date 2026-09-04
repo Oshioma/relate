@@ -29,7 +29,7 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceMeetups } from "@/lib/data/meetups";
-import { getSpaceLessons } from "@/lib/data/lessons";
+import { getSpaceLessons, getSavedLessonIds, withSavedState } from "@/lib/data/lessons";
 import { DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
 import { activityLabelForKind, schoolDefaultAgeBand } from "@/lib/community-templates";
 import { getSpaceGuides } from "@/lib/data/guides";
@@ -289,7 +289,13 @@ export default async function SpaceDetailPage({
 
   // The teaching library for a Lessons space. RLS scopes it to what the viewer
   // may see, so a guest on a public school community gets the same list.
-  const lessons = isLessonsSpace ? await getSpaceLessons(supabase, space.id) : [];
+  const allLessons = isLessonsSpace ? await getSpaceLessons(supabase, space.id) : [];
+  // Which of them this viewer has saved. Private to them — staff can't see it
+  // either — so a guest simply gets none and the bookmark isn't offered.
+  const savedLessonIds = isLessonsSpace && user
+    ? await getSavedLessonIds(supabase, user.id, allLessons.map((l) => l.id))
+    : new Set<string>();
+  const lessons = isLessonsSpace ? withSavedState(allLessons, savedLessonIds) : [];
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -384,7 +390,16 @@ export default async function SpaceDetailPage({
     // A directory opens straight onto its own controls, so it also gives back
     // the page's top padding — every line above the first listing is a line of
     // the directory nobody can see.
-    <div className={`mx-auto max-w-3xl px-4 pb-8 sm:px-6 sm:pb-10 ${isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"}`}>
+    // A library of picture cards needs room: at max-w-3xl a two-column grid
+    // gives 350px cards and a third column is impossible, so a Lessons space
+    // gets the wider measure. Everything else keeps the reading width it had.
+    <div
+      className={cn(
+        "mx-auto px-4 pb-8 sm:px-6 sm:pb-10",
+        isLessonsSpace ? "max-w-6xl" : "max-w-3xl",
+        isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
+      )}
+    >
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
@@ -748,6 +763,7 @@ export default async function SpaceDetailPage({
           communitySlug={community.slug}
           spaceSlug={space.slug}
           canWrite={Boolean(isStaff)}
+          isMember={canPost}
           defaultAgeBand={schoolDefaultAgeBand(community.school_kind) ?? DEFAULT_AGE_BAND}
           writerConfigured={isLessonWriterConfigured()}
         />

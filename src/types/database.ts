@@ -1141,8 +1141,23 @@ export type SpaceLesson = {
   // False = visible only to its author and community staff. Enforced in RLS,
   // not just filtered in the UI. See the lesson_visibility migration.
   is_public: boolean;
+  // What a child would be DOING, alongside the formal subject. A closed set of
+  // eight, constrained in the database too. See the lesson_discovery_and_duration
+  // migration.
+  discovery_categories: string[];
+  // Real minutes for one sitting, so "we have half an hour" is a range query.
+  // Null on a lesson nobody has timed.
+  duration_minutes: number | null;
   created_at: string;
   updated_at: string;
+};
+
+// A lesson someone means to come back to. Private to its owner.
+export type LessonSave = {
+  id: string;
+  lesson_id: string;
+  user_id: string;
+  created_at: string;
 };
 
 export type MeetupParticipant = {
@@ -2307,6 +2322,12 @@ export type Database = {
         Insert: Partial<Meetup> & { space_id: string; community_id: string; created_by: string; title: string; starts_at: string };
         Update: Partial<Meetup>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      lesson_saves: {
+        Row: LessonSave;
+        Insert: Partial<LessonSave> & { lesson_id: string; user_id: string };
+        Update: Partial<LessonSave>;
+        Relationships: [FKey<"lesson_id", "space_lessons">, FKey<"user_id", "profiles">];
       };
       space_lessons: {
         Row: SpaceLesson;
