@@ -2,7 +2,7 @@
 
 import { Globe, Lock, Mail } from "lucide-react";
 import { Input, Textarea, Label } from "@/components/ui/input";
-import { slugify, cn } from "@/lib/utils";
+import { slugifyCommunity, cn } from "@/lib/utils";
 import type { CommunityPrivacy } from "@/types/database";
 import type { WizardState } from "./types";
 
@@ -31,7 +31,7 @@ export function StepBasics({ state, update }: { state: WizardState; update: (pat
           value={state.name}
           onChange={(e) => {
             const value = e.target.value;
-            update({ name: value, slug: state.slugTouched ? state.slug : slugify(value) });
+            update({ name: value, slug: state.slugTouched ? state.slug : slugifyCommunity(value) });
           }}
         />
       </div>
@@ -45,7 +45,7 @@ export function StepBasics({ state, update }: { state: WizardState; update: (pat
             required
             placeholder="kushukuru"
             value={state.slug}
-            onChange={(e) => update({ slug: slugify(e.target.value), slugTouched: true })}
+            onChange={(e) => update({ slug: slugifyCommunity(e.target.value), slugTouched: true })}
           />
         </div>
       </div>
