@@ -29,7 +29,7 @@ import { getSpaceAccommodationListingsWithStats, getCommunityBusinessLinkOptions
 import { getSpaceRecommendations } from "@/lib/data/recommendations";
 import { getSpaceClubs } from "@/lib/data/clubs";
 import { getSpaceMeetups } from "@/lib/data/meetups";
-import { getSpaceLessons, getHomeworkForLessons } from "@/lib/data/lessons";
+import { getSpaceLessons } from "@/lib/data/lessons";
 import { DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
 import { activityLabelForKind, schoolDefaultAgeBand } from "@/lib/community-templates";
 import { getSpaceGuides } from "@/lib/data/guides";
@@ -290,11 +290,6 @@ export default async function SpaceDetailPage({
   // The teaching library for a Lessons space. RLS scopes it to what the viewer
   // may see, so a guest on a public school community gets the same list.
   const lessons = isLessonsSpace ? await getSpaceLessons(supabase, space.id) : [];
-  // What has been sent home, so the library shows it without opening each
-  // lesson. RLS gives a member only their own ticks and staff everyone's.
-  const lessonHomework = lessons.length
-    ? await getHomeworkForLessons(supabase, lessons.map((l) => l.id), viewerId)
-    : new Map();
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -749,7 +744,6 @@ export default async function SpaceDetailPage({
       ) : isLessonsSpace ? (
         <LessonsView
           lessons={lessons}
-          homework={lessonHomework}
           spaceId={space.id}
           communitySlug={community.slug}
           spaceSlug={space.slug}
