@@ -997,6 +997,10 @@ export interface SchoolKind {
   // Matched case-insensitively against the base's names, so a rename in
   // SCHOOL_SPACES doesn't turn this into a silent no-op.
   omitSpaces?: string[];
+  // Profile fields from the shared base this kind should not ask for, by label.
+  // Same reasoning and same matching as omitSpaces: a homeschool has no year
+  // groups to put a child in and no governors to be one.
+  omitProfileFields?: string[];
   // What the setup step says about those omissions. Falls back to listing the
   // names when absent — set it wherever that list would mislead, such as a
   // space dropped from the base only to come back under a better name.
@@ -1046,7 +1050,7 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       "PTA & Volunteering",
     ],
     omitNote:
-      "Left out the parts that only exist inside a school — announcements, year groups, a staff room and a PTA. Parent Chat is here as Family Chat, and the reading lists as Reading & Resources.",
+      "Left out the parts that only exist inside a school — announcements, year groups, a staff room, a PTA, and asking whether someone is a governor. Parent Chat is here as Family Chat, and the reading lists as Reading & Resources.",
     extraSpaces: [
       { name: "Family Chat", description: "General conversation between the families teaching together." },
       { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
@@ -1054,6 +1058,10 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
       { name: "Swap Shelf", description: "Books, kit and materials to pass on when you're done.", space_type: "marketplace" },
     ],
+    // Nobody here is a governor or the school office, and there are no year
+    // groups. "Subjects I Teach" stays — the parent is the teacher, and across
+    // a group of families it is the useful thing to know about each other.
+    omitProfileFields: ["I am a\u2026", "Class or Year Group"],
     extraProfileFields: [{ label: "Children's Ages", field_type: "text" }],
   },
   {
@@ -1127,11 +1135,19 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
   const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
   const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
 
+  const omittedFields = new Set(
+    (kind?.omitProfileFields ?? []).map((label) => label.trim().toLowerCase())
+  );
+  const keptFields = template.defaultProfileFields.filter(
+    (field) => !omittedFields.has(field.label.trim().toLowerCase())
+  );
+
   const rationale = ["Started from the School template's default spaces, with the Lessons library near the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
-    if (kind.omitSpaces?.length) {
-      const names = kind.omitSpaces.map((name) => `\u201C${name}\u201D`).join(" and ");
+    const dropped = [...(kind.omitSpaces ?? []), ...(kind.omitProfileFields ?? [])];
+    if (dropped.length) {
+      const names = dropped.map((name) => `\u201C${name}\u201D`).join(" and ");
       rationale.push(
         kind.omitNote ?? `Left out ${names} \u2014 not something a ${kind.label.toLowerCase()} needs.`
       );
@@ -1141,7 +1157,7 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
 
   return {
     spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
-    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
+    profileFields: [...keptFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
   };
 }
