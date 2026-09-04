@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LessonComposer } from "./lesson-composer";
-import { AgeBadge } from "./lesson-document";
+import { AgeBadge, LessonThumbnail } from "./lesson-document";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
   SUBJECT_ICONS,
   lessonSearchText,
-  lessonThumbnail,
   normaliseSubject,
   type LessonRow,
   type Subject,
@@ -31,22 +30,16 @@ import {
 // library is reading the titles — so they get the width, at a size worth
 // reading, with the picture as a thumbnail beside them.
 function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
-  const thumbnail = lessonThumbnail(lesson.lesson);
-
   return (
     <Link
       href={href}
       className="group flex items-start gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40"
     >
-      {thumbnail && (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={thumbnail.thumbUrl}
-          alt=""
-          loading="lazy"
-          className="h-16 w-16 shrink-0 rounded-md bg-muted object-cover sm:h-20 sm:w-20"
-        />
-      )}
+      <LessonThumbnail
+        lesson={lesson.lesson}
+        subject={lesson.subject}
+        className="h-16 w-16 shrink-0 rounded-md sm:h-20 sm:w-20"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-accent sm:text-lg">
