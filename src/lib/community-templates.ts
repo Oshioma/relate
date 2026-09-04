@@ -997,6 +997,10 @@ export interface SchoolKind {
   // Matched case-insensitively against the base's names, so a rename in
   // SCHOOL_SPACES doesn't turn this into a silent no-op.
   omitSpaces?: string[];
+  // What the setup step says about those omissions. Falls back to listing the
+  // names when absent — set it wherever that list would mislead, such as a
+  // space dropped from the base only to come back under a better name.
+  omitNote?: string;
 }
 
 export const SCHOOL_KINDS: SchoolKind[] = [
@@ -1027,11 +1031,26 @@ export const SCHOOL_KINDS: SchoolKind[] = [
     label: "Homeschool",
     description: "A family, or a group of families, teaching at home.",
     defaultAgeBand: "8-10",
-    // The teaching parent is the only adult here. Curriculum Planning below is
-    // where the thinking goes instead.
-    omitSpaces: ["Staff Room"],
+    // Most of the base assumes an institution: somewhere for the school to
+    // announce things, year groups to sort children into, a staff room, a PTA.
+    // A homeschool has none of that. Two of them come back below under names
+    // that fit — a rename is an omission plus an addition, which is what this
+    // overlay already does, so it needs nothing new.
+    omitSpaces: [
+      "Announcements",
+      "Classes & Year Groups",
+      "Parent Chat",
+      "Staff Room",
+      "Policies & Reading Lists",
+      "School Life",
+      "PTA & Volunteering",
+    ],
+    omitNote:
+      "Left out the parts that only exist inside a school — announcements, year groups, a staff room and a PTA. Parent Chat is here as Family Chat, and the reading lists as Reading & Resources.",
     extraSpaces: [
+      { name: "Family Chat", description: "General conversation between the families teaching together." },
       { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
+      { name: "Reading & Resources", description: "Reading lists, worksheets and materials worth keeping.", space_type: "resources" },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
       { name: "Swap Shelf", description: "Books, kit and materials to pass on when you're done.", space_type: "marketplace" },
     ],
@@ -1113,7 +1132,9 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
     rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
     if (kind.omitSpaces?.length) {
       const names = kind.omitSpaces.map((name) => `\u201C${name}\u201D`).join(" and ");
-      rationale.push(`Left out ${names} \u2014 not something a ${kind.label.toLowerCase()} needs.`);
+      rationale.push(
+        kind.omitNote ?? `Left out ${names} \u2014 not something a ${kind.label.toLowerCase()} needs.`
+      );
     }
     rationale.push(`Lessons will be written for ${kind.defaultAgeBand.replace("-", "\u2013")} year olds by default — changeable on every lesson.`);
   }
