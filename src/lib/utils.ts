@@ -13,6 +13,24 @@ export function slugify(input: string) {
     .slice(0, 60);
 }
 
+// A community's slug is not just a path segment: it is also the community's
+// canonical address, <slug>.<platform-domain>, and it turns up on posters, in
+// speech and in people's address bars. Hyphens read as punctuation in a URL
+// path and as noise in a hostname — squidgeoverskool.relate.click is a name,
+// squidge-over-skool.relate.click is three words someone has to spell out.
+//
+// So community slugs drop the separators that slugify() would insert, rather
+// than keeping them. Everything else slugify() is used for — spaces, guides,
+// business listings — stays hyphenated, because those are path segments read
+// on a screen rather than names said out loud.
+export function slugifyCommunity(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 60);
+}
+
 // Lets people type "example.com" or "www.example.com" instead of requiring
 // a scheme — prepends https:// unless one's already present.
 export function normalizeUrl(input: string): string {

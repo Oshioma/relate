@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { slugify } from "@/lib/utils";
+import { slugify, slugifyCommunity } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
 import { getCommunityTemplate, getPlaceLocationType, getArtistMode, getActivityKind, getSchoolKind } from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
@@ -94,7 +94,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: "Please accept the Community Owner Agreement to create your community." };
   }
 
-  const slug = slugify(payload.slug || name);
+  const slug = slugifyCommunity(payload.slug || name);
   if (!slug || slug.length < 2) {
     return { error: "That URL can't be used — try adding some letters or numbers." };
   }
