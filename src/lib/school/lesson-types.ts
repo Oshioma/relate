@@ -296,6 +296,54 @@ export function isOverdue(due: string): boolean {
   return due < new Date().toISOString().slice(0, 10);
 }
 
+// What a person may hand-edit, and what the server accepts back.
+//
+// Deliberately NOT LessonSchema. That one is the contract sent to Claude: its
+// field descriptions are prompt text, and parsing an edit through it would
+// strip `image` and `cover` — every picture on the lesson — because zod drops
+// keys a schema doesn't declare. It also requires image_query and
+// cover_image_query, which the model writes and a person never touches, so a
+// lesson saved before those existed could never be edited again.
+//
+// So this accepts the stored shape instead: pictures declared and therefore
+// preserved, model-only search phrases optional, and no field descriptions
+// because nothing here is talking to a model.
+const LessonImageSchema = z.object({
+  url: z.string(),
+  thumbUrl: z.string(),
+  title: z.string(),
+  creator: z.string(),
+  license: z.string(),
+  sourceName: z.string(),
+  sourceUrl: z.string(),
+});
+
+export const EditableLessonSchema = z.object({
+  title: z.string(),
+  // Free text on the way in; normaliseSubject pins it to a known subject.
+  subject: z.string(),
+  summary: z.string(),
+  objectives: z.array(z.string()),
+  vocabulary: z.array(z.object({ word: z.string(), meaning: z.string() })),
+  sections: z.array(
+    z.object({
+      heading: z.string(),
+      body: z.string(),
+      image_query: z.string().optional().default(""),
+      image: LessonImageSchema.nullish(),
+    })
+  ),
+  activity: z.object({
+    title: z.string(),
+    instructions: z.string(),
+    materials: z.array(z.string()),
+  }),
+  questions: z.array(z.object({ question: z.string(), answer: z.string() })),
+  discussion: z.array(z.string()),
+  cover_image_query: z.string().optional().default(""),
+  cover: LessonImageSchema.nullish(),
+});
+
 // A space_lessons row with its jsonb document narrowed to StoredLesson.
 // The generated Database type carries `lesson` as unknown, because the shape
 // lives here rather than in the schema — this is where the two meet.
