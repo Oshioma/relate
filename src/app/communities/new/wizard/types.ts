@@ -1,4 +1,4 @@
-import type { ProfileFieldType, CommunityPrivacy, SpaceType } from "@/types/database";
+import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility } from "@/types/database";
 
 export interface WizardSpace {
   id: string;
@@ -7,6 +7,9 @@ export interface WizardSpace {
   show_in_nav: boolean;
   space_type: SpaceType;
   staff_post_only: boolean;
+  // Seeded from the template. Not editable in the wizard — same as
+  // staff_post_only — because both are refined in Admin afterward.
+  visibility: SpaceVisibility;
 }
 
 export interface WizardProfileField {

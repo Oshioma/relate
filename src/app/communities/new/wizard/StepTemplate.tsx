@@ -31,7 +31,7 @@ function toWizardSpaces(spaces: TemplateSpace[], allowedTypes: SpaceType[]): Wiz
   const allowed = new Set(allowedTypes);
   return spaces
     .filter((s) => allowed.has(s.space_type ?? "discussion"))
-    .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion", staff_post_only: s.staff_post_only ?? false }));
+    .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion", staff_post_only: s.staff_post_only ?? false, visibility: s.visibility ?? "members" }));
 }
 
 function toWizardFields(fields: TemplateProfileField[]): WizardProfileField[] {

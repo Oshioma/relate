@@ -41,7 +41,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       // Both Place and Activity communities seed the map's togglable layers —
       // one from the kind of place, the other from the activity.
       mapLayers: state.templateKey === "place" || state.templateKey === "activity" ? state.mapLayers : [],
-      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only })),
+      spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only, visibility: s.visibility })),
       profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
       ownerAgreementAccepted: agreed,
     });
