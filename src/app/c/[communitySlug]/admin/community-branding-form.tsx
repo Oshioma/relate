@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createClient } from "@/lib/supabase/client";
+import { initials } from "@/lib/utils";
 import { Label } from "@/components/ui/input";
 import { ACCENT_PRESETS, normalizeAccentColor } from "@/lib/accent-color";
 import {
@@ -37,12 +38,35 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
   const [mobileCoverPosition, setMobileCoverPosition] = useState<MobileCoverPosition | null>(
     isMobileCoverPosition(community.cover_position_mobile) ? community.cover_position_mobile : null
   );
+  const [logoInitials, setLogoInitials] = useState(community.logo_initials ?? "");
+  const [initialsError, setInitialsError] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(community.show_stats);
   const [statsError, setStatsError] = useState<string | null>(null);
 
   async function persistLogo(url: string) {
     const supabase = createClient();
     await supabase.from("communities").update({ logo_url: url }).eq("id", community.id);
+    router.refresh();
+  }
+
+  // Only reached when there is no logo image, but editable either way: someone
+  // may set the letters now and remove the image later.
+  async function persistInitials(raw: string) {
+    const value = raw.trim().slice(0, 4);
+    setInitialsError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("communities")
+      // Blank clears it, which puts the letters back to being worked out from
+      // the name rather than storing an empty string the constraint rejects.
+      .update({ logo_initials: value || null })
+      .eq("id", community.id);
+
+    if (error) {
+      setInitialsError("Couldn't save those letters.");
+      return;
+    }
     router.refresh();
   }
 
@@ -156,6 +180,28 @@ export function CommunityBrandingForm({ community }: { community: Community }) {
               label="Logo"
               hint="Your mark or wordmark. Shown in the sidebar and the mobile menu."
             />
+          </div>
+
+          <div className="mt-4">
+            <Label htmlFor="logo_initials">Letters</Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Shown in place of a logo when there isn&apos;t one. Left empty, they&apos;re taken from your
+              community&apos;s name &mdash; the first letter of the first and last words.
+            </p>
+            <input
+              id="logo_initials"
+              value={logoInitials}
+              maxLength={4}
+              placeholder={initials(community.name)}
+              onChange={(e) => setLogoInitials(e.target.value)}
+              onBlur={(e) => persistInitials(e.target.value)}
+              className="mt-2 w-24 rounded-md border border-border bg-card px-3 py-2 text-center text-sm font-medium uppercase text-foreground placeholder:font-normal placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            {initialsError && (
+              <p className="mt-1.5 text-xs text-danger" role="alert">
+                {initialsError}
+              </p>
+            )}
           </div>
         </div>
 

@@ -14,14 +14,20 @@ export function CommunityGate({
   community,
   isLoggedIn,
 }: {
-  community: { name: string; slug: string; description: string | null; logo_url: string | null };
+  community: {
+    name: string;
+    slug: string;
+    description: string | null;
+    logo_url: string | null;
+    logo_initials: string | null;
+  };
   isLoggedIn: boolean;
 }) {
   const base = `/c/${community.slug}`;
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-6 py-16 text-center sm:py-24">
-      <Avatar src={community.logo_url} name={community.name} size={88} className="mb-5" />
+      <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={88} className="mb-5" />
       <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{community.name}</h1>
       {community.description && (
         <p className="mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>

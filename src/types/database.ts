@@ -207,6 +207,10 @@ export type Community = {
   // The wizard template this community was created from (COMMUNITY_TEMPLATES
   // key), or null for older communities. Gates type-specific features such as
   // AI event discovery (place only).
+  // Letters for the lettered logo, shown when a community has no logo image.
+  // Null = derive them from the name. See the community_logo_initials
+  // migration.
+  logo_initials: string | null;
   template_key: string | null;
   location_type: string | null;
   location_name: string | null;
