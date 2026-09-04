@@ -79,7 +79,7 @@ export const SUBJECTS = [
   "Music",
   "Art & Design",
   "Computing",
-  "Design & Technology",
+  "Design & Tech",
   "Languages",
   "PE & Health",
   "Religion & Ethics",
@@ -100,7 +100,7 @@ export const SUBJECT_ICONS: Record<Subject, string> = {
   Music: "\u{1F3B5}",
   "Art & Design": "\u{1F3A8}",
   Computing: "\u{1F4BB}",
-  "Design & Technology": "\u{1F528}",
+  "Design & Tech": "\u{1F528}",
   Languages: "\u{1F5E3}\u{FE0F}",
   "PE & Health": "\u{26BD}",
   "Religion & Ethics": "\u{1F54A}\u{FE0F}",
@@ -135,6 +135,11 @@ export function normaliseSubject(value: string): Subject {
     [/\b(histor|ancient|civilis|civiliz|empire)|\bwar\b/, "History"],
     [/\b(geograph|continent|countr|climate|volcano|river|weather)/, "Geography"],
     [/\b(music|song|rhythm|instrument|compos)/, "Music"],
+    // Lessons filed before this subject was shortened still say "Design &
+    // Technology". Both halves of that name are claimed by other patterns
+    // below and above — "technolog" by Computing, "design" by Art & Design —
+    // so it has to be matched first or those lessons quietly move subject.
+    [/design\s*(&|and)\s*tech/, "Design & Tech"],
     [/\b(comput|coding|program|software|technolog|robot)/, "Computing"],
     [/\b(art|draw|paint|sculpt|design)/, "Art & Design"],
     [/\b(sport|exercise|fitness|health|nutrition)|\bp\.?e\.?\b|physical education/, "PE & Health"],
