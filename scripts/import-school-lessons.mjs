@@ -8,14 +8,19 @@
 // scoped a lesson to one person, relate scopes it to a space in a community.
 //
 // WHERE THE FILE COMES FROM
-// Run this in the standalone app's Supabase SQL editor and download the result
-// as JSON:
+// Run this in the standalone app's Supabase SQL editor, then use its Download
+// JSON button:
 //
-//   select coalesce(json_agg(t order by t.created_at), '[]'::json)
-//   from (
-//     select age_band, title, subject, source_text, lesson, created_at
-//     from school_lessons
-//   ) t;
+//   select age_band, title, subject, source_text, lesson, created_at
+//   from school_lessons
+//   order by created_at;
+//
+// A plain select downloads as a clean array of row objects, which is what this
+// reads. Wrapping it in json_agg does NOT: the editor then exports one row
+// holding one column, so the lessons arrive nested inside it. readLessons below
+// unwraps that shape too, because it is an easy thing to end up with and a
+// miserable thing to debug — every lesson would simply be reported as having
+// no title.
 //
 // USAGE
 //   SUPABASE_URL=https://<project>.supabase.co \
@@ -53,13 +58,46 @@ if (!url || !key) {
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
-let rows;
+// A lesson row, as opposed to a wrapper the SQL editor put around them.
+function looksLikeLesson(value) {
+  return Boolean(value) && typeof value === "object" && ("title" in value || "lesson" in value);
+}
+
+// Accepts what the Supabase SQL editor actually produces, which is not always
+// the bare array: a json_agg query exports as one row holding one column whose
+// value is the array. Unwrap that rather than skipping every lesson in it.
+function readLessons(parsed) {
+  if (Array.isArray(parsed) && parsed.every(looksLikeLesson)) return parsed;
+
+  const candidates = [];
+  if (Array.isArray(parsed) && parsed.length === 1) candidates.push(parsed[0]);
+  if (parsed && !Array.isArray(parsed) && typeof parsed === "object") candidates.push(parsed);
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== "object") continue;
+    for (const value of Object.values(candidate)) {
+      if (Array.isArray(value) && value.every(looksLikeLesson)) return value;
+    }
+  }
+
+  return null;
+}
+
+let parsed;
 try {
-  rows = JSON.parse(await readFile(filePath, "utf8"));
+  parsed = JSON.parse(await readFile(filePath, "utf8"));
 } catch (error) {
   fail(`could not read ${filePath}: ${error.message}`);
 }
-if (!Array.isArray(rows)) fail("expected the file to hold a JSON array of lessons");
+
+const rows = readLessons(parsed);
+if (!rows) {
+  fail(
+    `no lessons found in ${filePath} - expected a JSON array of rows with title and lesson. ` +
+      "Export with: select age_band, title, subject, source_text, lesson, created_at from school_lessons order by created_at;"
+  );
+}
+if (rows.length === 0) fail(`${filePath} holds no lessons`);
 
 const { data: community, error: communityError } = await supabase
   .from("communities")
