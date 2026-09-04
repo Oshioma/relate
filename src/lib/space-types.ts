@@ -24,6 +24,7 @@ import {
   Camera,
   Radio,
   Footprints,
+  NotebookText,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -89,6 +90,7 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   plant_id: { type: "plant_id", label: "Plant ID", icon: Camera, description: "Upload a photo to identify a plant — its name, whether it's edible, and a link to its guide.", category: "programs" },
   live: { type: "live", label: "Live Events", icon: Radio, description: "Host live video sessions — staff go live and members join a Zoom-like meeting right in the community.", category: "programs" },
   meetups: { type: "meetups", label: "Meetups", icon: Footprints, description: "A live board of member-posted meetups — a time, a meeting point and a pace. Others tap \"I'm in\" and go together.", category: "general" },
+  lessons: { type: "lessons", label: "Lessons", icon: NotebookText, description: "A teaching library — staff paste source material, Claude writes an age-appropriate lesson from it, and members read, print and re-use it.", category: "programs" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);
