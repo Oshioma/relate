@@ -2,14 +2,21 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Printer, Trash2, ImagePlus, RefreshCw } from "lucide-react";
+import { Printer, Trash2, ImagePlus, RefreshCw, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
-import { deleteLesson, removeLessonImage, type LessonActionState } from "./lessons-actions";
+import { LessonEditor } from "./lesson-editor";
+import { deleteLesson, removeLessonImage, updateLesson, type LessonActionState } from "./lessons-actions";
 import { printLesson } from "./print-lesson";
 import { cn } from "@/lib/utils";
-import { AGE_BANDS, normaliseSubject, SUBJECT_ICONS, type LessonRow } from "@/lib/school/lesson-types";
+import {
+  AGE_BANDS,
+  normaliseSubject,
+  SUBJECT_ICONS,
+  type LessonRow,
+  type StoredLesson,
+} from "@/lib/school/lesson-types";
 
 export function LessonDetailView({
   lesson,
@@ -27,6 +34,11 @@ export function LessonDetailView({
   const router = useRouter();
   const [deleteState, deleteAction, deleting] = useActionState<LessonActionState, FormData>(deleteLesson, undefined);
   const [imageState, imageAction] = useActionState<LessonActionState, FormData>(removeLessonImage, undefined);
+  const [editState, editAction, savingEdit] = useActionState<LessonActionState, FormData>(
+    updateLesson,
+    undefined
+  );
+  const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<"images" | "rewrite" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -103,7 +115,7 @@ export function LessonDetailView({
     }
   }
 
-  const actionError = deleteState?.error ?? imageState?.error ?? error;
+  const actionError = deleteState?.error ?? imageState?.error ?? editState?.error ?? error;
 
   return (
     <div className="space-y-5">
@@ -135,6 +147,13 @@ export function LessonDetailView({
             <Printer className="h-4 w-4" />
             Print
           </Button>
+
+          {canEdit && !editing && (
+            <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+          )}
 
           {canEdit && !hasPictures && (
             <Button size="sm" variant="secondary" onClick={findPictures} disabled={busy !== null}>
@@ -204,6 +223,24 @@ export function LessonDetailView({
       </Card>
 
       <Card className="p-5 sm:p-6">
+        {editing ? (
+          <LessonEditor
+            lesson={lesson.lesson}
+            saving={savingEdit}
+            onCancel={() => setEditing(false)}
+            onSave={(next: StoredLesson) => {
+              const formData = new FormData();
+              formData.set("lesson_id", lesson.id);
+              formData.set("community_slug", communitySlug);
+              formData.set("space_slug", spaceSlug);
+              formData.set("lesson", JSON.stringify(next));
+              editAction(formData);
+              // The action revalidates this page; closing here swaps the saved
+              // document back in as soon as it re-renders.
+              setEditing(false);
+            }}
+          />
+        ) : (
         <LessonDocument
           lesson={lesson.lesson}
           onRemoveImage={
@@ -219,6 +256,7 @@ export function LessonDetailView({
               : undefined
           }
         />
+        )}
       </Card>
     </div>
   );
