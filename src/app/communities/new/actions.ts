@@ -9,7 +9,7 @@ import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
 import { OWNER_AGREEMENT_VERSION } from "@/lib/owner-agreement";
-import type { ProfileFieldType, CommunityPrivacy, SpaceType, FeatureKey } from "@/types/database";
+import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -17,6 +17,10 @@ export interface WizardSpaceInput {
   show_in_nav: boolean;
   space_type: SpaceType;
   staff_post_only: boolean;
+  // Optional: templates that need a space to start closed set it (the School
+  // template's Staff Room). Anything unrecognised falls back to 'members',
+  // which is what every seeded space used before this existed.
+  visibility?: SpaceVisibility;
 }
 
 export interface WizardProfileFieldInput {
@@ -61,6 +65,7 @@ export interface WizardPayload {
 export type WizardResult = { error: string };
 
 const PRIVACY_LEVELS: CommunityPrivacy[] = ["public", "private", "invite_only"];
+const SPACE_VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
 
 function uniqueSlugs(names: string[]): string[] {
   const used = new Set<string>();
@@ -164,7 +169,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         name: s.name.trim(),
         slug: slugs[i],
         description: s.description.trim() || null,
-        visibility: "members" as const,
+        // Never trust the client with a visibility: an unrecognised value would
+        // otherwise reach the column as-is.
+        visibility: s.visibility && SPACE_VISIBILITIES.includes(s.visibility) ? s.visibility : "members",
         sort_order: i,
         show_in_nav: s.show_in_nav,
         space_type: s.space_type,

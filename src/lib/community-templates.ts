@@ -1,4 +1,4 @@
-import type { ProfileFieldType, SpaceType } from "@/types/database";
+import type { ProfileFieldType, SpaceType, SpaceVisibility } from "@/types/database";
 
 // Curated content behind the Community Builder wizard. "Profile fields" here
 // means community_profile_fields — custom, community-scoped attributes.
@@ -15,6 +15,11 @@ export interface TemplateSpace {
   // Defaults to false when omitted. Used by the Artist Fan Club template's
   // Announcements space.
   staff_post_only?: boolean;
+  // Who can see the space. Defaults to 'members' when omitted, which is what
+  // every space seeded before this used. Set it only where a space is useless
+  // unless it starts closed — the School template's Staff Room is private from
+  // the moment it exists, because a staff room a parent can read is not one.
+  visibility?: SpaceVisibility;
 }
 
 export interface TemplateProfileField {
@@ -79,7 +84,7 @@ const SCHOOL_SPACES: TemplateSpace[] = [
   { name: "Classes & Year Groups", description: "A space per class or year group, for the people in it.", space_type: "clubs" },
   { name: "Homework Help", description: "Ask about a piece of work and get an answer from someone who knows.", space_type: "qa" },
   { name: "Parent Chat", description: "General conversation between parents and guardians." },
-  { name: "Staff Room", description: "Teachers and staff only \u2014 set this space to Private in Admin once you have invited them.", staff_post_only: true },
+  { name: "Staff Room", description: "Teachers and staff only.", visibility: "private" },
   { name: "Policies & Reading Lists", description: "Uniform lists, term dates, policies and recommended reading.", space_type: "resources" },
   { name: "School Life", description: "Photos from trips, concerts, sports day and the everyday.", space_type: "gallery" },
   { name: "Reading Challenge", description: "Time-boxed challenges children take on together.", space_type: "challenges" },

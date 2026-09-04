@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Trash2, Plus, Eye, EyeOff } from "lucide-react";
+import { GripVertical, Trash2, Plus, Eye, EyeOff, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export function StepCustomize({
   }
 
   function addSpace() {
-    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false }] });
+    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members" }] });
   }
 
   function handleDrop(targetIndex: number) {
@@ -104,6 +104,12 @@ export function StepCustomize({
                       </optgroup>
                     ))}
                   </select>
+                  {space.visibility === "private" && (
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" />
+                      Starts private — only people you invite to it can see it. Change this in Admin.
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
