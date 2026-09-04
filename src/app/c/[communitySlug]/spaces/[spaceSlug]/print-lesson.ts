@@ -1,11 +1,16 @@
 // Opens a clean, printable copy of one lesson in a new window.
 //
+// Two audiences, one document. The teacher's copy is the whole lesson,
+// answer key included. The pack that goes home is the same material with the
+// answers withheld — printing the key and sending it home with the questions
+// defeats the point — plus whatever the teacher asked for and when it's due.
+//
 // Printing the page itself would carry the whole dashboard onto the paper,
 // so this builds a standalone document containing just the lesson. Every
 // value is escaped: lesson text is model-written and image credits come
 // from third-party catalogues, so none of it is trusted as markup.
 
-import { ageBandLabel, type LessonRow } from "@/lib/school/lesson-types";
+import { ageBandLabel, formatDueDate, type LessonRow } from "@/lib/school/lesson-types";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "").replace(
@@ -63,12 +68,24 @@ const STYLES = `
   .activity { background: #f4f8f5; padding: 14px 18px; border-radius: 8px;
               page-break-inside: avoid; }
   .answer { color: #6b7783; font-size: 13px; }
+  .homework { border: 2px solid #1f2933; border-radius: 8px; padding: 14px 18px;
+              margin-bottom: 24px; page-break-inside: avoid; }
+  .homework h3 { margin-top: 0; }
+  .due { font-weight: bold; }
   section { page-break-inside: avoid; }
   button { font: inherit; padding: 8px 16px; margin-bottom: 20px; cursor: pointer; }
   @media print { button { display: none; } body { margin: 0; } }
 `;
 
-export function printLesson(row: LessonRow): void {
+export type PrintOptions = {
+  // 'teacher' (the default) prints everything. 'home' withholds the answer key.
+  audience?: "teacher" | "home";
+  // Shown at the top of a pack going home, so the page itself says what to do.
+  homework?: { note: string | null; due_on: string | null } | null;
+};
+
+export function printLesson(row: LessonRow, options: PrintOptions = {}): void {
+  const forHome = options.audience === "home";
   const lesson = row.lesson;
   const win = window.open("", "_blank", "noopener,noreferrer");
   if (!win) return;
@@ -115,6 +132,18 @@ export function printLesson(row: LessonRow): void {
         .join("")}</ul>`
     : "";
 
+  const homework = options.homework;
+  const homeworkBanner =
+    forHome && homework
+      ? `<div class="homework"><h3>Homework</h3>${
+          homework.note ? paragraphs(homework.note) : "<p>Read through this lesson together.</p>"
+        }${
+          homework.due_on
+            ? `<p class="due">Due ${escapeHtml(formatDueDate(homework.due_on))}</p>`
+            : ""
+        }</div>`
+      : "";
+
   win.document.write(
     `<!doctype html><html><head><meta charset="utf-8">` +
       `<title>${escapeHtml(lesson.title)}</title>` +
@@ -124,8 +153,9 @@ export function printLesson(row: LessonRow): void {
       `<div class="meta">${escapeHtml(lesson.subject)} · ${escapeHtml(
         ageBandLabel(row.age_band)
       )}</div>` +
+      homeworkBanner +
       `<p class="summary">${escapeHtml(lesson.summary)}</p>` +
-      `<h3>By the end they can</h3><ul>${lesson.objectives
+      `<h3>${forHome ? "What they'll get out of it" : "By the end they can"}</h3><ul>${lesson.objectives
         .map((o) => `<li>${escapeHtml(o)}</li>`)
         .join("")}</ul>` +
       vocabulary +
@@ -134,11 +164,12 @@ export function printLesson(row: LessonRow): void {
         lesson.activity.title
       )}</b></p>${materials}${paragraphs(lesson.activity.instructions)}</div>` +
       `<h3>Questions</h3><ol>${lesson.questions
-        .map(
-          (q) =>
-            `<li>${escapeHtml(q.question)}<br><span class="answer">${escapeHtml(
-              q.answer
-            )}</span></li>`
+        .map((q) =>
+          forHome
+            ? `<li>${escapeHtml(q.question)}</li>`
+            : `<li>${escapeHtml(q.question)}<br><span class="answer">${escapeHtml(
+                q.answer
+              )}</span></li>`
         )
         .join("")}</ol>` +
       discussion +

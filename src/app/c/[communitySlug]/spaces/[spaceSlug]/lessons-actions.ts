@@ -82,3 +82,115 @@ export async function removeLessonImage(
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
 }
+
+// --- Homework ---------------------------------------------------------------
+
+// Sends a lesson home. Always a NEW assignment rather than an edit of the last
+// one: setting the same material again next term must not inherit last term's
+// ticks (see 20260904184357_lesson_homework.sql).
+export async function setHomework(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  const dueOn = String(formData.get("due_on") ?? "").trim();
+
+  // <input type="date"> gives YYYY-MM-DD; anything else is not a date column.
+  if (dueOn && !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) {
+    return { error: "That due date isn't a real date." };
+  }
+
+  const supabase = await createClient();
+
+  const lesson = await getLesson(supabase, lessonId);
+  if (!lesson) return { error: "Lesson not found." };
+
+  const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const { error } = await supabase.from("lesson_homework").insert({
+    lesson_id: lesson.id,
+    space_id: lesson.space_id,
+    community_id: lesson.community_id,
+    created_by: auth.userId,
+    note: note || null,
+    due_on: dueOn || null,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
+// Un-sends it. Deleting the assignment takes its ticks with it, which is right:
+// they were answers to this asking, not to the lesson.
+export async function deleteHomework(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const homeworkId = String(formData.get("homework_id") ?? "");
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+
+  const supabase = await createClient();
+
+  const lesson = await getLesson(supabase, lessonId);
+  if (!lesson) return { error: "Lesson not found." };
+
+  const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const { error } = await supabase
+    .from("lesson_homework")
+    .delete()
+    .eq("id", homeworkId)
+    .eq("lesson_id", lessonId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
+// A parent saying "we did this", or taking it back. Row presence is the state,
+// so this inserts or deletes rather than updating a flag. RLS limits the write
+// to the caller's own row and to members who can see the space, so there is no
+// staff check here — any member may tick their own.
+export async function toggleHomeworkDone(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const homeworkId = String(formData.get("homework_id") ?? "");
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const done = formData.get("done") === "1";
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "You need to be signed in." };
+
+  const { error } = done
+    ? await supabase
+        .from("lesson_homework_completions")
+        .delete()
+        .eq("homework_id", homeworkId)
+        .eq("user_id", user.id)
+    : await supabase
+        .from("lesson_homework_completions")
+        .insert({ homework_id: homeworkId, user_id: user.id });
+
+  // Ticking something already ticked is not an error worth showing anyone.
+  if (error && error.code !== "23505") return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}

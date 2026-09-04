@@ -270,6 +270,32 @@ export function lessonSearchText(row: LessonRow): string {
     .toLowerCase();
 }
 
+// Homework due dates are a `date` column — a calendar day, not an instant.
+// Parsing "2026-09-11" with the Date constructor treats it as UTC midnight and
+// then renders it in local time, which shows the previous day to everyone west
+// of UTC. That is the kind of wrong that gets a child in trouble, so the parts
+// are read out by hand and formatted in UTC.
+//
+// Lives here rather than in a component because three places need it: the
+// homework panel, the library card and the printable pack.
+export function formatDueDate(due: string, style: "long" | "short" = "long"): string {
+  const [year, month, day] = due.split("-").map(Number);
+  if (!year || !month || !day) return due;
+
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString(
+    undefined,
+    style === "long"
+      ? { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }
+      : { day: "numeric", month: "short", timeZone: "UTC" }
+  );
+}
+
+// True when a due date has already passed. Compares calendar days, so something
+// due today is not overdue at one minute past midnight.
+export function isOverdue(due: string): boolean {
+  return due < new Date().toISOString().slice(0, 10);
+}
+
 // A space_lessons row with its jsonb document narrowed to StoredLesson.
 // The generated Database type carries `lesson` as unknown, because the shape
 // lives here rather than in the schema — this is where the two meet.
