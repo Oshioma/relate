@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, NotebookText, Plus } from "lucide-react";
+import { Search, NotebookText, Plus, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -13,6 +13,7 @@ import {
   AGE_BANDS,
   SUBJECT_ICONS,
   lessonSearchText,
+  providerName,
   normaliseSubject,
   type LessonRow,
   type Subject,
@@ -52,6 +53,16 @@ function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
             {lesson.lesson.summary}
           </p>
         )}
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          {providerName(lesson)}
+          {!lesson.is_public && (
+            <>
+              <span aria-hidden>·</span>
+              <EyeOff className="h-3 w-3" />
+              Private
+            </>
+          )}
+        </p>
       </div>
     </Link>
   );
@@ -117,6 +128,7 @@ export function LessonsView({
   const [query, setQuery] = useState("");
   const [band, setBand] = useState<string | null>(null);
   const [subject, setSubject] = useState<Subject | null>(null);
+  const [provider, setProvider] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
 
   // Precomputed once per lesson: the search box matches on everything in the
@@ -133,9 +145,25 @@ export function LessonsView({
     const needle = query.trim().toLowerCase();
     return lessons.filter((lesson) => {
       if (band && lesson.age_band !== band) return false;
+      if (provider && providerName(lesson) !== provider) return false;
       if (!needle) return true;
       return (searchable.get(lesson.id) ?? "").includes(needle);
     });
+  }, [lessons, query, band, provider, searchable]);
+
+  // Everyone who has written a lesson here, with how many. Counted before the
+  // provider filter itself, so choosing one doesn't collapse the list you chose
+  // it from. Alphabetical: there is no meaningful order to authors.
+  const providers = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    const counts = new Map<string, number>();
+    for (const lesson of lessons) {
+      if (band && lesson.age_band !== band) continue;
+      if (needle && !(searchable.get(lesson.id) ?? "").includes(needle)) continue;
+      const name = providerName(lesson);
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [lessons, query, band, searchable]);
 
   // Only subjects that actually have something, in the order SUBJECT_ICONS
@@ -228,6 +256,21 @@ export function LessonsView({
               className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
+          {providers.length > 1 && (
+            <select
+              value={provider ?? ""}
+              onChange={(e) => setProvider(e.target.value || null)}
+              aria-label="Filter by who wrote the lesson"
+              className="rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">All providers</option>
+              {providers.map(([name, count]) => (
+                <option key={name} value={name}>
+                  {name} ({count})
+                </option>
+              ))}
+            </select>
+          )}
           <div className="flex gap-1.5">
             {AGE_BANDS.map((entry) => (
               <button
