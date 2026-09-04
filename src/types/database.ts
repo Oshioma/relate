@@ -1138,28 +1138,6 @@ export type SpaceLesson = {
   updated_at: string;
 };
 
-// A lesson sent home. See 20260904184357_lesson_homework.sql — deliberately
-// no pupil identity anywhere in this pair of tables.
-export type LessonHomework = {
-  id: string;
-  lesson_id: string;
-  space_id: string;
-  community_id: string;
-  created_by: string;
-  note: string | null;
-  due_on: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-// Row presence is the state: ticking inserts, un-ticking deletes.
-export type LessonHomeworkCompletion = {
-  id: string;
-  homework_id: string;
-  user_id: string;
-  completed_at: string;
-};
-
 export type MeetupParticipant = {
   id: string;
   meetup_id: string;
@@ -2328,18 +2306,6 @@ export type Database = {
         Insert: Partial<SpaceLesson> & { space_id: string; community_id: string; created_by: string };
         Update: Partial<SpaceLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
-      };
-      lesson_homework: {
-        Row: LessonHomework;
-        Insert: Partial<LessonHomework> & { lesson_id: string; space_id: string; community_id: string; created_by: string };
-        Update: Partial<LessonHomework>;
-        Relationships: [FKey<"lesson_id", "space_lessons">, FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
-      };
-      lesson_homework_completions: {
-        Row: LessonHomeworkCompletion;
-        Insert: Partial<LessonHomeworkCompletion> & { homework_id: string; user_id: string };
-        Update: Partial<LessonHomeworkCompletion>;
-        Relationships: [FKey<"homework_id", "lesson_homework">, FKey<"user_id", "profiles">];
       };
       meetup_participants: {
         Row: MeetupParticipant;
