@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, NotebookText, Plus } from "lucide-react";
+import { Search, NotebookText, Plus, Backpack, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,17 +12,27 @@ import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
   SUBJECT_ICONS,
+  formatDueDate,
   lessonSearchText,
   normaliseSubject,
   type LessonRow,
   type Subject,
 } from "@/lib/school/lesson-types";
+import type { HomeworkWithProgress } from "@/lib/data/lessons";
 
 // The teaching library. Lessons are grouped by subject rather than listed flat:
 // a school accumulates hundreds, and "what do we have for History?" is the
 // question actually being asked.
 
-function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
+function LessonCard({
+  lesson,
+  href,
+  homework,
+}: {
+  lesson: LessonRow;
+  href: string;
+  homework?: HomeworkWithProgress;
+}) {
   const cover = lesson.lesson?.cover;
 
   return (
@@ -44,6 +54,20 @@ function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
         {lesson.lesson?.summary && (
           <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{lesson.lesson.summary}</p>
         )}
+        {homework && (
+          <p className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            {homework.completedByViewer ? (
+              <Check className="h-3 w-3 shrink-0" />
+            ) : (
+              <Backpack className="h-3 w-3 shrink-0" />
+            )}
+            {homework.completedByViewer
+              ? "Done"
+              : homework.due_on
+                ? `Sent home · due ${formatDueDate(homework.due_on, "short")}`
+                : "Sent home"}
+          </p>
+        )}
       </div>
     </Link>
   );
@@ -51,6 +75,7 @@ function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
 
 export function LessonsView({
   lessons,
+  homework,
   spaceId,
   communitySlug,
   spaceSlug,
@@ -59,6 +84,8 @@ export function LessonsView({
   writerConfigured,
 }: {
   lessons: LessonRow[];
+  // Current assignment per lesson id. Lessons with nothing set are absent.
+  homework: Map<string, HomeworkWithProgress>;
   spaceId: string;
   communitySlug: string;
   spaceSlug: string;
@@ -189,6 +216,7 @@ export function LessonsView({
                     key={lesson.id}
                     lesson={lesson}
                     href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
+                    homework={homework.get(lesson.id)}
                   />
                 ))}
               </div>
