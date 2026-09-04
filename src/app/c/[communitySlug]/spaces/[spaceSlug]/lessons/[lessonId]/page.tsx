@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getLesson } from "@/lib/data/lessons";
+import { getLesson, getSavedLessonIds } from "@/lib/data/lessons";
 import { isLessonWriterConfigured } from "@/lib/ai/lesson-writer";
 import { LessonDetailView } from "../../lesson-detail-view";
 
@@ -32,6 +32,11 @@ export default async function LessonPage({
   const isStaff =
     membership?.status === "active" &&
     (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  const isMember = membership?.status === "active";
+
+  // A save is private to whoever made it, so this reads as the viewer and a
+  // guest simply gets nothing back.
+  const saved = user ? (await getSavedLessonIds(supabase, user.id, [lesson.id])).has(lesson.id) : false;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -42,13 +47,14 @@ export default async function LessonPage({
       </p>
 
       <LessonDetailView
-        lesson={lesson}
+        lesson={{ ...lesson, saved }}
         communitySlug={community.slug}
         spaceSlug={space.slug}
         canEdit={Boolean(isStaff)}
         // Its author decides whether anyone else sees it; staff can too, since
         // they answer for what is in their space.
         canManageVisibility={Boolean(isStaff) || lesson.created_by === user?.id}
+        canSave={Boolean(isMember)}
         writerConfigured={isLessonWriterConfigured()}
       />
     </div>

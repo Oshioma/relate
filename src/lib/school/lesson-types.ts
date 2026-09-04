@@ -154,6 +154,91 @@ export function normaliseSubject(value: string): Subject {
   return "Other";
 }
 
+// ---------------------------------------------------------------------------
+// Discovery categories
+//
+// The second way a lesson is classified, and the one a family actually browses
+// by. A subject answers "where does this sit on a timetable"; a discovery
+// category answers "what would we be doing". A lesson on solar ovens is Science
+// by subject and Make plus Cook by what happens in the kitchen.
+//
+// Verbs, not departments. A closed set of eight, enforced in the database too:
+// a ninth invented by a model would quietly split the one axis the library is
+// browsed by, and nobody would notice until half the lessons had gone missing
+// from a filter.
+// ---------------------------------------------------------------------------
+export const DISCOVERY_CATEGORIES = [
+  { key: "make", label: "Make", icon: "\u{1F528}", blurb: "Build, craft and design" },
+  { key: "explore", label: "Explore", icon: "\u{1F9ED}", blurb: "Go and find out" },
+  { key: "read", label: "Read", icon: "\u{1F4D6}", blurb: "Stories, poems and books" },
+  { key: "write", label: "Write", icon: "\u{270F}\u{FE0F}", blurb: "Put it into words" },
+  { key: "cook", label: "Cook", icon: "\u{1F373}", blurb: "In the kitchen" },
+  { key: "grow", label: "Grow", icon: "\u{1F331}", blurb: "Plants, soil and patience" },
+  { key: "move", label: "Move", icon: "\u{1F3C3}", blurb: "Get outside and go" },
+  { key: "help", label: "Help", icon: "\u{2764}\u{FE0F}", blurb: "Do something kind" },
+] as const;
+
+export type DiscoveryCategory = (typeof DISCOVERY_CATEGORIES)[number]["key"];
+
+export const DISCOVERY_KEYS = DISCOVERY_CATEGORIES.map((c) => c.key) as DiscoveryCategory[];
+
+export function isDiscoveryCategory(value: string): value is DiscoveryCategory {
+  return (DISCOVERY_KEYS as string[]).includes(value);
+}
+
+export function discoveryMeta(key: string) {
+  return DISCOVERY_CATEGORIES.find((c) => c.key === key);
+}
+
+// Anything unrecognised is dropped rather than shown: the column has the same
+// constraint, so a stray value means data written round the app, not a category.
+export function cleanDiscoveryCategories(values: readonly string[] | null | undefined): DiscoveryCategory[] {
+  const seen = new Set<DiscoveryCategory>();
+  for (const value of values ?? []) {
+    const key = value.trim().toLowerCase();
+    if (isDiscoveryCategory(key)) seen.add(key);
+  }
+  // Declaration order, so a card's badges never reshuffle between renders.
+  return DISCOVERY_KEYS.filter((key) => seen.has(key));
+}
+
+// ---------------------------------------------------------------------------
+// Duration
+//
+// Stored as real minutes so "we have half an hour" is a range query rather than
+// string matching, and displayed as a phrase because "45 min" is what someone
+// asks for and "45" is not.
+// ---------------------------------------------------------------------------
+export const DURATION_FILTERS = [
+  { key: "quick", label: "Under 30 min", max: 29 },
+  { key: "half-hour", label: "About 30 min", min: 30, max: 44 },
+  { key: "hour", label: "An hour or so", min: 45, max: 89 },
+  { key: "long", label: "90 min or more", min: 90 },
+] as const;
+
+export type DurationFilterKey = (typeof DURATION_FILTERS)[number]["key"];
+
+export function matchesDuration(minutes: number | null, key: DurationFilterKey | null): boolean {
+  if (!key) return true;
+  // A lesson nobody has timed cannot answer "how long have we got", so it stays
+  // out of the answer rather than being guessed into it.
+  if (minutes == null) return false;
+  const range = DURATION_FILTERS.find((d) => d.key === key);
+  if (!range) return true;
+  const min = "min" in range ? range.min : 0;
+  const max = "max" in range ? range.max : Number.POSITIVE_INFINITY;
+  return minutes >= min && minutes <= max;
+}
+
+// 15 min / 45 min / 1 hour / 90 min / 2+ hours.
+export function formatDuration(minutes: number | null | undefined): string | null {
+  if (minutes == null || minutes <= 0) return null;
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes === 60) return "1 hour";
+  if (minutes >= 120) return "2+ hours";
+  return `${minutes} min`;
+}
+
 // The lesson Claude writes. Field descriptions are part of the prompt the
 // model sees, so they carry the age-appropriateness instructions.
 export const LessonSchema = z.object({
@@ -227,6 +312,21 @@ export const LessonSchema = z.object({
   discussion: z
     .array(z.string())
     .describe("Two or three open questions to talk about together — no single right answer."),
+  discovery_categories: z
+    .array(z.enum(DISCOVERY_KEYS as [DiscoveryCategory, ...DiscoveryCategory[]]))
+    .min(1)
+    .max(3)
+    .describe(
+      "One to three of these describing what a child would actually be DOING, not the school subject: make (building, crafting, designing), explore (going and finding out), read, write, cook, grow (plants and soil), move (physical activity), help (kindness and community). Pick what the activity really involves — a lesson about solar ovens where they build one is make and cook."
+    ),
+  duration_minutes: z
+    .number()
+    .int()
+    .min(10)
+    .max(180)
+    .describe(
+      "Realistic minutes for one sitting of this lesson with a child, including the activity. Use a round number: 15, 30, 45, 60, 90 or 120."
+    ),
 });
 
 export type Lesson = z.infer<typeof LessonSchema>;
@@ -246,13 +346,29 @@ export type LessonImage = {
 // for its sections. Images are optional throughout — a lesson saved before
 // this existed, or one where every image source was unreachable, is still
 // a complete lesson.
-export type StoredLesson = Omit<Lesson, "sections"> & {
+//
+// The two classification fields the writer returns live in COLUMNS, not in the
+// document: staff can override them, and a second copy in the jsonb would go
+// stale the moment they did. So they are omitted here, and stripped on the way
+// in — see storableLesson below.
+export type StoredLesson = Omit<
+  Lesson,
+  "sections" | "discovery_categories" | "duration_minutes"
+> & {
   // The lesson's own picture, shown on its card before it is opened.
   cover?: LessonImage | null;
   sections: (Lesson["sections"][number] & {
     image?: LessonImage | null;
   })[];
 };
+
+// A freshly written lesson, minus the fields that become columns.
+export function storableLesson(lesson: Lesson): StoredLesson {
+  const document: Record<string, unknown> = { ...lesson };
+  delete document.discovery_categories;
+  delete document.duration_minutes;
+  return document as unknown as StoredLesson;
+}
 
 // Everything a lesson can be matched on when searching. Kept here so the
 // search box and any future filter agree on what counts as a match.
@@ -321,6 +437,10 @@ export const EditableLessonSchema = z.object({
   discussion: z.array(z.string()),
   cover_image_query: z.string().optional().default(""),
   cover: LessonImageSchema.nullish(),
+  // Optional here, unlike in LessonSchema: lessons written before these
+  // existed have neither, and must stay editable.
+  discovery_categories: z.array(z.string()).optional(),
+  duration_minutes: z.number().int().nullish(),
 });
 
 // Some lessons carry the literal six characters \u2014 where an em dash
@@ -369,11 +489,17 @@ export function lessonThumbnail(lesson: StoredLesson | undefined): LessonImage |
 // lives here rather than in the schema — this is where the two meet.
 // Who wrote a lesson, joined from profiles. Optional because not every read
 // needs it — the lesson page has it, a bare row fetch may not.
-export type LessonAuthor = { full_name: string | null; username: string } | null;
+export type LessonAuthor = {
+  full_name: string | null;
+  username: string;
+  avatar_url: string | null;
+} | null;
 
 export type LessonRow = Omit<SpaceLesson, "lesson"> & {
   lesson: StoredLesson;
   creator?: LessonAuthor;
+  // Set when the viewer has saved this one. Absent on reads that don't ask.
+  saved?: boolean;
 };
 
 // What to call whoever wrote a lesson. Their name if they have set one, else

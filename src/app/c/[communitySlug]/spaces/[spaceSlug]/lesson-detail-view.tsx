@@ -2,15 +2,17 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Printer, Trash2, ImagePlus, RefreshCw, Pencil, Eye, EyeOff } from "lucide-react";
+import { Printer, Trash2, ImagePlus, RefreshCw, Pencil, Eye, EyeOff, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
+import { LessonClassification } from "./lesson-classification";
 import {
   deleteLesson,
   removeLessonImage,
   setLessonVisibility,
+  toggleLessonSave,
   updateLesson,
   type LessonActionState,
 } from "./lessons-actions";
@@ -31,6 +33,7 @@ export function LessonDetailView({
   spaceSlug,
   canEdit,
   canManageVisibility,
+  canSave,
   writerConfigured,
 }: {
   lesson: LessonRow;
@@ -40,6 +43,9 @@ export function LessonDetailView({
   // Its author, or staff. Publishing a lesson is the author's call, and staff
   // answer for what is in their space.
   canManageVisibility: boolean;
+  // Signed-in members only. A save is private to whoever made it, so there is
+  // nowhere for a guest to put one.
+  canSave: boolean;
   writerConfigured: boolean;
 }) {
   const router = useRouter();
@@ -53,6 +59,10 @@ export function LessonDetailView({
     LessonActionState,
     FormData
   >(setLessonVisibility, undefined);
+  const [saveState, saveAction, savingSave] = useActionState<LessonActionState, FormData>(
+    toggleLessonSave,
+    undefined
+  );
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<"images" | "rewrite" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +141,12 @@ export function LessonDetailView({
   }
 
   const actionError =
-    deleteState?.error ?? imageState?.error ?? editState?.error ?? visibilityState?.error ?? error;
+    deleteState?.error ??
+    imageState?.error ??
+    editState?.error ??
+    visibilityState?.error ??
+    saveState?.error ??
+    error;
 
   return (
     <div className="space-y-5">
@@ -146,6 +161,14 @@ export function LessonDetailView({
               {lesson.title || "Untitled lesson"}
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">by {providerName(lesson)}</p>
+            {/* How long it takes and what kind of thing it is — the two things
+                someone deciding whether to do it this afternoon needs. */}
+            <LessonClassification
+              lesson={lesson}
+              communitySlug={communitySlug}
+              spaceSlug={spaceSlug}
+              canEdit={canEdit}
+            />
           </div>
           <AgeBadge band={lesson.age_band} />
         </div>
@@ -174,6 +197,25 @@ export function LessonDetailView({
             <Printer className="h-4 w-4" />
             Print
           </Button>
+
+          {canSave && (
+            <form action={saveAction} className="contents">
+              <input type="hidden" name="lesson_id" value={lesson.id} />
+              <input type="hidden" name="community_slug" value={communitySlug} />
+              <input type="hidden" name="space_slug" value={spaceSlug} />
+              <input type="hidden" name="saved" value={lesson.saved ? "1" : "0"} />
+              <Button
+                size="sm"
+                variant="secondary"
+                type="submit"
+                disabled={savingSave}
+                aria-pressed={Boolean(lesson.saved)}
+              >
+                <Bookmark className={cn("h-4 w-4", lesson.saved && "fill-accent text-accent")} />
+                {lesson.saved ? "Saved" : "Save"}
+              </Button>
+            </form>
+          )}
 
           {canManageVisibility && (
             <form action={visibilityAction} className="contents">

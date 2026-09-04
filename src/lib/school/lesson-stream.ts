@@ -30,7 +30,7 @@ import {
   generateLesson,
   LessonGenerationError,
 } from "@/lib/ai/lesson-writer";
-import type { AgeBandKey } from "@/lib/school/lesson-types";
+import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
 
 export function streamLesson(input: {
   supabase: SupabaseClient<Database>;
@@ -62,6 +62,12 @@ export function streamLesson(input: {
           },
         });
 
+        // The document as it is stored. The writer also returns how long the
+        // lesson takes and what kind of thing it is; those become columns, so
+        // staff can override them — and keeping a second copy in the jsonb
+        // would leave a stale one behind the moment they did.
+        const document = storableLesson(lesson);
+
         const { data: saved, error: insertError } = await supabase
           .from("space_lessons")
           .insert({
@@ -72,7 +78,12 @@ export function streamLesson(input: {
             title: lesson.title,
             subject: lesson.subject,
             source_text: sourceText,
-            lesson,
+            lesson: document,
+            // Classified by the same call that wrote it. Cleaned rather than
+            // trusted: the column constrains these to the eight, and a model
+            // returning something else should lose the value, not the lesson.
+            discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
+            duration_minutes: lesson.duration_minutes ?? null,
           })
           .select("*")
           .single();
@@ -83,7 +94,7 @@ export function streamLesson(input: {
           // work isn't lost, and let the client say it wasn't saved.
           send({
             type: "done",
-            lesson,
+            lesson: document,
             error: "The lesson was written but not saved.",
           });
           return;
@@ -94,7 +105,7 @@ export function streamLesson(input: {
         send({ type: "done", row: saved });
 
         send({ type: "images" });
-        const { lesson: illustrated, found } = await attachImages(lesson);
+        const { lesson: illustrated, found } = await attachImages(document);
 
         if (found > 0) {
           const { data: updated } = await supabase
