@@ -133,13 +133,23 @@ export function LessonDetailView({
           <AgeBadge band={lesson.age_band} />
         </div>
 
-        {lesson.lesson.cover && (
+        {lesson.lesson.cover ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={lesson.lesson.cover.url}
             alt=""
             className="mt-4 max-h-64 w-full rounded-lg bg-muted object-cover"
           />
+        ) : (
+          // No cover: the subject's icon rather than a gap. Deliberately not the
+          // first section's picture — that one appears in its own section a
+          // little further down, and showing it twice reads as a mistake.
+          <div
+            aria-hidden
+            className="mt-4 flex h-28 w-full items-center justify-center rounded-lg border border-border/60 bg-muted text-4xl"
+          >
+            {SUBJECT_ICONS[subject]}
+          </div>
         )}
 
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">

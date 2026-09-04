@@ -1,7 +1,15 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ageBandLabel, ageBandTint, type LessonImage, type StoredLesson } from "@/lib/school/lesson-types";
+import {
+  ageBandLabel,
+  ageBandTint,
+  lessonThumbnail,
+  normaliseSubject,
+  SUBJECT_ICONS,
+  type LessonImage,
+  type StoredLesson,
+} from "@/lib/school/lesson-types";
 
 // Renders one written lesson. Shared by the lesson page and the composer's
 // live preview, so a teacher sees exactly what they are about to save.
@@ -20,6 +28,51 @@ export function AgeBadge({ band }: { band: string }) {
     >
       {ageBandLabel(band)}
     </span>
+  );
+}
+
+// The picture that stands for a lesson, or something deliberate where there
+// isn't one. Not every lesson finds a photograph — the catalogues are searched
+// on a phrase the model wrote, and some subjects simply aren't photographable —
+// and a row with a hole in it reads as broken rather than as "no picture".
+//
+// The subject's own icon fills it. It is not decoration: at a glance down the
+// library it says what kind of lesson this is, which is the one thing a
+// thumbnail was doing anyway.
+export function LessonThumbnail({
+  lesson,
+  subject,
+  className,
+}: {
+  lesson: StoredLesson | undefined;
+  subject: string;
+  className?: string;
+}) {
+  const image = lessonThumbnail(lesson);
+
+  if (image) {
+    return (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={image.thumbUrl}
+        alt=""
+        loading="lazy"
+        className={cn("bg-muted object-cover", className)}
+      />
+    );
+  }
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "flex items-center justify-center bg-muted text-2xl sm:text-3xl",
+        "border border-border/60",
+        className
+      )}
+    >
+      {SUBJECT_ICONS[normaliseSubject(subject)]}
+    </div>
   );
 }
 
