@@ -989,6 +989,14 @@ export interface SchoolKind {
   defaultAgeBand: string;
   extraSpaces: TemplateSpace[];
   extraProfileFields?: TemplateProfileField[];
+  // Spaces from the shared base this kind of school should NOT get, by name.
+  // The other overlays in this file only ever add, which works while every
+  // variant wants the whole base — but a homeschool has no staff, so a
+  // staff-only room in it is a space nobody but the parent can open.
+  //
+  // Matched case-insensitively against the base's names, so a rename in
+  // SCHOOL_SPACES doesn't turn this into a silent no-op.
+  omitSpaces?: string[];
 }
 
 export const SCHOOL_KINDS: SchoolKind[] = [
@@ -1019,6 +1027,9 @@ export const SCHOOL_KINDS: SchoolKind[] = [
     label: "Homeschool",
     description: "A family, or a group of families, teaching at home.",
     defaultAgeBand: "8-10",
+    // The teaching parent is the only adult here. Curriculum Planning below is
+    // where the thinking goes instead.
+    omitSpaces: ["Staff Room"],
     extraSpaces: [
       { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
@@ -1092,14 +1103,23 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
   const base = baseSpaces ?? template.defaultSpaces;
   const kind = getSchoolKind(schoolKindKey);
 
+  // Drops before adds, and against the resolved base — so it still applies when
+  // a super admin has replaced the code defaults with configured ones.
+  const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
+  const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
+
   const rationale = ["Started from the School template's default spaces, with the Lessons library near the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
-    rationale.push(`Lessons will be written for ${kind.defaultAgeBand.replace("-", "–")} year olds by default — changeable on every lesson.`);
+    if (kind.omitSpaces?.length) {
+      const names = kind.omitSpaces.map((name) => `\u201C${name}\u201D`).join(" and ");
+      rationale.push(`Left out ${names} \u2014 not something a ${kind.label.toLowerCase()} needs.`);
+    }
+    rationale.push(`Lessons will be written for ${kind.defaultAgeBand.replace("-", "\u2013")} year olds by default — changeable on every lesson.`);
   }
 
   return {
-    spaces: dedupeByName([...base, ...(kind?.extraSpaces ?? [])]),
+    spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
     profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
   };
