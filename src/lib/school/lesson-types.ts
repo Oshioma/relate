@@ -318,6 +318,47 @@ export const EditableLessonSchema = z.object({
   cover: LessonImageSchema.nullish(),
 });
 
+// Some lessons carry the literal six characters \u2014 where an em dash
+// belongs, and read as "the source clip \u2014 that certain cities sit". It is a
+// JSON escape that went through one encoding too many somewhere upstream — an
+// export, a copy-paste, a model writing the escape instead of the character —
+// and by the time it is in the column the damage is done.
+//
+// Decoding on the way out fixes every lesson already stored, in the library, on
+// the page, in the printed copy and in the editor, without a data migration.
+// Saving an edit then writes the clean text back.
+const STRAY_ESCAPE = /\\u([0-9a-fA-F]{4})/g;
+
+function decodeStrayEscapes(text: string): string {
+  // The overwhelming majority of lesson text has none of these.
+  if (!text.includes("\\u")) return text;
+  return text.replace(STRAY_ESCAPE, (whole, hex: string) => {
+    const code = Number.parseInt(hex, 16);
+    return Number.isFinite(code) ? String.fromCharCode(code) : whole;
+  });
+}
+
+// Walks the document applying it to every string, whatever shape the lesson is.
+function decodeDeep(value: unknown): unknown {
+  if (typeof value === "string") return decodeStrayEscapes(value);
+  if (Array.isArray(value)) return value.map(decodeDeep);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, decodeDeep(v)])
+    );
+  }
+  return value;
+}
+
+// The picture that stands for a lesson in the library. A lesson whose cover
+// search came back empty often still has a picture inside it, so fall back to
+// the first section that found one rather than showing a blank card.
+export function lessonThumbnail(lesson: StoredLesson | undefined): LessonImage | null {
+  if (!lesson) return null;
+  if (lesson.cover) return lesson.cover;
+  return (lesson.sections ?? []).find((section) => section.image)?.image ?? null;
+}
+
 // A space_lessons row with its jsonb document narrowed to StoredLesson.
 // The generated Database type carries `lesson` as unknown, because the shape
 // lives here rather than in the schema — this is where the two meet.
@@ -328,7 +369,7 @@ export type LessonRow = Omit<SpaceLesson, "lesson"> & { lesson: StoredLesson };
 // re-validation — a lesson saved by an older schema version still renders,
 // with the newer fields simply absent.
 export function toLessonRow(row: SpaceLesson): LessonRow {
-  return { ...row, lesson: (row.lesson ?? {}) as StoredLesson };
+  return { ...row, lesson: decodeDeep(row.lesson ?? {}) as StoredLesson };
 }
 
 // Guard rails on the pasted material. Below the minimum there isn't enough

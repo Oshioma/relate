@@ -13,6 +13,7 @@ import {
   AGE_BANDS,
   SUBJECT_ICONS,
   lessonSearchText,
+  lessonThumbnail,
   normaliseSubject,
   type LessonRow,
   type Subject,
@@ -22,27 +23,41 @@ import {
 // a school accumulates hundreds, and "what do we have for History?" is the
 // question actually being asked.
 
+// One lesson, as a full-width row rather than a card in a grid.
+//
+// A three-column grid gave each title about twenty characters a line, so
+// "Free Heat: How the Sun Can Warm Your Home for Nothing" came out as six
+// stacked fragments. Lesson titles are sentences, and a teacher scanning a
+// library is reading the titles — so they get the width, at a size worth
+// reading, with the picture as a thumbnail beside them.
 function LessonCard({ lesson, href }: { lesson: LessonRow; href: string }) {
-  const cover = lesson.lesson?.cover;
+  const thumbnail = lessonThumbnail(lesson.lesson);
 
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-muted-foreground/40"
+      className="group flex items-start gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40"
     >
-      {cover && (
+      {thumbnail && (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={cover.thumbUrl} alt="" loading="lazy" className="h-32 w-full bg-muted object-cover" />
+        <img
+          src={thumbnail.thumbUrl}
+          alt=""
+          loading="lazy"
+          className="h-16 w-16 shrink-0 rounded-md bg-muted object-cover sm:h-20 sm:w-20"
+        />
       )}
-      <div className="flex flex-1 flex-col p-3.5">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold leading-snug text-foreground group-hover:text-accent">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-base font-semibold leading-snug text-foreground group-hover:text-accent sm:text-lg">
             {lesson.title || "Untitled lesson"}
           </h3>
           <AgeBadge band={lesson.age_band} />
         </div>
         {lesson.lesson?.summary && (
-          <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{lesson.lesson.summary}</p>
+          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {lesson.lesson.summary}
+          </p>
         )}
       </div>
     </Link>
@@ -178,12 +193,12 @@ export function LessonsView({
         <div className="space-y-6">
           {grouped.map(([subject, subjectLessons]) => (
             <section key={subject}>
-              <h2 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-foreground">
                 <span aria-hidden>{SUBJECT_ICONS[subject]}</span>
                 {subject}
                 <span className="font-normal text-muted-foreground">({subjectLessons.length})</span>
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-2.5">
                 {subjectLessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
