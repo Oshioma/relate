@@ -2,17 +2,24 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Printer, Trash2, ImagePlus, RefreshCw, Pencil } from "lucide-react";
+import { Printer, Trash2, ImagePlus, RefreshCw, Pencil, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
-import { deleteLesson, removeLessonImage, updateLesson, type LessonActionState } from "./lessons-actions";
+import {
+  deleteLesson,
+  removeLessonImage,
+  setLessonVisibility,
+  updateLesson,
+  type LessonActionState,
+} from "./lessons-actions";
 import { printLesson } from "./print-lesson";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
   normaliseSubject,
+  providerName,
   SUBJECT_ICONS,
   type LessonRow,
   type StoredLesson,
@@ -23,12 +30,16 @@ export function LessonDetailView({
   communitySlug,
   spaceSlug,
   canEdit,
+  canManageVisibility,
   writerConfigured,
 }: {
   lesson: LessonRow;
   communitySlug: string;
   spaceSlug: string;
   canEdit: boolean;
+  // Its author, or staff. Publishing a lesson is the author's call, and staff
+  // answer for what is in their space.
+  canManageVisibility: boolean;
   writerConfigured: boolean;
 }) {
   const router = useRouter();
@@ -38,6 +49,10 @@ export function LessonDetailView({
     updateLesson,
     undefined
   );
+  const [visibilityState, visibilityAction, savingVisibility] = useActionState<
+    LessonActionState,
+    FormData
+  >(setLessonVisibility, undefined);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<"images" | "rewrite" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +130,8 @@ export function LessonDetailView({
     }
   }
 
-  const actionError = deleteState?.error ?? imageState?.error ?? editState?.error ?? error;
+  const actionError =
+    deleteState?.error ?? imageState?.error ?? editState?.error ?? visibilityState?.error ?? error;
 
   return (
     <div className="space-y-5">
@@ -129,6 +145,7 @@ export function LessonDetailView({
             <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
               {lesson.title || "Untitled lesson"}
             </h1>
+            <p className="mt-1 text-xs text-muted-foreground">by {providerName(lesson)}</p>
           </div>
           <AgeBadge band={lesson.age_band} />
         </div>
@@ -157,6 +174,19 @@ export function LessonDetailView({
             <Printer className="h-4 w-4" />
             Print
           </Button>
+
+          {canManageVisibility && (
+            <form action={visibilityAction} className="contents">
+              <input type="hidden" name="lesson_id" value={lesson.id} />
+              <input type="hidden" name="community_slug" value={communitySlug} />
+              <input type="hidden" name="space_slug" value={spaceSlug} />
+              <input type="hidden" name="is_public" value={lesson.is_public ? "0" : "1"} />
+              <Button size="sm" variant="secondary" type="submit" disabled={savingVisibility}>
+                {lesson.is_public ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                {lesson.is_public ? "Everyone can see this" : "Only you and staff"}
+              </Button>
+            </form>
+          )}
 
           {canEdit && !editing && (
             <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>

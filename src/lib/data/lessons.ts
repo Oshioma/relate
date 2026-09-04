@@ -12,23 +12,23 @@ type Client = SupabaseClient<Database>;
 export async function getSpaceLessons(supabase: Client, spaceId: string): Promise<LessonRow[]> {
   const { data, error } = await supabase
     .from("space_lessons")
-    .select("*")
+    .select("*, creator:created_by (full_name, username)")
     .eq("space_id", spaceId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return ((data ?? []) as SpaceLesson[]).map(toLessonRow);
+  return ((data ?? []) as unknown as SpaceLesson[]).map(toLessonRow);
 }
 
 export async function getLesson(supabase: Client, lessonId: string): Promise<LessonRow | null> {
   const { data, error } = await supabase
     .from("space_lessons")
-    .select("*")
+    .select("*, creator:created_by (full_name, username)")
     .eq("id", lessonId)
     .maybeSingle();
 
   if (error) throw error;
-  return data ? toLessonRow(data as SpaceLesson) : null;
+  return data ? toLessonRow(data as unknown as SpaceLesson) : null;
 }
 
 // How many lessons this space holds, for the space list and nav counts.

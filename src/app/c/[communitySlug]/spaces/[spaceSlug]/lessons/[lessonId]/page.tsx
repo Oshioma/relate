@@ -46,6 +46,9 @@ export default async function LessonPage({
         communitySlug={community.slug}
         spaceSlug={space.slug}
         canEdit={Boolean(isStaff)}
+        // Its author decides whether anyone else sees it; staff can too, since
+        // they answer for what is in their space.
+        canManageVisibility={Boolean(isStaff) || lesson.created_by === user?.id}
         writerConfigured={isLessonWriterConfigured()}
       />
     </div>

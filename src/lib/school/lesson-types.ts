@@ -362,13 +362,27 @@ export function lessonThumbnail(lesson: StoredLesson | undefined): LessonImage |
 // A space_lessons row with its jsonb document narrowed to StoredLesson.
 // The generated Database type carries `lesson` as unknown, because the shape
 // lives here rather than in the schema — this is where the two meet.
-export type LessonRow = Omit<SpaceLesson, "lesson"> & { lesson: StoredLesson };
+// Who wrote a lesson, joined from profiles. Optional because not every read
+// needs it — the lesson page has it, a bare row fetch may not.
+export type LessonAuthor = { full_name: string | null; username: string } | null;
+
+export type LessonRow = Omit<SpaceLesson, "lesson"> & {
+  lesson: StoredLesson;
+  creator?: LessonAuthor;
+};
+
+// What to call whoever wrote a lesson. Their name if they have set one, else
+// their username; a lesson whose author has since been deleted still has to
+// say something rather than render a gap.
+export function providerName(row: { creator?: LessonAuthor }): string {
+  return row.creator?.full_name?.trim() || row.creator?.username?.trim() || "Unknown";
+}
 
 // Narrows a raw row from the database. The document is trusted: it was written
 // through LessonSchema on the way in, so this is a type assertion rather than a
 // re-validation — a lesson saved by an older schema version still renders,
 // with the newer fields simply absent.
-export function toLessonRow(row: SpaceLesson): LessonRow {
+export function toLessonRow(row: SpaceLesson & { creator?: LessonAuthor }): LessonRow {
   return { ...row, lesson: decodeDeep(row.lesson ?? {}) as StoredLesson };
 }
 

@@ -74,6 +74,46 @@ export async function updateLesson(
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
 }
 
+// Publishes a lesson to the space, or takes it back.
+//
+// The author decides, and so may staff — they answer for what is in their
+// space. RLS is the backstop: a lesson turned private is unreachable to
+// everyone else, not merely unlisted.
+export async function setLessonVisibility(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const isPublic = formData.get("is_public") === "1";
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const lesson = await getLesson(supabase, lessonId);
+  if (!lesson) return { error: "Lesson not found." };
+
+  // Its author needs no further standing; anyone else must be staff here.
+  if (lesson.created_by !== user.id) {
+    const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
+    if (!auth.ok) return { error: auth.error };
+  }
+
+  const { error } = await supabase
+    .from("space_lessons")
+    .update({ is_public: isPublic })
+    .eq("id", lessonId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
 export async function deleteLesson(
   _prevState: LessonActionState,
   formData: FormData

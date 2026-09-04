@@ -1134,6 +1134,9 @@ export type SpaceLesson = {
   subject: string;
   source_text: string;
   lesson: unknown;
+  // False = visible only to its author and community staff. Enforced in RLS,
+  // not just filtered in the UI. See the lesson_visibility migration.
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 };
