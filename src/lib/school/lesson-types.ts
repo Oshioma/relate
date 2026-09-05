@@ -190,16 +190,47 @@ export function discoveryMeta(key: string) {
   return DISCOVERY_CATEGORIES.find((c) => c.key === key);
 }
 
+// THE ORDER IS THE MEANING. Element one is the PRIMARY category — what a
+// lesson is mainly doing — and anything after it is secondary. That is why
+// this no longer sorts: it used to return declaration order, which threw away
+// the ranking the writer and the classifier had both worked out. Whatever
+// order it is given, it keeps.
+//
 // Anything unrecognised is dropped rather than shown: the column has the same
-// constraint, so a stray value means data written round the app, not a category.
-export function cleanDiscoveryCategories(values: readonly string[] | null | undefined): DiscoveryCategory[] {
-  const seen = new Set<DiscoveryCategory>();
+// constraint, so a stray value means data written round the app, not a
+// category. Duplicates collapse to their first appearance, and the list is
+// capped at three — a lesson tagged with everything is tagged with nothing.
+export const MAX_DISCOVERY_CATEGORIES = 3;
+
+export function cleanDiscoveryCategories(
+  values: readonly string[] | null | undefined
+): DiscoveryCategory[] {
+  const out: DiscoveryCategory[] = [];
   for (const value of values ?? []) {
     const key = value.trim().toLowerCase();
-    if (isDiscoveryCategory(key)) seen.add(key);
+    if (!isDiscoveryCategory(key)) continue;
+    if (out.includes(key)) continue;
+    out.push(key);
+    if (out.length >= MAX_DISCOVERY_CATEGORIES) break;
   }
-  // Declaration order, so a card's badges never reshuffle between renders.
-  return DISCOVERY_KEYS.filter((key) => seen.has(key));
+  return out;
+}
+
+// What a lesson is MAINLY doing, or null when nobody has said. Everything that
+// wants "the one category" should ask here rather than indexing the array, so
+// the day this becomes a column there is one place to change.
+export function primaryCategory(
+  lesson: { discovery_categories?: string[] | null }
+): DiscoveryCategory | null {
+  const first = lesson.discovery_categories?.[0];
+  return first && isDiscoveryCategory(first) ? first : null;
+}
+
+// The rest, in the order they were ranked.
+export function secondaryCategories(
+  lesson: { discovery_categories?: string[] | null }
+): DiscoveryCategory[] {
+  return cleanDiscoveryCategories(lesson.discovery_categories).slice(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -317,7 +348,7 @@ export const LessonSchema = z.object({
     .min(1)
     .max(3)
     .describe(
-      "What a child would physically be DOING in this lesson, not the school subject and not what they might incidentally do. Usually ONE; two only when the lesson genuinely has two halves; three almost never. Choose from: make (they build, craft or construct something), explore (they go somewhere and find things out first-hand), read (a text, story or poem is the material), write (producing writing is the point), cook (food is prepared), grow (plants, seeds or soil are handled), move (physical activity is the activity), help (the lesson does something for other people). BE STRICT. Writing an answer on a worksheet is not 'write'. Reading the lesson itself is not 'read'. Discussing kindness is not 'help' — doing something kind is. A lesson where children build a solar oven and toast marshmallows in it is make and cook; a lesson about how the sun heats things is neither."
+      "What a child would physically be DOING in this lesson, not the school subject and not what they might incidentally do. THE FIRST ONE IS THE PRIMARY CATEGORY — the single thing the lesson is mainly about — and any others are secondary. Usually give ONE; two only when the lesson genuinely has two halves; three almost never. Choose from: make (they build, craft or construct something), explore (they investigate, observe, experiment or find things out first-hand), read (a text, story or poem is the material), write (producing a piece of writing is the point of the lesson), cook (food is prepared), grow (plants, seeds or soil are handled), move (physical activity is the activity), help (the lesson does something for another person, household, animal or community). BE STRICT: a category has to be CENTRAL, not incidental. Writing down answers on a worksheet is NOT 'write' — 'write' is for a story, poem, recount, letter or essay. Reading the lesson text itself is not 'read'. Discussing kindness is not 'help' — doing something kind is. A lesson where children build a solar oven and toast marshmallows in it is make then cook; a lesson explaining how the sun heats things is explore. If none of the eight is genuinely central, pick the closest single one rather than listing several weak ones."
     ),
   duration_minutes: z
     .number()

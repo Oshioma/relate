@@ -160,7 +160,12 @@ export async function updateLessonClassification(
   const communitySlug = String(formData.get("community_slug") ?? "");
   const spaceSlug = String(formData.get("space_slug") ?? "");
   const rawMinutes = String(formData.get("duration_minutes") ?? "").trim();
-  const categories = formData.getAll("discovery").map(String);
+  // Primary first, then secondaries — the array's ORDER is what says which is
+  // which (see cleanDiscoveryCategories). A secondary that repeats the primary
+  // collapses there rather than being stored twice.
+  const primary = String(formData.get("primary") ?? "").trim();
+  const secondary = formData.getAll("secondary").map(String);
+  const categories = primary ? [primary, ...secondary] : [];
 
   let duration: number | null = null;
   if (rawMinutes) {
@@ -182,7 +187,9 @@ export async function updateLessonClassification(
   const { error } = await supabase
     .from("space_lessons")
     .update({
-      // Cleaned, not trusted: the column constrains these to the eight.
+      // Cleaned, not trusted: the column constrains these to the eight, and
+      // this drops anything unrecognised, collapses duplicates and caps at
+      // three — while keeping the order it was given.
       discovery_categories: cleanDiscoveryCategories(categories),
       duration_minutes: duration,
     })

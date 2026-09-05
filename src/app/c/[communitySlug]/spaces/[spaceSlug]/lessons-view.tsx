@@ -311,7 +311,12 @@ export function LessonsView({
       )}
 
       {lessons.length > 0 && (
-        <IdeasForToday lessons={lessons} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+        <IdeasForToday
+          lessons={lessons}
+          communitySlug={communitySlug}
+          spaceSlug={spaceSlug}
+          preferredAgeBand={defaultAgeBand}
+        />
       )}
 
       {lessons.length > 0 && (

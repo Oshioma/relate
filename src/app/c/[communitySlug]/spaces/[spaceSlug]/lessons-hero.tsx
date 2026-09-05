@@ -1,28 +1,92 @@
 "use client";
 
 import { useMemo } from "react";
-import { lessonThumbnail, type LessonRow } from "@/lib/school/lesson-types";
+import { cn } from "@/lib/utils";
+import {
+  lessonThumbnail,
+  primaryCategory,
+  type LessonImage,
+  type LessonRow,
+} from "@/lib/school/lesson-types";
 
 // The top of the library, and the only place on the page that gets to say what
 // this community is like.
 //
-// The pictures are the community's OWN lesson pictures — a solar oven in a
-// garden, a rockpool, seedlings — not stock photographs of somebody else's
-// children. Two reasons. They are true: every tile is a thing somebody here
-// actually wrote a lesson about, and clicking into the library finds it. And
-// they cost nothing: these images are already loaded for the cards below, so
-// the hero adds no request, no API call and no new content source.
+// WHERE THE PICTURES COME FROM
+// They are the community's OWN lesson pictures — a solar oven in a garden, a
+// rockpool, seedlings — already loaded for the cards below. No stock service,
+// no new request, no generated asset, nothing invented: every tile is a thing
+// somebody here actually wrote a lesson about, and the library a few inches
+// down contains it. That is the whole reason the hero is allowed to be
+// pictorial at all.
 //
-// A library with no pictures yet gets the plain panel instead. An empty grey
-// grid promising imagery is worse than a confident block of colour.
+// WHICH PICTURES, THOUGH
+// Not any three. A hero of three worksheet diagrams says this is a library of
+// documents; the point of Squidge Over Skool is that learning happens in a
+// kitchen and a rockpool. So the candidates are SCORED — see heroScore — on
+// what the lesson actually involves and on what the picture itself is of, and
+// the highest-scoring lifestyle image leads.
+//
+// A library without enough pictures gets the plain panel instead. An empty
+// grey grid promising imagery is worse than a confident block of colour.
 
-// Three: one tall picture beside two stacked ones. A 2x2 grid of equal squares
-// reads as a contact sheet, and the tall-plus-two shape fills the panel exactly
-// with no holes to leave when the library is small.
-const MAX_TILES = 3;
+// The dominant image plus two supporting ones.
+const TILES = 3;
 
-// Stable per day, so the hero isn't a slideshow that reshuffles on every
-// keystroke in the search box, and isn't the same four pictures forever.
+// --- Choosing the pictures ---------------------------------------------------
+
+// What a lesson is DOING, ranked by how much it looks like a life being lived.
+// Growing, cooking, exploring, making and moving happen somewhere with light in
+// it; reading and writing are the ones whose pictures tend to be a desk.
+//
+// This is not a judgement about which lessons matter. It is a judgement about
+// which photographs carry a hero.
+const CATEGORY_WEIGHT: Record<string, number> = {
+  grow: 5,
+  cook: 5,
+  explore: 5,
+  make: 4,
+  move: 4,
+  help: 3,
+  read: 1,
+  write: 0,
+};
+
+// Words in a picture's own title — the description that came with it from the
+// image source — that mean a person is in it, or that it was taken outdoors.
+// A photograph of hands doing something beats a photograph of a diagram, and
+// this is the only evidence available about what a picture actually shows.
+const LIFESTYLE_WORDS =
+  /\b(child|children|kid|kids|boy|girl|family|mother|father|parent|people|person|woman|man|hand|hands|together|playing|cooking|baking|planting|gardening|reading|walking|outdoor|outdoors|forest|woods|beach|garden|kitchen|field|meadow|river|park|sunlight|nature)\b/i;
+
+// Words that mean the picture is a document, a diagram or an abstract texture.
+// Fine as a supporting tile; wrong as the thing that introduces the community.
+const FLAT_WORDS =
+  /\b(diagram|chart|graph|worksheet|text|document|paper|whiteboard|blackboard|screen|abstract|pattern|texture|background|illustration|icon|symbol|equation|formula)\b/i;
+
+export function heroScore(lesson: LessonRow, image: LessonImage): number {
+  let score = 0;
+
+  // What the lesson involves. The primary category leads, so a Cook lesson
+  // that also mentions writing is scored as cooking.
+  const [primary, ...rest] = lesson.discovery_categories ?? [];
+  if (primary) score += (CATEGORY_WEIGHT[primary] ?? 0) * 2;
+  for (const key of rest) score += CATEGORY_WEIGHT[key] ?? 0;
+
+  // What the picture is of.
+  const title = image.title ?? "";
+  if (LIFESTYLE_WORDS.test(title)) score += 6;
+  if (FLAT_WORDS.test(title)) score -= 6;
+
+  // A lesson with a real cover was given a picture on purpose; a first-section
+  // image is the one that happened to be found for a paragraph.
+  if (lesson.lesson?.cover) score += 2;
+
+  return score;
+}
+
+// Stable per day. Rotating on render would reshuffle the hero on every
+// keystroke in the search box; rotating on nothing would make it wallpaper.
 function seededRank(id: string, daySeed: number): number {
   let hash = daySeed;
   for (let i = 0; i < id.length; i += 1) {
@@ -37,32 +101,49 @@ function dayNumber(now: Date): number {
   );
 }
 
-export function pickHeroImages(lessons: LessonRow[], now: Date, count = MAX_TILES) {
-  const seed = dayNumber(now) * 7919; // A different rotation from Ideas for today.
-  const ordered = [...lessons].sort((a, b) => seededRank(a.id, seed) - seededRank(b.id, seed));
+export type HeroTile = { id: string; url: string; score: number };
 
-  const picked: { id: string; url: string }[] = [];
+export function pickHeroImages(lessons: LessonRow[], now: Date, count = TILES): HeroTile[] {
+  const seed = dayNumber(now) * 7919; // A different rotation from Ideas for today.
+
+  const candidates = lessons
+    .map((lesson) => {
+      const image = lessonThumbnail(lesson.lesson);
+      if (!image) return null;
+      return {
+        id: lesson.id,
+        url: image.thumbUrl,
+        category: primaryCategory(lesson),
+        score: heroScore(lesson, image),
+      };
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null)
+    // Score first, then the day's shuffle as the tie-break — so the hero
+    // rotates among the GOOD pictures rather than among all of them.
+    .sort((a, b) => b.score - a.score || seededRank(a.id, seed) - seededRank(b.id, seed));
+
+  const picked: HeroTile[] = [];
   const usedCategories = new Set<string>();
   const usedUrls = new Set<string>();
 
-  // Prefer three different kinds of afternoon. Three pictures of the same
-  // seedlings say the library is about one thing.
+  // Two passes: the first insists on a different kind of activity per tile, so
+  // the three pictures between them say the library is about several things.
+  // The second fills up when a small library cannot manage that.
   for (const pass of [1, 2]) {
-    for (const lesson of ordered) {
+    for (const c of candidates) {
       if (picked.length >= count) break;
-      const image = lessonThumbnail(lesson.lesson);
-      if (!image) continue;
-      if (usedUrls.has(image.thumbUrl)) continue;
-      const category = lesson.discovery_categories?.[0] ?? null;
-      if (pass === 1 && category && usedCategories.has(category)) continue;
-      picked.push({ id: lesson.id, url: image.thumbUrl });
-      usedUrls.add(image.thumbUrl);
-      if (category) usedCategories.add(category);
+      if (usedUrls.has(c.url)) continue;
+      if (pass === 1 && c.category && usedCategories.has(c.category)) continue;
+      picked.push({ id: c.id, url: c.url, score: c.score });
+      usedUrls.add(c.url);
+      if (c.category) usedCategories.add(c.category);
     }
   }
 
   return picked;
 }
+
+// --- The hero ----------------------------------------------------------------
 
 export function LessonsHero({
   lessons,
@@ -79,66 +160,81 @@ export function LessonsHero({
 }) {
   const images = useMemo(() => pickHeroImages(lessons, new Date()), [lessons]);
 
-  // Deliberately compact. The hero's job is to set the tone in the first
-  // second, not to hold the top third of the viewport: the next thing down is
-  // three real suggestions, and those are what somebody came for.
-  //
-  // The button sits on the title's line rather than below the sentence, which
-  // is where a third of the height went — a stacked title, sentence and button
-  // is three rows of a panel that only ever had one thing to say. It wraps
-  // under the title on a narrow screen, where there is no room beside it.
   const words = (
-    <div className="flex flex-col justify-center bg-accent-soft px-6 py-4 sm:px-7 lg:px-8">
+    <div className="relative z-10 flex flex-col justify-center bg-accent-soft px-6 py-4 sm:px-7 sm:py-5 lg:px-9">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.75rem]">
+        <h1 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground sm:text-[2rem]">
           {title}
         </h1>
         {action}
       </div>
-      {/* No max-w-md. The cap was 448px and this sentence wants 481, so it was
-          costing a whole line — and a whole line here is a fifth of the hero.
-          The panel's own width is the only limit it needs; below about 1100px
-          it wraps to two lines again, which is where there is room for them. */}
-      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-        {blurb}
+      {/* No max-w cap: the sentence wants 481px and the panel offers more than
+          that, so capping it cost a whole line of a very short hero. */}
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{blurb}</p>
+      {/* An editorial annotation, not a slogan — the size of a caption, in the
+          accent at half strength, and the last thing the eye reaches. Italic
+          rather than a script face: the design system has one family, and
+          importing a handwriting font for six words would be a costume. */}
+      <p className="mt-2 text-[11px] italic tracking-wide text-accent/70">
+        Wonder is a subject too.
       </p>
     </div>
   );
 
-  // Fewer than three and the mosaic reads as a mistake rather than a montage,
-  // so the panel keeps its full width until the library has grown into it.
-  if (images.length < 3) {
+  // Three is the composition. With fewer the panel keeps the full width rather
+  // than showing a collage with a hole in it.
+  if (images.length < TILES) {
     return <div className="overflow-hidden rounded-2xl">{words}</div>;
   }
 
+  const [dominant, ...supporting] = images;
+
   return (
-    <div className="grid overflow-hidden rounded-2xl md:grid-cols-2">
+    <div className="grid overflow-hidden rounded-2xl md:grid-cols-[1.05fr_1fr]">
       {words}
 
       {/* Decorative: every one of these is a lesson card a few inches further
           down the page, with its title attached. Announcing three unlabelled
-          pictures to a screen reader adds nothing but noise.
-
-          Three side by side rather than one tall beside two stacked. At this
-          height the old shape would have cropped the two small tiles to about
-          6:1 — a letterbox slot, not a photograph. Abreast, each one is close
-          to 2:1 on a desktop and nearly square on a phone, which is a crop a
-          picture survives. The floor sits just under what the words need, so
-          the pictures never make the hero taller than its own content does. */}
-      <div
-        aria-hidden
-        className="grid h-20 grid-cols-3 gap-1 sm:h-24 md:h-auto md:min-h-[6rem]"
-      >
-        {images.slice(0, MAX_TILES).map((image) => (
-          /* eslint-disable-next-line @next/next/no-img-element */
+          pictures to a screen reader adds nothing but noise. */}
+      <div aria-hidden className="relative">
+        {/* One dominant picture with two supporting it, not three equal
+            rectangles — equal weight is a contact sheet, and a contact sheet is
+            what made this read as a gallery bolted to a heading. */}
+        <div className="grid h-28 grid-cols-[1.7fr_1fr] gap-1 sm:h-32 md:h-full md:min-h-[7.5rem]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            key={image.id}
-            src={image.url}
+            src={dominant.url}
             alt=""
             loading="lazy"
             className="h-full w-full bg-muted object-cover"
           />
-        ))}
+          {/* On a phone the second supporting tile drops out entirely: three
+              pictures across a 358px band is a strip of postage stamps, and
+              the brief for a small screen is one strong image with one
+              supporting it, not a shrunken desktop collage. */}
+          <div className="grid grid-rows-1 gap-1 sm:grid-rows-2">
+            {supporting.map((image, index) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={image.id}
+                src={image.url}
+                alt=""
+                loading="lazy"
+                className={cn(
+                  "h-full w-full bg-muted object-cover",
+                  index === 1 && "hidden sm:block"
+                )}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* The seam. Without this the sage panel stops dead against a
+            photograph and the two halves read as two components; the wash
+            carries one into the other so the hero is a single object. Hidden
+            on a phone, where the pictures sit under the words rather than
+            beside them. */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-16 bg-gradient-to-r from-accent-soft to-transparent md:block" />
       </div>
     </div>
   );
