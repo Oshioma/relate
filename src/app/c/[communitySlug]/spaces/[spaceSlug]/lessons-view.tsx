@@ -103,6 +103,38 @@ function DiscoveryPill({
   );
 }
 
+// One age band, as a circle you can hit rather than a line in a select.
+//
+// There are exactly three of them and they never change, which is what makes
+// this worth the room: a dropdown is right for a list that grows (subjects,
+// people who have written a lesson) and wrong for a fixed set of three that
+// half the visitors to a homeschool library want to set first.
+function AgeCircle({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold tabular-nums transition-colors",
+        active
+          ? "bg-accent text-accent-foreground shadow-sm"
+          : "bg-accent-soft/60 text-accent hover:bg-accent-soft"
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
 // A quiet dropdown. There are several of these, and a row of small controls
 // keeps them out of the way of the lessons — the filters this replaces were
 // bigger on the page than the things they filtered.
@@ -358,9 +390,23 @@ export function LessonsView({
         <div className="mt-5 space-y-5 rail:order-1 rail:mt-0">
       {lessons.length > 0 && (
         <div className="space-y-2.5">
-          {/* Scrolls sideways on a phone rather than wrapping into a block of
-              buttons taller than the first lesson. */}
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* The chips and the ages share one line. On a desktop the chips
+              never fill the row — five of them leave half the width empty —
+              and the ages were taking a whole row of their own underneath to
+              say three words. Now they sit at the far end of the same line and
+              that space does some work.
+
+              flex-wrap rather than a breakpoint: on a narrow screen the chips
+              claim the full width and the ages drop below them on their own,
+              which is the same arrangement, just folded. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* Scrolls sideways on a phone rather than wrapping into a block
+                of buttons taller than the first lesson. */}
+            {/* min-w-[15rem] is what makes the wrap happen. With min-w-0 the
+                chips would shrink to nothing rather than push the ages onto
+                their own line, and a phone got a 130px scroll window next to
+                three circles. Below about 750px the ages fold underneath. */}
+            <div className="-mx-1 flex min-w-[15rem] flex-1 gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <DiscoveryPill
               icon="✨"
               label="All"
@@ -380,6 +426,25 @@ export function LessonsView({
                 onClick={() => setDiscovery(discovery === category.key ? null : category.key)}
               />
             ))}
+            </div>
+
+            {/* The word carries the meaning, so the circles only need the
+                numbers. */}
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Ages
+              </span>
+              {AGE_BANDS.map((entry) => (
+                <AgeCircle
+                  key={entry.key}
+                  // "Ages 5–7" is the label; the row says the word, the button
+                  // says the numbers.
+                  label={entry.label.replace(/^Ages\s*/, "")}
+                  active={band === entry.key}
+                  onClick={() => setBand(band === entry.key ? "" : entry.key)}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -398,12 +463,6 @@ export function LessonsView({
               value={subject}
               onChange={setSubject}
               options={subjectOptions}
-            />
-            <FilterSelect
-              label="Ages"
-              value={band}
-              onChange={setBand}
-              options={AGE_BANDS.map((b) => ({ value: b.key, label: b.label }))}
             />
             <FilterSelect
               label="Time"
