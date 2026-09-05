@@ -114,7 +114,7 @@ export function IdeasForToday({
           cards put the library itself three screens down, which is the
           opposite of what a panel of suggestions is for. From tablet up there
           is room for all three at once. */}
-      <ul className="-mx-4 mt-3.5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0">
+      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0">
         {ideas.map((lesson) => {
           const image = lessonThumbnail(lesson.lesson);
           const duration = formatDuration(lesson.duration_minutes);
@@ -126,7 +126,7 @@ export function IdeasForToday({
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
                 className="group flex h-full flex-col overflow-hidden rounded-2xl bg-accent-soft/70 transition-colors hover:bg-accent-soft"
               >
-                <span className="relative block h-28 w-full overflow-hidden sm:h-32">
+                <span className="relative block h-24 w-full overflow-hidden sm:h-28">
                   {image ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -150,7 +150,7 @@ export function IdeasForToday({
                   )}
                 </span>
 
-                <span className="flex flex-1 flex-col p-3.5 sm:p-4">
+                <span className="flex flex-1 flex-col px-3.5 py-3 sm:px-4">
                   {category && (
                     <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
                       <span aria-hidden>{category.icon} </span>
