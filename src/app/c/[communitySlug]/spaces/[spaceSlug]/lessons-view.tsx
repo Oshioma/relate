@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LessonComposer } from "./lesson-composer";
 import { LessonCard } from "./lesson-card";
 import { IdeasForToday } from "./ideas-for-today";
+import { LessonsHero } from "./lessons-hero";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
@@ -39,7 +40,13 @@ import {
 // container it came out as six stacked fragments. So: one column on a phone,
 // two from 768px, and a third only from 1280px, where the page measure is wide
 // enough to add one without narrowing the others.
-const GRID = "grid gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3";
+//
+// The 21rem floor is the belt to that braces: whatever the breakpoint says, a
+// column is never allowed below 336px, so a half-dragged window or a future
+// wider sidebar drops to fewer columns instead of shredding the titles. At
+// 1024px that is what stops three 309px columns happening.
+const GRID =
+  "grid gap-5 sm:gap-6 [grid-template-columns:repeat(auto-fill,minmax(min(21rem,100%),1fr))] xl:[grid-template-columns:repeat(3,minmax(0,1fr))]";
 
 function DiscoveryPill({
   icon,
@@ -59,18 +66,26 @@ function DiscoveryPill({
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      disabled={count === 0 && !active}
       className={cn(
         "flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors",
         active
-          ? "bg-accent text-accent-foreground"
-          : "bg-card text-foreground ring-1 ring-border/60 hover:bg-muted"
+          ? "bg-accent text-accent-foreground shadow-sm"
+          : count === 0
+            // Nothing here under the CURRENT filters. Dimmed rather than
+            // removed: a rail that reflows as you type in the search box is
+            // harder to aim at than one with a greyed-out pill in it. A
+            // category with nothing in the whole library never renders at all
+            // — see libraryCounts below.
+            ? "bg-accent-soft/30 text-muted-foreground/60"
+            : "bg-accent-soft/60 text-foreground hover:bg-accent-soft"
       )}
     >
       <span aria-hidden className="text-base leading-none">
         {icon}
       </span>
       {label}
-      <span className={cn("text-xs", active ? "opacity-80" : "text-muted-foreground")}>
+      <span className={cn("text-xs tabular-nums", active ? "opacity-80" : "text-muted-foreground")}>
         {count}
       </span>
     </button>
@@ -97,10 +112,10 @@ function FilterSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "rounded-full px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "cursor-pointer rounded-full border-0 px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         value
           ? "bg-accent-soft font-medium text-accent"
-          : "bg-card text-muted-foreground ring-1 ring-border/60 hover:bg-muted"
+          : "bg-muted/60 text-muted-foreground hover:bg-muted"
       )}
     >
       <option value="">{label}</option>
@@ -113,11 +128,20 @@ function FilterSelect({
   );
 }
 
+// The standing line, used when a space has no description of its own. Says what
+// the library is for rather than what the software does — "paste source
+// material, get an age-appropriate lesson" describes the writer, and the writer
+// is a button on this page, not the point of it.
+const STANDING_BLURB =
+  "Real learning for real life. Ideas, activities and inspiration from our community.";
+
 export function LessonsView({
   lessons,
   spaceId,
   communitySlug,
   spaceSlug,
+  spaceName,
+  spaceDescription,
   canWrite,
   isMember,
   defaultAgeBand,
@@ -127,6 +151,11 @@ export function LessonsView({
   spaceId: string;
   communitySlug: string;
   spaceSlug: string;
+  // This hero is the page's only masthead — the space page renders none above
+  // it — so a renamed space keeps its name here, and an admin who writes their
+  // own description still sees it.
+  spaceName: string;
+  spaceDescription: string | null;
   // Staff only — see the authoring note in the space_lessons migration.
   canWrite: boolean;
   // Signed-in members can save; a guest reading a public library has nowhere
@@ -176,6 +205,21 @@ export function LessonsView({
         : beforeDiscovery,
     [beforeDiscovery, discovery]
   );
+
+  // What each category holds in the whole library, ignoring every filter. A
+  // category with nothing here has never been used by this community and is
+  // not a choice — a homeschool group that never cooks should not have Cook
+  // sitting in its rail forever. Counted off the unfiltered list so the rail's
+  // membership is stable while you filter; only the numbers on it move.
+  const libraryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const lesson of lessons) {
+      for (const key of lesson.discovery_categories ?? []) {
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [lessons]);
 
   const discoveryCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -238,25 +282,21 @@ export function LessonsView({
   return (
     <div className="space-y-6">
       {/* The library is the front door of a homeschool community, so it says
-          what it is for rather than counting rows at someone. */}
-      <header className="rounded-2xl bg-accent-soft/70 p-6 sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-xl">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Lessons
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Real learning for real life. Ideas, activities and inspiration from our community.
-            </p>
-          </div>
-          {canWrite && writerConfigured && !composing && (
-            <Button onClick={() => setComposing(true)} className="shrink-0">
+          what it is for rather than counting rows at someone — and shows it,
+          with the community's own lesson pictures. */}
+      <LessonsHero
+        lessons={lessons}
+        title={spaceName}
+        blurb={spaceDescription?.trim() || STANDING_BLURB}
+        action={
+          canWrite && writerConfigured && !composing ? (
+            <Button onClick={() => setComposing(true)}>
               <Plus className="h-4 w-4" />
               Write a lesson
             </Button>
-          )}
-        </div>
-      </header>
+          ) : undefined
+        }
+      />
 
       {composing && (
         <LessonComposer
@@ -274,7 +314,7 @@ export function LessonsView({
         <div className="space-y-3">
           {/* Scrolls sideways on a phone rather than wrapping into a block of
               buttons taller than the first lesson. */}
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <DiscoveryPill
               icon="✨"
               label="All"
@@ -282,7 +322,9 @@ export function LessonsView({
               active={discovery === null}
               onClick={() => setDiscovery(null)}
             />
-            {DISCOVERY_CATEGORIES.map((category) => (
+            {DISCOVERY_CATEGORIES.filter(
+              (category) => (libraryCounts.get(category.key) ?? 0) > 0
+            ).map((category) => (
               <DiscoveryPill
                 key={category.key}
                 icon={category.icon}
@@ -301,7 +343,7 @@ export function LessonsView({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search lessons, topics or keywords…"
-                className="w-full rounded-full bg-card py-2.5 pl-10 pr-4 text-sm text-foreground ring-1 ring-border/60 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="w-full rounded-full bg-muted/60 py-2.5 pl-10 pr-4 text-sm text-foreground transition-colors placeholder:text-muted-foreground hover:bg-muted focus-visible:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
 
@@ -341,7 +383,7 @@ export function LessonsView({
                   "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition-colors",
                   savedOnly
                     ? "bg-accent-soft font-medium text-accent"
-                    : "bg-card text-muted-foreground ring-1 ring-border/60 hover:bg-muted"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Bookmark className={cn("h-3.5 w-3.5", savedOnly && "fill-accent")} />
@@ -377,7 +419,7 @@ export function LessonsView({
           }
         />
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl bg-card p-10 text-center ring-1 ring-border/50">
+        <div className="rounded-2xl bg-muted/40 p-12 text-center">
           <p className="text-sm text-muted-foreground">Nothing matches that just now.</p>
           <button
             type="button"

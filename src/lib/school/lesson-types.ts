@@ -317,7 +317,7 @@ export const LessonSchema = z.object({
     .min(1)
     .max(3)
     .describe(
-      "One to three of these describing what a child would actually be DOING, not the school subject: make (building, crafting, designing), explore (going and finding out), read, write, cook, grow (plants and soil), move (physical activity), help (kindness and community). Pick what the activity really involves — a lesson about solar ovens where they build one is make and cook."
+      "What a child would physically be DOING in this lesson, not the school subject and not what they might incidentally do. Usually ONE; two only when the lesson genuinely has two halves; three almost never. Choose from: make (they build, craft or construct something), explore (they go somewhere and find things out first-hand), read (a text, story or poem is the material), write (producing writing is the point), cook (food is prepared), grow (plants, seeds or soil are handled), move (physical activity is the activity), help (the lesson does something for other people). BE STRICT. Writing an answer on a worksheet is not 'write'. Reading the lesson itself is not 'read'. Discussing kindness is not 'help' — doing something kind is. A lesson where children build a solar oven and toast marshmallows in it is make and cook; a lesson about how the sun heats things is neither."
     ),
   duration_minutes: z
     .number()

@@ -53,22 +53,37 @@ export function LessonCard({
     .filter((c): c is NonNullable<ReturnType<typeof discoveryMeta>> => Boolean(c));
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border/50 transition-shadow hover:shadow-md">
-      <Link href={href} className="relative block" tabIndex={-1} aria-hidden>
+    <article className="group flex flex-col overflow-hidden rounded-[1.25rem] bg-card shadow-[0_1px_2px_rgba(38,38,34,0.04),0_8px_24px_-12px_rgba(38,38,34,0.10)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(38,38,34,0.04),0_16px_36px_-14px_rgba(38,38,34,0.18)] motion-reduce:transform-none motion-reduce:transition-none">
+      <Link href={href} className="relative block overflow-hidden" tabIndex={-1} aria-hidden>
         <LessonThumbnail
           lesson={lesson.lesson}
           subject={lesson.subject}
-          className="h-44 w-full sm:h-48"
+          className="h-48 w-full transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none sm:h-52"
         />
+        {/* The duration reads off the picture, so it needs its own ground —
+            a bare white pill on a bright photograph is a sticker. */}
         {duration && (
-          <span className="absolute right-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+          <span className="absolute right-3 top-3 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
             {duration}
+          </span>
+        )}
+        {categories.length > 0 && (
+          <span className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+            {categories.map((category) => (
+              <span
+                key={category.key}
+                className="inline-flex items-center gap-1 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm"
+              >
+                <span aria-hidden>{category.icon}</span>
+                {category.label}
+              </span>
+            ))}
           </span>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {subject}
           <span aria-hidden> &middot; </span>
           {ageBandLabel(lesson.age_band)}
@@ -76,36 +91,23 @@ export function LessonCard({
 
         {/* The title gets the whole width of the card and wraps to as many
             lines as it needs. Truncating a lesson title is worse than an
-            uneven card: the title is the thing being scanned. */}
-        <h3 className="mt-1.5 text-lg font-semibold leading-snug tracking-tight text-foreground">
+            uneven card: the title is the thing being scanned. The measure is
+            what protects it — see GRID in lessons-view. */}
+        <h3 className="mt-2 text-[1.0625rem] font-semibold leading-[1.35] tracking-[-0.011em] text-foreground sm:text-lg">
           <Link href={href} className="transition-colors hover:text-accent">
             {lesson.title || "Untitled lesson"}
           </Link>
         </h3>
 
         {lesson.lesson?.summary && (
-          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
             {lesson.lesson.summary}
           </p>
         )}
 
-        {categories.length > 0 && (
-          <ul className="mt-3 flex flex-wrap gap-1.5">
-            {categories.map((category) => (
-              <li
-                key={category.key}
-                className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent"
-              >
-                <span aria-hidden>{category.icon}</span>
-                {category.label}
-              </li>
-            ))}
-          </ul>
-        )}
-
         {/* Pushed to the bottom so cards of different title lengths still line
             their actions up with each other. */}
-        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
           <span className="flex min-w-0 items-center gap-2">
             <Avatar
               src={lesson.creator?.avatar_url ?? null}
@@ -146,12 +148,16 @@ export function LessonCard({
               </form>
             )}
 
+            {/* Quieter than the solid pill it replaces: a grid of cards each
+                with its own filled green button reads as a dashboard of
+                actions. The whole title is a link — this is the affordance,
+                not the only way in. */}
             <Link
               href={href}
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent-soft"
             >
               Start
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
             </Link>
           </span>
         </div>
