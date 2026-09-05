@@ -43,6 +43,25 @@ export const AGE_BANDS = [
       "only describing. Do not talk down to them.",
     tint: "border-border bg-muted text-foreground",
   },
+  {
+    key: "16-18",
+    label: "Ages 16\u201318",
+    reading: "sixth-formers and adults",
+    guidance:
+      "Write for an adult reader. Full sentences and real subject vocabulary, " +
+      "used rather than explained, unless a term is genuinely specialist. " +
+      "Argument, nuance and uncertainty belong here: where the material is " +
+      "contested, say so and give the strongest version of each side rather " +
+      "than a safe middle.",
+    tint: "border-border bg-accent-soft text-foreground",
+    // The one band that does NOT teach around difficult material. See
+    // systemPrompt() in lesson-writer.ts: for every other band the writer is
+    // told to leave out anything unsuitable for the age, which is right for a
+    // nine-year-old and wrong for a sixth-former reading Wilfred Owen, an
+    // account of the slave trade, or a paper on assisted dying. Sanitising
+    // those is not teaching them.
+    adult: true,
+  },
 ] as const;
 
 export type AgeBandKey = (typeof AGE_BANDS)[number]["key"];
