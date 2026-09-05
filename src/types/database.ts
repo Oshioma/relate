@@ -410,6 +410,10 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // Sidebar section: 'home' | 'learn' | 'connect', or null for ungrouped.
+  // A community where every space is null renders the flat nav it always had.
+  // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
+  nav_group: string | null;
   // Optional cover image (community-assets bucket URL), surfaced on the mobile
   // Explore strip and the Spaces grid. Null = fall back to the type icon.
   // See 20260731214352_add_space_image_url.sql.

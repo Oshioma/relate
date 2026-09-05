@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Menu, X, ExternalLink, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/layout/logout-button";
@@ -21,6 +21,11 @@ export interface MobileNavItem {
   icon: ReactNode;
   exact?: boolean;
   sub?: boolean;
+  /** A sidebar section label to draw ABOVE this item — set on the first item of
+   *  each section. Carried on the item rather than passed as a separate tree so
+   *  the drawer's search can keep filtering one flat list; a heading whose
+   *  items were all filtered out simply never renders. */
+  heading?: string;
 }
 
 export interface MobileExternalLink {
@@ -211,9 +216,17 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityInit
                 // A sub-item shown on its own (while searching) reads oddly with
                 // the parent's indent, so drop it when the list is filtered.
                 const indented = item.sub && !searching;
+                // Section headings belong to the unfiltered nav. While
+                // searching the list is results, not structure.
+                const heading = item.heading && !searching ? item.heading : null;
                 return (
+                  <Fragment key={item.href + item.label}>
+                  {heading && (
+                    <p className="px-3 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      {heading}
+                    </p>
+                  )}
                   <Link
-                    key={item.href + item.label}
                     href={item.href}
                     onClick={close}
                     className={cn(
@@ -227,6 +240,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityInit
                     <span className={cn("shrink-0", isActive ? "text-accent" : "text-muted-foreground")}>{item.icon}</span>
                     <span className="truncate">{item.label}</span>
                   </Link>
+                  </Fragment>
                 );
               })}
             </div>

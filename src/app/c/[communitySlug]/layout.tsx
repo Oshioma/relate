@@ -14,6 +14,7 @@ import { getCommunityLiveSession } from "@/lib/data/live-events";
 import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { homeLabelForCommunity } from "@/lib/community-templates";
+import { NAV_GROUPS, isNavGroup, type NavGroup } from "@/lib/nav-groups";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -170,7 +171,15 @@ export default async function CommunityLayout({
   // sort_order; a built-in link uses its saved position, or a large default
   // (defaultNavItemSort) that keeps it after the spaces until an admin drags
   // it. Feed stays pinned at the top and isn't part of the ordering.
-  type NavUnit = { sort: number; items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[] };
+  // A unit also carries the sidebar section it belongs to, if any. Grouping is
+  // opt-in: when nothing in the community has a group, every unit's group is
+  // null and the nav renders as the flat list it always was. See
+  // src/lib/nav-groups.ts for the three rules this follows.
+  type NavUnit = {
+    sort: number;
+    group: NavGroup | null;
+    items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[];
+  };
 
   const orderedUnits: NavUnit[] = [
     // Featured business categories render as indented sub-links right under
@@ -178,6 +187,7 @@ export default async function CommunityLayout({
     // they travel with their space as one unit.
     ...navSpaces.map((space) => ({
       sort: space.sort_order,
+      group: isNavGroup(space.nav_group) ? space.nav_group : null,
       items: [
         {
           href: `${base}/spaces/${space.slug}`,
@@ -194,11 +204,16 @@ export default async function CommunityLayout({
           })),
       ],
     })),
+    // The built-in links have no group column of their own — there is no row to
+    // put one on — so they take the section their purpose implies. Events is
+    // people meeting; Search reaches the whole community, so it belongs with
+    // the front page rather than under one section of it. Both keep their
+    // admin-set sort position within that section.
     ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false
-      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), group: "connect" as NavGroup, items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
       : []),
     ...(features.concierge && navItemOrder.concierge?.showInNav !== false
-      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: "home" as NavGroup, items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
       : []),
   ].sort((a, b) => a.sort - b.sort);
 
@@ -214,6 +229,23 @@ export default async function CommunityLayout({
     { href: base, label: homeLabel, icon: <LayoutGrid className="h-4 w-4" /> },
     ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
     ...orderedUnits.flatMap((unit) => unit.items),
+  ];
+
+  // The sections actually in use. Empty when nothing in this community has been
+  // grouped, which is the signal to render the flat list — a single heading
+  // over the whole nav labels nothing.
+  const usedGroups = NAV_GROUPS.filter((group) =>
+    orderedUnits.some((unit) => unit.group === group.key)
+  );
+  // Ungrouped units fall to the end, in their own order, with no heading. A
+  // space that has not been filed yet must still be reachable.
+  const ungroupedUnits = orderedUnits.filter((unit) => unit.group === null);
+
+  // Today/Feed and Membership sit above every section: they are the way in and
+  // the way to join, not one topic among several.
+  const pinnedItems = [
+    { href: base, label: homeLabel, icon: <LayoutGrid className="h-4 w-4" /> },
+    ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
   ];
 
   // A community that has chosen its own accent re-points the accent tokens for
@@ -250,19 +282,70 @@ export default async function CommunityLayout({
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                exact={item.href === base}
-                className={"sub" in item && item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
+          {usedGroups.length === 0 ? (
+            // Nothing grouped in this community: the nav it has always had.
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  icon={item.icon}
+                  exact={item.href === base}
+                  className={"sub" in item && item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {pinnedItems.map((item) => (
+                <NavLink key={item.href} href={item.href} icon={item.icon} exact={item.href === base}>
+                  {item.label}
+                </NavLink>
+              ))}
+
+              {usedGroups.map((group) => (
+                <div key={group.key} className="pt-4">
+                  <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    {group.label}
+                  </p>
+                  {orderedUnits
+                    .filter((unit) => unit.group === group.key)
+                    .flatMap((unit) => unit.items)
+                    .map((item) => (
+                      <NavLink
+                        key={item.href}
+                        href={item.href}
+                        icon={item.icon}
+                        className={item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                </div>
+              ))}
+
+              {ungroupedUnits.length > 0 && (
+                // No heading: these have not been filed, and inventing a name
+                // for "the rest" would look like a section somebody chose.
+                <div className="space-y-1 pt-4">
+                  {ungroupedUnits
+                    .flatMap((unit) => unit.items)
+                    .map((item) => (
+                      <NavLink
+                        key={item.href}
+                        href={item.href}
+                        icon={item.icon}
+                        className={item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                      >
+                        {item.label}
+                      </NavLink>
+                    ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 space-y-1 border-t border-border pt-4">
             {community.guidelines && (
@@ -471,7 +554,18 @@ export default async function CommunityLayout({
         items={[
           { href: base, label: homeLabel, icon: <LayoutGrid className="h-4 w-4" />, exact: true },
           ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
-          ...orderedUnits.flatMap((unit) => unit.items),
+          // The drawer shows the same sections as the sidebar. The heading
+          // rides on the first item of each, so the drawer's search can keep
+          // filtering one flat list — see MobileNavItem.heading.
+          ...usedGroups.flatMap((group) =>
+            orderedUnits
+              .filter((unit) => unit.group === group.key)
+              .flatMap((unit) => unit.items)
+              .map((item, index) => (index === 0 ? { ...item, heading: group.label } : item))
+          ),
+          ...(usedGroups.length === 0
+            ? orderedUnits.flatMap((unit) => unit.items)
+            : ungroupedUnits.flatMap((unit) => unit.items)),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
           ...(community.guidelines ? [{ href: `${base}/guidelines`, label: "Community guidelines", icon: <BookOpen className="h-4 w-4" /> }] : []),
           { href: `${base}/contact`, label: "Contact", icon: <Mail className="h-4 w-4" /> },
