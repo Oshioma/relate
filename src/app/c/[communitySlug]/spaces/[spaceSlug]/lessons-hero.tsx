@@ -80,15 +80,25 @@ export function LessonsHero({
 }) {
   const images = useMemo(() => pickHeroImages(lessons, new Date()), [lessons]);
 
+  // Deliberately compact. The hero's job is to set the tone in the first
+  // second, not to hold the top third of the viewport: the next thing down is
+  // three real suggestions, and those are what somebody came for.
+  //
+  // The button sits on the title's line rather than below the sentence, which
+  // is where a third of the height went — a stacked title, sentence and button
+  // is three rows of a panel that only ever had one thing to say. It wraps
+  // under the title on a narrow screen, where there is no room beside it.
   const words = (
-    <div className="flex flex-col justify-center bg-accent-soft p-6 sm:p-8 lg:p-10">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
-        {title}
-      </h1>
-      <p className="mt-2.5 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+    <div className="flex flex-col justify-center bg-accent-soft px-6 py-6 sm:px-7 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.75rem]">
+          {title}
+        </h1>
+        {action}
+      </div>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
         {blurb}
       </p>
-      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 
@@ -107,7 +117,9 @@ export function LessonsHero({
           pictures to a screen reader adds nothing but noise. */}
       <div
         aria-hidden
-        className="grid h-40 grid-cols-2 grid-rows-2 gap-1 sm:h-52 md:h-auto md:min-h-[15rem]"
+        // The floor sits just under what the words need, so the pictures never
+        // make the hero taller than its own content does.
+        className="grid h-28 grid-cols-2 grid-rows-2 gap-1 sm:h-36 md:h-auto md:min-h-[8.5rem]"
       >
         {images.slice(0, MAX_TILES).map((image, index) => (
           /* eslint-disable-next-line @next/next/no-img-element */

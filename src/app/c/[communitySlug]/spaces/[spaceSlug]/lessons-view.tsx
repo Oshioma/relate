@@ -280,7 +280,11 @@ export function LessonsView({
   }
 
   return (
-    <div className="space-y-6">
+    // Tighter than the page's usual rhythm on purpose: hero, three ideas, the
+    // rail and the search box all need to be reachable without scrolling on a
+    // laptop, and every extra 24px between them pushes the library itself off
+    // the screen.
+    <div className="space-y-5">
       {/* The library is the front door of a homeschool community, so it says
           what it is for rather than counting rows at someone — and shows it,
           with the community's own lesson pictures. */}
@@ -311,7 +315,7 @@ export function LessonsView({
       )}
 
       {lessons.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {/* Scrolls sideways on a phone rather than wrapping into a block of
               buttons taller than the first lesson. */}
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -430,7 +434,7 @@ export function LessonsView({
           </button>
         </div>
       ) : (
-        <>
+        <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
             {filtered.length === lessons.length
               ? `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`
@@ -448,7 +452,7 @@ export function LessonsView({
               />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
