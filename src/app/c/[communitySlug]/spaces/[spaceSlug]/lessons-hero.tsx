@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { cn } from "@/lib/utils";
 import { lessonThumbnail, type LessonRow } from "@/lib/school/lesson-types";
 
 // The top of the library, and the only place on the page that gets to say what
@@ -89,14 +88,18 @@ export function LessonsHero({
   // is three rows of a panel that only ever had one thing to say. It wraps
   // under the title on a narrow screen, where there is no room beside it.
   const words = (
-    <div className="flex flex-col justify-center bg-accent-soft px-6 py-6 sm:px-7 lg:px-8">
+    <div className="flex flex-col justify-center bg-accent-soft px-6 py-4 sm:px-7 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.75rem]">
           {title}
         </h1>
         {action}
       </div>
-      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+      {/* No max-w-md. The cap was 448px and this sentence wants 481, so it was
+          costing a whole line — and a whole line here is a fifth of the hero.
+          The panel's own width is the only limit it needs; below about 1100px
+          it wraps to two lines again, which is where there is room for them. */}
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
         {blurb}
       </p>
     </div>
@@ -113,27 +116,27 @@ export function LessonsHero({
       {words}
 
       {/* Decorative: every one of these is a lesson card a few inches further
-          down the page, with its title attached. Announcing four unlabelled
-          pictures to a screen reader adds nothing but noise. */}
+          down the page, with its title attached. Announcing three unlabelled
+          pictures to a screen reader adds nothing but noise.
+
+          Three side by side rather than one tall beside two stacked. At this
+          height the old shape would have cropped the two small tiles to about
+          6:1 — a letterbox slot, not a photograph. Abreast, each one is close
+          to 2:1 on a desktop and nearly square on a phone, which is a crop a
+          picture survives. The floor sits just under what the words need, so
+          the pictures never make the hero taller than its own content does. */}
       <div
         aria-hidden
-        // The floor sits just under what the words need, so the pictures never
-        // make the hero taller than its own content does.
-        className="grid h-28 grid-cols-2 grid-rows-2 gap-1 sm:h-36 md:h-auto md:min-h-[8.5rem]"
+        className="grid h-20 grid-cols-3 gap-1 sm:h-24 md:h-auto md:min-h-[6rem]"
       >
-        {images.slice(0, MAX_TILES).map((image, index) => (
+        {images.slice(0, MAX_TILES).map((image) => (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             key={image.id}
             src={image.url}
             alt=""
             loading="lazy"
-            className={cn(
-              "h-full w-full bg-muted object-cover",
-              // The first picture takes the whole left half; the other two
-              // stack beside it.
-              index === 0 && "row-span-2"
-            )}
+            className="h-full w-full bg-muted object-cover"
           />
         ))}
       </div>
