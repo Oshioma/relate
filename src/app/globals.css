@@ -127,11 +127,10 @@ html {
    *
    * NOTE: a custom breakpoint does NOT sort after the built-in ones here —
    * measured, the rail: rules are emitted before the sm: rules, so where the
-   * two set the same property the sm: one wins on order. The four places that
-   * collide (the ideas grid, its image height, its heading size and its
-   * strapline) therefore mark the rail: utility important. Everything else
-   * only overrides an unprefixed base class, which is always emitted first,
-   * and needs nothing. */
+   * two set the same property, sm: won on order. Wherever both set the same
+   * property — the ideas grid and its row dividers — the rail: utility is
+   * therefore marked important. Everything else only overrides an unprefixed
+   * base class, which is always emitted first, and needs nothing. */
   --breakpoint-rail: 1700px;
 }
 
