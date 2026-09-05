@@ -103,6 +103,38 @@ function DiscoveryPill({
   );
 }
 
+// One age band, as a circle you can hit rather than a line in a select.
+//
+// There are exactly three of them and they never change, which is what makes
+// this worth the room: a dropdown is right for a list that grows (subjects,
+// people who have written a lesson) and wrong for a fixed set of three that
+// half the visitors to a homeschool library want to set first.
+function AgeCircle({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold tabular-nums transition-colors",
+        active
+          ? "bg-accent text-accent-foreground shadow-sm"
+          : "bg-accent-soft/60 text-accent hover:bg-accent-soft"
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
 // A quiet dropdown. There are several of these, and a row of small controls
 // keeps them out of the way of the lessons — the filters this replaces were
 // bigger on the page than the things they filtered.
@@ -382,6 +414,24 @@ export function LessonsView({
             ))}
           </div>
 
+          {/* Ages, in the space above the filters. The word carries the
+              meaning, so the circles only need the numbers. */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Ages
+            </span>
+            {AGE_BANDS.map((entry) => (
+              <AgeCircle
+                key={entry.key}
+                // "Ages 5–7" is the label; on a circle the words are the row's
+                // job and the numbers are the button's.
+                label={entry.label.replace(/^Ages\s*/, "")}
+                active={band === entry.key}
+                onClick={() => setBand(band === entry.key ? "" : entry.key)}
+              />
+            ))}
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-[12rem] flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -398,12 +448,6 @@ export function LessonsView({
               value={subject}
               onChange={setSubject}
               options={subjectOptions}
-            />
-            <FilterSelect
-              label="Ages"
-              value={band}
-              onChange={setBand}
-              options={AGE_BANDS.map((b) => ({ value: b.key, label: b.label }))}
             />
             <FilterSelect
               label="Time"
