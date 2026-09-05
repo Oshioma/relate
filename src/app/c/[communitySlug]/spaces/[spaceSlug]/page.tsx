@@ -403,7 +403,7 @@ export default async function SpaceDetailPage({
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
-      ) : isBusinessDirectorySpace ? null : (
+      ) : isBusinessDirectorySpace || isLessonsSpace ? null : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
               description *is* the whole page. Every other space keeps the title
@@ -413,7 +413,11 @@ export default async function SpaceDetailPage({
               you here says "Directory", the category tiles below say it again
               in bigger letters, and a standing line about what a directory is
               ("Local businesses with profiles, hours and reviews") pushed the
-              listings down the page every single visit. */}
+              listings down the page every single visit.
+
+              A Lessons space is the same: it opens with its own hero carrying
+              the space's name and description, so rendering this one above it
+              printed the title twice with two different subtitles under it. */}
           {!isCustomPageSpace && (
             <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
               <TypeIcon className="h-5 w-5 text-muted-foreground" />
@@ -762,6 +766,8 @@ export default async function SpaceDetailPage({
           spaceId={space.id}
           communitySlug={community.slug}
           spaceSlug={space.slug}
+          spaceName={space.name}
+          spaceDescription={space.description}
           canWrite={Boolean(isStaff)}
           isMember={canPost}
           defaultAgeBand={schoolDefaultAgeBand(community.school_kind) ?? DEFAULT_AGE_BAND}

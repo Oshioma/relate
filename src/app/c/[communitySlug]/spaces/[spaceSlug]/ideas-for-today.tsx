@@ -93,59 +93,80 @@ export function IdeasForToday({
   if (ideas.length === 0) return null;
 
   return (
-    <section
-      aria-labelledby="ideas-for-today"
-      className="rounded-2xl bg-accent-soft/60 p-4 sm:p-5"
-    >
-      <h2
-        id="ideas-for-today"
-        className="flex items-center gap-2 text-sm font-semibold text-foreground"
-      >
-        <Sparkles className="h-4 w-4 text-accent" />
-        Ideas for today
-      </h2>
+    <section aria-labelledby="ideas-for-today">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2
+          id="ideas-for-today"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl"
+        >
+          <Sparkles className="h-4.5 w-4.5 text-accent" />
+          Ideas for today
+        </h2>
+        <p className="hidden text-sm text-muted-foreground sm:block">
+          Three from the library, picked fresh each morning
+        </p>
+      </div>
 
-      <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+      {/* Each idea is a real lesson with its own picture, big enough to want.
+          The compact rows this replaced looked like search results — the point
+          of the panel is to make somebody think "oh, we could do that". */}
+      {/* On a phone these are a swipeable row, not a stack: three full-width
+          cards put the library itself three screens down, which is the
+          opposite of what a panel of suggestions is for. From tablet up there
+          is room for all three at once. */}
+      <ul className="-mx-4 mt-3.5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0">
         {ideas.map((lesson) => {
           const image = lessonThumbnail(lesson.lesson);
           const duration = formatDuration(lesson.duration_minutes);
           const category = discoveryMeta(lesson.discovery_categories?.[0] ?? "");
 
           return (
-            <li key={lesson.id}>
+            <li key={lesson.id} className="w-[78%] shrink-0 snap-start sm:w-auto sm:shrink">
               <Link
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
-                className="group flex items-center gap-3 rounded-xl bg-card/80 p-2.5 transition-colors hover:bg-card"
+                className="group flex h-full flex-col overflow-hidden rounded-2xl bg-accent-soft/70 transition-colors hover:bg-accent-soft"
               >
-                {image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={image.thumbUrl}
-                    alt=""
-                    loading="lazy"
-                    className="h-11 w-11 shrink-0 rounded-lg bg-muted object-cover"
-                  />
-                ) : (
-                  <span
-                    aria-hidden
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-lg"
-                  >
-                    {category?.icon ?? "\u{1F4DA}"}
-                  </span>
-                )}
-
-                <span className="min-w-0 flex-1">
+                <span className="relative block h-28 w-full overflow-hidden sm:h-32">
+                  {image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={image.thumbUrl}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="flex h-full w-full items-center justify-center bg-card/60 text-3xl"
+                    >
+                      {category?.icon ?? "\u{1F4DA}"}
+                    </span>
+                  )}
                   {duration && (
-                    <span className="block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <span className="absolute left-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
                       {duration}
                     </span>
                   )}
-                  <span className="block truncate text-sm font-medium text-foreground group-hover:text-accent">
-                    {lesson.title || "Untitled lesson"}
-                  </span>
                 </span>
 
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="flex flex-1 flex-col p-3.5 sm:p-4">
+                  {category && (
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+                      <span aria-hidden>{category.icon} </span>
+                      {category.label}
+                    </span>
+                  )}
+                  {/* Two lines, wrapped — a truncated title is exactly the
+                      "database result" feel this is meant to lose. */}
+                  <span className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
+                    {lesson.title || "Untitled lesson"}
+                  </span>
+                  <span className="mt-auto flex items-center gap-1 pt-2.5 text-xs font-medium text-accent">
+                    Have a look
+                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
+                  </span>
+                </span>
               </Link>
             </li>
           );

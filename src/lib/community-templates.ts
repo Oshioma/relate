@@ -80,7 +80,9 @@ const ACTIVITY_FIELDS: TemplateProfileField[] = [
 // Per-school-kind extras are layered on top by SCHOOL_KINDS below.
 const SCHOOL_SPACES: TemplateSpace[] = [
   { name: "Announcements", description: "Term dates, closures and news \u2014 straight from the school.", staff_post_only: true },
-  { name: "Lessons", description: "The teaching library: paste source material, get an age-appropriate lesson to teach or print.", space_type: "lessons" },
+  // Says what the library is for, not what the software does — this line is the
+  // page's subtitle, and "paste source material" describes a button on it.
+  { name: "Lessons", description: "Real learning for real life. Ideas, activities and inspiration from our community.", space_type: "lessons" },
   { name: "Classes & Year Groups", description: "A space per class or year group, for the people in it.", space_type: "clubs" },
   { name: "Homework Help", description: "Ask about a piece of work and get an answer from someone who knows.", space_type: "qa" },
   { name: "Parent Chat", description: "General conversation between parents and guardians." },
@@ -1120,6 +1122,20 @@ export function getSchoolKind(key: string): SchoolKind | undefined {
 // to DEFAULT_AGE_BAND.
 export function schoolDefaultAgeBand(key: string | null | undefined): string | null {
   return (key && getSchoolKind(key)?.defaultAgeBand) || null;
+}
+
+// What a community calls its front page in the sidebar.
+//
+// "Feed" is what the page is; "Today" is what a homeschooling family opens it
+// for — the day's ideas, what is on, what somebody posted this morning. The
+// ROUTE is untouched either way: this is the label on /c/<slug>, nothing more,
+// so every link, bookmark and redirect keeps working.
+//
+// Scoped to schools rather than renamed platform-wide. On a marketplace or an
+// island community the front page really is a feed, and calling it Today there
+// would be a smaller word for the same thing rather than a better one.
+export function homeLabelForCommunity(schoolKind: string | null | undefined): string {
+  return schoolKind ? "Today" : "Feed";
 }
 
 // The School counterpart to recommendPlaceSetup: the shared base plus the

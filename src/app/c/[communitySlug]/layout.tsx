@@ -13,6 +13,7 @@ import { getCommunityFeatures } from "@/lib/data/features";
 import { getCommunityLiveSession } from "@/lib/data/live-events";
 import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
+import { homeLabelForCommunity } from "@/lib/community-templates";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -205,8 +206,12 @@ export default async function CommunityLayout({
   // (non-archived) tier — otherwise it's noise.
   const showMembershipLink = activeTierCount > 0;
 
+  // "Feed" everywhere except a school, where it is "Today". Label only — the
+  // route stays /c/<slug>.
+  const homeLabel = homeLabelForCommunity(community.school_kind);
+
   const navItems = [
-    { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" /> },
+    { href: base, label: homeLabel, icon: <LayoutGrid className="h-4 w-4" /> },
     ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
     ...orderedUnits.flatMap((unit) => unit.items),
   ];
@@ -458,13 +463,13 @@ export default async function CommunityLayout({
         communityInitials={community.logo_initials}
         communityHref={base}
         tabs={[
-          { href: base, label: "Feed", icon: <LayoutGrid className="h-5 w-5" />, exact: true },
+          { href: base, label: homeLabel, icon: <LayoutGrid className="h-5 w-5" />, exact: true },
           { href: `${base}/spaces`, label: "Spaces", icon: <Layers className="h-5 w-5" /> },
           ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false ? [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-5 w-5" /> }] : []),
           ...(features.concierge && navItemOrder.concierge?.showInNav !== false ? [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-5 w-5" /> }] : []),
         ]}
         items={[
-          { href: base, label: "Feed", icon: <LayoutGrid className="h-4 w-4" />, exact: true },
+          { href: base, label: homeLabel, icon: <LayoutGrid className="h-4 w-4" />, exact: true },
           ...(showMembershipLink ? [{ href: `${base}/membership`, label: "Membership", icon: <Gem className="h-4 w-4" /> }] : []),
           ...orderedUnits.flatMap((unit) => unit.items),
           ...(showMembersLink ? [{ href: `${base}/members`, label: "Members", icon: <Users className="h-4 w-4" /> }] : []),
