@@ -7,27 +7,88 @@ import {
   discoveryMeta,
   formatDuration,
   lessonThumbnail,
+  primaryCategory,
   type LessonRow,
 } from "@/lib/school/lesson-types";
 
 // "What could we do today?" — answered with lessons that actually exist.
 //
 // This is deliberately not a recommendation engine. The product has no
-// completion history, no structured child ages (the homeschool template asks
-// for them as free text, which is not something to plan a day around) and no
-// ratings, so there is nothing to learn from. Inventing a score out of data the
-// database does not hold would produce confident nonsense.
+// completion history, no ratings and no structured record of a particular
+// child's age, so there is nothing to learn from and no per-family signal to
+// personalise with. Inventing a score out of data the database does not hold
+// would produce confident nonsense.
 //
-// What it does instead is pick a varied few from what the viewer can already
-// see, and rotate them daily so the panel is not the same three lessons every
-// morning.
+// What it CAN do is judge a lesson on its own merits against the question
+// being asked, which is not "which lessons are good" but "which of these could
+// we actually start this morning". That is what ideaScore below measures:
+// whether there is a thing to DO, whether anybody knows how long it takes,
+// whether it fits in a morning, and whether it is the kind of thing you would
+// get out of a chair for. Then it insists the three between them are not all
+// the same kind of afternoon.
+//
+// The one piece of real age data available is the community's own default age
+// band, set by its school kind — a nursery's library should not open on a
+// lesson pitched at thirteen-year-olds. It is a preference, not a filter: a
+// small library would otherwise have nothing to suggest.
 
 const IDEA_COUNT = 3;
 
-// Stable per lesson per day. Rotating on render would reshuffle the panel on
-// every keystroke in the search box; rotating on nothing would make it
-// wallpaper. A cheap string hash is plenty — this orders three cards, it is not
-// cryptography.
+// How much a kind of activity feels like something you could go and do today.
+// Not a judgement about which lessons matter — a judgement about which ones
+// answer "what shall we do this morning" rather than "what shall we cover this
+// term". Reading and writing still appear; they just do not crowd out the
+// other six, which is exactly the WRITE-heavy panel this is fixing.
+const DOABLE_WEIGHT: Record<string, number> = {
+  cook: 5,
+  make: 5,
+  grow: 5,
+  explore: 5,
+  move: 4,
+  help: 4,
+  read: 2,
+  write: 2,
+};
+
+export function ideaScore(lesson: LessonRow, preferredAgeBand: string | null): number {
+  let score = 0;
+
+  // A thing to DO. Without one a lesson is reading material, which is a fine
+  // lesson and a poor answer to "what could we do today".
+  const activity = lesson.lesson?.activity;
+  if (activity?.title) score += 4;
+  if (activity?.instructions) score += 2;
+
+  // Somebody has to be able to say yes to it before lunch.
+  const minutes = lesson.duration_minutes;
+  if (minutes != null) {
+    score += 2;
+    if (minutes <= 60) score += 3;
+    else if (minutes <= 90) score += 1;
+    else score -= 2; // A two-hour lesson is a plan, not an idea.
+  }
+
+  const [primary, ...rest] = lesson.discovery_categories ?? [];
+  if (primary) score += (DOABLE_WEIGHT[primary] ?? 0) * 2;
+  for (const key of rest) score += DOABLE_WEIGHT[key] ?? 0;
+  // Unclassified means nothing is known about what it involves. Not excluded —
+  // a young library is mostly unclassified — but it does not lead.
+  if (!primary) score -= 3;
+
+  // The community's own age band, where it has one.
+  if (preferredAgeBand && lesson.age_band === preferredAgeBand) score += 3;
+
+  // A picture is most of why a suggestion is tempting.
+  if (lessonThumbnail(lesson.lesson)) score += 2;
+
+  return score;
+}
+
+// Stable per lesson per day. This is what "picked fresh each morning" means
+// literally: the seed is the local calendar day, so a refresh, a keystroke in
+// the search box or a second visit after lunch all produce the same three, and
+// tomorrow produces different ones. No stored state, nothing to migrate, and
+// no server round-trip — the same input gives the same answer everywhere.
 function seededRank(id: string, daySeed: number): number {
   let hash = daySeed;
   for (let i = 0; i < id.length; i += 1) {
@@ -44,30 +105,55 @@ function dayNumber(now: Date): number {
   );
 }
 
-export function pickIdeas(lessons: LessonRow[], now: Date, count = IDEA_COUNT): LessonRow[] {
+// Coarse buckets, so "45 min" and "60 min" count as the same shape of morning
+// and the three ideas are not all hour-long.
+function durationBucket(minutes: number | null): string {
+  if (minutes == null) return "unknown";
+  if (minutes < 30) return "quick";
+  if (minutes < 60) return "half";
+  if (minutes < 90) return "hour";
+  return "long";
+}
+
+export function pickIdeas(
+  lessons: LessonRow[],
+  now: Date,
+  preferredAgeBand: string | null = null,
+  count = IDEA_COUNT
+): LessonRow[] {
   const seed = dayNumber(now);
-  const ordered = [...lessons].sort((a, b) => seededRank(a.id, seed) - seededRank(b.id, seed));
+
+  // Score first, the day's shuffle as the tie-break. So the panel rotates among
+  // the lessons that answer the question, rather than among all of them.
+  const ordered = lessons
+    .map((lesson) => ({ lesson, score: ideaScore(lesson, preferredAgeBand) }))
+    .sort(
+      (a, b) =>
+        b.score - a.score || seededRank(a.lesson.id, seed) - seededRank(b.lesson.id, seed)
+    )
+    .map((entry) => entry.lesson);
 
   const picked: LessonRow[] = [];
   const usedCategories = new Set<string>();
-  const usedDurations = new Set<number | null>();
+  const usedBuckets = new Set<string>();
 
-  // First pass: prefer variety. A morning of three writing lessons all lasting
-  // an hour is not a choice, it is the same suggestion three times.
+  // First pass: variety. A morning of three writing lessons all lasting an
+  // hour is not a choice, it is the same suggestion three times.
   for (const lesson of ordered) {
     if (picked.length >= count) break;
-    const category = lesson.discovery_categories?.[0] ?? null;
-    const bucket = lesson.duration_minutes;
+    const category = primaryCategory(lesson);
+    const bucket = durationBucket(lesson.duration_minutes);
     if (category && usedCategories.has(category)) continue;
-    if (usedDurations.has(bucket)) continue;
+    if (usedBuckets.has(bucket)) continue;
     picked.push(lesson);
     if (category) usedCategories.add(category);
-    usedDurations.add(bucket);
+    usedBuckets.add(bucket);
   }
 
-  // Second pass: fill up. A small library will not have three distinct
-  // categories, and showing two ideas because the third was too similar helps
-  // nobody.
+  // Second pass: fill up, best-scoring first. A small library will not have
+  // three distinct categories, and showing two ideas because the third was too
+  // similar helps nobody. Variety is a preference, never a requirement — and
+  // nothing here invents a lesson to satisfy it.
   for (const lesson of ordered) {
     if (picked.length >= count) break;
     if (picked.some((p) => p.id === lesson.id)) continue;
@@ -81,14 +167,22 @@ export function IdeasForToday({
   lessons,
   communitySlug,
   spaceSlug,
+  preferredAgeBand = null,
 }: {
   lessons: LessonRow[];
   communitySlug: string;
   spaceSlug: string;
+  // The community's own default age band, from its school kind. A preference
+  // in the score, never a filter — a small library would otherwise run out of
+  // things to suggest.
+  preferredAgeBand?: string | null;
 }) {
   // Recomputed only when the library changes, not on every filter keystroke —
   // the ideas are about the whole library, not the current search.
-  const ideas = useMemo(() => pickIdeas(lessons, new Date()), [lessons]);
+  const ideas = useMemo(
+    () => pickIdeas(lessons, new Date(), preferredAgeBand),
+    [lessons, preferredAgeBand]
+  );
 
   if (ideas.length === 0) return null;
 
@@ -118,7 +212,7 @@ export function IdeasForToday({
         {ideas.map((lesson) => {
           const image = lessonThumbnail(lesson.lesson);
           const duration = formatDuration(lesson.duration_minutes);
-          const category = discoveryMeta(lesson.discovery_categories?.[0] ?? "");
+          const category = discoveryMeta(primaryCategory(lesson) ?? "");
 
           return (
             <li key={lesson.id} className="w-[78%] shrink-0 snap-start sm:w-auto sm:shrink">
@@ -158,8 +252,17 @@ export function IdeasForToday({
                     </span>
                   )}
                   {/* Two lines, wrapped — a truncated title is exactly the
-                      "database result" feel this is meant to lose. */}
-                  <span className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
+                      "database result" feel this is meant to lose.
+
+                      One colour, always. It used to turn accent on hover,
+                      which meant the hovered card's title was green and the
+                      other two were not — a difference that looked like it
+                      meant something (saved? visited?) and meant nothing. The
+                      card already lightens its background on hover and the
+                      "Have a look" line is already accent, so the affordance
+                      is not lost. Title colour is now free to mean something
+                      later, deliberately. */}
+                  <span className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">
                     {lesson.title || "Untitled lesson"}
                   </span>
                   <span className="mt-auto flex items-center gap-1 pt-2.5 text-xs font-medium text-accent">

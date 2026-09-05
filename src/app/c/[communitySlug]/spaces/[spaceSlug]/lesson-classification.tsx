@@ -7,8 +7,11 @@ import { updateLessonClassification, type LessonActionState } from "./lessons-ac
 import { cn } from "@/lib/utils";
 import {
   DISCOVERY_CATEGORIES,
+  cleanDiscoveryCategories,
   discoveryMeta,
   formatDuration,
+  primaryCategory,
+  secondaryCategories,
   type LessonRow,
 } from "@/lib/school/lesson-types";
 
@@ -38,7 +41,11 @@ export function LessonClassification({
   );
   const [editing, setEditing] = useState(false);
 
-  const categories = (lesson.discovery_categories ?? [])
+  const primary = primaryCategory(lesson);
+  const secondary = secondaryCategories(lesson);
+
+  const ordered = cleanDiscoveryCategories(lesson.discovery_categories);
+  const categories = ordered
     .map(discoveryMeta)
     .filter((c): c is NonNullable<ReturnType<typeof discoveryMeta>> => Boolean(c));
   const duration = formatDuration(lesson.duration_minutes);
@@ -55,10 +62,18 @@ export function LessonClassification({
             {duration}
           </span>
         )}
-        {categories.map((category) => (
+        {/* The first is the primary — what this lesson is mainly doing — so it
+            carries the weight and the rest sit behind it. */}
+        {categories.map((category, index) => (
           <span
             key={category.key}
-            className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent"
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+              index === 0
+                ? "bg-accent text-accent-foreground"
+                : "bg-accent-soft text-accent"
+            )}
+            title={index === 0 ? "Mainly this" : "Also this"}
           >
             <span aria-hidden>{category.icon}</span>
             {category.label}
@@ -92,40 +107,90 @@ export function LessonClassification({
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
 
+      {/* Primary first, then secondaries, because that is the order the value
+          is stored in — the array's first element IS the primary category.
+          Two controls rather than one ranked list: "what is this mainly" is a
+          different question from "what else is in it", and a staff member
+          answering the first one should not have to think about ordering. */}
       <fieldset>
         <legend className="text-xs font-medium text-muted-foreground">
-          What kind of thing is this? Pick up to three.
+          What are you mainly doing? Pick one.
         </legend>
         <div className="mt-2 flex flex-wrap gap-2">
-          {DISCOVERY_CATEGORIES.map((category) => {
-            const checked = (lesson.discovery_categories ?? []).includes(category.key);
-            return (
-              <label
-                key={category.key}
-                className="cursor-pointer"
-                title={category.blurb}
+          {DISCOVERY_CATEGORIES.map((category) => (
+            <label key={category.key} className="cursor-pointer" title={category.blurb}>
+              <input
+                type="radio"
+                name="primary"
+                value={category.key}
+                defaultChecked={primary === category.key}
+                className="peer sr-only"
+              />
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-xs font-medium",
+                  "text-muted-foreground ring-1 ring-border/60 transition-colors",
+                  "peer-checked:bg-accent peer-checked:text-accent-foreground peer-checked:ring-accent",
+                  "peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                )}
               >
-                <input
-                  type="checkbox"
-                  name="discovery"
-                  value={category.key}
-                  defaultChecked={checked}
-                  className="peer sr-only"
-                />
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-xs font-medium",
-                    "text-muted-foreground ring-1 ring-border/60 transition-colors",
-                    "peer-checked:bg-accent peer-checked:text-accent-foreground peer-checked:ring-accent",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
-                  )}
-                >
-                  <span aria-hidden>{category.icon}</span>
-                  {category.label}
-                </span>
-              </label>
-            );
-          })}
+                <span aria-hidden>{category.icon}</span>
+                {category.label}
+              </span>
+            </label>
+          ))}
+          {/* Nothing central is a real answer. A maths lesson where you write
+              down your working is not a writing lesson, and forcing one of the
+              eight onto it is how the library filled up with bad tags. */}
+          <label className="cursor-pointer" title="None of these is central to this lesson">
+            <input
+              type="radio"
+              name="primary"
+              value=""
+              defaultChecked={!primary}
+              className="peer sr-only"
+            />
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-xs font-medium",
+                "text-muted-foreground ring-1 ring-border/60 transition-colors",
+                "peer-checked:bg-muted peer-checked:text-foreground peer-checked:ring-muted-foreground/40",
+                "peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+              )}
+            >
+              None of these
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset className="mt-4">
+        <legend className="text-xs font-medium text-muted-foreground">
+          Anything else in it? Up to two more — leave blank if not.
+        </legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {DISCOVERY_CATEGORIES.map((category) => (
+            <label key={category.key} className="cursor-pointer" title={category.blurb}>
+              <input
+                type="checkbox"
+                name="secondary"
+                value={category.key}
+                defaultChecked={secondary.includes(category.key)}
+                className="peer sr-only"
+              />
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-xs font-medium",
+                  "text-muted-foreground ring-1 ring-border/60 transition-colors",
+                  "peer-checked:bg-accent-soft peer-checked:text-accent peer-checked:ring-accent/40",
+                  "peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                )}
+              >
+                <span aria-hidden>{category.icon}</span>
+                {category.label}
+              </span>
+            </label>
+          ))}
         </div>
       </fieldset>
 
