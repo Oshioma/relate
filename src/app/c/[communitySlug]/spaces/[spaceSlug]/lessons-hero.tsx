@@ -145,7 +145,7 @@ export function LessonsHero({
   const image = useMemo(() => pickHeroImage(lessons, new Date()), [lessons]);
 
   const words = (
-    <div className="relative z-10 flex flex-col justify-center bg-accent-soft px-6 py-3.5 sm:px-7 lg:px-9">
+    <div className="relative z-10 flex flex-col justify-center bg-accent-soft px-6 py-6 sm:px-7 sm:py-7 lg:px-9">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h1 className="text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
           {title}
@@ -181,7 +181,7 @@ export function LessonsHero({
           words set the height, and the picture fills whatever they leave. */}
       <div
         aria-hidden
-        className="relative h-24 overflow-hidden sm:h-28 md:h-auto md:min-h-[5.5rem]"
+        className="relative h-32 overflow-hidden sm:h-36 md:h-auto md:min-h-[7.5rem]"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

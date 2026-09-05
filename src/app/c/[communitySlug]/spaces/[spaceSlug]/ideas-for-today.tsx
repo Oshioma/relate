@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Lightbulb } from "lucide-react";
 import {
   discoveryMeta,
   formatDuration,
@@ -197,7 +197,12 @@ export function IdeasForToday({
           id="ideas-for-today"
           className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground"
         >
-          <Sparkles className="h-4 w-4 text-accent" />
+          {/* Amber rather than the accent: this is the one warm note on a
+              sage page, and a lightbulb that is green does not read as an
+              idea. A raw palette colour rather than a token because the
+              design system has no yellow — it is deliberate, and the only
+              place it appears. */}
+          <Lightbulb className="h-4 w-4 fill-amber-300 text-amber-500" />
           Ideas for today
         </h2>
         {/* The library is on this same page, so "see all" is a jump down to
