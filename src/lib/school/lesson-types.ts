@@ -548,10 +548,29 @@ export function toLessonRow(row: SpaceLesson & { creator?: LessonAuthor }): Less
   return { ...row, lesson: decodeDeep(row.lesson ?? {}) as StoredLesson };
 }
 
-// Guard rails on the pasted material. Below the minimum there isn't enough
-// to teach from; above the maximum we'd be sending a novel to the model.
+// Guard rails on the pasted material.
+//
+// The ceiling is not a model limit. Opus 5 holds a million tokens — roughly
+// four million characters — so 150,000 is about 4% of what it could take. The
+// ceiling exists for three other reasons, in order of how much they matter:
+//
+//   QUALITY. Asking for ONE lesson from a whole book gives the model an
+//   impossible editorial job and it answers with something general. From a
+//   chapter or a transcript it answers with something specific. Past roughly
+//   this length lessons get vaguer, not richer, so raising it further would
+//   buy worse lessons with more money.
+//
+//   MONEY. ~150,000 characters is ~37k tokens, a few pence of input per
+//   lesson. And source_text is KEPT and re-sent every time somebody rewrites
+//   the lesson for another age band, so a chapter written for three ages pays
+//   it four times.
+//
+//   TIME. The lesson routes cap at 300 seconds (maxDuration). Longer input
+//   means longer before the first word appears.
+//
+// Below the minimum there simply isn't enough to teach from.
 export const MIN_SOURCE_CHARS = 80;
-export const MAX_SOURCE_CHARS = 40000;
+export const MAX_SOURCE_CHARS = 150000;
 
 // Past this, a lesson takes long enough that the wait is worth mentioning
 // before someone starts it. Still allowed — just not instant.
