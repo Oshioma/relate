@@ -230,8 +230,8 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityInit
                     href={item.href}
                     onClick={close}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-                      indented ? "py-1.5 pl-9 text-[13px]" : "py-2.5",
+                      "flex items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors",
+                      indented ? "py-1.5 pl-9 text-sm" : "py-2.5",
                       isActive
                         ? "bg-accent-soft text-accent"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -260,7 +260,7 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityInit
                     onClick={close}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <ExternalLink className="h-4 w-4 shrink-0" />
                     <span className="truncate">{link.label}</span>

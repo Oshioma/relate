@@ -291,7 +291,7 @@ export default async function CommunityLayout({
                   href={item.href}
                   icon={item.icon}
                   exact={item.href === base}
-                  className={"sub" in item && item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                  className={"sub" in item && item.sub ? "pl-9 py-1.5 text-sm" : undefined}
                 >
                   {item.label}
                 </NavLink>
@@ -318,7 +318,7 @@ export default async function CommunityLayout({
                         key={item.href}
                         href={item.href}
                         icon={item.icon}
-                        className={item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                        className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
                       >
                         {item.label}
                       </NavLink>
@@ -337,7 +337,7 @@ export default async function CommunityLayout({
                         key={item.href}
                         href={item.href}
                         icon={item.icon}
-                        className={item.sub ? "pl-9 py-1.5 text-[13px]" : undefined}
+                        className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
                       >
                         {item.label}
                       </NavLink>
@@ -364,7 +364,7 @@ export default async function CommunityLayout({
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <ExternalLink className="h-4 w-4" />
                     <span className="truncate">{link.label}</span>
