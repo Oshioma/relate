@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Link2, Loader2, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,48 @@ export function LessonComposer({
   const [charsWritten, setCharsWritten] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Reading a page into the box. Separate from writing the lesson on purpose:
+  // you see what came back, edit it, and only then ask for a lesson.
+  const [url, setUrl] = useState("");
+  const [reading, setReading] = useState(false);
+  const [readNote, setReadNote] = useState<string | null>(null);
+
+  async function readFromUrl() {
+    if (!url.trim() || reading || busy) return;
+    setReading(true);
+    setError(null);
+    setReadNote(null);
+    try {
+      const response = await fetch("/api/lessons/read-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spaceId, url }),
+      });
+      const body = (await response.json().catch(() => null)) as
+        | { text?: string; title?: string | null; truncated?: boolean; error?: string }
+        | null;
+
+      if (!response.ok || !body?.text) {
+        setError(body?.error ?? "Couldn't read that page.");
+        return;
+      }
+
+      // Appended, not replaced — somebody may have pasted something already,
+      // and losing it to a link they were only trying out would be rude.
+      setSourceText((current) => (current.trim() ? `${current.trim()}\n\n${body.text}` : body.text!));
+      setUrl("");
+      setReadNote(
+        body.truncated
+          ? `Read "${body.title ?? "that page"}" — it was long, so the end was trimmed.`
+          : `Read "${body.title ?? "that page"}". Edit it below before writing the lesson.`
+      );
+    } catch {
+      setError("Couldn't reach that page just now.");
+    } finally {
+      setReading(false);
+    }
+  }
 
   const trimmed = sourceText.trim();
   const tooShort = trimmed.length > 0 && trimmed.length < MIN_SOURCE_CHARS;
@@ -205,12 +247,50 @@ export function LessonComposer({
         </div>
       </div>
 
+      {/* A link is a shortcut into the box below, not a second way to write a
+          lesson. Works on anything whose words are in the page — an article, a
+          recipe, a Wikipedia entry. A video page carries no transcript, and
+          the server says so plainly rather than returning a summary of the
+          description dressed up as one. */}
+      <div className="mt-4">
+        <span className="text-sm font-medium text-foreground">Read from a link</span>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <div className="relative min-w-[14rem] flex-1">
+            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="url"
+              inputMode="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void readFromUrl();
+                }
+              }}
+              disabled={busy || reading}
+              placeholder="Paste an article or recipe link…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            />
+          </div>
+          <Button
+            variant="secondary"
+            onClick={readFromUrl}
+            disabled={busy || reading || !url.trim()}
+          >
+            {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+            {reading ? "Reading…" : "Read it in"}
+          </Button>
+        </div>
+        {readNote && <p className="mt-2 text-xs text-muted-foreground">{readNote}</p>}
+      </div>
+
       <textarea
         value={sourceText}
         onChange={(e) => setSourceText(e.target.value)}
         disabled={busy}
         rows={10}
-        placeholder="Paste the source material here…"
+        placeholder="Paste the source material here, or read one in from a link above…"
         className="mt-4 w-full resize-y rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
       />
 
