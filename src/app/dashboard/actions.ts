@@ -46,7 +46,18 @@ export async function joinCommunity(communityId: string) {
     return { error: null };
   }
 
-  if (existing) {
+  if (existing?.status === "requested") {
+    // A join request left over from when this community was private, on a
+    // community that has since opened up — the request no longer needs an
+    // answer. It can't be promoted in place: RLS deliberately refuses a
+    // self-UPDATE of a 'requested' row (that rule is what stops a requester
+    // approving themselves), so clear it and fall through to the insert below,
+    // which the self-join branch of memberships_insert does allow.
+    const { error: clearError } = await supabase.from("community_memberships").delete().eq("id", existing.id);
+    if (clearError) {
+      return { error: clearError.message };
+    }
+  } else if (existing) {
     // An outstanding invite: promote it in place, touching only the status so
     // the role the inviting admin chose survives. RLS (see
     // memberships_update_admin_or_self) only lets a user write their own row

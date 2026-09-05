@@ -1,0 +1,21 @@
+-- =============================================================================
+-- Relate — membership_status gains 'requested'
+--
+-- A private community is "visible in search, but content is members-only", and
+-- until now the only way in was for an admin to invite you: a signed-in visitor
+-- who found the community had no button to press, just a sentence telling them
+-- to go and find an admin somewhere off-platform. 'requested' is the missing
+-- state — the visitor asks, the row exists but grants nothing, and staff
+-- approve it into 'active' (or decline it, which deletes the row).
+--
+-- A 'requested' row is deliberately NOT 'active', so it consumes no seat under
+-- enforce_community_plan_limits, appears in no member list, and unlocks no
+-- content: every read path in the app and in RLS tests for status = 'active'.
+--
+-- This migration adds only the enum value. Postgres won't let a new enum label
+-- be *used* in the same transaction that adds it, so the policies and triggers
+-- that reference it live in the next migration — the same split the
+-- live_notification_types migration uses. Safe to re-run.
+-- =============================================================================
+
+alter type public.membership_status add value if not exists 'requested';

@@ -19,7 +19,14 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, getCommunityRecentMembers, getCommunityStats } from "@/lib/data/community";
+import {
+  getCommunityBySlug,
+  getMembership,
+  getCommunityRecentMembers,
+  getCommunityStats,
+  isCommunityAdmin,
+  isCommunityMember,
+} from "@/lib/data/community";
 import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityFeatures } from "@/lib/data/features";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -48,7 +55,7 @@ import { formatMeetupCountdown, meetupPhase } from "@/lib/meetups";
 import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { JoinCommunityButton } from "./join-community-button";
+import { CommunityJoinCta } from "./community-join-cta";
 import { CommunityGate } from "./community-gate";
 import { WeatherTidesCard } from "./weather-tides-card";
 import { FeedItemCard, type FeedItem } from "./feed-item-card";
@@ -78,17 +85,21 @@ export default async function CommunityFeedPage({
   // owner and every active member (checked via their membership) see the real
   // feed. Public communities never gate. invite_only never reaches this page
   // for a non-member (the community doesn't resolve for them under RLS).
-  const isMember = membership?.status === "active" || community.owner_id === user?.id;
+  const isMember = isCommunityMember(community, membership, user?.id);
   // A private community may still choose to show its feed (Admin → Access).
   // Invite-only never does — it doesn't resolve for a stranger at all.
   const guestsMayRead = community.is_public || (community.feed_public && community.privacy !== "invite_only");
   // Staff get the in-place cover controls on the header (same test the layout
   // uses for the Admin link).
-  const isStaff =
-    community.owner_id === user?.id ||
-    (membership?.status === "active" && (membership.role === "owner" || membership.role === "admin"));
+  const isStaff = isCommunityAdmin(community, membership, user?.id);
   if (!guestsMayRead && !isMember) {
-    return <CommunityGate community={community} isLoggedIn={Boolean(user)} />;
+    return (
+      <CommunityGate
+        community={community}
+        isLoggedIn={Boolean(user)}
+        requestPending={membership?.status === "requested"}
+      />
+    );
   }
 
   const [
@@ -568,9 +579,13 @@ export default async function CommunityFeedPage({
                         </p>
                       )}
                     </div>
-                    {user && !membership && (
+                    {user && !isMember && (
                       <div className="shrink-0">
-                        <JoinCommunityButton communityId={community.id} />
+                        <CommunityJoinCta
+                          communityId={community.id}
+                          privacy={community.privacy}
+                          membershipStatus={membership?.status ?? null}
+                        />
                       </div>
                     )}
                   </div>
@@ -594,9 +609,13 @@ export default async function CommunityFeedPage({
                     </p>
                   )}
                 </div>
-                {user && !membership && (
+                {user && !isMember && (
                   <div className="shrink-0">
-                    <JoinCommunityButton communityId={community.id} />
+                    <CommunityJoinCta
+                      communityId={community.id}
+                      privacy={community.privacy}
+                      membershipStatus={membership?.status ?? null}
+                    />
                   </div>
                 )}
                 {isStaff && (
@@ -716,7 +735,7 @@ export default async function CommunityFeedPage({
                 spaceSlug={growingJourney.slug}
                 spaceName={growingJourney.name}
                 isLoggedIn={Boolean(user)}
-                isMember={membership?.status === "active"}
+                isMember={isMember}
               />
             )}
 

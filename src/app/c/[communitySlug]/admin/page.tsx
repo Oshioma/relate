@@ -3,12 +3,20 @@ import { notFound, redirect } from "next/navigation";
 import { CalendarDays, Sparkles, ListTree, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
+import {
+  getCommunityBySlug,
+  getMembership,
+  getCommunityMembers,
+  getPendingJoinRequests,
+  isCommunityAdmin,
+  isCommunityOwner,
+} from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
 import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { MembersSection } from "./members-section";
+import { JoinRequestsSection } from "./join-requests-section";
 import { StaffManagementToggle } from "./staff-management-toggle";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
@@ -61,18 +69,23 @@ export default async function AdminPage({
   if (!community || !user) notFound();
 
   const membership = await getMembership(supabase, community.id, user.id);
-  const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  // Owner-aware on purpose. This guard used to read the membership row alone,
+  // so an owner whose row was missing or wrong was redirected out of their own
+  // community's admin page — and every other surface that could have told them
+  // why is behind the same check. communities.owner_id is the authority.
+  const isAdmin = isCommunityAdmin(community, membership, user.id);
 
   if (!isAdmin) {
     redirect(`/c/${community.slug}`);
   }
 
-  const isOwner = membership?.role === "owner";
+  const isOwner = isCommunityOwner(community, user.id) || membership?.role === "owner";
 
-  const [spaces, members, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
+  const [spaces, members, joinRequests, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
     await Promise.all([
       getCommunitySpaces(supabase, community.id),
       getCommunityMembers(supabase, community.id),
+      getPendingJoinRequests(supabase, community.id),
       getCommunityEvents(supabase, community.id),
       getCommunityProfileFields(supabase, community.id),
       getCommunityNavLinks(supabase, community.id),
@@ -224,6 +237,7 @@ export default async function AdminPage({
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
       <div className="mb-8 space-y-4">
+        <JoinRequestsSection requests={joinRequests} communitySlug={community.slug} />
         <MembersSection
           members={members}
           communitySlug={community.slug}
