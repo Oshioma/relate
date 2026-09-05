@@ -3,21 +3,69 @@ import type { Database, Community, CommunityMembership, Profile } from "@/types/
 
 type Client = SupabaseClient<Database>;
 
+type CommunityOwner = Pick<Community, "owner_id">;
+type ViewerMembership = Pick<CommunityMembership, "role" | "status"> | null;
+
+// The viewer predicates below all take the community as well as the membership
+// row, because owning a community and having a membership row for it are two
+// separate facts that can drift apart. When they do, reading only the row locks
+// the owner out of their own community — no Admin link, the "you're viewing
+// this as a guest" banner, and (on a private community) the members-only gate
+// in place of the feed, with no way back because every door checks the row that
+// is missing. owner_id is the authority; the row is the convenience. These
+// mirror is_community_owner / _admin / _staff / _member in the database, which
+// answer the same way for the same reason.
+export function isCommunityOwner(community: CommunityOwner, viewerId: string | null | undefined): boolean {
+  return Boolean(viewerId) && community.owner_id === viewerId;
+}
+
+export function isCommunityAdmin(
+  community: CommunityOwner,
+  membership: ViewerMembership,
+  viewerId: string | null | undefined
+): boolean {
+  if (isCommunityOwner(community, viewerId)) return true;
+  return membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+}
+
+export function isCommunityStaff(
+  community: CommunityOwner,
+  membership: ViewerMembership,
+  viewerId: string | null | undefined
+): boolean {
+  if (isCommunityOwner(community, viewerId)) return true;
+  return (
+    membership?.status === "active" &&
+    (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator")
+  );
+}
+
+export function isCommunityMember(
+  community: CommunityOwner,
+  membership: ViewerMembership,
+  viewerId: string | null | undefined
+): boolean {
+  return isCommunityOwner(community, viewerId) || membership?.status === "active";
+}
+
 // Whether a signed-in viewer can see a community's Members list/page, per
 // its members_visibility setting: 'public' allows any signed-in viewer (incl.
 // guests who haven't joined), 'members' requires an active membership,
 // 'private' requires staff. Callers must separately require a signed-in user
 // — the Members page itself is never reachable by a signed-out visitor.
-export function canViewMembers(community: Community, membership: CommunityMembership | null): boolean {
-  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+export function canViewMembers(
+  community: Community,
+  membership: ViewerMembership,
+  viewerId: string | null | undefined
+): boolean {
   switch (community.members_visibility) {
     case "public":
       return true;
     case "private":
-      return isStaff;
+      return isCommunityAdmin(community, membership, viewerId);
     case "members":
     default:
-      return membership?.status === "active";
+      return isCommunityMember(community, membership, viewerId);
   }
 }
 
@@ -153,6 +201,23 @@ export async function getCommunityMembers(supabase: Client, communityId: string)
     .select("*, profile:user_id (*)")
     .eq("community_id", communityId)
     .eq("status", "active")
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as unknown as MemberRow[];
+}
+
+// Outstanding join requests for a community, oldest first — the person who has
+// been waiting longest is the one an admin should see at the top. Only staff
+// can read these: memberships_select returns another user's row only to a
+// member/admin of the same community, and the admin surface that calls this is
+// already behind its own staff check.
+export async function getPendingJoinRequests(supabase: Client, communityId: string): Promise<MemberRow[]> {
+  const { data, error } = await supabase
+    .from("community_memberships")
+    .select("*, profile:user_id (*)")
+    .eq("community_id", communityId)
+    .eq("status", "requested")
     .order("created_at", { ascending: true });
 
   if (error) throw error;

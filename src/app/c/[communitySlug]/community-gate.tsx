@@ -1,20 +1,28 @@
 import { Lock } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
+import { RequestToJoinButton } from "./request-to-join-button";
 
 // The members-only feed for a private community, shown in the content area to a
 // non-member — signed-out or signed-in. The community shell around it (the left
 // nav) still lists whatever spaces an admin has made public, so a visitor can
 // step into those; this just gates the feed itself. A private community is
 // "visible in search" but its feed is members-only, so we show its name and a
-// way in: log in / sign up for a guest, and a plain "you need an invite" note
-// for a signed-in visitor who simply isn't a member (private communities aren't
-// self-joinable — you're invited or added).
+// way in.
+//
+// That way in used to be a dead end for a signed-in visitor: a sentence telling
+// them to ask an admin for an invite, with no admin to ask and no button to
+// press. Now they can request to join — the row that creates grants nothing
+// until staff approve it, so "private" still means private. A signed-out
+// visitor gets the same button pointed at the login page, and lands back here
+// able to press the real one.
 export function CommunityGate({
   community,
   isLoggedIn,
+  requestPending,
 }: {
   community: {
+    id: string;
     name: string;
     slug: string;
     description: string | null;
@@ -22,6 +30,8 @@ export function CommunityGate({
     logo_initials: string | null;
   };
   isLoggedIn: boolean;
+  // The viewer already has a request waiting on this community.
+  requestPending: boolean;
 }) {
   const base = `/c/${community.slug}`;
 
@@ -39,19 +49,25 @@ export function CommunityGate({
       </div>
 
       {isLoggedIn ? (
-        <p className="mt-6 max-w-sm text-sm text-muted-foreground">
-          This community is private. You&apos;ll need an invitation from an admin to join and see its
-          content. You can still browse its public spaces from the menu.
-        </p>
+        <>
+          <p className="mt-6 max-w-sm text-sm text-muted-foreground">
+            {requestPending
+              ? "Your request is with the community's admins. You'll be notified as soon as one of them answers — meanwhile you can still browse its public spaces from the menu."
+              : "This community is private. Ask to join and an admin will review your request. You can still browse its public spaces from the menu."}
+          </p>
+          <div className="mt-6">
+            <RequestToJoinButton communityId={community.id} pending={requestPending} size="lg" />
+          </div>
+        </>
       ) : (
         <>
           <p className="mt-6 max-w-sm text-sm text-muted-foreground">
-            This community is private. Log in to see member content, or browse its public spaces from the
-            menu.
+            This community is private. Log in to ask to join and see member content, or browse its public spaces
+            from the menu.
           </p>
           <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
             <LinkButton href={`/login?next=${encodeURIComponent(base)}`} size="lg">
-              Log in
+              Log in to request
             </LinkButton>
             <LinkButton href={`/signup?next=${encodeURIComponent(base)}`} size="lg" variant="secondary">
               Sign up

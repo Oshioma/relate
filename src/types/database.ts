@@ -9,7 +9,11 @@
 // table's Row/Insert/Update silently degrades to `never`.
 
 export type MembershipRole = "owner" | "admin" | "moderator" | "member";
-export type MembershipStatus = "active" | "invited" | "banned";
+// 'requested' is a pending join request on a private community: the row
+// exists but grants nothing — it is not 'active', so it consumes no plan
+// seat, appears in no member list and unlocks no content. Staff approve it
+// into 'active' or decline it, which deletes the row.
+export type MembershipStatus = "active" | "invited" | "banned" | "requested";
 export type CommunityPrivacy = "public" | "private" | "invite_only";
 export type SpaceVisibility = "public" | "members" | "private";
 export type SpaceType =

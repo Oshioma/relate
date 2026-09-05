@@ -4,7 +4,13 @@ import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, canViewMembers } from "@/lib/data/community";
+import {
+  getCommunityBySlug,
+  getMembership,
+  canViewMembers,
+  isCommunityAdmin,
+  isCommunityMember,
+} from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -28,7 +34,7 @@ import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
 import { communityAccentStyle } from "@/lib/accent-color";
-import { JoinCommunityButton } from "./join-community-button";
+import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
 import { getPlanLapseNotice } from "@/lib/data/plan-limits";
 
@@ -150,7 +156,12 @@ export default async function CommunityLayout({
     notFound();
   }
 
-  const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
+  // Owner-aware: a community's owner is staff whether or not their membership
+  // row says so. Reading only the row is what put an owner outside their own
+  // community — no Admin link here, and the guest banner below — with nothing
+  // on screen offering a way back in.
+  const isStaff = isCommunityAdmin(community, membership, user?.id);
+  const isMember = isCommunityMember(community, membership, user?.id);
   // Contact-form messages waiting on staff. Only staff can read them (RLS says
   // so too), so only staff pay for the count query.
   const openInboxCount = isStaff ? await countUnhandledCommunityContactMessages(supabase, community.id) : 0;
@@ -159,7 +170,7 @@ export default async function CommunityLayout({
   const planLapse = isStaff ? await getPlanLapseNotice(supabase, community) : null;
   // Members is login-gated regardless of visibility (the page itself requires
   // a signed-in user), then further narrowed by the community's setting.
-  const showMembersLink = Boolean(user) && canViewMembers(community, membership);
+  const showMembersLink = Boolean(user) && canViewMembers(community, membership, user?.id);
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
   // Guests only get the Events link when the community has opted its events
@@ -518,15 +529,24 @@ export default async function CommunityLayout({
               </Link>{" "}
               to post, review and join.
             </div>
-          ) : !membership ? (
+          ) : !isMember ? (
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               <span>
                 You&apos;re viewing {community.name} as a guest.{" "}
-                {community.is_public
+                {community.privacy === "public"
                   ? "Join to post and see member-only spaces."
-                  : "Ask an admin for an invite to post and see member-only spaces."}
+                  : community.privacy === "private"
+                    ? membership?.status === "requested"
+                      ? "An admin is reviewing your request to join."
+                      : "Ask to join to post and see member-only spaces."
+                    : "Ask an admin for an invite to post and see member-only spaces."}
               </span>
-              {community.is_public && <JoinCommunityButton communityId={community.id} size="sm" />}
+              <CommunityJoinCta
+                communityId={community.id}
+                privacy={community.privacy}
+                membershipStatus={membership?.status ?? null}
+                size="sm"
+              />
             </div>
           ) : null}
           {planLapse && (
