@@ -114,6 +114,27 @@ html {
   --ring: var(--community-accent);
 }
 
+@theme {
+  /* A breakpoint of our own, past every default one.
+   *
+   * The Lessons library puts its "Ideas for today" panel into a side rail at
+   * genuinely wide widths, and 1700px is where that becomes free: the shell's
+   * 256px sidebar plus a 304px rail plus three 336px lesson columns is the
+   * width at which nothing has to give.
+   *
+   * Named rather than written inline as min-[1700px] so it reads as a
+   * breakpoint wherever it is used.
+   *
+   * NOTE: a custom breakpoint does NOT sort after the built-in ones here —
+   * measured, the rail: rules are emitted before the sm: rules, so where the
+   * two set the same property the sm: one wins on order. The four places that
+   * collide (the ideas grid, its image height, its heading size and its
+   * strapline) therefore mark the rail: utility important. Everything else
+   * only overrides an unprefixed base class, which is always emitted first,
+   * and needs nothing. */
+  --breakpoint-rail: 1700px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

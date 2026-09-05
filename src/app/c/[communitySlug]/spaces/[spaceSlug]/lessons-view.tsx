@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LessonComposer } from "./lesson-composer";
 import { LessonCard } from "./lesson-card";
 import { IdeasForToday } from "./ideas-for-today";
+import { SavedLessonsPanel } from "./saved-lessons-panel";
 import { LessonsHero } from "./lessons-hero";
 import { cn } from "@/lib/utils";
 import {
@@ -45,8 +46,18 @@ import {
 // column is never allowed below 336px, so a half-dragged window or a future
 // wider sidebar drops to fewer columns instead of shredding the titles. At
 // 1024px that is what stops three 309px columns happening.
+// Auto-fill against a floor, and NOTHING overrides it. There used to be an
+// `xl:repeat(3, ...)` on the end forcing three columns from 1280px, which
+// quietly defeated the floor it sits next to: measured inside the real shell —
+// with the 256px sidebar, which an earlier measurement of mine left out — a
+// 1280px laptop gave three columns of 309px, under the 336px the floor
+// promises and back into the width where long titles fragment.
+//
+// Now the floor decides. One column on a phone, two on a laptop, three once
+// there is genuinely room for three, and never a column narrower than 21rem
+// whatever the viewport or the side rail is doing.
 const GRID =
-  "grid gap-5 sm:gap-6 [grid-template-columns:repeat(auto-fill,minmax(min(21rem,100%),1fr))] xl:[grid-template-columns:repeat(3,minmax(0,1fr))]";
+  "grid gap-5 sm:gap-6 [grid-template-columns:repeat(auto-fill,minmax(min(21rem,100%),1fr))]";
 
 function DiscoveryPill({
   icon,
@@ -310,15 +321,41 @@ export function LessonsView({
         />
       )}
 
-      {lessons.length > 0 && (
-        <IdeasForToday
-          lessons={lessons}
-          communitySlug={communitySlug}
-          spaceSlug={spaceSlug}
-          preferredAgeBand={defaultAgeBand}
-        />
-      )}
+      {/* Below 1700px this is an ordinary stack: ideas, then the controls, then
+          the library — exactly the page that was there before. From 1700px the
+          shell has 400px+ of empty margin doing nothing, so it becomes two
+          columns and the ideas move into a sticky rail beside the library
+          rather than above it.
 
+          1700 rather than Tailwind's 1536: a rail of 304px plus its gap has to
+          come out of the content width, and three lesson columns need 1056px
+          of it. Below 1700 there is not enough for both, and the library keeps
+          the room — the third column is worth more than an earlier rail. */}
+      <div className="rail:grid rail:grid-cols-[minmax(0,1fr)_19rem] rail:items-start rail:gap-8">
+        {lessons.length > 0 && (
+          <aside className="space-y-5 rail:sticky rail:top-6 rail:order-2">
+            <IdeasForToday
+              lessons={lessons}
+              communitySlug={communitySlug}
+              spaceSlug={spaceSlug}
+              preferredAgeBand={defaultAgeBand}
+            />
+            {/* Only in the rail. Below 1700 the Saved chip in the filter row
+                already does this job, and a second Saved thing above the
+                filters would be the same list twice. */}
+            {isMember && (
+              <div className="hidden rail:block">
+                <SavedLessonsPanel
+                  lessons={lessons}
+                  communitySlug={communitySlug}
+                  spaceSlug={spaceSlug}
+                />
+              </div>
+            )}
+          </aside>
+        )}
+
+        <div className="mt-5 space-y-5 rail:order-1 rail:mt-0">
       {lessons.length > 0 && (
         <div className="space-y-2.5">
           {/* Scrolls sideways on a phone rather than wrapping into a block of
@@ -459,6 +496,8 @@ export function LessonsView({
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

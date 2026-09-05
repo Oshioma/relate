@@ -396,7 +396,10 @@ export default async function SpaceDetailPage({
     <div
       className={cn(
         "mx-auto px-4 pb-8 sm:px-6 sm:pb-10",
-        isLessonsSpace ? "max-w-6xl" : "max-w-3xl",
+        // A Lessons space widens again past 1700px, where the shell has
+        // 400px+ of empty margin doing nothing, so the side rail can appear
+        // without taking a column off the library. See lessons-view.
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : "max-w-3xl",
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
       )}
     >

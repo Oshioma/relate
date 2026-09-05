@@ -184,6 +184,7 @@ export function IdeasForToday({
     [lessons, preferredAgeBand]
   );
 
+
   if (ideas.length === 0) return null;
 
   return (
@@ -191,15 +192,21 @@ export function IdeasForToday({
       <div className="flex items-baseline justify-between gap-3">
         <h2
           id="ideas-for-today"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl rail:text-base!"
         >
           <Sparkles className="h-4.5 w-4.5 text-accent" />
           Ideas for today
         </h2>
-        <p className="hidden text-sm text-muted-foreground sm:block">
+        {/* Beside the heading while the panel is the width of the page. */}
+        <p className="hidden text-sm text-muted-foreground sm:block rail:hidden!">
           Three from the library, picked fresh each morning
         </p>
       </div>
+      {/* And under it in the rail, where there is no room for both on one line
+          — but it is the sentence that says what the panel is, so it stays. */}
+      <p className="mt-1 hidden text-xs leading-relaxed text-muted-foreground rail:block">
+        Three from the library, picked fresh each morning
+      </p>
 
       {/* Each idea is a real lesson with its own picture, big enough to want.
           The compact rows this replaced looked like search results — the point
@@ -208,7 +215,11 @@ export function IdeasForToday({
           cards put the library itself three screens down, which is the
           opposite of what a panel of suggestions is for. From tablet up there
           is room for all three at once. */}
-      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0">
+      {/* Swipeable on a phone, three across from tablet up, and one per row
+          once the panel is a 304px rail — three cards across a rail would be
+          three slivers. The CARD is identical throughout; only the
+          arrangement changes. */}
+      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 rail:grid-cols-1! rail:gap-3">
         {ideas.map((lesson) => {
           const image = lessonThumbnail(lesson.lesson);
           const duration = formatDuration(lesson.duration_minutes);
@@ -220,7 +231,7 @@ export function IdeasForToday({
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
                 className="group flex h-full flex-col overflow-hidden rounded-2xl bg-accent-soft/70 transition-colors hover:bg-accent-soft"
               >
-                <span className="relative block h-24 w-full overflow-hidden sm:h-28">
+                <span className="relative block h-24 w-full overflow-hidden sm:h-28 rail:h-20!">
                   {image ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
