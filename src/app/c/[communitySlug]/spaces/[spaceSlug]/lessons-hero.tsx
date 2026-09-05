@@ -145,23 +145,16 @@ export function LessonsHero({
   const image = useMemo(() => pickHeroImage(lessons, new Date()), [lessons]);
 
   const words = (
-    <div className="relative z-10 flex flex-col justify-center bg-accent-soft px-6 py-4 sm:px-7 sm:py-5 lg:px-9">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <h1 className="text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground sm:text-[2rem]">
+    <div className="relative z-10 flex flex-col justify-center bg-accent-soft px-6 py-3.5 sm:px-7 lg:px-9">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h1 className="text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
           {title}
         </h1>
         {action}
       </div>
       {/* No max-w cap: the sentence wants 481px and the panel offers more than
           that, so capping it cost a whole line of a very short hero. */}
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{blurb}</p>
-      {/* An editorial annotation, not a slogan — the size of a caption, in the
-          accent at half strength, and the last thing the eye reaches. Italic
-          rather than a script face: the design system has one family, and
-          importing a handwriting font for six words would be a costume. */}
-      <p className="mt-2 text-[11px] italic tracking-wide text-accent/70">
-        Wonder is a subject too.
-      </p>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{blurb}</p>
     </div>
   );
 
@@ -177,15 +170,35 @@ export function LessonsHero({
 
       {/* One picture, not a collage. Decorative: it is a lesson card a few
           inches further down the page, with its title attached, so announcing
-          it here would only be noise. */}
-      <div aria-hidden className="relative">
+          it here would only be noise.
+
+          THE HEIGHT LIVES ON THIS BOX, NOT ON THE IMG. It used to be
+          `md:h-full` on the image itself, and h-full there had no definite
+          parent height to resolve against, so it silently became auto and the
+          picture rendered at its own aspect ratio — a portrait photograph blew
+          the hero out to roughly 670px. Absolutely positioning the image
+          inside a box whose height the grid row decides cannot do that: the
+          words set the height, and the picture fills whatever they leave. */}
+      <div
+        aria-hidden
+        className="relative h-24 overflow-hidden sm:h-28 md:h-auto md:min-h-[5.5rem]"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={image.url}
           alt=""
           loading="lazy"
-          className="h-28 w-full bg-muted object-cover sm:h-32 md:h-full md:min-h-[7.5rem]"
+          className="absolute inset-0 h-full w-full bg-muted object-cover"
         />
+
+        {/* The editorial annotation, moved off the words and onto the picture
+            — a caption in the corner of a photograph, which is where a
+            magazine would put it, and it costs the hero no height at all. On
+            the same translucent chip the duration pills use, so it stays
+            legible over a dark night sky and a bright kitchen alike. */}
+        <span className="absolute bottom-2.5 right-2.5 rounded-full bg-background/85 px-2.5 py-1 text-[11px] italic tracking-wide text-accent backdrop-blur-sm">
+          Wonder is a subject too.
+        </span>
 
         {/* The seam. Without this the sage panel stops dead against a
             photograph and the two halves read as two components; the wash

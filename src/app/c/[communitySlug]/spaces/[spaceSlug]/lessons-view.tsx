@@ -476,7 +476,7 @@ export function LessonsView({
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div id="lessons-library" className="scroll-mt-6 space-y-3">
           <p className="text-sm text-muted-foreground">
             {filtered.length === lessons.length
               ? `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`

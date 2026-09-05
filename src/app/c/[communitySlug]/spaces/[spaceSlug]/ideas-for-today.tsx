@@ -188,99 +188,91 @@ export function IdeasForToday({
   if (ideas.length === 0) return null;
 
   return (
-    <section aria-labelledby="ideas-for-today">
+    <section
+      aria-labelledby="ideas-for-today"
+      className="overflow-hidden rounded-2xl bg-card p-4 sm:p-5"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <h2
           id="ideas-for-today"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl rail:text-base!"
+          className="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground"
         >
-          <Sparkles className="h-4.5 w-4.5 text-accent" />
+          <Sparkles className="h-4 w-4 text-accent" />
           Ideas for today
         </h2>
-        {/* Beside the heading while the panel is the width of the page. */}
-        <p className="hidden text-sm text-muted-foreground sm:block rail:hidden!">
-          Three from the library, picked fresh each morning
-        </p>
+        {/* The library is on this same page, so "see all" is a jump down to
+            it rather than a route — there is no separate ideas page to send
+            anybody to, and inventing one would be a link that lies. */}
+        <a
+          href="#lessons-library"
+          className="shrink-0 text-sm font-medium text-accent hover:underline"
+        >
+          See all
+        </a>
       </div>
-      {/* And under it in the rail, where there is no room for both on one line
-          — but it is the sentence that says what the panel is, so it stays. */}
-      <p className="mt-1 hidden text-xs leading-relaxed text-muted-foreground rail:block">
+
+      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
         Three from the library, picked fresh each morning
       </p>
 
-      {/* Each idea is a real lesson with its own picture, big enough to want.
-          The compact rows this replaced looked like search results — the point
-          of the panel is to make somebody think "oh, we could do that". */}
-      {/* On a phone these are a swipeable row, not a stack: three full-width
-          cards put the library itself three screens down, which is the
-          opposite of what a panel of suggestions is for. From tablet up there
-          is room for all three at once. */}
-      {/* Swipeable on a phone, three across from tablet up, and one per row
-          once the panel is a 304px rail — three cards across a rail would be
-          three slivers. The CARD is identical throughout; only the
-          arrangement changes. */}
-      <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 rail:grid-cols-1! rail:gap-3">
+      {/* Rows, not cards. A picture, how long it takes, and the title — the
+          three things somebody deciding needs, in the space one picture card
+          used to take.
+
+          Stacked on a phone and in the rail, where a row is the right shape.
+          Three abreast in between, because a full-page-width row leaves the
+          title stranded halfway across the card with its chevron a hand-span
+          away. Same row either way; only the arrangement changes. */}
+      <ul className="mt-3 grid grid-cols-1 gap-x-6 sm:grid-cols-3 rail:grid-cols-1!">
         {ideas.map((lesson) => {
           const image = lessonThumbnail(lesson.lesson);
           const duration = formatDuration(lesson.duration_minutes);
           const category = discoveryMeta(primaryCategory(lesson) ?? "");
 
           return (
-            <li key={lesson.id} className="w-[78%] shrink-0 snap-start sm:w-auto sm:shrink">
+            <li
+              key={lesson.id}
+              // A hairline between rows when they are stacked, so the three
+              // read as one list; nothing between them when they are abreast,
+              // where the gap already separates them.
+              className="border-t border-border/60 first:border-t-0 sm:border-t-0 rail:border-t! rail:first:border-t-0!"
+            >
               <Link
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl bg-accent-soft/70 transition-colors hover:bg-accent-soft"
+                className="group flex items-center gap-3 py-2.5 transition-opacity hover:opacity-80"
               >
-                <span className="relative block h-24 w-full overflow-hidden sm:h-28 rail:h-20!">
-                  {image ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={image.thumbUrl}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none"
-                    />
-                  ) : (
-                    <span
-                      aria-hidden
-                      className="flex h-full w-full items-center justify-center bg-card/60 text-3xl"
-                    >
-                      {category?.icon ?? "\u{1F4DA}"}
-                    </span>
-                  )}
+                {image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={image.thumbUrl}
+                    alt=""
+                    loading="lazy"
+                    className="h-14 w-14 shrink-0 rounded-xl bg-muted object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+                  >
+                    {category?.icon ?? "\u{1F4DA}"}
+                  </span>
+                )}
+
+                <span className="min-w-0 flex-1">
                   {duration && (
-                    <span className="absolute left-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                    <span className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                       {duration}
                     </span>
                   )}
-                </span>
-
-                <span className="flex flex-1 flex-col px-3.5 py-3 sm:px-4">
-                  {category && (
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
-                      <span aria-hidden>{category.icon} </span>
-                      {category.label}
-                    </span>
-                  )}
-                  {/* Two lines, wrapped — a truncated title is exactly the
-                      "database result" feel this is meant to lose.
-
-                      One colour, always. It used to turn accent on hover,
-                      which meant the hovered card's title was green and the
-                      other two were not — a difference that looked like it
-                      meant something (saved? visited?) and meant nothing. The
-                      card already lightens its background on hover and the
-                      "Have a look" line is already accent, so the affordance
-                      is not lost. Title colour is now free to mean something
-                      later, deliberately. */}
-                  <span className="mt-1 line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">
+                  {/* Two lines, wrapped. One colour, always — it used to turn
+                      accent on hover, which made the hovered row look like it
+                      meant something (saved? visited?) and meant nothing. */}
+                  <span className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-foreground">
                     {lesson.title || "Untitled lesson"}
                   </span>
-                  <span className="mt-auto flex items-center gap-1 pt-2.5 text-xs font-medium text-accent">
-                    Have a look
-                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
-                  </span>
                 </span>
+
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
               </Link>
             </li>
           );
