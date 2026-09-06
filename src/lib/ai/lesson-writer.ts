@@ -40,6 +40,23 @@ export class LessonGenerationError extends Error {
   }
 }
 
+// Exported so a lesson can show the rules it was written under.
+//
+// Derived rather than stored: the prompt is a pure function of the age band
+// and whether it went beyond the source, both of which are on the row. That
+// means every lesson ever written can show its rules, including the ones
+// written before this existed — a stored copy would only have covered lessons
+// made from today.
+//
+// The trade is that it shows the rules AS THEY ARE NOW. If the prompt changes
+// later, an old lesson will display the new rules rather than the ones it was
+// actually written under. For debugging — "why did this come out like that,
+// and what would it do if I ran it again" — now is the useful answer, and the
+// panel says which it is showing rather than leaving it implied.
+export function lessonSystemPrompt(band: AgeBandKey, beyondSource = false): string {
+  return systemPrompt(band, beyondSource);
+}
+
 function systemPrompt(band: AgeBandKey, beyondSource = false): string {
   const entry = AGE_BANDS.find((b) => b.key === band);
   const reading = entry?.reading ?? band;

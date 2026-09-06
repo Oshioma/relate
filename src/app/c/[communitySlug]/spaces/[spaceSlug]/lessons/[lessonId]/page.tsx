@@ -5,7 +5,8 @@ import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getLesson, getSavedLessonIds } from "@/lib/data/lessons";
-import { isLessonWriterConfigured } from "@/lib/ai/lesson-writer";
+import { isLessonWriterConfigured, lessonSystemPrompt } from "@/lib/ai/lesson-writer";
+import { isAgeBandKey, DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
 import { LessonDetailView } from "../../lesson-detail-view";
 
 export default async function LessonPage({
@@ -38,6 +39,16 @@ export default async function LessonPage({
   // guest simply gets nothing back.
   const saved = user ? (await getSavedLessonIds(supabase, user.id, [lesson.id])).has(lesson.id) : false;
 
+  // The rules this lesson was written under, rebuilt from the row. Computed
+  // here and only for staff, so it never reaches a member's page payload at
+  // all — hiding it with CSS would still have shipped it to everybody.
+  const sourceRules = isStaff
+    ? lessonSystemPrompt(
+        isAgeBandKey(lesson.age_band) ? lesson.age_band : DEFAULT_AGE_BAND,
+        lesson.beyond_source
+      )
+    : null;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -55,6 +66,7 @@ export default async function LessonPage({
         // they answer for what is in their space.
         canManageVisibility={Boolean(isStaff) || lesson.created_by === user?.id}
         canSave={Boolean(isMember)}
+        sourceRules={sourceRules}
         writerConfigured={isLessonWriterConfigured()}
       />
     </div>
