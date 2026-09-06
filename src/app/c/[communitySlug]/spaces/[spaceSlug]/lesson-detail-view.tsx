@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
 import { LessonClassification } from "./lesson-classification";
+import { LessonRulesPanel } from "./lesson-rules-panel";
 import {
   deleteLesson,
   removeLessonImage,
@@ -45,6 +46,7 @@ export function LessonDetailView({
   canEdit,
   canManageVisibility,
   canSave,
+  sourceRules,
   writerConfigured,
 }: {
   lesson: LessonRow;
@@ -57,6 +59,10 @@ export function LessonDetailView({
   // Signed-in members only. A save is private to whoever made it, so there is
   // nowhere for a guest to put one.
   canSave: boolean;
+  // The prompt this lesson was written under, rebuilt from the row. Null for
+  // anyone who isn't staff — the page never computes it for them, so it is
+  // absent from the payload rather than hidden in it.
+  sourceRules: string | null;
   writerConfigured: boolean;
 }) {
   const router = useRouter();
@@ -357,6 +363,15 @@ export function LessonDetailView({
               </p>
             )}
           </div>
+        )}
+
+        {sourceRules && (
+          <LessonRulesPanel
+            rules={sourceRules}
+            sourceText={lesson.source_text ?? ""}
+            ageBand={lesson.age_band}
+            beyondSource={lesson.beyond_source}
+          />
         )}
 
         {actionError && (
