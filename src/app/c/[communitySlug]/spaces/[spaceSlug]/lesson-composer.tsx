@@ -61,6 +61,10 @@ export function LessonComposer({
   const [url, setUrl] = useState("");
   const [reading, setReading] = useState(false);
   const [readNote, setReadNote] = useState<string | null>(null);
+  // Remembered so the lesson can say where it came from. Cleared the moment
+  // somebody edits the text by hand: once the words are no longer the ones
+  // that page served, crediting it would be a claim we can't stand behind.
+  const [source, setSource] = useState<{ url: string; title: string | null } | null>(null);
 
   async function readFromUrl() {
     if (!url.trim() || reading || busy) return;
@@ -85,6 +89,10 @@ export function LessonComposer({
       // Appended, not replaced — somebody may have pasted something already,
       // and losing it to a link they were only trying out would be rude.
       setSourceText((current) => (current.trim() ? `${current.trim()}\n\n${body.text}` : body.text!));
+      // Only credit a page when its text is the whole of the material. Append
+      // to something already pasted and the lesson is a mixture, which no
+      // single reference describes honestly.
+      setSource(sourceText.trim() ? null : { url: url.trim(), title: body.title ?? null });
       setUrl("");
       setReadNote(
         body.truncated
@@ -145,7 +153,13 @@ export function LessonComposer({
       const response = await fetch("/api/lessons", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, sourceText: trimmed, ageBand }),
+        body: JSON.stringify({
+          spaceId,
+          sourceText: trimmed,
+          ageBand,
+          sourceUrl: source?.url ?? null,
+          sourceTitle: source?.title ?? null,
+        }),
         signal: controller.signal,
       });
 
@@ -287,7 +301,10 @@ export function LessonComposer({
 
       <textarea
         value={sourceText}
-        onChange={(e) => setSourceText(e.target.value)}
+        onChange={(e) => {
+          setSourceText(e.target.value);
+          setSource(null);
+        }}
         disabled={busy}
         rows={10}
         placeholder="Paste the source material here, or read one in from a link above…"

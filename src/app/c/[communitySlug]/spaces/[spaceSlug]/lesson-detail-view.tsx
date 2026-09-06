@@ -12,6 +12,8 @@ import {
   EyeOff,
   Bookmark,
   Telescope,
+  FileSearch,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,6 +24,7 @@ import { LessonRulesPanel } from "./lesson-rules-panel";
 import {
   deleteLesson,
   removeLessonImage,
+  setLessonSourcePublic,
   setLessonVisibility,
   toggleLessonSave,
   updateLesson,
@@ -47,6 +50,7 @@ export function LessonDetailView({
   canManageVisibility,
   canSave,
   sourceRules,
+  rulesAreOriginal,
   writerConfigured,
 }: {
   lesson: LessonRow;
@@ -63,6 +67,8 @@ export function LessonDetailView({
   // anyone who isn't staff — the page never computes it for them, so it is
   // absent from the payload rather than hidden in it.
   sourceRules: string | null;
+  // Whether that prompt was recorded at generation time or rebuilt now.
+  rulesAreOriginal: boolean;
   writerConfigured: boolean;
 }) {
   const router = useRouter();
@@ -80,6 +86,10 @@ export function LessonDetailView({
     toggleLessonSave,
     undefined
   );
+  const [sourcePublicState, sourcePublicAction, savingSourcePublic] = useActionState<
+    LessonActionState,
+    FormData
+  >(setLessonSourcePublic, undefined);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<"images" | "rewrite" | "deeper" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -163,6 +173,7 @@ export function LessonDetailView({
     editState?.error ??
     visibilityState?.error ??
     saveState?.error ??
+    sourcePublicState?.error ??
     error;
 
   return (
@@ -178,6 +189,24 @@ export function LessonDetailView({
               {lesson.title || "Untitled lesson"}
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">by {providerName(lesson)}</p>
+            {/* Where the material came from, when it was read in from a link.
+                Shown to staff always, and to everyone once staff open the
+                source — attribution is the least secret part of a lesson, but
+                it is still part of the source, so it moves with it. */}
+            {lesson.source_url && (canEdit || lesson.source_public) && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Source:{" "}
+                <a
+                  href={lesson.source_url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1 text-accent hover:underline"
+                >
+                  {lesson.source_title || new URL(lesson.source_url).hostname}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </p>
+            )}
             {/* How long it takes and what kind of thing it is — the two things
                 someone deciding whether to do it this afternoon needs. */}
             <LessonClassification
@@ -257,6 +286,27 @@ export function LessonDetailView({
               <Button size="sm" variant="secondary" type="submit" disabled={savingVisibility}>
                 {lesson.is_public ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 {lesson.is_public ? "Everyone can see this" : "Only you and staff"}
+              </Button>
+            </form>
+          )}
+
+          {/* Separate from the lesson's own public/private control above: that
+              one decides who sees the LESSON, this one decides who sees what
+              it was made from. A community that wants to show its working can;
+              the default is that it doesn't. */}
+          {canEdit && (lesson.source_text?.trim() || lesson.source_url) && (
+            <form action={sourcePublicAction} className="contents">
+              <input type="hidden" name="lesson_id" value={lesson.id} />
+              <input type="hidden" name="community_slug" value={communitySlug} />
+              <input type="hidden" name="space_slug" value={spaceSlug} />
+              <input
+                type="hidden"
+                name="source_public"
+                value={lesson.source_public ? "0" : "1"}
+              />
+              <Button size="sm" variant="secondary" type="submit" disabled={savingSourcePublic}>
+                <FileSearch className="h-4 w-4" />
+                {lesson.source_public ? "Source is public" : "Source is private"}
               </Button>
             </form>
           )}
@@ -365,9 +415,14 @@ export function LessonDetailView({
           </div>
         )}
 
-        {sourceRules && (
+        {/* Staff always (they get the rules too); everyone else only once the
+            author has published the material — and for them the server has
+            already stripped it from this row if they haven't, so an empty
+            source_text here means there is genuinely nothing to show. */}
+        {(sourceRules || lesson.source_text?.trim()) && (
           <LessonRulesPanel
             rules={sourceRules}
+            rulesAreOriginal={rulesAreOriginal}
             sourceText={lesson.source_text ?? ""}
             ageBand={lesson.age_band}
             beyondSource={lesson.beyond_source}

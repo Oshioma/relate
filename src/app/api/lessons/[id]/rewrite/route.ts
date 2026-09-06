@@ -96,5 +96,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     sourceText,
     ageBand: requestedBand,
     beyondSource,
+    // A rewrite is the same material for a different reader, so it came from
+    // wherever the original did. Losing the reference on a rewrite would make
+    // provenance depend on which copy somebody happened to open.
+    sourceUrl: lesson.source_url,
+    sourceTitle: lesson.source_title,
   });
 }

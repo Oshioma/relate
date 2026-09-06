@@ -152,6 +152,39 @@ export async function toggleLessonSave(
 
 // Corrects what the model decided. The classification is a guess made while
 // writing; whoever teaches the lesson knows better.
+// Open one lesson's source material and reference to everyone who can already
+// see the lesson. Staff-only, like every other edit — and it only ever affects
+// the material and the reference. The system prompt is not covered: it is
+// internal plumbing rather than provenance, and the page simply never sends it
+// to a non-staff viewer.
+export async function setLessonSourcePublic(
+  _prevState: LessonActionState,
+  formData: FormData
+): Promise<LessonActionState> {
+  const lessonId = String(formData.get("lesson_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const spaceSlug = String(formData.get("space_slug") ?? "");
+  const makePublic = formData.get("source_public") === "1";
+
+  const supabase = await createClient();
+
+  const lesson = await getLesson(supabase, lessonId);
+  if (!lesson) return { error: "Lesson not found." };
+
+  const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const { error } = await supabase
+    .from("space_lessons")
+    .update({ source_public: makePublic })
+    .eq("id", lessonId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`);
+}
+
 export async function updateLessonClassification(
   _prevState: LessonActionState,
   formData: FormData

@@ -41,7 +41,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected a JSON body." }, { status: 400, headers: NO_STORE });
   }
 
-  const payload = body as { spaceId?: unknown; sourceText?: unknown; ageBand?: unknown };
+  const payload = body as {
+    spaceId?: unknown;
+    sourceText?: unknown;
+    ageBand?: unknown;
+    sourceUrl?: unknown;
+    sourceTitle?: unknown;
+  };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   if (!spaceId) {
     return NextResponse.json({ error: "Which space?" }, { status: 400, headers: NO_STORE });
@@ -87,5 +93,9 @@ export async function POST(request: NextRequest) {
     userId: auth.userId,
     sourceText,
     ageBand: requestedBand,
+    // Sanitised again in streamLesson — the client is only reporting which
+    // page it read the text from, and a lesson shows this as a link.
+    sourceUrl: typeof payload.sourceUrl === "string" ? payload.sourceUrl : null,
+    sourceTitle: typeof payload.sourceTitle === "string" ? payload.sourceTitle : null,
   });
 }
