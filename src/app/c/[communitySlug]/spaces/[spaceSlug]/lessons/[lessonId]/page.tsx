@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getLesson, getSavedLessonIds } from "@/lib/data/lessons";
+import { getLesson, getSavedLessonIds, redactSource } from "@/lib/data/lessons";
 import { isLessonWriterConfigured, lessonSystemPrompt } from "@/lib/ai/lesson-writer";
 import { isAgeBandKey, DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
 import { LessonDetailView } from "../../lesson-detail-view";
@@ -42,12 +42,28 @@ export default async function LessonPage({
   // The rules this lesson was written under, rebuilt from the row. Computed
   // here and only for staff, so it never reaches a member's page payload at
   // all — hiding it with CSS would still have shipped it to everybody.
+  // The prompt as sent, when the lesson kept one. Rebuilt only as a fallback
+  // for lessons written before they did — and the panel says which it got, so
+  // "rebuilt" is never mistaken for evidence.
   const sourceRules = isStaff
-    ? lessonSystemPrompt(
+    ? lesson.prompt_used ??
+      lessonSystemPrompt(
         isAgeBandKey(lesson.age_band) ? lesson.age_band : DEFAULT_AGE_BAND,
         lesson.beyond_source
       )
     : null;
+  const rulesAreOriginal = Boolean(lesson.prompt_used);
+
+  // The material is private unless its author has published it. Staff see it
+  // regardless, because they answer for what is in their space and cannot
+  // check a lesson they can't see the source of.
+  //
+  // Stripped from the row rather than hidden in the view: this component's
+  // props are serialised into the page, so a source left on the object and
+  // merely not rendered is still readable by anyone who looks. The button says
+  // "Source is private", and this is what makes that true.
+  const canSeeSource = Boolean(isStaff) || lesson.source_public;
+  const visible = canSeeSource ? lesson : redactSource(lesson);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -58,7 +74,7 @@ export default async function LessonPage({
       </p>
 
       <LessonDetailView
-        lesson={{ ...lesson, saved }}
+        lesson={{ ...visible, saved }}
         communitySlug={community.slug}
         spaceSlug={space.slug}
         canEdit={Boolean(isStaff)}
@@ -67,6 +83,7 @@ export default async function LessonPage({
         canManageVisibility={Boolean(isStaff) || lesson.created_by === user?.id}
         canSave={Boolean(isMember)}
         sourceRules={sourceRules}
+        rulesAreOriginal={rulesAreOriginal}
         writerConfigured={isLessonWriterConfigured()}
       />
     </div>

@@ -42,9 +42,20 @@ export function streamLesson(input: {
   // "Go deeper": the source is a starting point rather than a boundary. The
   // caller has already checked this is an adult band — see canGoBeyondSource.
   beyondSource?: boolean;
+  // Where the material came from, when it was read in from a link. The reader
+  // hands both back and they were previously dropped once the text reached the
+  // box, so a lesson could never say where it came from.
+  sourceUrl?: string | null;
+  sourceTitle?: string | null;
 }): Response {
   const { supabase, spaceId, communityId, userId, sourceText, ageBand } = input;
   const beyondSource = Boolean(input.beyondSource);
+  // Only ever an http(s) URL, matching the column's own constraint.
+  const sourceUrl =
+    typeof input.sourceUrl === "string" && /^https?:\/\//i.test(input.sourceUrl)
+      ? input.sourceUrl
+      : null;
+  const sourceTitle = sourceUrl ? (input.sourceTitle?.trim() || null) : null;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -56,7 +67,7 @@ export function streamLesson(input: {
       try {
         // Throttle progress so a fast stream doesn't flood the client.
         let lastSent = 0;
-        const lesson = await generateLesson({
+        const { lesson, promptUsed } = await generateLesson({
           sourceText,
           ageBand,
           beyondSource,
@@ -92,6 +103,11 @@ export function streamLesson(input: {
             // Recorded on the row, not just in the prose: a reader deciding
             // whether to print this needs to know before they open it.
             beyond_source: beyondSource,
+            // The prompt as sent, not as rebuildable. A lesson written today
+            // stays truthful about its own rules after the prompt changes.
+            prompt_used: promptUsed,
+            source_url: sourceUrl,
+            source_title: sourceTitle,
           })
           .select("*")
           .single();

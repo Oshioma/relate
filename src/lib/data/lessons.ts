@@ -17,7 +17,22 @@ export async function getSpaceLessons(supabase: Client, spaceId: string): Promis
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return ((data ?? []) as unknown as SpaceLesson[]).map(toLessonRow);
+  // Browsing never needs the pasted material, and the space view is a client
+  // component — so without this every lesson's full source ships in the page
+  // payload of anyone who can see the space, whatever the source panel shows.
+  // One lesson at a time is the only place it is ever wanted.
+  return ((data ?? []) as unknown as SpaceLesson[]).map((row) => toLessonRow(redactSource(row)));
+}
+
+// Blanks the source material and its reference. Applied on the way out of the
+// data layer rather than by omitting columns from the SELECT, so a column
+// added later is not silently dropped from every read.
+//
+// source_text is the material somebody pasted, and it is private by default:
+// a lesson can be public while the chapter it was built from is not. Only the
+// lesson page shows it, and only to staff or when the author has published it.
+export function redactSource<T extends SpaceLesson>(row: T): T {
+  return { ...row, source_text: "", source_url: null, source_title: null };
 }
 
 export async function getLesson(supabase: Client, lessonId: string): Promise<LessonRow | null> {

@@ -178,7 +178,7 @@ export async function generateLesson(input: {
   beyondSource?: boolean;
   // Called as text arrives, with the number of characters written so far.
   onProgress?: (charsWritten: number) => void;
-}): Promise<Lesson> {
+}): Promise<{ lesson: Lesson; promptUsed: string }> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new LessonGenerationError(
       "The lesson writer is not configured yet — ANTHROPIC_API_KEY is missing.",
@@ -188,12 +188,16 @@ export async function generateLesson(input: {
 
   const client = new Anthropic();
 
+  // Built once and returned with the lesson, so the row can record what was
+  // actually sent rather than something rebuilt later from the same inputs.
+  const prompt = systemPrompt(input.ageBand, input.beyondSource);
+
   let message: Anthropic.Message;
   try {
     const stream = client.messages.stream({
       model: "claude-opus-5",
       max_tokens: 8000,
-      system: systemPrompt(input.ageBand, input.beyondSource),
+      system: prompt,
       messages: [
         {
           role: "user",
@@ -281,7 +285,7 @@ export async function generateLesson(input: {
     );
   }
 
-  return parsed.data;
+  return { lesson: parsed.data, promptUsed: prompt };
 }
 
 // Illustrates a lesson that has already been written and saved.

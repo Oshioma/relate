@@ -1161,6 +1161,17 @@ export type SpaceLesson = {
   // like this cannot be checked against its source.
   // See 20260906091301_lesson_beyond_source.sql.
   beyond_source: boolean;
+  // The system prompt as actually sent, recorded at generation time. Null on
+  // lessons written before this existed — the rules panel then rebuilds it
+  // from the age band and says on screen that it did.
+  prompt_used: string | null;
+  // Where the material came from, when it was read in from a link. Null for
+  // pasted material, which is most lessons.
+  source_url: string | null;
+  source_title: string | null;
+  // When true, the source material and reference show to anyone who can see
+  // the lesson. The system prompt stays staff-only either way.
+  source_public: boolean;
   created_at: string;
   updated_at: string;
 };
