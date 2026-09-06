@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { ArrowRight, Bookmark, EyeOff } from "lucide-react";
+import { ArrowRight, Bookmark, EyeOff, Telescope } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LessonThumbnail } from "./lesson-document";
 import { toggleLessonSave, type LessonActionState } from "./lessons-actions";
@@ -65,6 +65,14 @@ export function LessonCard({
         {duration && (
           <span className="absolute right-3 top-3 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
             {duration}
+          </span>
+        )}
+        {/* Visible while browsing, not only once the lesson is open — the
+            moment somebody chooses what to print is the moment it matters. */}
+        {lesson.beyond_source && (
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/85 px-2.5 py-1 text-xs font-medium text-accent backdrop-blur-sm">
+            <Telescope className="h-3 w-3" />
+            Beyond the source
           </span>
         )}
         {categories.length > 0 && (

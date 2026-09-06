@@ -74,6 +74,24 @@ export function isAgeBandKey(value: string): value is AgeBandKey {
   return (AGE_BAND_KEYS as string[]).includes(value);
 }
 
+// "Go deeper" — the source becomes a starting point rather than a boundary —
+// is offered only on an adult band.
+//
+// Not a policy flourish: the ordinary guarantee is that everything in a lesson
+// came from the pasted material, and a nine-year-old's lesson quietly
+// containing things nobody supplied is exactly the failure that guarantee
+// exists to prevent. An adult can weigh a claim they are told is contested; a
+// child being taught from a printout cannot.
+// The band "go deeper" writes for. Named rather than spelled out at the call
+// site so adding a second adult band later cannot leave the button pointing at
+// the wrong one.
+export const ADULT_BAND = "16-18";
+
+export function canGoBeyondSource(key: string): boolean {
+  const band = AGE_BANDS.find((b) => b.key === key);
+  return Boolean(band && "adult" in band && band.adult);
+}
+
 export function ageBandLabel(key: string): string {
   return AGE_BANDS.find((b) => b.key === key)?.label ?? key;
 }

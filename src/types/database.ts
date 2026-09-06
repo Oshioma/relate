@@ -1156,6 +1156,11 @@ export type SpaceLesson = {
   // Real minutes for one sitting, so "we have half an hour" is a range query.
   // Null on a lesson nobody has timed.
   duration_minutes: number | null;
+  // True when the lesson was written in "go deeper" mode, so it contains
+  // material the pasted source did not. Shown as a badge, because a lesson
+  // like this cannot be checked against its source.
+  // See 20260906091301_lesson_beyond_source.sql.
+  beyond_source: boolean;
   created_at: string;
   updated_at: string;
 };
