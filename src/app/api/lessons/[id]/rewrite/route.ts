@@ -14,7 +14,7 @@ import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { streamLesson } from "@/lib/school/lesson-stream";
 import { getLesson } from "@/lib/data/lessons";
-import { MIN_SOURCE_CHARS, isAgeBandKey } from "@/lib/school/lesson-types";
+import { MIN_SOURCE_CHARS, canGoBeyondSource, isAgeBandKey } from "@/lib/school/lesson-types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -35,6 +35,18 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const requestedBand = (body as { ageBand?: unknown }).ageBand;
   if (typeof requestedBand !== "string" || !isAgeBandKey(requestedBand)) {
     return NextResponse.json({ error: "Unknown age band." }, { status: 400, headers: NO_STORE });
+  }
+
+  // "Go deeper" leaves the source behind, so it is checked here rather than
+  // trusted from the client: a request naming a child band is refused outright
+  // rather than quietly downgraded, because silently ignoring the flag would
+  // hand back a lesson that is not the one that was asked for.
+  const beyondSource = (body as { beyondSource?: unknown }).beyondSource === true;
+  if (beyondSource && !canGoBeyondSource(requestedBand)) {
+    return NextResponse.json(
+      { error: "Going beyond the source is only available on an adult age group." },
+      { status: 400, headers: NO_STORE }
+    );
   }
 
   // RLS scopes this to lessons in spaces the caller can see.
@@ -60,7 +72,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     );
   }
 
-  if (lesson.age_band === requestedBand) {
+  // Rewriting to the band a lesson is already in produces a duplicate — unless
+  // this is "go deeper", which is a genuinely different lesson from the same
+  // material and is allowed to share its age.
+  if (lesson.age_band === requestedBand && !beyondSource) {
     return NextResponse.json(
       { error: "That's the age group this lesson is already written for." },
       { status: 400, headers: NO_STORE }
@@ -80,5 +95,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     userId: auth.userId,
     sourceText,
     ageBand: requestedBand,
+    beyondSource,
   });
 }

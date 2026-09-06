@@ -39,8 +39,12 @@ export function streamLesson(input: {
   userId: string;
   sourceText: string;
   ageBand: AgeBandKey;
+  // "Go deeper": the source is a starting point rather than a boundary. The
+  // caller has already checked this is an adult band — see canGoBeyondSource.
+  beyondSource?: boolean;
 }): Response {
   const { supabase, spaceId, communityId, userId, sourceText, ageBand } = input;
+  const beyondSource = Boolean(input.beyondSource);
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -55,6 +59,7 @@ export function streamLesson(input: {
         const lesson = await generateLesson({
           sourceText,
           ageBand,
+          beyondSource,
           onProgress: (chars) => {
             if (chars - lastSent < 200) return;
             lastSent = chars;
@@ -84,6 +89,9 @@ export function streamLesson(input: {
             // returning something else should lose the value, not the lesson.
             discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
             duration_minutes: lesson.duration_minutes ?? null,
+            // Recorded on the row, not just in the prose: a reader deciding
+            // whether to print this needs to know before they open it.
+            beyond_source: beyondSource,
           })
           .select("*")
           .single();

@@ -2,7 +2,17 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Printer, Trash2, ImagePlus, RefreshCw, Pencil, Eye, EyeOff, Bookmark } from "lucide-react";
+import {
+  Printer,
+  Trash2,
+  ImagePlus,
+  RefreshCw,
+  Pencil,
+  Eye,
+  EyeOff,
+  Bookmark,
+  Telescope,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
@@ -19,6 +29,7 @@ import {
 import { printLesson } from "./print-lesson";
 import { cn } from "@/lib/utils";
 import {
+  ADULT_BAND,
   AGE_BANDS,
   normaliseSubject,
   providerName,
@@ -64,7 +75,7 @@ export function LessonDetailView({
     undefined
   );
   const [editing, setEditing] = useState(false);
-  const [busy, setBusy] = useState<"images" | "rewrite" | null>(null);
+  const [busy, setBusy] = useState<"images" | "rewrite" | "deeper" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -93,14 +104,14 @@ export function LessonDetailView({
 
   // Writes the same source material again for another age band, as a NEW
   // lesson — the point is usually to have one for each year group.
-  async function rewriteFor(ageBand: string) {
-    setBusy("rewrite");
+  async function rewriteFor(ageBand: string, beyondSource = false) {
+    setBusy(beyondSource ? "deeper" : "rewrite");
     setError(null);
     try {
       const response = await fetch(`/api/lessons/${lesson.id}/rewrite`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ageBand }),
+        body: JSON.stringify({ ageBand, beyondSource }),
       });
 
       if (!response.ok || !response.body) {
@@ -170,7 +181,21 @@ export function LessonDetailView({
               canEdit={canEdit}
             />
           </div>
-          <AgeBadge band={lesson.age_band} />
+          <span className="flex shrink-0 flex-col items-end gap-1.5">
+            <AgeBadge band={lesson.age_band} />
+            {/* The one badge that is a warning rather than a label. Every other
+                lesson can be held against the material it was built from; this
+                one cannot, because most of it was not in that material. */}
+            {lesson.beyond_source && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-accent"
+                title="Written in go-deeper mode: it contains material the source did not, so it can't be checked against the source."
+              >
+                <Telescope className="h-3 w-3" />
+                Beyond the source
+              </span>
+            )}
+          </span>
         </div>
 
         {lesson.lesson.cover ? (
@@ -293,6 +318,43 @@ export function LessonDetailView({
             </div>
             {busy === "rewrite" && (
               <p className="mt-2 text-xs text-muted-foreground">Writing it again — this takes a minute or two…</p>
+            )}
+          </div>
+        )}
+
+        {/* Go deeper. Kept apart from the age buttons above because it is not
+            another age of the same lesson — it is a different KIND of lesson:
+            the only one allowed to contain things the source never said. The
+            copy says that plainly rather than selling it, since the person
+            pressing it is the person who will have to vouch for the result. */}
+        {canEdit && writerConfigured && lesson.source_text && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              Or go past the source — the history, the arguments and the stranger theories
+              it leaves out, written for adults and saved as a separate lesson.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => rewriteFor(ADULT_BAND, true)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-md border-2 border-accent/40 bg-accent-soft px-2.5 py-1.5",
+                  "text-xs font-medium text-accent transition-colors",
+                  "hover:border-accent disabled:opacity-50"
+                )}
+              >
+                <Telescope className="h-3 w-3" />
+                Go deeper (adults)
+              </button>
+              <span className="text-[11px] text-muted-foreground">
+                Goes beyond what you pasted, so it can&apos;t be checked against it.
+              </span>
+            </div>
+            {busy === "deeper" && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Going deeper — this one takes a little longer…
+              </p>
             )}
           </div>
         )}
