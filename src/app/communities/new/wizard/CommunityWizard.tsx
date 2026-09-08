@@ -40,12 +40,12 @@ export function CommunityWizard({
 
       {step < 4 && (
         <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
-          <Button variant="ghost" onClick={() => setStep((s) => Math.max(1, s - 1))} disabled={step === 1}>
+          <Button variant="ghost" className="h-11 rounded-lg border border-border bg-card px-5 hover:bg-muted" onClick={() => setStep((s) => Math.max(1, s - 1))} disabled={step === 1}>
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={!canAdvance}>
-            Next
+          <Button className="h-11 rounded-lg px-5 sm:min-w-48" onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={!canAdvance}>
+            {step === 3 ? "Continue to launch" : "Next"}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
