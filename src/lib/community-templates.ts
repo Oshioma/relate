@@ -57,6 +57,7 @@ const ACTIVITY_SPACES: TemplateSpace[] = [
   { name: "Skills & Safety", description: "Technique, kit lists, first aid and what to do when it goes wrong.", space_type: "resources" },
   { name: "Gear Exchange", description: "Buy, sell, lend and borrow kit.", space_type: "marketplace" },
   { name: "Challenges", description: "Time-boxed goals members take on together.", space_type: "challenges" },
+  { name: "Live Clinics", description: "Technique, kit and route planning on camera, before anyone drives anywhere.", space_type: "live" },
 ];
 // The School template's starter set. A school community is the adults around a
 // school talking to each other — parents, teachers, staff and governors — with
@@ -78,6 +79,7 @@ const SCHOOL_SPACES: TemplateSpace[] = [
   { name: "School Life", description: "Photos from trips, concerts, sports day and the everyday.", space_type: "gallery" },
   { name: "Reading Challenge", description: "Time-boxed challenges children take on together.", space_type: "challenges" },
   { name: "PTA & Volunteering", description: "Fairs, fundraising and the jobs that need a pair of hands.", space_type: "volunteer_hub" },
+  { name: "Live Meetings", description: "Parents' evenings, information evenings and governor meetings, for the people who cannot get there.", space_type: "live" },
 ];
 
 // The Craft & Makers template's starter set. Every one of these communities
@@ -92,6 +94,7 @@ const SCHOOL_SPACES: TemplateSpace[] = [
 // Photography template, which nobody looking for baking would ever click.
 const CRAFT_SPACES: TemplateSpace[] = [
   { name: "Show & Tell", description: "What you made this week — finished, half-finished, or gone badly wrong.", space_type: "gallery" },
+  { name: "Live Sessions", description: "Make something together on camera, at a time everyone knows about.", space_type: "live" },
   { name: "Discussion", description: "General conversation for everyone." },
   { name: "How-To Library", description: "Step-by-step write-ups from the members who actually made the thing.", space_type: "guides" },
   { name: "What Went Wrong?", description: "Post the failure and get an answer from someone who has had exactly that.", space_type: "qa" },
@@ -112,7 +115,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     defaultSpaces: [
       { name: "Discussion", description: "General conversation and questions." },
       { name: "Study Groups", description: "Small cohorts studying together." },
-      { name: "Live Classes", description: "Announcements and replays for live sessions." },
+      { name: "Live Classes", description: "Teach live in the community — scheduled ahead, with everyone in the same room.", space_type: "live" },
       { name: "Q&A", description: "Ask questions about the material." },
       { name: "Resources", description: "Reading lists, templates and downloads." },
     ],
@@ -127,6 +130,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Discussion", description: "General conversation." },
       { name: "Wins & Challenges", description: "Share what's working and what's not." },
       { name: "Mastermind", description: "Small-group accountability threads." },
+      { name: "Live Roundtable", description: "Operators on camera, working through a real problem someone brought.", space_type: "live" },
       { name: "Knowledge Base", description: "Playbooks and frameworks." },
       { name: "Resources", description: "Templates and tools." },
     ],
@@ -141,6 +145,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Discussion", description: "General conversation." },
       { name: "Weekly Check-Ins", description: "Progress updates and reflections." },
       { name: "Wins Wall", description: "Celebrate breakthroughs." },
+      { name: "Group Coaching Call", description: "The session itself — you coach, the group turns up, everyone hears the answers.", space_type: "live" },
       { name: "Resources", description: "Worksheets and frameworks." },
       { name: "Q&A", description: "Ask your coach anything." },
     ],
@@ -156,6 +161,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Curriculum", description: "Lesson-by-lesson discussion." },
       { name: "Assignments", description: "Submit and discuss assignments." },
       { name: "Cohort Chat", description: "Talk with your cohort." },
+      { name: "Office Hours", description: "A standing live slot where the cohort brings whatever is stuck.", space_type: "live" },
       { name: "Q&A", description: "Ask questions about the material." },
       { name: "Resources", description: "Slides, templates and extra reading." },
     ],
@@ -168,7 +174,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description: "For creators turning an audience into a paid membership community.",
     defaultSpaces: [
       { name: "Posts", description: "Everything you share with members." },
-      { name: "Livestreams", description: "Live sessions and replays." },
+      { name: "Livestreams", description: "Go live for your members without sending them somewhere else to watch.", space_type: "live" },
       { name: "Courses", description: "Premium lessons for members." },
       { name: "Files", description: "Downloads and templates." },
       { name: "Q&A", description: "Ask me anything." },
@@ -199,6 +205,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Nutrition", description: "Meals, macros and recipes." },
       { name: "Challenges", description: "Time-boxed fitness programs." },
       { name: "Wins", description: "Celebrate progress." },
+      { name: "Live Workouts", description: "Train at the same time, on camera, with somebody counting you in.", space_type: "live" },
     ],
   },
   {
@@ -213,6 +220,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Prayer Requests", description: "Share and pray for each other." },
       { name: "Small Groups", description: "Stay connected with your group." },
       { name: "Testimonies", description: "Stories of faith in action." },
+      { name: "Live Gatherings", description: "Services, prayer and study, for the people who cannot be in the room.", space_type: "live" },
     ],
   },
   {
@@ -240,6 +248,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Clubs & Groups", description: "Subcommunities around shared interests, from running to book club.", space_type: "clubs" },
       { name: "Volunteer Hub", description: "Projects, cleanups and causes members can help with.", space_type: "volunteer_hub" },
       { name: "Local Recommendations", description: "Restaurants, services and professionals members vouch for.", space_type: "recommendations" },
+      { name: "Town Hall", description: "The meeting, held in the open — planning, decisions and questions taken live.", space_type: "live" },
     ],
   },
   {
@@ -268,6 +277,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Ask for Help", description: "Get advice from experienced growers." },
       { name: "Marketplace", description: "Trade produce, seeds and tools." },
       { name: "Knowledge Base", description: "Farming best practices." },
+      { name: "Grow Clinic", description: "Hold a plant up to the camera and have three growers tell you what it is.", space_type: "live" },
     ],
   },
   {
@@ -281,6 +291,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Wellness Journal", description: "Track how you're feeling." },
       { name: "Challenges", description: "Guided wellness challenges." },
       { name: "Resources", description: "Guided practices and reading." },
+      { name: "Live Practice", description: "A guided session at a set time — the one thing a recording cannot do.", space_type: "live" },
     ],
   },
   {
@@ -296,6 +307,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Challenges", description: "Weekly photo prompts." },
       { name: "Marketplace", description: "Sell prints and presets." },
       { name: "Resources", description: "Tutorials, presets and gear guides." },
+      { name: "Live Critique", description: "Work pulled up on screen and talked through, which a comment thread never manages.", space_type: "live" },
     ],
   },
   {
@@ -323,6 +335,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Volunteer Sign-Ups", description: "Find volunteers by availability." },
       { name: "Impact Stories", description: "Outcomes and stories." },
       { name: "Knowledge Base", description: "Volunteer handbook and policies." },
+      { name: "Live Briefings", description: "Brief volunteers, run the AGM, and let people ask in front of everyone.", space_type: "live" },
     ],
   },
   {
@@ -337,6 +350,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Job Board", description: "Post and browse opportunities." },
       { name: "Mastermind", description: "Small-group discussion." },
       { name: "Resources", description: "Guides and templates." },
+      { name: "Live Networking", description: "Scheduled calls where introductions actually happen, not just get promised.", space_type: "live" },
     ],
   },
   {
@@ -351,6 +365,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Clips & Highlights", description: "Share your best plays." },
       { name: "Guides", description: "Strategy and build guides." },
       { name: "Team Finder", description: "Find teammates by game and role." },
+      { name: "Watch Party", description: "Watch the tournament together, with everyone reacting in the same place.", space_type: "live" },
     ],
   },
   {
@@ -366,6 +381,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Pitch Practice", description: "Get feedback on your pitch." },
       { name: "Job Board", description: "Hire and get hired." },
       { name: "Resources", description: "Templates, decks and playbooks." },
+      { name: "Founder Calls", description: "Pitch to real faces and get the flinch, which written feedback hides.", space_type: "live" },
     ],
   },
   {
@@ -379,6 +395,7 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Current Read", description: "This cycle's book and schedule." },
       { name: "Book Library", description: "Past reads and notes." },
       { name: "Vote on Next Book", description: "Pick what the club reads next." },
+      { name: "Book Club Call", description: "The meeting itself — the reason a book club exists.", space_type: "live" },
     ],
   },
   {
@@ -411,6 +428,16 @@ export function getCommunityTemplate(key: string): CommunityTemplate | undefined
 export interface SetupRecommendation {
   spaces: TemplateSpace[];
   rationale: string[];
+}
+
+// Puts a kind's own live room in place of whatever generic one the base list
+// carries, at second position — a community should never end up with two video
+// spaces because the base offers "Live Sessions" and the craft calls it a
+// Bake-Along. Second, not last, because the sidebar is ordered by this array and
+// the live room is a headline of the community, not an afterthought.
+function withLiveSpace(base: TemplateSpace[], live: TemplateSpace): TemplateSpace[] {
+  const rest = base.filter((space) => space.space_type !== "live");
+  return [...rest.slice(0, 1), live, ...rest.slice(1)];
 }
 
 function dedupeByName<T extends { name: string }>(items: T[]): T[] {
@@ -854,6 +881,11 @@ export function recommendActivitySetup(activityKindKey: string, baseSpaces?: Tem
   const base = baseSpaces ?? template.defaultSpaces;
   const kind = getActivityKind(activityKindKey);
 
+  // Yoga names its own live room ("Classes"); every other activity keeps the
+  // base's Live Clinics. Either way exactly one live space survives.
+  const kindLive = kind?.extraSpaces.find((space) => space.space_type === "live");
+  const withLive = kindLive ? withLiveSpace(base, kindLive) : base;
+
   const rationale = ["Started from the Activity template's default spaces, with Happening Now at the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} community typically needs.`);
@@ -861,7 +893,7 @@ export function recommendActivitySetup(activityKindKey: string, baseSpaces?: Tem
   }
 
   return {
-    spaces: dedupeByName([...base, ...(kind?.extraSpaces ?? [])]),
+    spaces: dedupeByName([...withLive, ...(kind?.extraSpaces ?? [])]),
     rationale,
     mapLayers: kind?.mapLayers ?? [],
   };
@@ -956,6 +988,7 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Reading & Resources", description: "Reading lists, worksheets and materials worth keeping.", space_type: "resources" },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
       { name: "Swap Shelf", description: "Books, kit and materials to pass on when you're done.", space_type: "marketplace" },
+      { name: "Live Lessons", description: "One parent teaches a subject on video and every family's children sit in.", space_type: "live" },
     ],
     // Nobody here is a governor or the school office, and there are no year
     // groups. "Subjects I Teach" stays — the parent is the teacher, and across
@@ -969,6 +1002,7 @@ export const SCHOOL_KINDS: SchoolKind[] = [
     extraSpaces: [
       { name: "Teaching Rota", description: "Who is teaching what, and when." },
       { name: "Shared Costs", description: "Materials, venue hire and who has paid what." },
+      { name: "Live Lessons", description: "Whoever is teaching this week takes it on video, so nobody has to travel for it.", space_type: "live" },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
     ],
   },
@@ -1043,6 +1077,11 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
   const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
   const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
 
+  // A homeschool or co-op names its own live room; a real school keeps Live
+  // Meetings. Either way exactly one live space survives.
+  const kindLive = kind?.extraSpaces.find((space) => space.space_type === "live");
+  const withLive = kindLive ? withLiveSpace(kept, kindLive) : kept;
+
   const rationale = ["Started from the School template's default spaces, with the Lessons library near the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
@@ -1056,7 +1095,7 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
   }
 
   return {
-    spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
+    spaces: dedupeByName([...withLive, ...(kind?.extraSpaces ?? [])]),
     rationale,
   };
 }
@@ -1475,10 +1514,7 @@ export function recommendCraftSetup(craftKindKey: string, baseSpaces?: TemplateS
   const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
   const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
 
-  // The live room goes in at second place rather than on the end. It is a
-  // headline of the community, not an afterthought behind the gear swap, and
-  // the sidebar is ordered by this array.
-  const withLive = kind ? [...kept.slice(0, 1), kind.liveSpace, ...kept.slice(1)] : kept;
+  const withLive = kind ? withLiveSpace(kept, kind.liveSpace) : kept;
 
   const rationale = ["Started from the Craft & Makers template's default spaces, with Show & Tell at the top."];
   if (kind) {
