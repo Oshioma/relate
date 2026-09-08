@@ -1,4 +1,5 @@
 import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility } from "@/types/database";
+import type { StarterActivity } from "@/lib/community-templates";
 
 export interface WizardSpace {
   id: string;
@@ -41,6 +42,17 @@ export interface WizardState {
   // School template only: what kind of school this is (SCHOOL_KINDS). Empty
   // for every other template, and until picked.
   schoolKind: string;
+  // Craft & Makers template only: which craft the community is built around
+  // (CRAFT_KINDS). Empty for every other template, and until picked.
+  craftKind: string;
+  // The rituals the chosen kind suggests running in the first month. Shown at
+  // setup and on the launch summary; the server re-derives them from craftKind
+  // rather than trusting this, so it is display state only.
+  starterActivities: StarterActivity[];
+  // What the owner said their community is FOR, from COMMUNITY_INTENTS. Filters
+  // the type grid and nothing else — it is never stored on the community, so an
+  // owner who picks the "wrong" intent loses nothing by changing their mind.
+  intents: string[];
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
@@ -60,6 +72,9 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   artistMode: "",
   activityKind: "",
   schoolKind: "",
+  craftKind: "",
+  starterActivities: [],
+  intents: [],
   mapLayers: [],
   rationale: [],
   spaces: [],

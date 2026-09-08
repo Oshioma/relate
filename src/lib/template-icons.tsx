@@ -19,6 +19,8 @@ import {
   Disc3,
   Footprints,
   School,
+  Hammer,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,4 +45,6 @@ export const TEMPLATE_ICONS: Record<string, LucideIcon> = {
   Disc3,
   Footprints,
   School,
+  Hammer,
+  Store,
 };

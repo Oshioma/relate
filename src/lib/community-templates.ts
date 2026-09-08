@@ -104,6 +104,33 @@ const ARTIST_FAN_FIELDS: TemplateProfileField[] = [
   { label: "Favorite Track or Album", field_type: "text" },
 ];
 
+// The Craft & Makers template's starter set. Every one of these communities
+// runs on the same loop: you make something, you photograph it, you say how you
+// did it, and you ask why it came out wrong. Show & Tell is first because a
+// making community with nothing to look at is a forum. Per-craft extras are
+// layered on top by CRAFT_KINDS below.
+//
+// This template exists because the rest of the list is sorted by who the owner
+// is — a business, a school, a non-profit — and a person who bakes is none of
+// those. Before it, a baking community's closest match by shape was the
+// Photography template, which nobody looking for baking would ever click.
+const CRAFT_SPACES: TemplateSpace[] = [
+  { name: "Show & Tell", description: "What you made this week — finished, half-finished, or gone badly wrong.", space_type: "gallery" },
+  { name: "Discussion", description: "General conversation for everyone." },
+  { name: "How-To Library", description: "Step-by-step write-ups from the members who actually made the thing.", space_type: "guides" },
+  { name: "What Went Wrong?", description: "Post the failure and get an answer from someone who has had exactly that.", space_type: "qa" },
+  { name: "Make Along", description: "Everyone makes the same thing over the same few weeks.", space_type: "challenges" },
+  { name: "Project Log", description: "Follow one make from the first attempt to the finished thing.", space_type: "journal" },
+  { name: "Kit & Materials", description: "Tools, ingredients and where to get them without overpaying.", space_type: "resources" },
+  { name: "Swap & Sell", description: "Sell what you made, and pass on what you are never going to use.", space_type: "marketplace" },
+  { name: "Meet-Ups", description: "Post a session and whoever is free comes and makes alongside you.", space_type: "meetups" },
+];
+
+const CRAFT_FIELDS: TemplateProfileField[] = [
+  { label: "How Long I've Been At It", field_type: "dropdown", options: ["Just started", "A year or so", "Several years", "I teach it"] },
+  { label: "What I Make", field_type: "text" },
+];
+
 export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
   {
     key: "learning",
@@ -328,6 +355,16 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Resources", description: "Tutorials, presets and gear guides." },
     ],
     defaultProfileFields: [{ label: "Gear", field_type: "text" }, { label: "Style / Genre", field_type: "text" }],
+  },
+  {
+    key: "craft",
+    label: "Craft & Makers",
+    icon: "Hammer",
+    tagline: "Make it, show it, work out why it collapsed",
+    description:
+      "For communities built around making something by hand — baking, cooking, knitting, pottery, woodwork, brewing, jewellery. Members make, show what they made, write down how, and ask why it went wrong. You choose which craft at setup.",
+    defaultSpaces: CRAFT_SPACES,
+    defaultProfileFields: CRAFT_FIELDS,
   },
   {
     key: "nonprofit",
@@ -1176,4 +1213,476 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
     profileFields: [...keptFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Craft & Makers: "which craft is this community built around?"
+//
+// Same shape as ACTIVITY_KINDS and SCHOOL_KINDS — a shared base (CRAFT_SPACES)
+// plus per-craft extras, and the school overlay's ability to drop a base space
+// as well as add one, because several crafts want the same space under the name
+// their people actually use ("Recipe Box", not "How-To Library").
+//
+// Each kind also carries starterActivities: the two to four things this
+// community should DO in its first month. Spaces are rooms; these are the
+// reason to walk into one. The wizard shows them at setup, and the first
+// challenge-shaped one is seeded as a real, running challenge when the
+// community is created, so nobody arrives to an empty building.
+// ---------------------------------------------------------------------------
+
+// One concrete ritual a new community can run. spaceType says which of the
+// seeded spaces it happens in — used to show it beside that space, and to seed
+// the challenge-shaped ones for real. durationDays is only meaningful for
+// spaceType 'challenges': it sets the first run's end date.
+export interface StarterActivity {
+  title: string;
+  description: string;
+  spaceType: SpaceType;
+  durationDays?: number;
+}
+
+export interface CraftKind {
+  key: string;
+  label: string;
+  description: string;
+  extraSpaces: TemplateSpace[];
+  extraProfileFields?: TemplateProfileField[];
+  // Spaces from the shared base this craft should not get, by name — matched
+  // case-insensitively, same as SchoolKind.omitSpaces. Used almost entirely for
+  // renames: drop "How-To Library", add "Recipe Box".
+  omitSpaces?: string[];
+  // What the setup step says about those omissions. Without it the step just
+  // lists the dropped names, which reads as a loss when it was really a rename.
+  omitNote?: string;
+  starterActivities: StarterActivity[];
+}
+
+// Shared by the two food crafts, which both want the library called what a
+// cook would call it.
+const RECIPE_BOX_NOTE =
+  "Renamed the How-To Library to the Recipe Box — same space, the name people will actually look for.";
+
+export const CRAFT_KINDS: CraftKind[] = [
+  {
+    key: "baking",
+    label: "Baking & Bread",
+    description: "Bread, cakes and pastry — where the same recipe behaves differently in every oven.",
+    omitSpaces: ["How-To Library"],
+    omitNote: RECIPE_BOX_NOTE,
+    extraSpaces: [
+      { name: "Recipe Box", description: "Recipes members have actually baked, with the notes that make them work.", space_type: "guides" },
+      { name: "Starter & Lending Shelf", description: "Who has a live sourdough starter, a spare tin or a proving basket to lend.", space_type: "directory" },
+      { name: "Bake-Along", description: "Everyone bakes the same thing at the same time, on a stream.", space_type: "live" },
+    ],
+    extraProfileFields: [
+      { label: "My Oven", field_type: "text" },
+      { label: "Signature Bake", field_type: "text" },
+    ],
+    starterActivities: [
+      {
+        title: "Bake of the Week",
+        description: "One thing everyone bakes this week — photos in Show & Tell on Sunday, however it turned out.",
+        spaceType: "challenges",
+        durationDays: 7,
+      },
+      {
+        title: "Sourdough starter swap",
+        description: "Members with a live starter offer a jar to members without one, and check in on how it's feeding.",
+        spaceType: "directory",
+      },
+      {
+        title: "Sunday bake-along",
+        description: "Everyone bakes the same recipe at the same time on a stream, so the tricky step happens together.",
+        spaceType: "live",
+      },
+      {
+        title: "The “why did it collapse?” thread",
+        description: "Post the failure with a photo and the recipe. Somebody here has had exactly that failure.",
+        spaceType: "qa",
+      },
+    ],
+  },
+  {
+    key: "cooking",
+    label: "Cooking & Food",
+    description: "Everyday cooking, feeding people, and getting better at it.",
+    omitSpaces: ["How-To Library"],
+    omitNote: RECIPE_BOX_NOTE,
+    extraSpaces: [
+      { name: "Recipe Box", description: "Recipes members have actually cooked, with the notes that make them work.", space_type: "guides" },
+      { name: "What's In Season", description: "What's good right now, what it costs and what to do with it.", space_type: "resources" },
+      { name: "Cook-Along", description: "Cook the same dish at the same time, on a stream.", space_type: "live" },
+    ],
+    extraProfileFields: [
+      { label: "Cuisines I Cook", field_type: "text" },
+      { label: "Cooking For", field_type: "text" },
+    ],
+    starterActivities: [
+      {
+        title: "Cook one thing you've never cooked",
+        description: "Two weeks, one unfamiliar dish each. Post it before you know whether it worked.",
+        spaceType: "challenges",
+        durationDays: 14,
+      },
+      { title: "Friday fridge raid", description: "Post what's left in the fridge and let the community write the dinner.", spaceType: "discussion" },
+      { title: "Monthly cook-along", description: "One recipe, everyone cooking it at once, questions answered live.", spaceType: "live" },
+    ],
+  },
+  {
+    key: "textiles",
+    label: "Knitting, Crochet & Yarn",
+    description: "Knitting, crochet, spinning and weaving — long projects, shown off in stages.",
+    omitSpaces: ["Swap & Sell"],
+    omitNote: "Renamed Swap & Sell to Stash & Swap — in a yarn community it's mostly part-balls looking for a project.",
+    extraSpaces: [
+      { name: "Pattern Library", description: "Patterns members have knitted, with the modifications that fixed them.", space_type: "guides" },
+      { name: "Stash & Swap", description: "Yarn, needles and part-balls looking for a project.", space_type: "marketplace" },
+    ],
+    extraProfileFields: [{ label: "Yarn Weights I Use", field_type: "text" }],
+    starterActivities: [
+      {
+        title: "Knit-along: one project, four weeks",
+        description: "Everyone starts the same pattern on the same day and posts progress each week.",
+        spaceType: "challenges",
+        durationDays: 28,
+      },
+      { title: "WIP Wednesday", description: "Photograph whatever is on the needles, finished or not. The unfinished ones are the point.", spaceType: "gallery" },
+      { title: "Stash-busting swap", description: "Post the part-balls you'll never use and take somebody else's.", spaceType: "marketplace" },
+    ],
+  },
+  {
+    key: "sewing",
+    label: "Sewing & Dressmaking",
+    description: "Garments, alterations and refashioning — where fit is the whole problem.",
+    extraSpaces: [
+      { name: "Pattern Library", description: "Patterns members have sewn, with the adjustments that made them fit.", space_type: "guides" },
+      { name: "Fabric Shops", description: "Where to buy fabric, thread and haberdashery locally.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [
+      { label: "My Machine", field_type: "text" },
+      { label: "What I Sew", field_type: "text" },
+    ],
+    starterActivities: [
+      {
+        title: "One garment this month",
+        description: "Start it on the first, wear it on the last. Post the muslin, not just the finished piece.",
+        spaceType: "challenges",
+        durationDays: 30,
+      },
+      { title: "Refashion a charity-shop find", description: "Buy something for pennies, cut it up, show the before and after.", spaceType: "gallery" },
+      { title: "Fitting night", description: "Bring a half-finished garment and somebody else pins the back for you.", spaceType: "meetups" },
+    ],
+  },
+  {
+    key: "pottery",
+    label: "Pottery & Ceramics",
+    description: "Wheel, hand-building and glazing — a craft you can rarely do entirely at home.",
+    extraSpaces: [
+      { name: "Kiln & Firing", description: "Firing schedules, glaze chemistry and what came out of the last load.", space_type: "resources" },
+      { name: "Studios & Kiln Hire", description: "Where to throw, where to fire and what it costs.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [
+      { label: "Wheel or Hand-Build", field_type: "dropdown", options: ["Wheel", "Hand-building", "Both"] },
+      { label: "Clay I Use", field_type: "text" },
+    ],
+    starterActivities: [
+      {
+        title: "Throw the same form for 30 days",
+        description: "One cylinder a day. Post day 1 and day 30 side by side — the improvement is the whole reward.",
+        spaceType: "challenges",
+        durationDays: 30,
+      },
+      { title: "Glaze test library", description: "Everyone fires a test tile and photographs it against the recipe, so the community builds a real reference.", spaceType: "gallery" },
+      { title: "Shared kiln firing", description: "Pool a load, split the cost, unpack it together.", spaceType: "meetups" },
+    ],
+  },
+  {
+    key: "woodwork",
+    label: "Woodwork & Furniture",
+    description: "Furniture, joinery and carving — big tools, and not everybody owns them.",
+    extraSpaces: [
+      { name: "Plans & Cut Lists", description: "Measured plans and cut lists members have actually built from.", space_type: "guides" },
+      { name: "Tool Library", description: "Who owns the thing you need once a year, and will lend it.", space_type: "directory" },
+    ],
+    extraProfileFields: [
+      { label: "Where I Work", field_type: "dropdown", options: ["Workshop", "Garage", "Shed", "Kitchen table"] },
+      { label: "Tools I'd Lend", field_type: "text" },
+    ],
+    starterActivities: [
+      {
+        title: "One-board build",
+        description: "A month, one board, whatever you can make from it. Same constraint for everyone.",
+        spaceType: "challenges",
+        durationDays: 30,
+      },
+      { title: "Sharpening night", description: "Bring your blunt chisels and somebody who can sharpen shows you how.", spaceType: "meetups" },
+      { title: "Sign the tool library", description: "Everyone lists one tool they'd lend. That list is the reason to stay.", spaceType: "directory" },
+    ],
+  },
+  {
+    key: "brewing",
+    label: "Homebrew & Fermentation",
+    description: "Beer, cider, wine, kombucha and kraut — slow, and best compared side by side.",
+    omitSpaces: ["Project Log", "Meet-Ups"],
+    omitNote:
+      "Renamed the Project Log to the Brew Log and Meet-Ups to Bottle Shares — a batch is a project, and a meet-up here is a tasting.",
+    extraSpaces: [
+      { name: "Brew Log", description: "Every batch — recipe, gravity, dates and what it actually tasted like.", space_type: "journal" },
+      { name: "Bottle Shares", description: "Post a tasting and whoever is free brings a bottle of theirs.", space_type: "meetups" },
+    ],
+    extraProfileFields: [
+      { label: "What I Brew", field_type: "dropdown", options: ["Beer", "Cider", "Wine", "Mead", "Kombucha", "Kefir", "Kraut & Kimchi"] },
+    ],
+    starterActivities: [
+      {
+        title: "Same recipe, different kitchens",
+        description: "Everyone brews one agreed recipe and tastes them against each other six weeks later.",
+        spaceType: "challenges",
+        durationDays: 42,
+      },
+      { title: "Blind bottle share", description: "Bring one bottle, labels off. The feedback is more honest that way.", spaceType: "meetups" },
+      { title: "Log your current batch", description: "Every member posts what's fermenting right now. It's the fastest way to see who knows what.", spaceType: "journal" },
+    ],
+  },
+  {
+    key: "art",
+    label: "Art, Drawing & Illustration",
+    description: "Drawing, painting and illustration — where honest critique is the scarce thing.",
+    extraSpaces: [
+      { name: "Critique Requests", description: "Post work and say what kind of feedback you want on it.", space_type: "qa" },
+      { name: "Reference & Prompts", description: "Reference photos, prompts and exercises to work from.", space_type: "resources" },
+    ],
+    extraProfileFields: [{ label: "Medium", field_type: "text" }],
+    starterActivities: [
+      {
+        title: "Draw every day for 30 days",
+        description: "One drawing a day, posted the same day. Missing a day doesn't end it.",
+        spaceType: "challenges",
+        durationDays: 30,
+      },
+      { title: "Weekly prompt", description: "One word on Monday, everybody's interpretation by Sunday.", spaceType: "gallery" },
+      { title: "Critique swap", description: "Pair up and give each other one specific, useful piece of feedback.", spaceType: "qa" },
+    ],
+  },
+  {
+    key: "jewellery",
+    label: "Jewellery & Metalwork",
+    description: "Silversmithing, beading and metalwork — small pieces, expensive materials.",
+    extraSpaces: [
+      { name: "Suppliers & Stones", description: "Where to buy metal, findings and stones without being stung.", space_type: "business_directory" },
+      { name: "Bench Safety", description: "Torches, pickle, ventilation and hallmarking — the parts you can't guess at.", space_type: "resources" },
+    ],
+    extraProfileFields: [{ label: "Metals I Work", field_type: "text" }],
+    starterActivities: [
+      {
+        title: "One piece from scrap",
+        description: "Three weeks, using only offcuts and failed pieces you already have.",
+        spaceType: "challenges",
+        durationDays: 21,
+      },
+      { title: "Bench photo Friday", description: "Photograph your bench mid-piece. Seeing other people's mess is half the value.", spaceType: "gallery" },
+    ],
+  },
+  {
+    key: "home",
+    label: "Soap, Candles & Home Craft",
+    description: "Soap, candles, resin and home fragrance — recipes, ratios and small batches.",
+    extraSpaces: [
+      { name: "Safety & Ratios", description: "Lye calculations, fragrance loads, cure times and the things you don't improvise.", space_type: "resources" },
+      { name: "Suppliers", description: "Where to buy oils, waxes, fragrance and moulds.", space_type: "business_directory" },
+    ],
+    extraProfileFields: [{ label: "Scents & Ingredients I Use", field_type: "text" }],
+    starterActivities: [
+      {
+        title: "One batch, one new variable",
+        description: "A month of small batches, changing exactly one thing each time and writing down what it did.",
+        spaceType: "challenges",
+        durationDays: 30,
+      },
+      { title: "Market stall prep", description: "Members selling at a fair share pricing, packaging and what actually sold.", spaceType: "discussion" },
+    ],
+  },
+  {
+    key: "digital",
+    label: "3D Printing & Electronics",
+    description: "Printing, laser cutting and electronics — makes that are half file, half physical.",
+    extraSpaces: [
+      { name: "Builds & Schematics", description: "Build write-ups, wiring diagrams and the settings that finally worked.", space_type: "guides" },
+      { name: "Print Files", description: "Models, cut files and firmware worth keeping.", space_type: "resources" },
+    ],
+    extraProfileFields: [{ label: "Printer / Kit", field_type: "text" }],
+    starterActivities: [
+      {
+        title: "Print one useful thing",
+        description: "Two weeks. It has to solve a real problem in your house, not be a benchy.",
+        spaceType: "challenges",
+        durationDays: 14,
+      },
+      { title: "Failed print of the week", description: "Post the spaghetti and the settings. The diagnosis is the lesson.", spaceType: "qa" },
+      { title: "Open workshop night", description: "Bring the thing that won't work and somebody else's eyes on it.", spaceType: "meetups" },
+    ],
+  },
+];
+
+export function getCraftKind(key: string): CraftKind | undefined {
+  return CRAFT_KINDS.find((k) => k.key === key);
+}
+
+// The rituals a new craft community should run in its first month. Empty for
+// every other template, and for a craft community whose kind wasn't recognised.
+export function starterActivitiesForCraftKind(key: string | null | undefined): StarterActivity[] {
+  return (key ? getCraftKind(key)?.starterActivities : undefined) ?? [];
+}
+
+export interface CraftSetupRecommendation extends SetupRecommendation {
+  starterActivities: StarterActivity[];
+}
+
+// The Craft counterpart to recommendActivitySetup and recommendSchoolSetup: the
+// shared base, minus what this craft renames away, plus its extras. baseSpaces
+// lets the caller substitute the super-admin-configured defaults for the code
+// ones, same as every other recommender here.
+export function recommendCraftSetup(craftKindKey: string, baseSpaces?: TemplateSpace[]): CraftSetupRecommendation {
+  const template = getCommunityTemplate("craft")!;
+  const base = baseSpaces ?? template.defaultSpaces;
+  const kind = getCraftKind(craftKindKey);
+
+  // Drops before adds, and against the resolved base — so a rename still
+  // applies when a super admin has replaced the code defaults with their own.
+  const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
+  const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
+
+  const rationale = ["Started from the Craft & Makers template's default spaces, with Show & Tell at the top."];
+  if (kind) {
+    rationale.push(`Added what a ${kind.label.toLowerCase()} community typically needs.`);
+    if (kind.omitSpaces?.length) {
+      const names = kind.omitSpaces.map((name) => `“${name}”`).join(" and ");
+      rationale.push(kind.omitNote ?? `Left out ${names} — not something a ${kind.label.toLowerCase()} community needs.`);
+    }
+    const seeded = kind.starterActivities.find((a) => a.spaceType === "challenges" && a.durationDays);
+    if (seeded) {
+      rationale.push(`“${seeded.title}” starts the day you launch — already running, so the community has something happening in it.`);
+    }
+  }
+
+  return {
+    spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
+    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
+    rationale,
+    starterActivities: kind?.starterActivities ?? [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Intents: "what do you want your community to do?"
+//
+// COMMUNITY_TEMPLATES is sorted by who the owner is — a business, a school, a
+// non-profit, a photographer. An owner picking from it is thinking about what
+// their members will DO, which is a different axis, and the mismatch is why
+// someone starting a baking community used to land on Custom: they read
+// nineteen labels, recognised none of them as themselves, and took the blank
+// one.
+//
+// These intents are that missing axis. Picking one or two filters the grid to
+// the types that actually serve it; picking none leaves the full list exactly
+// as it was. A template may sit under several intents — a craft community is
+// somewhere to make things, somewhere to learn a skill, somewhere to meet up
+// and somewhere to sell — and that redundancy is deliberate: every route in
+// should reach it.
+// ---------------------------------------------------------------------------
+
+export interface CommunityIntent {
+  key: string;
+  label: string;
+  description: string;
+  icon: string; // lucide-react icon name, resolved by TEMPLATE_ICONS in the UI layer
+  templateKeys: string[];
+}
+
+export const COMMUNITY_INTENTS: CommunityIntent[] = [
+  {
+    key: "make",
+    label: "Make things",
+    description: "Members make something and show each other what they made.",
+    icon: "Hammer",
+    templateKeys: ["craft", "photography", "farming", "fanclub"],
+  },
+  {
+    key: "learn",
+    label: "Learn a skill",
+    description: "Somebody teaches, or everybody gets better together.",
+    icon: "GraduationCap",
+    templateKeys: ["craft", "learning", "course", "coaching", "school"],
+  },
+  {
+    key: "meet",
+    label: "Meet up in person",
+    description: "The point is what happens when people are in the same room.",
+    icon: "Footprints",
+    templateKeys: ["activity", "craft", "place", "book_club", "faith"],
+  },
+  {
+    key: "support",
+    label: "Support each other",
+    description: "Members are going through something and need the others.",
+    icon: "HandHeart",
+    templateKeys: ["wellness", "fitness", "coaching", "faith", "nonprofit"],
+  },
+  {
+    key: "audience",
+    label: "Reach an audience",
+    description: "You already have people watching, and want somewhere to put them.",
+    icon: "Clapperboard",
+    templateKeys: ["creator", "fanclub", "course", "business"],
+  },
+  {
+    key: "trade",
+    label: "Buy, sell and swap",
+    description: "Members trade things, materials or work with each other.",
+    icon: "Store",
+    templateKeys: ["craft", "place", "photography", "business", "networking"],
+  },
+  {
+    key: "organise",
+    label: "Run a place or an organisation",
+    description: "There's a real institution or territory behind this.",
+    icon: "MapPin",
+    templateKeys: ["place", "school", "nonprofit", "business", "startup"],
+  },
+  {
+    key: "compete",
+    label: "Play and compete",
+    description: "Fixtures, ladders, tournaments and leaderboards.",
+    icon: "Gamepad2",
+    templateKeys: ["gaming", "activity", "fitness"],
+  },
+];
+
+export function getCommunityIntent(key: string): CommunityIntent | undefined {
+  return COMMUNITY_INTENTS.find((i) => i.key === key);
+}
+
+// The types worth showing for a set of chosen intents, best match first.
+//
+// Selecting nothing returns the full list untouched, so the step behaves
+// exactly as it did before intents existed. Otherwise a type's score is how
+// many of the chosen intents list it: pick "make" and "meet" and a craft
+// community — which serves both — sorts above photography, which serves one.
+// Ties keep COMMUNITY_TEMPLATES' own order, and Custom is always included and
+// always last, so there is never a set of answers that traps someone.
+export function templatesForIntents(intentKeys: string[]): CommunityTemplate[] {
+  if (!intentKeys.length) return COMMUNITY_TEMPLATES;
+
+  const score = new Map<string, number>();
+  for (const key of intentKeys) {
+    for (const templateKey of getCommunityIntent(key)?.templateKeys ?? []) {
+      score.set(templateKey, (score.get(templateKey) ?? 0) + 1);
+    }
+  }
+
+  const matched = COMMUNITY_TEMPLATES.filter((t) => t.key !== "custom" && score.has(t.key)).sort(
+    (a, b) => (score.get(b.key) ?? 0) - (score.get(a.key) ?? 0)
+  );
+  const custom = COMMUNITY_TEMPLATES.find((t) => t.key === "custom");
+  return custom ? [...matched, custom] : matched;
 }

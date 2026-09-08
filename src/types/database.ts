@@ -232,6 +232,10 @@ export type Community = {
   // 'secondary', 'homeschool', … Validated against SCHOOL_KINDS at the
   // application layer, same as location_type. Null for every other template.
   school_kind: string | null;
+  // Craft & Makers template only: which craft this community is built around —
+  // 'baking', 'pottery', 'woodwork', … Validated against CRAFT_KINDS at the
+  // application layer, same as location_type. Null for every other template.
+  craft_kind: string | null;
   // Custom-domain trio (supabase/custom-domains.sql). Only writable through
   // the service-role client — a DB trigger rejects anon/authenticated writes
   // to these columns, so include them in an Update payload only from the
