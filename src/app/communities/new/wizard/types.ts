@@ -1,4 +1,4 @@
-import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility } from "@/types/database";
+import type { CommunityPrivacy, SpaceType, SpaceVisibility } from "@/types/database";
 import type { StarterActivity } from "@/lib/community-templates";
 
 export interface WizardSpace {
@@ -11,13 +11,6 @@ export interface WizardSpace {
   // Seeded from the template. Not editable in the wizard — same as
   // staff_post_only — because both are refined in Admin afterward.
   visibility: SpaceVisibility;
-}
-
-export interface WizardProfileField {
-  id: string;
-  label: string;
-  field_type: ProfileFieldType;
-  options: string[];
 }
 
 export interface WizardState {
@@ -55,7 +48,6 @@ export interface WizardState {
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
-  profileFields: WizardProfileField[];
 }
 
 export const INITIAL_WIZARD_STATE: WizardState = {
@@ -76,7 +68,6 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   mapLayers: [],
   rationale: [],
   spaces: [],
-  profileFields: [],
 };
 
 let counter = 0;
