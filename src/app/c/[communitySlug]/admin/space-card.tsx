@@ -103,6 +103,14 @@ export function SpaceCard({
     setBusy(false);
   }
 
+  const isCustomPage = space.space_type === "custom";
+  // A page written before the `body` column existed keeps its content in
+  // description. Offer it in Page content and leave Summary empty, so the first
+  // save through this form moves the content where it belongs rather than
+  // writing the same HTML into both columns — which would leave the Spaces-grid
+  // card printing a flattened page for ever.
+  const legacyBody = isCustomPage && !space.body ? space.description : null;
+
   if (editing) {
     return (
       <div
@@ -123,8 +131,38 @@ export function SpaceCard({
               shows it under the title. */}
           {space.space_type !== "business_directory" && (
             <div>
-              <Label htmlFor={`description-${space.id}`}>Description</Label>
-              <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
+              <Label htmlFor={`description-${space.id}`}>{isCustomPage ? "Summary" : "Description"}</Label>
+              {isCustomPage && (
+                <p className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                  One line, for the card in the Spaces list. The page itself goes below.
+                </p>
+              )}
+              <RichEditor
+                id={`description-${space.id}`}
+                name="description"
+                rows={isCustomPage ? 2 : 4}
+                defaultValue={legacyBody ? "" : space.description ?? ""}
+              />
+            </div>
+          )}
+
+          {/* A Custom Page's whole content, in a field big enough to write one
+              in. Only rendered for custom pages, which is what lets the action
+              treat an absent `body` as "don't touch it" — editing any other
+              space can never blank a page. */}
+          {isCustomPage && (
+            <div>
+              <Label htmlFor={`body-${space.id}`}>Page content</Label>
+              <p className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                Write it, paste HTML, or paste from a doc. Preview shows the real page before you save.
+              </p>
+              <RichEditor
+                id={`body-${space.id}`}
+                name="body"
+                rows={16}
+                defaultValue={space.body ?? legacyBody ?? ""}
+                placeholder="Welcome to the community…"
+              />
             </div>
           )}
 

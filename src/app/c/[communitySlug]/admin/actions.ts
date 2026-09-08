@@ -167,6 +167,13 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const spaceType = parseSpaceType(formData.get("space_type"));
   const staffPostOnly = formData.get("staff_post_only") === "on";
   const allowMemberComments = staffPostOnly && formData.get("allow_member_comments") === "on";
+  // Custom Page body. Same absent-≠-empty rule as location and cover below:
+  // only the edit form for a custom page renders this field, so editing any
+  // other space — or the same space after its type is changed — can never
+  // silently blank a page somebody wrote.
+  const rawBody = formData.get("body");
+  const body = rawBody === null ? undefined : String(rawBody).trim() || null;
+
   // Absent field ≠ empty field: only forms that render the location input
   // (resources spaces) may change it, so other edits can't silently wipe it.
   const rawLocationName = formData.get("location_name");
@@ -236,6 +243,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
         space_type: spaceType,
         staff_post_only: staffPostOnly,
         allow_member_comments: allowMemberComments,
+        ...(body !== undefined && { body }),
         ...(locationName !== undefined && { location_name: locationName }),
         ...(imageUrl !== undefined && { image_url: imageUrl }),
         ...(priceUpdate ?? {}),

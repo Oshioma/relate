@@ -422,6 +422,13 @@ export type Space = {
   // A community where every space is null renders the flat nav it always had.
   // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
   nav_group: string | null;
+  // Custom Page spaces (space_type = 'custom') only: the page's whole content,
+  // as sanitised HTML/Markdown. Rendered as `body ?? description` so pages
+  // written before this column existed still render from description, which is
+  // where their content lives. Null for every other space type, and for a
+  // custom page not yet saved through the new editor.
+  // See 20260908112611_space_custom_page_body.sql.
+  body: string | null;
   // Optional cover image (community-assets bucket URL), surfaced on the mobile
   // Explore strip and the Spaces grid. Null = fall back to the type icon.
   // See 20260731214352_add_space_image_url.sql.

@@ -77,7 +77,8 @@ function StarterActivities({ activities }: { activities: StarterActivity[] }) {
 // available in Admin afterward.
 //
 // Only claims things that exist. Direct messages are /messages, live video is
-// the 'live' space type, and the module count is the platform's real pool as
+// the 'live' space type, custom pages are the 'custom' one (labelled "Custom
+// Page" in the picker), and the module count is the platform's real pool as
 // passed into this step — not a number typed into copy that drifts. "Request a
 // module" links to /contact, which stores the message and emails support.
 function IncludedEverywhere({ moduleCount }: { moduleCount: number }) {
@@ -98,7 +99,7 @@ function IncludedEverywhere({ moduleCount }: { moduleCount: number }) {
         </p>
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
-          Custom spaces you shape yourself
+          Custom pages you write yourself
         </p>
       </div>
       <p className="mt-2.5 text-xs text-muted-foreground">
