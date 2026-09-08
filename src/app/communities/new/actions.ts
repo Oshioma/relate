@@ -17,7 +17,7 @@ import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
 import { OWNER_AGREEMENT_VERSION } from "@/lib/owner-agreement";
-import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
+import type { CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -29,12 +29,6 @@ export interface WizardSpaceInput {
   // template's Staff Room). Anything unrecognised falls back to 'members',
   // which is what every seeded space used before this existed.
   visibility?: SpaceVisibility;
-}
-
-export interface WizardProfileFieldInput {
-  label: string;
-  field_type: ProfileFieldType;
-  options?: string[];
 }
 
 export interface WizardPayload {
@@ -66,7 +60,6 @@ export interface WizardPayload {
   // (locationType / activityKind) is also set and valid.
   mapLayers?: string[];
   spaces: WizardSpaceInput[];
-  profileFields: WizardProfileFieldInput[];
   // The owner ticked the mandatory Community Owner Agreement checkbox. Enforced
   // server-side (not just in the wizard UI) so a community can never be created
   // without a recorded acceptance.
@@ -196,24 +189,6 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     if (spacesError) {
       await supabase.from("communities").delete().eq("id", community.id);
       return { error: `Couldn't set up your spaces: ${spacesError.message}` };
-    }
-  }
-
-  const fields = payload.profileFields.filter((f) => f.label.trim());
-  if (fields.length) {
-    const { error: fieldsError } = await supabase.from("community_profile_fields").insert(
-      fields.map((f, i) => ({
-        community_id: community.id,
-        label: f.label.trim(),
-        field_type: f.field_type,
-        options: f.options ?? [],
-        sort_order: i,
-        created_by: user.id,
-      }))
-    );
-    if (fieldsError) {
-      await supabase.from("communities").delete().eq("id", community.id);
-      return { error: `Couldn't set up your profile fields: ${fieldsError.message}` };
     }
   }
 

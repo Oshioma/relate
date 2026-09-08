@@ -1,4 +1,4 @@
-import type { ProfileFieldType, SpaceType, SpaceVisibility } from "@/types/database";
+import type { SpaceType, SpaceVisibility } from "@/types/database";
 
 // Curated content behind the Community Builder wizard. "Profile fields" here
 // means community_profile_fields — custom, community-scoped attributes.
@@ -22,12 +22,6 @@ export interface TemplateSpace {
   visibility?: SpaceVisibility;
 }
 
-export interface TemplateProfileField {
-  label: string;
-  field_type: ProfileFieldType;
-  options?: string[];
-}
-
 export interface CommunityTemplate {
   key: string;
   label: string;
@@ -35,7 +29,6 @@ export interface CommunityTemplate {
   tagline: string;
   description: string;
   defaultSpaces: TemplateSpace[];
-  defaultProfileFields: TemplateProfileField[];
 }
 
 // Shared between the Musician / Artist template's default setup and the
@@ -65,12 +58,6 @@ const ACTIVITY_SPACES: TemplateSpace[] = [
   { name: "Gear Exchange", description: "Buy, sell, lend and borrow kit.", space_type: "marketplace" },
   { name: "Challenges", description: "Time-boxed goals members take on together.", space_type: "challenges" },
 ];
-const ACTIVITY_FIELDS: TemplateProfileField[] = [
-  { label: "Experience Level", field_type: "dropdown", options: ["Beginner", "Improver", "Confident", "Advanced"] },
-  { label: "Usual Pace", field_type: "text" },
-  { label: "When I'm Usually Free", field_type: "text" },
-];
-
 // The School template's starter set. A school community is the adults around a
 // school talking to each other — parents, teachers, staff and governors — with
 // the teaching library at its centre. Students are deliberately NOT members:
@@ -91,17 +78,6 @@ const SCHOOL_SPACES: TemplateSpace[] = [
   { name: "School Life", description: "Photos from trips, concerts, sports day and the everyday.", space_type: "gallery" },
   { name: "Reading Challenge", description: "Time-boxed challenges children take on together.", space_type: "challenges" },
   { name: "PTA & Volunteering", description: "Fairs, fundraising and the jobs that need a pair of hands.", space_type: "volunteer_hub" },
-];
-
-const SCHOOL_FIELDS: TemplateProfileField[] = [
-  { label: "I am a\u2026", field_type: "dropdown", options: ["Parent or Guardian", "Teacher", "Support Staff", "Governor", "Office"] },
-  { label: "Class or Year Group", field_type: "text" },
-  { label: "Subjects I Teach", field_type: "text" },
-];
-
-const ARTIST_FAN_FIELDS: TemplateProfileField[] = [
-  { label: "Fan Since", field_type: "text" },
-  { label: "Favorite Track or Album", field_type: "text" },
 ];
 
 // The Craft & Makers template's starter set. Every one of these communities
@@ -126,11 +102,6 @@ const CRAFT_SPACES: TemplateSpace[] = [
   { name: "Meet-Ups", description: "Post a session and whoever is free comes and makes alongside you.", space_type: "meetups" },
 ];
 
-const CRAFT_FIELDS: TemplateProfileField[] = [
-  { label: "How Long I've Been At It", field_type: "dropdown", options: ["Just started", "A year or so", "Several years", "I teach it"] },
-  { label: "What I Make", field_type: "text" },
-];
-
 export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
   {
     key: "learning",
@@ -144,10 +115,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Live Classes", description: "Announcements and replays for live sessions." },
       { name: "Q&A", description: "Ask questions about the material." },
       { name: "Resources", description: "Reading lists, templates and downloads." },
-    ],
-    defaultProfileFields: [
-      { label: "Experience Level", field_type: "dropdown", options: ["Beginner", "Intermediate", "Advanced", "Expert"] },
-      { label: "Currently Studying", field_type: "text" },
     ],
   },
   {
@@ -163,10 +130,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Knowledge Base", description: "Playbooks and frameworks." },
       { name: "Resources", description: "Templates and tools." },
     ],
-    defaultProfileFields: [
-      { label: "Company Name", field_type: "text" },
-      { label: "Industry", field_type: "text" },
-    ],
   },
   {
     key: "coaching",
@@ -181,7 +144,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Resources", description: "Worksheets and frameworks." },
       { name: "Q&A", description: "Ask your coach anything." },
     ],
-    defaultProfileFields: [{ label: "Coaching Focus", field_type: "text" }, { label: "Program Start Date", field_type: "date" }],
   },
   {
     key: "course",
@@ -197,7 +159,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Q&A", description: "Ask questions about the material." },
       { name: "Resources", description: "Slides, templates and extra reading." },
     ],
-    defaultProfileFields: [{ label: "Cohort", field_type: "text" }],
   },
   {
     key: "creator",
@@ -212,7 +173,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Files", description: "Downloads and templates." },
       { name: "Q&A", description: "Ask me anything." },
     ],
-    defaultProfileFields: [{ label: "Content Niche", field_type: "text" }],
   },
   {
     // Key kept as "fanclub" for continuity (it's a stable identifier stored on
@@ -226,7 +186,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description:
       "For musicians, DJs and artists. Build a fan community around one artist — you broadcast, fans belong and unlock exclusives — or a collective where many artists share work, collaborate and give feedback. You choose which when you set up.",
     defaultSpaces: ARTIST_FAN_SPACES,
-    defaultProfileFields: ARTIST_FAN_FIELDS,
   },
   {
     key: "fitness",
@@ -240,10 +199,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Nutrition", description: "Meals, macros and recipes." },
       { name: "Challenges", description: "Time-boxed fitness programs." },
       { name: "Wins", description: "Celebrate progress." },
-    ],
-    defaultProfileFields: [
-      { label: "Fitness Goal", field_type: "dropdown", options: ["Lose weight", "Build muscle", "General fitness", "Sport-specific"] },
-      { label: "Injury Notes", field_type: "textarea" },
     ],
   },
   {
@@ -259,7 +214,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Small Groups", description: "Stay connected with your group." },
       { name: "Testimonies", description: "Stories of faith in action." },
     ],
-    defaultProfileFields: [{ label: "Small Group", field_type: "text" }],
   },
   {
     key: "school",
@@ -269,7 +223,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description:
       "For a school and its community \u2014 parents, teachers, staff and governors in one place. Announcements, class groups, homework help and a PTA, built around a teaching library: paste any source material and get a lesson written for the right age, ready to teach or print. Built for adults; children never need an account.",
     defaultSpaces: SCHOOL_SPACES,
-    defaultProfileFields: SCHOOL_FIELDS,
   },
   {
     key: "place",
@@ -288,10 +241,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Volunteer Hub", description: "Projects, cleanups and causes members can help with.", space_type: "volunteer_hub" },
       { name: "Local Recommendations", description: "Restaurants, services and professionals members vouch for.", space_type: "recommendations" },
     ],
-    defaultProfileFields: [
-      { label: "Neighbourhood / Area", field_type: "text" },
-      { label: "I am a…", field_type: "dropdown", options: ["Resident", "Visitor", "Business Owner", "Organisation", "Volunteer"] },
-    ],
   },
   {
     key: "activity",
@@ -301,7 +250,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description:
       "For a community built around one activity — hiking, running, cycling, climbing, padel, surfing. The centre of gravity is Happening Now: a member posts \u201cwalking the ridge at 6, moderate pace, meeting at the gate\u201d, everyone who can make it taps \u201cI\u2019m in\u201d, and they go. Routes, crews, partners and gear sit around it.",
     defaultSpaces: ACTIVITY_SPACES,
-    defaultProfileFields: ACTIVITY_FIELDS,
   },
   {
     key: "farming",
@@ -321,10 +269,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Marketplace", description: "Trade produce, seeds and tools." },
       { name: "Knowledge Base", description: "Farming best practices." },
     ],
-    defaultProfileFields: [
-      { label: "Farm Size", field_type: "text" },
-      { label: "Organic Certified", field_type: "checkbox" },
-    ],
   },
   {
     key: "wellness",
@@ -338,7 +282,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Challenges", description: "Guided wellness challenges." },
       { name: "Resources", description: "Guided practices and reading." },
     ],
-    defaultProfileFields: [{ label: "Wellness Focus", field_type: "dropdown", options: ["Sleep", "Stress", "Nutrition", "Movement", "Mindfulness"] }],
   },
   {
     key: "photography",
@@ -354,7 +297,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Marketplace", description: "Sell prints and presets." },
       { name: "Resources", description: "Tutorials, presets and gear guides." },
     ],
-    defaultProfileFields: [{ label: "Gear", field_type: "text" }, { label: "Style / Genre", field_type: "text" }],
   },
   {
     key: "craft",
@@ -364,7 +306,10 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     description:
       "For communities built around making something by hand — baking, cooking, knitting, pottery, woodwork, brewing, jewellery. Members make, show what they made, write down how, and ask why it went wrong. You choose which craft at setup.",
     defaultSpaces: CRAFT_SPACES,
-    defaultProfileFields: CRAFT_FIELDS,
+    // Deliberately none. Every other template guesses at custom profile fields
+    // during setup; a maker signing up does not need three questions answered
+    // before they can post a photo of a loaf. The owner adds fields in Admin →
+    // Profile Fields if and when they turn out to want them.
   },
   {
     key: "nonprofit",
@@ -379,7 +324,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Impact Stories", description: "Outcomes and stories." },
       { name: "Knowledge Base", description: "Volunteer handbook and policies." },
     ],
-    defaultProfileFields: [{ label: "Volunteer Availability", field_type: "text" }],
   },
   {
     key: "networking",
@@ -394,7 +338,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Mastermind", description: "Small-group discussion." },
       { name: "Resources", description: "Guides and templates." },
     ],
-    defaultProfileFields: [{ label: "Company / Role", field_type: "text" }],
   },
   {
     key: "gaming",
@@ -409,7 +352,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Guides", description: "Strategy and build guides." },
       { name: "Team Finder", description: "Find teammates by game and role." },
     ],
-    defaultProfileFields: [{ label: "Main Game(s)", field_type: "text" }, { label: "Rank / Experience", field_type: "text" }],
   },
   {
     key: "startup",
@@ -425,7 +367,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Job Board", description: "Hire and get hired." },
       { name: "Resources", description: "Templates, decks and playbooks." },
     ],
-    defaultProfileFields: [{ label: "Company Name", field_type: "text" }, { label: "Stage", field_type: "dropdown", options: ["Idea", "Pre-seed", "Seed", "Series A+"] }],
   },
   {
     key: "book_club",
@@ -439,7 +380,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
       { name: "Book Library", description: "Past reads and notes." },
       { name: "Vote on Next Book", description: "Pick what the club reads next." },
     ],
-    defaultProfileFields: [{ label: "Favorite Genres", field_type: "text" }],
   },
   {
     key: "custom",
@@ -448,7 +388,6 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     tagline: "Start blank and build it your way",
     description: "No preset spaces — pick exactly what your community needs afterward.",
     defaultSpaces: [{ name: "Discussion", description: "General conversation to start the community off." }],
-    defaultProfileFields: [],
   },
 ];
 
@@ -471,7 +410,6 @@ export function getCommunityTemplate(key: string): CommunityTemplate | undefined
 
 export interface SetupRecommendation {
   spaces: TemplateSpace[];
-  profileFields: TemplateProfileField[];
   rationale: string[];
 }
 
@@ -498,7 +436,6 @@ export interface ArtistMode {
   tagline: string;
   description: string;
   spaces: TemplateSpace[];
-  profileFields: TemplateProfileField[];
 }
 
 export const ARTIST_MODES: ArtistMode[] = [
@@ -508,7 +445,6 @@ export const ARTIST_MODES: ArtistMode[] = [
     tagline: "A fan community",
     description: "Built around a single musician, DJ or artist. You broadcast; fans belong, hang out and unlock exclusives.",
     spaces: ARTIST_FAN_SPACES,
-    profileFields: ARTIST_FAN_FIELDS,
   },
   {
     key: "collective",
@@ -525,11 +461,6 @@ export const ARTIST_MODES: ArtistMode[] = [
       { name: "The Crate", description: "Shared sample packs, presets, stems and gear guides.", space_type: "resources" },
       { name: "Gigs & Opportunities", description: "Bookings, collab calls and open slots.", space_type: "jobs" },
     ],
-    profileFields: [
-      { label: "Role", field_type: "dropdown", options: ["DJ", "Producer", "Vocalist", "Instrumentalist", "Visual Artist", "Other"] },
-      { label: "Genre", field_type: "text" },
-      { label: "Setup / DAW", field_type: "text" },
-    ],
   },
 ];
 
@@ -544,7 +475,6 @@ export function recommendArtistSetup(modeKey: string): SetupRecommendation {
   const mode = getArtistMode(modeKey) ?? ARTIST_MODES[0];
   return {
     spaces: mode.spaces,
-    profileFields: mode.profileFields,
     rationale: [`Set up as ${mode.tagline.toLowerCase()} (${mode.label.toLowerCase()}).`, mode.description],
   };
 }
@@ -569,7 +499,6 @@ export interface PlaceLocationType {
   description: string;
   mapLayers: string[];
   extraSpaces: TemplateSpace[];
-  extraProfileFields?: TemplateProfileField[];
 }
 
 export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
@@ -691,7 +620,6 @@ export const PLACE_LOCATION_TYPES: PlaceLocationType[] = [
       { name: "Accommodation", description: "Hotels, guesthouses, hostels and rentals.", space_type: "accommodation" },
       { name: "Tours & Experiences", description: "Guided tours and bookable experiences.", space_type: "marketplace" },
     ],
-    extraProfileFields: [{ label: "Visiting or Living Here?", field_type: "dropdown", options: ["Visiting", "Living Here"] }],
   },
   {
     key: "business_district",
@@ -749,7 +677,6 @@ export function recommendPlaceSetup(locationTypeKey: string, baseSpaces?: Templa
 
   return {
     spaces: dedupeByName([...base, ...(locationType?.extraSpaces ?? [])]),
-    profileFields: [...template.defaultProfileFields, ...(locationType?.extraProfileFields ?? [])],
     rationale,
     mapLayers: locationType?.mapLayers ?? [],
   };
@@ -777,7 +704,6 @@ export interface ActivityKind {
   activityLabel: string;
   mapLayers: string[];
   extraSpaces: TemplateSpace[];
-  extraProfileFields?: TemplateProfileField[];
 }
 
 export const ACTIVITY_KINDS: ActivityKind[] = [
@@ -791,7 +717,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Trail Conditions", description: "What it's like underfoot right now — mud, closures, river crossings, snow line." },
       { name: "Weather & Daylight", description: "Forecasts, sunset times and when to turn back.", space_type: "resources" },
     ],
-    extraProfileFields: [{ label: "Usual Distance", field_type: "dropdown", options: ["Under 5km", "5–10km", "10–20km", "20km+"] }],
   },
   {
     key: "running",
@@ -803,7 +728,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Race Calendar", description: "Local races, parkruns and time trials, with entry links.", space_type: "guides" },
       { name: "Session Plans", description: "Intervals, hills, long runs and training blocks to follow.", space_type: "resources" },
     ],
-    extraProfileFields: [{ label: "Typical Pace (min/km)", field_type: "text" }],
   },
   {
     key: "cycling",
@@ -815,7 +739,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Bike Shops & Mechanics", description: "Repairs, fittings and spares nearby.", space_type: "business_directory" },
       { name: "Roadside Help", description: "Puncture, snapped chain, no lights? Ask whoever's closest.", space_type: "volunteer_hub" },
     ],
-    extraProfileFields: [{ label: "Bike Type", field_type: "dropdown", options: ["Road", "Gravel", "Mountain", "Hybrid", "E-bike"] }],
   },
   {
     key: "climbing",
@@ -826,10 +749,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
     extraSpaces: [
       { name: "Gyms & Guides", description: "Indoor walls, instructors and guiding services.", space_type: "business_directory" },
       { name: "Beta & Grades", description: "Ask about a move, a grade or an approach.", space_type: "qa" },
-    ],
-    extraProfileFields: [
-      { label: "Grade", field_type: "text" },
-      { label: "Lead or Second", field_type: "dropdown", options: ["Lead", "Second", "Either", "Bouldering only"] },
     ],
   },
   {
@@ -842,7 +761,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Tides & Conditions", description: "Tide charts, swell, wind and water temperature.", space_type: "resources" },
       { name: "Clubs & Lifeguards", description: "Local clubs, schools and who's watching the water.", space_type: "business_directory" },
     ],
-    extraProfileFields: [{ label: "Comfortable In", field_type: "dropdown", options: ["Pool only", "Sheltered water", "Open water", "Big surf"] }],
   },
   {
     key: "racquet",
@@ -854,7 +772,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Courts & Clubs", description: "Where to play, what it costs and how to book.", space_type: "business_directory" },
       { name: "Club Ladder", description: "Ongoing ladder and box leagues members climb.", space_type: "challenges" },
     ],
-    extraProfileFields: [{ label: "Level / Rating", field_type: "text" }],
   },
   {
     key: "team",
@@ -866,7 +783,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Pitches & Bookings", description: "Where to play and who to book it through.", space_type: "business_directory" },
       { name: "League & Fixtures", description: "Standing leagues, fixtures and results.", space_type: "challenges" },
     ],
-    extraProfileFields: [{ label: "Position", field_type: "text" }],
   },
   {
     key: "yoga",
@@ -878,7 +794,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Classes", description: "Streamed and recorded sessions members join live.", space_type: "live" },
       { name: "Studios & Teachers", description: "Local studios, teachers and drop-in times.", space_type: "business_directory" },
     ],
-    extraProfileFields: [{ label: "Style", field_type: "text" }],
   },
   {
     key: "snow",
@@ -890,7 +805,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Snow Report", description: "Conditions, lifts open and the avalanche bulletin.", space_type: "resources" },
       { name: "Rentals & Passes", description: "Hire shops, lessons and lift passes.", space_type: "business_directory" },
     ],
-    extraProfileFields: [{ label: "Ski or Board", field_type: "dropdown", options: ["Ski", "Snowboard", "Both", "Touring"] }],
   },
   {
     key: "dance",
@@ -902,7 +816,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Studios & Socials", description: "Classes, socials and the nights worth going to.", space_type: "business_directory" },
       { name: "Moves Library", description: "Clips of moves and combinations to work on.", space_type: "gallery" },
     ],
-    extraProfileFields: [{ label: "Lead or Follow", field_type: "dropdown", options: ["Lead", "Follow", "Both"] }],
   },
   {
     key: "nature",
@@ -914,7 +827,6 @@ export const ACTIVITY_KINDS: ActivityKind[] = [
       { name: "Sightings Log", description: "What you saw, where and when.", space_type: "journal" },
       { name: "Species Guide", description: "What lives here, and how to tell it apart.", space_type: "guides" },
     ],
-    extraProfileFields: [{ label: "Main Interest", field_type: "text" }],
   },
 ];
 
@@ -950,7 +862,6 @@ export function recommendActivitySetup(activityKindKey: string, baseSpaces?: Tem
 
   return {
     spaces: dedupeByName([...base, ...(kind?.extraSpaces ?? [])]),
-    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
     mapLayers: kind?.mapLayers ?? [],
   };
@@ -979,7 +890,6 @@ export interface SchoolKind {
   // Must be an AGE_BANDS key in src/lib/school/lesson-types.ts.
   defaultAgeBand: string;
   extraSpaces: TemplateSpace[];
-  extraProfileFields?: TemplateProfileField[];
   // Spaces from the shared base this kind of school should NOT get, by name.
   // The other overlays in this file only ever add, which works while every
   // variant wants the whole base — but a homeschool has no staff, so a
@@ -991,7 +901,6 @@ export interface SchoolKind {
   // Profile fields from the shared base this kind should not ask for, by label.
   // Same reasoning and same matching as omitSpaces: a homeschool has no year
   // groups to put a child in and no governors to be one.
-  omitProfileFields?: string[];
   // What the setup step says about those omissions. Falls back to listing the
   // names when absent — set it wherever that list would mislead, such as a
   // space dropped from the base only to come back under a better name.
@@ -1019,7 +928,6 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Careers & Next Steps", description: "Work experience, apprenticeships, college and university.", space_type: "jobs" },
       { name: "Clubs & Societies", description: "Everything that happens after the bell.", space_type: "clubs" },
     ],
-    extraProfileFields: [{ label: "Exam Year", field_type: "text" }],
   },
   {
     key: "homeschool",
@@ -1041,7 +949,7 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       "PTA & Volunteering",
     ],
     omitNote:
-      "Left out the parts that only exist inside a school — announcements, year groups, a staff room, a PTA, and asking whether someone is a governor. Parent Chat is here as Family Chat, and the reading lists as Reading & Resources.",
+      "Left out the parts that only exist inside a school — announcements, year groups, a staff room and a PTA. Parent Chat is here as Family Chat, and the reading lists as Reading & Resources.",
     extraSpaces: [
       { name: "Family Chat", description: "General conversation between the families teaching together." },
       { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
@@ -1052,8 +960,6 @@ export const SCHOOL_KINDS: SchoolKind[] = [
     // Nobody here is a governor or the school office, and there are no year
     // groups. "Subjects I Teach" stays — the parent is the teacher, and across
     // a group of families it is the useful thing to know about each other.
-    omitProfileFields: ["I am a\u2026", "Class or Year Group"],
-    extraProfileFields: [{ label: "Children's Ages", field_type: "text" }],
   },
   {
     key: "coop",
@@ -1065,7 +971,6 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Shared Costs", description: "Materials, venue hire and who has paid what." },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
     ],
-    extraProfileFields: [{ label: "What I Can Teach", field_type: "text" }],
   },
   {
     key: "nursery",
@@ -1086,7 +991,6 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Courses", description: "Structured programmes students enrol in and work through.", space_type: "course" },
       { name: "Tutors", description: "Who teaches what, and how to reach them.", space_type: "directory" },
     ],
-    extraProfileFields: [{ label: "Subjects Needed", field_type: "text" }],
   },
   {
     key: "sen",
@@ -1097,7 +1001,6 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Support Plans", description: "Guidance, templates and what has worked for others.", space_type: "resources" },
       { name: "Therapies & Services", description: "Speech, occupational therapy and local specialists.", space_type: "business_directory" },
     ],
-    extraProfileFields: [{ label: "Additional Needs I Support", field_type: "text" }],
   },
 ];
 
@@ -1140,19 +1043,11 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
   const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
   const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
 
-  const omittedFields = new Set(
-    (kind?.omitProfileFields ?? []).map((label) => label.trim().toLowerCase())
-  );
-  const keptFields = template.defaultProfileFields.filter(
-    (field) => !omittedFields.has(field.label.trim().toLowerCase())
-  );
-
   const rationale = ["Started from the School template's default spaces, with the Lessons library near the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} typically needs.`);
-    const dropped = [...(kind.omitSpaces ?? []), ...(kind.omitProfileFields ?? [])];
-    if (dropped.length) {
-      const names = dropped.map((name) => `\u201C${name}\u201D`).join(" and ");
+    if (kind.omitSpaces?.length) {
+      const names = kind.omitSpaces.map((name) => `\u201C${name}\u201D`).join(" and ");
       rationale.push(
         kind.omitNote ?? `Left out ${names} \u2014 not something a ${kind.label.toLowerCase()} needs.`
       );
@@ -1162,7 +1057,6 @@ export function recommendSchoolSetup(schoolKindKey: string, baseSpaces?: Templat
 
   return {
     spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
-    profileFields: [...keptFields, ...(kind?.extraProfileFields ?? [])],
     rationale,
   };
 }
@@ -1197,8 +1091,18 @@ export interface CraftKind {
   key: string;
   label: string;
   description: string;
+  // The craft's live video room, named for what actually happens in it — a
+  // Sunday Bake-Along, not "Live Sessions". Every craft has exactly one, and it
+  // is a field of its own rather than another entry in extraSpaces so the
+  // wizard can point at it by name without guessing which of the extras is the
+  // live one.
+  //
+  // Its description is written for the members who will read it in the sidebar
+  // for years, so it says what happens in the room and nothing about pricing.
+  // Whether it stays free or sits behind a paid space is the owner's call,
+  // made later in Admin — the wizard only mentions that the choice exists.
+  liveSpace: TemplateSpace;
   extraSpaces: TemplateSpace[];
-  extraProfileFields?: TemplateProfileField[];
   // Spaces from the shared base this craft should not get, by name — matched
   // case-insensitively, same as SchoolKind.omitSpaces. Used almost entirely for
   // renames: drop "How-To Library", add "Recipe Box".
@@ -1221,14 +1125,14 @@ export const CRAFT_KINDS: CraftKind[] = [
     description: "Bread, cakes and pastry — where the same recipe behaves differently in every oven.",
     omitSpaces: ["How-To Library"],
     omitNote: RECIPE_BOX_NOTE,
+    liveSpace: {
+      name: "Sunday Bake-Along",
+      description: "Bake the same thing together on live video — you lead, everyone follows in their own kitchen.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Recipe Box", description: "Recipes members have actually baked, with the notes that make them work.", space_type: "guides" },
       { name: "Starter & Lending Shelf", description: "Who has a live sourdough starter, a spare tin or a proving basket to lend.", space_type: "directory" },
-      { name: "Bake-Along", description: "Everyone bakes the same thing at the same time, on a stream.", space_type: "live" },
-    ],
-    extraProfileFields: [
-      { label: "My Oven", field_type: "text" },
-      { label: "Signature Bake", field_type: "text" },
     ],
     starterActivities: [
       {
@@ -1238,14 +1142,14 @@ export const CRAFT_KINDS: CraftKind[] = [
         durationDays: 7,
       },
       {
+        title: "Sunday bake-along",
+        description: "The same recipe, at the same time, on video — so the tricky step happens with you there rather than in a comment the next day.",
+        spaceType: "live",
+      },
+      {
         title: "Sourdough starter swap",
         description: "Members with a live starter offer a jar to members without one, and check in on how it's feeding.",
         spaceType: "directory",
-      },
-      {
-        title: "Sunday bake-along",
-        description: "Everyone bakes the same recipe at the same time on a stream, so the tricky step happens together.",
-        spaceType: "live",
       },
       {
         title: "The “why did it collapse?” thread",
@@ -1260,14 +1164,14 @@ export const CRAFT_KINDS: CraftKind[] = [
     description: "Everyday cooking, feeding people, and getting better at it.",
     omitSpaces: ["How-To Library"],
     omitNote: RECIPE_BOX_NOTE,
+    liveSpace: {
+      name: "Cook-Along",
+      description: "Cook one dish together on live video, with the tricky steps happening at the same time.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Recipe Box", description: "Recipes members have actually cooked, with the notes that make them work.", space_type: "guides" },
       { name: "What's In Season", description: "What's good right now, what it costs and what to do with it.", space_type: "resources" },
-      { name: "Cook-Along", description: "Cook the same dish at the same time, on a stream.", space_type: "live" },
-    ],
-    extraProfileFields: [
-      { label: "Cuisines I Cook", field_type: "text" },
-      { label: "Cooking For", field_type: "text" },
     ],
     starterActivities: [
       {
@@ -1276,8 +1180,12 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 14,
       },
+      {
+        title: "Monthly cook-along",
+        description: "One recipe, everyone cooking it at once on video, questions answered while the pan is still on.",
+        spaceType: "live",
+      },
       { title: "Friday fridge raid", description: "Post what's left in the fridge and let the community write the dinner.", spaceType: "discussion" },
-      { title: "Monthly cook-along", description: "One recipe, everyone cooking it at once, questions answered live.", spaceType: "live" },
     ],
   },
   {
@@ -1286,11 +1194,15 @@ export const CRAFT_KINDS: CraftKind[] = [
     description: "Knitting, crochet, spinning and weaving — long projects, shown off in stages.",
     omitSpaces: ["Swap & Sell"],
     omitNote: "Renamed Swap & Sell to Stash & Swap — in a yarn community it's mostly part-balls looking for a project.",
+    liveSpace: {
+      name: "Knit Night Live",
+      description: "Cast on together on video — knit, chat, and get unstuck while somebody can still see your hands.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Pattern Library", description: "Patterns members have knitted, with the modifications that fixed them.", space_type: "guides" },
       { name: "Stash & Swap", description: "Yarn, needles and part-balls looking for a project.", space_type: "marketplace" },
     ],
-    extraProfileFields: [{ label: "Yarn Weights I Use", field_type: "text" }],
     starterActivities: [
       {
         title: "Knit-along: one project, four weeks",
@@ -1298,21 +1210,26 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 28,
       },
+      {
+        title: "Weekly knit night, live",
+        description: "An hour on video with the pattern open. Company while you knit is the whole point, and dropped stitches get fixed on camera.",
+        spaceType: "live",
+      },
       { title: "WIP Wednesday", description: "Photograph whatever is on the needles, finished or not. The unfinished ones are the point.", spaceType: "gallery" },
-      { title: "Stash-busting swap", description: "Post the part-balls you'll never use and take somebody else's.", spaceType: "marketplace" },
     ],
   },
   {
     key: "sewing",
     label: "Sewing & Dressmaking",
     description: "Garments, alterations and refashioning — where fit is the whole problem.",
+    liveSpace: {
+      name: "Sew-Along",
+      description: "Sew a project together on live video, from cutting out to the last seam.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Pattern Library", description: "Patterns members have sewn, with the adjustments that made them fit.", space_type: "guides" },
       { name: "Fabric Shops", description: "Where to buy fabric, thread and haberdashery locally.", space_type: "business_directory" },
-    ],
-    extraProfileFields: [
-      { label: "My Machine", field_type: "text" },
-      { label: "What I Sew", field_type: "text" },
     ],
     starterActivities: [
       {
@@ -1321,21 +1238,26 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 30,
       },
+      {
+        title: "Sew-along, one session a week",
+        description: "Cut out together, sew together, finish together. Fit problems get solved on camera instead of in a comment thread.",
+        spaceType: "live",
+      },
       { title: "Refashion a charity-shop find", description: "Buy something for pennies, cut it up, show the before and after.", spaceType: "gallery" },
-      { title: "Fitting night", description: "Bring a half-finished garment and somebody else pins the back for you.", spaceType: "meetups" },
     ],
   },
   {
     key: "pottery",
     label: "Pottery & Ceramics",
     description: "Wheel, hand-building and glazing — a craft you can rarely do entirely at home.",
+    liveSpace: {
+      name: "Studio Live",
+      description: "A form thrown or built start to finish on video, close enough to see the hands, with questions as it happens.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Kiln & Firing", description: "Firing schedules, glaze chemistry and what came out of the last load.", space_type: "resources" },
       { name: "Studios & Kiln Hire", description: "Where to throw, where to fire and what it costs.", space_type: "business_directory" },
-    ],
-    extraProfileFields: [
-      { label: "Wheel or Hand-Build", field_type: "dropdown", options: ["Wheel", "Hand-building", "Both"] },
-      { label: "Clay I Use", field_type: "text" },
     ],
     starterActivities: [
       {
@@ -1344,21 +1266,26 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 30,
       },
+      {
+        title: "Live throwing demo",
+        description: "One form, start to finish, with the camera over the wheel — the bit you cannot learn from a photograph.",
+        spaceType: "live",
+      },
       { title: "Glaze test library", description: "Everyone fires a test tile and photographs it against the recipe, so the community builds a real reference.", spaceType: "gallery" },
-      { title: "Shared kiln firing", description: "Pool a load, split the cost, unpack it together.", spaceType: "meetups" },
     ],
   },
   {
     key: "woodwork",
     label: "Woodwork & Furniture",
     description: "Furniture, joinery and carving — big tools, and not everybody owns them.",
+    liveSpace: {
+      name: "Workshop Live",
+      description: "A cut, a joint or a finish demonstrated at the bench on live video, with your questions answered as you watch.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Plans & Cut Lists", description: "Measured plans and cut lists members have actually built from.", space_type: "guides" },
       { name: "Tool Library", description: "Who owns the thing you need once a year, and will lend it.", space_type: "directory" },
-    ],
-    extraProfileFields: [
-      { label: "Where I Work", field_type: "dropdown", options: ["Workshop", "Garage", "Shed", "Kitchen table"] },
-      { label: "Tools I'd Lend", field_type: "text" },
     ],
     starterActivities: [
       {
@@ -1367,7 +1294,11 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 30,
       },
-      { title: "Sharpening night", description: "Bring your blunt chisels and somebody who can sharpen shows you how.", spaceType: "meetups" },
+      {
+        title: "Live bench demo",
+        description: "Dovetails, a finish schedule, sharpening — the things nobody learns from a photo.",
+        spaceType: "live",
+      },
       { title: "Sign the tool library", description: "Everyone lists one tool they'd lend. That list is the reason to stay.", spaceType: "directory" },
     ],
   },
@@ -1378,12 +1309,14 @@ export const CRAFT_KINDS: CraftKind[] = [
     omitSpaces: ["Project Log", "Meet-Ups"],
     omitNote:
       "Renamed the Project Log to the Brew Log and Meet-Ups to Bottle Shares — a batch is a project, and a meet-up here is a tasting.",
+    liveSpace: {
+      name: "Brew Day Live",
+      description: "Brew a batch together on video — mash, boil and pitch at the same time, with the timings called out.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Brew Log", description: "Every batch — recipe, gravity, dates and what it actually tasted like.", space_type: "journal" },
       { name: "Bottle Shares", description: "Post a tasting and whoever is free brings a bottle of theirs.", space_type: "meetups" },
-    ],
-    extraProfileFields: [
-      { label: "What I Brew", field_type: "dropdown", options: ["Beer", "Cider", "Wine", "Mead", "Kombucha", "Kefir", "Kraut & Kimchi"] },
     ],
     starterActivities: [
       {
@@ -1392,19 +1325,27 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 42,
       },
+      {
+        title: "Brew day, together on video",
+        description: "A whole brew day narrated live — the sanitation, the timings and the judgement calls, as they are being made.",
+        spaceType: "live",
+      },
       { title: "Blind bottle share", description: "Bring one bottle, labels off. The feedback is more honest that way.", spaceType: "meetups" },
-      { title: "Log your current batch", description: "Every member posts what's fermenting right now. It's the fastest way to see who knows what.", spaceType: "journal" },
     ],
   },
   {
     key: "art",
     label: "Art, Drawing & Illustration",
     description: "Drawing, painting and illustration — where honest critique is the scarce thing.",
+    liveSpace: {
+      name: "Draw-Along",
+      description: "Draw or paint the same subject together on video, at the same pace, with the reference on screen.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Critique Requests", description: "Post work and say what kind of feedback you want on it.", space_type: "qa" },
       { name: "Reference & Prompts", description: "Reference photos, prompts and exercises to work from.", space_type: "resources" },
     ],
-    extraProfileFields: [{ label: "Medium", field_type: "text" }],
     starterActivities: [
       {
         title: "Draw every day for 30 days",
@@ -1412,7 +1353,11 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 30,
       },
-      { title: "Weekly prompt", description: "One word on Monday, everybody's interpretation by Sunday.", spaceType: "gallery" },
+      {
+        title: "Weekly live session",
+        description: "A timed life-drawing or a paint-along, with everyone working at once and nobody able to quietly stop.",
+        spaceType: "live",
+      },
       { title: "Critique swap", description: "Pair up and give each other one specific, useful piece of feedback.", spaceType: "qa" },
     ],
   },
@@ -1420,17 +1365,26 @@ export const CRAFT_KINDS: CraftKind[] = [
     key: "jewellery",
     label: "Jewellery & Metalwork",
     description: "Silversmithing, beading and metalwork — small pieces, expensive materials.",
+    liveSpace: {
+      name: "Bench Live",
+      description: "A technique demonstrated at the bench on live video, close enough to see what the hands are doing.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Suppliers & Stones", description: "Where to buy metal, findings and stones without being stung.", space_type: "business_directory" },
       { name: "Bench Safety", description: "Torches, pickle, ventilation and hallmarking — the parts you can't guess at.", space_type: "resources" },
     ],
-    extraProfileFields: [{ label: "Metals I Work", field_type: "text" }],
     starterActivities: [
       {
         title: "One piece from scrap",
         description: "Three weeks, using only offcuts and failed pieces you already have.",
         spaceType: "challenges",
         durationDays: 21,
+      },
+      {
+        title: "Live bench demo",
+        description: "Soldering, stone setting, finishing — shown at the bench rather than described. The closest thing to standing next to you.",
+        spaceType: "live",
       },
       { title: "Bench photo Friday", description: "Photograph your bench mid-piece. Seeing other people's mess is half the value.", spaceType: "gallery" },
     ],
@@ -1439,17 +1393,26 @@ export const CRAFT_KINDS: CraftKind[] = [
     key: "home",
     label: "Soap, Candles & Home Craft",
     description: "Soap, candles, resin and home fragrance — recipes, ratios and small batches.",
+    liveSpace: {
+      name: "Batch Live",
+      description: "Make a batch together on video, with the ratios, temperatures and timings called out as you go.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Safety & Ratios", description: "Lye calculations, fragrance loads, cure times and the things you don't improvise.", space_type: "resources" },
       { name: "Suppliers", description: "Where to buy oils, waxes, fragrance and moulds.", space_type: "business_directory" },
     ],
-    extraProfileFields: [{ label: "Scents & Ingredients I Use", field_type: "text" }],
     starterActivities: [
       {
         title: "One batch, one new variable",
         description: "A month of small batches, changing exactly one thing each time and writing down what it did.",
         spaceType: "challenges",
         durationDays: 30,
+      },
+      {
+        title: "Batch along, live",
+        description: "Make a batch at the same time as everyone else, with somebody watching the temperatures with you.",
+        spaceType: "live",
       },
       { title: "Market stall prep", description: "Members selling at a fair share pricing, packaging and what actually sold.", spaceType: "discussion" },
     ],
@@ -1458,11 +1421,15 @@ export const CRAFT_KINDS: CraftKind[] = [
     key: "digital",
     label: "3D Printing & Electronics",
     description: "Printing, laser cutting and electronics — makes that are half file, half physical.",
+    liveSpace: {
+      name: "Build Live",
+      description: "A build or a print walked through live, settings and all, with questions taken as they come.",
+      space_type: "live",
+    },
     extraSpaces: [
       { name: "Builds & Schematics", description: "Build write-ups, wiring diagrams and the settings that finally worked.", space_type: "guides" },
       { name: "Print Files", description: "Models, cut files and firmware worth keeping.", space_type: "resources" },
     ],
-    extraProfileFields: [{ label: "Printer / Kit", field_type: "text" }],
     starterActivities: [
       {
         title: "Print one useful thing",
@@ -1470,8 +1437,12 @@ export const CRAFT_KINDS: CraftKind[] = [
         spaceType: "challenges",
         durationDays: 14,
       },
+      {
+        title: "Live build session",
+        description: "Screen shared, settings visible, one build from file to finished part — and it answers back, which a tutorial does not.",
+        spaceType: "live",
+      },
       { title: "Failed print of the week", description: "Post the spaghetti and the settings. The diagnosis is the lesson.", spaceType: "qa" },
-      { title: "Open workshop night", description: "Bring the thing that won't work and somebody else's eyes on it.", spaceType: "meetups" },
     ],
   },
 ];
@@ -1504,6 +1475,11 @@ export function recommendCraftSetup(craftKindKey: string, baseSpaces?: TemplateS
   const omitted = new Set((kind?.omitSpaces ?? []).map((name) => name.trim().toLowerCase()));
   const kept = base.filter((space) => !omitted.has(space.name.trim().toLowerCase()));
 
+  // The live room goes in at second place rather than on the end. It is a
+  // headline of the community, not an afterthought behind the gear swap, and
+  // the sidebar is ordered by this array.
+  const withLive = kind ? [...kept.slice(0, 1), kind.liveSpace, ...kept.slice(1)] : kept;
+
   const rationale = ["Started from the Craft & Makers template's default spaces, with Show & Tell at the top."];
   if (kind) {
     rationale.push(`Added what a ${kind.label.toLowerCase()} community typically needs.`);
@@ -1511,6 +1487,9 @@ export function recommendCraftSetup(craftKindKey: string, baseSpaces?: TemplateS
       const names = kind.omitSpaces.map((name) => `“${name}”`).join(" and ");
       rationale.push(kind.omitNote ?? `Left out ${names} — not something a ${kind.label.toLowerCase()} community needs.`);
     }
+    rationale.push(
+      `Included ${kind.liveSpace.name}: live video that runs inside the community, with sessions you can schedule, RSVPs and a reminder before one starts.`
+    );
     const seeded = kind.starterActivities.find((a) => a.spaceType === "challenges" && a.durationDays);
     if (seeded) {
       rationale.push(`“${seeded.title}” starts the day you launch — already running, so the community has something happening in it.`);
@@ -1518,8 +1497,7 @@ export function recommendCraftSetup(craftKindKey: string, baseSpaces?: TemplateS
   }
 
   return {
-    spaces: dedupeByName([...kept, ...(kind?.extraSpaces ?? [])]),
-    profileFields: [...template.defaultProfileFields, ...(kind?.extraProfileFields ?? [])],
+    spaces: dedupeByName([...withLive, ...(kind?.extraSpaces ?? [])]),
     rationale,
     starterActivities: kind?.starterActivities ?? [],
   };

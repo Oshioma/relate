@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Sparkles, Check, CalendarClock } from "lucide-react";
+import { Sparkles, Check, CalendarClock, Video, MessagesSquare, Blocks } from "lucide-react";
 import {
   COMMUNITY_TEMPLATES,
   COMMUNITY_INTENTS,
@@ -22,8 +22,8 @@ import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { nextId } from "./types";
-import type { WizardState, WizardSpace, WizardProfileField } from "./types";
-import type { TemplateSpace, TemplateProfileField, StarterActivity } from "@/lib/community-templates";
+import type { WizardState, WizardSpace } from "./types";
+import type { TemplateSpace, StarterActivity } from "@/lib/community-templates";
 import type { SpaceType } from "@/types/database";
 
 // Turns a template's suggested spaces into wizard spaces, dropping any whose
@@ -34,10 +34,6 @@ function toWizardSpaces(spaces: TemplateSpace[], allowedTypes: SpaceType[]): Wiz
   return spaces
     .filter((s) => allowed.has(s.space_type ?? "discussion"))
     .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion", staff_post_only: s.staff_post_only ?? false, visibility: s.visibility ?? "members" }));
-}
-
-function toWizardFields(fields: TemplateProfileField[]): WizardProfileField[] {
-  return fields.map((f) => ({ id: nextId("field"), label: f.label, field_type: f.field_type, options: f.options ?? [] }));
 }
 
 // The suggested rituals for the chosen kind, with the one that gets seeded for
@@ -75,6 +71,69 @@ function StarterActivities({ activities }: { activities: StarterActivity[] }) {
   );
 }
 
+// What every community gets regardless of the type picked here, said under the
+// grid because this is the step where the choice feels irreversible. It isn't:
+// the type only decides which spaces are seeded, and every module stays
+// available in Admin afterward.
+//
+// Only claims things that exist. Direct messages are /messages, live video is
+// the 'live' space type, and the module count is the platform's real pool as
+// passed into this step — not a number typed into copy that drifts. "Request a
+// module" links to /contact, which stores the message and emails support.
+function IncludedEverywhere({ moduleCount }: { moduleCount: number }) {
+  return (
+    <div className="mt-4 rounded-md border border-border bg-muted/50 p-3.5">
+      <div className="flex items-center gap-2">
+        <Blocks className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">Every community gets these, whichever type you pick</span>
+      </div>
+      <div className="mt-2 grid gap-1.5 sm:grid-cols-3">
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <MessagesSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+          Direct messages between your members
+        </p>
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <Video className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+          Live video sessions, hosted in the community
+        </p>
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+          Custom spaces you shape yourself
+        </p>
+      </div>
+      <p className="mt-2.5 text-xs text-muted-foreground">
+        This choice isn&apos;t a cage — it only decides what you start with. All {moduleCount} modules stay available to add
+        whenever you want them, from Admin. Need one that isn&apos;t here?{" "}
+        <a href="/contact" target="_blank" className="font-medium text-accent underline underline-offset-2">
+          Ask us for it
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
+
+// The one thing about the craft setup worth selling to the owner, said once and
+// only here — never in the space's own description, which members read forever.
+// Deliberately not framed as "the space you charge for": charging needs a plan
+// that grants paid_memberships, and plenty of communities will happily run this
+// free. So it states the capability and leaves the pricing decision open.
+function LiveSpaceNote({ name }: { name: string }) {
+  return (
+    <div className="mt-4 rounded-md border border-border p-3.5">
+      <div className="flex items-center gap-2">
+        <Video className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">{name} — live video, built in</span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        A great thing to offer your members. Video runs inside the community, so nobody has to leave for a meeting link: schedule
+        a session, members RSVP, and everyone gets a reminder before it starts. Offer it to all your members for free — or, on a
+        paid plan, put a price on the space and let members subscribe to join. That choice is yours to make later, in Admin.
+      </p>
+    </div>
+  );
+}
+
 export function StepTemplate({
   state,
   update,
@@ -93,6 +152,7 @@ export function StepTemplate({
   const isActivity = state.templateKey === "activity";
   const isSchool = state.templateKey === "school";
   const isCraft = state.templateKey === "craft";
+  const selectedCraft = isCraft ? CRAFT_KINDS.find((k) => k.key === state.craftKind) : undefined;
 
   // The grid, narrowed by whatever the owner said their community is for. A
   // type they have already picked always stays on screen, so changing an intent
@@ -122,7 +182,6 @@ export function StepTemplate({
     update({
       templateKey: key,
       spaces: toWizardSpaces(defaultSpaces, allowedTypes),
-      profileFields: toWizardFields(template.defaultProfileFields),
       locationType: "",
       artistMode: "",
       activityKind: "",
@@ -139,7 +198,6 @@ export function StepTemplate({
     update({
       artistMode: key,
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
-      profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
     });
   }
@@ -149,7 +207,6 @@ export function StepTemplate({
     update({
       activityKind: key,
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
-      profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
       mapLayers: rec.mapLayers,
     });
@@ -160,7 +217,6 @@ export function StepTemplate({
     update({
       schoolKind: key,
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
-      profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
     });
   }
@@ -170,7 +226,6 @@ export function StepTemplate({
     update({
       craftKind: key,
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
-      profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
       starterActivities: rec.starterActivities,
     });
@@ -181,7 +236,6 @@ export function StepTemplate({
     update({
       locationType: key,
       spaces: toWizardSpaces(rec.spaces, allowedTypes),
-      profileFields: toWizardFields(rec.profileFields),
       rationale: rec.rationale,
       mapLayers: rec.mapLayers,
     });
@@ -256,6 +310,8 @@ export function StepTemplate({
             );
           })}
         </div>
+
+        <IncludedEverywhere moduleCount={allowedTypes.length} />
       </div>
 
       {state.templateKey && isPlace && (
@@ -402,6 +458,8 @@ export function StepTemplate({
               ))}
             </ul>
           )}
+
+          {selectedCraft && <LiveSpaceNote name={selectedCraft.liveSpace.name} />}
 
           <StarterActivities activities={state.starterActivities} />
         </Card>
