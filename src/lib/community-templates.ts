@@ -457,9 +457,16 @@ export function getCommunityTemplate(key: string): CommunityTemplate | undefined
 }
 
 // ---------------------------------------------------------------------------
-// AI Setup: deterministic today (no external API key needed), but shaped as a
-// single pure function so a real LLM call can replace the body later without
-// touching the wizard UI that calls it.
+// The shape every setup recommender returns: the spaces and profile fields a
+// new community starts with, and the plain-English reasons behind them shown
+// under the picker.
+//
+// There used to be a generic one here too — recommendSetup, driven by a "what
+// transformation are you helping members achieve?" free-text box that keyword-
+// matched eight goals and, on a miss, told the owner the defaults "cover most
+// of it" when they did not. COMMUNITY_INTENTS now asks the same question
+// earlier, before a type is chosen, where the answer can actually change which
+// type they land on. The per-kind recommenders below cover the rest.
 // ---------------------------------------------------------------------------
 
 export interface SetupRecommendation {
@@ -468,64 +475,9 @@ export interface SetupRecommendation {
   rationale: string[];
 }
 
-export const TRANSFORMATION_GOAL_PRESETS = [
-  "Grow Food",
-  "Lose Weight",
-  "Build a Business",
-  "Heal",
-  "Become Better Parents",
-  "Learn Photography",
-  "Get Fit",
-  "Learn Coding",
-] as const;
-
-interface GoalOverlay {
-  match: RegExp;
-  templateHint?: string;
-  extraSpaces?: TemplateSpace[];
-  extraProfileFields?: TemplateProfileField[];
-}
-
-const GOAL_OVERLAYS: GoalOverlay[] = [
-  { match: /grow food|garden|homestead/i, templateHint: "farming", extraSpaces: [{ name: "Seasonal Calendar", description: "Planting and harvest windows." }] },
-  { match: /lose weight|weight loss|shed pounds/i, templateHint: "fitness", extraSpaces: [{ name: "Weigh-Ins", description: "Weekly weigh-in check-ins." }] },
-  { match: /build a business|start a business|entrepreneur/i, templateHint: "business", extraSpaces: [{ name: "First Customers", description: "Track outreach and early wins." }] },
-  { match: /heal|recovery|therapy|grief/i, templateHint: "wellness", extraSpaces: [{ name: "Support Circle", description: "A safe, small group to check in with." }] },
-  { match: /better parent|parenting/i, templateHint: "wellness", extraSpaces: [{ name: "Parenting Discussion", description: "Ask questions and share what's working." }] },
-  { match: /photograph|photo/i, templateHint: "photography" },
-  { match: /get fit|fitness|strength|muscle/i, templateHint: "fitness" },
-  {
-    match: /learn cod(e|ing)|programming|developer|software/i,
-    templateHint: "learning",
-    extraSpaces: [
-      { name: "Pair Programming", description: "Find a partner to build with." },
-      { name: "Code Review", description: "Get feedback on your code." },
-    ],
-  },
-];
-
 function dedupeByName<T extends { name: string }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((item) => (seen.has(item.name) ? false : (seen.add(item.name), true)));
-}
-
-export function recommendSetup(templateKey: string, transformationGoal: string): SetupRecommendation {
-  const overlay = GOAL_OVERLAYS.find((o) => o.match.test(transformationGoal));
-  const effectiveKey = templateKey === "custom" && overlay?.templateHint ? overlay.templateHint : templateKey;
-  const template = getCommunityTemplate(effectiveKey) ?? getCommunityTemplate("custom")!;
-
-  const rationale = [`Started from the ${template.label} template's default spaces.`];
-  if (overlay) {
-    rationale.push(`Adjusted for the goal "${transformationGoal}".`);
-  } else if (transformationGoal.trim()) {
-    rationale.push(`No exact match for "${transformationGoal}" — kept the ${template.label} defaults, which cover most of it.`);
-  }
-
-  return {
-    spaces: dedupeByName([...template.defaultSpaces, ...(overlay?.extraSpaces ?? [])]),
-    profileFields: [...template.defaultProfileFields, ...(overlay?.extraProfileFields ?? [])],
-    rationale,
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -608,7 +560,7 @@ export function recommendArtistSetup(modeKey: string): SetupRecommendation {
 // place community should already know which layers it'll want enabled the
 // day it does. This is deliberately a flat, code-only list (not a DB table)
 // so adding a new kind of place is a one-entry change, same reasoning as
-// GOAL_OVERLAYS above.
+// every other kind list in this file.
 // ---------------------------------------------------------------------------
 
 export interface PlaceLocationType {

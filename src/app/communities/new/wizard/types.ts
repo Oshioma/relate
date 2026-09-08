@@ -27,7 +27,6 @@ export interface WizardState {
   description: string;
   privacy: CommunityPrivacy;
   templateKey: string;
-  transformationGoal: string;
   // Place-Based Community only: "what kind of place is this?" plus the name
   // of the place itself (e.g. "Zanzibar, Tanzania"). Both stay empty for
   // every other template.
@@ -66,7 +65,6 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   description: "",
   privacy: "public",
   templateKey: "",
-  transformationGoal: "",
   locationType: "",
   locationName: "",
   artistMode: "",
