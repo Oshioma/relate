@@ -15,6 +15,14 @@ export interface TemplateSpace {
   // Defaults to false when omitted. Used by the Artist Fan Club template's
   // Announcements space.
   staff_post_only?: boolean;
+  // Custom Page spaces only: the page's starting content, written for the owner
+  // to replace. A seeded page arrives as a draft (see published below), so this
+  // is a first draft to edit, never something members read as-is.
+  body?: string;
+  // Seeds the space unpublished — staff-only until the owner publishes it.
+  // Defaults to true (live) when omitted, which is what every seeded space
+  // before this was. Only the Start Here page uses it.
+  published?: boolean;
   // Who can see the space. Defaults to 'members' when omitted, which is what
   // every space seeded before this used. Set it only where a space is useless
   // unless it starts closed — the School template's Staff Room is private from
@@ -105,7 +113,38 @@ const CRAFT_SPACES: TemplateSpace[] = [
   { name: "Meet-Ups", description: "Post a session and whoever is free comes and makes alongside you.", space_type: "meetups" },
 ];
 
-export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
+// The one space every community gets regardless of type: a page introducing
+// itself. It is seeded as a DRAFT, which is the whole reason it can be seeded
+// at all — an empty "Start Here" going live on day one would be worse than no
+// page, whereas a draft is an invitation with the structure already in it. Its
+// content is written to the owner, not to members, because the owner is the
+// only person who can see it until they replace it and publish.
+//
+// Appended to every template below except Custom, which is deliberately blank.
+const START_HERE_PAGE: TemplateSpace = {
+  name: "Start Here",
+  description: "What this community is, and how to get going.",
+  space_type: "custom",
+  published: false,
+  body: [
+    "<h2>Welcome</h2>",
+    "<p>Replace this with a sentence or two on what this community is for, and who it is for. The people reading it have just arrived and are deciding whether to stay.</p>",
+    "<h2>How to get started</h2>",
+    "<ul>",
+    "<li>Introduce yourself — say what brought you here.</li>",
+    "<li>Have a look around the spaces in the sidebar.</li>",
+    "<li>Post something. It does not have to be good.</li>",
+    "</ul>",
+    "<h2>House rules</h2>",
+    "<p>A short list of what is and isn't welcome here. Three lines is usually enough.</p>",
+    "<h2>Who runs this</h2>",
+    "<p>Say who you are and how to reach you.</p>",
+    "<hr>",
+    "<p><em>This page is a draft — only you and your staff can see it. Edit it in Admin \u2192 Spaces, then tick Published when you're happy with it.</em></p>",
+  ].join("\n"),
+};
+
+const RAW_COMMUNITY_TEMPLATES: CommunityTemplate[] = [
   {
     key: "learning",
     label: "Learning",
@@ -407,6 +446,13 @@ export const COMMUNITY_TEMPLATES: CommunityTemplate[] = [
     defaultSpaces: [{ name: "Discussion", description: "General conversation to start the community off." }],
   },
 ];
+
+// Every template gains the Start Here page, appended last so it never displaces
+// what a type is actually for. Custom is the exception: it promises no preset
+// spaces, and a template that seeds something is not that.
+export const COMMUNITY_TEMPLATES: CommunityTemplate[] = RAW_COMMUNITY_TEMPLATES.map((template) =>
+  template.key === "custom" ? template : { ...template, defaultSpaces: [...template.defaultSpaces, START_HERE_PAGE] }
+);
 
 export function getCommunityTemplate(key: string): CommunityTemplate | undefined {
   return COMMUNITY_TEMPLATES.find((t) => t.key === key);

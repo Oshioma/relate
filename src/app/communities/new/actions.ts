@@ -29,6 +29,11 @@ export interface WizardSpaceInput {
   // template's Staff Room). Anything unrecognised falls back to 'members',
   // which is what every seeded space used before this existed.
   visibility?: SpaceVisibility;
+  // Custom Page spaces only: the page's starting content, from the template.
+  body?: string;
+  // False seeds the space as a draft. Recomputed below rather than trusted, so
+  // a seeded Custom Page cannot launch live and empty however it was sent.
+  published?: boolean;
 }
 
 export interface WizardPayload {
@@ -184,6 +189,13 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         show_in_nav: s.show_in_nav,
         space_type: s.space_type,
         staff_post_only: s.staff_post_only,
+        body: s.space_type === "custom" ? s.body?.trim() || null : null,
+        // A seeded Custom Page always arrives as a draft: it is a first draft
+        // written to the owner, and a community should never open with an
+        // unfinished page in its sidebar. Everything else launches live, as it
+        // always has. Decided here rather than taken from the payload so the
+        // rule holds whatever the client sent.
+        published: s.space_type !== "custom",
       }))
     );
     if (spacesError) {

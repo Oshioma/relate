@@ -146,6 +146,12 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
     show_in_nav: showInNav,
     staff_post_only: staffPostOnly,
     allow_member_comments: allowMemberComments,
+    // A Custom Page is the one type created empty and then written, so it
+    // starts as a draft: staff can see it while it is being written, nobody
+    // else can, and the owner publishes when it is ready. Every other type is
+    // useful the moment it exists (a discussion space wants its first post
+    // from a member), so those go live as they always did.
+    published: spaceType !== "custom",
   });
 
   if (error) {
@@ -167,6 +173,13 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   const spaceType = parseSpaceType(formData.get("space_type"));
   const staffPostOnly = formData.get("staff_post_only") === "on";
   const allowMemberComments = staffPostOnly && formData.get("allow_member_comments") === "on";
+  // Publish state. A checkbox sends nothing at all when unticked, which is
+  // indistinguishable from a form that never rendered it — so the form also
+  // sends a marker, and only a form carrying that marker may change it. Without
+  // this, editing any other space would silently unpublish it.
+  const publishedPresent = formData.get("published_present") !== null;
+  const published = publishedPresent ? formData.get("published") === "on" : undefined;
+
   // Custom Page body. Same absent-≠-empty rule as location and cover below:
   // only the edit form for a custom page renders this field, so editing any
   // other space — or the same space after its type is changed — can never
@@ -244,6 +257,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
         staff_post_only: staffPostOnly,
         allow_member_comments: allowMemberComments,
         ...(body !== undefined && { body }),
+        ...(published !== undefined && { published }),
         ...(locationName !== undefined && { location_name: locationName }),
         ...(imageUrl !== undefined && { image_url: imageUrl }),
         ...(priceUpdate ?? {}),

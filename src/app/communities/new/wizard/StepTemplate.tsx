@@ -33,7 +33,29 @@ function toWizardSpaces(spaces: TemplateSpace[], allowedTypes: SpaceType[]): Wiz
   const allowed = new Set(allowedTypes);
   return spaces
     .filter((s) => allowed.has(s.space_type ?? "discussion"))
-    .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion", staff_post_only: s.staff_post_only ?? false, visibility: s.visibility ?? "members" }));
+    // The seeded Start Here page goes last in the sidebar. It is appended to a
+    // template's own list, but a kind then appends its extras after that — so
+    // without this the page lands wherever the seam happens to fall, which for
+    // a baking community was between the meet-ups and the recipe box. Every
+    // path into the starter box comes through here, so sorting once here holds
+    // for all six of them.
+    .sort((a, b) => Number(a.space_type === "custom") - Number(b.space_type === "custom"))
+    .map((s) => ({
+      id: nextId("space"),
+      name: s.name,
+      description: s.description,
+      show_in_nav: true,
+      space_type: s.space_type ?? "discussion",
+      staff_post_only: s.staff_post_only ?? false,
+      visibility: s.visibility ?? "members",
+      body: s.body,
+      // A seeded Custom Page is always a draft, whether or not the template
+      // said so. The rule is written as a fallback rather than read straight
+      // from the template because a super admin's configured defaults come
+      // back through a shape that carries neither body nor published — and a
+      // seeded page going live empty is the one outcome worth ruling out.
+      published: s.published ?? (s.space_type ?? "discussion") !== "custom",
+    }));
 }
 
 // The suggested rituals for the chosen kind, with the one that gets seeded for

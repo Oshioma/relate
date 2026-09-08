@@ -422,6 +422,13 @@ export type Space = {
   // A community where every space is null renders the flat nav it always had.
   // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
   nav_group: string | null;
+  // False while a space is being written: it stays visible to community staff
+  // and to nobody else, enforced in the database (can_see_space_shell,
+  // has_space_access and the anon policy all check it) rather than by hiding
+  // it in the nav. True for every space that existed before this column, and
+  // for everything except a newly created Custom Page, which starts as a draft
+  // so a half-written page is never live. See 20260908120717_space_draft_publish.sql.
+  published: boolean;
   // Custom Page spaces (space_type = 'custom') only: the page's whole content,
   // as sanitised HTML/Markdown. Rendered as `body ?? description` so pages
   // written before this column existed still render from description, which is

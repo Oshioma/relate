@@ -8,6 +8,11 @@ export interface WizardSpace {
   show_in_nav: boolean;
   space_type: SpaceType;
   staff_post_only: boolean;
+  // Custom Page spaces only: the page's starting content, from the template.
+  body?: string;
+  // False seeds the space as a draft — staff-only until published. Seeded
+  // Custom Pages use it; everything else launches live.
+  published: boolean;
   // Seeded from the template. Not editable in the wizard — same as
   // staff_post_only — because both are refined in Admin afterward.
   visibility: SpaceVisibility;

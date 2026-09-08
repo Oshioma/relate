@@ -32,7 +32,7 @@ export function StepCustomize({
   }
 
   function addSpace() {
-    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members" }] });
+    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members", published: true }] });
   }
 
   function handleDrop(targetIndex: number) {

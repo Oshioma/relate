@@ -406,6 +406,17 @@ export default async function SpaceDetailPage({
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
       )}
     >
+      {/* Above the masthead and outside every branch below: a discussion,
+          directory or lessons space renders no masthead at all, and a draft
+          that says nothing is exactly the situation this feature exists to
+          prevent. Only staff can load an unpublished space (the database sees
+          to that), so this is only ever read by the person who can act on it. */}
+      {!space.published && (
+        <p className="mb-4 rounded-md border border-accent/30 bg-accent-soft px-3 py-2 text-xs font-medium text-accent">
+          Draft — only you and your staff can see this. Publish it in Admin → Spaces when it&apos;s ready.
+        </p>
+      )}
+
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
