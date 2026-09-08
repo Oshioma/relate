@@ -103,6 +103,14 @@ export function SpaceCard({
     setBusy(false);
   }
 
+  const isCustomPage = space.space_type === "custom";
+  // A page written before the `body` column existed keeps its content in
+  // description. Offer it in Page content and leave Summary empty, so the first
+  // save through this form moves the content where it belongs rather than
+  // writing the same HTML into both columns — which would leave the Spaces-grid
+  // card printing a flattened page for ever.
+  const legacyBody = isCustomPage && !space.body ? space.description : null;
+
   if (editing) {
     return (
       <div
@@ -123,8 +131,60 @@ export function SpaceCard({
               shows it under the title. */}
           {space.space_type !== "business_directory" && (
             <div>
-              <Label htmlFor={`description-${space.id}`}>Description</Label>
-              <RichEditor id={`description-${space.id}`} name="description" rows={4} defaultValue={space.description ?? ""} />
+              <Label htmlFor={`description-${space.id}`}>{isCustomPage ? "Summary" : "Description"}</Label>
+              {isCustomPage && (
+                <p className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                  One line, for the card in the Spaces list. The page itself goes below.
+                </p>
+              )}
+              <RichEditor
+                id={`description-${space.id}`}
+                name="description"
+                rows={isCustomPage ? 2 : 4}
+                defaultValue={legacyBody ? "" : space.description ?? ""}
+              />
+            </div>
+          )}
+
+          {/* A Custom Page's whole content, in a field big enough to write one
+              in. Only rendered for custom pages, which is what lets the action
+              treat an absent `body` as "don't touch it" — editing any other
+              space can never blank a page. */}
+          {/* Publish state, custom pages only. The marker field is what lets the
+              action tell "unticked" from "this form never had the field", so
+              editing any other space can't unpublish it. */}
+          {isCustomPage && (
+            <label className="flex items-start gap-2.5 rounded-md border border-border p-3">
+              <input type="hidden" name="published_present" value="1" />
+              <input
+                type="checkbox"
+                name="published"
+                defaultChecked={space.published}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-[var(--accent)]"
+              />
+              <span className="text-sm text-foreground">
+                Published
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Untick to put the page back into draft. A draft is visible to you and your staff and to nobody else — not to
+                  members, and not on its URL.
+                </span>
+              </span>
+            </label>
+          )}
+
+          {isCustomPage && (
+            <div>
+              <Label htmlFor={`body-${space.id}`}>Page content</Label>
+              <p className="-mt-1 mb-1.5 text-xs text-muted-foreground">
+                Write it, paste HTML, or paste from a doc. Preview shows the real page before you save.
+              </p>
+              <RichEditor
+                id={`body-${space.id}`}
+                name="body"
+                rows={16}
+                defaultValue={space.body ?? legacyBody ?? ""}
+                placeholder="Welcome to the community…"
+              />
             </div>
           )}
 
@@ -333,6 +393,7 @@ export function SpaceCard({
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
             <Badge>{meta.label}</Badge>
+            {!space.published && <Badge tone="accent">Draft</Badge>}
             {space.price_cents > 0 && <Badge tone="accent">{formatMonthlyPrice(space.price_cents, space.currency)}</Badge>}
           </div>
           <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>

@@ -185,9 +185,12 @@ export default async function SpaceDetailPage({
   const isLiveSpace = space.space_type === "live";
   const isMeetupsSpace = space.space_type === "meetups";
   const isLessonsSpace = space.space_type === "lessons";
-  // A standalone page: its description is the whole content (rendered as
-  // sanitised HTML/Markdown), with no post form and no feed.
+  // A standalone page: its body is the whole content (rendered as sanitised
+  // HTML/Markdown), with no post form and no feed. Falls back to description
+  // for pages written before `body` existed, which is where their content
+  // lives — so no backfill was needed and no page went blank.
   const isCustomPageSpace = space.space_type === "custom";
+  const customPageBody = isCustomPageSpace ? space.body || space.description : null;
   const isDiscussionLike =
     !isCustomPageSpace &&
     !isResourceSpace &&
@@ -403,6 +406,17 @@ export default async function SpaceDetailPage({
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
       )}
     >
+      {/* Above the masthead and outside every branch below: a discussion,
+          directory or lessons space renders no masthead at all, and a draft
+          that says nothing is exactly the situation this feature exists to
+          prevent. Only staff can load an unpublished space (the database sees
+          to that), so this is only ever read by the person who can act on it. */}
+      {!space.published && (
+        <p className="mb-4 rounded-md border border-accent/30 bg-accent-soft px-3 py-2 text-xs font-medium text-accent">
+          Draft — only you and your staff can see this. Publish it in Admin → Spaces when it&apos;s ready.
+        </p>
+      )}
+
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
@@ -427,12 +441,9 @@ export default async function SpaceDetailPage({
               {space.name}
             </h1>
           )}
-          {space.description && (
-            <RichText
-              content={space.description}
-              className={isCustomPageSpace ? "text-foreground" : "mt-2 text-muted-foreground"}
-            />
-          )}
+          {isCustomPageSpace
+            ? customPageBody && <RichText content={customPageBody} className="text-foreground" />
+            : space.description && <RichText content={space.description} className="mt-2 text-muted-foreground" />}
         </div>
       )}
 
@@ -820,13 +831,13 @@ export default async function SpaceDetailPage({
           />
         )
       ) : isCustomPageSpace ? (
-        // The description above is the entire page. Nothing else renders —
-        // except a hint for admins when the page has no content yet.
-        !space.description && isAdmin ? (
+        // The body above is the entire page. Nothing else renders — except a
+        // hint for admins when the page has no content yet.
+        !customPageBody && isAdmin ? (
           <EmptyState
             icon={<LayoutTemplate className="h-6 w-6" />}
             title="This page is empty"
-            description="Add your content in the space's Description (Admin → Spaces → Edit). You can paste HTML or Markdown."
+            description="Write it in Page content (Admin → Spaces → Edit). You can type, paste HTML, or paste from a document, and preview it before saving."
           />
         ) : null
       ) : isPlantIdSpace ? (
