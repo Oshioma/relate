@@ -130,9 +130,22 @@ export async function getMembership(
   return data;
 }
 
-// Public communities the user could self-join. Hidden: the ones they're
-// already an active member of (nothing left to join) and the ones they're
-// banned from (never offer a door that won't open).
+// Featured public communities the user could self-join — what the dashboard's
+// "Discover more communities" strip offers. Curated only: a community reaches
+// this list because a super admin picked it (Platform admin → Communities),
+// most recently picked first, the same source the marketing homepage's
+// showcase reads.
+//
+// This used to return every public community, so a fresh signup was met with
+// the whole directory — including empty shells and communities we wouldn't
+// choose to put in front of someone on their first day. There is deliberately
+// no fallback: with nothing picked the strip is empty rather than reverting to
+// the full list, so the picker is the only thing that decides what a new user
+// sees.
+//
+// Hidden even when featured: the ones they're already an active member of
+// (nothing left to join) and the ones they're banned from (never offer a door
+// that won't open).
 //
 // A merely *invited* membership deliberately does not hide the community. This
 // used to key off the presence of a membership row of any status, so a user who
@@ -153,12 +166,51 @@ export async function getDiscoverableCommunities(supabase: Client, userId: strin
     .filter((m) => m.status === "active" || m.status === "banned")
     .map((m) => m.community_id);
 
-  let query = supabase.from("communities").select("*").eq("is_public", true);
+  let query = supabase
+    .from("communities")
+    .select("*")
+    .eq("is_public", true)
+    .not("featured_at", "is", null);
   if (hiddenIds.length > 0) {
     query = query.not("id", "in", `(${hiddenIds.join(",")})`);
   }
 
-  const { data, error } = await query.order("created_at", { ascending: true });
+  const { data, error } = await query.order("featured_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Every community someone else owns and this user isn't already in — the
+// dashboard's "Communities created by others" strip.
+//
+// Super admin only, and the caller must check that: this reads whatever RLS
+// will hand over, which for a super admin is the whole table
+// (communities_select_super_admin) and for anyone else would be every public
+// and private community on the platform. The strip exists because the discover
+// strip above it is featured-picks-only — curation the platform owner
+// shouldn't have to fight to see past when they want to look at what's
+// actually been built.
+//
+// The ones they own and the ones they've joined are left out: both already
+// have a card under "Your communities", and a page that lists the same
+// community twice reads as a bug.
+export async function getCommunitiesOwnedByOthers(supabase: Client, userId: string): Promise<Community[]> {
+  const { data: memberships, error: membershipError } = await supabase
+    .from("community_memberships")
+    .select("community_id")
+    .eq("user_id", userId)
+    .eq("status", "active");
+
+  if (membershipError) throw membershipError;
+
+  const joinedIds = (memberships ?? []).map((m) => m.community_id);
+
+  let query = supabase.from("communities").select("*").neq("owner_id", userId);
+  if (joinedIds.length > 0) {
+    query = query.not("id", "in", `(${joinedIds.join(",")})`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }

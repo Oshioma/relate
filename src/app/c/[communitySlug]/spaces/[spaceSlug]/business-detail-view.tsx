@@ -79,8 +79,9 @@ export function BusinessDetailView({
   // The stay already linked to this business, if any (for the accommodation
   // bridge shown on stay-like listings).
   linkedStay: { spaceSlug: string; id: string; slug: string | null } | null;
-  // The viewer manages this listing and the community has an accommodation
-  // space, so they can spin up a stay from it.
+  // The viewer manages this listing, its category is one a place to stay
+  // plausibly hides in, and the community has an accommodation space — so they
+  // can spin up a stay from it.
   canCreateStay: boolean;
   // We worked out it's a place to stay (it's tagged as accommodation) rather
   // than merely offering the option to whoever manages the listing.

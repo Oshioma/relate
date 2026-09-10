@@ -13,6 +13,12 @@ export type PageContent = {
   finalUrl: string;
   title: string | null;
   description: string | null;
+  // Every <meta> tag on the page, keyed by its name/property lowercased —
+  // "og:site_name", "author", "article:published_time". The title and
+  // description above are the two everything wanted; this is the rest, for
+  // callers that need a byline or a publication date (the timeline's source
+  // importer) without fetching the page a second time.
+  meta: Record<string, string>;
   // Raw application/ld+json blocks. Booking.com, TripAdvisor and most hotel
   // sites publish a schema.org Hotel/LocalBusiness object here, which is far
   // more reliable than anything recovered from the rendered text.
@@ -22,10 +28,22 @@ export type PageContent = {
 };
 
 const MAX_HTML = 800_000;
+// Enough of a page's text for a listing description or an article's opening,
+// which is all any caller wanted until the timeline started carrying whole
+// shared conversations. Those pass a bigger budget explicitly — see maxText —
+// rather than everything paying for the one case that needs it.
 const MAX_TEXT = 12_000;
 const MAX_JSON_LD_BLOCKS = 3;
 const MAX_JSON_LD_CHARS = 6_000;
 const FETCH_TIMEOUT_MS = 12_000;
+// NOTE ON THE {0,4000} IN THE ATTRIBUTE PATTERNS BELOW.
+//
+// A lazy [\s\S]*? that never finds its closing quote scans to the end of the
+// document from every start position — quadratic on a 600KB single-page-app
+// shell, which is exactly the shape of a shared-chat or Google-Docs link. The
+// bound has to be written into each pattern because a regex quantifier cannot
+// take a variable; 4,000 characters is far longer than any real attribute and
+// short enough that a pathological page costs nothing.
 
 // The member pastes a link and we fetch that one page on their behalf, so we
 // send an ordinary browser's headers rather than a crawler's — many listing
@@ -131,26 +149,41 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// The LAST capture group, not the first: the patterns below capture their own
+// quote character so they can backreference it, which would otherwise push the
+// value they actually want into group 2.
 function firstMatch(html: string, patterns: RegExp[]): string | null {
   for (const pattern of patterns) {
     const match = html.match(pattern);
-    if (match?.[1]) {
-      const value = decodeEntities(match[1]).trim();
+    const captured = match?.[match.length - 1];
+    if (captured) {
+      const value = decodeEntities(captured).trim();
       if (value) return value;
     }
   }
   return null;
 }
 
-function extractJsonLd(html: string): string[] {
+// What the listings importer keeps: blocks that describe a place. Sites emit
+// BreadcrumbList, Organization and WebSite blocks that would just crowd the
+// prompt.
+const PLACE_JSON_LD =
+  /"@type"\s*:\s*"?[^",]*(?:Hotel|Lodging|Resort|Apartment|House|Restaurant|Food|Bar|Cafe|LocalBusiness|Place|Product|Offer)/i;
+
+// What the timeline's source importer keeps: blocks that describe a piece of
+// WORK, which is where a byline and a publication date live.
+export const ARTICLE_JSON_LD =
+  /"@type"\s*:\s*"?[^",]*(?:Article|NewsArticle|BlogPosting|ScholarlyArticle|Report|VideoObject|Book|CreativeWork|WebPage)/i;
+
+function extractJsonLd(html: string, keep: RegExp): string[] {
   const blocks: string[] = [];
   const pattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   for (const match of html.matchAll(pattern)) {
     const raw = match[1].trim();
     if (!raw) continue;
-    // Only keep blocks that describe a place — sites emit BreadcrumbList,
-    // Organization and WebSite blocks that would just crowd the prompt.
-    if (!/"@type"\s*:\s*"?[^",]*(?:Hotel|Lodging|Resort|Apartment|House|Restaurant|Food|Bar|Cafe|LocalBusiness|Place|Product|Offer)/i.test(raw)) {
+    // A @graph holds its types inside, so a block containing one is offered to
+    // the caller and left for it to walk.
+    if (!keep.test(raw) && !/"@graph"/i.test(raw)) {
       continue;
     }
     blocks.push(raw.slice(0, MAX_JSON_LD_CHARS));
@@ -159,11 +192,19 @@ function extractJsonLd(html: string): string[] {
   return blocks;
 }
 
-export async function fetchPageContent(url: URL): Promise<PageContent | null> {
+export async function fetchPageContent(
+  url: URL,
+  // Which schema.org blocks are worth keeping, and how long to wait. Both
+  // default to what the listing importer has always had; the timeline's source
+  // importer narrows the wait, because somebody is watching a spinner. A
+  // parameter rather than a changed constant, so one caller's needs cannot
+  // quietly change what the other one gets.
+  options: { jsonLdTypes?: RegExp; timeoutMs?: number; maxText?: number } = {}
+): Promise<PageContent | null> {
   let response: Response;
   try {
     response = await fetch(url, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(options.timeoutMs ?? FETCH_TIMEOUT_MS),
       headers: BROWSER_HEADERS,
       redirect: "follow",
       cache: "no-store",
@@ -187,18 +228,22 @@ export async function fetchPageContent(url: URL): Promise<PageContent | null> {
 
   return {
     finalUrl,
+    // Each pattern captures its own quote character and backreferences it, so
+    // "Dinosaur asteroid hit 'worst possible place'" survives intact. The old
+    // [^"']+ stopped at the first quote of either kind and truncated it.
     title: firstMatch(html, [
-      /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i,
-      /<title[^>]*>([\s\S]*?)<\/title>/i,
+      /<meta[^>]+property=["']og:title["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]+property=["']og:title["']/i,
+      /<title[^>]*>([\s\S]{0,4000}?)<\/title>/i,
     ]),
     description: firstMatch(html, [
-      /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i,
+      /<meta[^>]+property=["']og:description["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+name=["']description["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]+name=["']description["']/i,
     ]),
-    jsonLd: extractJsonLd(html),
-    text: text.slice(0, MAX_TEXT),
+    meta: extractMeta(html),
+    jsonLd: extractJsonLd(html, options.jsonLdTypes ?? PLACE_JSON_LD),
+    text: text.slice(0, Math.max(0, options.maxText ?? MAX_TEXT)),
     images: extractImagesFromHtml(html, finalUrl),
   };
 }
@@ -206,6 +251,30 @@ export async function fetchPageContent(url: URL): Promise<PageContent | null> {
 // Follows a shortener (maps.app.goo.gl, g.co, bit.ly …) to whatever it points
 // at without downloading the body. Returns the original URL when the hop fails,
 // so callers can always keep working with something.
+// Every <meta> with a name or property and a content, in either attribute
+// order — the same both-orders problem the image and title patterns above
+// already solve, because plenty of real pages write content first.
+const META_PATTERNS = [
+  /<meta[^>]+(?:name|property|itemprop)=["']([^"']+)["'][^>]*content=(["'])([\s\S]{0,4000}?)\2/gi,
+  /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]*(?:name|property|itemprop)=["']([^"']+)["']/gi,
+];
+
+function extractMeta(html: string): Record<string, string> {
+  const meta: Record<string, string> = {};
+  META_PATTERNS.forEach((pattern, index) => {
+    for (const match of html.matchAll(pattern)) {
+      // The second pattern matches content first, so the pair is reversed. Both
+      // capture the quote character they opened with (see the title patterns).
+      const key = (index === 0 ? match[1] : match[3]).trim().toLowerCase();
+      const value = decodeEntities((index === 0 ? match[3] : match[2]).trim());
+      // First writer wins: a page that repeats a property usually means the
+      // first one, and og:* is conventionally near the top.
+      if (key && value && !meta[key]) meta[key] = value;
+    }
+  });
+  return meta;
+}
+
 export async function resolveRedirect(url: URL): Promise<URL> {
   try {
     const response = await fetch(url, {

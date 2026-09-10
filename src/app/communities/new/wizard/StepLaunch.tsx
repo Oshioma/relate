@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, Rocket } from "lucide-react";
+import { Sparkles, Rocket, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getCommunityTemplate, getPlaceLocationType, getActivityKind, getSchoolKind } from "@/lib/community-templates";
+import { getCommunityTemplate, getPlaceLocationType, getActivityKind, getSchoolKind, getCraftKind } from "@/lib/community-templates";
 import { TEMPLATE_ICONS } from "@/lib/template-icons";
 import { OWNER_AGREEMENT_ACCEPTANCE } from "@/lib/owner-agreement";
 import { createCommunityFromWizard } from "../actions";
@@ -23,6 +23,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
   const locationType = state.templateKey === "place" ? getPlaceLocationType(state.locationType) : undefined;
   const activityKind = state.templateKey === "activity" ? getActivityKind(state.activityKind) : undefined;
   const schoolKind = state.templateKey === "school" ? getSchoolKind(state.schoolKind) : undefined;
+  const craftKind = state.templateKey === "craft" ? getCraftKind(state.craftKind) : undefined;
 
   async function submit() {
     setSubmitting(true);
@@ -38,11 +39,11 @@ export function StepLaunch({ state }: { state: WizardState }) {
       artistMode: state.templateKey === "fanclub" ? state.artistMode : "",
       activityKind: state.templateKey === "activity" ? state.activityKind : "",
       schoolKind: state.templateKey === "school" ? state.schoolKind : "",
+      craftKind: state.templateKey === "craft" ? state.craftKind : "",
       // Both Place and Activity communities seed the map's togglable layers —
       // one from the kind of place, the other from the activity.
       mapLayers: state.templateKey === "place" || state.templateKey === "activity" ? state.mapLayers : [],
       spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only, visibility: s.visibility })),
-      profileFields: state.profileFields.map((f) => ({ label: f.label, field_type: f.field_type, options: f.options })),
       ownerAgreementAccepted: agreed,
     });
     // Only reached on error — success redirects server-side.
@@ -81,9 +82,9 @@ export function StepLaunch({ state }: { state: WizardState }) {
           <Badge tone="accent">{template?.label ?? "Custom"}</Badge>
           {activityKind && <Badge tone="accent">{activityKind.label}</Badge>}
           {schoolKind && <Badge tone="accent">{schoolKind.label}</Badge>}
+          {craftKind && <Badge tone="accent">{craftKind.label}</Badge>}
           <Badge>{state.privacy.replace("_", " ")}</Badge>
           <Badge>{state.spaces.length} spaces</Badge>
-          {state.profileFields.length > 0 && <Badge>{state.profileFields.length} profile fields</Badge>}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -94,6 +95,34 @@ export function StepLaunch({ state }: { state: WizardState }) {
           ))}
         </div>
       </Card>
+
+      {state.starterActivities.length > 0 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold text-foreground">Your first month</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A community with rooms and nothing happening in them empties out. These are the rituals for your craft — the first
+            challenge is created and running the moment you launch, and you can edit or delete any of it afterward.
+          </p>
+          <ul className="mt-3 space-y-2.5">
+            {state.starterActivities.map((activity) => (
+              <li key={activity.title} className="text-sm">
+                <p className="font-semibold text-foreground">
+                  {activity.title}
+                  {activity.spaceType === "challenges" && activity.durationDays && (
+                    <span className="ml-1.5 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent">
+                      {activity.durationDays} days, starting today
+                    </span>
+                  )}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{activity.description}</p>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card className="p-5">
         <h2 className="text-base font-semibold text-foreground">Community Owner Agreement</h2>

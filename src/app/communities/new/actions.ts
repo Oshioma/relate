@@ -4,12 +4,20 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, slugifyCommunity } from "@/lib/utils";
 import { RESERVED_SUBDOMAIN_LABELS, communitySubdomainUrl } from "@/lib/custom-domain";
-import { getCommunityTemplate, getPlaceLocationType, getArtistMode, getActivityKind, getSchoolKind } from "@/lib/community-templates";
+import {
+  getCommunityTemplate,
+  getPlaceLocationType,
+  getArtistMode,
+  getActivityKind,
+  getSchoolKind,
+  getCraftKind,
+  starterActivitiesForCraftKind,
+} from "@/lib/community-templates";
 import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
 import { OWNER_AGREEMENT_VERSION } from "@/lib/owner-agreement";
-import type { ProfileFieldType, CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
+import type { CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -21,12 +29,6 @@ export interface WizardSpaceInput {
   // template's Staff Room). Anything unrecognised falls back to 'members',
   // which is what every seeded space used before this existed.
   visibility?: SpaceVisibility;
-}
-
-export interface WizardProfileFieldInput {
-  label: string;
-  field_type: ProfileFieldType;
-  options?: string[];
 }
 
 export interface WizardPayload {
@@ -50,12 +52,14 @@ export interface WizardPayload {
   // School template only — what kind of school this is, validated against
   // SCHOOL_KINDS below and dropped for every other template.
   schoolKind?: string;
+  // Craft & Makers template only — which craft this community is built around,
+  // validated against CRAFT_KINDS below and dropped for every other template.
+  craftKind?: string;
   // Seeds map_categories (the map's togglable layers) so a place or activity
   // community's map isn't empty on day one. Dropped unless the matching kind
   // (locationType / activityKind) is also set and valid.
   mapLayers?: string[];
   spaces: WizardSpaceInput[];
-  profileFields: WizardProfileFieldInput[];
   // The owner ticked the mandatory Community Owner Agreement checkbox. Enforced
   // server-side (not just in the wizard UI) so a community can never be created
   // without a recorded acceptance.
@@ -118,6 +122,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   // Same rule for the School template's kind of school.
   const schoolKind =
     templateKey === "school" && payload.schoolKind && getSchoolKind(payload.schoolKind) ? payload.schoolKind : null;
+  // Same rule for the Craft & Makers template's chosen craft.
+  const craftKind =
+    templateKey === "craft" && payload.craftKind && getCraftKind(payload.craftKind) ? payload.craftKind : null;
 
   const supabase = await createClient();
   const {
@@ -142,6 +149,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       artist_mode: artistMode,
       activity_kind: activityKind,
       school_kind: schoolKind,
+      craft_kind: craftKind,
       owner_agreement_accepted_at: new Date().toISOString(),
       owner_agreement_version: OWNER_AGREEMENT_VERSION,
     })
@@ -184,24 +192,6 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     }
   }
 
-  const fields = payload.profileFields.filter((f) => f.label.trim());
-  if (fields.length) {
-    const { error: fieldsError } = await supabase.from("community_profile_fields").insert(
-      fields.map((f, i) => ({
-        community_id: community.id,
-        label: f.label.trim(),
-        field_type: f.field_type,
-        options: f.options ?? [],
-        sort_order: i,
-        created_by: user.id,
-      }))
-    );
-    if (fieldsError) {
-      await supabase.from("communities").delete().eq("id", community.id);
-      return { error: `Couldn't set up your profile fields: ${fieldsError.message}` };
-    }
-  }
-
   const mapLayers = locationType || activityKind ? (payload.mapLayers ?? []).filter((label) => label.trim()) : [];
   if (mapLayers.length) {
     const { error: mapCategoriesError } = await supabase.from("map_categories").insert(
@@ -216,6 +206,49 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     // admin can still add layers manually, so this shouldn't block launch.
     if (mapCategoriesError) {
       console.error("Failed to seed map categories:", mapCategoriesError.message);
+    }
+  }
+
+  // A craft community opens with its first ritual already running: the
+  // challenge-shaped starter activity for its craft (CRAFT_KINDS) becomes a
+  // real challenge in the seeded challenges space, dated from today. Derived
+  // server-side from craftKind rather than read off the payload, so the client
+  // can't seed arbitrary content. Non-fatal — without it the community just
+  // starts with an empty challenges space, which is what every other template
+  // does today. Skipped entirely when the super admin has taken the challenges
+  // space type out of the pool: the select then finds nothing to hang it on.
+  if (craftKind) {
+    try {
+      const activity = starterActivitiesForCraftKind(craftKind).find((a) => a.spaceType === "challenges" && a.durationDays);
+      if (activity) {
+        const { data: challengeSpaces } = await supabase
+          .from("spaces")
+          .select("id")
+          .eq("community_id", community.id)
+          .eq("space_type", "challenges")
+          .order("sort_order", { ascending: true })
+          .limit(1);
+        const spaceId = challengeSpaces?.[0]?.id;
+        if (spaceId) {
+          const start = new Date();
+          const end = new Date(start);
+          end.setDate(end.getDate() + (activity.durationDays ?? 7) - 1);
+          const { error: challengeError } = await supabase.from("space_challenges").insert({
+            space_id: spaceId,
+            community_id: community.id,
+            title: activity.title,
+            description: activity.description,
+            start_date: start.toISOString().slice(0, 10),
+            end_date: end.toISOString().slice(0, 10),
+            created_by: user.id,
+          });
+          if (challengeError) {
+            console.error("Failed to seed the first craft challenge:", challengeError.message);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to seed the first craft challenge:", e);
     }
   }
 

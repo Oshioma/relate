@@ -1,16 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Trash2, Plus, Eye, EyeOff, Lock } from "lucide-react";
+import { GripVertical, Trash2, Plus, Lock, MoreHorizontal } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { ProfileFieldType, SpaceType } from "@/types/database";
+import { cn } from "@/lib/utils";
+import type { SpaceType } from "@/types/database";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { reorder, nextId } from "./types";
-import type { WizardState, WizardProfileField } from "./types";
+import type { WizardState } from "./types";
 
-const FIELD_TYPES: ProfileFieldType[] = ["text", "textarea", "number", "date", "dropdown", "multiselect", "checkbox", "url"];
+const MODULE_TONES = [
+  "bg-[#e7f0e5] text-[#3f6b4b]",
+  "bg-[#ece9ff] text-[#4d4298]",
+  "bg-[#fde9e1] text-[#9a4427]",
+  "bg-[#e2f1fb] text-[#17618a]",
+];
 
 export function StepCustomize({
   state,
@@ -23,6 +29,7 @@ export function StepCustomize({
   allowedTypes: SpaceType[];
 }) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(state.spaces[0]?.id ?? null);
   const defaultType: SpaceType = allowedTypes.includes("discussion") ? "discussion" : (allowedTypes[0] ?? "discussion");
 
   function patchSpace(id: string, patch: Partial<WizardState["spaces"][number]>) {
@@ -31,10 +38,13 @@ export function StepCustomize({
 
   function removeSpace(id: string) {
     update({ spaces: state.spaces.filter((s) => s.id !== id) });
+    if (activeId === id) setActiveId(null);
   }
 
   function addSpace() {
-    update({ spaces: [...state.spaces, { id: nextId("space"), name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members" }] });
+    const id = nextId("space");
+    update({ spaces: [...state.spaces, { id, name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members" }] });
+    setActiveId(id);
   }
 
   function handleDrop(targetIndex: number) {
@@ -43,131 +53,111 @@ export function StepCustomize({
     setDragIndex(null);
   }
 
-  function patchField(id: string, patch: Partial<WizardProfileField>) {
-    update({ profileFields: state.profileFields.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
-  }
-
-  function removeField(id: string) {
-    update({ profileFields: state.profileFields.filter((f) => f.id !== id) });
-  }
-
-  function addField() {
-    update({ profileFields: [...state.profileFields, { id: nextId("field"), label: "", field_type: "text", options: [] }] });
-  }
-
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Customize your setup</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Rename, remove or reorder spaces. Drag the handle to reorder.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Customize your community</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">Choose what your members can do. You can change these anytime.</p>
       </div>
 
       <section>
-        <Label>Spaces</Label>
-        <div className="space-y-2">
-          {state.spaces.map((space, i) => (
-            <Card
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Modules</h2>
+          <span className="text-xs text-muted-foreground">Drag to reorder</span>
+        </div>
+        <div className="space-y-2.5">
+          {state.spaces.map((space, i) => {
+            const isActive = activeId === space.id;
+            const meta = SPACE_TYPES[space.space_type];
+            const SpaceIcon = meta.icon;
+            const tone = MODULE_TONES[i % MODULE_TONES.length];
+
+            return (
+              <Card
               key={space.id}
-              className={dragIndex === i ? "border-accent" : undefined}
+              className={cn(
+                "group overflow-visible rounded-xl transition-colors",
+                isActive && "border-accent/30 bg-accent-soft/45",
+                dragIndex === i && "border-accent opacity-70"
+              )}
               draggable
               onDragStart={() => setDragIndex(i)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(i)}
               onDragEnd={() => setDragIndex(null)}
             >
-              <div className="flex items-start gap-2.5 p-3">
-                <GripVertical className="mt-2.5 h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <Input value={space.name} onChange={(e) => patchSpace(space.id, { name: e.target.value })} className="font-medium" />
-                  <Input
-                    value={space.description}
-                    onChange={(e) => patchSpace(space.id, { description: e.target.value })}
-                    placeholder="Short description (optional)"
-                    className="text-xs"
-                  />
-                  <select
-                    value={space.space_type}
-                    onChange={(e) => patchSpace(space.id, { space_type: e.target.value as SpaceType })}
-                    className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {/* Allowed types, plus this space's own type if a template
-                        seeded one the platform no longer offers. */}
-                    {groupSpaceTypesByCategory(
-                      (allowedTypes.includes(space.space_type) ? allowedTypes : [space.space_type, ...allowedTypes]).map((t) => SPACE_TYPES[t])
-                    ).map((group) => (
-                      <optgroup key={group.category.key} label={group.category.label}>
-                        {group.types.map((t) => (
-                          <option key={t.type} value={t.type}>
-                            {t.label}
-                          </option>
+              <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-2 p-3 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] sm:gap-3 sm:p-4">
+                <GripVertical className="h-5 w-5 shrink-0 cursor-grab text-muted-foreground" aria-label="Drag to reorder" />
+                <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12", tone)}>
+                  <SpaceIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                </div>
+
+                <div className={cn("min-w-0", isActive && "order-2 col-span-4 mt-1 sm:order-none sm:col-span-1 sm:mt-0")}>
+                  {isActive ? (
+                    <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                      <Input value={space.name} onChange={(e) => patchSpace(space.id, { name: e.target.value })} className="h-10 bg-card font-medium" />
+                      <Input value={space.description} onChange={(e) => patchSpace(space.id, { description: e.target.value })} placeholder="Short description (optional)" className="h-10 bg-card text-sm" />
+                      <select
+                        value={space.space_type}
+                        onChange={(e) => patchSpace(space.id, { space_type: e.target.value as SpaceType })}
+                        className="h-10 w-full rounded-md border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:w-64"
+                      >
+                        {groupSpaceTypesByCategory(
+                          (allowedTypes.includes(space.space_type) ? allowedTypes : [space.space_type, ...allowedTypes]).map((t) => SPACE_TYPES[t])
+                        ).map((group) => (
+                          <optgroup key={group.category.key} label={group.category.label}>
+                            {group.types.map((t) => <option key={t.type} value={t.type}>{t.label}</option>)}
+                          </optgroup>
                         ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                      </select>
+                    </div>
+                  ) : (
+                    <button type="button" className="block w-full text-left" onClick={() => setActiveId(space.id)}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">{space.name}</h3>
+                        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-medium sm:hidden", tone)}>{meta.label}</span>
+                      </div>
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:line-clamp-1 sm:text-sm">{space.description || "No description"}</p>
+                    </button>
+                  )}
                   {space.visibility === "private" && (
-                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Lock className="h-3 w-3" />
-                      Starts private — only people you invite to it can see it. Change this in Admin.
-                    </p>
+                    <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Lock className="h-3 w-3" />Starts private — only invited people can see it.</p>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => patchSpace(space.id, { show_in_nav: !space.show_in_nav })}
-                  className="mt-2 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted"
-                  title={space.show_in_nav ? "Showing in navigation" : "Hidden from navigation"}
-                >
-                  {space.show_in_nav ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeSpace(space.id)}
-                  className="mt-2 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </Card>
-          ))}
-        </div>
-        <Button variant="secondary" size="sm" className="mt-3 w-auto" onClick={addSpace}>
-          <Plus className="h-3.5 w-3.5" />
-          Add Space
-        </Button>
-      </section>
 
-      <section>
-        <Label>Member profile fields</Label>
-        <p className="-mt-1 mb-2 text-xs text-muted-foreground">Custom fields members fill in for this community, on top of their regular profile.</p>
-        <div className="space-y-2">
-          {state.profileFields.map((field) => (
-            <Card key={field.id} className="flex flex-wrap items-center gap-2 p-3">
-              <Input
-                value={field.label}
-                onChange={(e) => patchField(field.id, { label: e.target.value })}
-                placeholder="Field label"
-                className="min-w-0 flex-1"
-              />
-              <select
-                value={field.field_type}
-                onChange={(e) => patchField(field.id, { field_type: e.target.value as ProfileFieldType })}
-                className="rounded-md border border-border bg-card px-2.5 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {FIELD_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={() => removeField(field.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </Card>
-          ))}
+                {!isActive && <span className={cn("hidden rounded-full px-3 py-1 text-xs font-medium sm:inline-flex", tone)}>{meta.label}</span>}
+                <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={space.show_in_nav}
+                    aria-label={space.show_in_nav ? "Visible in navigation" : "Hidden from navigation"}
+                    title={space.show_in_nav ? "Showing in navigation" : "Hidden from navigation"}
+                    onClick={() => patchSpace(space.id, { show_in_nav: !space.show_in_nav })}
+                    className={cn("relative h-7 w-12 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", space.show_in_nav ? "bg-accent" : "bg-border")}
+                  >
+                    <span aria-hidden="true" className={cn("absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform", space.show_in_nav && "translate-x-5")} />
+                  </button>
+                  <details className="relative">
+                    <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground [&::-webkit-details-marker]:hidden">
+                      <MoreHorizontal className="h-5 w-5" />
+                      <span className="sr-only">Module actions</span>
+                    </summary>
+                    <div className="absolute right-0 top-10 z-20 min-w-36 rounded-lg border border-border bg-card p-1 shadow-lg">
+                      <button type="button" onClick={() => removeSpace(space.id)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-danger hover:bg-danger/10">
+                        <Trash2 className="h-4 w-4" />Remove module
+                      </button>
+                    </div>
+                  </details>
+                </div>
+              </div>
+              </Card>
+            );
+          })}
         </div>
-        <Button variant="secondary" size="sm" className="mt-3 w-auto" onClick={addField}>
-          <Plus className="h-3.5 w-3.5" />
-          Add Field
+        <Button variant="ghost" className="mt-3 h-14 w-full rounded-xl border border-dashed border-border text-accent hover:border-accent/40 hover:bg-accent-soft" onClick={addSpace}>
+          <Plus className="h-4 w-4" />
+          Add module
         </Button>
       </section>
     </div>

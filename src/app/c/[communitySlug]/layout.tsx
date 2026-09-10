@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -20,6 +20,7 @@ import { getCommunityLiveSession } from "@/lib/data/live-events";
 import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { homeLabelForCommunity } from "@/lib/community-templates";
+import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { NAV_GROUPS, isNavGroup, type NavGroup } from "@/lib/nav-groups";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
@@ -90,6 +91,10 @@ export async function generateMetadata({
     },
   };
 }
+
+// Just under the built-in nav items' base (see defaultNavItemSort), so the
+// Timeline lands after a community's own spaces but ahead of Events and Search.
+const TIMELINE_NAV_SORT = 99_000;
 
 export default async function CommunityLayout({
   children,
@@ -225,6 +230,22 @@ export default async function CommunityLayout({
       : []),
     ...(features.concierge && navItemOrder.concierge?.showInNav !== false
       ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: "home" as NavGroup, items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      : []),
+    // The Timeline, for the community types that have it (homeschool today —
+    // see src/lib/timeline/availability.ts, which the database agrees with).
+    // It files under Learn like the Lessons library does, and sorts just ahead
+    // of the built-in links so it sits among the spaces it belongs with rather
+    // than after Events and Search.
+    //
+    // The group is taken only where this community already uses sections. A
+    // community whose nav is the flat list must not sprout headings because a
+    // new feature turned up in it — see rule 1 in src/lib/nav-groups.ts.
+    ...(communityHasTimeline(community)
+      ? [{
+          sort: TIMELINE_NAV_SORT,
+          group: navSpaces.some((space) => isNavGroup(space.nav_group)) ? ("learn" as NavGroup) : null,
+          items: [{ href: timelinePath(community.slug), label: "Timeline", icon: <History className="h-4 w-4" /> }],
+        }]
       : []),
   ].sort((a, b) => a.sort - b.sort);
 
