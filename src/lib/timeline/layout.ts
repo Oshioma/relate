@@ -1,5 +1,5 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimSpan, fractionOf, precisionSpanYears, type TimeWindow } from "./time";
+import { claimInterval, fractionOf, type TimeWindow } from "./time";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -75,26 +75,28 @@ function estimateLabelWidth(title: string): number {
 /**
  * Where a single claim sits, and how wide it is.
  *
- * A point claim still gets width when its precision implies width: "the 3rd
- * century BCE" is a hundred-year bar, and drawing it as a dot would assert a
- * precision the claim explicitly disclaims. Below a pixel that width simply
- * disappears, which is the correct behaviour rather than a special case.
+ * Width comes from the claim itself wherever the claim supplies it — a proposed
+ * range, or a source-stated ± tolerance. A bare point still gets drawn at the
+ * width its precision implies, because "the 3rd century BCE" is a hundred-year
+ * bar and drawing it as a dot would assert a precision the claim explicitly
+ * disclaims. Below a pixel that width simply disappears, which is correct
+ * rather than a special case.
  */
 function placeClaim(
   claim: TimelineEventWithClaims["claims"][number],
   window: TimeWindow,
   width: number
 ): PlacedClaim {
-  const span = claimSpan(claim);
-  const implied = span.isRange ? 0 : precisionSpanYears(claim.date_precision);
-  const from = span.from - (span.isRange ? 0 : implied / 2);
-  const to = span.to + (span.isRange ? 0 : implied / 2);
+  // The interval already carries the width a point claim's precision implies
+  // (see claimInterval), so nothing is added here — doing both was how a
+  // century-precision claim ended up drawn two centuries wide.
+  const interval = claimInterval(claim);
   return {
     id: claim.id,
-    x: fractionOf(window, from) * width,
-    x2: fractionOf(window, to) * width,
-    isRange: span.isRange,
-    isApproximate: claim.is_approximate || claim.date_precision !== "exact_date",
+    x: fractionOf(window, interval.lo) * width,
+    x2: fractionOf(window, interval.hi) * width,
+    isRange: interval.kind !== "point",
+    isApproximate: claim.is_approximate || interval.kind !== "point",
   };
 }
 

@@ -1,36 +1,43 @@
 // The timeline's number line.
 //
 // This module is the application-side mirror of how supabase/migrations/
-// …_timeline_core.sql stores time, and the only place that is allowed to know
-// how a year becomes a pixel or a sentence.
+// …_timeline_core.sql and …_timeline_v1_hardening.sql store time, and the only
+// place allowed to know how a year becomes a pixel or a sentence.
 //
 // WHY NOT Date / timestamptz
 //
 // A JavaScript Date tops out around ±273,000 years from 1970 and a Postgres
-// timestamptz around ±294,000 — both several orders of magnitude short of "the
-// Earth formed", never mind "the Big Bang". Worse, both carry a calendar:
-// there was no October in 4,000,000,000 BCE, and pretending otherwise is a lie
-// the data model would then force every reader to believe.
+// timestamptz around ±294,000 — both far short of "the Earth formed", never
+// mind "the Big Bang". Worse, both carry a calendar: there was no October in
+// 4,000,000,000 BCE, and pretending otherwise is a lie the data model would
+// force every reader to believe.
 //
 // SO: an ASTRONOMICAL YEAR NUMBER held as a plain double.
 //
 //     1 CE = 1        1 BCE = 0        2 BCE = -1        44 BCE = -43
 //
 // Astronomical numbering (rather than a positive year plus a BCE/CE flag) is
-// what makes arithmetic work across the year zero that historians don't have:
-// 2 BCE to 2 CE is (2) − (−1) = 3 years by subtraction, with no branch. Era is
-// then a fact about the number — see eraOf — not a second field that can
-// contradict it.
+// what makes arithmetic work across the year historians don't have: 1 BCE to
+// 1 CE is 1 − 0 = one year, with no branch and no off-by-one. Era is then a
+// fact about the number — see eraOf — not a second field that can contradict
+// it. Every user-facing string goes back through eraYearOf, so no year zero
+// ever reaches a reader.
 //
-// PRECISION. A double has 53 bits of mantissa, so every whole year back to the
-// Big Bang is exact (integers are exact to 2^53 ≈ 9.0e15) and the fraction
-// still resolves to about a minute out at 13.8e9. Inside recorded history it
-// resolves far finer than a day. One representation, whole span, no second
-// number to keep in step.
+// A double carries 53 bits of mantissa, so every whole year back to the Big
+// Bang is exact (integers are exact to 2^53 ≈ 9.0e15) and the fraction still
+// resolves to about a minute at 13.8e9. One representation, whole span.
 //
-// A calendar month and day are stored SEPARATELY and optionally, because
-// "1066" and "14 October 1066" are different claims and the difference is the
-// point. `position` folds them into the single number the axis draws against.
+// THREE THINGS THAT ARE NOT THE SAME, AND ARE KEPT APART
+//
+//   1. The numeric POSITION, which is what the axis draws against.
+//   2. The NORMALISED display, derived from the position, the unit the source
+//      used and the decimals it gave — see formatClaimDate.
+//   3. The source's ORIGINAL WORDING, stored verbatim and never derived.
+//
+// The rule the whole module serves: preserve the precision the source actually
+// supplied. Do not invent precision it did not give, and do not round away
+// precision it did. Age is not a reason to round — "66.043 ± 0.011 million
+// years ago" stays exactly that.
 
 // ---------------------------------------------------------------------------
 // The span
@@ -39,61 +46,63 @@
 // A little older than the usual 13.787 Ga figure, so the earliest thing anyone
 // can claim still has axis to its left. This is scaffolding for the view, NOT a
 // cosmology: nothing in the product asserts when the universe began — that is
-// an event with date claims and sources like any other (see §19 of the brief).
+// an event with date claims and sources like any other.
 export const TIMELINE_MIN_YEAR = -13_900_000_000;
 // Room for planned missions and predicted eclipses without letting a typo put
 // an event a million years out.
 export const TIMELINE_MAX_YEAR = 3000;
 
 // "Before Present" in the sciences means before 1950 — radiocarbon's zero,
-// fixed so that a published date doesn't drift as the years pass. Deep-time
-// claims entered as "years ago" are converted against this, not against today.
+// fixed so a published date doesn't drift as the years pass. Deep-time claims
+// entered as "years ago" are converted against this, not against today.
 export const BP_REFERENCE_YEAR = 1950;
 
 // The narrowest window the viewport will zoom to: about three days. Below that
-// the axis would be claiming a resolution the data model doesn't carry.
+// the axis would claim a resolution the data model doesn't carry.
 export const MIN_WINDOW_YEARS = 0.008;
 
 export type Era = "BCE" | "CE";
 
-// How precisely a claim is being made. Ordered coarse-last, and matched by the
-// date_precision check constraint in the migration — it changes how a date is
-// RENDERED, so it is constrained in the database as well as here.
-export const DATE_PRECISIONS = [
-  { key: "exact_date", label: "Exact date", hint: "A known day — 14 October 1066." },
-  { key: "month", label: "Month", hint: "The month is known, the day isn't." },
-  { key: "year", label: "Year", hint: "A single year." },
-  { key: "decade", label: "Decade", hint: "Somewhere in a ten-year window." },
-  { key: "century", label: "Century", hint: "Somewhere in a hundred-year window." },
-  { key: "millennium", label: "Millennium", hint: "Somewhere in a thousand-year window." },
-  { key: "thousands", label: "Thousands of years", hint: "Tens of thousands of years — early humans, the last ice age." },
-  { key: "millions", label: "Millions of years", hint: "Deep time — dinosaurs, the first life." },
-  { key: "billions", label: "Billions of years", hint: "The formation of the Earth, and earlier." },
+// ---------------------------------------------------------------------------
+// Precision: the unit the source used, and how many decimals it gave in it
+//
+// The previous model had a single "precision" enum that conflated how coarse a
+// claim is with how old it is — so anything deep-time was rounded on the way to
+// the screen and "66.043 ± 0.011 Ma" came out as "66 million years ago". That
+// is the system inventing a coarseness the source never asked for.
+//
+// Now: a UNIT (what the source counted in) plus DECIMALS (how many places it
+// gave in that unit). Together they say exactly what to print and exactly how
+// wide the claim is, and neither is ever inferred from the age of the thing.
+// ---------------------------------------------------------------------------
+
+export const DATE_UNITS = [
+  { key: "day", label: "Exact date", years: 1 / 365.2425, decimals: false, hint: "A known day — 14 October 1066." },
+  { key: "month", label: "Month", years: 1 / 12, decimals: false, hint: "The month is known, the day isn't." },
+  { key: "year", label: "Year", years: 1, decimals: false, hint: "A single year — 1066 CE, 2560 BCE." },
+  { key: "decade", label: "Decade", years: 10, decimals: false, hint: "Somewhere in a ten-year window." },
+  { key: "century", label: "Century", years: 100, decimals: false, hint: "Somewhere in a hundred-year window." },
+  { key: "millennium", label: "Millennium", years: 1000, decimals: false, hint: "Somewhere in a thousand-year window." },
+  { key: "thousand_years", label: "Thousands of years ago", years: 1000, decimals: true, hint: "Counted back from the present — “12,000 years ago”." },
+  { key: "million_years", label: "Millions of years ago", years: 1_000_000, decimals: true, hint: "Deep time — “66.043 million years ago”." },
+  { key: "billion_years", label: "Billions of years ago", years: 1_000_000_000, decimals: true, hint: "“13.799 billion years ago”." },
 ] as const;
 
-export type DatePrecision = (typeof DATE_PRECISIONS)[number]["key"];
+export type DateUnit = (typeof DATE_UNITS)[number]["key"];
 
-export function precisionLabel(key: string | null | undefined): string {
-  return DATE_PRECISIONS.find((p) => p.key === key)?.label ?? "Year";
+const UNIT_BY_KEY = new Map(DATE_UNITS.map((unit) => [unit.key as string, unit]));
+
+export function dateUnit(key: string | null | undefined) {
+  return UNIT_BY_KEY.get(key ?? "") ?? DATE_UNITS[2];
 }
 
-// Roughly how wide a claim at this precision is, in years. Used to draw the
-// uncertainty a bare precision implies — a "century" claim is a hundred-year
-// bar, not a dot — and never presented as a calculated figure.
-const PRECISION_SPAN: Record<DatePrecision, number> = {
-  exact_date: 0,
-  month: 1 / 12,
-  year: 1,
-  decade: 10,
-  century: 100,
-  millennium: 1000,
-  thousands: 10_000,
-  millions: 1_000_000,
-  billions: 100_000_000,
-};
+export function dateUnitLabel(key: string | null | undefined): string {
+  return dateUnit(key).label;
+}
 
-export function precisionSpanYears(precision: string | null | undefined): number {
-  return PRECISION_SPAN[(precision ?? "year") as DatePrecision] ?? 1;
+/** True for the units a source states with decimals ("13.799 Ga"), false for calendar ones. */
+export function unitTakesDecimals(key: string | null | undefined): boolean {
+  return dateUnit(key).decimals;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +118,7 @@ export function astronomicalFromEra(year: number, era: Era): number {
   return era === "BCE" ? 1 - year : year;
 }
 
-/** −43 → { year: 44, era: "BCE" }. The number as a person would say it. */
+/** −43 → { year: 44, era: "BCE" }. The number as a person would say it, with no year zero. */
 export function eraYearOf(astronomicalYear: number): { year: number; era: Era } {
   return astronomicalYear <= 0
     ? { year: 1 - astronomicalYear, era: "BCE" }
@@ -127,9 +136,9 @@ export function yearsAgoOf(astronomicalYear: number): number {
 
 /**
  * Fold year + optional month + optional day into the single axis position the
- * timeline draws against. MUST match the generated `start_position` /
- * `end_position` columns — the database computes this for stored rows, and this
- * function computes it for rows being previewed before they are saved.
+ * timeline draws against. MUST match the generated start_position/end_position
+ * columns — the database computes this for stored rows, this computes it for
+ * rows being previewed before they are saved.
  */
 export function positionOf(year: number, month?: number | null, day?: number | null): number {
   let position = year;
@@ -162,41 +171,38 @@ function writeYear(value: number): string {
   return Math.abs(rounded) >= 10_000 ? rounded.toLocaleString("en-GB") : String(rounded);
 }
 
-/** "8.00" → "8", "13.80" → "13.8", "4.54" → "4.54". */
-function trimZeros(text: string): string {
-  return text.includes(".") ? text.replace(/\.?0+$/, "") : text;
-}
-
 /** Grouping for quantities — a count of years, not a year. */
 function withThousands(value: number): string {
   return Math.round(value).toLocaleString("en-GB");
 }
 
+function ordinal(value: number): string {
+  const remainderHundred = value % 100;
+  if (remainderHundred >= 11 && remainderHundred <= 13) return `${value}th`;
+  switch (value % 10) {
+    case 1: return `${value}st`;
+    case 2: return `${value}nd`;
+    case 3: return `${value}rd`;
+    default: return `${value}th`;
+  }
+}
+
 /**
- * One year, written the way this part of the timeline is usually written.
- *
- * Deep time is written as "years ago" because nobody says "4,540,000,000 BCE",
- * and the crossover is at a million years — early enough that "800,000 BCE"
- * still reads, late enough that the ice ages stay in BCE where the books put
- * them.
+ * One year as a calendar year. Deep time never comes through here — it is
+ * written in its own unit by formatClaimDate, because nobody says
+ * "4,540,000,000 BCE".
  */
 export function formatYear(astronomicalYear: number, options: { compact?: boolean } = {}): string {
-  const ago = yearsAgoOf(astronomicalYear);
   const compact = options.compact ?? false;
+  const ago = yearsAgoOf(astronomicalYear);
 
-  if (ago >= 1_000_000_000) {
-    const value = ago / 1_000_000_000;
-    // Two decimals where they carry information (4.54 billion years is a
-    // figure), none where they don't — a ruler reading "8.00 bya" next to
-    // "13.8 bya" is claiming a precision it doesn't have and looks wrong doing
-    // it.
-    const text = trimZeros(value >= 10 ? value.toFixed(1) : value.toFixed(2));
-    return compact ? `${text} bya` : `${text} billion years ago`;
-  }
+  // Only the ruler reaches this branch: an axis tick at −65,000,000 has to say
+  // something, and "65,000,001 BCE" is not it. A claim in this territory is
+  // rendered from its own unit and decimals instead.
   if (ago >= 1_000_000) {
-    const value = ago / 1_000_000;
-    const text = value >= 100 ? withThousands(value) : value >= 10 ? value.toFixed(0) : value.toFixed(1);
-    return compact ? `${text} mya` : `${text} million years ago`;
+    const [value, unit] = ago >= 1_000_000_000 ? [ago / 1_000_000_000, "billion"] : [ago / 1_000_000, "million"];
+    const text = trimZeros(value >= 10 ? value.toFixed(1) : value.toFixed(2));
+    return compact ? `${text} ${unit === "billion" ? "bya" : "mya"}` : `${text} ${unit} years ago`;
   }
 
   const { year, era } = eraYearOf(astronomicalYear);
@@ -206,7 +212,12 @@ export function formatYear(astronomicalYear: number, options: { compact?: boolea
   return year < 1000 || !compact ? `${writeYear(year)} CE` : writeYear(year);
 }
 
-/** A full date where one is known: "14 October 1066 CE". */
+/** "8.00" → "8", "13.80" → "13.8", "4.54" → "4.54". */
+function trimZeros(text: string): string {
+  return text.includes(".") ? text.replace(/\.?0+$/, "") : text;
+}
+
+/** A full calendar date where one is known: "14 October 1066 CE". */
 export function formatDateParts(
   year: number,
   month?: number | null,
@@ -220,9 +231,10 @@ export function formatDateParts(
 }
 
 // ---------------------------------------------------------------------------
-// Saying a claim out loud
+// A claim
 // ---------------------------------------------------------------------------
 
+/** The parts of a date claim this module reasons about. A row satisfies it as-is. */
 export type ClaimTimeParts = {
   start_year: number;
   start_month: number | null;
@@ -230,104 +242,446 @@ export type ClaimTimeParts = {
   end_year: number | null;
   end_month: number | null;
   end_day: number | null;
+  /** A DATE_UNITS key. */
   date_precision: string;
+  /** Decimal places the source gave in that unit. */
+  precision_decimals: number;
   is_approximate: boolean;
-  display_text: string;
+  /** Source-stated tolerance, in years. Null when the source gave none. */
+  uncertainty_plus: number | null;
+  uncertainty_minus: number | null;
+  /** Verbatim source wording. Never derived from the numbers above. */
+  original_date_text: string;
 };
 
 /**
- * What to print for a claim. An author's own wording always wins — a source
- * that says "the third year of Hammurabi's reign" should print that — and this
- * is the fallback when they haven't written one.
+ * How wide one claim is, in years, from its precision alone.
+ *
+ * The unit divided by ten to the decimals: a source that says 13.799 Ga has
+ * resolved it to a thousandth of a billion years, so the claim is a million
+ * years wide — not the hundred million a bare "billions" would have implied.
+ * This is the whole of "don't round away legitimate precision": more decimals
+ * from the source means a narrower claim, and the system never widens it back.
  */
-export function formatClaim(claim: ClaimTimeParts, options: { compact?: boolean } = {}): string {
-  if (claim.display_text.trim()) return claim.display_text.trim();
+export function claimGranularityYears(claim: Pick<ClaimTimeParts, "date_precision" | "precision_decimals">): number {
+  const unit = dateUnit(claim.date_precision);
+  return unit.years / Math.pow(10, Math.max(0, claim.precision_decimals ?? 0));
+}
 
-  const start = formatDateParts(claim.start_year, claim.start_month, claim.start_day, options);
+export type IntervalKind = "point" | "range" | "tolerance";
+
+/**
+ * The stretch of time a claim actually allows, and why it has width.
+ *
+ * The three kinds are genuinely different assertions and are never merged:
+ *   point     — one moment, resolved to the granularity of its unit.
+ *   range     — "2600–2500 BCE": somewhere in there, the source doesn't narrow it.
+ *   tolerance — "13.799 ± 0.021 Ga": one moment, measured, with a stated error.
+ *
+ * A POINT STILL HAS WIDTH, and getting that wrong is what made "14 October
+ * 1066" and "1067" look 0.2 years apart: a claim of "1067" is not the instant
+ * 1067.0, it is the whole of the year 1067, and two claims in different years
+ * disagree by about a year however the earlier one is worded.
+ *
+ * Where that width sits depends on what the unit means. A calendar unit NAMES a
+ * period and its position is that period's start, so the window runs forward
+ * from it — the year 1067 is [1067, 1068]. A deep-time unit reports a
+ * MEASUREMENT rounded to some number of places, so its window straddles the
+ * value: 4.54 Ga means 4.54 ± 0.005 Ga, not 4.54 to 4.55.
+ */
+export function claimInterval(claim: ClaimTimeParts): {
+  lo: number;
+  hi: number;
+  kind: IntervalKind;
+  granularity: number;
+} {
+  const start = positionOf(claim.start_year, claim.start_month, claim.start_day);
+  const granularity = claimGranularityYears(claim);
+
+  if (claim.end_year != null) {
+    return { lo: start, hi: positionOf(claim.end_year, claim.end_month, claim.end_day), kind: "range", granularity };
+  }
+  if (claim.uncertainty_plus != null || claim.uncertainty_minus != null) {
+    return {
+      lo: start - (claim.uncertainty_minus ?? claim.uncertainty_plus ?? 0),
+      hi: start + (claim.uncertainty_plus ?? claim.uncertainty_minus ?? 0),
+      kind: "tolerance",
+      granularity,
+    };
+  }
+  if (dateUnit(claim.date_precision).decimals) {
+    // A rounded measurement: the window straddles the reported value.
+    return { lo: start - granularity / 2, hi: start + granularity / 2, kind: "point", granularity };
+  }
+  // A named calendar period: the window runs forward from its start.
+  return { lo: start, hi: start + granularity, kind: "point", granularity };
+}
+
+/** Where a claim sits when it has to be one number — the middle of what it allows. */
+export function claimMidpoint(claim: ClaimTimeParts): number {
+  const { lo, hi } = claimInterval(claim);
+  return (lo + hi) / 2;
+}
+
+/** Kept for the layout, which draws the claim's own footprint. */
+export function claimSpan(claim: ClaimTimeParts): { from: number; to: number; isRange: boolean } {
+  const { lo, hi, kind } = claimInterval(claim);
+  return { from: lo, to: hi, isRange: kind !== "point" };
+}
+
+// ---------------------------------------------------------------------------
+// Writing a claim out
+// ---------------------------------------------------------------------------
+
+function formatDeepTime(astronomicalYear: number, unitKey: string, decimals: number, plusMinusYears: number | null): string {
+  const unit = dateUnit(unitKey);
+  const ago = yearsAgoOf(astronomicalYear);
+
+  // "12,000 years ago" is how anyone actually says a thousands-scale date, so
+  // that unit prints in plain years and lets its decimals control how many of
+  // them are significant: 0 decimals rounds to the thousand, 1 to the hundred.
+  if (unit.key === "thousand_years") {
+    const granularity = 1000 / Math.pow(10, decimals);
+    const rounded = Math.round(ago / granularity) * granularity;
+    const text = `${withThousands(rounded)} years ago`;
+    return plusMinusYears != null ? `${withThousands(rounded)} ± ${withThousands(plusMinusYears)} years ago` : text;
+  }
+
+  const word = unit.key === "billion_years" ? "billion" : "million";
+  const value = (ago / unit.years).toFixed(decimals);
+  if (plusMinusYears == null) return `${value} ${word} years ago`;
+  return `${value} ± ${(plusMinusYears / unit.years).toFixed(decimals)} ${word} years ago`;
+}
+
+function formatCalendarPoint(claim: ClaimTimeParts, year: number, month: number | null, day: number | null): string {
+  const unit = dateUnit(claim.date_precision);
+  const { year: eraYear, era } = eraYearOf(year);
+
+  switch (unit.key) {
+    case "day":
+      return formatDateParts(year, month, day);
+    case "month":
+      return formatDateParts(year, month, null);
+    case "decade": {
+      // The decade a year falls in, said the way people say it. Anchored on the
+      // era year, so the BCE side counts the way historians count it.
+      const start = Math.floor(eraYear / 10) * 10;
+      return era === "BCE" ? `${writeYear(start)}s BCE` : `${writeYear(start)}s`;
+    }
+    case "century":
+      return `${ordinal(Math.ceil(eraYear / 100))} century ${era}`;
+    case "millennium":
+      return `${ordinal(Math.ceil(eraYear / 1000))} millennium ${era}`;
+    default:
+      return formatDateParts(year, null, null);
+  }
+}
+
+/**
+ * The NORMALISED date — always derived from the numbers, so it can never
+ * disagree with where the claim sits on the axis.
+ *
+ * The source's own wording is a separate field and a separate line on screen
+ * (see claimOriginalText). Letting an author type a label that overrides this
+ * one was the previous design, and a caption that can contradict the position
+ * underneath it is a bug with a nice font.
+ */
+export function formatClaimDate(claim: ClaimTimeParts): string {
+  const unit = dateUnit(claim.date_precision);
+  const decimals = Math.max(0, claim.precision_decimals ?? 0);
   const prefix = claim.is_approximate ? "c. " : "";
 
-  if (claim.end_year == null) return `${prefix}${start}`;
+  // A symmetric tolerance prints as "±"; an asymmetric one prints both signs
+  // rather than flattening to a symmetry the source didn't claim.
+  const plus = claim.uncertainty_plus;
+  const minus = claim.uncertainty_minus;
+  const symmetric = plus != null && (minus == null || Math.abs(plus - minus) < Number.EPSILON) ? plus : null;
 
-  const end = formatDateParts(claim.end_year, claim.end_month, claim.end_day, options);
-  // "2600–2500 BCE", not "2600 BCE – 2500 BCE": drop the era from the first
-  // half when both halves share it, the way every history book does.
-  const startEra = eraOf(claim.start_year);
-  const endEra = eraOf(claim.end_year);
-  if (startEra === endEra && claim.start_month == null && claim.end_month == null && Math.abs(claim.start_year) < 1_000_000) {
-    const startBare = writeYear(eraYearOf(claim.start_year).year);
-    return `${prefix}${startBare}–${end}`;
+  if (unit.decimals) {
+    const start = formatDeepTime(claim.start_year, unit.key, decimals, symmetric);
+    if (claim.end_year == null) {
+      if (symmetric == null && (plus != null || minus != null)) {
+        return `${prefix}${start} (+${(( plus ?? 0) / unit.years).toFixed(decimals)} / −${((minus ?? 0) / unit.years).toFixed(decimals)})`;
+      }
+      return `${prefix}${start}`;
+    }
+    const end = formatDeepTime(claim.end_year, unit.key, decimals, null);
+    return `${prefix}${end} – ${start}`;
   }
-  return `${prefix}${start}–${end}`;
-}
 
-/** The span a claim occupies on the axis: a point claim still has the width its precision implies. */
-export function claimSpan(claim: ClaimTimeParts): { from: number; to: number; isRange: boolean } {
-  const from = positionOf(claim.start_year, claim.start_month, claim.start_day);
+  const start = formatCalendarPoint(claim, claim.start_year, claim.start_month, claim.start_day);
+
   if (claim.end_year != null) {
-    return { from, to: positionOf(claim.end_year, claim.end_month, claim.end_day), isRange: true };
+    const endParts: ClaimTimeParts = { ...claim, start_year: claim.end_year, start_month: claim.end_month, start_day: claim.end_day };
+    const end = formatCalendarPoint(endParts, claim.end_year, claim.end_month, claim.end_day);
+    // "2600–2500 BCE", not "2600 BCE – 2500 BCE": drop the era from the first
+    // half when both halves share it, the way every history book does.
+    if (
+      eraOf(claim.start_year) === eraOf(claim.end_year) &&
+      dateUnit(claim.date_precision).key === "year" &&
+      Math.abs(claim.start_year) < 1_000_000
+    ) {
+      return `${prefix}${writeYear(eraYearOf(claim.start_year).year)}–${end}`;
+    }
+    return `${prefix}${start} – ${end}`;
   }
-  return { from, to: from, isRange: false };
+
+  if (symmetric != null) return `${prefix}${start} ± ${formatDuration(symmetric)}`;
+  return `${prefix}${start}`;
 }
 
-/** Where a claim sits when it has to be one number — the middle of its span. */
-export function claimMidpoint(claim: ClaimTimeParts): number {
-  const { from, to } = claimSpan(claim);
-  return (from + to) / 2;
-}
-
-// ---------------------------------------------------------------------------
-// Disagreement
-// ---------------------------------------------------------------------------
-
-export type Disagreement = {
-  /** Earliest point any source places the event. */
-  earliest: number;
-  /** Latest point any source places the event. */
-  latest: number;
-  /** latest − earliest, in years. */
-  years: number;
-  /** True when any claim involved is itself approximate or a range. */
-  isApproximate: boolean;
-  claimCount: number;
-};
-
-export function measureDisagreement(claims: ClaimTimeParts[]): Disagreement | null {
-  if (claims.length < 2) return null;
-  let earliest = Infinity;
-  let latest = -Infinity;
-  let isApproximate = false;
-  for (const claim of claims) {
-    const { from, to, isRange } = claimSpan(claim);
-    earliest = Math.min(earliest, from);
-    latest = Math.max(latest, to);
-    if (claim.is_approximate || isRange || claim.date_precision !== "exact_date") isApproximate = true;
-  }
-  return { earliest, latest, years: latest - earliest, isApproximate, claimCount: claims.length };
+/** The source's own words for this date, or null when it gave none worth quoting. */
+export function claimOriginalText(claim: Pick<ClaimTimeParts, "original_date_text">): string | null {
+  const text = claim.original_date_text?.trim();
+  return text ? text : null;
 }
 
 /**
- * "about 220 years", "about 15 million years".
+ * What to show as the claim's headline.
  *
- * Rounded hard on purpose. Two approximate dates subtracted give a number with
- * no more precision than the vaguer of them, and printing "218.5 years" would
- * dress that up as a measurement. Every caller pairs this with the word
- * "about", and the UI says so again where the underlying claims are approximate
- * (see §6 of the brief).
+ * The source's wording when there is one — it is the most honest rendering, and
+ * "10 AH" or "the third year of the reign of Darius" says something the
+ * normalised date cannot. The normalised date is then shown beneath it, so the
+ * reader can always see where on the axis that wording put the event.
  */
-export function formatDuration(years: number): string {
+export function claimHeadline(claim: ClaimTimeParts): { headline: string; normalised: string; quoted: boolean } {
+  const normalised = formatClaimDate(claim);
+  const original = claimOriginalText(claim);
+  // `quoted` means "the source words this differently from us", which is the
+  // only case where showing both earns its space. A source that happens to
+  // phrase it exactly as we normalise it should not be quoted back at itself.
+  return original
+    ? { headline: original, normalised, quoted: original !== normalised }
+    : { headline: normalised, normalised, quoted: false };
+}
+
+// ---------------------------------------------------------------------------
+// Durations
+// ---------------------------------------------------------------------------
+
+/**
+ * "about 220 years", "15 million years".
+ *
+ * Rounded on purpose, and `floor` lets a caller say how precise it is entitled
+ * to be: two claims are never compared more finely than the coarser of them
+ * resolves, so subtracting a century-precision date from a day-precision one
+ * cannot produce "36,524 days".
+ */
+export function formatDuration(years: number, floor = 0): string {
   const value = Math.abs(years);
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)} billion years`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value / 1_000_000 >= 10 ? 0 : 1)} million years`;
+  const granularity = Math.max(floor, 0);
+
+  // The caller has said the underlying data cannot resolve finer than
+  // `granularity`, so round to it before deciding anything. A gap of 0.7 years
+  // between a claim given to the day and one given to the year is "1 year" —
+  // it is only "less than a year" when it rounds away entirely.
+  if (granularity > 0) {
+    const rounded = Math.round(value / granularity) * granularity;
+    if (rounded === 0) return `less than ${formatDuration(granularity)}`;
+    if (rounded !== value) return formatDuration(rounded);
+  }
+
+  if (value >= 1_000_000_000) return `${trimZeros((value / 1_000_000_000).toFixed(2))} billion years`;
+  if (value >= 1_000_000) return `${trimZeros((value / 1_000_000).toFixed(value >= 10_000_000 ? 1 : 3))} million years`;
   if (value >= 10_000) return `${withThousands(Math.round(value / 1000) * 1000)} years`;
   if (value >= 1) {
-    // One significant-ish figure: 218 → "about 220 years", 1,240 → "1,200".
-    const magnitude = Math.pow(10, Math.max(0, Math.floor(Math.log10(value)) - 1));
-    return `${withThousands(Math.round(value / magnitude) * magnitude)} years`;
+    // Round to the coarser of "two significant figures" and the caller's floor,
+    // so 218 reads as "220 years" and never as "218.4".
+    const twoSignificant = Math.pow(10, Math.max(0, Math.floor(Math.log10(value)) - 1));
+    const step = Math.max(twoSignificant, granularity || 0, 1);
+    const rounded = Math.round(value / step) * step;
+    return `${withThousands(rounded)} year${rounded === 1 ? "" : "s"}`;
   }
   const months = Math.round(value * 12);
   if (months >= 1) return `${months} month${months === 1 ? "" : "s"}`;
   const days = Math.max(1, Math.round(value * 365.2425));
   return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+// ---------------------------------------------------------------------------
+// Comparing what different sources say
+//
+// The single number "sources disagree by X years" is only meaningful when the
+// claims are genuinely apart. Two claims that overlap don't disagree by a
+// distance at all, and one claim sitting inside another's range isn't a
+// disagreement so much as a narrowing — printing a subtraction for either is
+// worse than saying nothing.
+// ---------------------------------------------------------------------------
+
+export type ComparisonKind =
+  /** Fewer than two claims. */
+  | "single"
+  /** Every claim lands in exactly the same place. */
+  | "identical"
+  /** There is at least one moment every claim allows. */
+  | "overlap"
+  /** One claim's window sits wholly inside another's, but not all of them agree. */
+  | "contains"
+  /** At least two claims allow no moment in common. */
+  | "apart";
+
+export type ClaimComparison = {
+  kind: ComparisonKind;
+  claimCount: number;
+  /** Earliest anything is placed, and latest — the full width of the disagreement. */
+  earliest: number;
+  latest: number;
+  /** latest − earliest. */
+  spreadYears: number;
+  /** The guaranteed separation between the two furthest-apart claims; 0 when anything overlaps. */
+  minimumGapYears: number;
+  /** The window every claim allows, when there is one. */
+  commonFrom: number | null;
+  commonTo: number | null;
+  /** The coarsest granularity in play — the floor on how precisely any of this may be stated. */
+  granularityYears: number;
+  /** True when any claim is approximate, a range or carries a tolerance. */
+  anyApproximate: boolean;
+};
+
+export function compareClaims(claims: ClaimTimeParts[]): ClaimComparison | null {
+  if (claims.length === 0) return null;
+
+  const intervals = claims.map(claimInterval);
+  const earliest = Math.min(...intervals.map((interval) => interval.lo));
+  const latest = Math.max(...intervals.map((interval) => interval.hi));
+  // The number a reader is given is the distance between where the claims SIT,
+  // not between the outer edges of their windows — adding both windows' widths
+  // to the gap would make two year-precision claims 60 years apart read as 61.
+  const midpoints = intervals.map((interval) => (interval.lo + interval.hi) / 2);
+  const midpointSpread = Math.max(...midpoints) - Math.min(...midpoints);
+  const granularityYears = Math.max(...intervals.map((interval) => interval.granularity));
+  const anyApproximate =
+    claims.some((claim) => claim.is_approximate) || intervals.some((interval) => interval.kind !== "point");
+
+  const base = {
+    claimCount: claims.length,
+    earliest,
+    latest,
+    spreadYears: midpointSpread,
+    granularityYears,
+    anyApproximate,
+  };
+
+  if (claims.length === 1) {
+    return { ...base, kind: "single", minimumGapYears: 0, commonFrom: intervals[0].lo, commonTo: intervals[0].hi };
+  }
+
+  // The window every claim allows: the highest floor against the lowest ceiling.
+  const commonFrom = Math.max(...intervals.map((interval) => interval.lo));
+  const commonTo = Math.min(...intervals.map((interval) => interval.hi));
+  // STRICTLY less than, because a calendar window is half-open: the year 1 BCE
+  // is [0, 1) and the year 1 CE is [1, 2), and they meet at a single instant
+  // that belongs to neither. Treating that touch as agreement had 1 BCE and
+  // 1 CE — a full year apart, and the classic year-zero trap — reported as
+  // overlapping. A genuinely zero-width claim (a range whose ends are the same
+  // point) has nothing but its edges, so touching is all the overlap it can
+  // ever have and still counts.
+  const touchesOnly = commonFrom === commonTo;
+  const allOverlap =
+    commonFrom < commonTo || (touchesOnly && intervals.some((interval) => interval.lo === interval.hi));
+
+  const identical = intervals.every(
+    (interval) => interval.lo === intervals[0].lo && interval.hi === intervals[0].hi
+  );
+
+  if (allOverlap || identical) {
+    return {
+      ...base,
+      kind: identical ? "identical" : "overlap",
+      minimumGapYears: 0,
+      commonFrom,
+      commonTo,
+    };
+  }
+
+  // Nothing is allowed by all of them. The guaranteed separation is between the
+  // claim that ends earliest and the one that starts latest.
+  const minimumGapYears = Math.max(0, commonFrom - commonTo);
+
+  // Does any pair nest? Worth saying, because "2600–2500 BCE" containing
+  // "2560 BCE" is a different relationship from two dates simply being apart,
+  // even when a third claim puts the set as a whole out of agreement.
+  const contains = intervals.some((outer) =>
+    intervals.some(
+      (inner) => inner !== outer && inner.lo >= outer.lo && inner.hi <= outer.hi && (inner.lo > outer.lo || inner.hi < outer.hi)
+    )
+  );
+
+  return {
+    ...base,
+    kind: contains ? "contains" : "apart",
+    minimumGapYears,
+    commonFrom: null,
+    commonTo: null,
+  };
+}
+
+/** Whether an event's sources place it in genuinely different places. */
+export function claimsDisagree(claims: ClaimTimeParts[]): boolean {
+  const comparison = compareClaims(claims);
+  return comparison != null && comparison.kind !== "single" && comparison.kind !== "identical";
+}
+
+/**
+ * The disagreement, in a sentence — and only the sentence the data supports.
+ *
+ * Never states a distance where the claims overlap, never states one more
+ * precisely than the coarsest claim allows, and always says so when the dates
+ * being subtracted are themselves approximate.
+ */
+export function describeComparison(comparison: ClaimComparison): { headline: string; detail: string | null } {
+  const floor = comparison.granularityYears;
+
+  switch (comparison.kind) {
+    case "single":
+      return { headline: "Only one date has been proposed for this event.", detail: null };
+
+    case "identical":
+      return {
+        headline: `${comparison.claimCount} sources are cited here, and they place this at the same point in time.`,
+        detail: "Agreement between sources is worth as much attention as disagreement — it is why the same date turns up in every book.",
+      };
+
+    case "overlap":
+      return {
+        headline: "The proposed dates overlap — there is a stretch of time every source allows.",
+        detail:
+          comparison.commonFrom != null && comparison.commonTo != null
+            ? `They differ in how wide a window they give, but all of them include ${formatRangeOfPositions(comparison.commonFrom, comparison.commonTo)}. The widest disagreement between the earliest and latest is about ${formatDuration(comparison.spreadYears, floor)}.`
+            : null,
+      };
+
+    case "contains":
+      return {
+        headline: "These sources don't all agree, and one of them gives a window that contains another's date.",
+        detail: `A wider window isn't a different claim so much as a less committed one. Across all ${comparison.claimCount} sources, the earliest and latest dates are about ${formatDuration(comparison.spreadYears, floor)} apart${comparison.minimumGapYears > 0 ? `, and at least ${formatDuration(comparison.minimumGapYears, floor)} separates the two furthest apart` : ""}.`,
+      };
+
+    case "apart":
+    default: {
+      // When the disagreement is narrower than the coarsest claim can resolve,
+      // the honest sentence is a different sentence — not the same one with
+      // "less than" wedged into the middle of it.
+      if (Math.round(comparison.spreadYears / floor) === 0) {
+        return {
+          headline: `These sources place this at different points, but by less than the coarsest of them can resolve.`,
+          detail: `One of the dates here is only given to the nearest ${formatDuration(floor)}, so the gap between them — under ${formatDuration(floor)} — is smaller than the precision any of them claims.`,
+        };
+      }
+      return {
+        headline: `Sources disagree about when this happened — about ${formatDuration(comparison.spreadYears, floor)} separates the earliest and latest.`,
+        detail: comparison.anyApproximate
+          ? "Some of these dates are themselves approximate or given as ranges, so read that as roughly how far apart they are, not as a measurement."
+          : null,
+      };
+    }
+  }
+}
+
+function formatRangeOfPositions(from: number, to: number): string {
+  if (Math.abs(from - to) < 1e-9) return formatYear(Math.round(from));
+  return `${formatYear(Math.round(from))} – ${formatYear(Math.round(to))}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -367,10 +721,10 @@ export function scaleBandFor(spanYears: number): ScaleBand {
 }
 
 // The ladder the axis steps through as you zoom. Every step is a round number
-// of years (or a round fraction of one), which is what stops the labels drifting
-// to 1,043 BCE as you pan. Rendering billions of individual units is never
-// attempted: the axis draws between four and about a dozen ticks at any zoom,
-// and the STEP changes, not the count.
+// of years (or a round fraction of one), which is what stops the labels
+// drifting to 1,043 BCE as you pan. Rendering billions of individual units is
+// never attempted: the axis draws between four and about a dozen ticks at any
+// zoom, and the STEP changes, not the count.
 const STEP_LADDER = [
   2_000_000_000, 1_000_000_000, 500_000_000, 200_000_000, 100_000_000,
   50_000_000, 20_000_000, 10_000_000, 5_000_000, 2_000_000, 1_000_000,
@@ -405,7 +759,7 @@ export function stepFor(spanYears: number, target = 8): number {
 export type AxisTick = {
   position: number;
   label: string;
-  /** A round multiple of ten steps — drawn heavier, labelled always. */
+  /** A round multiple of ten steps — drawn heavier. */
   major: boolean;
 };
 
@@ -429,8 +783,7 @@ export function axisTicks(from: number, to: number, options: { target?: number }
   // "2,001 BCE | 1,001 BCE" looks broken to everyone who isn't an astronomer.
   // Shifting the BCE half of the grid by a single year puts the ticks back on
   // 2000 BCE and 1000 BCE. Skipped at a step of one year, where the shift would
-  // collide with the tick next door, and invisible at every step where a
-  // window straddles the era boundary at all.
+  // collide with the tick next door.
   const shift = (position: number) => (step >= 2 && position <= 0 ? position + 1 : position);
 
   // A guard, not a limit anyone reaches: stepFor keeps the count near `target`,

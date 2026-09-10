@@ -38,7 +38,7 @@ export function TimelineCanvas({
   present,
   selectedId,
   onSelect,
-  height = 420,
+  className,
   loading = false,
   truncated = false,
 }: {
@@ -48,25 +48,33 @@ export function TimelineCanvas({
   present: number;
   selectedId: string | null;
   onSelect: (event: TimelineEventWithClaims) => void;
-  height?: number;
+  /** Height comes from a class rather than a number, so one canvas can be short on a phone and tall on a desktop. */
+  className?: string;
   loading?: boolean;
   truncated?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
+  // Both dimensions are measured rather than passed in, so the strip can be
+  // sized by a responsive class and still know how many rows of events it has
+  // room for. Rendering a second copy of this component at a different height
+  // was the alternative, and it doubled the DOM, the observers and the layout
+  // work on every pan.
   useLayoutEffect(() => {
     const element = containerRef.current;
     if (!element) return;
     const observer = new ResizeObserver((entries) => {
-      setWidth(entries[0].contentRect.width);
+      const box = entries[0].contentRect;
+      setSize({ width: box.width, height: box.height });
     });
     observer.observe(element);
-    setWidth(element.clientWidth);
+    setSize({ width: element.clientWidth, height: element.clientHeight });
     return () => observer.disconnect();
   }, []);
 
-  const rowsAvailable = Math.max(1, Math.floor((height - RULER_HEIGHT - 12) / ROW_HEIGHT));
+  const width = size.width;
+  const rowsAvailable = Math.max(1, Math.floor((size.height - RULER_HEIGHT - 12) / ROW_HEIGHT));
   const layout = useMemo(
     () => layoutTimeline(events, view, width, rowsAvailable),
     [events, view, width, rowsAvailable]
@@ -98,10 +106,10 @@ export function TimelineCanvas({
         onPointerCancel={nav.onPointerUp}
         onKeyDown={nav.onKeyDown}
         onDoubleClick={nav.onDoubleClick}
-        style={{ height }}
         className={cn(
           "relative w-full touch-none select-none overflow-hidden rounded-xl border border-border bg-card",
-          "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          className
         )}
       >
         {/* Anything after today is a plan or a prediction, not a record. The
@@ -254,7 +262,10 @@ export function TimelineCanvas({
           </p>
         )}
 
-        <div className="pointer-events-none absolute right-3 top-2 flex items-center gap-2">
+        {/* The scale badge sits under the ruler on a phone and beside it on a
+            desktop: at 390px wide the ticks reach the right edge, and a badge
+            in the corner landed on top of "4 bya". */}
+        <div className="pointer-events-none absolute right-3 bottom-2 flex items-center gap-2 sm:bottom-auto sm:top-2">
           {loading && <span className="text-[11px] text-muted-foreground">Loading…</span>}
           <span className="rounded-full bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             {SCALE_BAND_LABELS[band]}

@@ -62,12 +62,15 @@ export function useTimeNavigation(
     (event: React.PointerEvent<HTMLElement>) => {
       const element = containerRef.current;
       if (!element) return;
-      element.setPointerCapture?.(event.pointerId);
       pointers.current.set(event.pointerId, { x: event.clientX });
 
       if (pointers.current.size === 2) {
         const [a, b] = [...pointers.current.values()];
         const rect = element.getBoundingClientRect();
+        // A second finger is unambiguously a pinch, never a tap, so capturing
+        // here costs nothing and keeps the gesture alive if a finger leaves the
+        // element mid-zoom.
+        element.setPointerCapture?.(event.pointerId);
         pinch.current = {
           distance: Math.max(1, Math.abs(a.x - b.x)),
           window: viewRef.current,
@@ -75,6 +78,19 @@ export function useTimeNavigation(
         };
         drag.current = null;
       } else {
+        // DELIBERATELY NOT capturing the pointer yet.
+        //
+        // A press on this surface is still ambiguous: it might become a pan, or
+        // it might be somebody tapping an event to open it. Capturing on
+        // pointerdown resolves that ambiguity the wrong way — with a capture
+        // active, the browser dispatches the subsequent `click` to the CAPTURE
+        // ELEMENT rather than to whatever was actually pressed, so every event
+        // marker on the strip became unclickable and the detail panel could
+        // only be reached from the list.
+        //
+        // Capture is taken in onPointerMove instead, the moment the press turns
+        // into a real drag — which is the only moment it is needed, and by then
+        // there is no click left to lose.
         drag.current = { x: event.clientX, window: viewRef.current, moved: false };
       }
     },
@@ -99,7 +115,12 @@ export function useTimeNavigation(
       if (!drag.current) return;
       const rect = element.getBoundingClientRect();
       const dx = event.clientX - drag.current.x;
-      if (Math.abs(dx) > 3) drag.current.moved = true;
+      if (Math.abs(dx) > 3 && !drag.current.moved) {
+        drag.current.moved = true;
+        // Now it is a drag. Capture so the pan survives the pointer leaving the
+        // strip — and only now, so a tap keeps its click (see onPointerDown).
+        element.setPointerCapture?.(event.pointerId);
+      }
       const span = drag.current.window.to - drag.current.window.from;
       const shift = (-dx / Math.max(1, rect.width)) * span;
       onWindowChange(clampWindow({ from: drag.current.window.from + shift, to: drag.current.window.to + shift }));

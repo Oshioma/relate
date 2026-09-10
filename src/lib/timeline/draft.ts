@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { astronomicalFromEra, astronomicalFromYearsAgo, TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR, type Era } from "./time";
+import { astronomicalFromEra, astronomicalFromYearsAgo, dateUnit, TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR, type Era } from "./time";
 
 // What the "Add event" flow hands to the server, and the one definition of what
 // a valid contribution is.
@@ -105,14 +105,39 @@ export type SourceDraft = z.infer<typeof sourceDraftSchema>;
 export const claimDraftSchema = z.object({
   start: dateInputSchema,
   end: dateInputSchema.nullish(),
+
+  // PRECISION, AS THE SOURCE GAVE IT.
+  //
+  // `date_precision` is the UNIT the source counted in (a DATE_UNITS key) and
+  // `precision_decimals` is how many places it gave in that unit. Together they
+  // are the whole of "preserve what the source supplied": 13.799 Ga is
+  // (billion_years, 3) and prints with three places forever, while
+  // "c. 300,000 years ago" is (thousand_years, 0) and can never acquire a
+  // decimal point it was never given.
   date_precision: z.string().trim().max(40).default("year"),
+  precision_decimals: z.number().int().min(0).max(9).default(0),
+
   is_approximate: z.boolean().default(false),
-  display_text: z.string().trim().max(200).default(""),
+
+  // SOURCE-STATED TOLERANCE, IN THE CLAIM'S OWN UNIT — "± 0.021" alongside
+  // "13.799 billion". Converted to years on the way to the database, where
+  // every comparison happens; see resolveUncertaintyYears. A tolerance is NOT
+  // the same claim as `end` (a proposed range), and the two never merge.
+  uncertainty_plus_units: z.number().finite().min(0).nullish(),
+  uncertainty_minus_units: z.number().finite().min(0).nullish(),
+
+  // THE SOURCE'S OWN WORDS, verbatim — "c. 2560 BCE", "10 AH", "the third year
+  // of the reign of Darius". Never derived from the numbers, never rewritten by
+  // normalisation, and shown as a quotation rather than as the app's own claim.
+  original_date_text: z.string().trim().max(300).default(""),
+
   dating_method: z.string().trim().max(60).nullish(),
   chronology: z.string().trim().max(60).nullish(),
-  confidence: z.enum(["high", "medium", "low", "contested"]).nullish(),
+  // Why the source gives this date. With confidence ratings gone, this is the
+  // field that carries the weight — it is what "Why this date?" is for.
   evidence: z.string().trim().max(4000).nullish(),
   notes: z.string().trim().max(4000).nullish(),
+
   // Cite one the community already has, or add one here. Neither is required:
   // an undated wall of "somebody said so" helps nobody, but neither does
   // refusing an event because the child hasn't found the citation yet — the UI
@@ -133,6 +158,11 @@ export const eventDraftSchema = z.object({
   description: z.string().trim().max(20000).default(""),
   category: z.string().trim().max(60).default("other"),
   subcategory: z.string().trim().max(60).nullish(),
+  // What KIND of record this is (TIMELINE_EVENT_TYPES) — a historical event, a
+  // scientific model, a religious account, a planned future event. Describes
+  // the claim; never rates it. Null = nobody has said.
+  event_type: z.string().trim().max(60).nullish(),
+  event_type_note: z.string().trim().max(1000).nullish(),
   tags: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
   people: z.array(z.string().trim().min(1).max(120)).max(20).default([]),
   civilisations: z.array(z.string().trim().min(1).max(120)).max(20).default([]),
@@ -157,16 +187,58 @@ export function emptyClaimDraft(): ClaimDraft {
     start: emptyDateInput(),
     end: null,
     date_precision: "year",
+    precision_decimals: 0,
     is_approximate: false,
-    display_text: "",
+    uncertainty_plus_units: null,
+    uncertainty_minus_units: null,
+    original_date_text: "",
     dating_method: null,
     chronology: null,
-    confidence: null,
     evidence: null,
     notes: null,
     source_id: null,
     new_source: null,
   };
+}
+
+/**
+ * A tolerance typed in the claim's unit → the years the database stores.
+ *
+ * "± 0.021" against a billion_years claim is 21,000,000 years. Storing years
+ * rather than the typed pair is what lets two claims in different units be
+ * compared by subtraction instead of by unit negotiation.
+ */
+export function resolveUncertaintyYears(claim: ClaimDraft): { plus: number | null; minus: number | null } {
+  const unit = dateUnit(claim.date_precision);
+  const plus = claim.uncertainty_plus_units;
+  const minus = claim.uncertainty_minus_units;
+  return {
+    plus: plus == null || !Number.isFinite(plus) ? null : plus * unit.years,
+    // A source that publishes a single ± means it symmetrically. Only an
+    // explicit second figure makes it asymmetric.
+    minus: minus == null || !Number.isFinite(minus)
+      ? (plus == null || !Number.isFinite(plus) ? null : plus * unit.years)
+      : minus * unit.years,
+  };
+}
+
+/**
+ * The unit and decimals a typed "years ago" date implies.
+ *
+ * Somebody typing 13.799 billion has told us both that the unit is billions of
+ * years and that they have three places of it — so the form fills both in
+ * rather than making them say it twice, and they can still override either. It
+ * is the difference between preserving the precision a source gave and asking a
+ * child to describe it.
+ */
+export function precisionFromDateInput(input: DateInput): { unit: string; decimals: number } | null {
+  if (input.mode !== "years_ago" || input.amount == null || !Number.isFinite(input.amount)) return null;
+  const unitKey =
+    input.unit === "billion" ? "billion_years" : input.unit === "million" ? "million_years" : "thousand_years";
+  // "years" typed straight has no natural sub-unit — count it as thousands with
+  // no decimals rather than inventing one.
+  const decimals = String(input.amount).split(".")[1]?.length ?? 0;
+  return { unit: input.unit === "years" ? "thousand_years" : unitKey, decimals: Math.min(9, decimals) };
 }
 
 export function emptySourceDraft(): SourceDraft {

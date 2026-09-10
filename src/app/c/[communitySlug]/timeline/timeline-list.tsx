@@ -5,7 +5,7 @@ import { ChevronRight, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
-import { claimMidpoint, formatClaim, formatDuration, measureDisagreement, presentPosition } from "@/lib/timeline/time";
+import { claimHeadline, claimMidpoint, compareClaims, describeComparison, presentPosition } from "@/lib/timeline/time";
 
 // The chronological list.
 //
@@ -43,8 +43,8 @@ export function TimelineList({
       {ordered.map((event) => {
         const meta = timelineCategory(event.category);
         const Icon = meta.icon;
-        const disagreement = measureDisagreement(event.claims);
-        const disputed = disagreement != null && disagreement.years > 0;
+        const comparison = compareClaims(event.claims);
+        const disputed = comparison != null && (comparison.kind === "apart" || comparison.kind === "contains");
         const isFuture = earliest(event) > now;
 
         return (
@@ -77,7 +77,7 @@ export function TimelineList({
                 </span>
 
                 <span className="mt-0.5 block text-sm tabular-nums text-muted-foreground">
-                  {event.claims.length > 0 ? formatClaim(event.claims[0]) : "No date proposed yet"}
+                  {event.claims.length > 0 ? claimHeadline(event.claims[0]).headline : "No date proposed yet"}
                   {disputed && event.claims.length > 1 && (
                     <>
                       {" · "}
@@ -88,10 +88,10 @@ export function TimelineList({
 
                 {event.summary && <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{event.summary}</span>}
 
-                {disputed && disagreement && (
+                {disputed && comparison && (
                   <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-danger/8 px-2 py-0.5 text-[11px] font-medium text-danger">
                     <Scale className="h-3 w-3" />
-                    Sources differ by about {formatDuration(disagreement.years)}
+                    {describeComparison(comparison).headline}
                   </span>
                 )}
               </span>

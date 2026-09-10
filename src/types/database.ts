@@ -2054,6 +2054,11 @@ export type TimelineEvent = {
   // community can file something under a word we didn't think of.
   category: string;
   subcategory: string | null;
+  // What KIND of record this is (TIMELINE_EVENT_TYPES) — historical event,
+  // scientific model, religious account, planned future event. Describes the
+  // claim, never rates it, and nothing sets it automatically. Null = unstated.
+  event_type: string | null;
+  event_type_note: string | null;
   tags: string[];
   location_name: string | null;
   lat: number | null;
@@ -2094,18 +2099,54 @@ export type TimelineDateClaim = {
   end_position: number | null;
   start_era: "BCE" | "CE";
   end_era: "BCE" | "CE" | null;
-  // DATE_PRECISIONS in src/lib/timeline/time.ts.
+  // PRECISION AS THE SOURCE GAVE IT. date_precision is the UNIT it counted in
+  // (a DATE_UNITS key in src/lib/timeline/time.ts) and precision_decimals is
+  // how many places it gave in that unit — so "66.043 million years ago" is
+  // ('million_years', 3) and stays three places, while "c. 300,000 years ago"
+  // is ('thousand_years', 0) and never acquires one. Neither is ever inferred
+  // from how old the thing is.
   date_precision: string;
+  precision_decimals: number;
   is_approximate: boolean;
-  display_text: string;
+  // SOURCE-STATED TOLERANCE, IN YEARS. "13.799 ± 0.021 Ga" stores 21,000,000
+  // in both. A different fact from end_year, which is a proposed RANGE: a
+  // tolerance is one moment measured with an error bar, a range is "somewhere
+  // in here". Asymmetric because some sources publish +x / −y.
+  uncertainty_plus: number | null;
+  uncertainty_minus: number | null;
+  // THE SOURCE'S OWN WORDS — "c. 2560 BCE", "10 AH", "the third year of the
+  // reign of Darius". Verbatim, never derived, never overwritten by
+  // normalisation, so a calendar-conversion feature can be added later without
+  // the input having been thrown away. Blank = the source gave nothing to quote.
+  original_date_text: string;
   dating_method: string | null;
   chronology: string | null;
-  confidence: string | null;
-  // What "Why this date?" reads.
+  // What "Why this date?" leads with. With confidence ratings removed, this is
+  // the field carrying the educational weight.
   evidence: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
+};
+
+// One recorded change to an event or one of its date claims. Written only by
+// the database triggers in …_timeline_v1_hardening.sql, so an edit cannot reach
+// the row without reaching the record of the edit. Readable by staff.
+export type TimelineRevision = {
+  id: string;
+  community_id: string;
+  event_id: string;
+  // Set when the change was to a claim rather than to the event itself.
+  // Deliberately not a foreign key — a claim's deletion is exactly when its
+  // history matters most.
+  claim_id: string | null;
+  entity: "event" | "claim";
+  action: "created" | "updated" | "deleted";
+  // Null when the write came from a service-role job rather than a person.
+  actor_id: string | null;
+  // { "<column>": { "from": <old>, "to": <new> } } for the columns that changed.
+  changes: Record<string, { from: unknown; to: unknown }>;
+  created_at: string;
 };
 
 export type TimelineEventTrack = {
@@ -2826,6 +2867,14 @@ export type Database = {
         };
         Update: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era">;
         Relationships: [FKey<"created_by", "profiles">, FKey<"source_id", "timeline_sources">, FKey<"event_id", "timeline_events">];
+      };
+      timeline_revisions: {
+        // Insert-only through triggers; the app never writes here, and RLS has
+        // no insert policy at all.
+        Row: TimelineRevision;
+        Insert: Partial<TimelineRevision> & { community_id: string; event_id: string; entity: string; action: string };
+        Update: Partial<TimelineRevision>;
+        Relationships: [FKey<"actor_id", "profiles">];
       };
       timeline_event_tracks: {
         Row: TimelineEventTrack;

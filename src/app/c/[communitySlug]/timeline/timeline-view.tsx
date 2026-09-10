@@ -25,11 +25,11 @@ import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { EventDetail } from "./event-detail";
 import { AddEventFlow } from "./add-event-flow";
-import { loadTimelineWindow, searchTimeline, seedStarterTracks } from "./actions";
+import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedStarterTracks } from "./actions";
 import { TIMELINE_CATEGORIES, CHRONOLOGIES, TIMELINE_SOURCE_TYPES, timelineCategory } from "@/lib/timeline/taxonomy";
 import {
+  claimHeadline,
   claimMidpoint,
-  formatClaim,
   presentPosition,
   windowAround,
   zoomWindow,
@@ -298,7 +298,7 @@ export function TimelineView({
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium text-foreground">{event.title}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {event.claims.length > 0 ? formatClaim(event.claims[0]) : "No date yet"}
+                        {event.claims.length > 0 ? claimHeadline(event.claims[0]).headline : "No date yet"}
                         {event.claims.length > 1 ? ` · ${event.claims.length} proposed dates` : ""}
                       </span>
                     </span>
@@ -513,37 +513,21 @@ export function TimelineView({
 
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
-        <>
-          <div className="hidden sm:block">
-            <TimelineCanvas
-              events={displayed}
-              window={view}
-              onWindowChange={setView}
-              present={presentPosition()}
-              selectedId={selected?.id ?? null}
-              onSelect={setSelected}
-              loading={loading}
-              truncated={truncated}
-              height={440}
-            />
-          </div>
-          {/* A phone gets a shorter strip for the SHAPE of time, and the list
-              below for actually reaching an event. Nobody is asked to hit a
-              four-pixel dot. */}
-          <div className="sm:hidden">
-            <TimelineCanvas
-              events={displayed}
-              window={view}
-              onWindowChange={setView}
-              present={presentPosition()}
-              selectedId={selected?.id ?? null}
-              onSelect={setSelected}
-              loading={loading}
-              truncated={truncated}
-              height={260}
-            />
-          </div>
-        </>
+        // ONE canvas, sized by a class. A phone gets a shorter strip for the
+        // SHAPE of time and the list below for actually reaching an event, so
+        // nobody is asked to hit a four-pixel dot — but it is the same strip,
+        // not a second copy of it in the DOM.
+        <TimelineCanvas
+          events={displayed}
+          window={view}
+          onWindowChange={setView}
+          present={presentPosition()}
+          selectedId={selected?.id ?? null}
+          onSelect={setSelected}
+          loading={loading}
+          truncated={truncated}
+          className="h-[260px] sm:h-[440px]"
+        />
       ) : (
         <CompareLanes
           tracks={tracks}
@@ -600,17 +584,14 @@ export function TimelineView({
         </button>
       </div>
 
-      {/* ---- List ---------------------------------------------------------- */}
-      <div className={cn("mt-4", showList ? "hidden sm:block" : "hidden")}>
-        <TimelineList
-          events={displayed}
-          onSelect={setSelected}
-          selectedId={selected?.id ?? null}
-          emptyMessage="Nothing in this stretch of time. Move the timeline, or clear the filters."
-        />
-      </div>
-      <div className="mt-4 sm:hidden">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">In order</h2>
+      {/* ---- List ----------------------------------------------------------
+          Also one list, not two. Always on a phone, where it is the primary way
+          in; on a desktop only when asked for, because there the strip is doing
+          that job. */}
+      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
+          In order
+        </h2>
         <TimelineList
           events={displayed}
           onSelect={setSelected}
@@ -646,6 +627,8 @@ export function TimelineView({
             <EventDetail
               event={selected}
               sources={sources}
+              tracks={tracks}
+              userId={userId}
               communitySlug={communitySlug}
               canContribute={canContribute}
               isStaff={isStaff}
@@ -666,12 +649,14 @@ export function TimelineView({
         <AddEventFlow
           communitySlug={communitySlug}
           userId={userId}
-          sources={sources}
           tracks={tracks}
           isStaff={isStaff}
-          onClose={() => {
+          onClose={async (createdSlug) => {
             setAdding(false);
             setReloadToken((token) => token + 1);
+            if (!createdSlug) return;
+            const created = await loadTimelineEvent(communitySlug, createdSlug);
+            if (created) goTo(created);
           }}
         />
       )}

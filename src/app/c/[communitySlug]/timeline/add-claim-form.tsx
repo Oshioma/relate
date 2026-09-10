@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { TimelineSource } from "@/types/database";
 import { ClaimFields } from "./claim-fields";
 import { addDateClaim } from "./actions";
 import { emptyClaimDraft, resolveDateInput, type ClaimDraft } from "@/lib/timeline/draft";
@@ -13,12 +12,10 @@ import { emptyClaimDraft, resolveDateInput, type ClaimDraft } from "@/lib/timeli
 export function AddClaimForm({
   communitySlug,
   eventId,
-  sources,
   claimCount,
 }: {
   communitySlug: string;
   eventId: string;
-  sources: TimelineSource[];
   claimCount: number;
 }) {
   const router = useRouter();
@@ -64,7 +61,7 @@ export function AddClaimForm({
 
   return (
     <div className="space-y-3">
-      <ClaimFields value={claim} onChange={setClaim} sources={sources} index={claimCount} />
+      <ClaimFields value={claim} onChange={setClaim} communitySlug={communitySlug} index={claimCount} />
       {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex gap-2">
         <Button type="button" onClick={submit} disabled={saving}>

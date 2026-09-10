@@ -4,24 +4,28 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, Textarea, Label } from "@/components/ui/input";
-import { ImageUpload } from "@/components/ui/image-upload";
 import { cn } from "@/lib/utils";
-import type { TimelineSource, TimelineTrack } from "@/types/database";
+import type { TimelineTrack } from "@/types/database";
+import { EventFields, parseList, type EventFieldValues } from "./event-fields";
 import { ClaimFields } from "./claim-fields";
 import { createTimelineEvent } from "./actions";
-import { TIMELINE_CATEGORIES } from "@/lib/timeline/taxonomy";
-import { emptyClaimDraft, resolveDateInput, type ClaimDraft, type EventDraft } from "@/lib/timeline/draft";
-import { formatClaim } from "@/lib/timeline/time";
+import {
+  emptyClaimDraft,
+  resolveDateInput,
+  resolveUncertaintyYears,
+  type ClaimDraft,
+  type EventDraft,
+} from "@/lib/timeline/draft";
+import { formatClaimDate } from "@/lib/timeline/time";
 
 // Adding an event, in four steps.
 //
 // The steps exist because of what step four is: "add another proposed date if
 // another source gives a different chronology". Asked as one long form, nobody
 // ever gets there — the second date is the interesting one, and it has to be
-// offered at the moment the first one is fresh, with the reason for it written
-// next to the button. It is never required: an event with one well-sourced date
-// is a good contribution.
+// offered at the moment the first is fresh, with the reason for it written next
+// to the button. It is never required: an event with one well-sourced date is a
+// good contribution.
 //
 // Nothing is written until the last step. A wizard that saved as it went would
 // leave half-events with no date behind them every time somebody closed a tab,
@@ -29,56 +33,83 @@ import { formatClaim } from "@/lib/timeline/time";
 
 const STEPS = ["The event", "Its first date", "The source", "More dates"] as const;
 
-function parseList(value: string): string[] {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 20);
+function emptyFields(): EventFieldValues {
+  return {
+    title: "",
+    summary: "",
+    description: "",
+    category: "history",
+    subcategory: "",
+    eventType: "",
+    eventTypeNote: "",
+    tags: "",
+    people: "",
+    civilisations: "",
+    locationName: "",
+    imageUrl: null,
+    trackIds: [],
+  };
+}
+
+/** What a draft claim will read as once stored — the same renderer the timeline uses. */
+function previewClaim(claim: ClaimDraft): string | null {
+  const start = resolveDateInput(claim.start);
+  if (!start) return null;
+  const end = resolveDateInput(claim.end);
+  const uncertainty = resolveUncertaintyYears(claim);
+  const normalised = formatClaimDate({
+    start_year: start.year,
+    start_month: start.month,
+    start_day: start.day,
+    end_year: end?.year ?? null,
+    end_month: end?.month ?? null,
+    end_day: end?.day ?? null,
+    date_precision: claim.date_precision,
+    precision_decimals: claim.precision_decimals,
+    is_approximate: claim.is_approximate,
+    uncertainty_plus: uncertainty.plus,
+    uncertainty_minus: uncertainty.minus,
+    original_date_text: "",
+  });
+  const original = claim.original_date_text.trim();
+  // Both, but only when they differ. A source that words it the same way we do
+  // shouldn't be quoted back at itself in brackets.
+  if (!original || original === normalised) return normalised;
+  return `${original} (${normalised})`;
 }
 
 export function AddEventFlow({
   communitySlug,
   userId,
-  sources,
   tracks,
   isStaff,
   onClose,
 }: {
   communitySlug: string;
   userId: string;
-  sources: TimelineSource[];
   tracks: TimelineTrack[];
   isStaff: boolean;
-  onClose: () => void;
+  /** Called with the new event's slug on success, so the timeline can move to it. */
+  onClose: (createdSlug?: string) => void;
 }) {
   const router = useRouter();
   // A stable, per-form key for the picture's storage path. Date.now() would
   // change on every re-render, so a second upload would land somewhere else and
   // the first would be orphaned.
   const uploadKey = useId().replace(/[^a-zA-Z0-9]/g, "");
+
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("history");
-  const [subcategory, setSubcategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [people, setPeople] = useState("");
-  const [civilisations, setCivilisations] = useState("");
-  const [locationName, setLocationName] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [trackIds, setTrackIds] = useState<string[]>([]);
+  const [fields, setFields] = useState<EventFieldValues>(emptyFields);
   const [claims, setClaims] = useState<ClaimDraft[]>([emptyClaimDraft()]);
 
   function updateClaim(index: number, next: ClaimDraft) {
     setClaims((current) => current.map((claim, i) => (i === index ? next : claim)));
   }
 
-  const canLeaveStepOne = title.trim().length >= 2;
+  const canLeaveStepOne = fields.title.trim().length >= 2;
   const canLeaveStepTwo = Boolean(resolveDateInput(claims[0]?.start));
 
   async function submit() {
@@ -86,19 +117,21 @@ export function AddEventFlow({
     setSaving(true);
 
     const draft: EventDraft = {
-      title: title.trim(),
-      summary: summary.trim(),
-      description: description.trim(),
-      category,
-      subcategory: subcategory.trim() || null,
-      tags: parseList(tags),
-      people: parseList(people),
-      civilisations: parseList(civilisations),
-      location_name: locationName.trim() || null,
+      title: fields.title.trim(),
+      summary: fields.summary.trim(),
+      description: fields.description.trim(),
+      category: fields.category,
+      subcategory: fields.subcategory.trim() || null,
+      event_type: fields.eventType || null,
+      event_type_note: fields.eventTypeNote.trim() || null,
+      tags: parseList(fields.tags),
+      people: parseList(fields.people),
+      civilisations: parseList(fields.civilisations),
+      location_name: fields.locationName.trim() || null,
       lat: null,
       lng: null,
-      image_url: imageUrl,
-      track_ids: trackIds,
+      image_url: fields.imageUrl,
+      track_ids: fields.trackIds,
       claims: claims.filter((claim) => resolveDateInput(claim.start)),
     };
 
@@ -114,7 +147,10 @@ export function AddEventFlow({
       return;
     }
     router.refresh();
-    onClose();
+    // 13.8 billion years is a lot of axis to be lost in: an event added while
+    // looking at the ancient world would otherwise save successfully and appear
+    // nowhere, which reads exactly like a failure.
+    onClose(result && "ok" in result ? result.slug : undefined);
   }
 
   return (
@@ -129,7 +165,7 @@ export function AddEventFlow({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => onClose()}
             aria-label="Close"
             className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
@@ -149,127 +185,7 @@ export function AddEventFlow({
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {step === 0 && (
-            <div className="space-y-4">
-              <div>
-                <Label>What happened?</Label>
-                <Input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Construction of the Great Pyramid"
-                  autoFocus
-                />
-              </div>
-              <div>
-                <Label>In one line</Label>
-                <Input
-                  value={summary}
-                  onChange={(event) => setSummary(event.target.value)}
-                  placeholder="The largest of the pyramids at Giza, built for the pharaoh Khufu."
-                />
-              </div>
-              <div>
-                <Label>The full story</Label>
-                <Textarea
-                  rows={5}
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  placeholder="What happened, why it matters, and what we know about it."
-                />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label>Category</Label>
-                  <select
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value)}
-                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {TIMELINE_CATEGORIES.map((option) => (
-                      <option key={option.key} value={option.key}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label>More specifically (optional)</Label>
-                  <Input
-                    value={subcategory}
-                    onChange={(event) => setSubcategory(event.target.value)}
-                    placeholder="Architecture"
-                  />
-                </div>
-                <div>
-                  <Label>People involved</Label>
-                  <Input value={people} onChange={(event) => setPeople(event.target.value)} placeholder="Khufu, Hemiunu" />
-                </div>
-                <div>
-                  <Label>Civilisations</Label>
-                  <Input
-                    value={civilisations}
-                    onChange={(event) => setCivilisations(event.target.value)}
-                    placeholder="Ancient Egypt"
-                  />
-                </div>
-                <div>
-                  <Label>Where</Label>
-                  <Input value={locationName} onChange={(event) => setLocationName(event.target.value)} placeholder="Giza, Egypt" />
-                </div>
-                <div>
-                  <Label>Tags</Label>
-                  <Input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="pyramids, old kingdom" />
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground">People, civilisations and tags are comma separated.</p>
-
-              <div>
-                <Label>Picture</Label>
-                <ImageUpload
-                  bucket="uploads"
-                  basePath={`${userId}/timeline/${uploadKey}`}
-                  currentUrl={imageUrl}
-                  onUploaded={(url) => setImageUrl(url)}
-                  shape="square"
-                  size={120}
-                  aspect={16 / 9}
-                  label="Add a picture"
-                  hint="Optional. A photograph, painting or diagram."
-                />
-              </div>
-
-              {tracks.length > 0 && (
-                <div>
-                  <Label>Which compare lanes does this belong in?</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tracks.map((track) => {
-                      const on = trackIds.includes(track.id);
-                      return (
-                        <button
-                          key={track.id}
-                          type="button"
-                          onClick={() =>
-                            setTrackIds((current) =>
-                              on ? current.filter((id) => id !== track.id) : [...current, track.id]
-                            )
-                          }
-                          aria-pressed={on}
-                          className={cn(
-                            "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                            on ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          {track.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    Lanes are how Compare shows what was happening elsewhere at the same time.
-                  </p>
-                </div>
-              )}
-            </div>
+            <EventFields value={fields} onChange={setFields} tracks={tracks} userId={userId} uploadKey={uploadKey} autoFocus />
           )}
 
           {step === 1 && (
@@ -281,7 +197,7 @@ export function AddEventFlow({
               <ClaimFields
                 value={claims[0]}
                 onChange={(next) => updateClaim(0, next)}
-                sources={sources}
+                communitySlug={communitySlug}
                 index={0}
                 show="date"
                 bare
@@ -290,44 +206,30 @@ export function AddEventFlow({
           )}
 
           {step === 2 && (
-            <div className="space-y-4">
-              <ClaimFields
-                value={claims[0]}
-                onChange={(next) => updateClaim(0, next)}
-                sources={sources}
-                index={0}
-                show="source"
-                bare
-              />
-            </div>
+            <ClaimFields
+              value={claims[0]}
+              onChange={(next) => updateClaim(0, next)}
+              communitySlug={communitySlug}
+              index={0}
+              show="source"
+              bare
+            />
           )}
 
           {step === 3 && (
             <div className="space-y-4">
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm font-semibold text-foreground">{title || "Your event"}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {claims
-                    .filter((claim) => resolveDateInput(claim.start))
-                    .map((claim) => {
-                      const resolved = resolveDateInput(claim.start);
-                      const end = resolveDateInput(claim.end);
-                      return resolved
-                        ? formatClaim({
-                            start_year: resolved.year,
-                            start_month: resolved.month,
-                            start_day: resolved.day,
-                            end_year: end?.year ?? null,
-                            end_month: end?.month ?? null,
-                            end_day: end?.day ?? null,
-                            date_precision: claim.date_precision,
-                            is_approximate: claim.is_approximate,
-                            display_text: claim.display_text,
-                          })
-                        : "";
-                    })
-                    .join("  ·  ")}
-                </p>
+                <p className="text-sm font-semibold text-foreground">{fields.title || "Your event"}</p>
+                <ul className="mt-1 space-y-0.5">
+                  {claims.map((claim, index) => {
+                    const preview = previewClaim(claim);
+                    return preview ? (
+                      <li key={index} className="text-sm text-muted-foreground">
+                        {preview}
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
               </div>
 
               {claims.slice(1).map((claim, index) => (
@@ -336,7 +238,7 @@ export function AddEventFlow({
                   value={claim}
                   onChange={(next) => updateClaim(index + 1, next)}
                   onRemove={() => setClaims((current) => current.filter((_, i) => i !== index + 1))}
-                  sources={sources}
+                  communitySlug={communitySlug}
                   index={index + 1}
                 />
               ))}

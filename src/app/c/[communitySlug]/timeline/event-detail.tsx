@@ -2,17 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Check, MapPin, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
+import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
-import type { TimelineSource } from "@/types/database";
+import type { TimelineSource, TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
+import { EditEventFlow } from "./edit-event-flow";
+import { RevisionHistory } from "./revision-history";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
-import { timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
-import { claimMidpoint, formatDuration, measureDisagreement, presentPosition } from "@/lib/timeline/time";
+import { eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
+import { claimMidpoint, compareClaims, describeComparison, presentPosition } from "@/lib/timeline/time";
 
 // The event, opened up.
 //
@@ -23,6 +25,8 @@ import { claimMidpoint, formatDuration, measureDisagreement, presentPosition } f
 export function EventDetail({
   event,
   sources,
+  tracks = [],
+  userId = null,
   communitySlug,
   canContribute,
   isStaff,
@@ -31,6 +35,8 @@ export function EventDetail({
 }: {
   event: TimelineEventWithClaims;
   sources: TimelineSource[];
+  tracks?: TimelineTrack[];
+  userId?: string | null;
   communitySlug: string;
   canContribute: boolean;
   isStaff: boolean;
@@ -41,12 +47,18 @@ export function EventDetail({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<"details" | "dates" | null>(null);
 
   const meta = timelineCategory(event.category);
   const Icon = meta.icon;
   const sourcesById = new Map(sources.map((source) => [source.id, source]));
-  const disagreement = measureDisagreement(event.claims);
-  const disputed = disagreement != null && disagreement.years > 0;
+  const comparison = compareClaims(event.claims);
+  // "Disagree" means the sources allow no common moment, or one window sits
+  // inside another. Two that overlap freely have not been caught disagreeing.
+  const disputed = comparison != null && (comparison.kind === "apart" || comparison.kind === "contains");
+  const said = comparison ? describeComparison(comparison) : null;
+  // The author may edit their own; staff may edit anything.
+  const canEdit = isStaff || (userId != null && event.created_by === userId);
 
   const midpoint = event.claims.length > 0 ? claimMidpoint(event.claims[0]) : 0;
   const isFuture = event.claims.length > 0 && Math.min(...event.claims.map(claimMidpoint)) > presentPosition();
@@ -94,6 +106,13 @@ export function EventDetail({
                 {event.subcategory}
               </span>
             )}
+            {/* WHAT KIND of record this is. Never a credibility mark — the
+                tone is deliberately the same neutral chip the category uses. */}
+            {eventTypeLabel(event.event_type) && (
+              <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                {eventTypeLabel(event.event_type)}
+              </span>
+            )}
             {isFuture && (
               <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
                 Planned or predicted — hasn&apos;t happened yet
@@ -107,6 +126,9 @@ export function EventDetail({
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{event.title}</h1>
           {event.summary && <p className="mt-1.5 text-[15px] text-muted-foreground">{event.summary}</p>}
+          {event.event_type_note && (
+            <p className="mt-1.5 text-sm text-muted-foreground">{event.event_type_note}</p>
+          )}
         </div>
         {onClose && (
           <button
@@ -194,22 +216,21 @@ export function EventDetail({
           )}
         </div>
 
-        {/* The disagreement, said in words as well as drawn. Deliberately hedged
-            where the underlying claims are approximate — subtracting two "circa"
-            dates does not produce a measurement. */}
-        {disputed && disagreement && (
-          <div className="mb-4 flex gap-3 rounded-xl border border-danger/25 bg-danger/5 p-4">
-            <Scale className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
+        {/* What the sources actually do relative to each other — a distance
+            only where there IS one. Overlapping windows are reported as
+            overlapping rather than subtracted into a misleading number, and
+            nothing is stated more precisely than the coarsest claim allows. */}
+        {comparison && comparison.kind !== "single" && said && (
+          <div
+            className={cn(
+              "mb-4 flex gap-3 rounded-xl border p-4",
+              disputed ? "border-danger/25 bg-danger/5" : "border-border bg-muted/40"
+            )}
+          >
+            <Scale className={cn("mt-0.5 h-5 w-5 shrink-0", disputed ? "text-danger" : "text-muted-foreground")} />
             <div>
-              <p className="text-sm font-semibold text-foreground">
-                Sources disagree about when this happened.
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {disagreement.claimCount} sources are cited here, and the earliest and latest dates they give are about{" "}
-                {formatDuration(disagreement.years)} apart.
-                {disagreement.isApproximate &&
-                  " Several of those dates are approximate, so read that as roughly how far apart they are, not as an exact figure."}
-              </p>
+              <p className="text-sm font-semibold text-foreground">{said.headline}</p>
+              {said.detail && <p className="mt-1 text-sm text-muted-foreground">{said.detail}</p>}
             </div>
           </div>
         )}
@@ -223,24 +244,26 @@ export function EventDetail({
               siblings={event.claims}
               sourcesById={sourcesById}
               index={index}
+              onEdit={canEdit ? () => setEditing("dates") : undefined}
+              onRemove={canEdit && event.claims.length > 1 ? () => setEditing("dates") : undefined}
             />
           ))}
         </div>
 
         {canContribute && (
           <div className="mt-4">
-            <AddClaimForm
-              communitySlug={communitySlug}
-              eventId={event.id}
-              sources={sources}
-              claimCount={event.claims.length}
-            />
+            <AddClaimForm communitySlug={communitySlug} eventId={event.id} claimCount={event.claims.length} />
           </div>
         )}
       </div>
 
-      {(isStaff || event.status === "pending") && (
+      {(canEdit || event.status === "pending") && (
         <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+          {canEdit && (
+            <Button type="button" size="sm" variant="secondary" onClick={() => setEditing("details")} disabled={pending}>
+              <Pencil className="h-4 w-4" /> Edit event
+            </Button>
+          )}
           {isStaff && event.status === "pending" && (
             <>
               <Button type="button" size="sm" onClick={() => review("published")} disabled={pending}>
@@ -260,6 +283,27 @@ export function EventDetail({
       )}
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+
+      {/* Staff only — RLS returns nothing to anyone else, so the panel would be
+          empty rather than forbidden, and an empty "View history" is worse than
+          no button. */}
+      {isStaff && <RevisionHistory communitySlug={communitySlug} eventId={event.id} />}
+
+      {editing && userId && (
+        <EditEventFlow
+          event={event}
+          initialPane={editing}
+          communitySlug={communitySlug}
+          userId={userId}
+          sources={sources}
+          tracks={tracks}
+          isStaff={isStaff}
+          onClose={() => {
+            setEditing(null);
+            router.refresh();
+          }}
+        />
+      )}
     </article>
   );
 }

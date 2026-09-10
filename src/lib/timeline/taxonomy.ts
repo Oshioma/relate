@@ -111,16 +111,20 @@ export function sourceTypeLabel(key: string | null | undefined): string {
 // ---------------------------------------------------------------------------
 
 export const DATING_METHODS = [
-  { key: "historical_record", label: "Historical record", hint: "A written account that names the date." },
-  { key: "archaeological", label: "Archaeological", hint: "Stratigraphy, pottery sequences, site phases." },
+  { key: "historical_record", label: "Written contemporary record", hint: "Somebody writing at the time named the date." },
+  { key: "regnal_chronology", label: "Regnal chronology", hint: "Counted through a list of kings, reigns or dynasties." },
+  { key: "genealogy", label: "Genealogy", hint: "Counted through generations of a family line." },
+  { key: "textual_interpretation", label: "Textual interpretation", hint: "Worked out by reading and interpreting a text." },
+  { key: "archaeological", label: "Archaeological context", hint: "Where the find sat, and what it sat with." },
+  { key: "stratigraphic", label: "Stratigraphy", hint: "Which layer it was in, and what lies above and below." },
   { key: "radiocarbon", label: "Radiocarbon dating", hint: "Carbon-14 decay in organic material." },
   { key: "radiometric", label: "Radiometric dating", hint: "Decay of longer-lived isotopes in rock." },
-  { key: "dendrochronology", label: "Tree rings", hint: "Counting and matching growth rings." },
-  { key: "astronomical", label: "Astronomical", hint: "Eclipses and other datable sky events." },
+  { key: "dendrochronology", label: "Dendrochronology (tree rings)", hint: "Counting and matching growth rings." },
+  { key: "geological", label: "Geological dating", hint: "The rock record, and how long it takes to form." },
+  { key: "astronomical", label: "Astronomical calculation", hint: "Eclipses and other sky events that can be calculated backwards." },
   { key: "genetic", label: "Genetic", hint: "Molecular clocks and population genetics." },
-  { key: "stratigraphic", label: "Geological layers", hint: "Where it sits in the rock record." },
-  { key: "textual_chronology", label: "Textual chronology", hint: "Counted from dates given in a text." },
-  { key: "oral_tradition", label: "Oral tradition", hint: "Generations counted or remembered." },
+  { key: "oral_tradition", label: "Oral tradition", hint: "Generations counted or remembered and passed on by telling." },
+  { key: "source_assertion", label: "The source simply states it", hint: "No working is given — the source asserts the date." },
   { key: "estimate", label: "Scholarly estimate", hint: "An informed judgement, not a measurement." },
   { key: "other", label: "Other", hint: "" },
 ] as const;
@@ -136,11 +140,17 @@ export function datingMethodHint(key: string | null | undefined): string {
 // ---------------------------------------------------------------------------
 // Whose chronology this is
 //
-// A viewpoint labels WHERE a date comes from. It is not a ranking, and the UI
-// must never render it as one — the source, the method and the evidence stay
-// next to it so a reader can weigh them (see §9 of the brief). Being able to
-// say "this is the conventional Egyptological date and this is a different
-// proposal" is exactly what lets a student compare rather than memorise.
+// A viewpoint labels the FRAMEWORK a date is calculated within — conventional
+// Egyptology, a geological timescale, a biblical chronology, an alternative
+// one. It is not a ranking and the UI must never render it as one: naming a
+// framework says where a number comes from, not whether Relate agrees with it.
+//
+// Kept separate from source type on purpose. "Academic paper" and "Religious
+// text" describe the KIND OF DOCUMENT a claim came from; "Conventional" and
+// "Biblical" describe the SYSTEM OF RECKONING it was calculated in. An academic
+// paper can argue an alternative chronology and a religious text can be cited
+// for a conventional date, so collapsing the two would lose information a
+// student needs to compare them.
 // ---------------------------------------------------------------------------
 
 export const CHRONOLOGIES = [
@@ -162,20 +172,38 @@ export function chronologyLabel(key: string | null | undefined): string {
 }
 
 // ---------------------------------------------------------------------------
-// How well evidenced the claim is
+// What KIND of record an event is
+//
+// Not how credible it is. "Religious account" and "Scientific model" describe
+// where a record comes from and what sort of claim it makes; neither is a mark
+// out of ten, and the UI must never render them as one. A reader who knows they
+// are looking at a traditional account rather than an excavation report can
+// weigh it themselves — which is the entire point, and is something a
+// credibility badge actively prevents.
+//
+// Nothing sets this automatically. Null means nobody has said.
 // ---------------------------------------------------------------------------
 
-export const CONFIDENCE_LEVELS = [
-  { key: "high", label: "Well evidenced", hint: "Several independent lines of evidence agree." },
-  { key: "medium", label: "Reasonably evidenced", hint: "Supported, but with real uncertainty." },
-  { key: "low", label: "Weakly evidenced", hint: "Little direct evidence — largely inference." },
-  { key: "contested", label: "Contested", hint: "Specialists actively disagree about this." },
+export const TIMELINE_EVENT_TYPES = [
+  { key: "historical", label: "Historical event", hint: "Something recorded as having happened." },
+  { key: "scientific_model", label: "Scientific model or event", hint: "An event as described by a scientific model." },
+  { key: "traditional_account", label: "Traditional account", hint: "Carried by a tradition or a people's own telling." },
+  { key: "religious_account", label: "Religious account", hint: "As given in a religious tradition or text." },
+  { key: "archaeological_interpretation", label: "Archaeological interpretation", hint: "A reading of physical evidence." },
+  { key: "hypothesised", label: "Proposed or hypothesised", hint: "Put forward, not established." },
+  { key: "future_prediction", label: "Future prediction", hint: "Expected, calculated or forecast." },
+  { key: "planned_future", label: "Planned future event", hint: "Scheduled by someone — a launch, a trip, an anniversary." },
+  { key: "other", label: "Other", hint: "" },
 ] as const;
 
-export type ConfidenceLevel = (typeof CONFIDENCE_LEVELS)[number]["key"];
+export type TimelineEventType = (typeof TIMELINE_EVENT_TYPES)[number]["key"];
 
-export function confidenceLabel(key: string | null | undefined): string | null {
-  return CONFIDENCE_LEVELS.find((c) => c.key === key)?.label ?? null;
+export function eventTypeLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return (
+    TIMELINE_EVENT_TYPES.find((type) => type.key === key)?.label ??
+    key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")
+  );
 }
 
 // ---------------------------------------------------------------------------

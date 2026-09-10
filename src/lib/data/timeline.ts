@@ -5,7 +5,9 @@ import type {
   TimelineDateClaim,
   TimelineSource,
   TimelineTrack,
+  TimelineRevision,
 } from "@/types/database";
+import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
 type Client = SupabaseClient<Database>;
 
@@ -59,7 +61,7 @@ export type TimelineFilters = {
 export const TIMELINE_WINDOW_CAP = 400;
 
 const EVENT_COLUMNS =
-  "id, community_id, created_by, slug, title, summary, description, category, subcategory, tags, location_name, lat, lng, image_url, media, people, civilisations, status, reviewed_by, reviewed_at, created_at, updated_at";
+  "id, community_id, created_by, slug, title, summary, description, category, subcategory, event_type, event_type_note, tags, location_name, lat, lng, image_url, media, people, civilisations, status, reviewed_by, reviewed_at, created_at, updated_at";
 
 /**
  * Every event with at least one date claim landing in [from, to].
@@ -159,19 +161,15 @@ export async function getTimelineWindow(
 }
 
 /**
- * Whether an event's sources actually disagree — two or more claims that do NOT
- * land in the same place. Two sources that both say 1066 are corroboration, not
- * a dispute, and the "disputed dates" filter would be useless if it counted
- * them.
+ * Whether an event's sources actually place it in different stretches of time.
+ *
+ * Delegates to compareClaims so the "sources disagree" FILTER and the sentence
+ * the detail panel prints can never contradict each other — two sources that
+ * both say 1066 are corroboration, and two whose ranges overlap have not been
+ * caught disagreeing by a distance.
  */
-export function isDisputed(claims: Pick<TimelineDateClaim, "start_position" | "end_position">[]): boolean {
-  if (claims.length < 2) return false;
-  const first = claims[0];
-  return claims.some(
-    (claim) =>
-      claim.start_position !== first.start_position ||
-      (claim.end_position ?? claim.start_position) !== (first.end_position ?? first.start_position)
-  );
+export function isDisputed(claims: ClaimTimeParts[]): boolean {
+  return claimsDisagree(claims);
 }
 
 /** Every claim on these events — including ones outside the window, so the disagreement shown is the whole disagreement. */
@@ -490,6 +488,126 @@ export async function getTimelineFacets(
   }
   const sort = (values: Set<string>) => [...values].sort((a, b) => a.localeCompare(b));
   return { people: sort(people), civilisations: sort(civilisations), categories: sort(categories) };
+}
+
+/**
+ * Sources in this community matching what somebody is typing.
+ *
+ * Reuse is the point of sources being their own records: a community holding
+ * "Herodotus — Histories" and "Herodotus Histories" as unrelated rows has lost
+ * the ability to ask what else that source dates. This is what prevents that —
+ * offered as a suggestion, never as an automatic merge, because different
+ * editions, translations and printings of the same work legitimately ARE
+ * different records.
+ *
+ * Matches title, author, publisher and the work the reference points into, so
+ * "penguin" finds an edition and "herodotus" finds it by either name.
+ */
+export async function searchTimelineSources(
+  supabase: Client,
+  communityId: string,
+  term: string,
+  limit = 8
+): Promise<TimelineSource[]> {
+  const safe = term.trim().replace(/[,()[\]{}"'*\\%]/g, " ").trim();
+  const query = supabase.from("timeline_sources").select("*").eq("community_id", communityId);
+
+  // An empty box offers the most recently added few, so the first thing a
+  // contributor sees is what their community already cites.
+  const { data, error } = safe
+    ? await query
+        .or(
+          [`title.ilike.%${safe}%`, `author.ilike.%${safe}%`, `publisher.ilike.%${safe}%`, `work_title.ilike.%${safe}%`].join(",")
+        )
+        .order("title", { ascending: true })
+        .limit(limit)
+    : await query.order("created_at", { ascending: false }).limit(limit);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** How many claims across the community cite each of these sources — "used by 4 dates". */
+export async function countClaimsPerSource(
+  supabase: Client,
+  communityId: string,
+  sourceIds: string[]
+): Promise<Map<string, number>> {
+  const unique = [...new Set(sourceIds)];
+  if (unique.length === 0) return new Map();
+  const { data, error } = await supabase
+    .from("timeline_date_claims")
+    .select("source_id")
+    .eq("community_id", communityId)
+    .in("source_id", unique);
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    if (!row.source_id) continue;
+    counts.set(row.source_id, (counts.get(row.source_id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Everything a source is cited for, across the community.
+ *
+ * Nothing renders a dedicated source page yet, but a source has always been a
+ * many-to-many record — one work dates any number of events — and this is the
+ * read that page will need. Keeping it here means the shape is settled now,
+ * rather than discovered later by a screen that assumed one source, one claim.
+ */
+export async function getSourceUsage(
+  supabase: Client,
+  communityId: string,
+  sourceId: string
+): Promise<{ claims: TimelineDateClaim[]; events: TimelineEvent[] }> {
+  const { data: claims, error } = await supabase
+    .from("timeline_date_claims")
+    .select("*")
+    .eq("community_id", communityId)
+    .eq("source_id", sourceId)
+    .order("start_position", { ascending: true });
+  if (error) throw error;
+
+  const eventIds = [...new Set((claims ?? []).map((claim) => claim.event_id))];
+  if (eventIds.length === 0) return { claims: claims ?? [], events: [] };
+
+  const { data: events, error: eventError } = await supabase
+    .from("timeline_events")
+    .select(EVENT_COLUMNS)
+    .in("id", eventIds);
+  if (eventError) throw eventError;
+
+  return { claims: claims ?? [], events: (events ?? []) as TimelineEvent[] };
+}
+
+/**
+ * What has been changed on this event, newest first.
+ *
+ * Indexed on (event_id, created_at desc), so an event's history is an index
+ * scan of its own rows rather than a walk of the community's — which is what
+ * keeps the panel cheap on a timeline that has been edited for years.
+ */
+export async function getEventRevisions(
+  supabase: Client,
+  eventId: string,
+  limit = 50
+): Promise<(TimelineRevision & { actor: { username: string | null; full_name: string | null } | null })[]> {
+  const { data, error } = await supabase
+    .from("timeline_revisions")
+    .select("*, actor:actor_id (username, full_name)")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  // RLS limits this to staff. A non-staff reader gets an empty list rather than
+  // an error, so the caller doesn't have to ask permission twice.
+  if (error) throw error;
+  return (data ?? []) as unknown as (TimelineRevision & {
+    actor: { username: string | null; full_name: string | null } | null;
+  })[];
 }
 
 function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {
