@@ -52,6 +52,22 @@ export function isReservedStaySlug(slug: string): boolean {
   return RESERVED_STAY_SLUGS.has(slug);
 }
 
+// Which categories are offered the Business Directory → Accommodation bridge
+// ("Is this a place to stay?") when we haven't detected a stay ourselves.
+//
+// The bridge used to be offered on every listing its manager opened, so a fundi,
+// a taxi driver and a hardware shop were all asked whether they were a hotel —
+// noise on the listings it can never apply to. Restaurant is the one built-in
+// category a guesthouse genuinely gets filed under (a place with rooms above the
+// dining room lists the part it thinks of as the business), so it's the only one
+// worth the prompt. Anything already tagged "accommodation" is detected, not
+// offered, and reaches the bridge regardless of this set.
+const STAY_OFFER_CATEGORIES = new Set<string>(["restaurant"]);
+
+export function offersStayBridge(category: string): boolean {
+  return STAY_OFFER_CATEGORIES.has(category);
+}
+
 // Whether a value is one of the built-in categories (vs a custom slug). Used to
 // route a rename to the right store: built-ins get a label override, customs
 // rename their own row.

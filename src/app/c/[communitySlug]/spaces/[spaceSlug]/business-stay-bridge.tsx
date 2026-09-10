@@ -22,9 +22,10 @@ export function BusinessStayBridge({
   // The viewer manages this listing and the community has an accommodation
   // space to host the stay.
   canCreate: boolean;
-  // Whether we detected this ourselves. When we didn't, the prompt is an
-  // offer rather than an observation — it shows on every listing the viewer
-  // manages, so it must not assert that a hardware shop is a hotel.
+  // Whether we detected this ourselves. When we didn't, the prompt is an offer
+  // rather than an observation — the caller has judged the category plausible
+  // (a restaurant with rooms above it), not established anything, so it must
+  // not assert that the place is a hotel.
   detected: boolean;
 }) {
   const [isPending, startTransition] = useTransition();

@@ -5,6 +5,7 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getBusinessDetail, resolveBusinessRef, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
+import { offersStayBridge } from "@/lib/business-categories";
 import { getCommunityAccommodationSpace, getStayLinkForBusiness } from "@/lib/data/accommodation";
 import { BusinessDetailView } from "../../business-detail-view";
 
@@ -73,12 +74,14 @@ export default async function BusinessDetailPage({
 
   // Accommodation bridge: is this stay-like business already linked to a stay,
   // and (if not) is there an accommodation space to create one in?
-  // The bridge used to be offered only on listings already tagged as
-  // accommodation — no help at all to a hotel someone filed under Restaurants,
-  // which is exactly when it's needed. Anyone who manages the listing can reach
-  // it now; the card just states its case more quietly when we haven't detected
-  // anything ourselves.
+  //
+  // A listing already tagged accommodation is detected outright. Beyond that the
+  // bridge is only *offered* on the categories a guesthouse plausibly hides in —
+  // Restaurants, in practice (see offersStayBridge). It was briefly offered on
+  // every listing its manager opened, which asked a fundi, a taxi and a hardware
+  // shop whether they were a hotel.
   const isStayLike = detail.business.category === "accommodation";
+  const offerStay = isStayLike || offersStayBridge(detail.business.category);
   const [linkedStay, accommodationSpace] = await Promise.all([
     getStayLinkForBusiness(supabase, detail.business.id),
     canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
@@ -112,7 +115,7 @@ export default async function BusinessDetailPage({
         canSave={Boolean(isActive)}
         canClaim={canClaim}
         linkedStay={linkedStay}
-        canCreateStay={canManage && accommodationSpace !== null}
+        canCreateStay={canManage && offerStay && accommodationSpace !== null}
         stayDetected={isStayLike}
         customCategories={customCategories.filter((c) => c.space_id === space.id)}
         labelOverrides={labelOverrides.filter((o) => o.space_id === space.id)}
