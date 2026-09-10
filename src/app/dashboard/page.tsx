@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Users, Plus, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
-import { getUserCommunities, getDiscoverableCommunities } from "@/lib/data/community";
+import { getUserCommunities, getDiscoverableCommunities, getCommunitiesOwnedByOthers } from "@/lib/data/community";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,6 +25,11 @@ export default async function DashboardPage() {
     getProfile(supabase, user.id),
   ]);
 
+  // A second round trip, and only for a super admin — the strip below is
+  // theirs alone, and nobody else should pay a query for it.
+  const isSuperAdmin = Boolean(profile?.is_super_admin);
+  const othersCommunities = isSuperAdmin ? await getCommunitiesOwnedByOthers(supabase, user.id) : [];
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-8 flex items-start justify-between gap-4">
@@ -33,7 +38,7 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {profile?.is_super_admin && (
+          {isSuperAdmin && (
             <LinkButton href="/platform-admin" size="sm" variant="secondary">
               <Shield className="h-4 w-4" />
               Platform admin
@@ -99,6 +104,36 @@ export default async function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {othersCommunities.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-1 flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            <Shield className="h-3.5 w-3.5" />
+            Communities created by others
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Everything on the platform you don&apos;t own and haven&apos;t joined. Only you can see this.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {othersCommunities.map((community) => (
+              <Link key={community.id} href={`/c/${community.slug}`} className="group">
+                <Card className="h-full transition-shadow group-hover:shadow-sm">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} />
+                      <Badge tone={community.privacy === "public" ? "accent" : "neutral"}>{community.privacy}</Badge>
+                    </div>
+                    <h3 className="mt-3 text-sm font-semibold text-foreground">{community.name}</h3>
+                    {community.description && (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
