@@ -18,7 +18,7 @@ import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommoda
 import { StayBusinessBridge } from "./stay-business-bridge";
 import { AccommodationClaimSection } from "./accommodation-claim-section";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
-import type { BusinessCustomCategory } from "@/types/database";
+import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 const StaticMap = dynamic(() => import("@/components/map/static-map"), {
   ssr: false,
@@ -46,6 +46,7 @@ export function AccommodationDetailView({
   businesses,
   canCreateBusiness,
   directoryCategories,
+  directoryLabelOverrides,
 }: {
   detail: AccommodationDetail;
   communityId: string;
@@ -68,6 +69,9 @@ export function AccommodationDetailView({
   // The viewer manages this stay and the community has a directory to add to.
   canCreateBusiness: boolean;
   directoryCategories: BusinessCustomCategory[];
+  // The directory space's relabellings of the built-in categories, so the
+  // bridge's picker names them the way the directory itself does.
+  directoryLabelOverrides: BusinessCategoryLabelOverride[];
 }) {
   const { listing, reviews, avgRating, ratingCount, viewerReview, linkedBusiness, viewerClaim, pendingClaims } = detail;
   const [isEditing, setIsEditing] = useState(false);
@@ -369,6 +373,7 @@ export function AccommodationDetailView({
         linkedBusiness={linkedBusiness}
         canCreate={canCreateBusiness}
         customCategories={directoryCategories}
+        labelOverrides={directoryLabelOverrides}
       />
     </div>
   );

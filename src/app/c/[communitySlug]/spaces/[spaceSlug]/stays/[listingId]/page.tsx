@@ -77,6 +77,12 @@ export default async function AccommodationDetailPage({
   const { data: directoryCategories } = directorySpace
     ? await supabase.from("business_custom_categories").select("*").eq("space_id", directorySpace.id)
     : { data: null };
+  // And that space's relabellings of the built-in categories. Without them the
+  // picker offers "Restaurant" to a community that renamed it to "Eating out" —
+  // the one name they've already replaced everywhere else in the directory.
+  const { data: directoryLabelOverrides } = directorySpace
+    ? await supabase.from("business_category_label_overrides").select("*").eq("space_id", directorySpace.id)
+    : { data: null };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -106,6 +112,7 @@ export default async function AccommodationDetailPage({
         businesses={businesses}
         canCreateBusiness={canManage && directorySpace !== null}
         directoryCategories={directoryCategories ?? []}
+        directoryLabelOverrides={directoryLabelOverrides ?? []}
       />
     </div>
   );
