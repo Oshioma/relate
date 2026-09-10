@@ -193,6 +193,13 @@ export function EventFields({
       <div>
         <Label>Picture</Label>
         <ImageUpload
+          // Keyed on the URL so the preview follows it. ImageUpload seeds its
+          // preview from currentUrl once, on mount — which is right when a
+          // person picks the file themselves, and wrong here, where the picture
+          // arrives from a pasted link after the control is already on screen.
+          // Without this the image was attached and saved with nothing on
+          // screen to say so.
+          key={value.imageUrl ?? "no-picture"}
           bucket="uploads"
           basePath={`${userId}/timeline/${uploadKey}`}
           currentUrl={value.imageUrl}
