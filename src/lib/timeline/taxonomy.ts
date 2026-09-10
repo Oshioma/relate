@@ -95,6 +95,7 @@ export const TIMELINE_SOURCE_TYPES = [
   { key: "oral_tradition", label: "Oral tradition", hint: "Knowledge carried by telling rather than writing." },
   { key: "book", label: "Book", hint: "A published book." },
   { key: "website", label: "Website", hint: "An online article or reference page." },
+  { key: "video", label: "Video or documentary", hint: "A film, documentary or recorded talk." },
   { key: "museum", label: "Museum or archive", hint: "A collection, catalogue entry or exhibit." },
   { key: "modern_interpretation", label: "Modern interpretation", hint: "Somebody's reading of the evidence." },
   { key: "other", label: "Other", hint: "" },

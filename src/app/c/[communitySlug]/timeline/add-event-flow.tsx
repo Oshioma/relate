@@ -2,15 +2,17 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Link2, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
 import { EventFields, parseList, type EventFieldValues } from "./event-fields";
 import { ClaimFields } from "./claim-fields";
-import { createTimelineEvent } from "./actions";
+import { createTimelineEvent, importSourceFromLink } from "./actions";
 import {
   emptyClaimDraft,
+  emptySourceDraft,
   resolveDateInput,
   resolveUncertaintyYears,
   type ClaimDraft,
@@ -105,6 +107,77 @@ export function AddEventFlow({
   const [fields, setFields] = useState<EventFieldValues>(emptyFields);
   const [claims, setClaims] = useState<ClaimDraft[]>([emptyClaimDraft()]);
 
+  const [link, setLink] = useState("");
+  const [reading, setReading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkFilled, setLinkFilled] = useState<string[] | null>(null);
+
+  // Start from a link.
+  //
+  // Somebody adding "the Chicxulub impact" usually has the article or the
+  // documentary open already. One paste fills what the page genuinely knows —
+  // the event's name, a one-line summary, a picture, and the whole source block
+  // waiting on step 3 — so the form arrives mostly answered.
+  //
+  // WHAT IT WILL NEVER FILL IS THE DATE. Everything above can be checked at a
+  // glance against the page; a date cannot. Scraping a year out of an article
+  // and presenting it as a sourced claim would manufacture exactly the thing
+  // this feature exists to make visible — somebody asserting a date without
+  // saying where it came from. Step 2 says so out loud.
+  async function readLink() {
+    const trimmed = link.trim();
+    if (!trimmed) return;
+    setReading(true);
+    setLinkError(null);
+    setLinkFilled(null);
+
+    const result = await importSourceFromLink(communitySlug, trimmed);
+    setReading(false);
+
+    if (!result.ok) {
+      setLinkError(result.error);
+      return;
+    }
+
+    const found = result.source;
+    const got: string[] = [];
+    if (found.title) got.push("what happened");
+    if (found.summary) got.push("a summary");
+    if (found.imageUrl) got.push("a picture");
+    got.push("the source");
+
+    setFields((current) => ({
+      ...current,
+      // Never overwrite something already typed.
+      title: current.title.trim() || found.title,
+      summary: current.summary.trim() || found.summary || "",
+      imageUrl: current.imageUrl ?? found.imageUrl,
+    }));
+
+    setClaims((current) =>
+      current.map((claim, index) =>
+        index === 0
+          ? {
+              ...claim,
+              source_id: null,
+              new_source: {
+                ...(claim.new_source ?? emptySourceDraft()),
+                title: claim.new_source?.title?.trim() || found.title,
+                author: claim.new_source?.author?.trim() || found.author || "",
+                publisher: claim.new_source?.publisher?.trim() || found.publisher || "",
+                url: found.url,
+                source_type: found.sourceType,
+                published: found.published
+                  ? { mode: "calendar" as const, year: found.published.year, era: "CE" as const, month: found.published.month, day: found.published.day, unit: "million" as const }
+                  : claim.new_source?.published ?? null,
+              },
+            }
+          : claim
+      )
+    );
+    setLinkFilled(got);
+  }
+
   function updateClaim(index: number, next: ClaimDraft) {
     setClaims((current) => current.map((claim, i) => (i === index ? next : claim)));
   }
@@ -185,7 +258,45 @@ export function AddEventFlow({
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {step === 0 && (
-            <EventFields value={fields} onChange={setFields} tracks={tracks} userId={userId} uploadKey={uploadKey} autoFocus />
+            <div className="space-y-5">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <Label>Got a link? Start from it</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Input
+                    aria-label="Link to start from"
+                    value={link}
+                    onChange={(event) => setLink(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void readLink();
+                      }
+                    }}
+                    placeholder="A YouTube video, a Wikipedia article, a news story, a paper…"
+                    className="min-w-[16rem] flex-1"
+                  />
+                  <Button type="button" variant="secondary" onClick={() => void readLink()} disabled={reading || !link.trim()}>
+                    {reading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Reading…</>) : (<><Link2 className="h-4 w-4" /> Fill in</>)}
+                  </Button>
+                </div>
+
+                {linkFilled && (
+                  <p className="mt-1.5 text-xs text-accent">
+                    Filled in {linkFilled.join(", ")}. The source is waiting on step 3 — check it all over and correct
+                    anything the page got wrong.
+                  </p>
+                )}
+                {linkError && <p className="mt-1.5 text-xs text-danger">{linkError}</p>}
+                {!linkFilled && !linkError && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Optional. We&apos;ll fill in what the page says about itself — its title, a summary, a picture, and
+                    who published it — but never the date. That one has to come from you.
+                  </p>
+                )}
+              </div>
+
+              <EventFields value={fields} onChange={setFields} tracks={tracks} userId={userId} uploadKey={uploadKey} autoFocus />
+            </div>
           )}
 
           {step === 1 && (
@@ -194,6 +305,13 @@ export function AddEventFlow({
                 Every date on this timeline belongs to somebody — a book, a dig, a study. Put the date here, and where it
                 came from on the next step.
               </p>
+              {linkFilled && (
+                <p className="rounded-lg bg-muted/50 px-3.5 py-2.5 text-sm text-muted-foreground">
+                  We filled in what we could from your link, but not this. A date is a claim somebody makes, and reading
+                  one off a page without saying where it came from is the habit this timeline exists to break. Read it
+                  off the source yourself.
+                </p>
+              )}
               <ClaimFields
                 value={claims[0]}
                 onChange={(next) => updateClaim(0, next)}

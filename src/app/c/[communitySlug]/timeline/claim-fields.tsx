@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Link2, Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineSource } from "@/types/database";
 import { DateFields } from "./date-fields";
 import { SourcePicker } from "./source-picker";
+import { importSourceFromLink } from "./actions";
 import {
   emptySourceDraft,
   precisionFromDateInput,
@@ -74,13 +76,70 @@ function SourceFields({
   value,
   onChange,
   onCancel,
+  communitySlug,
 }: {
   value: SourceDraft;
   onChange: (next: SourceDraft) => void;
   onCancel: () => void;
+  communitySlug: string;
 }) {
+  const [link, setLink] = useState(value.url ?? "");
+  const [reading, setReading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [filled, setFilled] = useState<string[] | null>(null);
+
   function update(patch: Partial<SourceDraft>) {
     onChange({ ...value, ...patch });
+  }
+
+  // Paste a link, get a filled-in form. It fills; it never submits — page
+  // metadata is often thin or wrong, and the person pasting knows more about
+  // what they are citing than the page's <meta> tags do.
+  async function readLink() {
+    const trimmed = link.trim();
+    if (!trimmed) return;
+    setReading(true);
+    setLinkError(null);
+    setFilled(null);
+
+    const result = await importSourceFromLink(communitySlug, trimmed);
+    setReading(false);
+
+    if (!result.ok) {
+      // The link is still worth keeping even when the page won't be read.
+      update({ url: trimmed });
+      setLinkError(result.error);
+      return;
+    }
+
+    const found = result.source;
+    const got: string[] = [];
+    if (found.title) got.push("title");
+    if (found.author) got.push("author");
+    if (found.publisher) got.push("publisher");
+    if (found.published) got.push("its own date");
+
+    update({
+      url: found.url,
+      // Never overwrite something already typed — a contributor who has
+      // corrected the title should not lose it to a second fetch.
+      title: value.title.trim() || found.title,
+      author: value.author?.trim() || found.author || "",
+      publisher: value.publisher?.trim() || found.publisher || "",
+      source_type: found.sourceType,
+      published: found.published
+        ? {
+            mode: "calendar",
+            year: found.published.year,
+            era: "CE",
+            month: found.published.month,
+            day: found.published.day,
+            unit: "million",
+          }
+        : value.published ?? null,
+    });
+    setLink(found.url);
+    setFilled(got);
   }
 
   return (
@@ -95,6 +154,46 @@ function SourceFields({
           Search existing instead
         </button>
       </div>
+
+      {/* Start from the link. A video or a wiki page has its title, its author
+          and its own publication date written into it already — asking somebody
+          to retype all three is how a timeline ends up full of unsourced
+          dates. */}
+      <div className="rounded-lg border border-border bg-card p-3">
+        <Label>Paste a link and we&apos;ll fill this in</Label>
+        <div className="flex flex-wrap gap-2">
+          <Input
+            aria-label="Link to the source"
+            value={link}
+            onChange={(event) => setLink(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                void readLink();
+              }
+            }}
+            placeholder="A YouTube video, a Wikipedia article, a news story, a paper…"
+            className="min-w-[16rem] flex-1"
+          />
+          <Button type="button" variant="secondary" onClick={() => void readLink()} disabled={reading || !link.trim()}>
+            {reading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Reading…</>) : (<><Link2 className="h-4 w-4" /> Fill in</>)}
+          </Button>
+        </div>
+
+        {filled && (
+          <p className="mt-1.5 text-xs text-accent">
+            {filled.length > 0 ? `Filled in the ${filled.join(", ")}. ` : ""}
+            Check it over and correct anything the page got wrong.
+          </p>
+        )}
+        {linkError && <p className="mt-1.5 text-xs text-danger">{linkError}</p>}
+        {!filled && !linkError && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Optional — you can type the details yourself instead. Nothing is saved until you finish the form.
+          </p>
+        )}
+      </div>
+
       <div>
         <Label>Source title</Label>
         <Input
@@ -128,7 +227,12 @@ function SourceFields({
         </div>
         <div>
           <Label>Link</Label>
-          <Input aria-label="Link" value={value.url ?? ""} onChange={(event) => update({ url: event.target.value })} placeholder="https://…" />
+          <Input
+            aria-label="Link"
+            value={value.url ?? ""}
+            onChange={(event) => update({ url: event.target.value })}
+            placeholder="https://…"
+          />
         </div>
         <div>
           <Label>Kind of source</Label>
@@ -453,6 +557,7 @@ export function ClaimFields({
                 value={value.new_source}
                 onChange={(next) => update({ new_source: next })}
                 onCancel={() => update({ new_source: null })}
+                communitySlug={communitySlug}
               />
             ) : (
               <SourcePicker

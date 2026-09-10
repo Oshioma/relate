@@ -17,6 +17,7 @@ import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability"
 import { STARTER_TRACKS } from "@/lib/timeline/taxonomy";
 import { claimDraftSchema, eventDraftSchema, resolveDateInput, resolveUncertaintyYears, type ClaimDraft, type SourceDraft } from "@/lib/timeline/draft";
 import { slugify, normalizeUrl } from "@/lib/utils";
+import { readSourceLink, type LinkedSource } from "@/lib/timeline/source-link";
 import type { Community, CommunityMembership, TimelineSource, TimelineRevision } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -524,6 +525,27 @@ export async function updateDateClaim(
   revalidatePath(timelinePath(community.slug));
   revalidatePath(`${timelinePath(community.slug)}/${event.slug}`);
   return { ok: true, slug: event.slug, returnedToQueue: verdict.returnsToQueue };
+}
+
+/**
+ * Read a pasted link into source fields.
+ *
+ * Gated on being able to write to this community's timeline, and not because
+ * the result is sensitive: an action that fetches any URL a stranger names is a
+ * fetch proxy pointed at our network, and the cheapest way not to run one is to
+ * ask who is calling. isPublicHttpUrl covers the rest.
+ *
+ * Failure is never fatal here. A site that refuses a server-side request has
+ * cost the contributor nothing but a moment — the link is still a good source,
+ * it just has to be typed, and the message says so.
+ */
+export async function importSourceFromLink(
+  communitySlug: string,
+  url: string
+): Promise<{ ok: true; source: LinkedSource } | { ok: false; error: string }> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return { ok: false, error: context.error };
+  return readSourceLink(url);
 }
 
 /** Sources this community already has, for the autocomplete in the claim form. */
