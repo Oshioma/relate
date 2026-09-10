@@ -1988,6 +1988,133 @@ export type ContactMessageReply = {
   created_at: string;
 };
 
+// ---------------------------------------------------------------------------
+// The Interactive Learning Timeline (homeschool communities today — see
+// src/lib/timeline/availability.ts). Mirrors …_timeline_core.sql.
+//
+// The shape that matters: an event has NO date. A date is always a CLAIM, made
+// by a source, with a method and a viewpoint behind it — because showing that
+// sources disagree is the point of the feature, not a footnote to it.
+// ---------------------------------------------------------------------------
+
+// A source of a claim — a book, a paper, an excavation report, an oral
+// tradition. Community-scoped and shared: one source can be cited by many
+// claims across many events.
+export type TimelineSource = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  title: string;
+  author: string | null;
+  publisher: string | null;
+  work_title: string | null;
+  reference: string | null;
+  url: string | null;
+  file_url: string | null;
+  // TIMELINE_SOURCE_TYPES in src/lib/timeline/taxonomy.ts.
+  source_type: string;
+  notes: string | null;
+  // WHEN THE SOURCE WAS MADE — a different fact from when the event it
+  // describes happened, and kept apart from it on purpose. Astronomical year,
+  // same representation as a claim's (see src/lib/timeline/time.ts).
+  published_year: number | null;
+  published_month: number | null;
+  published_day: number | null;
+  published_is_approximate: boolean;
+  published_display: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// A lane in Compare mode — "Ancient Egypt", "China", "Science".
+export type TimelineTrack = {
+  id: string;
+  community_id: string;
+  created_by: string | null;
+  name: string;
+  slug: string;
+  kind: "region" | "theme";
+  color: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TimelineEventStatus = "published" | "pending" | "rejected";
+
+export type TimelineEvent = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  slug: string;
+  title: string;
+  summary: string;
+  description: string;
+  // TIMELINE_CATEGORIES in src/lib/timeline/taxonomy.ts. Plain text, so a
+  // community can file something under a word we didn't think of.
+  category: string;
+  subcategory: string | null;
+  tags: string[];
+  location_name: string | null;
+  lat: number | null;
+  lng: number | null;
+  image_url: string | null;
+  media: { url: string; caption?: string; kind?: string }[];
+  people: string[];
+  civilisations: string[];
+  // Members contribute as 'pending' and staff approve — the same moderation
+  // pattern business claims and crop proposals use. RLS forces it; this is not
+  // merely a default.
+  status: TimelineEventStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// WHEN A SOURCE SAYS IT HAPPENED. An event may have any number of these, and
+// two of them disagreeing is data, not an error.
+export type TimelineDateClaim = {
+  id: string;
+  event_id: string;
+  community_id: string;
+  created_by: string;
+  source_id: string | null;
+  // Astronomical year: 1 CE = 1, 1 BCE = 0, 2 BCE = -1, Big Bang ≈ -1.38e10.
+  start_year: number;
+  start_month: number | null;
+  start_day: number | null;
+  // Set for a span ("2600–2500 BCE"); null for a point claim.
+  end_year: number | null;
+  end_month: number | null;
+  end_day: number | null;
+  // Generated columns — year+month+day folded into the number the axis draws
+  // against, and the era the year implies. Read-only: Postgres computes them.
+  start_position: number;
+  end_position: number | null;
+  start_era: "BCE" | "CE";
+  end_era: "BCE" | "CE" | null;
+  // DATE_PRECISIONS in src/lib/timeline/time.ts.
+  date_precision: string;
+  is_approximate: boolean;
+  display_text: string;
+  dating_method: string | null;
+  chronology: string | null;
+  confidence: string | null;
+  // What "Why this date?" reads.
+  evidence: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TimelineEventTrack = {
+  event_id: string;
+  track_id: string;
+  community_id: string;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -2669,6 +2796,43 @@ export type Database = {
         Insert: Partial<FarmShare> & { profile_id: string };
         Update: Partial<FarmShare>;
       } & NoRel;
+      timeline_sources: {
+        Row: TimelineSource;
+        Insert: Partial<TimelineSource> & { community_id: string; created_by: string; title: string };
+        Update: Partial<TimelineSource>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
+      timeline_tracks: {
+        Row: TimelineTrack;
+        Insert: Partial<TimelineTrack> & { community_id: string; name: string; slug: string };
+        Update: Partial<TimelineTrack>;
+      } & NoRel;
+      timeline_events: {
+        Row: TimelineEvent;
+        Insert: Partial<TimelineEvent> & { community_id: string; created_by: string; slug: string; title: string };
+        Update: Partial<TimelineEvent>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
+      timeline_date_claims: {
+        // start_position / end_position / start_era / end_era are generated by
+        // Postgres, so they are Row-only — an Insert that set them would be
+        // rejected. Omit rather than Partial for exactly that reason.
+        Row: TimelineDateClaim;
+        Insert: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era"> & {
+          event_id: string;
+          community_id: string;
+          created_by: string;
+          start_year: number;
+        };
+        Update: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era">;
+        Relationships: [FKey<"created_by", "profiles">, FKey<"source_id", "timeline_sources">, FKey<"event_id", "timeline_events">];
+      };
+      timeline_event_tracks: {
+        Row: TimelineEventTrack;
+        Insert: Partial<TimelineEventTrack> & { event_id: string; track_id: string; community_id: string };
+        Update: Partial<TimelineEventTrack>;
+        Relationships: [FKey<"track_id", "timeline_tracks">, FKey<"event_id", "timeline_events">];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2690,6 +2854,10 @@ export type Database = {
       };
       community_has_feature: {
         Args: { p_community_id: string; p_feature: string };
+        Returns: boolean;
+      };
+      community_has_timeline: {
+        Args: { p_community_id: string };
         Returns: boolean;
       };
       community_purchased_space_types: {
