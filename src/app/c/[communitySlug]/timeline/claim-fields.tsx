@@ -7,18 +7,16 @@ import { cn } from "@/lib/utils";
 import type { TimelineSource } from "@/types/database";
 import { DateFields } from "./date-fields";
 import { SourcePicker } from "./source-picker";
-import { LinkFillBox } from "./link-fill-box";
-import type { LinkedSource } from "@/lib/timeline/source-link";
+import { SourceFields } from "./source-fields";
 import {
   emptySourceDraft,
   precisionFromDateInput,
   resolveDateInput,
   resolveUncertaintyYears,
   type ClaimDraft,
-  type SourceDraft,
 } from "@/lib/timeline/draft";
 import { DATE_UNITS, dateUnit, formatClaimDate, unitTakesDecimals } from "@/lib/timeline/time";
-import { CHRONOLOGIES, DATING_METHODS, TIMELINE_SOURCE_TYPES } from "@/lib/timeline/taxonomy";
+import { CLAIM_VIEWPOINTS, DATING_METHODS, viewpointHint } from "@/lib/timeline/taxonomy";
 
 // One proposed date, and the source behind it.
 //
@@ -68,164 +66,6 @@ function Select({
         ))}
       </select>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-    </div>
-  );
-}
-
-function SourceFields({
-  value,
-  onChange,
-  onCancel,
-  communitySlug,
-}: {
-  value: SourceDraft;
-  onChange: (next: SourceDraft) => void;
-  onCancel: () => void;
-  communitySlug: string;
-}) {
-  function update(patch: Partial<SourceDraft>) {
-    onChange({ ...value, ...patch });
-  }
-
-  // Paste a link, get a filled-in form. It fills; it never submits — page
-  // metadata is often thin or wrong, and the person pasting knows more about
-  // what they are citing than the page's <meta> tags do.
-  function fillFromLink(found: LinkedSource): string[] {
-    const got: string[] = [];
-    if (found.title) got.push("title");
-    if (found.author) got.push("author");
-    if (found.publisher) got.push("publisher");
-    if (found.published) got.push("its own date");
-
-    update({
-      url: found.url,
-      // Never overwrite something already typed — a contributor who has
-      // corrected the title should not lose it to a second fetch.
-      title: value.title.trim() || found.title,
-      author: value.author?.trim() || found.author || "",
-      publisher: value.publisher?.trim() || found.publisher || "",
-      source_type: found.sourceType,
-      published: found.published
-        ? {
-            mode: "calendar",
-            year: found.published.year,
-            era: "CE",
-            month: found.published.month,
-            day: found.published.day,
-            unit: "million",
-          }
-        : value.published ?? null,
-    });
-    return got;
-  }
-
-  return (
-    <div className="space-y-3 rounded-lg border border-border bg-background/60 p-3.5">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-foreground">A new source</p>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          Search existing instead
-        </button>
-      </div>
-
-      {/* Start from the link. A video or a wiki page has its title, its author
-          and its own publication date written into it already — asking somebody
-          to retype all three is how a timeline ends up full of unsourced
-          dates. */}
-      <LinkFillBox
-        communitySlug={communitySlug}
-        label="Paste a link and we'll fill this in"
-        hint="Optional — you can type the details yourself instead. Nothing is saved until you finish the form."
-        onFilled={fillFromLink}
-      />
-
-      <div>
-        <Label>Source title</Label>
-        <Input
-          aria-label="Source title"
-          value={value.title}
-          onChange={(event) => update({ title: event.target.value })}
-          placeholder="e.g. The Complete Pyramids"
-        />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label>Author</Label>
-          <Input aria-label="Author" value={value.author ?? ""} onChange={(event) => update({ author: event.target.value })} />
-        </div>
-        <div>
-          <Label>Publisher or publication</Label>
-          <Input aria-label="Publisher or publication" value={value.publisher ?? ""} onChange={(event) => update({ publisher: event.target.value })} />
-        </div>
-        <div>
-          <Label>Book or document it&apos;s in</Label>
-          <Input aria-label="Book or document it's in" value={value.work_title ?? ""} onChange={(event) => update({ work_title: event.target.value })} />
-        </div>
-        <div>
-          <Label>Page or reference</Label>
-          <Input
-            aria-label="Page or reference"
-            value={value.reference ?? ""}
-            onChange={(event) => update({ reference: event.target.value })}
-            placeholder="p. 108"
-          />
-        </div>
-        <div>
-          <Label>Link</Label>
-          <Input
-            aria-label="Link"
-            value={value.url ?? ""}
-            onChange={(event) => update({ url: event.target.value })}
-            placeholder="https://…"
-          />
-        </div>
-        <div>
-          <Label>Kind of source</Label>
-          <select
-            aria-label="Kind of source"
-            value={value.source_type}
-            onChange={(event) => update({ source_type: event.target.value })}
-            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {TIMELINE_SOURCE_TYPES.map((type) => (
-              <option key={type.key} value={type.key}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Kept visibly apart from the date the source is being cited FOR. */}
-      <div className="rounded-lg bg-muted/60 p-3">
-        <DateFields
-          label="When was the source itself made?"
-          hint="Optional — and not the same thing as when the event happened."
-          value={value.published ?? { mode: "calendar", era: "CE", month: null, day: null, unit: "million" }}
-          onChange={(next) => update({ published: next })}
-        />
-        <label className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={value.published_is_approximate}
-            onChange={(event) => update({ published_is_approximate: event.target.checked })}
-            className="h-4 w-4 rounded border-border"
-          />
-          The source&apos;s own date is approximate
-        </label>
-        <p className="mt-2 text-xs text-muted-foreground">
-          A chronicle written 80 years after a battle is still evidence — but knowing the gap is part of reading it.
-        </p>
-      </div>
-
-      <div>
-        <Label>Notes about this source</Label>
-        <Textarea aria-label="Notes about this source" rows={2} value={value.notes ?? ""} onChange={(event) => update({ notes: event.target.value })} />
-      </div>
     </div>
   );
 }
@@ -464,13 +304,22 @@ export function ClaimFields({
                 placeholder="Not stated"
                 hint="The method behind the number."
               />
+              {/* WHOSE ACCOUNT THIS IS — a different question from the one
+                  above it and a different question again from "kind of
+                  source" on the source form. A viewpoint describes the CLAIM;
+                  a source type describes the DOCUMENT. An academic paper can
+                  argue an alternative reading and a religious text can be
+                  cited for the mainstream date, so the two are never merged. */}
               <Select
-                label="Whose chronology is it?"
+                label="Whose account is this? (viewpoint)"
                 value={value.chronology}
                 onChange={(next) => update({ chronology: next })}
-                options={CHRONOLOGIES}
+                options={CLAIM_VIEWPOINTS}
                 placeholder="Not stated"
-                hint="The framework the date is calculated in. Naming it isn't agreeing with it."
+                hint={
+                  viewpointHint(value.chronology) ||
+                  "The body of thought the date comes out of. Naming it isn't agreeing with it — and it isn't the same as the kind of source, which you'll set below."
+                }
               />
             </div>
 

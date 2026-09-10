@@ -2022,6 +2022,16 @@ export type TimelineSource = {
   published_day: number | null;
   published_is_approximate: boolean;
   published_display: string;
+  // When somebody last looked at it. A web page is not a fixed object — the
+  // Wikipedia article cited today is not the one cited last year — so a
+  // citation without an access date cannot be checked.
+  accessed_on: string | null;
+  // The passage the claim actually rests on, in the source's own words.
+  quotation: string | null;
+  // THE CITATION CHAIN. The source that cites this one: an academic book found
+  // through a Wikipedia article points at that article. Wikipedia → book →
+  // excavation report is the research habit this is here to teach.
+  cited_by_source_id: string | null;
   created_at: string;
   updated_at: string;
 };

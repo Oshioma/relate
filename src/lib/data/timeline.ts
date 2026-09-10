@@ -610,6 +610,67 @@ export async function getEventRevisions(
   })[];
 }
 
+/**
+ * The citation chain under a source — Wikipedia → academic book → excavation
+ * report.
+ *
+ * Reads DOWNWARDS from the source given: each step is the source that the
+ * previous one led somebody to. That is the direction a learner travels when
+ * they answer "can you find the original source?", so it is the direction the
+ * chain is drawn.
+ *
+ * The depth cap is not decoration. `cited_by_source_id` is a plain
+ * self-reference and Postgres will happily store A→B→A: the constraint only
+ * refuses a source citing itself. A cycle here would be an infinite loop in a
+ * server render, so the walk carries a seen-set AND a hard limit, and stops
+ * quietly at either. A chain longer than six steps is a research project, not a
+ * citation.
+ */
+export async function getSourceChain(
+  supabase: Client,
+  communityId: string,
+  sourceId: string,
+  maxDepth = 6
+): Promise<TimelineSource[]> {
+  const chain: TimelineSource[] = [];
+  const seen = new Set<string>([sourceId]);
+  let cursor = sourceId;
+
+  for (let depth = 0; depth < maxDepth; depth++) {
+    const { data, error } = await supabase
+      .from("timeline_sources")
+      .select("*")
+      .eq("community_id", communityId)
+      .eq("cited_by_source_id", cursor)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    if (error) throw error;
+
+    const next: TimelineSource | undefined = (data ?? [])[0];
+    if (!next || seen.has(next.id)) break;
+    seen.add(next.id);
+    chain.push(next);
+    cursor = next.id;
+  }
+
+  return chain;
+}
+
+/** The chains under several sources at once, so an event's claims cost one pass each rather than one query per card. */
+export async function getSourceChains(
+  supabase: Client,
+  communityId: string,
+  sourceIds: string[]
+): Promise<Map<string, TimelineSource[]>> {
+  const unique = [...new Set(sourceIds)];
+  const chains = new Map<string, TimelineSource[]>();
+  for (const id of unique) {
+    const chain = await getSourceChain(supabase, communityId, id);
+    if (chain.length > 0) chains.set(id, chain);
+  }
+  return chains;
+}
+
 function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {
   const grouped = new Map<K, T[]>();
   for (const row of rows) {

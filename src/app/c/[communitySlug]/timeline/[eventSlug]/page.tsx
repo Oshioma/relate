@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff } from "@/lib/data/community";
-import { getTimelineEventBySlug, getTimelineSourcesByIds } from "@/lib/data/timeline";
+import { getSourceChains, getTimelineEventBySlug, getTimelineSourcesByIds } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { EventDetail } from "../event-detail";
 
@@ -40,10 +40,22 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   if (!event) notFound();
 
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
-  const sources = await getTimelineSourcesByIds(
+  const cited = await getTimelineSourcesByIds(
     supabase,
     event.claims.map((claim) => claim.source_id).filter((id): id is string => Boolean(id))
   );
+
+  // The chain under each cited source — Wikipedia → academic book → excavation
+  // report. The timeline page already holds every source the community has, so
+  // it walks the chain for free; this page loads only what it cites, and would
+  // otherwise show a Wikipedia article whose "where this came from" was empty
+  // on the very page most likely to be shared.
+  const chains = await getSourceChains(supabase, community.id, cited.map((source) => source.id));
+  const byId = new Map(cited.map((source) => [source.id, source]));
+  for (const chain of chains.values()) {
+    for (const link of chain) byId.set(link.id, link);
+  }
+  const sources = [...byId.values()];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">

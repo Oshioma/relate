@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { astronomicalFromEra, astronomicalFromYearsAgo, dateUnit, TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR, type Era } from "./time";
+import { countWords, QUOTATION_MAX_CHARS, QUOTATION_MAX_WORDS } from "./quotation";
 
 // What the "Add event" flow hands to the server, and the one definition of what
 // a valid contribution is.
@@ -85,11 +86,51 @@ export const sourceDraftSchema = z.object({
   author: z.string().trim().max(200).optional(),
   publisher: z.string().trim().max(200).optional(),
   work_title: z.string().trim().max(300).optional(),
+  // Where in the source: "p. 108", "§ Dating and chronology", "12:04". One
+  // field rather than a page field and a section field and a timestamp field,
+  // because they are the same fact — WHICH BIT — and the form asks for it in
+  // whichever wording suits the kind of source.
   reference: z.string().trim().max(200).optional(),
   url: z.string().trim().max(2000).optional(),
   file_url: z.string().trim().max(2000).optional(),
   source_type: z.string().trim().max(60).default("other"),
   notes: z.string().trim().max(4000).optional(),
+
+  // WHEN SOMEBODY LOOKED AT IT. Not the same fact as when it was made, and it
+  // is the one that matters for anything editable: the Wikipedia article cited
+  // today is not the article cited last year, so a citation with no access date
+  // cannot be checked by the next person. ISO, because a <input type="date">
+  // gives us ISO and a `date` column wants ISO.
+  accessed_on: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date like 2026-09-10.")
+    .nullish(),
+
+  // THE PASSAGE THE CLAIM RESTS ON, in the source's own words. "The report
+  // says c. 2560 BCE" is an assertion; the sentence that says it is evidence.
+  //
+  // Bounded in WORDS (see quotation.ts), because that is the unit somebody
+  // pasting a shared conversation is thinking in and a whole conversation is
+  // worth keeping whole. The character ceiling beneath it is not the limit —
+  // it is the backstop that keeps a pasted blob out of the column, and matches
+  // the check constraint exactly so the schema and the database refuse the
+  // same things.
+  quotation: z
+    .string()
+    .trim()
+    .max(QUOTATION_MAX_CHARS, "That is longer than a quotation — link to it instead.")
+    .refine((text) => countWords(text) <= QUOTATION_MAX_WORDS, {
+      message: `Keep the quotation to ${QUOTATION_MAX_WORDS.toLocaleString()} words or fewer.`,
+    })
+    .optional(),
+
+  // THE CITATION CHAIN. The source this one was found THROUGH: an excavation
+  // report reached via an academic book reached via a Wikipedia article. Set
+  // when a contributor answers "can you find the original source?", never
+  // guessed.
+  cited_by_source_id: z.string().uuid().nullish(),
+
   // WHEN THE SOURCE WAS MADE — never the same field as the date it claims.
   published: dateInputSchema.nullish(),
   published_is_approximate: z.boolean().default(false),
@@ -239,6 +280,18 @@ export function precisionFromDateInput(input: DateInput): { unit: string; decima
   // no decimals rather than inventing one.
   const decimals = String(input.amount).split(".")[1]?.length ?? 0;
   return { unit: input.unit === "years" ? "thousand_years" : unitKey, decimals: Math.min(9, decimals) };
+}
+
+/**
+ * Today, as both an <input type="date"> and a Postgres `date` column want it.
+ *
+ * Local rather than UTC on purpose: somebody reading a page at 11pm in London
+ * read it today, not tomorrow, and toISOString() would disagree.
+ */
+export function todayIso(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 export function emptySourceDraft(): SourceDraft {

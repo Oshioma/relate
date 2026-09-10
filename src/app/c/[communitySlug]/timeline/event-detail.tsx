@@ -12,8 +12,9 @@ import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
 import { EditEventFlow } from "./edit-event-flow";
 import { RevisionHistory } from "./revision-history";
+import { ViewpointComparison } from "./viewpoint-comparison";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
-import { eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
+import { eventTypeHint, eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
 import { claimMidpoint, compareClaims, describeComparison, presentPosition } from "@/lib/timeline/time";
 
 // The event, opened up.
@@ -126,6 +127,15 @@ export function EventDetail({
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{event.title}</h1>
           {event.summary && <p className="mt-1.5 text-[15px] text-muted-foreground">{event.summary}</p>}
+          {/* WHAT THE RECORD TYPE MEANS, said out loud.
+              "Mainstream / established view" on a chip is exactly the sort of
+              label a reader will take for a verdict if nobody tells them
+              otherwise — so the hint that goes with it, which says in as many
+              words that this is the broadly accepted reading and not a
+              declaration of truth, is printed rather than left in the form. */}
+          {eventTypeHint(event.event_type) && (
+            <p className="mt-1.5 text-sm text-muted-foreground">{eventTypeHint(event.event_type)}</p>
+          )}
           {event.event_type_note && (
             <p className="mt-1.5 text-sm text-muted-foreground">{event.event_type_note}</p>
           )}
@@ -235,6 +245,12 @@ export function EventDetail({
           </div>
         )}
 
+        {/* Whose account each date comes out of, grouped — the mainstream one
+            beside the alternatives, with "why are these dates different?"
+            underneath. It renders itself only when there is more than one
+            viewpoint to compare. */}
+        <ViewpointComparison claims={event.claims} sourcesById={sourcesById} />
+
         <div className="space-y-3">
           {event.claims.map((claim, index) => (
             <DateClaimCard
@@ -243,6 +259,9 @@ export function EventDetail({
               source={claim.source_id ? sourcesById.get(claim.source_id) ?? null : null}
               siblings={event.claims}
               sourcesById={sourcesById}
+              allSources={sources}
+              communitySlug={communitySlug}
+              canContribute={canContribute}
               index={index}
               onEdit={canEdit ? () => setEditing("dates") : undefined}
               onRemove={canEdit && event.claims.length > 1 ? () => setEditing("dates") : undefined}
