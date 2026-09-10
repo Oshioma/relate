@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link2, Loader2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineSource } from "@/types/database";
 import { DateFields } from "./date-fields";
 import { SourcePicker } from "./source-picker";
-import { importSourceFromLink } from "./actions";
+import { LinkFillBox } from "./link-fill-box";
+import type { LinkedSource } from "@/lib/timeline/source-link";
 import {
   emptySourceDraft,
   precisionFromDateInput,
@@ -83,11 +83,6 @@ function SourceFields({
   onCancel: () => void;
   communitySlug: string;
 }) {
-  const [link, setLink] = useState(value.url ?? "");
-  const [reading, setReading] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
-  const [filled, setFilled] = useState<string[] | null>(null);
-
   function update(patch: Partial<SourceDraft>) {
     onChange({ ...value, ...patch });
   }
@@ -95,24 +90,7 @@ function SourceFields({
   // Paste a link, get a filled-in form. It fills; it never submits — page
   // metadata is often thin or wrong, and the person pasting knows more about
   // what they are citing than the page's <meta> tags do.
-  async function readLink() {
-    const trimmed = link.trim();
-    if (!trimmed) return;
-    setReading(true);
-    setLinkError(null);
-    setFilled(null);
-
-    const result = await importSourceFromLink(communitySlug, trimmed);
-    setReading(false);
-
-    if (!result.ok) {
-      // The link is still worth keeping even when the page won't be read.
-      update({ url: trimmed });
-      setLinkError(result.error);
-      return;
-    }
-
-    const found = result.source;
+  function fillFromLink(found: LinkedSource): string[] {
     const got: string[] = [];
     if (found.title) got.push("title");
     if (found.author) got.push("author");
@@ -138,8 +116,7 @@ function SourceFields({
           }
         : value.published ?? null,
     });
-    setLink(found.url);
-    setFilled(got);
+    return got;
   }
 
   return (
@@ -159,40 +136,12 @@ function SourceFields({
           and its own publication date written into it already — asking somebody
           to retype all three is how a timeline ends up full of unsourced
           dates. */}
-      <div className="rounded-lg border border-border bg-card p-3">
-        <Label>Paste a link and we&apos;ll fill this in</Label>
-        <div className="flex flex-wrap gap-2">
-          <Input
-            aria-label="Link to the source"
-            value={link}
-            onChange={(event) => setLink(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                void readLink();
-              }
-            }}
-            placeholder="A YouTube video, a Wikipedia article, a news story, a paper…"
-            className="min-w-[16rem] flex-1"
-          />
-          <Button type="button" variant="secondary" onClick={() => void readLink()} disabled={reading || !link.trim()}>
-            {reading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Reading…</>) : (<><Link2 className="h-4 w-4" /> Fill in</>)}
-          </Button>
-        </div>
-
-        {filled && (
-          <p className="mt-1.5 text-xs text-accent">
-            {filled.length > 0 ? `Filled in the ${filled.join(", ")}. ` : ""}
-            Check it over and correct anything the page got wrong.
-          </p>
-        )}
-        {linkError && <p className="mt-1.5 text-xs text-danger">{linkError}</p>}
-        {!filled && !linkError && (
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            Optional — you can type the details yourself instead. Nothing is saved until you finish the form.
-          </p>
-        )}
-      </div>
+      <LinkFillBox
+        communitySlug={communitySlug}
+        label="Paste a link and we'll fill this in"
+        hint="Optional — you can type the details yourself instead. Nothing is saved until you finish the form."
+        onFilled={fillFromLink}
+      />
 
       <div>
         <Label>Source title</Label>

@@ -1,5 +1,5 @@
 import "server-only";
-import { ARTICLE_JSON_LD, fetchPageContent, parsePublicUrl, resolveRedirect } from "@/lib/page-content";
+import { ARTICLE_JSON_LD, fetchPageContent, parsePublicUrl } from "@/lib/page-content";
 
 // Turning a pasted link into a source record.
 //
@@ -36,6 +36,11 @@ export type LinkedSource = {
   /** What we could not find, so the form can say so rather than looking complete. */
   missing: string[];
 };
+
+// Somebody is watching a spinner, so this waits nothing like as long as the
+// listing importer does. A page that hasn't answered in eight seconds is not
+// about to save anybody any typing.
+const READ_TIMEOUT_MS = 8_000;
 
 export type LinkReadResult = { ok: true; source: LinkedSource } | { ok: false; error: string };
 
@@ -304,7 +309,7 @@ async function readOEmbed(url: URL): Promise<LinkedSource | null> {
 
   try {
     const response = await fetch(entry.endpoint(url.toString()), {
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
       headers: { accept: "application/json" },
       cache: "no-store",
     });
@@ -350,20 +355,27 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   const oembed = await readOEmbed(url);
   if (oembed) return { ok: true, source: oembed };
 
-  // A shortened link tells us nothing about the source; follow it first so the
-  // guesses below are made about the real page.
-  const resolved = hostOf(url).split(".").length <= 2 && url.pathname.length <= 12 ? await resolveRedirect(url) : url;
-  const target = parsePublicUrl(resolved.toString()) ?? url;
-
-  const page = await fetchPageContent(target, { jsonLdTypes: ARTICLE_JSON_LD });
+  // ONE round trip, not two. There used to be a resolveRedirect hop first, to
+  // follow shorteners before guessing anything about the host — which was
+  // pointless, because fetchPageContent already follows redirects, and
+  // expensive, because it doubled the wait on exactly the pages that are slow.
+  // A site that stalls took 8 seconds to time out here and then 12 more below;
+  // twenty seconds of spinner for a page nobody was going to read. The
+  // resolved host comes back on the response as finalUrl instead, which is the
+  // same answer for free.
+  const page = await fetchPageContent(url, { jsonLdTypes: ARTICLE_JSON_LD, timeoutMs: READ_TIMEOUT_MS });
   if (!page) {
-    // Plenty of sites refuse a server-side request. That is not a dead end —
-    // the link is still a perfectly good source, it just has to be typed.
+    // Plenty of sites refuse a server-side request, and single-page apps —
+    // shared chat transcripts, Google Docs, anything behind a login — have
+    // nothing in their HTML to read even when they answer. That is not a dead
+    // end: the link is still a perfectly good source, it just has to be typed.
     return {
       ok: false,
-      error: "Couldn't read that page — some sites don't allow it. The link is saved; fill in the title yourself.",
+      error: "Couldn't read that page — plenty of sites don't allow it, and some have nothing in the page to read. Your link is kept; just fill in the title yourself.",
     };
   }
 
+  // Guess from where we actually ended up, not from what was pasted.
+  const target = parsePublicUrl(page.finalUrl) ?? url;
   return { ok: true, source: deriveSourceFromPage(target, page) };
 }

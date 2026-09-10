@@ -2,14 +2,15 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Link2, Loader2, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
 import { EventFields, parseList, type EventFieldValues } from "./event-fields";
 import { ClaimFields } from "./claim-fields";
-import { createTimelineEvent, importSourceFromLink } from "./actions";
+import { createTimelineEvent } from "./actions";
+import { LinkFillBox } from "./link-fill-box";
+import type { LinkedSource } from "@/lib/timeline/source-link";
 import {
   emptyClaimDraft,
   emptySourceDraft,
@@ -107,9 +108,12 @@ export function AddEventFlow({
   const [fields, setFields] = useState<EventFieldValues>(emptyFields);
   const [claims, setClaims] = useState<ClaimDraft[]>([emptyClaimDraft()]);
 
-  const [link, setLink] = useState("");
-  const [reading, setReading] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
+  function updateClaim(index: number, next: ClaimDraft) {
+    setClaims((current) => current.map((claim, i) => (i === index ? next : claim)));
+  }
+
+  // What the last link fill managed to bring in, so step 2 can explain why the
+  // date is not among it.
   const [linkFilled, setLinkFilled] = useState<string[] | null>(null);
 
   // Start from a link.
@@ -124,22 +128,7 @@ export function AddEventFlow({
   // and presenting it as a sourced claim would manufacture exactly the thing
   // this feature exists to make visible — somebody asserting a date without
   // saying where it came from. Step 2 says so out loud.
-  async function readLink() {
-    const trimmed = link.trim();
-    if (!trimmed) return;
-    setReading(true);
-    setLinkError(null);
-    setLinkFilled(null);
-
-    const result = await importSourceFromLink(communitySlug, trimmed);
-    setReading(false);
-
-    if (!result.ok) {
-      setLinkError(result.error);
-      return;
-    }
-
-    const found = result.source;
+  function fillFromLink(found: LinkedSource): string[] {
     const got: string[] = [];
     if (found.title) got.push("what happened");
     if (found.summary) got.push("a summary");
@@ -176,10 +165,7 @@ export function AddEventFlow({
       )
     );
     setLinkFilled(got);
-  }
-
-  function updateClaim(index: number, next: ClaimDraft) {
-    setClaims((current) => current.map((claim, i) => (i === index ? next : claim)));
+    return got;
   }
 
   const canLeaveStepOne = fields.title.trim().length >= 2;
@@ -259,41 +245,12 @@ export function AddEventFlow({
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {step === 0 && (
             <div className="space-y-5">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <Label>Got a link? Start from it</Label>
-                <div className="flex flex-wrap gap-2">
-                  <Input
-                    aria-label="Link to start from"
-                    value={link}
-                    onChange={(event) => setLink(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        void readLink();
-                      }
-                    }}
-                    placeholder="A YouTube video, a Wikipedia article, a news story, a paper…"
-                    className="min-w-[16rem] flex-1"
-                  />
-                  <Button type="button" variant="secondary" onClick={() => void readLink()} disabled={reading || !link.trim()}>
-                    {reading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Reading…</>) : (<><Link2 className="h-4 w-4" /> Fill in</>)}
-                  </Button>
-                </div>
-
-                {linkFilled && (
-                  <p className="mt-1.5 text-xs text-accent">
-                    Filled in {linkFilled.join(", ")}. The source is waiting on step 3 — check it all over and correct
-                    anything the page got wrong.
-                  </p>
-                )}
-                {linkError && <p className="mt-1.5 text-xs text-danger">{linkError}</p>}
-                {!linkFilled && !linkError && (
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    Optional. We&apos;ll fill in what the page says about itself — its title, a summary, a picture, and
-                    who published it — but never the date. That one has to come from you.
-                  </p>
-                )}
-              </div>
+              <LinkFillBox
+                communitySlug={communitySlug}
+                label="Got a link? Start from it"
+                hint="Optional. We'll fill in what the page says about itself — its title, a summary, a picture, and who published it — but never the date. That one has to come from you."
+                onFilled={fillFromLink}
+              />
 
               <EventFields value={fields} onChange={setFields} tracks={tracks} userId={userId} uploadKey={uploadKey} autoFocus />
             </div>
