@@ -139,6 +139,9 @@ export type TimelineSourceType = (typeof TIMELINE_SOURCE_TYPES)[number]["key"];
 /** The one type with a form of its own — see the Wikipedia fields in the source panel. */
 export const WIKIPEDIA_SOURCE_TYPE = "wikipedia";
 
+/** A shared AI conversation, whose transcript is the whole of the source. */
+export const AI_CHAT_SOURCE_TYPE = "ai_chat";
+
 const SOURCE_TYPE_BY_KEY = new Map(TIMELINE_SOURCE_TYPES.map((type) => [type.key as string, type]));
 
 /**

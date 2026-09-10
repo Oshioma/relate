@@ -33,6 +33,19 @@ export type LinkedSource = {
   summary: string | null;
   /** The page's share image, offered as the event's picture. */
   imageUrl: string | null;
+  /**
+   * THE SOURCE'S OWN WORDS, where the page is the words.
+   *
+   * Filled for a shared AI conversation, whose transcript IS the source — there
+   * is no author, no publisher and no publication date to find, so the text is
+   * the only thing worth carrying over. Offered as the source's quotation, in
+   * editable form, capped at the same length the quotation column allows.
+   *
+   * Deliberately NOT filled for an article: dropping a news story's body text
+   * into a quotation field would be a copy, not a citation, and the person
+   * quoting knows which sentence they meant.
+   */
+  excerpt: string | null;
   /** What we could not find, so the form can say so rather than looking complete. */
   missing: string[];
 };
@@ -69,6 +82,30 @@ const OEMBED_ENDPOINTS: { matches: (host: string) => boolean; endpoint: (url: st
   },
 ];
 
+// SHARED AI CONVERSATIONS.
+//
+// A shared chat IS worth citing — it is a record of a conversation somebody
+// had, and if it pointed them at a book or a paper then the trail starts here.
+// So these are read like any other page: the title, and the transcript itself,
+// which comes back as the source's quotation because a chat's own words are
+// the only evidence a chat offers.
+//
+// Some of them will come back empty. A share page that renders in the browser
+// has nothing in its HTML for a server-side fetch to find, and that is a real
+// outcome rather than an error — handled below by keeping the link and the
+// kind of source and saying plainly what happened, instead of refusing before
+// we have even looked.
+const CHAT_HOSTS = (host: string): boolean =>
+  host === "chatgpt.com" || host.endsWith(".chatgpt.com") ||
+  host === "chat.openai.com" || host === "claude.ai" || host.endsWith(".claude.ai") ||
+  host === "gemini.google.com" || host === "bard.google.com" ||
+  host === "copilot.microsoft.com" || host === "perplexity.ai" || host.endsWith(".perplexity.ai") ||
+  host === "poe.com";
+
+// The longest extract we will carry over, matched to the quotation column's
+// own check constraint. A transcript is an extract here, not an archive.
+const CHAT_EXCERPT_MAX = 2_000;
+
 // PAGES THERE IS NO POINT FETCHING.
 //
 // Everything here draws itself in the browser or sits behind a login, so a
@@ -77,17 +114,9 @@ const OEMBED_ENDPOINTS: { matches: (host: string) => boolean; endpoint: (url: st
 // maintenance: an instant, specific sentence beats a slow, generic one.
 //
 // This is not a blocklist. The link is still saved and still a perfectly good
-// source; the only thing refused is the pointless wait.
-const UNREADABLE_HOSTS: { matches: (host: string) => boolean; kind: "chat" | "document" | "walled" }[] = [
-  {
-    matches: (host) =>
-      host === "chatgpt.com" || host.endsWith(".chatgpt.com") ||
-      host === "chat.openai.com" || host === "claude.ai" || host.endsWith(".claude.ai") ||
-      host === "gemini.google.com" || host === "bard.google.com" ||
-      host === "copilot.microsoft.com" || host === "perplexity.ai" || host.endsWith(".perplexity.ai") ||
-      host === "poe.com",
-    kind: "chat",
-  },
+// source; the only thing refused is the pointless wait. Shared chats are NOT
+// in here — see CHAT_HOSTS above.
+const UNREADABLE_HOSTS: { matches: (host: string) => boolean; kind: "document" | "walled" }[] = [
   {
     matches: (host) =>
       host === "docs.google.com" || host === "drive.google.com" ||
@@ -107,11 +136,7 @@ const UNREADABLE_HOSTS: { matches: (host: string) => boolean; kind: "chat" | "do
   },
 ];
 
-const UNREADABLE_MESSAGES: Record<"chat" | "document" | "walled", string> = {
-  chat:
-    "A shared chat is drawn in your browser, so there is nothing in the page for us to read. Your link is kept — " +
-    "set the kind of source to “Chat or AI conversation” and give it a title. Better still: if the conversation " +
-    "pointed you at a book, a paper or an article, that is the source worth citing here.",
+const UNREADABLE_MESSAGES: Record<"document" | "walled", string> = {
   document:
     "Documents like this are drawn in the browser or need a sign-in, so there is nothing in the page to read from " +
     "out here. Your link is kept — just fill in the title yourself.",
@@ -137,7 +162,7 @@ export function guessSourceType(url: URL): string {
   const path = url.pathname.toLowerCase();
 
   if (OEMBED_ENDPOINTS.some((entry) => entry.matches(hostOf(url)))) return "video";
-  if (UNREADABLE_HOSTS.find((entry) => entry.matches(hostOf(url)))?.kind === "chat") return "ai_chat";
+  if (CHAT_HOSTS(hostOf(url))) return "ai_chat";
   // Wikipedia gets its own type, and with it its own fields and the nudge to
   // follow the article's references down to what it is summarising.
   if (host.endsWith("wikipedia.org")) return "wikipedia";
@@ -363,8 +388,31 @@ export function deriveSourceFromPage(url: URL, page: PageLike): LinkedSource {
     // starting point somebody edits.
     summary: (page.description ?? meta["og:description"] ?? "").trim() || null,
     imageUrl: page.images[0] ?? null,
+    excerpt: CHAT_HOSTS(hostOf(url)) ? chatExcerpt(page.text) : null,
     missing,
   };
+}
+
+/**
+ * A shared conversation's text, trimmed to something a person would quote.
+ *
+ * Whitespace in a rendered transcript is mostly layout — line breaks between
+ * every fragment of a message — so it is collapsed before measuring, or the cap
+ * would be spent on blank space. Cut at a sentence end where one is near the
+ * limit, so the extract stops somewhere a reader would stop rather than
+ * mid-word, and marked with an ellipsis so nobody mistakes a cut for the end.
+ */
+export function chatExcerpt(text: string): string | null {
+  const collapsed = text.replace(/\s+/g, " ").trim();
+  if (collapsed.length < 40) return null;
+  if (collapsed.length <= CHAT_EXCERPT_MAX) return collapsed;
+
+  const cut = collapsed.slice(0, CHAT_EXCERPT_MAX - 1);
+  // Prefer the last sentence end in the final fifth of the extract; a boundary
+  // any earlier throws away more than it tidies.
+  const boundary = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "));
+  const body = boundary > CHAT_EXCERPT_MAX * 0.8 ? cut.slice(0, boundary + 1) : cut.trimEnd();
+  return `${body}…`;
 }
 
 type OEmbed = { title?: unknown; author_name?: unknown; provider_name?: unknown; thumbnail_url?: unknown };
@@ -397,6 +445,7 @@ async function readOEmbed(url: URL): Promise<LinkedSource | null> {
       published: null,
       summary: null,
       imageUrl: typeof data.thumbnail_url === "string" ? data.thumbnail_url : null,
+      excerpt: null,
       missing: [...(author ? [] : ["who made it"]), "when it was published"],
     };
   } catch {
@@ -426,18 +475,7 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
     return {
       ok: false,
       error: UNREADABLE_MESSAGES[unreadable.kind],
-      partial: {
-        url: url.toString(),
-        title: "",
-        author: null,
-        publisher: null,
-        workTitle: null,
-        sourceType: guessSourceType(url),
-        published: null,
-        summary: null,
-        imageUrl: null,
-        missing: ["title"],
-      },
+      partial: bareSource(url),
     };
   }
 
@@ -455,16 +493,60 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   const page = await fetchPageContent(url, { jsonLdTypes: ARTICLE_JSON_LD, timeoutMs: READ_TIMEOUT_MS });
   if (!page) {
     // Plenty of sites refuse a server-side request, and single-page apps —
-    // shared chat transcripts, Google Docs, anything behind a login — have
-    // nothing in their HTML to read even when they answer. That is not a dead
-    // end: the link is still a perfectly good source, it just has to be typed.
+    // Google Docs, anything behind a login — have nothing in their HTML to read
+    // even when they answer. That is not a dead end: the link is still a
+    // perfectly good source, it just has to be typed.
     return {
       ok: false,
-      error: "Couldn't read that page — plenty of sites don't allow it, and some have nothing in the page to read. Your link is kept; just fill in the title yourself.",
+      error: CHAT_HOSTS(hostOf(url)) ? CHAT_EMPTY_MESSAGE : GENERIC_UNREADABLE_MESSAGE,
+      partial: bareSource(url),
     };
   }
 
   // Guess from where we actually ended up, not from what was pasted.
   const target = parsePublicUrl(page.finalUrl) ?? url;
-  return { ok: true, source: deriveSourceFromPage(target, page) };
+  const source = deriveSourceFromPage(target, page);
+
+  // A SHARE PAGE THAT ANSWERED WITH NOTHING.
+  //
+  // Some chat hosts serve a shell and draw the conversation in the browser, so
+  // the fetch succeeds and carries no conversation. Left alone, that produces a
+  // "source" whose title was invented from the URL slug — worse than admitting
+  // it, because it looks filled in. So it is reported as the empty read it was,
+  // with the link and the kind of source kept.
+  if (CHAT_HOSTS(hostOf(target)) && !source.excerpt && !hasRealTitle(target, source.title)) {
+    return { ok: false, error: CHAT_EMPTY_MESSAGE, partial: bareSource(target) };
+  }
+
+  return { ok: true, source };
+}
+
+const GENERIC_UNREADABLE_MESSAGE =
+  "Couldn't read that page — plenty of sites don't allow it, and some have nothing in the page to read. Your link is kept; just fill in the title yourself.";
+
+const CHAT_EMPTY_MESSAGE =
+  "That conversation is drawn in your browser, so there was nothing in the page for us to read. Your link is kept and " +
+  "we have set it as a chat — give it a title, and paste the part that matters into the quotation box. If the " +
+  "conversation pointed you at a book, a paper or an article, that is worth citing here too.";
+
+/** Everything we know about a link we could not read: where it points, and what kind of thing it is. */
+function bareSource(url: URL): LinkedSource {
+  return {
+    url: url.toString(),
+    title: "",
+    author: null,
+    publisher: null,
+    workTitle: null,
+    sourceType: guessSourceType(url),
+    published: null,
+    summary: null,
+    imageUrl: null,
+    excerpt: null,
+    missing: ["title"],
+  };
+}
+
+/** Whether the title came from the page, or was invented from the address when the page said nothing. */
+function hasRealTitle(url: URL, title: string): boolean {
+  return title.trim().length > 0 && title.trim() !== titleFromUrl(url).trim();
 }

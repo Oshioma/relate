@@ -134,6 +134,7 @@ export function AddEventFlow({
     if (found.title) got.push("what happened");
     if (found.summary) got.push("a summary");
     if (found.imageUrl) got.push("a picture");
+    if (found.excerpt) got.push("the conversation itself");
     got.push("the source");
 
     setFields((current) => ({
@@ -157,6 +158,9 @@ export function AddEventFlow({
                 publisher: claim.new_source?.publisher?.trim() || found.publisher || "",
                 url: found.url,
                 source_type: found.sourceType,
+                // A shared conversation's text IS the source. Carried over as
+                // its quotation, editable, never as the event's own words.
+                quotation: claim.new_source?.quotation?.trim() || found.excerpt || "",
                 // Read just now, by definition — and for a page that can be
                 // edited later, the access date is the only thing that says
                 // which version this claim came out of.

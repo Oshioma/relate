@@ -10,6 +10,7 @@ import { todayIso, type SourceDraft } from "@/lib/timeline/draft";
 import {
   TIMELINE_SOURCE_TYPES,
   WIKIPEDIA_SOURCE_TYPE,
+  AI_CHAT_SOURCE_TYPE,
   sourceTierLabel,
   sourceTypeHint,
   sourceTypeWantsAccessDate,
@@ -49,6 +50,7 @@ export function SourceFields({
   heading?: string;
 }) {
   const isWikipedia = value.source_type === WIKIPEDIA_SOURCE_TYPE;
+  const isChat = value.source_type === AI_CHAT_SOURCE_TYPE;
   const tier = sourceTierLabel(value.source_type);
   const wantsAccessDate = sourceTypeWantsAccessDate(value.source_type) || Boolean(value.url?.trim());
 
@@ -76,6 +78,9 @@ export function SourceFields({
     if (found.author) got.push("author");
     if (found.publisher) got.push("publisher");
     if (found.published) got.push("its own date");
+    // A shared conversation has no author and no publication date — its text is
+    // the whole of it, so that is what comes back and what gets said.
+    if (found.excerpt) got.push("the conversation itself");
 
     update({
       url: found.url,
@@ -85,6 +90,7 @@ export function SourceFields({
       author: value.author?.trim() || found.author || "",
       publisher: value.publisher?.trim() || found.publisher || "",
       source_type: found.sourceType,
+      quotation: value.quotation?.trim() || found.excerpt || "",
       // A link that was read just now HAS been accessed just now.
       accessed_on: value.accessed_on ?? todayIso(),
       published: found.published
@@ -260,14 +266,16 @@ export function SourceFields({
         </Label>
         <Textarea
           aria-label="Quotation or extract"
-          rows={3}
+          rows={isChat ? 8 : 3}
           maxLength={QUOTATION_MAX}
           value={value.quotation ?? ""}
           onChange={(event) => update({ quotation: event.target.value.slice(0, QUOTATION_MAX) })}
           placeholder="“Radiocarbon determinations from the mortar cluster around 2560 BCE…”"
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          The sentence the date actually rests on, in the source&apos;s own words. An extract, not a copy —{" "}
+          {isChat
+            ? "Pasting a chat link fills this with the conversation. Trim it to the part that actually matters — "
+            : "The sentence the date actually rests on, in the source’s own words. An extract, not a copy — "}
           {QUOTATION_MAX.toLocaleString()} characters at most
           {value.quotation ? ` (${value.quotation.length.toLocaleString()} used)` : ""}.
         </p>
