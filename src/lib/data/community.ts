@@ -130,9 +130,22 @@ export async function getMembership(
   return data;
 }
 
-// Public communities the user could self-join. Hidden: the ones they're
-// already an active member of (nothing left to join) and the ones they're
-// banned from (never offer a door that won't open).
+// Featured public communities the user could self-join — what the dashboard's
+// "Discover more communities" strip offers. Curated only: a community reaches
+// this list because a super admin picked it (Platform admin → Communities),
+// most recently picked first, the same source the marketing homepage's
+// showcase reads.
+//
+// This used to return every public community, so a fresh signup was met with
+// the whole directory — including empty shells and communities we wouldn't
+// choose to put in front of someone on their first day. There is deliberately
+// no fallback: with nothing picked the strip is empty rather than reverting to
+// the full list, so the picker is the only thing that decides what a new user
+// sees.
+//
+// Hidden even when featured: the ones they're already an active member of
+// (nothing left to join) and the ones they're banned from (never offer a door
+// that won't open).
 //
 // A merely *invited* membership deliberately does not hide the community. This
 // used to key off the presence of a membership row of any status, so a user who
@@ -153,12 +166,16 @@ export async function getDiscoverableCommunities(supabase: Client, userId: strin
     .filter((m) => m.status === "active" || m.status === "banned")
     .map((m) => m.community_id);
 
-  let query = supabase.from("communities").select("*").eq("is_public", true);
+  let query = supabase
+    .from("communities")
+    .select("*")
+    .eq("is_public", true)
+    .not("featured_at", "is", null);
   if (hiddenIds.length > 0) {
     query = query.not("id", "in", `(${hiddenIds.join(",")})`);
   }
 
-  const { data, error } = await query.order("created_at", { ascending: true });
+  const { data, error } = await query.order("featured_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
