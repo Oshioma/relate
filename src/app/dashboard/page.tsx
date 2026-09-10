@@ -50,7 +50,13 @@ export default async function DashboardPage() {
         <EmptyState
           icon={<Users className="h-6 w-6" />}
           title="You haven't joined a community yet"
-          description="Join one of the communities below to get started."
+          description={
+            // The discover strip below is featured-picks-only, so it can be
+            // empty — don't point at communities that aren't there.
+            discoverable.length > 0
+              ? "Join one of the communities below to get started."
+              : "Start your own, or join one when you're invited."
+          }
           className="mb-10"
         />
       ) : (

@@ -16,13 +16,19 @@ export type FeaturedCandidate = {
   memberCount: number;
 };
 
-// Which communities the marketing homepage shows. A super admin picks them
-// here; the strip renders the most recently picked SHOWCASE_COUNT, and falls
-// back to newest-public-first while nothing is picked at all.
+// Which communities the platform puts in front of people. A super admin picks
+// them here, and the picks feed two surfaces:
 //
-// Only public communities can be picked: the strip is read by signed-out
-// visitors, whose RLS never returns a private community, so a private pick
-// would silently show nothing.
+//   - the marketing homepage's showcase strip, which renders the most recently
+//     picked SHOWCASE_COUNT and falls back to newest-public-first while nothing
+//     is picked at all;
+//   - the dashboard's "Discover more communities" strip, which shows every pick
+//     a signed-in user hasn't already joined, and shows nothing at all while
+//     nothing is picked.
+//
+// Only public communities can be picked: the homepage strip is read by
+// signed-out visitors, whose RLS never returns a private community, so a
+// private pick would silently show nothing.
 export function FeaturedCommunities({ communities }: { communities: FeaturedCandidate[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -64,16 +70,17 @@ export function FeaturedCommunities({ communities }: { communities: FeaturedCand
         <h2 className="text-sm font-medium text-foreground">Featured on relate.click</h2>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
-        The homepage showcase strip shows these, most recently added first — up to {SHOWCASE_COUNT} of them. Feature a
-        community again to move it back to the front. While nothing is picked, the strip falls back to the newest public
-        communities.
+        These are what the platform puts in front of people, most recently added first. The homepage showcase strip
+        shows up to {SHOWCASE_COUNT} of them; the dashboard&apos;s &ldquo;Discover more communities&rdquo; strip offers
+        every one a member hasn&apos;t joined yet. Feature a community again to move it back to the front. While nothing
+        is picked, the homepage falls back to the newest public communities and the dashboard strip shows nothing.
       </p>
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
 
       {featured.length === 0 ? (
         <p className="mt-4 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-          Nothing picked yet — the homepage is choosing for itself.
+          Nothing picked yet — the homepage is choosing for itself, and new members see no communities to discover.
         </p>
       ) : (
         <ol className="mt-4 divide-y divide-border border-y border-border">
