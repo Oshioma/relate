@@ -7,6 +7,7 @@ import { DateFields } from "./date-fields";
 import { LinkFillBox } from "./link-fill-box";
 import type { LinkedSource } from "@/lib/timeline/source-link";
 import { todayIso, type SourceDraft } from "@/lib/timeline/draft";
+import { countWords, QUOTATION_MAX_WORDS, trimToWords } from "@/lib/timeline/quotation";
 import {
   TIMELINE_SOURCE_TYPES,
   WIKIPEDIA_SOURCE_TYPE,
@@ -31,8 +32,6 @@ import {
 // It is shown so a learner can see how far they are standing from the evidence,
 // and the wording is chosen so it cannot be read as a mark out of ten.
 
-const QUOTATION_MAX = 2000;
-
 export function SourceFields({
   value,
   onChange,
@@ -51,6 +50,7 @@ export function SourceFields({
 }) {
   const isWikipedia = value.source_type === WIKIPEDIA_SOURCE_TYPE;
   const isChat = value.source_type === AI_CHAT_SOURCE_TYPE;
+  const quotationWords = countWords(value.quotation);
   const tier = sourceTierLabel(value.source_type);
   const wantsAccessDate = sourceTypeWantsAccessDate(value.source_type) || Boolean(value.url?.trim());
 
@@ -266,18 +266,21 @@ export function SourceFields({
         </Label>
         <Textarea
           aria-label="Quotation or extract"
-          rows={isChat ? 8 : 3}
-          maxLength={QUOTATION_MAX}
+          rows={isChat ? 12 : 3}
           value={value.quotation ?? ""}
-          onChange={(event) => update({ quotation: event.target.value.slice(0, QUOTATION_MAX) })}
+          // Trimmed on a word boundary rather than blocked with maxLength: a
+          // hard character limit stops the keyboard mid-word with no
+          // explanation, and pasting a long transcript should keep as much of
+          // it as the field allows rather than being refused outright.
+          onChange={(event) => update({ quotation: trimToWords(event.target.value) })}
           placeholder="“Radiocarbon determinations from the mortar cluster around 2560 BCE…”"
         />
         <p className="mt-1 text-xs text-muted-foreground">
           {isChat
-            ? "Pasting a chat link fills this with the conversation. Trim it to the part that actually matters — "
+            ? "Pasting a chat link fills this with the conversation. Keep the part that actually matters — "
             : "The sentence the date actually rests on, in the source’s own words. An extract, not a copy — "}
-          {QUOTATION_MAX.toLocaleString()} characters at most
-          {value.quotation ? ` (${value.quotation.length.toLocaleString()} used)` : ""}.
+          up to {QUOTATION_MAX_WORDS.toLocaleString()} words
+          {quotationWords > 0 ? ` (${quotationWords.toLocaleString()} so far)` : ""}.
         </p>
       </div>
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { ARTICLE_JSON_LD, fetchPageContent, parsePublicUrl } from "@/lib/page-content";
+import { countWords, QUOTATION_MAX_WORDS, trimToWords } from "./quotation";
 
 // Turning a pasted link into a source record.
 //
@@ -102,9 +103,8 @@ const CHAT_HOSTS = (host: string): boolean =>
   host === "copilot.microsoft.com" || host === "perplexity.ai" || host.endsWith(".perplexity.ai") ||
   host === "poe.com";
 
-// The longest extract we will carry over, matched to the quotation column's
-// own check constraint. A transcript is an extract here, not an archive.
-const CHAT_EXCERPT_MAX = 2_000;
+// The longest extract we carry over is whatever the quotation field itself
+// allows — 5,000 words, which is most whole conversations. See quotation.ts.
 
 // PAGES THERE IS NO POINT FETCHING.
 //
@@ -394,24 +394,28 @@ export function deriveSourceFromPage(url: URL, page: PageLike): LinkedSource {
 }
 
 /**
- * A shared conversation's text, trimmed to something a person would quote.
+ * A shared conversation's text, ready to go into the quotation box.
  *
- * Whitespace in a rendered transcript is mostly layout — line breaks between
- * every fragment of a message — so it is collapsed before measuring, or the cap
- * would be spent on blank space. Cut at a sentence end where one is near the
- * limit, so the extract stops somewhere a reader would stop rather than
- * mid-word, and marked with an ellipsis so nobody mistakes a cut for the end.
+ * Whitespace in a rendered transcript is mostly layout — a line break between
+ * every fragment of every message — so it is collapsed first. That is a
+ * readability fix, not a budget one: at 5,000 words most conversations arrive
+ * whole and nothing is cut at all.
+ *
+ * When one does overrun, it is cut on a WORD boundary and then, if a sentence
+ * ends near enough to the limit, on that instead — so the extract stops
+ * somewhere a reader would stop. The ellipsis is what stops a cut being
+ * mistaken for the end of the conversation.
  */
 export function chatExcerpt(text: string): string | null {
   const collapsed = text.replace(/\s+/g, " ").trim();
   if (collapsed.length < 40) return null;
-  if (collapsed.length <= CHAT_EXCERPT_MAX) return collapsed;
+  if (countWords(collapsed) <= QUOTATION_MAX_WORDS) return collapsed;
 
-  const cut = collapsed.slice(0, CHAT_EXCERPT_MAX - 1);
+  const cut = trimToWords(collapsed, QUOTATION_MAX_WORDS);
   // Prefer the last sentence end in the final fifth of the extract; a boundary
   // any earlier throws away more than it tidies.
   const boundary = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "));
-  const body = boundary > CHAT_EXCERPT_MAX * 0.8 ? cut.slice(0, boundary + 1) : cut.trimEnd();
+  const body = boundary > cut.length * 0.8 ? cut.slice(0, boundary + 1) : cut.trimEnd();
   return `${body}…`;
 }
 
@@ -490,7 +494,16 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   // twenty seconds of spinner for a page nobody was going to read. The
   // resolved host comes back on the response as finalUrl instead, which is the
   // same answer for free.
-  const page = await fetchPageContent(url, { jsonLdTypes: ARTICLE_JSON_LD, timeoutMs: READ_TIMEOUT_MS });
+  // A CONVERSATION NEEDS ROOM. The default text budget is twelve thousand
+  // characters, which is plenty for an article's opening and about two thousand
+  // words — so a shared chat came back cut to well under the quotation limit no
+  // matter how high that limit went. Chat hosts get a budget large enough that
+  // the 5,000-word cap is what actually binds, and nothing else pays for it.
+  const page = await fetchPageContent(url, {
+    jsonLdTypes: ARTICLE_JSON_LD,
+    timeoutMs: READ_TIMEOUT_MS,
+    ...(CHAT_HOSTS(hostOf(url)) ? { maxText: QUOTATION_MAX_WORDS * 24 } : {}),
+  });
   if (!page) {
     // Plenty of sites refuse a server-side request, and single-page apps —
     // Google Docs, anything behind a login — have nothing in their HTML to read

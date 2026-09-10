@@ -12,8 +12,8 @@
 --
 --   2. quotation — the passage the claim actually rests on, in the source's own
 --      words. "The report says c. 2560 BCE" is an assertion; the sentence that
---      says it is evidence. Bounded, because a quotation is an extract and a
---      field that invites a whole chapter invites a copyright problem.
+--      says it is evidence. Bounded at 5,000 words, which holds a whole shared
+--      conversation and still stops short of "paste the chapter".
 --
 --   3. cited_by_source_id — the citation CHAIN. Wikipedia cites an academic
 --      book, which references an excavation report. Following that chain is the
@@ -48,18 +48,34 @@ comment on column public.timeline_sources.accessed_on is
   'When somebody last looked at this source. Matters most for web pages, which change under a citation that has no access date.';
 
 comment on column public.timeline_sources.quotation is
-  'The passage the claim rests on, in the source''s own words. An extract, not a copy.';
+  'The passage the claim rests on, in the source''s own words — up to 5,000 words, enforced in the application. An extract, not a copy.';
 
 comment on column public.timeline_sources.cited_by_source_id is
   'The source that cites this one — the route the contributor took to find it. Wikipedia → academic book → excavation report. Null for a source found directly.';
 
--- A quotation is an extract. Long enough for a paragraph of argument, short
--- enough that "paste the chapter" is not the path of least resistance.
+-- HOW LONG A QUOTATION MAY BE.
+--
+-- The limit a person meets is 5,000 WORDS, enforced in the application, because
+-- words are the unit somebody pasting a shared conversation is thinking in and
+-- a whole conversation is worth keeping whole.
+--
+-- This constraint is not that limit. It is the backstop for the one case a word
+-- count cannot catch: a pasted megabyte of base64 arriving as a single
+-- unbroken "word".
+--
+-- Twenty characters a word looks absurdly generous until you write the test.
+-- Five thousand repetitions of "conversation" is sixty-five thousand
+-- characters, and a twelve-a-word ceiling refused it — so a ceiling that close
+-- to the average would have rejected a legitimate extract, which is exactly
+-- what a backstop must never do. A blob is still refused by a factor of fifty.
+--
+-- Enforcing the word count here instead would mean splitting the string on
+-- every write to buy nothing the application has not already refused.
 alter table public.timeline_sources
   drop constraint if exists timeline_sources_quotation_length;
 alter table public.timeline_sources
   add constraint timeline_sources_quotation_length
-  check (quotation is null or length(quotation) <= 2000);
+  check (quotation is null or length(quotation) <= 100000);
 
 -- A source cannot cite itself. Longer cycles are still possible in principle
 -- and are left to the application, which walks the chain with a depth cap —

@@ -28,6 +28,10 @@ export type PageContent = {
 };
 
 const MAX_HTML = 800_000;
+// Enough of a page's text for a listing description or an article's opening,
+// which is all any caller wanted until the timeline started carrying whole
+// shared conversations. Those pass a bigger budget explicitly — see maxText —
+// rather than everything paying for the one case that needs it.
 const MAX_TEXT = 12_000;
 const MAX_JSON_LD_BLOCKS = 3;
 const MAX_JSON_LD_CHARS = 6_000;
@@ -195,7 +199,7 @@ export async function fetchPageContent(
   // importer narrows the wait, because somebody is watching a spinner. A
   // parameter rather than a changed constant, so one caller's needs cannot
   // quietly change what the other one gets.
-  options: { jsonLdTypes?: RegExp; timeoutMs?: number } = {}
+  options: { jsonLdTypes?: RegExp; timeoutMs?: number; maxText?: number } = {}
 ): Promise<PageContent | null> {
   let response: Response;
   try {
@@ -239,7 +243,7 @@ export async function fetchPageContent(
     ]),
     meta: extractMeta(html),
     jsonLd: extractJsonLd(html, options.jsonLdTypes ?? PLACE_JSON_LD),
-    text: text.slice(0, MAX_TEXT),
+    text: text.slice(0, Math.max(0, options.maxText ?? MAX_TEXT)),
     images: extractImagesFromHtml(html, finalUrl),
   };
 }

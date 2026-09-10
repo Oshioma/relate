@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { astronomicalFromEra, astronomicalFromYearsAgo, dateUnit, TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR, type Era } from "./time";
+import { countWords, QUOTATION_MAX_CHARS, QUOTATION_MAX_WORDS } from "./quotation";
 
 // What the "Add event" flow hands to the server, and the one definition of what
 // a valid contribution is.
@@ -108,9 +109,21 @@ export const sourceDraftSchema = z.object({
 
   // THE PASSAGE THE CLAIM RESTS ON, in the source's own words. "The report
   // says c. 2560 BCE" is an assertion; the sentence that says it is evidence.
-  // Bounded at the same 2,000 characters the check constraint enforces — an
-  // extract, never a copy of the chapter.
-  quotation: z.string().trim().max(2000).optional(),
+  //
+  // Bounded in WORDS (see quotation.ts), because that is the unit somebody
+  // pasting a shared conversation is thinking in and a whole conversation is
+  // worth keeping whole. The character ceiling beneath it is not the limit —
+  // it is the backstop that keeps a pasted blob out of the column, and matches
+  // the check constraint exactly so the schema and the database refuse the
+  // same things.
+  quotation: z
+    .string()
+    .trim()
+    .max(QUOTATION_MAX_CHARS, "That is longer than a quotation — link to it instead.")
+    .refine((text) => countWords(text) <= QUOTATION_MAX_WORDS, {
+      message: `Keep the quotation to ${QUOTATION_MAX_WORDS.toLocaleString()} words or fewer.`,
+    })
+    .optional(),
 
   // THE CITATION CHAIN. The source this one was found THROUGH: an excavation
   // report reached via an academic book reached via a Wikipedia article. Set
