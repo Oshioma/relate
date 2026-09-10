@@ -202,7 +202,15 @@ export default async function PlatformAdminPage() {
       <h2 className="mb-3 mt-10 text-sm font-medium uppercase tracking-wide text-muted-foreground">Legal documents</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         The platform&apos;s Terms &amp; Conditions and Privacy Policy. These are linked in the footer on every page and shown
-        at <span className="font-medium text-foreground">/terms</span> and <span className="font-medium text-foreground">/privacy</span>.
+        at{" "}
+        <Link href="/terms" target="_blank" rel="noreferrer" className="font-medium text-accent underline underline-offset-2">
+          /terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" target="_blank" rel="noreferrer" className="font-medium text-accent underline underline-offset-2">
+          /privacy
+        </Link>
+        .
       </p>
       <div className="mb-6">
         <LegalSettingsForm settings={legalSettings} />
