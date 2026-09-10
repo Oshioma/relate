@@ -15,9 +15,17 @@ import {
 } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { STARTER_TRACKS } from "@/lib/timeline/taxonomy";
-import { claimDraftSchema, eventDraftSchema, resolveDateInput, resolveUncertaintyYears, type ClaimDraft, type SourceDraft } from "@/lib/timeline/draft";
+import {
+  claimDraftSchema,
+  eventDraftSchema,
+  resolveDateInput,
+  resolveUncertaintyYears,
+  sourceDraftSchema,
+  type ClaimDraft,
+  type SourceDraft,
+} from "@/lib/timeline/draft";
 import { slugify, normalizeUrl } from "@/lib/utils";
-import { readSourceLink, type LinkedSource } from "@/lib/timeline/source-link";
+import { readSourceLink, type LinkReadResult } from "@/lib/timeline/source-link";
 import type { Community, CommunityMembership, TimelineSource, TimelineRevision } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -84,6 +92,22 @@ async function uniqueEventSlug(
   return `${root}-${Date.now()}`;
 }
 
+/** A source id, but only if it belongs to this community — otherwise null. */
+async function sameCommunitySourceId(
+  supabase: SupabaseClient<Database>,
+  communityId: string,
+  sourceId: string | null | undefined
+): Promise<string | null> {
+  if (!sourceId) return null;
+  const { data } = await supabase
+    .from("timeline_sources")
+    .select("id")
+    .eq("id", sourceId)
+    .eq("community_id", communityId)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
 /**
  * Add a source, or reuse one already cited in this community.
  *
@@ -95,7 +119,9 @@ async function resolveSourceId(
   supabase: SupabaseClient<Database>,
   communityId: string,
   userId: string,
-  claim: ClaimDraft
+  // Only the two fields that answer "which source?" — so the underlying-source
+  // action can reuse this without inventing a claim it doesn't have.
+  claim: Pick<ClaimDraft, "source_id" | "new_source">
 ): Promise<string | null> {
   if (claim.source_id) return claim.source_id;
   const draft: SourceDraft | null | undefined = claim.new_source;
@@ -117,6 +143,15 @@ async function resolveSourceId(
       file_url: draft.file_url?.trim() || null,
       source_type: draft.source_type || "other",
       notes: draft.notes?.trim() || null,
+      // When somebody looked at it — the fact that makes a citation to an
+      // editable page checkable by the next reader.
+      accessed_on: draft.accessed_on?.trim() || null,
+      quotation: draft.quotation?.trim() || null,
+      // The source this one was found THROUGH. Only ever a source in the same
+      // community: RLS would refuse a foreign id, but checking here turns a
+      // permission error into nothing at all, which is what a broken chain
+      // should cost.
+      cited_by_source_id: (await sameCommunitySourceId(supabase, communityId, draft.cited_by_source_id)) ?? null,
       published_year: published?.year ?? null,
       published_month: published?.month ?? null,
       published_day: published?.day ?? null,
@@ -539,13 +574,53 @@ export async function updateDateClaim(
  * cost the contributor nothing but a moment — the link is still a good source,
  * it just has to be typed, and the message says so.
  */
-export async function importSourceFromLink(
-  communitySlug: string,
-  url: string
-): Promise<{ ok: true; source: LinkedSource } | { ok: false; error: string }> {
+export async function importSourceFromLink(communitySlug: string, url: string): Promise<LinkReadResult> {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return { ok: false, error: context.error };
   return readSourceLink(url);
+}
+
+/**
+ * "+ Add underlying source" — the source a Wikipedia article (or anything else)
+ * led somebody to.
+ *
+ * This is the whole point of the chain: an encyclopedia entry is a summary of
+ * other people's work, that work is listed at the bottom of it, and following
+ * the list is the research habit worth teaching. The new source is a full
+ * source in its own right — citable by any other date in the community — that
+ * additionally records the route somebody took to reach it.
+ *
+ * Membership is required and RLS enforces it a second time. The citing source
+ * is re-checked against the community rather than trusted from the form.
+ */
+export async function addUnderlyingSource(
+  communitySlug: string,
+  citedBySourceId: string,
+  draft: unknown
+): Promise<{ ok: true; source: TimelineSource } | { ok: false; error: string }> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return { ok: false, error: context.error };
+  const { supabase, community, userId } = context;
+
+  const parsed = sourceDraftSchema.safeParse(draft);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Check the source details." };
+  }
+
+  const citing = await sameCommunitySourceId(supabase, community.id, citedBySourceId);
+  if (!citing) return { ok: false, error: "That source is no longer here." };
+
+  const id = await resolveSourceId(supabase, community.id, userId, {
+    source_id: null,
+    new_source: { ...parsed.data, cited_by_source_id: citing },
+  });
+  if (!id) return { ok: false, error: "Give the source a title." };
+
+  const { data, error } = await supabase.from("timeline_sources").select("*").eq("id", id).single();
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true, source: data };
 }
 
 /** Sources this community already has, for the autocomplete in the claim form. */

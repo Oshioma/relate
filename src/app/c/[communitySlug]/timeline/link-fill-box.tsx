@@ -81,6 +81,10 @@ export function LinkFillBox({
 
     if (!result.ok) {
       setError(result.error);
+      // A page we won't fetch is still a page worth citing. Where the refusal
+      // came back with the address and the kind of source, hand those to the
+      // form so the only thing left to type is the title.
+      if (result.partial) onFilled(result.partial);
       return;
     }
     setFilled(onFilled(result.source));

@@ -14,7 +14,15 @@ import {
   formatDateParts,
   formatDuration,
 } from "@/lib/timeline/time";
-import { chronologyLabel, datingMethodHint, datingMethodLabel, sourceTypeLabel } from "@/lib/timeline/taxonomy";
+import {
+  chronologyLabel,
+  datingMethodHint,
+  datingMethodLabel,
+  sourceTierLabel,
+  sourceTypeLabel,
+  viewpointHint,
+} from "@/lib/timeline/taxonomy";
+import { SourceChainPanel } from "./source-chain-panel";
 
 // One proposed date, with everything a reader needs to weigh it FOR THEMSELVES.
 //
@@ -65,8 +73,15 @@ export function SourceLine({ source, compact = false }: { source: TimelineSource
       {!compact && source.work_title && <p className="truncate text-sm text-muted-foreground">In: {source.work_title}</p>}
       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span className="rounded-full bg-muted px-2 py-0.5 font-medium">{sourceTypeLabel(source.source_type)}</span>
+        {/* Primary / secondary / tertiary — what kind of document this is, in
+            the sense every research-skills lesson teaches. It says how far the
+            reader is standing from the evidence; it does not say whether the
+            source is any good, and the wording is chosen so it can't be read
+            that way. */}
+        {sourceTierLabel(source.source_type) && <span>{sourceTierLabel(source.source_type)}</span>}
         {source.reference && <span>{source.reference}</span>}
         {made && <span>Source made: {made}</span>}
+        {source.accessed_on && <span>Read {source.accessed_on}</span>}
         {source.url && (
           <a
             href={source.url}
@@ -88,6 +103,14 @@ export function SourceLine({ source, compact = false }: { source: TimelineSource
           </a>
         )}
       </p>
+      {/* The passage the claim actually rests on. A quotation is evidence in a
+          way "the report says so" is not, so it is shown as a quotation —
+          marked as the source's words, never blended into the app's. */}
+      {!compact && source.quotation && (
+        <blockquote className="mt-2 border-l-2 border-border pl-3 text-sm italic text-muted-foreground">
+          “{source.quotation}”
+        </blockquote>
+      )}
     </div>
   );
 }
@@ -98,6 +121,9 @@ export function DateClaimCard({
   siblings,
   sourcesById,
   index,
+  allSources,
+  communitySlug,
+  canContribute = false,
   onEdit,
   onRemove,
 }: {
@@ -107,6 +133,11 @@ export function DateClaimCard({
   siblings: TimelineDateClaim[];
   sourcesById: Map<string, TimelineSource>;
   index: number;
+  /** Every source the community has — what the citation chain is walked over. */
+  allSources?: TimelineSource[];
+  communitySlug?: string;
+  /** Whether this reader may add the source underneath this one. */
+  canContribute?: boolean;
   onEdit?: () => void;
   onRemove?: () => void;
 }) {
@@ -183,9 +214,11 @@ export function DateClaimCard({
           <Field icon={<Ruler className="h-4 w-4" />} label="Dating method">
             {datingMethodLabel(claim.dating_method)}
           </Field>
-          <Field icon={<Compass className="h-4 w-4" />} label="Chronology / viewpoint">
+          <Field icon={<Compass className="h-4 w-4" />} label="Whose account (viewpoint)">
             {chronologyLabel(claim.chronology)}
-            <p className="text-xs text-muted-foreground">The framework this date is calculated in.</p>
+            <p className="text-xs text-muted-foreground">
+              The body of thought this date comes out of — not the same thing as the kind of source above.
+            </p>
           </Field>
           <Field icon={<ScrollText className="h-4 w-4" />} label="Precision given">
             {dateUnitLabel(claim.date_precision)}
@@ -194,6 +227,18 @@ export function DateClaimCard({
             )}
           </Field>
         </div>
+
+        {/* Wikipedia → academic book → excavation report. Only where there is a
+            source to hang it on; the panel decides for itself whether it has
+            anything worth saying. */}
+        {source && communitySlug && (
+          <SourceChainPanel
+            source={source}
+            sources={allSources ?? [...sourcesById.values()]}
+            communitySlug={communitySlug}
+            canContribute={canContribute}
+          />
+        )}
 
         {claim.evidence && (
           <div className="mt-4 rounded-lg bg-muted/40 p-3.5">
@@ -266,11 +311,34 @@ export function DateClaimCard({
             </div>
 
             <div>
-              <dt className="font-medium text-foreground">Source type</dt>
+              <dt className="font-medium text-foreground">Kind of source</dt>
               <dd className="text-muted-foreground">
-                {source ? sourceTypeLabel(source.source_type) : "Not stated."}
+                {source ? (
+                  <>
+                    {sourceTypeLabel(source.source_type)}
+                    {sourceTierLabel(source.source_type) ? ` — ${sourceTierLabel(source.source_type)}.` : "."} This says
+                    what sort of document it is and how far it stands from the evidence. It is not a rating: a primary
+                    source can be mistaken and a reference work can be excellent.
+                    {source.accessed_on ? ` Read on ${source.accessed_on}.` : ""}
+                  </>
+                ) : (
+                  "Not stated."
+                )}
               </dd>
             </div>
+
+            {source?.quotation && (
+              <div>
+                <dt className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Quote className="h-3.5 w-3.5" /> What the source says
+                </dt>
+                <dd>
+                  <blockquote className="border-l-2 border-border pl-3 italic text-muted-foreground">
+                    “{source.quotation}”
+                  </blockquote>
+                </dd>
+              </div>
+            )}
 
             <div>
               <dt className="font-medium text-foreground">How it was worked out</dt>
@@ -288,10 +356,12 @@ export function DateClaimCard({
             </div>
 
             <div>
-              <dt className="font-medium text-foreground">Chronology / viewpoint</dt>
+              <dt className="font-medium text-foreground">Whose account this is (viewpoint)</dt>
               <dd className="text-muted-foreground">
-                {chronologyLabel(claim.chronology)} — the framework this date is calculated within. Naming it is not the
-                same as agreeing with it; it is what lets you compare it with the others below.
+                {chronologyLabel(claim.chronology)}
+                {viewpointHint(claim.chronology) ? ` — ${viewpointHint(claim.chronology)}` : ""} Naming a viewpoint is
+                not agreeing with it, and it is a different question from the kind of source above: a viewpoint
+                describes the claim, a source type describes the document it came from.
               </dd>
             </div>
 

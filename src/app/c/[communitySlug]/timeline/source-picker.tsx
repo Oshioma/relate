@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineSource } from "@/types/database";
 import { findTimelineSources } from "./actions";
-import { sourceTypeLabel } from "@/lib/timeline/taxonomy";
+import { sourceTierLabel, sourceTypeLabel } from "@/lib/timeline/taxonomy";
 import { formatDateParts } from "@/lib/timeline/time";
 
 // Finding the source somebody else already added.
@@ -91,7 +91,10 @@ export function SourcePicker({
           {sourceLine(selectedSource) && (
             <p className="truncate text-xs text-muted-foreground">{sourceLine(selectedSource)}</p>
           )}
-          <p className="mt-1 text-xs text-muted-foreground">{sourceTypeLabel(selectedSource.source_type)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {sourceTypeLabel(selectedSource.source_type)}
+            {sourceTierLabel(selectedSource.source_type) ? ` · ${sourceTierLabel(selectedSource.source_type)}` : ""}
+          </p>
         </div>
         <button
           type="button"
@@ -159,6 +162,7 @@ export function SourcePicker({
                           <span className="rounded-full bg-muted px-1.5 py-0.5 font-medium">
                             {sourceTypeLabel(source.source_type)}
                           </span>
+                          {sourceTierLabel(source.source_type) && <span>{sourceTierLabel(source.source_type)}</span>}
                           {source.useCount > 0 && (
                             <span>
                               already cited by {source.useCount} date{source.useCount === 1 ? "" : "s"}

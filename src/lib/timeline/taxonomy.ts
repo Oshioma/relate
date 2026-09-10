@@ -84,27 +84,92 @@ export function timelineCategoryLabel(key: string | null | undefined): string {
 // Sources
 // ---------------------------------------------------------------------------
 
+// WHERE THE INFORMATION CAME FROM.
+//
+// A source type answers "what kind of thing is this?" — an excavation report, a
+// peer-reviewed paper, a documentary, an encyclopedia entry. It is not a
+// viewpoint (see CLAIM_VIEWPOINTS) and it is not a score. A religious text can
+// be cited for a conventional date and an academic paper can argue an
+// alternative one; keeping the two axes apart is what lets a learner see that.
+//
+// `tier` is the standard primary / secondary / tertiary distinction taught in
+// every research-skills lesson, and it is a FACT ABOUT THE KIND OF DOCUMENT,
+// not a ranking of quality. A primary source can be wrong and a tertiary one
+// can be excellent. It is surfaced so a learner can notice how far they are
+// from the evidence — which is the question this whole feature is built to make
+// askable.
+export const SOURCE_TIERS = {
+  primary: "Primary source",
+  secondary: "Secondary source",
+  tertiary: "Tertiary / reference source",
+} as const;
+
+export type SourceTier = keyof typeof SOURCE_TIERS;
+
 export const TIMELINE_SOURCE_TYPES = [
-  { key: "primary", label: "Primary source", hint: "Made at the time by someone who was there." },
-  { key: "secondary", label: "Secondary source", hint: "Written later, about the event." },
-  { key: "academic_paper", label: "Academic paper", hint: "Peer-reviewed research." },
-  { key: "archaeological", label: "Archaeological evidence", hint: "Excavation reports, site records, dated finds." },
-  { key: "scientific_study", label: "Scientific study", hint: "Dating, measurement or modelling." },
-  { key: "historical_document", label: "Historical document", hint: "Charters, chronicles, letters, inscriptions." },
-  { key: "religious_text", label: "Religious text", hint: "Scripture and commentary." },
-  { key: "oral_tradition", label: "Oral tradition", hint: "Knowledge carried by telling rather than writing." },
-  { key: "book", label: "Book", hint: "A published book." },
-  { key: "website", label: "Website", hint: "An online article or reference page." },
-  { key: "video", label: "Video or documentary", hint: "A film, documentary or recorded talk." },
-  { key: "museum", label: "Museum or archive", hint: "A collection, catalogue entry or exhibit." },
-  { key: "modern_interpretation", label: "Modern interpretation", hint: "Somebody's reading of the evidence." },
-  { key: "other", label: "Other", hint: "" },
+  { key: "primary", label: "Primary source", tier: "primary", hint: "Made at the time by someone who was there." },
+  { key: "archaeological", label: "Archaeological evidence", tier: "primary", hint: "Excavation reports, site records, dated finds." },
+  { key: "historical_document", label: "Historical document", tier: "primary", hint: "Charters, chronicles, letters, inscriptions." },
+  { key: "religious_text", label: "Religious or sacred text", tier: "primary", hint: "Scripture and commentary." },
+  { key: "oral_tradition", label: "Oral tradition or testimony", tier: "primary", hint: "Knowledge carried by telling rather than writing." },
+  { key: "government", label: "Government or official record", tier: "primary", hint: "Censuses, registries, state archives, official statistics." },
+  { key: "interview", label: "Interview", tier: "primary", hint: "Somebody questioned directly, on the record." },
+
+  { key: "academic_paper", label: "Academic / peer-reviewed", tier: "secondary", hint: "Research that other specialists have checked before publication." },
+  { key: "academic_book", label: "Academic book", tier: "secondary", hint: "A scholarly book or monograph." },
+  { key: "scientific_study", label: "Scientific study", tier: "secondary", hint: "Dating, measurement or modelling." },
+  { key: "book", label: "Book", tier: "secondary", hint: "A published book for a general reader." },
+  { key: "documentary", label: "Documentary", tier: "secondary", hint: "A film or series made about the subject." },
+  { key: "video", label: "Video or recorded talk", tier: "secondary", hint: "A lecture, a channel, a recorded talk." },
+  { key: "newspaper", label: "Newspaper or journalism", tier: "secondary", hint: "Reporting, in print or online." },
+  { key: "museum", label: "Museum or institution", tier: "secondary", hint: "A collection, catalogue entry or exhibit." },
+  { key: "secondary", label: "Secondary source", tier: "secondary", hint: "Written later, about the event." },
+  { key: "modern_interpretation", label: "Modern interpretation", tier: "secondary", hint: "Somebody's reading of the evidence." },
+
+  { key: "wikipedia", label: "Wikipedia", tier: "tertiary", hint: "An encyclopedia anyone can edit. A good place to start and a poor place to stop — follow its references." },
+  { key: "encyclopedia", label: "Encyclopedia or reference work", tier: "tertiary", hint: "Britannica, a dictionary, a handbook — a summary of other people's work." },
+  { key: "website", label: "Website", tier: "tertiary", hint: "An online article or reference page." },
+  { key: "ai_chat", label: "Chat or AI conversation", tier: "tertiary", hint: "A transcript of a conversation with an AI assistant. It is a record of what was said, not evidence for what happened — whatever it pointed you at is the better source." },
+
+  { key: "other", label: "Other", tier: null, hint: "" },
 ] as const;
 
 export type TimelineSourceType = (typeof TIMELINE_SOURCE_TYPES)[number]["key"];
 
+/** The one type with a form of its own — see the Wikipedia fields in the source panel. */
+export const WIKIPEDIA_SOURCE_TYPE = "wikipedia";
+
+const SOURCE_TYPE_BY_KEY = new Map(TIMELINE_SOURCE_TYPES.map((type) => [type.key as string, type]));
+
+/**
+ * Primary, secondary or tertiary — a fact about the kind of document, never a
+ * verdict on it. Null for "Other" and for anything a community invented, where
+ * asserting a tier would be a guess.
+ */
+export function sourceTier(key: string | null | undefined): SourceTier | null {
+  return (SOURCE_TYPE_BY_KEY.get(key ?? "")?.tier as SourceTier | null) ?? null;
+}
+
+export function sourceTierLabel(key: string | null | undefined): string | null {
+  const tier = sourceTier(key);
+  return tier ? SOURCE_TIERS[tier] : null;
+}
+
+// Kinds of source that live at a URL and can be edited after you have cited
+// them. For these the access date is not bookkeeping — it is the only thing
+// that tells the next reader WHICH version of the page the claim came from.
+const WANTS_ACCESS_DATE = new Set(["wikipedia", "encyclopedia", "website", "ai_chat", "video", "newspaper", "documentary"]);
+
+export function sourceTypeWantsAccessDate(key: string | null | undefined): boolean {
+  return WANTS_ACCESS_DATE.has(key ?? "");
+}
+
+export function sourceTypeHint(key: string | null | undefined): string {
+  return SOURCE_TYPE_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
 export function sourceTypeLabel(key: string | null | undefined): string {
-  return TIMELINE_SOURCE_TYPES.find((t) => t.key === key)?.label ?? "Other";
+  return SOURCE_TYPE_BY_KEY.get(key ?? "")?.label ?? "Other";
 }
 
 // ---------------------------------------------------------------------------
@@ -154,22 +219,78 @@ export function datingMethodHint(key: string | null | undefined): string {
 // student needs to compare them.
 // ---------------------------------------------------------------------------
 
-export const CHRONOLOGIES = [
-  { key: "conventional", label: "Conventional" },
-  { key: "archaeological", label: "Archaeological" },
-  { key: "geological", label: "Geological" },
-  { key: "scientific", label: "Scientific" },
-  { key: "biblical", label: "Biblical" },
-  { key: "islamic", label: "Islamic" },
-  { key: "hindu", label: "Hindu" },
-  { key: "indigenous", label: "Indigenous / oral tradition" },
-  { key: "alternative", label: "Alternative chronology" },
-  { key: "community", label: "Community interpretation" },
-  { key: "other", label: "Other" },
+// WHOSE ACCOUNT THIS IS.
+//
+// A viewpoint describes the CLAIM: which body of thought a date comes out of.
+// It is not a source type (that describes the document) and it is emphatically
+// not a score. Naming a viewpoint says where a number comes from, never whether
+// Relate agrees with it — and the UI must keep saying so, because a list with
+// "Mainstream" at the top of it is exactly the sort of thing a reader will
+// mistake for a ranking if nobody tells them otherwise.
+//
+// "Mainstream / established view" is the relabelling of what used to be called
+// "Conventional". It is the same idea under a clearer name, so every date
+// already filed as conventional reads correctly without a backfill — and a
+// second, near-identical entry beside it would have been a trap.
+//
+// The order is editorial, not a hierarchy: the viewpoints most claims will use
+// come first so the dropdown is quick, and the comparison panel renders groups
+// in this order for the same reason.
+export const CLAIM_VIEWPOINTS = [
+  {
+    key: "conventional",
+    label: "Mainstream / established view",
+    hint:
+      "The generally accepted account in current scholarship — academic research, archaeology, science, textbooks, museums, universities. " +
+      "This does NOT mean the claim is unquestionably true. It means this is the broadly accepted interpretation today.",
+  },
+  {
+    key: "alternative",
+    label: "Alternative interpretation",
+    hint:
+      "A reading put forward outside the mainstream account. Naming it alternative says where it sits, not that it is wrong — " +
+      "the evidence and the reasoning are shown so a reader can weigh it themselves.",
+  },
+  { key: "disputed", label: "Disputed / contested claim", hint: "Specialists actively disagree about this one." },
+  { key: "historical", label: "Historical account", hint: "As given in the written historical record." },
+  { key: "archaeological", label: "Archaeological", hint: "Worked out from physical evidence and site sequences." },
+  { key: "scientific", label: "Scientific", hint: "From measurement, dating or modelling." },
+  { key: "hypothesis", label: "Scientific hypothesis", hint: "Proposed and testable, not yet established." },
+  { key: "geological", label: "Geological", hint: "From the rock record and its timescale." },
+  { key: "traditional", label: "Traditional account", hint: "Carried by a tradition or a people's own telling." },
+  { key: "oral_tradition", label: "Oral tradition", hint: "Passed on by telling rather than by writing." },
+  { key: "indigenous", label: "Indigenous knowledge", hint: "The knowledge of a people about their own history and country." },
+  { key: "religious", label: "Religious / sacred tradition", hint: "As held within a religious tradition." },
+  { key: "biblical", label: "Biblical chronology", hint: "Calculated from dates given in the Bible." },
+  { key: "islamic", label: "Islamic chronology", hint: "Calculated within the Islamic calendar and tradition." },
+  { key: "hindu", label: "Hindu chronology", hint: "Calculated within Hindu cosmology and tradition." },
+  { key: "community", label: "Personal / community claim", hint: "Somebody's own account, or this community's own reading." },
+  { key: "other", label: "Other", hint: "" },
 ] as const;
 
+export type ClaimViewpoint = (typeof CLAIM_VIEWPOINTS)[number]["key"];
+
+/**
+ * The old export name. `chronology` is still the column, and plenty of the code
+ * reads better saying "viewpoint", so both names point at one list rather than
+ * two lists drifting apart.
+ */
+export const CHRONOLOGIES = CLAIM_VIEWPOINTS;
+
+const VIEWPOINT_BY_KEY = new Map(CLAIM_VIEWPOINTS.map((viewpoint) => [viewpoint.key as string, viewpoint]));
+
+/** Where a viewpoint sits in the dropdown, so comparison groups render in the same order. */
+export function viewpointOrder(key: string | null | undefined): number {
+  const index = CLAIM_VIEWPOINTS.findIndex((viewpoint) => viewpoint.key === key);
+  return index === -1 ? CLAIM_VIEWPOINTS.length : index;
+}
+
+export function viewpointHint(key: string | null | undefined): string {
+  return VIEWPOINT_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
 export function chronologyLabel(key: string | null | undefined): string {
-  return CHRONOLOGIES.find((c) => c.key === key)?.label ?? (key ? key.replace(/_/g, " ") : "Not stated");
+  return VIEWPOINT_BY_KEY.get(key ?? "")?.label ?? (key ? key.replace(/_/g, " ") : "Not stated");
 }
 
 // ---------------------------------------------------------------------------
@@ -186,11 +307,20 @@ export function chronologyLabel(key: string | null | undefined): string {
 // ---------------------------------------------------------------------------
 
 export const TIMELINE_EVENT_TYPES = [
+  {
+    key: "mainstream",
+    label: "Mainstream / established view",
+    hint:
+      "The generally accepted account in current scholarship — research, archaeology, science, textbooks, museums. " +
+      "Not a declaration that it is unquestionably true; it is what is broadly accepted today, shown so it can be compared with the rest.",
+  },
   { key: "historical", label: "Historical event", hint: "Something recorded as having happened." },
   { key: "scientific_model", label: "Scientific model or event", hint: "An event as described by a scientific model." },
   { key: "traditional_account", label: "Traditional account", hint: "Carried by a tradition or a people's own telling." },
   { key: "religious_account", label: "Religious account", hint: "As given in a religious tradition or text." },
   { key: "archaeological_interpretation", label: "Archaeological interpretation", hint: "A reading of physical evidence." },
+  { key: "alternative", label: "Alternative interpretation", hint: "A reading put forward outside the mainstream account." },
+  { key: "disputed", label: "Disputed or contested", hint: "Specialists actively disagree about this." },
   { key: "hypothesised", label: "Proposed or hypothesised", hint: "Put forward, not established." },
   { key: "future_prediction", label: "Future prediction", hint: "Expected, calculated or forecast." },
   { key: "planned_future", label: "Planned future event", hint: "Scheduled by someone — a launch, a trip, an anniversary." },
@@ -198,6 +328,10 @@ export const TIMELINE_EVENT_TYPES = [
 ] as const;
 
 export type TimelineEventType = (typeof TIMELINE_EVENT_TYPES)[number]["key"];
+
+export function eventTypeHint(key: string | null | undefined): string {
+  return TIMELINE_EVENT_TYPES.find((type) => type.key === key)?.hint ?? "";
+}
 
 export function eventTypeLabel(key: string | null | undefined): string | null {
   if (!key) return null;

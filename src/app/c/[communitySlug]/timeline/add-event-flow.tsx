@@ -16,6 +16,7 @@ import {
   emptySourceDraft,
   resolveDateInput,
   resolveUncertaintyYears,
+  todayIso,
   type ClaimDraft,
   type EventDraft,
 } from "@/lib/timeline/draft";
@@ -156,6 +157,10 @@ export function AddEventFlow({
                 publisher: claim.new_source?.publisher?.trim() || found.publisher || "",
                 url: found.url,
                 source_type: found.sourceType,
+                // Read just now, by definition — and for a page that can be
+                // edited later, the access date is the only thing that says
+                // which version this claim came out of.
+                accessed_on: claim.new_source?.accessed_on ?? todayIso(),
                 published: found.published
                   ? { mode: "calendar" as const, year: found.published.year, era: "CE" as const, month: found.published.month, day: found.published.day, unit: "million" as const }
                   : claim.new_source?.published ?? null,

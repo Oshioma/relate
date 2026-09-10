@@ -42,7 +42,17 @@ export type LinkedSource = {
 // about to save anybody any typing.
 const READ_TIMEOUT_MS = 8_000;
 
-export type LinkReadResult = { ok: true; source: LinkedSource } | { ok: false; error: string };
+export type LinkReadResult =
+  | { ok: true; source: LinkedSource }
+  | {
+      ok: false;
+      error: string;
+      // WHAT WE KNOW ANYWAY. A refusal still leaves the address and, for the
+      // hosts we recognise, the kind of source it is — so the form fills those
+      // two in rather than making somebody retype a link they just pasted.
+      // "Your link is kept" is a promise this field keeps.
+      partial?: LinkedSource;
+    };
 
 // A watch page's metadata is thin and its channel name isn't in it, but every
 // video host publishes oEmbed — a keyless, stable endpoint that returns exactly
@@ -58,6 +68,57 @@ const OEMBED_ENDPOINTS: { matches: (host: string) => boolean; endpoint: (url: st
     endpoint: (url) => `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`,
   },
 ];
+
+// PAGES THERE IS NO POINT FETCHING.
+//
+// Everything here draws itself in the browser or sits behind a login, so a
+// server-side request gets an empty shell or a wall — after the full timeout,
+// which is eight seconds of spinner to learn nothing. Naming them is worth the
+// maintenance: an instant, specific sentence beats a slow, generic one.
+//
+// This is not a blocklist. The link is still saved and still a perfectly good
+// source; the only thing refused is the pointless wait.
+const UNREADABLE_HOSTS: { matches: (host: string) => boolean; kind: "chat" | "document" | "walled" }[] = [
+  {
+    matches: (host) =>
+      host === "chatgpt.com" || host.endsWith(".chatgpt.com") ||
+      host === "chat.openai.com" || host === "claude.ai" || host.endsWith(".claude.ai") ||
+      host === "gemini.google.com" || host === "bard.google.com" ||
+      host === "copilot.microsoft.com" || host === "perplexity.ai" || host.endsWith(".perplexity.ai") ||
+      host === "poe.com",
+    kind: "chat",
+  },
+  {
+    matches: (host) =>
+      host === "docs.google.com" || host === "drive.google.com" ||
+      host === "sheets.google.com" || host === "slides.google.com" ||
+      host === "notion.so" || host.endsWith(".notion.so") || host.endsWith(".notion.site") ||
+      host === "figma.com" || host.endsWith(".figma.com") ||
+      host === "airtable.com" || host.endsWith(".airtable.com"),
+    kind: "document",
+  },
+  {
+    matches: (host) =>
+      host === "x.com" || host === "twitter.com" || host.endsWith(".twitter.com") ||
+      host === "facebook.com" || host.endsWith(".facebook.com") ||
+      host === "instagram.com" || host.endsWith(".instagram.com") ||
+      host === "linkedin.com" || host.endsWith(".linkedin.com"),
+    kind: "walled",
+  },
+];
+
+const UNREADABLE_MESSAGES: Record<"chat" | "document" | "walled", string> = {
+  chat:
+    "A shared chat is drawn in your browser, so there is nothing in the page for us to read. Your link is kept — " +
+    "set the kind of source to “Chat or AI conversation” and give it a title. Better still: if the conversation " +
+    "pointed you at a book, a paper or an article, that is the source worth citing here.",
+  document:
+    "Documents like this are drawn in the browser or need a sign-in, so there is nothing in the page to read from " +
+    "out here. Your link is kept — just fill in the title yourself.",
+  walled:
+    "This site won't show a page to anyone who isn't signed in, so there is nothing to read. Your link is kept — " +
+    "just fill in the title yourself.",
+};
 
 function hostOf(url: URL): string {
   return url.hostname.toLowerCase();
@@ -76,7 +137,11 @@ export function guessSourceType(url: URL): string {
   const path = url.pathname.toLowerCase();
 
   if (OEMBED_ENDPOINTS.some((entry) => entry.matches(hostOf(url)))) return "video";
-  if (host.endsWith("wikipedia.org") || host.endsWith("wikiversity.org")) return "website";
+  if (UNREADABLE_HOSTS.find((entry) => entry.matches(hostOf(url)))?.kind === "chat") return "ai_chat";
+  // Wikipedia gets its own type, and with it its own fields and the nudge to
+  // follow the article's references down to what it is summarising.
+  if (host.endsWith("wikipedia.org")) return "wikipedia";
+  if (host.endsWith("wikiversity.org") || host.endsWith("wikibooks.org")) return "encyclopedia";
   if (
     host === "doi.org" ||
     host.endsWith("arxiv.org") ||
@@ -93,6 +158,7 @@ export function guessSourceType(url: URL): string {
   ) {
     return "academic_paper";
   }
+  if (host.endsWith("britannica.com")) return "encyclopedia";
   if (host.endsWith("britishmuseum.org") || host.endsWith("metmuseum.org") || host.includes("museum") || path.includes("/collection/")) {
     return "museum";
   }
@@ -351,6 +417,29 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   const url = parsePublicUrl(withScheme);
   if (!url) return { ok: false, error: "That doesn't look like a web address we can open." };
+
+  // Say so instantly rather than after the timeout. See UNREADABLE_HOSTS. The
+  // link and the kind of source still go into the form: refusing to fetch a
+  // page is not the same as refusing to cite it.
+  const unreadable = UNREADABLE_HOSTS.find((entry) => entry.matches(hostOf(url)));
+  if (unreadable) {
+    return {
+      ok: false,
+      error: UNREADABLE_MESSAGES[unreadable.kind],
+      partial: {
+        url: url.toString(),
+        title: "",
+        author: null,
+        publisher: null,
+        workTitle: null,
+        sourceType: guessSourceType(url),
+        published: null,
+        summary: null,
+        imageUrl: null,
+        missing: ["title"],
+      },
+    };
+  }
 
   const oembed = await readOEmbed(url);
   if (oembed) return { ok: true, source: oembed };
