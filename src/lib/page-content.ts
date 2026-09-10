@@ -32,6 +32,14 @@ const MAX_TEXT = 12_000;
 const MAX_JSON_LD_BLOCKS = 3;
 const MAX_JSON_LD_CHARS = 6_000;
 const FETCH_TIMEOUT_MS = 12_000;
+// NOTE ON THE {0,4000} IN THE ATTRIBUTE PATTERNS BELOW.
+//
+// A lazy [\s\S]*? that never finds its closing quote scans to the end of the
+// document from every start position — quadratic on a 600KB single-page-app
+// shell, which is exactly the shape of a shared-chat or Google-Docs link. The
+// bound has to be written into each pattern because a regex quantifier cannot
+// take a variable; 4,000 characters is far longer than any real attribute and
+// short enough that a pathological page costs nothing.
 
 // The member pastes a link and we fetch that one page on their behalf, so we
 // send an ordinary browser's headers rather than a crawler's — many listing
@@ -182,16 +190,17 @@ function extractJsonLd(html: string, keep: RegExp): string[] {
 
 export async function fetchPageContent(
   url: URL,
-  // Which schema.org blocks are worth keeping. Defaults to the place types the
-  // listing importer has always wanted; the timeline's source importer passes
-  // ARTICLE_JSON_LD instead. A parameter rather than a widened filter, so one
-  // caller's needs cannot quietly change what the other one sees.
-  options: { jsonLdTypes?: RegExp } = {}
+  // Which schema.org blocks are worth keeping, and how long to wait. Both
+  // default to what the listing importer has always had; the timeline's source
+  // importer narrows the wait, because somebody is watching a spinner. A
+  // parameter rather than a changed constant, so one caller's needs cannot
+  // quietly change what the other one gets.
+  options: { jsonLdTypes?: RegExp; timeoutMs?: number } = {}
 ): Promise<PageContent | null> {
   let response: Response;
   try {
     response = await fetch(url, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(options.timeoutMs ?? FETCH_TIMEOUT_MS),
       headers: BROWSER_HEADERS,
       redirect: "follow",
       cache: "no-store",
@@ -219,14 +228,14 @@ export async function fetchPageContent(
     // "Dinosaur asteroid hit 'worst possible place'" survives intact. The old
     // [^"']+ stopped at the first quote of either kind and truncated it.
     title: firstMatch(html, [
-      /<meta[^>]+property=["']og:title["'][^>]+content=(["'])([\s\S]*?)\1/i,
-      /<meta[^>]+content=(["'])([\s\S]*?)\1[^>]+property=["']og:title["']/i,
-      /<title[^>]*>([\s\S]*?)<\/title>/i,
+      /<meta[^>]+property=["']og:title["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]+property=["']og:title["']/i,
+      /<title[^>]*>([\s\S]{0,4000}?)<\/title>/i,
     ]),
     description: firstMatch(html, [
-      /<meta[^>]+property=["']og:description["'][^>]+content=(["'])([\s\S]*?)\1/i,
-      /<meta[^>]+name=["']description["'][^>]+content=(["'])([\s\S]*?)\1/i,
-      /<meta[^>]+content=(["'])([\s\S]*?)\1[^>]+name=["']description["']/i,
+      /<meta[^>]+property=["']og:description["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+name=["']description["'][^>]+content=(["'])([\s\S]{0,4000}?)\1/i,
+      /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]+name=["']description["']/i,
     ]),
     meta: extractMeta(html),
     jsonLd: extractJsonLd(html, options.jsonLdTypes ?? PLACE_JSON_LD),
@@ -242,8 +251,8 @@ export async function fetchPageContent(
 // order — the same both-orders problem the image and title patterns above
 // already solve, because plenty of real pages write content first.
 const META_PATTERNS = [
-  /<meta[^>]+(?:name|property|itemprop)=["']([^"']+)["'][^>]*content=(["'])([\s\S]*?)\2/gi,
-  /<meta[^>]+content=(["'])([\s\S]*?)\1[^>]*(?:name|property|itemprop)=["']([^"']+)["']/gi,
+  /<meta[^>]+(?:name|property|itemprop)=["']([^"']+)["'][^>]*content=(["'])([\s\S]{0,4000}?)\2/gi,
+  /<meta[^>]+content=(["'])([\s\S]{0,4000}?)\1[^>]*(?:name|property|itemprop)=["']([^"']+)["']/gi,
 ];
 
 function extractMeta(html: string): Record<string, string> {
