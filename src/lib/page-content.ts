@@ -134,9 +134,21 @@ function decodeEntities(value: string): string {
   });
 }
 
-function htmlToText(html: string): string {
+// SITE FURNITURE.
+//
+// A navigation sidebar, a header and a footer are on every page of a site and
+// are about none of them. Left in, they become "the page's text": a shared
+// ChatGPT link read out here produced "Skip to content · New chat · Chat
+// history · See plans and pricing" and not one word of the conversation.
+//
+// Opt-in rather than automatic, because a listing's footer is often where its
+// address lives and the listing importer has been reading it happily for
+// months. Only callers that want prose ask for prose.
+const CHROME_ELEMENTS = /<(nav|header|footer|aside)\b[^>]*>[\s\S]*?<\/\1>/gi;
+
+function htmlToText(html: string, dropChrome = false): string {
   return decodeEntities(
-    html
+    (dropChrome ? html.replace(CHROME_ELEMENTS, " ") : html)
       .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
       .replace(/<!--[\s\S]*?-->/g, " ")
       // Keep block boundaries as separators so "Wifi" and "Kitchen" don't fuse.
@@ -199,7 +211,7 @@ export async function fetchPageContent(
   // importer narrows the wait, because somebody is watching a spinner. A
   // parameter rather than a changed constant, so one caller's needs cannot
   // quietly change what the other one gets.
-  options: { jsonLdTypes?: RegExp; timeoutMs?: number; maxText?: number } = {}
+  options: { jsonLdTypes?: RegExp; timeoutMs?: number; maxText?: number; dropChrome?: boolean } = {}
 ): Promise<PageContent | null> {
   let response: Response;
   try {
@@ -224,7 +236,7 @@ export async function fetchPageContent(
   }
 
   const finalUrl = response.url || url.toString();
-  const text = htmlToText(html);
+  const text = htmlToText(html, options.dropChrome ?? false);
 
   return {
     finalUrl,

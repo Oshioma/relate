@@ -14,6 +14,12 @@ import {
   type TimelineEventWithClaims,
 } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
+import { TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR } from "@/lib/timeline/time";
+
+// Five times the window cap. High enough that no real homeschool timeline
+// reaches it, low enough that one that does still renders — a page holding
+// every event a community has ever added is a page somebody has to scroll.
+const WHOLE_TIMELINE_CAP = 2_000;
 import { STARTER_TRACKS } from "@/lib/timeline/taxonomy";
 import {
   claimDraftSchema,
@@ -819,6 +825,45 @@ export async function loadTimelineEvent(
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community || !communityHasTimeline(community)) return null;
   return getTimelineEventBySlug(supabase, community.id, slug);
+}
+
+/**
+ * EVERYTHING, IN ONE GO — what the "Whole timeline" button reads.
+ *
+ * The strip is a window onto time and every other read is bounded by it, which
+ * is what keeps a thirteen-billion-year timeline out of the browser's memory.
+ * This is the deliberate exception: sometimes you want to read the lot, in
+ * order, on one page — to check it over, to print it, to see what a term's work
+ * actually amounts to.
+ *
+ * So it asks for the full span rather than the visible one, and raises the cap
+ * rather than removing it. A community with more entries than the cap gets the
+ * earliest of them and is told plainly that there are more, which is better
+ * than a page that quietly stops or one that never finishes loading.
+ *
+ * Filters still apply. "Whole timeline" means every event, not every event
+ * regardless of what you asked to see — and the button says which.
+ */
+export async function loadWholeTimeline(
+  communitySlug: string,
+  filters: TimelineFilters = {}
+): Promise<TimelineWindowPayload> {
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community || !communityHasTimeline(community)) return { events: [], total: 0, truncated: false };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return getTimelineWindow(
+    supabase,
+    community.id,
+    TIMELINE_MIN_YEAR,
+    TIMELINE_MAX_YEAR,
+    { ...filters, includePending: Boolean(user) },
+    WHOLE_TIMELINE_CAP
+  );
 }
 
 export async function searchTimeline(communitySlug: string, term: string): Promise<TimelineEventWithClaims[]> {

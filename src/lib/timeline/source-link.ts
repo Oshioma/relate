@@ -106,6 +106,56 @@ const CHAT_HOSTS = (host: string): boolean =>
 // The longest extract we carry over is whatever the quotation field itself
 // allows — 5,000 words, which is most whole conversations. See quotation.ts.
 
+// WHAT A SIGNED-OUT CHAT HOST ACTUALLY SERVES.
+//
+// Not the conversation. A real shared ChatGPT link, fetched from a server,
+// came back as this and nothing else:
+//
+//   "ChatGPT Skip to content New chat Images Search chats Chat history … See
+//    plans and pricing Settings Help Get responses tailored to you Log in to
+//    get answers based on saved chats … Log in Sign up for free"
+//
+// Which is the app's furniture and a sign-in prompt. It defeated the
+// empty-page check completely: the fetch succeeded, the text was hundreds of
+// characters long, the title was non-empty — so it read as a successful
+// import and put the navigation menu in somebody's quotation box.
+//
+// Length is therefore not the test. These phrases are: every one belongs to a
+// signed-out shell and none belongs to a conversation about the Great Pyramid.
+// Three of them together is not a coincidence, and the threshold means one
+// person writing "log in" inside a real transcript cannot trip it.
+const SIGN_IN_WALL_MARKERS = [
+  "skip to content",
+  "sign up for free",
+  "log in to get answers",
+  "chat history",
+  "see plans and pricing",
+  "search chats",
+  "new chat",
+  "get responses tailored to you",
+  "you need to log in",
+  "sign in to continue",
+  "create an account",
+];
+
+/** Whether what came back is a signed-out app shell rather than a conversation. */
+export function looksLikeSignInWall(text: string): boolean {
+  const haystack = text.toLowerCase();
+  let hits = 0;
+  for (const marker of SIGN_IN_WALL_MARKERS) {
+    if (haystack.includes(marker)) hits += 1;
+    if (hits >= 3) return true;
+  }
+  return false;
+}
+
+// A chat host's own name, which is what its <title> says when there is no
+// conversation to name. "ChatGPT" is not a title for anything.
+const CHAT_PRODUCT_NAMES = new Set([
+  "chatgpt", "openai", "claude", "gemini", "bard", "copilot",
+  "microsoft copilot", "perplexity", "poe", "shared chat", "share",
+]);
+
 // PAGES THERE IS NO POINT FETCHING.
 //
 // Everything here draws itself in the browser or sits behind a login, so a
@@ -499,10 +549,13 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   // words — so a shared chat came back cut to well under the quotation limit no
   // matter how high that limit went. Chat hosts get a budget large enough that
   // the 5,000-word cap is what actually binds, and nothing else pays for it.
+  const isChat = CHAT_HOSTS(hostOf(url));
   const page = await fetchPageContent(url, {
     jsonLdTypes: ARTICLE_JSON_LD,
     timeoutMs: READ_TIMEOUT_MS,
-    ...(CHAT_HOSTS(hostOf(url)) ? { maxText: QUOTATION_MAX_WORDS * 24 } : {}),
+    // A transcript needs room, and it needs the sidebar gone — otherwise the
+    // "conversation" starts with the app's navigation menu.
+    ...(isChat ? { maxText: QUOTATION_MAX_WORDS * 24, dropChrome: true } : {}),
   });
   if (!page) {
     // Plenty of sites refuse a server-side request, and single-page apps —
@@ -520,15 +573,24 @@ export async function readSourceLink(rawUrl: string): Promise<LinkReadResult> {
   const target = parsePublicUrl(page.finalUrl) ?? url;
   const source = deriveSourceFromPage(target, page);
 
-  // A SHARE PAGE THAT ANSWERED WITH NOTHING.
+  // A SHARE PAGE THAT GAVE US NO CONVERSATION.
   //
-  // Some chat hosts serve a shell and draw the conversation in the browser, so
-  // the fetch succeeds and carries no conversation. Left alone, that produces a
-  // "source" whose title was invented from the URL slug — worse than admitting
-  // it, because it looks filled in. So it is reported as the empty read it was,
-  // with the link and the kind of source kept.
-  if (CHAT_HOSTS(hostOf(target)) && !source.excerpt && !hasRealTitle(target, source.title)) {
-    return { ok: false, error: CHAT_EMPTY_MESSAGE, partial: bareSource(target) };
+  // Three ways that happens, and all three used to end with something wrong in
+  // the form rather than an honest message:
+  //
+  //   · the page is a shell and carries no text at all;
+  //   · it carries a sign-in wall, which is text but is not a conversation;
+  //   · it carries no title, so one gets invented from the URL slug.
+  //
+  // Any of them means we did not get what we came for. Saying so is better
+  // than a filled-in form that is filled in with the wrong thing — a reader
+  // who sees a menu in the quotation box has to work out what went wrong,
+  // where a reader told "there was nothing to read" already knows.
+  if (CHAT_HOSTS(hostOf(target))) {
+    const wall = looksLikeSignInWall(page.text);
+    if (wall || !source.excerpt || !hasRealTitle(target, source.title)) {
+      return { ok: false, error: CHAT_EMPTY_MESSAGE, partial: bareSource(target) };
+    }
   }
 
   return { ok: true, source };
@@ -538,9 +600,10 @@ const GENERIC_UNREADABLE_MESSAGE =
   "Couldn't read that page — plenty of sites don't allow it, and some have nothing in the page to read. Your link is kept; just fill in the title yourself.";
 
 const CHAT_EMPTY_MESSAGE =
-  "That conversation is drawn in your browser, so there was nothing in the page for us to read. Your link is kept and " +
-  "we have set it as a chat — give it a title, and paste the part that matters into the quotation box. If the " +
-  "conversation pointed you at a book, a paper or an article, that is worth citing here too.";
+  "We couldn't get the conversation itself — the page asked us to sign in, which is what these sites do to anyone " +
+  "who isn't you. Your link is kept and it is set as a chat: give it a title, and paste the part that matters into " +
+  "the quotation box below. If the conversation pointed you at a book, a paper or an article, that is worth citing " +
+  "here too — and it is the stronger source.";
 
 /** Everything we know about a link we could not read: where it points, and what kind of thing it is. */
 function bareSource(url: URL): LinkedSource {
@@ -559,7 +622,18 @@ function bareSource(url: URL): LinkedSource {
   };
 }
 
-/** Whether the title came from the page, or was invented from the address when the page said nothing. */
+/**
+ * Whether the title names the thing, or is a stand-in.
+ *
+ * Two stand-ins to catch: the one we invent from the URL slug when the page
+ * says nothing, and the product's own name, which is what a chat host's
+ * <title> holds when there is no conversation to name it after. "ChatGPT" is
+ * not a title for anything.
+ */
 function hasRealTitle(url: URL, title: string): boolean {
-  return title.trim().length > 0 && title.trim() !== titleFromUrl(url).trim();
+  const trimmed = title.trim();
+  if (!trimmed) return false;
+  if (trimmed === titleFromUrl(url).trim()) return false;
+  if (CHAT_HOSTS(hostOf(url)) && CHAT_PRODUCT_NAMES.has(trimmed.toLowerCase())) return false;
+  return true;
 }
