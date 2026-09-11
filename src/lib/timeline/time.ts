@@ -1114,8 +1114,25 @@ export function positionAt(window: TimeWindow, fraction: number, scale: TimeScal
 // are not jammed against the right-hand edge with nothing after them.
 export const LOOKBACK_END_YEAR = 2030;
 
+/**
+ * A duration split into the number and the word, so a card can set the number
+ * big and the unit small: "1 million" + "years", "7,500" + "years".
+ *
+ * Derived from formatDuration rather than reimplemented, so the two can never
+ * disagree about how a span is written.
+ */
+export function durationParts(years: number, floor = 0): { value: string; unit: string } {
+  const text = formatDuration(years, floor);
+  const cut = text.lastIndexOf(" ");
+  if (cut === -1) return { value: text, unit: "" };
+  return { value: text.slice(0, cut), unit: text.slice(cut + 1) };
+}
+
 export const LOOKBACK_SPANS = [
-  2_000, 5_000, 10_000, 20_000, 50_000, 100_000,
+  // 7,500 sits between the round thousands on purpose: it is the span that
+  // holds the whole of the written record and the farming revolution before it
+  // in one frame, and it was asked for by name.
+  2_000, 5_000, 7_500, 10_000, 20_000, 50_000, 100_000,
   1_000_000, 10_000_000, 100_000_000, 1_000_000_000,
 ] as const;
 

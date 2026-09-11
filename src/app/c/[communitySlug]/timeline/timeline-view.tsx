@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { TimelineClaimSource, TimelineSource, TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims, TimelineFilters } from "@/lib/data/timeline";
+import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
@@ -46,7 +47,9 @@ import {
   zoomWindow,
   LOOKBACK_END_YEAR,
   LOOKBACK_SPANS,
-  formatDuration,
+  durationParts,
+  formatYear,
+  claimInterval,
   lookbackWindow,
   TIMELINE_JUMPS,
   type TimeScale,
@@ -94,6 +97,67 @@ function FilterSelect({
         </option>
       ))}
     </select>
+  );
+}
+
+// A SPAN, AS A CARD WITH THE NUMBER BIG.
+//
+// These were pills reading "5,000 years" in 12px grey — a row of nearly
+// identical words that you had to read one at a time to tell apart. The thing
+// that distinguishes them is the NUMBER, so the number is what the card is:
+// set large, in tabular figures so the digits line up down the row, with the
+// unit under it and what you will actually be looking at underneath that.
+//
+// The caption line does different work on each row and is passed in rather
+// than derived: an era card says "Medieval", a look-back card says the years
+// it will put on screen.
+function SpanCard({
+  value,
+  unit,
+  caption,
+  active,
+  accent = false,
+  icon,
+  onClick,
+}: {
+  value: string;
+  unit: string;
+  caption: string;
+  active?: boolean;
+  /** The community's own timeline, which is a different kind of jump from a fixed era. */
+  accent?: boolean;
+  icon?: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "group shrink-0 basis-[120px] rounded-xl border px-3 py-2.5 text-left transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active
+          ? "border-accent bg-accent-soft"
+          : accent
+            ? "border-transparent bg-accent-soft/60 hover:bg-accent-soft"
+            : "border-border bg-card hover:border-accent/60 hover:bg-muted/50"
+      )}
+    >
+      <span
+        className={cn(
+          "flex items-baseline gap-1 text-[21px] font-semibold leading-none tabular-nums",
+          active || accent ? "text-accent" : "text-foreground"
+        )}
+      >
+        {icon}
+        {value}
+      </span>
+      <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {unit}
+      </span>
+      <span className="mt-1 block truncate text-[11px] font-medium text-muted-foreground">{caption}</span>
+    </button>
   );
 }
 
@@ -214,13 +278,43 @@ export function TimelineView({
   // The window and the filters together are the query. Debounced, because a
   // drag produces one of these per frame and the server is not the thing that
   // should be keeping up with a finger.
+  //
+  // FETCH WIDER THAN THE SCREEN, AND THEN USUALLY DON'T FETCH AT ALL.
+  //
+  // Every pan used to be a 260ms wait plus a round trip before anything
+  // appeared, and in between the strip showed the previous window's events —
+  // which are, by definition, somewhere else — so it looked empty for most of a
+  // second on every drag. The fix is not a faster server; it is not asking it.
+  //
+  // A window's worth of time is loaded either side of what is on screen, so
+  // panning up to a full screen in either direction is arithmetic on data the
+  // page already holds. Only leaving that loaded stretch costs a request.
+  //
+  // The padding is only safe while the whole community fits inside the window
+  // cap: above that a wider query could hit the cap and silently drop events
+  // that are actually in view, so a big timeline keeps the exact-window
+  // behaviour it has always had.
   const requestId = useRef(0);
+  const loadedRef = useRef<{ from: number; to: number; key: string } | null>(null);
+  const loadKey = `${JSON.stringify(filters)}#${reloadToken}`;
+
   useEffect(() => {
+    const span = view.to - view.from;
+    const loaded = loadedRef.current;
+    if (loaded && loaded.key === loadKey && view.from >= loaded.from && view.to <= loaded.to) {
+      // Already in hand. This is the branch that makes scrolling feel instant.
+      setLoading(false);
+      return;
+    }
+
+    const pad = total > 0 && total <= TIMELINE_WINDOW_CAP ? span : 0;
+    const wanted = clampWindow({ from: view.from - pad, to: view.to + pad });
+
     const id = ++requestId.current;
     const handle = setTimeout(async () => {
       setLoading(true);
       try {
-        const payload = await loadTimelineWindow(communitySlug, view.from, view.to, filters);
+        const payload = await loadTimelineWindow(communitySlug, wanted.from, wanted.to, filters);
         // A slow response for a window the reader has already left must not
         // overwrite a fast one for the window they are in.
         if (id !== requestId.current) return;
@@ -233,12 +327,17 @@ export function TimelineView({
         setSelected((current) =>
           current ? payload.events.find((event) => event.id === current.id) ?? current : current
         );
+        // Remember what this payload actually covers, so the next pan inside it
+        // costs nothing. A truncated answer covers only what was asked for.
+        loadedRef.current = payload.truncated
+          ? { from: view.from, to: view.to, key: loadKey }
+          : { from: wanted.from, to: wanted.to, key: loadKey };
       } finally {
         if (id === requestId.current) setLoading(false);
       }
     }, REFETCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [communitySlug, view.from, view.to, filters, reloadToken]);
+  }, [communitySlug, view.from, view.to, filters, loadKey, total]);
 
   // WHOLE TIMELINE — everything this community has, in one frame.
   //
@@ -265,6 +364,19 @@ export function TimelineView({
   // Bring the panel into view when the selection changes — but only when it
   // changes, so scrolling away from an open panel doesn't yank you back on
   // every unrelated re-render.
+  // WHICH CARD AM I ON? A row of spans with nothing marked is a row of guesses:
+  // the reader has just pressed one and cannot tell which. Matched loosely,
+  // because panning a few pixels should not un-select the span you chose, and
+  // exactly enough that two neighbouring spans are never both lit.
+  const matchesWindow = useCallback(
+    (candidate: TimeWindow) => {
+      const span = view.to - view.from;
+      const tolerance = Math.max(1, span * 0.02);
+      return Math.abs(candidate.from - view.from) <= tolerance && Math.abs(candidate.to - view.to) <= tolerance;
+    },
+    [view.from, view.to]
+  );
+
   const selectedId = selected?.id ?? null;
   useEffect(() => {
     if (!selectedId) return;
@@ -297,7 +409,20 @@ export function TimelineView({
     setResults(null);
   }, []);
 
-  const visible = pendingOnly ? events.filter((event) => event.status === "pending") : events;
+  // Loaded is wider than shown (see the loader above), so the list is filtered
+  // back to the window: a reader scrolling the list should see what the strip
+  // is showing, not the margin either side of it that happens to be in memory.
+  const inWindow = useMemo(
+    () =>
+      events.filter((event) =>
+        event.claims.some((claim) => {
+          const interval = claimInterval(claim);
+          return interval.hi >= view.from && interval.lo <= view.to;
+        })
+      ),
+    [events, view.from, view.to]
+  );
+  const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
   const displayed = activeResults ?? visible;
   const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
@@ -694,32 +819,6 @@ export function TimelineView({
           ))}
         </div>
 
-        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {/* Everything this community has, framed. First in the row because
-              it is the jump people actually want — the fixed eras beside it
-              are spans of history, this one is spans of YOUR timeline. */}
-          {extent && (
-            <button
-              type="button"
-              onClick={fitEverything}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-colors hover:opacity-90"
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-              Whole timeline
-            </button>
-          )}
-          {TIMELINE_JUMPS.map((jump) => (
-            <button
-              key={jump.key}
-              type="button"
-              onClick={() => setView(jump.window)}
-              className="shrink-0 rounded-full bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              {jump.label}
-            </button>
-          ))}
-        </div>
-
         <button
           type="button"
           onClick={() => setShowList((open) => !open)}
@@ -728,6 +827,35 @@ export function TimelineView({
           <List className="h-4 w-4" />
           {showList ? "Hide the list" : "Read as a list"}
         </button>
+      </div>
+
+      {/* ---- Eras ------------------------------------------------------------
+          Scrolls sideways where there is not room and wraps where there is, so
+          the cards keep their size rather than being squeezed into illegibility
+          on a narrow screen. */}
+      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        {/* Everything this community has, framed. First in the row because it
+            is the jump people actually want — the fixed eras beside it are
+            spans of history, this one is a span of YOUR timeline. */}
+        {extent && (
+          <SpanCard
+            accent
+            icon={<Maximize2 className="h-4 w-4" />}
+            {...durationParts(Math.max(1, extent.to - extent.from))}
+            caption="Whole timeline"
+            active={matchesWindow({ from: extent.from, to: extent.to })}
+            onClick={fitEverything}
+          />
+        )}
+        {TIMELINE_JUMPS.map((jump) => (
+          <SpanCard
+            key={jump.key}
+            {...durationParts(jump.window.to - jump.window.from)}
+            caption={jump.label}
+            active={matchesWindow(jump.window)}
+            onClick={() => setView(jump.window)}
+          />
+        ))}
       </div>
 
       {/* ---- The event you clicked -----------------------------------------
@@ -803,21 +931,25 @@ export function TimelineView({
           along the row is one continuous zoom out from the present — which is
           the question a learner asks far more often than "show me the Medieval
           period". */}
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">
-          Back from {LOOKBACK_END_YEAR} —
-        </span>
-        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {LOOKBACK_SPANS.map((years) => (
-            <button
-              key={years}
-              type="button"
-              onClick={() => setView(lookbackWindow(years))}
-              className="shrink-0 rounded-full bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              {formatDuration(years)}
-            </button>
-          ))}
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Back from {LOOKBACK_END_YEAR}
+        </p>
+        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {LOOKBACK_SPANS.map((years) => {
+            const window = lookbackWindow(years);
+            return (
+              <SpanCard
+                key={years}
+                {...durationParts(years)}
+                // Where it actually lands, so the reader can see that 7,500
+                // years is the Neolithic without having to do the subtraction.
+                caption={`from ${formatYear(Math.floor(window.from), { compact: true })}`}
+                active={matchesWindow(window)}
+                onClick={() => setView(window)}
+              />
+            );
+          })}
         </div>
       </div>
 
