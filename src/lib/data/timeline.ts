@@ -7,6 +7,8 @@ import type {
   TimelineTrack,
   TimelineRevision,
   TimelineClaimSource,
+  TimelinePeriod,
+  TimelinePeriodLink,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
@@ -360,7 +362,9 @@ async function searchEventsBySource(supabase: Client, communityId: string, like:
     .limit(limit * 2);
   if (claimError) throw claimError;
 
-  const eventIds = [...new Set((claims ?? []).map((row) => row.event_id))].slice(0, limit);
+  // Period boundary claims cite sources too, and they have no event. Dropping
+  // them here keeps "what else does this source date?" answering with events.
+  const eventIds = [...new Set((claims ?? []).map((row) => row.event_id).filter((id) => id !== null))].slice(0, limit);
   if (eventIds.length === 0) return [];
 
   const { data, error } = await supabase
@@ -572,7 +576,7 @@ export async function getSourceUsage(
     .order("start_position", { ascending: true });
   if (error) throw error;
 
-  const eventIds = [...new Set((claims ?? []).map((claim) => claim.event_id))];
+  const eventIds = [...new Set((claims ?? []).map((claim) => claim.event_id).filter((id) => id !== null))];
   if (eventIds.length === 0) return { claims: claims ?? [], events: [] };
 
   const { data: events, error: eventError } = await supabase
@@ -775,6 +779,84 @@ export async function getClaimCitations(
     .limit(limit);
   if (error) throw error;
   return data ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Periods
+// ---------------------------------------------------------------------------
+
+export type TimelinePeriodWithClaims = TimelinePeriod & { claims: TimelineDateClaim[] };
+
+/**
+ * Every period this community has, with its boundary claims and its links.
+ *
+ * FETCHED WHOLE, NOT BY WINDOW, and that is the one place this file breaks its
+ * own rule. Events are fetched by the visible window because there can be
+ * thousands of them; periods are fetched entire because there are a dozen or
+ * two, and because the window test that is right for an event is wrong for a
+ * period. At a hundred thousand years ago the Middle Palaeolithic runs off both
+ * edges of the screen — an overlap filter tuned for events would drop precisely
+ * the band the reader is standing inside.
+ *
+ * Three queries, not N+1: the periods, then their claims in one `in`, then
+ * their links in one more. Which periods are worth DRAWING at this zoom is
+ * decided on the client from what comes back (see periodBands), because that
+ * question changes on every pan and the answer is already in memory.
+ */
+export async function getTimelinePeriods(
+  supabase: Client,
+  communityId: string
+): Promise<TimelinePeriodWithClaims[]> {
+  const { data, error } = await supabase
+    .from("timeline_periods")
+    .select("*")
+    .eq("community_id", communityId)
+    .eq("status", "published")
+    .order("display_priority", { ascending: false })
+    .order("name", { ascending: true });
+  if (error) throw error;
+
+  const periods = data ?? [];
+  if (periods.length === 0) return [];
+
+  const { data: claims, error: claimError } = await supabase
+    .from("timeline_date_claims")
+    .select("*")
+    .in("period_id", periods.map((period) => period.id))
+    .order("start_position", { ascending: true });
+  if (claimError) throw claimError;
+
+  const byPeriod = groupBy(claims ?? [], (claim) => claim.period_id);
+  return periods.map((period) => ({ ...period, claims: byPeriod.get(period.id) ?? [] }));
+}
+
+/** The edges between this community's periods — hierarchy and "worth reading together". */
+export async function getTimelinePeriodLinks(
+  supabase: Client,
+  communityId: string
+): Promise<TimelinePeriodLink[]> {
+  const { data, error } = await supabase
+    .from("timeline_period_links")
+    .select("*")
+    .eq("community_id", communityId);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** One row, to answer "does this community already have the period set?". */
+export async function hasTimelinePeriod(
+  supabase: Client,
+  communityId: string,
+  slug: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("timeline_periods")
+    .select("id")
+    .eq("community_id", communityId)
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw error;
+  return data != null;
 }
 
 function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {

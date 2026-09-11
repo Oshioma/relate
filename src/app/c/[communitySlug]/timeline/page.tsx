@@ -15,11 +15,15 @@ import {
   getClaimCitations,
   hasTimelineEvent,
   eventsMissingPictures,
+  getTimelinePeriods,
+  getTimelinePeriodLinks,
+  hasTimelinePeriod,
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG, showcaseNeedsPictures } from "@/lib/timeline/showcase-event";
 import { HANNIBAL_ANCHOR_SLUG, HANNIBAL_EVENTS } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_ANCHOR_SLUG } from "@/lib/timeline/deep-time-seed";
 import { EARLY_SAPIENS_ANCHOR_SLUG } from "@/lib/timeline/early-sapiens-seed";
+import { PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -76,7 +80,23 @@ export default async function TimelinePage({
   const extent = await getTimelineExtent(supabase, community.id);
   const view = openingWindow(query, extent);
 
-  const [initial, tracks, sources, facets, pending, markers, showcase, citations, hasHannibal, hasDeepTime, hasEarlySapiens, hannibalNeedsPictures] = await Promise.all([
+  const [
+    initial,
+    tracks,
+    sources,
+    facets,
+    pending,
+    markers,
+    showcase,
+    citations,
+    periods,
+    periodLinks,
+    hasHannibal,
+    hasDeepTime,
+    hasEarlySapiens,
+    hasPeriods,
+    hannibalNeedsPictures,
+  ] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
     getTimelineSources(supabase, community.id),
@@ -89,11 +109,18 @@ export default async function TimelinePage({
     // scanning what they have, and it is the only question being asked.
     getTimelineEventBySlug(supabase, community.id, SHOWCASE_EVENT_SLUG),
     getClaimCitations(supabase, community.id),
+    // PERIODS ARE FETCHED WHOLE, not by window. There are a dozen or two, they
+    // are nearly always wider than what is on screen, and which of them is
+    // worth drawing at this zoom is a client-side question that changes on
+    // every pan. Two small queries once beats one query per pan.
+    getTimelinePeriods(supabase, community.id),
+    getTimelinePeriodLinks(supabase, community.id),
     // One head-count, to decide whether to offer the Hannibal dataset. Asked
     // only for staff, who are the only people who could act on the answer.
     isStaff ? hasTimelineEvent(supabase, community.id, HANNIBAL_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, DEEP_TIME_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, EARLY_SAPIENS_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelinePeriod(supabase, community.id, PERIODS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -132,6 +159,12 @@ export default async function TimelinePage({
         hasHannibal={hasHannibal}
         hasDeepTime={hasDeepTime}
         hasEarlySapiens={hasEarlySapiens}
+        // The context bands, and the edges between them. Empty is the normal
+        // state for a community that has never been offered them — the timeline
+        // works exactly as before with no periods at all.
+        periods={periods}
+        periodLinks={periodLinks}
+        hasPeriods={hasPeriods}
         hannibalNeedsPictures={hannibalNeedsPictures}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
