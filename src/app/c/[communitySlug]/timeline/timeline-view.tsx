@@ -98,7 +98,7 @@ export function TimelineView({
   extent,
   markers,
   hasShowcase,
-  showcaseHotlinked,
+  showcaseNeedsPictures,
   citations,
   initialTruncated,
   sources,
@@ -120,8 +120,8 @@ export function TimelineView({
   markers: { position: number; category: string }[];
   /** Whether the worked example is already here, so it is offered only once. */
   hasShowcase: boolean;
-  /** Its pictures are still pointing at somebody else's server, so they don't load. */
-  showcaseHotlinked: boolean;
+  /** Its pictures are missing, or point at somebody else's server and don't load. */
+  showcaseNeedsPictures: boolean;
   /** Every extra claim→source link in the community, for the detail panel. */
   citations: TimelineClaimSource[];
   initialTruncated: boolean;
@@ -839,19 +839,21 @@ export function TimelineView({
       )}
 
       {/* ---- A worked example whose pictures never arrived --------------------
-          A copy seeded before the photographs were brought in still points at
-          Wikimedia for them, and those requests fail: the reader gets an event
-          with empty grey boxes where the pyramid should be. There is no way for
-          them to fix that from the page, and no way for us to fix it without
-          being asked, so it is offered here. The same action does it — it
-          repairs in place rather than seeding a second copy. */}
-      {isStaff && hasShowcase && showcaseHotlinked && (
+          Two ways to get here, and they look identical to a reader. A copy
+          taken before the photographs were part of the worked example has none
+          at all, because seeding is a no-op once the event exists. A copy taken
+          after that has them as links to Wikimedia, which show as empty boxes.
+          Neither is something a reader can fix from the page, and neither is
+          something to fix without being asked — so it is offered here, to the
+          people who can say yes. The same action does it, in place. */}
+      {isStaff && hasShowcase && showcaseNeedsPictures && (
         <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
-          <p className="text-sm font-semibold text-foreground">The worked example&rsquo;s photographs aren&rsquo;t loading</p>
+          <p className="text-sm font-semibold text-foreground">The worked example is missing its photographs</p>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Its pictures are still being fetched from Wikimedia every time somebody opens the event, which is why they
-            show as empty boxes. Bring them in and they are copied once into this community&rsquo;s own storage, with the
-            photographer and licence kept in the caption underneath each one.
+            Either it was added before the pictures were part of it, or it is still fetching them from Wikimedia every
+            time somebody opens the event — which is why they show as empty boxes. Bring them in and they are copied
+            once into this community&rsquo;s own storage, with the photographer and licence kept in the caption
+            underneath each one.
           </p>
           <Button
             type="button"
@@ -866,6 +868,12 @@ export function TimelineView({
                 if (result && "error" in result) {
                   setSeedError(result.error);
                   return;
+                }
+                // Nothing arrived. The photographs are fetched from Wikimedia
+                // once, here on the server, and that can simply fail — saying so
+                // is better than a button that looks like it did nothing.
+                if (result && "broughtIn" in result && result.broughtIn === 0) {
+                  setSeedError("Those photographs couldn't be fetched just now. Try again in a moment.");
                 }
                 setReloadToken((token) => token + 1);
                 router.refresh();

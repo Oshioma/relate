@@ -25,6 +25,8 @@
 //   · Criticism is included for the contested claims, and the mainstream claim
 //     gets the same treatment: what the evidence does and does not establish.
 
+import { isHotlinked } from "./bring-in-image";
+
 export type ShowcaseSource = {
   /** Stable key within this file, so claims can name their source. Not stored. */
   key: string;
@@ -421,3 +423,25 @@ export const SHOWCASE_EVENT = {
     "WHY ITS DATE MATTERS. The Great Pyramid sits near the foundation of Egyptian historical chronology, and Egyptian chronology in turn anchors much of the dating of the wider ancient Mediterranean and Near East. A change in when it was built would not be a local correction; it would move a great deal else.\n\n" +
     "WHY ALTERNATIVE CHRONOLOGIES CLUSTER AROUND IT. Its scale, its precision and the near-absence of contemporary written description of the building work have made it a magnet for competing accounts for well over a thousand years — from medieval Arabic writers who took it for a pre-Flood ark of knowledge, to modern astronomical and lost-civilisation arguments. The claims below set those out alongside the archaeological consensus, with the evidence and the objections for each, so that a reader can see not just that people disagree but WHY, and what kind of claim each one actually is.",
 };
+
+/**
+ * Does this community's copy of the worked example still need its photographs?
+ *
+ * TWO WAYS TO BE MISSING A PICTURE, and both look the same to a reader.
+ *
+ * 1. It has none. The worked example shipped before the photographs were part
+ *    of it, and seeding is a no-op once the event exists — so a community that
+ *    took it in that window has an event that was never offered them.
+ * 2. It has them, but as links to somebody else's server, which is the
+ *    arrangement that produced empty grey boxes in the first place.
+ *
+ * Either way there is something to do and somebody should be offered it.
+ */
+export function showcaseNeedsPictures(event: {
+  image_url: string | null;
+  media?: { url: string }[] | null;
+}): boolean {
+  const media = event.media ?? [];
+  if (media.length === 0 && !event.image_url) return true;
+  return isHotlinked(event.image_url) || media.some((item) => isHotlinked(item.url));
+}
