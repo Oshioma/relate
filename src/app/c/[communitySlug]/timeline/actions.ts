@@ -859,6 +859,8 @@ export async function seedShowcaseEvent(communitySlug: string) {
       location_name: SHOWCASE_EVENT.locationName,
       lat: SHOWCASE_EVENT.lat,
       lng: SHOWCASE_EVENT.lng,
+      image_url: SHOWCASE_EVENT.imageUrl,
+      media: SHOWCASE_EVENT.media,
       // Staff are seeding it, so it goes straight in — the same as anything
       // else staff add. RLS allows this only because isStaff was checked above.
       status: "published",
@@ -883,12 +885,48 @@ export async function seedShowcaseEvent(communitySlug: string) {
     notes: claim.notes ?? null,
   }));
 
-  const { error: claimError } = await supabase.from("timeline_date_claims").insert(rows);
+  const { data: insertedClaims, error: claimError } = await supabase
+    .from("timeline_date_claims")
+    .insert(rows)
+    .select("id, original_date_text");
   if (claimError) {
     // An event with no dates cannot be drawn. Take it back out rather than
     // leave a showcase entry that the timeline cannot show.
     await supabase.from("timeline_events").delete().eq("id", event.id);
     return { error: claimError.message };
+  }
+
+  // The further sources on each claim — the supporting evidence, the published
+  // criticism, the context. Matched back to the claim by its date text, which
+  // is unique within this seed and is what the insert returned.
+  const claimIdByText = new Map<string, string>(
+    (insertedClaims ?? []).map((row) => [row.original_date_text, row.id])
+  );
+  const citationRows = SHOWCASE_CLAIMS.flatMap((claim) => {
+    const claimId = claimIdByText.get(claim.originalDateText);
+    if (!claimId) return [];
+    return (claim.citations ?? []).flatMap((citation, index) => {
+      const sourceId = sourceIds.get(citation.sourceKey);
+      if (!sourceId) return [];
+      return [{
+        claim_id: claimId,
+        source_id: sourceId,
+        community_id: community.id,
+        created_by: userId,
+        relation: citation.relation,
+        note: citation.note,
+        sort_order: index,
+      }];
+    });
+  });
+
+  if (citationRows.length > 0) {
+    const { error: citationError } = await supabase.from("timeline_claim_sources").insert(citationRows);
+    // Not fatal: the event and its claims are the entry, and an entry missing
+    // its further reading is worth far more than no entry at all.
+    // Logged whole: the first time this failed, `.message` was undefined and
+    // the log said "Showcase citations: undefined", which told nobody anything.
+    if (citationError) console.error("Showcase citations failed:", JSON.stringify(citationError));
   }
 
   // File it into the Ancient Egypt lane where the community has one, so the

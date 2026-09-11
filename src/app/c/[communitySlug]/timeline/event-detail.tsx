@@ -6,7 +6,7 @@ import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
-import type { TimelineSource, TimelineTrack } from "@/types/database";
+import type { TimelineClaimSource, TimelineSource, TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
@@ -26,6 +26,7 @@ import { claimMidpoint, compareClaims, describeComparison, presentPosition } fro
 export function EventDetail({
   event,
   sources,
+  citations = [],
   tracks = [],
   userId = null,
   communitySlug,
@@ -36,6 +37,8 @@ export function EventDetail({
 }: {
   event: TimelineEventWithClaims;
   sources: TimelineSource[];
+  /** Every extra claim→source link in the community; filtered per claim below. */
+  citations?: TimelineClaimSource[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -189,6 +192,36 @@ export function EventDetail({
         </div>
       )}
 
+      {/* THE REST OF THE PICTURES.
+          The media column has been on this table since the feature shipped and
+          nothing has ever drawn it — an event could carry a dozen images and a
+          reader would see none of them. The caption is where attribution and
+          licence live, so it is printed under every one rather than hidden in
+          a tooltip: an unattributed picture is a problem, not a decoration. */}
+      {event.media.length > 0 && (
+        <div className="mt-5">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Images
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {event.media.map((item, index) => (
+              <figure key={`${item.url}-${index}`} className="min-w-0">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted">
+                  {/* Plain <img> for the same reason the cover image is: these
+                      URLs are arbitrary, and next/image would need every host
+                      configured. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.url} alt={item.caption ?? ""} loading="lazy" className="h-full w-full object-cover" />
+                </div>
+                {item.caption && (
+                  <figcaption className="mt-1.5 text-xs text-muted-foreground">{item.caption}</figcaption>
+                )}
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
+
       {event.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           {event.tags.map((tag) => (
@@ -260,6 +293,7 @@ export function EventDetail({
               siblings={event.claims}
               sourcesById={sourcesById}
               allSources={sources}
+              citations={citations.filter((citation) => citation.claim_id === claim.id)}
               communitySlug={communitySlug}
               canContribute={canContribute}
               index={index}

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { TimelineSource, TimelineTrack } from "@/types/database";
+import type { TimelineClaimSource, TimelineSource, TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims, TimelineFilters } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
@@ -94,6 +94,7 @@ export function TimelineView({
   extent,
   markers,
   hasShowcase,
+  citations,
   initialTruncated,
   sources,
   tracks,
@@ -114,6 +115,8 @@ export function TimelineView({
   markers: { position: number; category: string }[];
   /** Whether the worked example is already here, so it is offered only once. */
   hasShowcase: boolean;
+  /** Every extra claim→source link in the community, for the detail panel. */
+  citations: TimelineClaimSource[];
   initialTruncated: boolean;
   sources: TimelineSource[];
   tracks: TimelineTrack[];
@@ -579,7 +582,6 @@ export function TimelineView({
         markers={markers}
         window={view}
         onWindowChange={setView}
-        scale={scale}
         className="mt-3"
       />
 
@@ -712,6 +714,7 @@ export function TimelineView({
           <EventDetail
             event={selected}
             sources={sources}
+            citations={citations}
             tracks={tracks}
             userId={userId}
             communitySlug={communitySlug}
