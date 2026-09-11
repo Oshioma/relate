@@ -34,6 +34,7 @@ export function EventDetail({
   isStaff,
   onShowContext,
   onClose,
+  onSaved,
 }: {
   event: TimelineEventWithClaims;
   sources: TimelineSource[];
@@ -47,6 +48,8 @@ export function EventDetail({
   /** Jump the timeline to this event's own stretch of time. Absent on the standalone page, which links instead. */
   onShowContext?: (from: number, to: number) => void;
   onClose?: () => void;
+  /** An edit was saved. The standalone page needs nothing; the timeline reloads. */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -129,7 +132,7 @@ export function EventDetail({
             )}
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{event.title}</h1>
-          {event.summary && <p className="mt-1.5 text-[15px] text-muted-foreground">{event.summary}</p>}
+          {event.summary && <p className="mt-1.5 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
           {/* WHAT THE RECORD TYPE MEANS, said out loud.
               "Mainstream / established view" on a chip is exactly the sort of
               label a reader will take for a verdict if nobody tells them
@@ -186,8 +189,12 @@ export function EventDetail({
         </div>
       )}
 
+      {/* THE PAGE IS WIDE; A LINE OF TEXT MUST NOT BE. The timeline page runs to
+          110rem so the strip can use every pixel, and prose set to that width is
+          unreadable — the eye loses the start of the next line coming back. The
+          strip gets the width; the reading keeps its measure. */}
       {event.description && (
-        <div className="mt-4">
+        <div className="mt-4 max-w-4xl">
           <RichText content={event.description} />
         </div>
       )}
@@ -355,6 +362,7 @@ export function EventDetail({
             setEditing(null);
             router.refresh();
           }}
+          onSaved={onSaved}
         />
       )}
     </article>

@@ -84,6 +84,7 @@ export function EditEventFlow({
   tracks,
   isStaff,
   onClose,
+  onSaved,
 }: {
   event: TimelineEventWithClaims;
   communitySlug: string;
@@ -93,6 +94,14 @@ export function EditEventFlow({
   isStaff: boolean;
   initialPane?: Pane;
   onClose: () => void;
+  /**
+   * Something was actually written. router.refresh() re-renders the server
+   * components, which is enough for a page that reads its event from the
+   * server — and not enough for the timeline, which holds its events and its
+   * open panel in client state seeded once at mount. Renaming an event there
+   * left the old title on the strip and in the panel until a full reload.
+   */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const uploadKey = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -161,6 +170,7 @@ export function EditEventFlow({
       return;
     }
     router.refresh();
+    onSaved?.();
     onClose();
   }
 
@@ -196,6 +206,7 @@ export function EditEventFlow({
     setAddingClaim(false);
     setNotice(editingClaimId ? "Date updated." : "Date added.");
     router.refresh();
+    onSaved?.();
   }
 
   async function removeClaim(claimId: string) {
@@ -209,6 +220,7 @@ export function EditEventFlow({
     }
     setNotice("Date removed.");
     router.refresh();
+    onSaved?.();
   }
 
   return (

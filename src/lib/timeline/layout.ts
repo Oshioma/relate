@@ -333,8 +333,16 @@ export function layoutTimeline(
     }
   }
 
-  // Clusters share the rows: spread them so several in a row don't collide.
-  const clusterRowEnds: number[] = [];
+  // Clusters share the rows with the events, so they start from where the
+  // events left off rather than from an empty strip.
+  //
+  // They used to be packed into rows 0, 1, 2… with no knowledge of what was
+  // already drawn there, which put a "7" chip straight on top of a caption's
+  // date — two unrelated pieces of information occupying the same pixels, and
+  // neither readable. Seeding the row ends from labelEnds means a cluster only
+  // takes a place on a row where nothing already reaches that far, which is the
+  // same rule the events themselves are packed by.
+  const clusterRowEnds: number[] = [...labelEnds];
   for (const cluster of clusters.filter((c) => !c.key.startsWith("overflow-"))) {
     const start = cluster.x - 14;
     const end = cluster.x + 46;

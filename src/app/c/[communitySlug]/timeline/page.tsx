@@ -92,7 +92,18 @@ export default async function TimelinePage({
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    // WIDER THAN THE REST OF THE APP, ON PURPOSE.
+    //
+    // max-w-6xl is the right measure for a page of text and the wrong one for
+    // this page, which is mostly a strip of time: every pixel it is not given
+    // is a stretch of history the reader cannot see without zooming. On a
+    // 1720px window it was leaving nearly 300px of empty gutter beside a
+    // timeline that had run out of room.
+    //
+    // Capped rather than unbounded so an ultrawide monitor does not produce a
+    // strip nobody can scan end to end, and the reading matter inside — an
+    // event's summary and description — keeps its own measure.
+    <div className="mx-auto w-full max-w-[110rem] px-4 py-6 sm:px-6 sm:py-8">
       <TimelineView
         communitySlug={community.slug}
         initialEvents={initial.events}

@@ -810,7 +810,7 @@ export async function seedShowcaseEvent(communitySlug: string) {
 
     const ownMedia = existing.media ?? [];
     const hadNone = ownMedia.length === 0 && !existing.image_url;
-    const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
+    const { pictures, broughtIn, reason } = await bringEventPicturesIn(supabase, {
       // A community that has added its own pictures keeps them; only one that
       // has none at all is given the worked example's.
       pictures: hadNone
@@ -828,7 +828,10 @@ export async function seedShowcaseEvent(communitySlug: string) {
       if (repairError) return { error: repairError.message };
       revalidatePath(timelinePath(community.slug));
     }
-    return { ok: true as const, slug: existing.slug, broughtIn };
+    // Logged as well as returned: the reason is worth having in the server log
+    // even when the person who pressed the button has already moved on.
+    if (reason) console.error("Bringing the worked example's pictures in:", reason);
+    return { ok: true as const, slug: existing.slug, broughtIn, reason };
   }
 
   // Sources first: the claims need their ids. Reuse a source the community
@@ -884,7 +887,7 @@ export async function seedShowcaseEvent(communitySlug: string) {
   // is written, so the event never carries a URL that points somewhere we do
   // not control. Anything that cannot be copied keeps its original URL, which
   // is no worse than the behaviour this replaces.
-  const { pictures: seedPictures, broughtIn: seedBroughtIn } = await bringEventPicturesIn(supabase, {
+  const { pictures: seedPictures, broughtIn: seedBroughtIn, reason: seedReason } = await bringEventPicturesIn(supabase, {
     pictures: { imageUrl: SHOWCASE_EVENT.imageUrl, media: [...SHOWCASE_EVENT.media] },
     userId,
     slug: SHOWCASE_EVENT_SLUG,
@@ -995,7 +998,8 @@ export async function seedShowcaseEvent(communitySlug: string) {
   }
 
   revalidatePath(timelinePath(community.slug));
-  return { ok: true as const, slug: event.slug, broughtIn: seedBroughtIn };
+  if (seedReason) console.error("Bringing the worked example's pictures in:", seedReason);
+  return { ok: true as const, slug: event.slug, broughtIn: seedBroughtIn, reason: seedReason };
 }
 
 /**
