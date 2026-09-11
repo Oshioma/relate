@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff } from "@/lib/data/community";
-import { getSourceChains, getTimelineEventBySlug, getTimelineSourcesByIds } from "@/lib/data/timeline";
+import { getClaimCitations, getSourceChains, getTimelineEventBySlug, getTimelineSourcesByIds } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { EventDetail } from "../event-detail";
 
@@ -55,6 +55,15 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   for (const chain of chains.values()) {
     for (const link of chain) byId.set(link.id, link);
   }
+  // The extra sources attached to this event's claims, plus any source they
+  // point at that the event does not otherwise cite — a critique is usually
+  // not the work the claim was built on, so it will not already be here.
+  const citations = (await getClaimCitations(supabase, community.id)).filter((citation) =>
+    event.claims.some((claim) => claim.id === citation.claim_id)
+  );
+  const missing = citations.map((citation) => citation.source_id).filter((id) => !byId.has(id));
+  for (const source of await getTimelineSourcesByIds(supabase, missing)) byId.set(source.id, source);
+
   const sources = [...byId.values()];
 
   return (
@@ -69,6 +78,7 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
       <EventDetail
         event={event}
         sources={sources}
+        citations={citations}
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}

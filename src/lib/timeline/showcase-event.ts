@@ -44,8 +44,18 @@ export type ShowcaseSource = {
   citedBy?: string;
 };
 
+export type ShowcaseCitation = {
+  sourceKey: string;
+  /** What this source DOES to the claim. Never a score. */
+  relation: "supports" | "disputes" | "context";
+  note: string;
+};
+
 export type ShowcaseClaim = {
+  /** The source that ASSERTS this date. */
   sourceKey: string | null;
+  /** Everything else worth reading on it — evidence, criticism, context. */
+  citations?: ShowcaseCitation[];
   /** Astronomical year numbering: 1 BCE = 0, 2 BCE = −1. See time.ts. */
   startYear: number;
   endYear?: number;
@@ -183,6 +193,25 @@ export const SHOWCASE_CLAIMS: ShowcaseClaim[] = [
   // -------------------------------------------------------------------------
   {
     sourceKey: "lehner",
+    citations: [
+      {
+        sourceKey: "merer",
+        relation: "supports",
+        note:
+          "Contemporary administrative evidence from inside Khufu's reign: a log of gangs shipping Tura limestone to Akhet-Khufu. It supports the reign, the logistics and the scale — not the act of construction, which it never describes.",
+      },
+      {
+        sourceKey: "bonani",
+        relation: "context",
+        note:
+          "Radiocarbon measurements from the monument are consistent with an Old Kingdom date while sitting systematically older than this chronology. Attached as context rather than support, because the offset is an open question rather than a confirmation.",
+      },
+      {
+        sourceKey: "wikipedia",
+        relation: "context",
+        note: "A general overview, and a route to the references underneath it.",
+      },
+    ],
     startYear: bce(2589),
     endYear: bce(2528),
     datePrecision: "year",
@@ -209,6 +238,20 @@ export const SHOWCASE_CLAIMS: ShowcaseClaim[] = [
   // -------------------------------------------------------------------------
   {
     sourceKey: "dee",
+    citations: [
+      {
+        sourceKey: "bonani",
+        relation: "supports",
+        note:
+          "The project that produced the underlying measurements — over 450 samples collected 1984–1995, and the 46 determinations on the Great Pyramid that the reanalysis works from.",
+      },
+      {
+        sourceKey: "lehner",
+        relation: "context",
+        note:
+          "The conventional chronology these measurements are being compared against. Its author is also an author of the radiocarbon project, which is worth noticing: this is not science against archaeology.",
+      },
+    ],
     startYear: bce(2620),
     endYear: bce(2484),
     datePrecision: "year",
@@ -234,6 +277,14 @@ export const SHOWCASE_CLAIMS: ShowcaseClaim[] = [
   // -------------------------------------------------------------------------
   {
     sourceKey: "bauval",
+    citations: [
+      {
+        sourceKey: "fairall",
+        relation: "disputes",
+        note:
+          "Measures the angle of Orion's Belt to north at the proposed epoch as roughly 47–50°, against roughly 38° formed by the three pyramids — the correlation the argument depends on is not as close as claimed.",
+      },
+    ],
     startYear: bce(10450),
     datePrecision: "century",
     isApproximate: true,
@@ -259,6 +310,20 @@ export const SHOWCASE_CLAIMS: ShowcaseClaim[] = [
   // -------------------------------------------------------------------------
   {
     sourceKey: "hancock",
+    citations: [
+      {
+        sourceKey: "fairall",
+        relation: "disputes",
+        note:
+          "The same astronomical objection applies here, since this argument rests on the same Orion correlation: the measured angle at the proposed epoch does not match the ground plan.",
+      },
+      {
+        sourceKey: "lehner",
+        relation: "disputes",
+        note:
+          "Sets out the excavated Fourth Dynasty context — the workers' settlement, the administration, the unfinished work — which is the archaeological evidence for who built the pyramid and when.",
+      },
+    ],
     startYear: bce(10500),
     datePrecision: "century",
     isApproximate: true,
@@ -280,6 +345,14 @@ export const SHOWCASE_CLAIMS: ShowcaseClaim[] = [
   // -------------------------------------------------------------------------
   {
     sourceKey: "maqrizi",
+    citations: [
+      {
+        sourceKey: "lehner",
+        relation: "context",
+        note:
+          "What the archaeology of the site actually shows, set beside the legend — so the tradition can be read as a tradition without being mistaken for a rival account of the building work.",
+      },
+    ],
     startYear: bce(3500),
     endYear: bce(2650),
     datePrecision: "century",
@@ -323,6 +396,24 @@ export const SHOWCASE_EVENT = {
   ],
   people: ["Khufu", "Merer", "Mark Lehner", "Pierre Tallet", "Robert Bauval", "Graham Hancock", "al-Maqrizi"],
   civilisations: ["Ancient Egypt", "Old Kingdom"],
+  // Freely licensed images from Wikimedia Commons, with attribution and licence
+  // in the caption where a reader can actually see them. Attribution is a
+  // condition of these licences, not a courtesy, so it travels with the image
+  // rather than sitting in a field nothing renders.
+  imageUrl:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/1024px-Kheops-Pyramid.jpg",
+  media: [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/1024px-Kheops-Pyramid.jpg",
+      caption: "The Great Pyramid of Khufu from the north-east. Photograph by Nina Aldin Thune, CC BY 2.5, via Wikimedia Commons.",
+      kind: "image",
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/All_Gizah_Pyramids.jpg/1024px-All_Gizah_Pyramids.jpg",
+      caption: "The Giza plateau, with all three main pyramids and the subsidiary queens' pyramids. Photograph by Ricardo Liberato, CC BY-SA 2.0, via Wikimedia Commons.",
+      kind: "image",
+    },
+  ],
   description:
     "The Great Pyramid of Giza — also called the Great Pyramid, the Great Pyramid of Khufu, the Pyramid of Khufu, the Pyramid of Cheops, and known to the Egyptians themselves as Akhet-Khufu, 'the Horizon of Khufu' — is the largest of the three pyramids on the Giza plateau, on the west bank of the Nile near modern Cairo.\n\n" +
     "It was built as the tomb of Khufu, a king of Egypt's Fourth Dynasty, in the Old Kingdom. It stood about 146.6 metres high when finished and stands about 138.5 metres today, the difference being the smooth white limestone casing that was stripped away over the centuries; what a visitor sees now is the core beneath it. Each side of the base measures about 230.3 metres. It is built of limestone blocks bedded in gypsum mortar, with granite used inside for the burial chamber and its structure, and it remained the tallest structure built by human beings for more than three and a half thousand years.\n\n" +

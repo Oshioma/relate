@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BookOpen, ExternalLink, HelpCircle, Ruler, Compass, ScrollText, Quote, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { TimelineDateClaim, TimelineSource } from "@/types/database";
+import type { TimelineClaimSource, TimelineDateClaim, TimelineSource } from "@/types/database";
 import {
   claimHeadline,
   claimInterval,
@@ -23,6 +23,7 @@ import {
   viewpointHint,
 } from "@/lib/timeline/taxonomy";
 import { SourceChainPanel } from "./source-chain-panel";
+import { ClaimCitations } from "./claim-citations";
 
 // One proposed date, with everything a reader needs to weigh it FOR THEMSELVES.
 //
@@ -122,6 +123,7 @@ export function DateClaimCard({
   sourcesById,
   index,
   allSources,
+  citations = [],
   communitySlug,
   canContribute = false,
   onEdit,
@@ -135,6 +137,8 @@ export function DateClaimCard({
   index: number;
   /** Every source the community has — what the citation chain is walked over. */
   allSources?: TimelineSource[];
+  /** The further sources on this claim — supporting, disputing, context. */
+  citations?: TimelineClaimSource[];
   communitySlug?: string;
   /** Whether this reader may add the source underneath this one. */
   canContribute?: boolean;
@@ -227,6 +231,9 @@ export function DateClaimCard({
             )}
           </Field>
         </div>
+
+        {/* Everything else cited on this date — the criticism first. */}
+        <ClaimCitations citations={citations} sourcesById={sourcesById} />
 
         {/* Wikipedia → academic book → excavation report. Only where there is a
             source to hang it on; the panel decides for itself whether it has

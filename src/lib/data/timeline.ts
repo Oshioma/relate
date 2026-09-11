@@ -6,6 +6,7 @@ import type {
   TimelineSource,
   TimelineTrack,
   TimelineRevision,
+  TimelineClaimSource,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
@@ -709,6 +710,29 @@ export async function getEventMarkers(
   return rows
     .filter((row) => row.event?.status === "published")
     .map((row) => ({ position: row.start_position, category: row.event?.category ?? "other" }));
+}
+
+/**
+ * Every extra source attached to this community's date claims.
+ *
+ * Loaded whole rather than per claim, because these are four small columns and
+ * a community's entire set of them is smaller than one event's description.
+ * Fetching them with the page means a claim card can show what disputes it
+ * without a second round trip when somebody opens it.
+ */
+export async function getClaimCitations(
+  supabase: Client,
+  communityId: string,
+  limit = 5_000
+): Promise<TimelineClaimSource[]> {
+  const { data, error } = await supabase
+    .from("timeline_claim_sources")
+    .select("*")
+    .eq("community_id", communityId)
+    .order("sort_order", { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
 }
 
 function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {

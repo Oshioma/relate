@@ -2000,6 +2000,21 @@ export type ContactMessageReply = {
 // A source of a claim — a book, a paper, an excavation report, an oral
 // tradition. Community-scoped and shared: one source can be cited by many
 // claims across many events.
+// A source attached to a date claim BEYOND the one that asserts it: the further
+// evidence, the published criticism, the context. `relation` is a fact about
+// what the source does to the claim, never a rating of the claim.
+export type TimelineClaimSource = {
+  id: string;
+  claim_id: string;
+  source_id: string;
+  community_id: string;
+  created_by: string;
+  relation: "supports" | "disputes" | "context";
+  note: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type TimelineSource = {
   id: string;
   community_id: string;
@@ -2852,6 +2867,17 @@ export type Database = {
         Insert: Partial<TimelineSource> & { community_id: string; created_by: string; title: string };
         Update: Partial<TimelineSource>;
         Relationships: [FKey<"created_by", "profiles">];
+      };
+      timeline_claim_sources: {
+        Row: TimelineClaimSource;
+        Insert: Partial<TimelineClaimSource> & {
+          claim_id: string;
+          source_id: string;
+          community_id: string;
+          created_by: string;
+        };
+        Update: Partial<TimelineClaimSource>;
+        Relationships: [FKey<"source_id", "timeline_sources">, FKey<"claim_id", "timeline_date_claims">];
       };
       timeline_tracks: {
         Row: TimelineTrack;

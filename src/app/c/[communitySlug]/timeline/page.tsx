@@ -12,6 +12,7 @@ import {
   getPendingTimelineEvents,
   getEventMarkers,
   getTimelineEventBySlug,
+  getClaimCitations,
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG } from "@/lib/timeline/showcase-event";
 import { communityHasTimeline } from "@/lib/timeline/availability";
@@ -70,7 +71,7 @@ export default async function TimelinePage({
   const extent = await getTimelineExtent(supabase, community.id);
   const view = openingWindow(query, extent);
 
-  const [initial, tracks, sources, facets, pending, markers, showcase] = await Promise.all([
+  const [initial, tracks, sources, facets, pending, markers, showcase, citations] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
     getTimelineSources(supabase, community.id),
@@ -82,6 +83,7 @@ export default async function TimelinePage({
     // One row, to decide whether to offer the worked example. Cheaper than
     // scanning what they have, and it is the only question being asked.
     getTimelineEventBySlug(supabase, community.id, SHOWCASE_EVENT_SLUG),
+    getClaimCitations(supabase, community.id),
   ]);
 
   return (
@@ -97,6 +99,7 @@ export default async function TimelinePage({
         extent={extent}
         markers={markers}
         hasShowcase={showcase != null}
+        citations={citations}
         sources={sources}
         tracks={tracks}
         facets={facets}
