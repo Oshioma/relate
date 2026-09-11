@@ -51,6 +51,16 @@ export type SeedClaim = {
   startDay?: number;
   endYear?: number;
   datePrecision: string;
+  /** Decimal places the source states, for a deep-time unit — "1.76 million years ago". */
+  precisionDecimals?: number;
+  /**
+   * A stated measurement error, in YEARS. Never merged with endYear: "609 ± 40 ka"
+   * is one date with a tolerance, and "700,000–200,000 years ago" is a span of
+   * time something was true for. Collapsing the two would turn a measurement
+   * into a duration.
+   */
+  uncertaintyPlus?: number;
+  uncertaintyMinus?: number;
   isApproximate: boolean;
   /**
    * The claim in the source's own terms — "an eight-month siege", "nine years

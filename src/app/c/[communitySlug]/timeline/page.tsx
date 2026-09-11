@@ -17,6 +17,7 @@ import {
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG, showcaseNeedsPictures } from "@/lib/timeline/showcase-event";
 import { HANNIBAL_ANCHOR_SLUG } from "@/lib/timeline/hannibal-seed";
+import { DEEP_TIME_ANCHOR_SLUG } from "@/lib/timeline/deep-time-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -73,7 +74,7 @@ export default async function TimelinePage({
   const extent = await getTimelineExtent(supabase, community.id);
   const view = openingWindow(query, extent);
 
-  const [initial, tracks, sources, facets, pending, markers, showcase, citations, hasHannibal] = await Promise.all([
+  const [initial, tracks, sources, facets, pending, markers, showcase, citations, hasHannibal, hasDeepTime] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
     getTimelineSources(supabase, community.id),
@@ -89,6 +90,7 @@ export default async function TimelinePage({
     // One head-count, to decide whether to offer the Hannibal dataset. Asked
     // only for staff, who are the only people who could act on the answer.
     isStaff ? hasTimelineEvent(supabase, community.id, HANNIBAL_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, DEEP_TIME_ANCHOR_SLUG) : Promise.resolve(true),
   ]);
 
   return (
@@ -116,6 +118,7 @@ export default async function TimelinePage({
         markers={markers}
         hasShowcase={showcase != null}
         hasHannibal={hasHannibal}
+        hasDeepTime={hasDeepTime}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
         // anything, because there is nothing they could do about it.
