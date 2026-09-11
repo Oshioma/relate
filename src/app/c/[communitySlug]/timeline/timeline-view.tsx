@@ -6,7 +6,7 @@ import {
   ChevronDown,
   Layers,
   List,
-  ListOrdered,
+  Maximize2,
   Milestone,
   Minus,
   Plus,
@@ -24,22 +24,15 @@ import type { TimelineEventWithClaims, TimelineFilters } from "@/lib/data/timeli
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
-import { WholeTimeline } from "./whole-timeline";
 import { SpanRuler } from "./span-ruler";
 import { EventDetail } from "./event-detail";
 import { AddEventFlow } from "./add-event-flow";
-import {
-  loadTimelineEvent,
-  loadTimelineWindow,
-  loadWholeTimeline,
-  searchTimeline,
-  seedStarterTracks,
-  type TimelineWindowPayload,
-} from "./actions";
+import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedStarterTracks } from "./actions";
 import { TIMELINE_CATEGORIES, CHRONOLOGIES, TIMELINE_SOURCE_TYPES, timelineCategory } from "@/lib/timeline/taxonomy";
 import {
   claimHeadline,
   claimMidpoint,
+  clampWindow,
   presentPosition,
   windowAround,
   zoomWindow,
@@ -58,10 +51,7 @@ import {
 
 const REFETCH_DEBOUNCE_MS = 260;
 
-// "whole" is the third way of looking at the same events: not a window onto
-// time but all of it, in order, on one page — for reading through, checking
-// over, or printing at the end of term.
-type Mode = "timeline" | "compare" | "whole";
+type Mode = "timeline" | "compare";
 
 function FilterSelect({
   label,
@@ -99,6 +89,7 @@ export function TimelineView({
   initialEvents,
   initialWindow,
   initialTotal,
+  extent,
   initialTruncated,
   sources,
   tracks,
@@ -113,6 +104,8 @@ export function TimelineView({
   initialEvents: TimelineEventWithClaims[];
   initialWindow: TimeWindow;
   initialTotal: number;
+  /** The stretch this community's events actually occupy. Null when it has none. */
+  extent: { from: number; to: number } | null;
   initialTruncated: boolean;
   sources: TimelineSource[];
   tracks: TimelineTrack[];
@@ -141,11 +134,6 @@ export function TimelineView({
   const total = initialTotal;
 
   const [mode, setMode] = useState<Mode>("timeline");
-  // Everything, loaded once and kept. Null until the button is first pressed:
-  // a read that ignores the window is exactly the read the window exists to
-  // avoid, so nobody pays for it who hasn't asked.
-  const [whole, setWhole] = useState<TimelineWindowPayload | null>(null);
-  const [loadingWhole, setLoadingWhole] = useState(false);
   const [showList, setShowList] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -161,6 +149,10 @@ export function TimelineView({
 
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<TimelineEventWithClaims[] | null>(null);
+  // Scrolled to when the selection changes: a click on the strip can be a long
+  // way above the panel, and detail that appears off-screen reads as a click
+  // that did nothing — the exact bug the strip had before.
+  const detailRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
     focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
   );
@@ -204,28 +196,36 @@ export function TimelineView({
     return () => clearTimeout(handle);
   }, [communitySlug, view.from, view.to, filters, reloadToken]);
 
-  // Re-read the lot whenever it is being shown and the filters change, so
-  // "whole timeline" always means "everything you asked to see" rather than
-  // whatever was true the first time the button was pressed.
-  const wholeRequestId = useRef(0);
+  // WHOLE TIMELINE — everything this community has, in one frame.
+  //
+  // Not a fetch. The extent came down with the page, so this is arithmetic on
+  // two numbers the client already holds: set the window to span them and the
+  // ordinary windowed loader does the rest, on the path it always uses.
+  //
+  // That matters more than it sounds. The first version of this button read
+  // every event through a server action of its own and showed a spinner while
+  // it did — a whole second code path, with its own way to be slow and its own
+  // way to hang, to answer a question the page could already answer. There is
+  // no spinner here because there is nothing to wait for.
+  //
+  // The padding keeps the earliest and latest events off the very edges, where
+  // a marker sits half out of view and reads as cut off.
+  const fitEverything = useCallback(() => {
+    if (!extent) return;
+    const span = Math.max(50, extent.to - extent.from);
+    const pad = span * 0.04;
+    setView(clampWindow({ from: extent.from - pad, to: extent.to + pad }));
+    setMode("timeline");
+  }, [extent]);
+
+  // Bring the panel into view when the selection changes — but only when it
+  // changes, so scrolling away from an open panel doesn't yank you back on
+  // every unrelated re-render.
+  const selectedId = selected?.id ?? null;
   useEffect(() => {
-    if (mode !== "whole") return;
-    const id = ++wholeRequestId.current;
-    // Deferred like the window loader above, so the spinner state is set from a
-    // callback rather than synchronously in the effect body — a setState in the
-    // body cascades a render before the fetch has even started.
-    const handle = setTimeout(async () => {
-      setLoadingWhole(true);
-      try {
-        const payload = await loadWholeTimeline(communitySlug, filters);
-        if (id !== wholeRequestId.current) return;
-        setWhole(payload);
-      } finally {
-        if (id === wholeRequestId.current) setLoadingWhole(false);
-      }
-    }, 0);
-    return () => clearTimeout(handle);
-  }, [mode, communitySlug, filters, reloadToken]);
+    if (!selectedId) return;
+    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedId]);
 
   // --- Search ---------------------------------------------------------------
   // Whether a search is running at all is derived from the box, not stored — so
@@ -423,7 +423,6 @@ export function TimelineView({
             [
               { key: "timeline", label: "Timeline", icon: Milestone },
               { key: "compare", label: "Compare", icon: Layers },
-              { key: "whole", label: "Whole timeline", icon: ListOrdered },
             ] as const
           ).map((option) => {
             const Icon = option.icon;
@@ -557,18 +556,10 @@ export function TimelineView({
           Above the strip in both windowed modes, and absent from "whole",
           where the answer is "all of it" and a measurement of the view would
           be measuring nothing. */}
-      {mode !== "whole" && <SpanRuler window={view} />}
+      <SpanRuler window={view} />
 
       {/* ---- The timeline itself ------------------------------------------ */}
-      {mode === "whole" ? (
-        <WholeTimeline
-          payload={whole}
-          loading={loadingWhole}
-          filtered={activeFilterCount > 0}
-          onSelect={setSelected}
-          selectedId={selected?.id ?? null}
-        />
-      ) : mode === "timeline" ? (
+      {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
         // SHAPE of time and the list below for actually reaching an event, so
         // nobody is asked to hit a four-pixel dot — but it is the same strip,
@@ -599,7 +590,7 @@ export function TimelineView({
       {/* ---- Zoom rail -----------------------------------------------------
           Nothing to zoom when the page is already showing everything, so the
           rail and the era jumps go away rather than sitting there inert. */}
-      <div className={cn("mt-3 flex flex-wrap items-center gap-2", mode === "whole" && "hidden")}>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1 rounded-full bg-muted p-0.5">
           <button
             type="button"
@@ -620,6 +611,19 @@ export function TimelineView({
         </div>
 
         <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {/* Everything this community has, framed. First in the row because
+              it is the jump people actually want — the fixed eras beside it
+              are spans of history, this one is spans of YOUR timeline. */}
+          {extent && (
+            <button
+              type="button"
+              onClick={fitEverything}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent transition-colors hover:opacity-90"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              Whole timeline
+            </button>
+          )}
           {TIMELINE_JUMPS.map((jump) => (
             <button
               key={jump.key}
@@ -642,11 +646,39 @@ export function TimelineView({
         </button>
       </div>
 
+      {/* ---- The event you clicked -----------------------------------------
+          Inline, under the strip, rather than in a drawer over the top of it.
+          A panel that covers the timeline hides the very thing the event needs
+          to be read against — what else was happening then — and on a phone it
+          took the whole screen. Here the strip stays visible above it, so the
+          marker you clicked is still in view while you read what it is. */}
+      {selected && (
+        <div ref={detailRef} className="mt-5 scroll-mt-4 rounded-xl border border-border bg-card p-5 sm:p-6">
+          <EventDetail
+            event={selected}
+            sources={sources}
+            tracks={tracks}
+            userId={userId}
+            communitySlug={communitySlug}
+            canContribute={canContribute}
+            isStaff={isStaff}
+            onClose={() => {
+              setSelected(null);
+              setReloadToken((token) => token + 1);
+            }}
+            // The strip moves; the panel stays. With the detail beside the
+            // timeline rather than over it, jumping to "what else was happening
+            // then" no longer has to close what you were reading.
+            onShowContext={(from, to) => setView({ from, to })}
+          />
+        </div>
+      )}
+
       {/* ---- List ----------------------------------------------------------
           Also one list, not two. Always on a phone, where it is the primary way
           in; on a desktop only when asked for, because there the strip is doing
           that job. */}
-      <div className={cn("mt-4", mode === "whole" ? "hidden" : showList ? "block" : "block sm:hidden")}>
+      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
           In order
         </h2>
@@ -676,32 +708,7 @@ export function TimelineView({
       )}
 
       {/* ---- Detail panel --------------------------------------------------- */}
-      {selected && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-black/30" onClick={() => setSelected(null)}>
-          <div
-            className="h-full w-full max-w-xl overflow-y-auto bg-background p-5 shadow-xl sm:p-6"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <EventDetail
-              event={selected}
-              sources={sources}
-              tracks={tracks}
-              userId={userId}
-              communitySlug={communitySlug}
-              canContribute={canContribute}
-              isStaff={isStaff}
-              onClose={() => {
-                setSelected(null);
-                setReloadToken((token) => token + 1);
-              }}
-              onShowContext={(from, to) => {
-                setView({ from, to });
-                setSelected(null);
-              }}
-            />
-          </div>
-        </div>
-      )}
+
 
       {adding && userId && (
         <AddEventFlow

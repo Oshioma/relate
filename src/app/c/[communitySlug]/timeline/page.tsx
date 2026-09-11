@@ -83,6 +83,9 @@ export default async function TimelinePage({
         initialWindow={view}
         initialTotal={initial.total}
         initialTruncated={initial.truncated}
+        // The stretch this community's events actually occupy, so "Whole
+        // timeline" can frame all of them without asking the server again.
+        extent={extent}
         sources={sources}
         tracks={tracks}
         facets={facets}
