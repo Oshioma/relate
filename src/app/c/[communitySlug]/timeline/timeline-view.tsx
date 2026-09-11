@@ -443,18 +443,6 @@ export function TimelineView({
   // the reader has just pressed one and cannot tell which. Matched loosely,
   // because panning a few pixels should not un-select the span you chose, and
   // exactly enough that two neighbouring spans are never both lit.
-  // THE WHOLE RAIL RUNS ONE WAY: shallowest on the left, deepest on the right.
-  //
-  // The eras were listed oldest-first and the look-backs shortest-first, so
-  // reading along the row you went from the Big Bang down to today and then
-  // straight back out to a billion years — the direction reversed halfway and
-  // the row stopped meaning anything. Sorted by span here rather than in the
-  // shared list, which is in chronological order for good reasons of its own.
-  const eraCards = useMemo(
-    () => [...TIMELINE_JUMPS].sort((a, b) => a.window.to - a.window.from - (b.window.to - b.window.from)),
-    []
-  );
-
   const matchesWindow = useCallback(
     (candidate: TimeWindow) => {
       const span = view.to - view.from;
@@ -533,6 +521,63 @@ export function TimelineView({
       ),
     [events, matchesFilters, view.from, view.to]
   );
+  // EVERY SPAN THE RAIL OFFERS, IN ONE ASCENDING SEQUENCE.
+  //
+  // Three kinds of jump — this community's own extent, the named eras, and the
+  // look-backs from today — sorted together by how much time each one puts on
+  // screen. Sorting them as one list is the whole of the fix: separately they
+  // each ascended and the rail restarted in the middle.
+  const spanCards = useMemo(() => {
+    const cards: {
+      key: string;
+      span: number;
+      caption: string;
+      window: TimeWindow;
+      accent?: boolean;
+      icon?: React.ReactNode;
+      /** Where plain `setView(window)` is not quite what this card should do. */
+      onSelect?: () => void;
+    }[] = [];
+
+    if (extent) {
+      cards.push({
+        key: "whole",
+        span: Math.max(1, extent.to - extent.from),
+        caption: "Whole timeline",
+        window: { from: extent.from, to: extent.to },
+        accent: true,
+        icon: <Maximize2 className="h-4 w-4" />,
+        // Padded, and it leaves Compare mode — framing everything is a
+        // different intention from jumping to a span.
+        onSelect: fitEverything,
+      });
+    }
+
+    for (const jump of TIMELINE_JUMPS) {
+      cards.push({
+        key: `jump-${jump.key}`,
+        span: jump.window.to - jump.window.from,
+        caption: jump.label,
+        window: jump.window,
+      });
+    }
+
+    for (const years of LOOKBACK_SPANS) {
+      const span = lookbackWindow(years);
+      cards.push({
+        key: `back-${years}`,
+        span: years,
+        // Both ends, so a look-back card is recognisable as one without a
+        // heading over it — they all finish just past today and only the reach
+        // back changes.
+        caption: `${formatYear(Math.floor(span.from), { compact: true })} – ${LOOKBACK_END_YEAR}`,
+        window: span,
+      });
+    }
+
+    return cards.sort((a, b) => a.span - b.span);
+  }, [extent, fitEverything]);
+
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
   const displayed = activeResults ?? visible;
@@ -842,55 +887,29 @@ export function TimelineView({
           Above the timeline rather than below it, because this is the first
           thing a reader does: pick how much time to look at, then look at it.
 
-          ONE ROW, SCROLLING. Wrapped across two rows these took a quarter of
-          the screen before the timeline began. On one line they are a rail you
-          push along — eras first, then the look-backs from today, with a rule
-          between the two kinds. */}
+          ONE ROW, ONE SEQUENCE, SHORTEST FIRST. These used to be two rails with
+          a rule between them — the named eras, then the look-backs from today —
+          each ascending on its own and therefore starting over halfway along.
+          Reading left to right you went 70, 560, 1,100 … 13.9 billion, and then
+          back to 2,000. The grouping was real (an era is a PLACE in time, a
+          look-back is a DEPTH from now) and it was not worth the reader losing
+          their place: a rail of numbers that counts up and then restarts is a
+          rail nobody trusts to be in any order at all.
+
+          So it is one continuous zoom out, whatever kind each card is, and the
+          kind shows in the caption underneath rather than in the arrangement. */}
       <div className="-mx-4 mb-3 flex w-0 min-w-full gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        {/* Everything this community has, framed. First in the row because it
-            is the jump people actually want — the fixed eras beside it are
-            spans of history, this one is a span of YOUR timeline. */}
-        {extent && (
+        {spanCards.map((card) => (
           <SpanCard
-            accent
-            icon={<Maximize2 className="h-4 w-4" />}
-            {...durationParts(Math.max(1, extent.to - extent.from))}
-            caption="Whole timeline"
-            active={matchesWindow({ from: extent.from, to: extent.to })}
-            onClick={fitEverything}
-          />
-        )}
-        {eraCards.map((jump) => (
-          <SpanCard
-            key={jump.key}
-            {...durationParts(jump.window.to - jump.window.from)}
-            caption={jump.label}
-            active={matchesWindow(jump.window)}
-            onClick={() => setView(jump.window)}
+            key={card.key}
+            accent={card.accent}
+            icon={card.icon}
+            {...durationParts(card.span)}
+            caption={card.caption}
+            active={matchesWindow(card.window)}
+            onClick={card.onSelect ?? (() => setView(card.window))}
           />
         ))}
-
-        {/* The eras above are PLACES; what follows is DEPTHS. Every one of them
-            ends at the same point just past today and only the reach changes,
-            so going along the row is one continuous zoom out from the present —
-            which is the question a learner asks far more often than "show me
-            the Medieval period". */}
-        <div className="mx-1 w-px shrink-0 self-stretch bg-border" aria-hidden />
-
-        {LOOKBACK_SPANS.map((years) => {
-          const span = lookbackWindow(years);
-          return (
-            <SpanCard
-              key={years}
-              {...durationParts(years)}
-              // Both ends, so the row needs no heading to say what it is: these
-              // all finish just past today, and only the reach back changes.
-              caption={`${formatYear(Math.floor(span.from), { compact: true })} – ${LOOKBACK_END_YEAR}`}
-              active={matchesWindow(span)}
-              onClick={() => setView(span)}
-            />
-          );
-        })}
       </div>
 
       {/* ---- How much time is on screen ------------------------------------
