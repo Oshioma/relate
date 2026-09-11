@@ -200,8 +200,20 @@ export function formatYear(astronomicalYear: number, options: { compact?: boolea
   // something, and "65,000,001 BCE" is not it. A claim in this territory is
   // rendered from its own unit and decimals instead.
   if (ago >= 1_000_000) {
-    const [value, unit] = ago >= 1_000_000_000 ? [ago / 1_000_000_000, "billion"] : [ago / 1_000_000, "million"];
-    const text = trimZeros(value >= 10 ? value.toFixed(1) : value.toFixed(2));
+    let [value, unit] = ago >= 1_000_000_000 ? [ago / 1_000_000_000, "billion"] : [ago / 1_000_000, "million"];
+    let text = trimZeros(value >= 10 ? value.toFixed(1) : value.toFixed(2));
+
+    // ROUNDING CAN CROSS THE UNIT BOUNDARY. 999,997,971 years is under a
+    // billion, so it takes the millions branch — and then rounds to 1000,
+    // printing "1000 million years ago" where every reader expects "1 billion".
+    // Promoting after the rounding rather than before it is what fixes it: the
+    // decision has to be made on the number that will actually be shown.
+    if (unit === "million" && Number(text) >= 1000) {
+      value = value / 1000;
+      unit = "billion";
+      text = trimZeros(value >= 10 ? value.toFixed(1) : value.toFixed(2));
+    }
+
     return compact ? `${text} ${unit === "billion" ? "bya" : "mya"}` : `${text} ${unit} years ago`;
   }
 
@@ -453,6 +465,44 @@ export function claimHeadline(claim: ClaimTimeParts): { headline: string; normal
   return original
     ? { headline: original, normalised, quoted: original !== normalised }
     : { headline: normalised, normalised, quoted: false };
+}
+
+/**
+ * THE DATE, FOR AN EVENT RATHER THAN FOR A CLAIM.
+ *
+ * Everything else here writes one claim. This writes the whole event in the
+ * few words a caption has room for, which is a different problem: an event
+ * with five proposed dates has no single date, and picking one of them to
+ * print would quietly promote it over the other four.
+ *
+ * So there are exactly two answers. When every claim writes out the same way,
+ * that wording IS the event's date and it is printed as the claim would print
+ * it. When they don't, the envelope is printed instead — earliest proposal to
+ * latest — because "3500 BCE – 2484 BCE" is the true and complete answer to
+ * "when?" for an event the sources disagree about, and it is the reason the
+ * reader should open it.
+ *
+ * Compact years on purpose: this goes next to a title on a strip, where
+ * "2.5 mya" earns its space and "2,500,000 years ago" does not.
+ */
+export function eventDateLabel(claims: ClaimTimeParts[]): string | null {
+  if (claims.length === 0) return null;
+
+  const written = new Set(claims.map((claim) => formatClaimDate(claim)));
+  if (written.size === 1) return formatClaimDate(claims[0]);
+
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const claim of claims) {
+    const interval = claimInterval(claim);
+    lo = Math.min(lo, interval.lo);
+    hi = Math.max(hi, interval.hi);
+  }
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
+
+  const from = formatYear(Math.round(lo), { compact: true });
+  const to = formatYear(Math.round(hi), { compact: true });
+  return from === to ? from : `${from} – ${to}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1032,6 +1082,29 @@ export function positionAt(window: TimeWindow, fraction: number, scale: TimeScal
   const lo = logValueOf(window.from, now);
   const hi = logValueOf(window.to, now);
   return positionFromLogValue(lo + (hi - lo) * fraction, now);
+}
+
+// HOW FAR BACK, FROM NOW.
+//
+// The era jumps below are PLACES — the Ancient world, the Medieval period —
+// and they are the right tool when you know where you want to be. This ladder
+// answers the other question, the one a learner asks far more often: what does
+// the last N years look like? Every one of these ends at the same place and
+// only the depth changes, so pressing down the list is a single continuous
+// zoom out from the present.
+//
+// It ends just past today rather than exactly on it, so the most recent events
+// are not jammed against the right-hand edge with nothing after them.
+export const LOOKBACK_END_YEAR = 2030;
+
+export const LOOKBACK_SPANS = [
+  2_000, 5_000, 10_000, 20_000, 50_000, 100_000,
+  1_000_000, 10_000_000, 100_000_000, 1_000_000_000,
+] as const;
+
+/** The window covering the last `years` years, ending just past the present. */
+export function lookbackWindow(years: number, endYear: number = LOOKBACK_END_YEAR): TimeWindow {
+  return clampWindow({ from: endYear - years, to: endYear });
 }
 
 // The jumps in the zoom rail. Each is a place a reader actually wants to be,

@@ -1,5 +1,5 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimInterval, fractionOf, type TimeScale, type TimeWindow } from "./time";
+import { claimInterval, eventDateLabel, fractionOf, type TimeScale, type TimeWindow } from "./time";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -53,6 +53,8 @@ export type PlacedEvent = {
   labelWidth: number;
   /** Which side of the marker the caption sits on. See the flip in layoutTimeline. */
   labelSide: "right" | "left";
+  /** The event's date, written for a caption. Null when no claim supplies one. */
+  dateLabel: string | null;
 };
 
 export type PlacedCluster = {
@@ -71,10 +73,23 @@ export type TimelineLayout = {
   rows: number;
 };
 
-function estimateLabelWidth(title: string): number {
+function estimateLabelWidth(title: string, dateLabel: string | null): number {
   // ~6.2px per character at the 13px the labels render at, capped so one long
   // title can't reserve half the strip.
-  return Math.min(190, Math.max(48, title.length * 6.2 + 18));
+  const titleWidth = Math.min(190, Math.max(48, title.length * 6.2 + 18));
+
+  // THE DATE IS RESERVED TOO, OR IT IS NOT REALLY THERE.
+  //
+  // The packer hides any caption whose neighbour is closer than the width
+  // reserved for it, and the canvas truncates at exactly that width. A date
+  // drawn beside the title but left out of this number is therefore drawn
+  // either through the next label or not at all — the same class of bug as the
+  // 190/220 mismatch that put four titles on top of each other. It is measured
+  // slightly narrower per character because it renders a point smaller and in
+  // tabular figures.
+  const dateWidth = dateLabel ? dateLabel.length * 5.8 + 8 : 0;
+
+  return Math.min(330, titleWidth + dateWidth);
 }
 
 /**
@@ -119,6 +134,7 @@ export function layoutTimeline(
     .map((event): PlacedEvent | null => {
       const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
+      const dateLabel = eventDateLabel(event.claims);
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
       const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
       // "Disputed" means the sources land in different places — two sources
@@ -136,11 +152,29 @@ export function layoutTimeline(
         claims,
         disputed,
         showLabel: true,
-        labelWidth: estimateLabelWidth(event.title),
+        labelWidth: estimateLabelWidth(event.title, dateLabel),
         labelSide: "right",
+        dateLabel,
       };
     })
     .filter((item): item is PlacedEvent => item !== null)
+    // EVENTS OFF THE EDGE ARE NOT DRAWN AT ALL.
+    //
+    // Without this they were: an event placed at x = −900 keeps its caption,
+    // because a caption 190px wide starting at −894 still "fits" inside the
+    // canvas by the arithmetic. It then renders at Math.max(0, −894) = 0. Six
+    // events off the left edge therefore drew six captions stacked on the same
+    // pixel, which is what a reader sees as an unreadable smear at the left of
+    // the strip.
+    //
+    // It shows up most while a window is still loading, when the strip is
+    // holding the PREVIOUS window's events — most of which are, by definition,
+    // somewhere else in time.
+    //
+    // Partly-visible events stay: a claim whose range crosses the edge really
+    // is in view, and clipping the bar at the boundary is the honest drawing of
+    // it. Only events with no part of themselves on screen are dropped.
+    .filter((item) => item.xTo >= 0 && item.xFrom <= width)
     .sort((a, b) => a.xFrom - b.xFrom);
 
   // --- Cluster the indistinguishable ------------------------------------------------
@@ -337,6 +371,7 @@ export function layoutLane(
     .map((event): PlacedEvent | null => {
       const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
+      const dateLabel = eventDateLabel(event.claims);
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
       const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
       return {
@@ -348,11 +383,29 @@ export function layoutLane(
         claims,
         disputed: claims.length > 1 && claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5),
         showLabel: true,
-        labelWidth: estimateLabelWidth(event.title),
+        labelWidth: estimateLabelWidth(event.title, dateLabel),
         labelSide: "right",
+        dateLabel,
       };
     })
     .filter((item): item is PlacedEvent => item !== null)
+    // EVENTS OFF THE EDGE ARE NOT DRAWN AT ALL.
+    //
+    // Without this they were: an event placed at x = −900 keeps its caption,
+    // because a caption 190px wide starting at −894 still "fits" inside the
+    // canvas by the arithmetic. It then renders at Math.max(0, −894) = 0. Six
+    // events off the left edge therefore drew six captions stacked on the same
+    // pixel, which is what a reader sees as an unreadable smear at the left of
+    // the strip.
+    //
+    // It shows up most while a window is still loading, when the strip is
+    // holding the PREVIOUS window's events — most of which are, by definition,
+    // somewhere else in time.
+    //
+    // Partly-visible events stay: a claim whose range crosses the edge really
+    // is in view, and clipping the bar at the boundary is the honest drawing of
+    // it. Only events with no part of themselves on screen are dropped.
+    .filter((item) => item.xTo >= 0 && item.xFrom <= width)
     .sort((a, b) => a.xFrom - b.xFrom);
 
   let lastLabelEnd = -Infinity;
