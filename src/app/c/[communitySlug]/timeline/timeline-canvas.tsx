@@ -30,7 +30,7 @@ import { useTimeNavigation } from "./use-time-navigation";
 // smaller problem to solve directly than to configure around.
 
 const ROW_HEIGHT = 34;
-const RULER_HEIGHT = 46;
+const RULER_HEIGHT = 52;
 
 export function TimelineCanvas({
   events,
@@ -85,7 +85,7 @@ export function TimelineCanvas({
   );
 
   const ticks = useMemo(
-    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 130)), scale }) : []),
+    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 190)), scale }) : []),
     [view, width, scale]
   );
 
@@ -138,8 +138,12 @@ export function TimelineCanvas({
                 <div className={cn("h-full w-px", tick.major ? "bg-border" : "bg-border/50")} />
                 <span
                   className={cn(
-                    "absolute top-2 left-1.5 whitespace-nowrap text-[11px] tabular-nums",
-                    tick.major ? "font-medium text-foreground" : "text-muted-foreground"
+                    // The dates are the ruler. They were 11px — legible if you
+                    // were looking for them, invisible if you were reading the
+                    // events. At 16px they are the first thing you see on the
+                    // strip, which is what a date on a timeline should be.
+                    "absolute top-1.5 left-2 whitespace-nowrap text-base tabular-nums",
+                    tick.major ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
                   )}
                 >
                   {tick.label}
@@ -154,7 +158,15 @@ export function TimelineCanvas({
         {showPresent && (
           <div className="pointer-events-none absolute inset-y-0" style={{ left: presentX }}>
             <div className="h-full w-px bg-accent" />
-            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+            {/* Flipped to the left of the line when the present is near the
+                right edge, for the same reason event captions are: a chip
+                reading "Toda" helps nobody. */}
+            <span
+              className={cn(
+                "absolute bottom-1.5 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground",
+                presentX > width - 64 ? "right-1.5" : "left-1.5"
+              )}
+            >
               Today
             </span>
           </div>
@@ -219,6 +231,10 @@ export function TimelineCanvas({
                 className={cn(
                   "absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  // Flipped captions hug their own marker, so the text sits
+                  // beside the dot it belongs to rather than trailing away
+                  // from it across empty axis.
+                  placed.labelSide === "left" && "justify-end pl-2 pr-1 text-right",
                   selected && "bg-accent-soft ring-1 ring-accent"
                 )}
                 // THE LABEL MAY NOT DRAW WIDER THAN THE SPACE RESERVED FOR IT.
@@ -234,7 +250,11 @@ export function TimelineCanvas({
                 // Binding the rendered width to the reserved width makes the
                 // reservation true by construction: truncate now engages at
                 // exactly the point the packer assumed it would.
-                style={{ left: Math.max(0, placed.xTo + 6), maxWidth: placed.labelWidth }}
+                style={
+                  placed.labelSide === "left"
+                    ? { left: Math.max(0, placed.xFrom - 6 - placed.labelWidth), maxWidth: placed.labelWidth }
+                    : { left: Math.max(0, placed.xTo + 6), maxWidth: placed.labelWidth }
+                }
               >
                 {placed.showLabel && (
                   <>

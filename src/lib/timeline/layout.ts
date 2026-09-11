@@ -24,6 +24,9 @@ import { claimInterval, fractionOf, type TimeScale, type TimeWindow } from "./ti
 const CLUSTER_PX = 12;
 /** How many crowded events it takes before a cluster is more honest than a pile. */
 const CLUSTER_MIN = 4;
+/** The gap between a marker and its own caption. */
+const LABEL_GAP_PX = 6;
+
 /** Breathing room between one event's label and the next event's marker. */
 const ROW_GAP_PX = 14;
 
@@ -48,6 +51,8 @@ export type PlacedEvent = {
   disputed: boolean;
   showLabel: boolean;
   labelWidth: number;
+  /** Which side of the marker the caption sits on. See the flip in layoutTimeline. */
+  labelSide: "right" | "left";
 };
 
 export type PlacedCluster = {
@@ -132,6 +137,7 @@ export function layoutTimeline(
         disputed,
         showLabel: true,
         labelWidth: estimateLabelWidth(event.title),
+        labelSide: "right",
       };
     })
     .filter((item): item is PlacedEvent => item !== null)
@@ -209,10 +215,53 @@ export function layoutTimeline(
     if (list) list.push(item);
     else rowContents.set(item.row, [item]);
   }
+  // CAPTIONS, AND WHICH SIDE THEY GO ON.
+  //
+  // A label normally sits to the right of its event. Near the right-hand edge
+  // that runs it off the strip: with events bunched in the last fifth of a
+  // 22,000-year window, five of ten captions were drawing past the edge and
+  // being clipped, so events that WERE on screen looked as though they were
+  // missing. Nothing was lost — the words were just cut in half by the canvas.
+  //
+  // So a caption that will not fit on the right flips to the left of its own
+  // marker, where there is usually nothing but empty axis. It flips only if
+  // that space is genuinely free: the previous event in the same row has to
+  // end before it starts, or the label is dropped as it always was. Better no
+  // caption than two captions on top of each other.
   for (const list of rowContents.values()) {
+    // How far along this row anything has been drawn — markers AND the labels
+    // already given a side. Checking the previous MARKER is not enough: a
+    // caption that flips left lands in the space the previous event's caption
+    // is using, and the two draw on top of each other. This is the only
+    // quantity that knows about both.
+    let occupiedUntil = -Infinity;
+
     for (let index = 0; index < list.length; index++) {
+      const item = list[index];
       const next = list[index + 1];
-      list[index].showLabel = !next || next.xFrom > list[index].xTo + list[index].labelWidth + ROW_GAP_PX;
+
+      const rightEnd = item.xTo + LABEL_GAP_PX + item.labelWidth;
+      const clearOfNext = !next || next.xFrom > rightEnd + ROW_GAP_PX;
+      if (clearOfNext && rightEnd <= width) {
+        item.showLabel = true;
+        item.labelSide = "right";
+        occupiedUntil = rightEnd;
+        continue;
+      }
+
+      // No room to the right — try the empty axis to the left of the marker.
+      const leftStart = item.xFrom - LABEL_GAP_PX - item.labelWidth;
+      if (leftStart >= 0 && leftStart >= occupiedUntil + ROW_GAP_PX) {
+        item.showLabel = true;
+        item.labelSide = "left";
+        occupiedUntil = Math.max(occupiedUntil, item.xTo);
+        continue;
+      }
+
+      // Neither side is free. Better no caption than two on top of each other.
+      item.showLabel = false;
+      item.labelSide = "right";
+      occupiedUntil = Math.max(occupiedUntil, item.xTo);
     }
   }
 
@@ -300,6 +349,7 @@ export function layoutLane(
         disputed: claims.length > 1 && claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5),
         showLabel: true,
         labelWidth: estimateLabelWidth(event.title),
+        labelSide: "right",
       };
     })
     .filter((item): item is PlacedEvent => item !== null)
