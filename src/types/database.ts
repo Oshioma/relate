@@ -2102,11 +2102,79 @@ export type TimelineEvent = {
   updated_at: string;
 };
 
+// WHAT KIND OF PERIODISATION A PERIOD IS — the single most useful thing to know
+// about one, and the thing a timeline normally hides. See PERIOD_TYPES in
+// src/lib/timeline/taxonomy.ts. Stored as plain text there and here for the
+// same reason category is: a community may need a word we didn't think of.
+export type TimelinePeriodType = "formal_scientific" | "archaeological" | "historical" | "educational";
+
+// A NAMED STRETCH OF TIME — Mesozoic, Bronze Age, Middle Palaeolithic.
+//
+// Deliberately has no start_year and no end_year. A period with its own date
+// columns becomes a period with an ANSWER, and the boundary claims underneath
+// it become decoration on a number the UI already trusts. Its boundaries are
+// rows in timeline_date_claims carrying period_id, one per region or discipline
+// that places them differently, and the band's extent is computed from them.
+export type TimelinePeriod = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  slug: string;
+  name: string;
+  // "Age of Dinosaurs" is the Mesozoic under another name, not a second period.
+  // Searched alongside the name; shown beside it on the card.
+  aliases: string[];
+  summary: string;
+  description: string;
+  period_type: string;
+  // Whose framework this is — "Mainstream palaeontology and geology". The point
+  // of the column: a description of the Mesozoic is a reading of the fossil
+  // record BY a discipline, and naming the discipline is the difference between
+  // reporting a consensus and asserting a fact.
+  framework: string | null;
+  // The three questions the card answers separately, because collapsing them is
+  // how a reconstruction turns into a fact: what makes this period this period,
+  // what has actually been dug up or measured, and what that is taken to mean.
+  defining_criteria: string | null;
+  evidence: string | null;
+  interpretation: string | null;
+  // Set only for a period that IS regional. A period whose BOUNDARIES merely
+  // differ by region is one period with regional boundary claims.
+  region: string | null;
+  // Orders what semantic zoom has already chosen. Not a visibility switch and
+  // not a ranking of importance.
+  display_priority: number;
+  status: TimelineEventStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// An edge between two periods. 'contains' is hierarchy — Mesozoic contains
+// Jurassic; 'related' is a pointer worth following. An edge table rather than a
+// parent_id because geological, archaeological and historical periodisations
+// overlap without nesting inside one another, and a single parent pointer would
+// have forced a winner.
+export type TimelinePeriodLink = {
+  community_id: string;
+  from_period_id: string;
+  to_period_id: string;
+  relation: "contains" | "related";
+  created_at: string;
+};
+
 // WHEN A SOURCE SAYS IT HAPPENED. An event may have any number of these, and
 // two of them disagreeing is data, not an error.
+//
+// Also what a PERIOD BOUNDARY is: exactly one of event_id and period_id is set.
+// The Iron Age starting c. 1200 BCE in the Near East and c. 800 BCE in Britain
+// is two rows here, not two periods — which is the whole reason boundaries were
+// not given their own table.
 export type TimelineDateClaim = {
   id: string;
-  event_id: string;
+  event_id: string | null;
+  period_id: string | null;
   community_id: string;
   created_by: string;
   source_id: string | null;
@@ -2133,6 +2201,12 @@ export type TimelineDateClaim = {
   date_precision: string;
   precision_decimals: number;
   is_approximate: boolean;
+  // WHICH REGION THIS CLAIM DESCRIBES — "Near East", "Britain", "West Africa".
+  // Null when it isn't regional, which is every claim on an ordinary event.
+  region: string | null;
+  // THIS SPAN HAS NO END: it runs to the present. A flag rather than
+  // end_year = this year, which would be a boundary nobody claimed.
+  is_ongoing: boolean;
   // SOURCE-STATED TOLERANCE, IN YEARS. "13.799 ± 0.021 Ga" stores 21,000,000
   // in both. A different fact from end_year, which is a proposed RANGE: a
   // tolerance is one moment measured with an error bar, a range is "somewhere
@@ -2160,12 +2234,15 @@ export type TimelineDateClaim = {
 export type TimelineRevision = {
   id: string;
   community_id: string;
-  event_id: string;
+  // Exactly one of these two identifies what was changed — an event and its
+  // date claims, or a period and its boundary claims.
+  event_id: string | null;
+  period_id: string | null;
   // Set when the change was to a claim rather than to the event itself.
   // Deliberately not a foreign key — a claim's deletion is exactly when its
   // history matters most.
   claim_id: string | null;
-  entity: "event" | "claim";
+  entity: "event" | "claim" | "period";
   action: "created" | "updated" | "deleted";
   // Null when the write came from a service-role job rather than a person.
   actor_id: string | null;
@@ -2895,20 +2972,43 @@ export type Database = {
         // Postgres, so they are Row-only — an Insert that set them would be
         // rejected. Omit rather than Partial for exactly that reason.
         Row: TimelineDateClaim;
+        // event_id is not required here because a boundary claim carries
+        // period_id instead. The database enforces that exactly one is set —
+        // a check constraint, not a convention.
         Insert: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era"> & {
-          event_id: string;
           community_id: string;
           created_by: string;
           start_year: number;
         };
         Update: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era">;
-        Relationships: [FKey<"created_by", "profiles">, FKey<"source_id", "timeline_sources">, FKey<"event_id", "timeline_events">];
+        Relationships: [
+          FKey<"created_by", "profiles">,
+          FKey<"source_id", "timeline_sources">,
+          FKey<"event_id", "timeline_events">,
+          FKey<"period_id", "timeline_periods">,
+        ];
+      };
+      timeline_periods: {
+        Row: TimelinePeriod;
+        Insert: Partial<TimelinePeriod> & { community_id: string; created_by: string; slug: string; name: string };
+        Update: Partial<TimelinePeriod>;
+        Relationships: [FKey<"created_by", "profiles">];
+      };
+      timeline_period_links: {
+        Row: TimelinePeriodLink;
+        Insert: Partial<TimelinePeriodLink> & {
+          community_id: string;
+          from_period_id: string;
+          to_period_id: string;
+        };
+        Update: Partial<TimelinePeriodLink>;
+        Relationships: [FKey<"from_period_id", "timeline_periods">, FKey<"to_period_id", "timeline_periods">];
       };
       timeline_revisions: {
         // Insert-only through triggers; the app never writes here, and RLS has
         // no insert policy at all.
         Row: TimelineRevision;
-        Insert: Partial<TimelineRevision> & { community_id: string; event_id: string; entity: string; action: string };
+        Insert: Partial<TimelineRevision> & { community_id: string; entity: string; action: string };
         Update: Partial<TimelineRevision>;
         Relationships: [FKey<"actor_id", "profiles">];
       };
