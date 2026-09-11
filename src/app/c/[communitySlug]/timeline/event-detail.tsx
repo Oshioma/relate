@@ -15,7 +15,14 @@ import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
 import { eventTypeHint, eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
-import { claimMidpoint, compareClaims, describeComparison, presentPosition } from "@/lib/timeline/time";
+import {
+  claimMidpoint,
+  claimsDisagree,
+  compareClaims,
+  describeComparison,
+  eventDateLabel,
+  presentPosition,
+} from "@/lib/timeline/time";
 
 // The event, opened up.
 //
@@ -99,6 +106,11 @@ export function EventDetail({
     });
   }
 
+  // The whole span every source proposes, written for a headline. Null when
+  // nothing has been dated yet, which is a real state and not an error.
+  const dateLabel = eventDateLabel(event.claims);
+  const disagree = claimsDisagree(event.claims);
+
   return (
     <article className="pb-8">
       <div className="flex items-start justify-between gap-3">
@@ -132,7 +144,34 @@ export function EventDetail({
             )}
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{event.title}</h1>
-          {event.summary && <p className="mt-1.5 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
+
+          {/* WHEN — AT THE TOP, AND BIG.
+              The date was reachable only by scrolling past the summary, the
+              record type, the location and the whole description to the claim
+              cards below. On a timeline. The first question anybody opens an
+              event to answer was the last thing on the page.
+
+              It is the ENVELOPE of every claim, not one of them chosen: where
+              the sources disagree this reads "990,000 – 430,000 years ago",
+              which is the honest headline and also the interesting one. The
+              line underneath says so, so nobody mistakes a span of disagreement
+              for a span of time the event lasted. */}
+          {dateLabel && (
+            <div className="mt-2">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight text-foreground sm:text-3xl">
+                {dateLabel}
+              </p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                {event.claims.length === 1
+                  ? "As its one source dates it"
+                  : disagree
+                    ? `Everywhere its ${event.claims.length} sources put it — they disagree`
+                    : `${event.claims.length} sources, in agreement`}
+              </p>
+            </div>
+          )}
+
+          {event.summary && <p className="mt-3 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
           {/* WHAT THE RECORD TYPE MEANS, said out loud.
               "Mainstream / established view" on a chip is exactly the sort of
               label a reader will take for a verdict if nobody tells them
