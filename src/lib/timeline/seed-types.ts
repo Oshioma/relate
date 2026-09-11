@@ -90,6 +90,19 @@ export type SeedEvent = {
   people?: string[];
   civilisations?: string[];
   locationName?: string | null;
+  /**
+   * Pictures, addressed by Special:FilePath rather than by a hand-built
+   * thumbnail path — a Wikimedia thumbnail may not be wider than the file it
+   * comes from, and asking for one that is gets a 400. They are copied into the
+   * community's own storage when the event is seeded; see bringEventPicturesIn.
+   *
+   * The caption carries the creator and the licence, because attribution is a
+   * condition of these licences and not a courtesy — and, in this timeline,
+   * because a picture of a thing is not evidence about the thing, and the
+   * caption is where that gets said.
+   */
+  imageUrl?: string;
+  media?: { url: string; caption?: string; kind?: string }[];
   /** Only where the place is genuinely known. A coordinate is an assertion. */
   lat?: number | null;
   lng?: number | null;

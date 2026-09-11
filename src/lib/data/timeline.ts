@@ -740,6 +740,28 @@ export async function hasTimelineEvent(
   return (count ?? 0) > 0;
 }
 
+/**
+ * Are any of these events here WITHOUT pictures?
+ *
+ * For a dataset that gained its images after it was first offered: the events
+ * are present, so the seeder skips them, so the pictures never arrive and the
+ * offer to add the dataset is long gone. This is the question that puts the
+ * offer back.
+ */
+export async function eventsMissingPictures(
+  supabase: SupabaseClient<Database>,
+  communityId: string,
+  slugs: string[]
+): Promise<boolean> {
+  if (slugs.length === 0) return false;
+  const { data } = await supabase
+    .from("timeline_events")
+    .select("image_url, media")
+    .eq("community_id", communityId)
+    .in("slug", slugs);
+  return (data ?? []).some((row) => !row.image_url && (row.media ?? []).length === 0);
+}
+
 export async function getClaimCitations(
   supabase: Client,
   communityId: string,
