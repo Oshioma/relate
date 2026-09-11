@@ -26,6 +26,11 @@ import {
 import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
 import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_EVENTS, DEEP_TIME_SOURCES, DEEP_TIME_TRACK } from "@/lib/timeline/deep-time-seed";
+import {
+  EARLY_SAPIENS_EVENTS,
+  EARLY_SAPIENS_SOURCES,
+  EARLY_SAPIENS_TRACK,
+} from "@/lib/timeline/early-sapiens-seed";
 import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import {
   claimDraftSchema,
@@ -1288,6 +1293,23 @@ export async function seedHannibalDataset(communitySlug: string) {
     sources: HANNIBAL_SOURCES,
     track: HANNIBAL_TRACK,
     label: "Hannibal",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/** Five records from around a hundred thousand years ago. See early-sapiens-seed.ts. */
+export async function seedEarlySapiensDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the early Homo sapiens dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: EARLY_SAPIENS_EVENTS,
+    sources: EARLY_SAPIENS_SOURCES,
+    track: EARLY_SAPIENS_TRACK,
+    label: "Early Homo sapiens",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

@@ -34,6 +34,7 @@ import {
   loadTimelineWindow,
   searchTimeline,
   seedDeepTimeDataset,
+  seedEarlySapiensDataset,
   seedHannibalDataset,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -163,6 +164,50 @@ function SpanCard({
   );
 }
 
+// AN OFFER OF A READY-MADE DATASET.
+//
+// Three of these now, and they differ only in their words and their action, so
+// they are one component. Staff only, and withdrawn once taken: nothing is
+// written into a community's timeline that the community did not ask for.
+function DatasetOffer({
+  title,
+  children,
+  busyLabel,
+  label,
+  onAdd,
+}: {
+  title: string;
+  children: React.ReactNode;
+  busyLabel: string;
+  label: string;
+  onAdd: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{children}</p>
+      <Button
+        type="button"
+        variant="secondary"
+        className="mt-3"
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          setError(null);
+          Promise.resolve(onAdd())
+            .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : String(reason)))
+            .finally(() => setBusy(false));
+        }}
+      >
+        {busy ? busyLabel : label}
+      </Button>
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+    </div>
+  );
+}
+
 export function TimelineView({
   communitySlug,
   initialEvents,
@@ -173,6 +218,7 @@ export function TimelineView({
   hasShowcase,
   hasHannibal,
   hasDeepTime,
+  hasEarlySapiens,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -200,6 +246,8 @@ export function TimelineView({
   hasHannibal: boolean;
   /** Whether the Middle Pleistocene dataset is already here. Same rule. */
   hasDeepTime: boolean;
+  /** Whether the early Homo sapiens dataset is already here. Same rule. */
+  hasEarlySapiens: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -241,7 +289,6 @@ export function TimelineView({
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
   const [seedingHannibal, setSeedingHannibal] = useState(false);
-  const [seedingDeepTime, setSeedingDeepTime] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
@@ -1182,48 +1229,57 @@ export function TimelineView({
         </div>
       )}
 
-      {/* ---- The deep time dataset -------------------------------------------
-          The same idea as the Hannibal set, asked of a period with no texts at
-          all: ten records where every date is an inference from teeth, magnetised
-          rock, isotopes or DNA, and several of them sit nowhere near each other
+      {/* ---- The other ready-made datasets ------------------------------------
+          The same idea as the Hannibal set, asked of periods with no texts at
+          all: every date is an inference from teeth, magnetised rock, isotopes,
+          pigment or DNA, and several of the records sit nowhere near each other
           on the strip because the evidence puts them where it puts them. */}
       {isStaff && !hasDeepTime && (
-        <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
-          <p className="text-sm font-semibold text-foreground">Add the deep time dataset?</p>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Ten records from the Middle Pleistocene — Homo heidelbergensis, Acheulean handaxes, Boxgrove, the ice age
-            cycles, the Neanderthal divergence, the Brunhes&ndash;Matuyama magnetic reversal. There are no texts from
-            any of it, so every date is an inference from teeth, magnetised rock, ocean isotopes or DNA, and where the
-            specialists disagree by a quarter of a million years the disagreement is shown rather than averaged away.
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            className="mt-3"
-            disabled={seedingDeepTime}
-            onClick={() => {
-              setSeedingDeepTime(true);
+        <DatasetOffer
+          title="Add the deep time dataset?"
+          busyLabel="Adding the records…"
+          label="Add the deep time dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
               startSeed(async () => {
                 const result = await seedDeepTimeDataset(communitySlug);
-                setSeedingDeepTime(false);
-                if (result && "error" in result) {
-                  setSeedError(result.error);
-                  return;
-                }
-                if (result && "failed" in result && result.failed > 0) {
-                  setSeedError(
-                    `Added ${result.added} of ${result.added + result.failed} events — ${result.failed} could not be added.`
-                  );
-                }
+                if (result && "error" in result) setSeedError(result.error);
                 setReloadToken((token) => token + 1);
                 router.refresh();
+                resolve();
               });
-            }}
-          >
-            {seedingDeepTime ? "Adding the records…" : "Add the deep time dataset"}
-          </Button>
-          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
-        </div>
+            })
+          }
+        >
+          Ten records from the Middle Pleistocene — Homo heidelbergensis, Acheulean handaxes, Boxgrove, the ice age
+          cycles, the Neanderthal divergence, the Brunhes&ndash;Matuyama magnetic reversal. There are no texts from any
+          of it, so every date is an inference from teeth, magnetised rock, ocean isotopes or DNA, and where the
+          specialists disagree by a quarter of a million years the disagreement is shown rather than averaged away.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasEarlySapiens && (
+        <DatasetOffer
+          title="Add the early Homo sapiens dataset?"
+          busyLabel="Adding the records…"
+          label="Add the early Homo sapiens dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedEarlySapiensDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Five records from around a hundred thousand years ago — Qafzeh, ochre, shell beads, the Neanderthals next
+          door, and the burials. Built to separate what was dug up from what it is taken to mean: a body in a pit with
+          two antlers on its chest is an observation, and a funeral is an interpretation, and this dataset never lets
+          the second be printed as the first.
+        </DatasetOffer>
       )}
 
       {/* ---- Detail panel --------------------------------------------------- */}
