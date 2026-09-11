@@ -22,6 +22,7 @@ import {
   SHOWCASE_EVENT_SLUG,
   SHOWCASE_SOURCES,
 } from "@/lib/timeline/showcase-event";
+import { bringEventPicturesIn, isHotlinked } from "@/lib/timeline/bring-in-image";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -785,11 +786,32 @@ export async function seedShowcaseEvent(communitySlug: string) {
   // quietly making a second copy.
   const { data: existing } = await supabase
     .from("timeline_events")
-    .select("id, slug")
+    .select("id, slug, image_url, media")
     .eq("community_id", community.id)
     .eq("slug", SHOWCASE_EVENT_SLUG)
     .maybeSingle();
-  if (existing) return { ok: true as const, slug: existing.slug };
+  if (existing) {
+    // Already here — but a copy seeded before the pictures were brought in is
+    // still pointing at somebody else's server, and those photographs do not
+    // load. Running this again repairs that in place rather than making a
+    // second copy of the event, which is the only thing the reader wants.
+    const externals = [existing.image_url, ...(existing.media ?? []).map((item) => item.url)].filter(isHotlinked);
+    if (externals.length === 0) return { ok: true as const, slug: existing.slug };
+
+    const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
+      pictures: { imageUrl: existing.image_url, media: existing.media ?? [] },
+      userId,
+      slug: SHOWCASE_EVENT_SLUG,
+    });
+    if (broughtIn > 0) {
+      await supabase
+        .from("timeline_events")
+        .update({ image_url: pictures.imageUrl, media: pictures.media })
+        .eq("id", existing.id);
+      revalidatePath(timelinePath(community.slug));
+    }
+    return { ok: true as const, slug: existing.slug, broughtIn };
+  }
 
   // Sources first: the claims need their ids. Reuse a source the community
   // already has under the same title rather than adding a near-duplicate —
@@ -840,6 +862,16 @@ export async function seedShowcaseEvent(communitySlug: string) {
     await supabase.from("timeline_sources").update({ cited_by_source_id: parent }).eq("id", child);
   }
 
+  // The photographs, copied into this community's own storage before the event
+  // is written, so the event never carries a URL that points somewhere we do
+  // not control. Anything that cannot be copied keeps its original URL, which
+  // is no worse than the behaviour this replaces.
+  const { pictures: seedPictures } = await bringEventPicturesIn(supabase, {
+    pictures: { imageUrl: SHOWCASE_EVENT.imageUrl, media: [...SHOWCASE_EVENT.media] },
+    userId,
+    slug: SHOWCASE_EVENT_SLUG,
+  });
+
   const { data: event, error: eventError } = await supabase
     .from("timeline_events")
     .insert({
@@ -859,8 +891,8 @@ export async function seedShowcaseEvent(communitySlug: string) {
       location_name: SHOWCASE_EVENT.locationName,
       lat: SHOWCASE_EVENT.lat,
       lng: SHOWCASE_EVENT.lng,
-      image_url: SHOWCASE_EVENT.imageUrl,
-      media: SHOWCASE_EVENT.media,
+      image_url: seedPictures.imageUrl,
+      media: seedPictures.media,
       // Staff are seeding it, so it goes straight in — the same as anything
       // else staff add. RLS allows this only because isStaff was checked above.
       status: "published",

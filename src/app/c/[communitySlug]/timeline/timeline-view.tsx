@@ -98,6 +98,7 @@ export function TimelineView({
   extent,
   markers,
   hasShowcase,
+  showcaseHotlinked,
   citations,
   initialTruncated,
   sources,
@@ -119,6 +120,8 @@ export function TimelineView({
   markers: { position: number; category: string }[];
   /** Whether the worked example is already here, so it is offered only once. */
   hasShowcase: boolean;
+  /** Its pictures are still pointing at somebody else's server, so they don't load. */
+  showcaseHotlinked: boolean;
   /** Every extra claim→source link in the community, for the detail panel. */
   citations: TimelineClaimSource[];
   initialTruncated: boolean;
@@ -830,6 +833,46 @@ export function TimelineView({
             }}
           >
             {seeding ? "Adding…" : "Add the worked example"}
+          </Button>
+          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
+        </div>
+      )}
+
+      {/* ---- A worked example whose pictures never arrived --------------------
+          A copy seeded before the photographs were brought in still points at
+          Wikimedia for them, and those requests fail: the reader gets an event
+          with empty grey boxes where the pyramid should be. There is no way for
+          them to fix that from the page, and no way for us to fix it without
+          being asked, so it is offered here. The same action does it — it
+          repairs in place rather than seeding a second copy. */}
+      {isStaff && hasShowcase && showcaseHotlinked && (
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
+          <p className="text-sm font-semibold text-foreground">The worked example&rsquo;s photographs aren&rsquo;t loading</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            Its pictures are still being fetched from Wikimedia every time somebody opens the event, which is why they
+            show as empty boxes. Bring them in and they are copied once into this community&rsquo;s own storage, with the
+            photographer and licence kept in the caption underneath each one.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-3"
+            disabled={seeding}
+            onClick={() => {
+              setSeeding(true);
+              startSeed(async () => {
+                const result = await seedShowcaseEvent(communitySlug);
+                setSeeding(false);
+                if (result && "error" in result) {
+                  setSeedError(result.error);
+                  return;
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+              });
+            }}
+          >
+            {seeding ? "Bringing them in…" : "Bring the pictures in"}
           </Button>
           {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
