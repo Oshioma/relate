@@ -19,6 +19,7 @@ import {
 import { SHOWCASE_EVENT_SLUG, showcaseNeedsPictures } from "@/lib/timeline/showcase-event";
 import { HANNIBAL_ANCHOR_SLUG, HANNIBAL_EVENTS } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_ANCHOR_SLUG } from "@/lib/timeline/deep-time-seed";
+import { EARLY_SAPIENS_ANCHOR_SLUG } from "@/lib/timeline/early-sapiens-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -75,7 +76,7 @@ export default async function TimelinePage({
   const extent = await getTimelineExtent(supabase, community.id);
   const view = openingWindow(query, extent);
 
-  const [initial, tracks, sources, facets, pending, markers, showcase, citations, hasHannibal, hasDeepTime, hannibalNeedsPictures] = await Promise.all([
+  const [initial, tracks, sources, facets, pending, markers, showcase, citations, hasHannibal, hasDeepTime, hasEarlySapiens, hannibalNeedsPictures] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
     getTimelineSources(supabase, community.id),
@@ -92,6 +93,7 @@ export default async function TimelinePage({
     // only for staff, who are the only people who could act on the answer.
     isStaff ? hasTimelineEvent(supabase, community.id, HANNIBAL_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, DEEP_TIME_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, EARLY_SAPIENS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -129,6 +131,7 @@ export default async function TimelinePage({
         hasShowcase={showcase != null}
         hasHannibal={hasHannibal}
         hasDeepTime={hasDeepTime}
+        hasEarlySapiens={hasEarlySapiens}
         hannibalNeedsPictures={hannibalNeedsPictures}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
