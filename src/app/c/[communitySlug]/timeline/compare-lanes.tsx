@@ -60,7 +60,7 @@ export function CompareLanes({
   const lanes = useMemo(() => tracks.filter((track) => selectedTrackIds.includes(track.id)), [tracks, selectedTrackIds]);
 
   const ticks = useMemo(
-    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 140)), scale }) : []),
+    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 190)), scale }) : []),
     [view, width, scale]
   );
 
@@ -111,7 +111,7 @@ export function CompareLanes({
           return (
             <div key={tick.position} className="absolute inset-y-0" style={{ left: x }}>
               <div className={cn("h-full w-px", tick.major ? "bg-border" : "bg-border/40")} />
-              <span className="absolute top-2 left-1.5 whitespace-nowrap text-[11px] tabular-nums text-muted-foreground">
+              <span className="absolute top-1.5 left-2 whitespace-nowrap text-base font-medium tabular-nums text-muted-foreground">
                 {tick.label}
               </span>
             </div>
