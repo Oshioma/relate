@@ -38,6 +38,7 @@ import {
   seedDeepTimeDataset,
   seedEarlySapiensDataset,
   seedHannibalDataset,
+  seedAtlantisDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -231,6 +232,7 @@ export function TimelineView({
   periods,
   periodLinks,
   hasPeriods,
+  hasAtlantis,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -266,6 +268,8 @@ export function TimelineView({
   periodLinks: TimelinePeriodLink[];
   /** Whether the fifteen periods are already here. True for non-staff, who are never offered them. */
   hasPeriods: boolean;
+  /** Whether the Atlantis dataset is already here. Same rule. */
+  hasAtlantis: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1473,6 +1477,32 @@ export function TimelineView({
           region, and a strip that draws them identically teaches otherwise. None of them has a date. They have
           boundary claims — the Iron Age has six, one per region, more than a thousand years apart — and you can open
           any band to see who put the boundary there and why.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAtlantis && (
+        <DatasetOffer
+          title="Add the Atlantis dataset?"
+          busyLabel="Adding the records…"
+          label="Add the Atlantis dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAtlantisDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Twelve proposed dates for the destruction of Atlantis, two hundred thousand years apart — Plato, Donnelly,
+          Scott-Elliot, Cayce, Steiner, Gurdjieff, the Younger Dryas correlation and the Minoan identifications. The
+          entry takes no view on whether Atlantis existed. What it teaches is the difference between a date that is
+          written in a source, a date somebody calculated from a source, and a date that exists only as a remembered
+          remark — and Plato&apos;s famous 9600 BCE turns out to be the second of those. The mainstream academic
+          position comes with it, in full, on the one record here that can actually be dated.
         </DatasetOffer>
       )}
 

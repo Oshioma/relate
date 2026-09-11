@@ -33,6 +33,7 @@ import {
 } from "@/lib/timeline/early-sapiens-seed";
 import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
+import { ATLANTIS_EVENTS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -1498,6 +1499,26 @@ export async function seedEarlySapiensDataset(communitySlug: string) {
     sources: EARLY_SAPIENS_SOURCES,
     track: EARLY_SAPIENS_TRACK,
     label: "Early Homo sapiens",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Atlantis, and the two records that let a reader take its dates apart.
+ * See atlantis-seed.ts.
+ */
+export async function seedAtlantisDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the Atlantis dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ATLANTIS_EVENTS,
+    sources: ATLANTIS_SOURCES,
+    track: ATLANTIS_TRACK,
+    label: "Atlantis",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
