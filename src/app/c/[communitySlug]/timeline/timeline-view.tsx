@@ -28,7 +28,14 @@ import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
 import { EventDetail } from "./event-detail";
 import { AddEventFlow } from "./add-event-flow";
-import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedShowcaseEvent, seedStarterTracks } from "./actions";
+import {
+  loadTimelineEvent,
+  loadTimelineWindow,
+  searchTimeline,
+  seedHannibalDataset,
+  seedShowcaseEvent,
+  seedStarterTracks,
+} from "./actions";
 import { TIMELINE_CATEGORIES, CHRONOLOGIES, TIMELINE_SOURCE_TYPES, timelineCategory } from "@/lib/timeline/taxonomy";
 import {
   claimHeadline,
@@ -98,6 +105,7 @@ export function TimelineView({
   extent,
   markers,
   hasShowcase,
+  hasHannibal,
   showcaseNeedsPictures,
   citations,
   initialTruncated,
@@ -120,6 +128,8 @@ export function TimelineView({
   markers: { position: number; category: string }[];
   /** Whether the worked example is already here, so it is offered only once. */
   hasShowcase: boolean;
+  /** Whether the Hannibal dataset is already here. True for non-staff, who are never offered it. */
+  hasHannibal: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
   showcaseNeedsPictures: boolean;
   /** Every extra claim→source link in the community, for the detail panel. */
@@ -156,6 +166,9 @@ export function TimelineView({
   // reader who has not chosen it must never be shown it.
   const [scale, setScale] = useState<TimeScale>("linear");
   const [seeding, setSeeding] = useState(false);
+  // Its own flag: the two seed cards can both be on screen, and one spinner
+  // for both would put "Adding…" on the button nobody pressed.
+  const [seedingHannibal, setSeedingHannibal] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
@@ -881,6 +894,53 @@ export function TimelineView({
             }}
           >
             {seeding ? "Bringing them in…" : "Bring the pictures in"}
+          </Button>
+          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
+        </div>
+      )}
+
+      {/* ---- The Hannibal dataset --------------------------------------------
+          Seventeen events rather than one, and a different lesson from the
+          worked example: not a single argued-over date, but a whole campaign
+          in which every kind of evidence a historian uses turns up somewhere —
+          a lost bronze tablet, coins, a prisoner's report, two ancient
+          narratives that disagree about casualty figures, a modern radiocarbon
+          study, and a legend about vinegar. Offered to staff until it is
+          taken. Nothing is seeded into a community that has not asked. */}
+      {isStaff && !hasHannibal && (
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
+          <p className="text-sm font-semibold text-foreground">Add the Hannibal dataset?</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            Seventeen events from the Second Punic War — Hannibal&rsquo;s birth, the oath, Saguntum, the Alps, Cannae,
+            the march on Rome — built to show how historical knowledge is actually assembled: contemporary objects,
+            a near-contemporary witness, two ancient histories that disagree, later legend, and modern scholarship,
+            each kept apart and labelled. Where the ancient sources give different numbers, both numbers are shown.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-3"
+            disabled={seedingHannibal}
+            onClick={() => {
+              setSeedingHannibal(true);
+              startSeed(async () => {
+                const result = await seedHannibalDataset(communitySlug);
+                setSeedingHannibal(false);
+                if (result && "error" in result) {
+                  setSeedError(result.error);
+                  return;
+                }
+                if (result && "failed" in result && result.failed > 0) {
+                  setSeedError(
+                    `Added ${result.added} of ${result.added + result.failed} events — ${result.failed} could not be added.`
+                  );
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+              });
+            }}
+          >
+            {seedingHannibal ? "Adding the events…" : "Add the Hannibal dataset"}
           </Button>
           {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>

@@ -24,6 +24,7 @@ import {
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
 import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
+import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -995,6 +996,238 @@ export async function seedShowcaseEvent(communitySlug: string) {
 
   revalidatePath(timelinePath(community.slug));
   return { ok: true as const, slug: event.slug, broughtIn: seedBroughtIn };
+}
+
+/**
+ * Seed the Hannibal / Second Punic War dataset into this community's timeline.
+ *
+ * Seventeen events, each with its own claims and its own sources. The same shape
+ * as the worked example above — staff only, in-app, idempotent — but bigger,
+ * so the rules are worth stating:
+ *
+ * IDEMPOTENT PER EVENT, NOT PER DATASET. An event already present under its
+ * slug is skipped whole: its claims are not touched, its citations are not
+ * re-added, and anything a community has edited stays edited. Run it twice and
+ * the second run adds nothing; run it after a community has deleted three of
+ * the sixteen and only those three come back.
+ *
+ * SOURCES ARE SHARED AND REUSED. A source already in the community under the
+ * same title is used rather than duplicated — the same rule the source picker
+ * teaches contributors, and the reason Polybius ends up cited by a dozen claims
+ * instead of appearing a dozen times.
+ *
+ * PARTIAL FAILURE DOES NOT ROLL THE WHOLE THING BACK. If one event fails to
+ * insert, the ones already added stay and the count comes back honest. An
+ * event whose CLAIMS fail is removed again, because an event with no dates
+ * cannot be drawn on a timeline.
+ */
+export async function seedHannibalDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the Hannibal dataset." };
+
+  // --- The lane -------------------------------------------------------------
+  const { data: existingTrack } = await supabase
+    .from("timeline_tracks")
+    .select("id")
+    .eq("community_id", community.id)
+    .eq("slug", HANNIBAL_TRACK.slug)
+    .maybeSingle();
+
+  let trackId = existingTrack?.id ?? null;
+  if (!trackId) {
+    const { data: newTrack } = await supabase
+      .from("timeline_tracks")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        name: HANNIBAL_TRACK.name,
+        slug: HANNIBAL_TRACK.slug,
+        kind: HANNIBAL_TRACK.kind,
+        color: HANNIBAL_TRACK.color,
+        sort_order: 50,
+      })
+      .select("id")
+      .single();
+    trackId = newTrack?.id ?? null;
+  }
+
+  // --- The sources ----------------------------------------------------------
+  // MATCHED ON TITLE AND AUTHOR, NOT TITLE ALONE.
+  //
+  // This dataset cites two different books both called "Hannibal" — Lancel's
+  // and Hunt's. Keyed on title, the second would silently reuse the first, and
+  // a claim about the Col du Clapier would end up attributed to a book that
+  // never mentions it. Attribution is the whole point of this feature, so the
+  // key includes the author.
+  const sourceKeyOf = (title: string, author: string | null | undefined) =>
+    `${title.trim().toLowerCase()}|${(author ?? "").trim().toLowerCase()}`;
+
+  const { data: known } = await supabase
+    .from("timeline_sources")
+    .select("id, title, author")
+    .eq("community_id", community.id);
+  const byTitle = new Map((known ?? []).map((row) => [sourceKeyOf(row.title, row.author), row.id]));
+  const sourceIds = new Map<string, string>();
+
+  for (const source of HANNIBAL_SOURCES) {
+    const already = byTitle.get(sourceKeyOf(source.title, source.author));
+    if (already) {
+      sourceIds.set(source.key, already);
+      continue;
+    }
+    const { data, error } = await supabase
+      .from("timeline_sources")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        title: source.title,
+        author: source.author ?? null,
+        publisher: source.publisher ?? null,
+        work_title: source.workTitle ?? null,
+        reference: source.reference ?? null,
+        url: source.url ?? null,
+        source_type: source.sourceType,
+        notes: source.notes,
+        published_year: source.publishedYear ?? null,
+        published_display: source.publishedDisplay ?? "",
+        published_is_approximate: false,
+      })
+      .select("id")
+      .single();
+    if (error) return { error: error.message };
+    sourceIds.set(source.key, data.id);
+    // Added to the map as well as the list: two entries in this file that were
+    // the same work would otherwise be inserted twice in a single run.
+    byTitle.set(sourceKeyOf(source.title, source.author), data.id);
+  }
+
+  // The citation chain, wired once every source has an id.
+  for (const source of HANNIBAL_SOURCES) {
+    if (!source.citedBy) continue;
+    const child = sourceIds.get(source.key);
+    const parent = sourceIds.get(source.citedBy);
+    if (!child || !parent) continue;
+    await supabase.from("timeline_sources").update({ cited_by_source_id: parent }).eq("id", child);
+  }
+
+  // --- The events -----------------------------------------------------------
+  const { data: presentRows } = await supabase
+    .from("timeline_events")
+    .select("slug")
+    .eq("community_id", community.id)
+    .in("slug", HANNIBAL_EVENTS.map((event) => event.slug));
+  const present = new Set((presentRows ?? []).map((row) => row.slug));
+
+  let added = 0;
+  const skipped: string[] = [];
+  const failed: string[] = [];
+
+  for (const seed of HANNIBAL_EVENTS) {
+    if (present.has(seed.slug)) {
+      skipped.push(seed.slug);
+      continue;
+    }
+
+    const { data: event, error: eventError } = await supabase
+      .from("timeline_events")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        slug: seed.slug,
+        title: seed.title,
+        summary: seed.summary,
+        description: seed.description,
+        category: seed.category,
+        subcategory: seed.subcategory ?? null,
+        event_type: seed.eventType,
+        event_type_note: seed.eventTypeNote ?? null,
+        tags: seed.tags,
+        people: seed.people ?? [],
+        civilisations: seed.civilisations ?? [],
+        location_name: seed.locationName ?? null,
+        lat: seed.lat ?? null,
+        lng: seed.lng ?? null,
+        status: "published",
+      })
+      .select("id, slug")
+      .single();
+    if (eventError || !event) {
+      failed.push(seed.slug);
+      continue;
+    }
+
+    const claimRows = seed.claims.map((claim) => ({
+      event_id: event.id,
+      community_id: community.id,
+      created_by: userId,
+      source_id: claim.sourceKey ? sourceIds.get(claim.sourceKey) ?? null : null,
+      start_year: claim.startYear,
+      start_month: claim.startMonth ?? null,
+      start_day: claim.startDay ?? null,
+      end_year: claim.endYear ?? null,
+      date_precision: claim.datePrecision,
+      is_approximate: claim.isApproximate,
+      original_date_text: claim.originalDateText,
+      dating_method: claim.datingMethod,
+      chronology: claim.chronology,
+      evidence: claim.evidence,
+      notes: claim.notes ?? null,
+    }));
+
+    const { data: insertedClaims, error: claimError } = await supabase
+      .from("timeline_date_claims")
+      .insert(claimRows)
+      .select("id, original_date_text");
+    if (claimError) {
+      // An event with no dates cannot be drawn. Take it back out rather than
+      // leave an entry the timeline cannot place.
+      await supabase.from("timeline_events").delete().eq("id", event.id);
+      failed.push(seed.slug);
+      continue;
+    }
+
+    // Citations, matched back to their claim by its date text — unique within
+    // each event for exactly this reason.
+    const claimIdByText = new Map<string, string>(
+      (insertedClaims ?? []).map((row) => [row.original_date_text, row.id])
+    );
+    const citationRows = seed.claims.flatMap((claim) => {
+      const claimId = claimIdByText.get(claim.originalDateText);
+      if (!claimId) return [];
+      return (claim.citations ?? []).flatMap((citation, index) => {
+        const sourceId = sourceIds.get(citation.sourceKey);
+        if (!sourceId) return [];
+        return [{
+          claim_id: claimId,
+          source_id: sourceId,
+          community_id: community.id,
+          created_by: userId,
+          relation: citation.relation,
+          note: citation.note,
+          sort_order: index,
+        }];
+      });
+    });
+    if (citationRows.length > 0) {
+      const { error: citationError } = await supabase.from("timeline_claim_sources").insert(citationRows);
+      // Not fatal, for the same reason as the worked example: an entry missing
+      // its further reading is worth far more than no entry at all.
+      if (citationError) console.error("Hannibal citations failed:", JSON.stringify(citationError));
+    }
+
+    if (trackId) {
+      await supabase
+        .from("timeline_event_tracks")
+        .insert({ event_id: event.id, track_id: trackId, community_id: community.id });
+    }
+
+    added++;
+  }
+
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true as const, added, skipped: skipped.length, failed: failed.length };
 }
 
 export async function setEventTracks(eventId: string, communitySlug: string, trackIds: string[]) {
