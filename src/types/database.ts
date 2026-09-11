@@ -2207,6 +2207,10 @@ export type TimelineDateClaim = {
   // THIS SPAN HAS NO END: it runs to the present. A flag rather than
   // end_year = this year, which would be a boundary nobody claimed.
   is_ongoing: boolean;
+  // WHEN THE SEEDED-DATASET REFRESH LAST RECONCILED THIS CLAIM. Its real job is
+  // to appear in the revision the trigger writes, which is how the refresh's own
+  // edits are told apart from a person's — see the migration. Null = never.
+  seed_synced_at: string | null;
   // SOURCE-STATED TOLERANCE, IN YEARS. "13.799 ± 0.021 Ga" stores 21,000,000
   // in both. A different fact from end_year, which is a proposed RANGE: a
   // tolerance is one moment measured with an error bar, a range is "somewhere
