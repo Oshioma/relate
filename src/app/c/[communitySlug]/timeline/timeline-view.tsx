@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronDown,
@@ -28,7 +28,7 @@ import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
 import { EventDetail } from "./event-detail";
 import { AddEventFlow } from "./add-event-flow";
-import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedStarterTracks } from "./actions";
+import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedShowcaseEvent, seedStarterTracks } from "./actions";
 import { TIMELINE_CATEGORIES, CHRONOLOGIES, TIMELINE_SOURCE_TYPES, timelineCategory } from "@/lib/timeline/taxonomy";
 import {
   claimHeadline,
@@ -93,6 +93,7 @@ export function TimelineView({
   initialTotal,
   extent,
   markers,
+  hasShowcase,
   initialTruncated,
   sources,
   tracks,
@@ -111,6 +112,8 @@ export function TimelineView({
   extent: { from: number; to: number } | null;
   /** One mark per date claim, for the overview bar — positions only. */
   markers: { position: number; category: string }[];
+  /** Whether the worked example is already here, so it is offered only once. */
+  hasShowcase: boolean;
   initialTruncated: boolean;
   sources: TimelineSource[];
   tracks: TimelineTrack[];
@@ -142,6 +145,9 @@ export function TimelineView({
   // Linear by default, always. A log axis is a distortion — a useful one, but a
   // reader who has not chosen it must never be shown it.
   const [scale, setScale] = useState<TimeScale>("linear");
+  const [seeding, setSeeding] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
+  const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -753,6 +759,48 @@ export function TimelineView({
               ) : undefined
             }
           />
+
+        </div>
+      )}
+
+      {/* ---- The worked example --------------------------------------------
+          Offered to staff until it is taken, then never again — hasShowcase
+          is the whole of the logic. Not gated on an empty timeline, which is
+          where this started and which meant a community with four events of
+          their own could never reach it. Not seeded automatically either: a
+          community's timeline is theirs, and a monument they did not choose
+          appearing in it uninvited is worse than not offering at all. */}
+      {isStaff && !hasShowcase && (
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
+          <p className="text-sm font-semibold text-foreground">Want to see what a well-sourced event looks like?</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            Add the Great Pyramid of Giza as a worked example: one event with five proposed dates — the archaeological
+            consensus, a radiocarbon study, two alternative arguments and a medieval legend — each with its own source,
+            its own reasoning, and the objections to it. It is there to show how this timeline handles a real
+            disagreement without pretending there is a single certain answer.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-3"
+            disabled={seeding}
+            onClick={() => {
+              setSeeding(true);
+              startSeed(async () => {
+                const result = await seedShowcaseEvent(communitySlug);
+                setSeeding(false);
+                if (result && "error" in result) {
+                  setSeedError(result.error);
+                  return;
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+              });
+            }}
+          >
+            {seeding ? "Adding…" : "Add the worked example"}
+          </Button>
+          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
       )}
 
