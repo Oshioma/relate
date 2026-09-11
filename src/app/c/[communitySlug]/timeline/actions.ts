@@ -32,6 +32,7 @@ import {
   EARLY_SAPIENS_TRACK,
 } from "@/lib/timeline/early-sapiens-seed";
 import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
+import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -522,11 +523,16 @@ export async function updateDateClaim(
     .maybeSingle();
   if (lookupError) return { error: lookupError.message };
   if (!existing) return { error: "That proposed date no longer exists." };
+  // A claim now belongs to either an event or a PERIOD, and this form edits an
+  // event's dates. A period boundary reaching it would mean the wrong id was
+  // posted, not that the period should be edited through the event flow.
+  if (!existing.event_id) return { error: "That date belongs to a time period, not to an event." };
+  const existingEventId = existing.event_id;
 
   const { data: event } = await supabase
     .from("timeline_events")
     .select("id, slug, status, created_by")
-    .eq("id", existing.event_id)
+    .eq("id", existingEventId)
     .maybeSingle();
   if (!event) return { error: "That event no longer exists." };
 
@@ -541,7 +547,7 @@ export async function updateDateClaim(
     return { error: error instanceof Error ? error.message : "Couldn't save the source." };
   }
 
-  const row = claimRow(parsed.data, existing.event_id, community.id, userId, sourceId);
+  const row = claimRow(parsed.data, existingEventId, community.id, userId, sourceId);
   if (!row) return { error: "That date isn't complete." };
 
   // created_by, event_id and community_id are deliberately not in this update.
@@ -688,6 +694,9 @@ export async function deleteDateClaim(claimId: string, communitySlug: string) {
     .maybeSingle();
   if (lookupError) return { error: lookupError.message };
   if (!claim) return { ok: true };
+  // See updateDateClaim: this removes a date from an EVENT. A period's
+  // boundaries are managed with the period.
+  if (!claim.event_id) return { error: "That date belongs to a time period, not to an event." };
 
   const { count, error: countError } = await supabase
     .from("timeline_date_claims")
@@ -1033,43 +1042,25 @@ export async function seedShowcaseEvent(communitySlug: string) {
  * event whose CLAIMS fail is removed again, because an event with no dates
  * cannot be drawn on a timeline.
  */
-async function seedDataset(
+/**
+ * Insert this dataset's sources, reusing any the community already has.
+ *
+ * Split out of seedDataset because the time periods need exactly this and none
+ * of the rest of it: a period is not an event, has no pictures and no lane, but
+ * its boundary claims cite the same kind of source in the same table. Two
+ * copies of this loop would have been two places for "have we already got this
+ * one?" to be answered differently.
+ *
+ * Returns the seed key → source id map the claims are written against.
+ */
+async function resolveSeedSources(
   supabase: SupabaseClient<Database>,
   community: Community,
   userId: string,
-  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string }
-): Promise<
-  { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number }
-> {
-  const { events: seedEvents, sources: seedSources, track, label } = dataset;
-
-  // --- The lane -------------------------------------------------------------
-  const { data: existingTrack } = await supabase
-    .from("timeline_tracks")
-    .select("id")
-    .eq("community_id", community.id)
-    .eq("slug", track.slug)
-    .maybeSingle();
-
-  let trackId = existingTrack?.id ?? null;
-  if (!trackId) {
-    const { data: newTrack } = await supabase
-      .from("timeline_tracks")
-      .insert({
-        community_id: community.id,
-        created_by: userId,
-        name: track.name,
-        slug: track.slug,
-        kind: track.kind,
-        color: track.color,
-        sort_order: 50,
-      })
-      .select("id")
-      .single();
-    trackId = newTrack?.id ?? null;
-  }
-
-  // --- The sources ----------------------------------------------------------
+  seedSources: SeedSource[]
+): Promise<{ error: string } | { ok: true; sourceIds: Map<string, string> }> {
+  // TITLE AND AUTHOR, NOT TITLE. Two books called "Hannibal" by two people are
+  // two sources, and keying on the title alone silently merged them.
   const sourceKeyOf = (title: string, author: string | null | undefined) =>
     `${title.trim().toLowerCase()}|${(author ?? "").trim().toLowerCase()}`;
 
@@ -1120,6 +1111,50 @@ async function seedDataset(
     if (!child || !parent) continue;
     await supabase.from("timeline_sources").update({ cited_by_source_id: parent }).eq("id", child);
   }
+
+  return { ok: true, sourceIds };
+}
+
+async function seedDataset(
+  supabase: SupabaseClient<Database>,
+  community: Community,
+  userId: string,
+  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string }
+): Promise<
+  { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number }
+> {
+  const { events: seedEvents, sources: seedSources, track, label } = dataset;
+
+  // --- The lane -------------------------------------------------------------
+  const { data: existingTrack } = await supabase
+    .from("timeline_tracks")
+    .select("id")
+    .eq("community_id", community.id)
+    .eq("slug", track.slug)
+    .maybeSingle();
+
+  let trackId = existingTrack?.id ?? null;
+  if (!trackId) {
+    const { data: newTrack } = await supabase
+      .from("timeline_tracks")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        name: track.name,
+        slug: track.slug,
+        kind: track.kind,
+        color: track.color,
+        sort_order: 50,
+      })
+      .select("id")
+      .single();
+    trackId = newTrack?.id ?? null;
+  }
+
+  // --- The sources ----------------------------------------------------------
+  const resolved = await resolveSeedSources(supabase, community, userId, seedSources);
+  if ("error" in resolved) return resolved;
+  const { sourceIds } = resolved;
 
   // --- The events -----------------------------------------------------------
   const { data: presentRows } = await supabase
@@ -1279,6 +1314,159 @@ async function seedDataset(
   }
 
   return { ok: true as const, added, skipped: skipped.length, failed: failed.length, repaired };
+}
+
+/**
+ * The fifteen time periods, and their boundary claims. See period-seed.ts.
+ *
+ * IDEMPOTENT BY SLUG, like every other seeder here: a period already present is
+ * left exactly as it is, including any edits the community has made to it. A
+ * second run adds what is missing and touches nothing else, which matters more
+ * for periods than for events — a period is the frame everything else is read
+ * against, and silently rewriting one would change the meaning of every event
+ * inside it.
+ *
+ * Staff only, matching the RLS on the table. A period is not a contribution.
+ */
+export async function seedTimePeriods(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the time periods." };
+
+  const resolved = await resolveSeedSources(supabase, community, userId, PERIOD_SOURCES);
+  if ("error" in resolved) return resolved;
+  const { sourceIds } = resolved;
+
+  const { data: presentRows } = await supabase
+    .from("timeline_periods")
+    .select("id, slug")
+    .eq("community_id", community.id)
+    .in("slug", PERIODS.map((period) => period.slug));
+  const idBySlug = new Map((presentRows ?? []).map((row) => [row.slug, row.id]));
+
+  let added = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const seed of PERIODS) {
+    if (idBySlug.has(seed.slug)) {
+      skipped++;
+      continue;
+    }
+
+    const { data: period, error: periodError } = await supabase
+      .from("timeline_periods")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        slug: seed.slug,
+        name: seed.name,
+        aliases: seed.aliases ?? [],
+        summary: seed.summary,
+        description: seed.description,
+        period_type: seed.periodType,
+        framework: seed.framework ?? null,
+        defining_criteria: seed.definingCriteria ?? null,
+        evidence: seed.evidence ?? null,
+        interpretation: seed.interpretation ?? null,
+        region: seed.region ?? null,
+        display_priority: seed.displayPriority ?? 0,
+        status: "published",
+      })
+      .select("id, slug")
+      .single();
+    if (periodError || !period) {
+      failed++;
+      continue;
+    }
+
+    const claimRows = seed.claims.map((claim) => ({
+      period_id: period.id,
+      community_id: community.id,
+      created_by: userId,
+      source_id: claim.sourceKey ? sourceIds.get(claim.sourceKey) ?? null : null,
+      start_year: claim.startYear,
+      start_month: claim.startMonth ?? null,
+      start_day: claim.startDay ?? null,
+      end_year: claim.endYear ?? null,
+      date_precision: claim.datePrecision,
+      precision_decimals: claim.precisionDecimals ?? 0,
+      uncertainty_plus: claim.uncertaintyPlus ?? null,
+      uncertainty_minus: claim.uncertaintyMinus ?? null,
+      is_approximate: claim.isApproximate,
+      // The two columns a boundary needs that an event's date does not.
+      region: claim.region ?? null,
+      is_ongoing: claim.isOngoing ?? false,
+      original_date_text: claim.originalDateText,
+      dating_method: claim.datingMethod,
+      chronology: claim.chronology,
+      evidence: claim.evidence,
+      notes: claim.notes ?? null,
+    }));
+
+    const { data: insertedClaims, error: claimError } = await supabase
+      .from("timeline_date_claims")
+      .insert(claimRows)
+      .select("id, original_date_text");
+    if (claimError) {
+      // A period with no boundaries cannot be drawn and cannot be reasoned
+      // about. Take it back out rather than leave a band with no extent.
+      await supabase.from("timeline_periods").delete().eq("id", period.id);
+      failed++;
+      continue;
+    }
+
+    const claimIdByText = new Map<string, string>(
+      (insertedClaims ?? []).map((row) => [row.original_date_text, row.id])
+    );
+    const citationRows = seed.claims.flatMap((claim) => {
+      const claimId = claimIdByText.get(claim.originalDateText);
+      if (!claimId) return [];
+      return (claim.citations ?? []).flatMap((citation, index) => {
+        const sourceId = sourceIds.get(citation.sourceKey);
+        if (!sourceId) return [];
+        return [{
+          claim_id: claimId,
+          source_id: sourceId,
+          community_id: community.id,
+          created_by: userId,
+          relation: citation.relation,
+          note: citation.note,
+          sort_order: index,
+        }];
+      });
+    });
+    if (citationRows.length > 0) {
+      const { error: citationError } = await supabase.from("timeline_claim_sources").insert(citationRows);
+      // Not fatal: a boundary missing its published dispute is worth more than
+      // no boundary at all.
+      if (citationError) console.error("Period citations failed:", JSON.stringify(citationError));
+    }
+
+    idBySlug.set(period.slug, period.id);
+    added++;
+  }
+
+  // The edges, once every period has an id. Written after the loop because a
+  // link can point forwards to a period that had not been inserted yet.
+  const linkRows = PERIOD_LINKS.flatMap((link) => {
+    const from = idBySlug.get(link.from);
+    const to = idBySlug.get(link.to);
+    if (!from || !to) return [];
+    return [{ community_id: community.id, from_period_id: from, to_period_id: to, relation: link.relation }];
+  });
+  if (linkRows.length > 0) {
+    // Idempotent: the primary key is (from, to, relation), so a second run
+    // conflicts on every row and changes nothing.
+    const { error: linkError } = await supabase
+      .from("timeline_period_links")
+      .upsert(linkRows, { onConflict: "from_period_id,to_period_id,relation", ignoreDuplicates: true });
+    if (linkError) console.error("Period links failed:", JSON.stringify(linkError));
+  }
+
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true as const, added, skipped, failed, anchor: PERIODS_ANCHOR_SLUG };
 }
 
 /** Seventeen events from the Second Punic War. See hannibal-seed.ts. */

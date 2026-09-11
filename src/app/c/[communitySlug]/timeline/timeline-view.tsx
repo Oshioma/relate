@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { TimelineClaimSource, TimelineSource, TimelineTrack } from "@/types/database";
+import type { TimelineClaimSource, TimelinePeriodLink, TimelineSource, TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims, TimelineFilters } from "@/lib/data/timeline";
 import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
@@ -28,6 +28,8 @@ import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
 import { EventDetail } from "./event-detail";
+import { PeriodDetail } from "./period-detail";
+import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
 import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
@@ -38,8 +40,15 @@ import {
   seedHannibalDataset,
   seedShowcaseEvent,
   seedStarterTracks,
+  seedTimePeriods,
 } from "./actions";
-import { TIMELINE_CATEGORIES, CHRONOLOGIES, TIMELINE_SOURCE_TYPES, timelineCategory } from "@/lib/timeline/taxonomy";
+import {
+  TIMELINE_CATEGORIES,
+  CHRONOLOGIES,
+  TIMELINE_SOURCE_TYPES,
+  timelineCategory,
+  periodTypeLabel,
+} from "@/lib/timeline/taxonomy";
 import {
   claimHeadline,
   claimMidpoint,
@@ -219,6 +228,9 @@ export function TimelineView({
   hasHannibal,
   hasDeepTime,
   hasEarlySapiens,
+  periods,
+  periodLinks,
+  hasPeriods,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -248,6 +260,12 @@ export function TimelineView({
   hasDeepTime: boolean;
   /** Whether the early Homo sapiens dataset is already here. Same rule. */
   hasEarlySapiens: boolean;
+  /** The context bands. Empty for a community that has none, which is fine — the strip works without them. */
+  periods: PeriodWithClaims[];
+  /** The edges between periods, for "related periods" on the card. */
+  periodLinks: TimelinePeriodLink[];
+  /** Whether the fifteen periods are already here. True for non-staff, who are never offered them. */
+  hasPeriods: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -310,6 +328,18 @@ export function TimelineView({
   // way above the panel, and detail that appears off-screen reads as a click
   // that did nothing — the exact bug the strip had before.
   const detailRef = useRef<HTMLDivElement | null>(null);
+  // The band you clicked. A separate slot from `selected` rather than one
+  // "thing being read", because a period and an event are different questions
+  // and a reader often wants both: which period am I in, and what is this event
+  // inside it. Opening one closes the other only where that would be confusing
+  // — see selectPeriod.
+  // THE ID, NOT THE OBJECT. Holding the period itself meant holding a copy that
+  // went stale the moment the server sent a newer one — the same bug the event
+  // panel had after a rename. The id is the thing the reader chose; the period
+  // is looked up from the current props on every render, so it cannot be old.
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const periodDetailRef = useRef<HTMLDivElement>(null);
+
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
     focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
   );
@@ -470,6 +500,39 @@ export function TimelineView({
     detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [selectedId]);
 
+  useEffect(() => {
+    if (!selectedPeriodId) return;
+    periodDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedPeriodId]);
+
+  const periodsById = useMemo(() => new Map(periods.map((period) => [period.id, period])), [periods]);
+  const selectedPeriod = selectedPeriodId ? periodsById.get(selectedPeriodId) ?? null : null;
+
+  /** Which periods this one is joined to, and which way round. */
+  const relatedPeriods = useMemo(() => {
+    if (!selectedPeriod) return [];
+    const out: { period: PeriodWithClaims; relation: "contains" | "related"; direction: "parent" | "child" }[] = [];
+    for (const link of periodLinks) {
+      if (link.from_period_id === selectedPeriod.id) {
+        const other = periodsById.get(link.to_period_id);
+        if (other) out.push({ period: other, relation: link.relation, direction: "child" });
+      } else if (link.to_period_id === selectedPeriod.id) {
+        const other = periodsById.get(link.from_period_id);
+        if (other) out.push({ period: other, relation: link.relation, direction: "parent" });
+      }
+    }
+    return out;
+  }, [selectedPeriod, periodLinks, periodsById]);
+
+  // PERIODS ARE SEARCHABLE BY NAME AND BY ALIAS. "Age of Dinosaurs" and
+  // "Mesozoic Era" are one period, and a reader who types either should land on
+  // it — not on nothing, and not on a second period somebody created because
+  // the search came up empty.
+  const periodResults = useMemo(
+    () => (term.trim().length >= 2 ? periods.filter((period) => periodMatches(period, term)) : []),
+    [periods, term]
+  );
+
   // --- Search ---------------------------------------------------------------
   // Whether a search is running at all is derived from the box, not stored — so
   // clearing it needs no state change and no effect to do the clearing.
@@ -611,7 +674,69 @@ export function TimelineView({
             </button>
           )}
 
-          {activeResults && activeResults.length > 0 && (
+          {/* PERIODS FIRST IN THE RESULTS, and marked as periods. A reader who
+              types "Bronze Age" wants the frame, not the eleven events with
+              "bronze" in them — and showing a period in the same list as the
+              events without saying which is which would teach that they are the
+              same kind of thing. */}
+          {searching && periodResults.length > 0 && (
+            <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+              {periodResults.map((period) => (
+                <li key={period.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPeriodId(period.id);
+                      const extent = periodExtent(period, presentPosition());
+                      if (extent) setView(clampWindow({ from: extent.from, to: extent.to }));
+                      setTerm("");
+                    }}
+                    className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-muted"
+                  >
+                    <Layers className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-foreground">{period.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {periodTypeLabel(period.period_type)}
+                        {period.aliases.length > 0 ? ` · also called ${period.aliases.join(", ")}` : ""}
+                        {periodRegions(period).length > 1
+                          ? ` · ${periodRegions(period).length} regional boundaries`
+                          : ""}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {activeResults && activeResults.length > 0 && (
+                <li className="border-t border-border px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Events
+                </li>
+              )}
+              {(activeResults ?? []).map((event) => {
+                const meta = timelineCategory(event.category);
+                return (
+                  <li key={event.id}>
+                    <button
+                      type="button"
+                      onClick={() => goTo(event)}
+                      className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-muted"
+                    >
+                      <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dotClass)} aria-hidden />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-foreground">{event.title}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {event.claims.length > 0 ? claimHeadline(event.claims[0]).headline : "No date yet"}
+                          {event.claims.length > 1 ? ` · ${event.claims.length} proposed dates` : ""}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {periodResults.length === 0 && activeResults && activeResults.length > 0 && (
             <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
               {activeResults.map((event) => {
                 const meta = timelineCategory(event.category);
@@ -636,7 +761,7 @@ export function TimelineView({
               })}
             </ul>
           )}
-          {activeResults && activeResults.length === 0 && (
+          {activeResults && activeResults.length === 0 && periodResults.length === 0 && (
             <p className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground shadow-lg">
               Nothing matches “{term}”.
             </p>
@@ -923,6 +1048,9 @@ export function TimelineView({
           present={presentPosition()}
           selectedId={selected?.id ?? null}
           onSelect={setSelected}
+          periods={periods}
+          selectedPeriodId={selectedPeriod?.id ?? null}
+          onSelectPeriod={(period) => setSelectedPeriodId((current) => (current === period.id ? null : period.id))}
           loading={loading}
           truncated={truncated}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
@@ -1007,6 +1135,27 @@ export function TimelineView({
           to be read against — what else was happening then — and on a phone it
           took the whole screen. Here the strip stays visible above it, so the
           marker you clicked is still in view while you read what it is. */}
+      {/* ---- The band you clicked ------------------------------------------
+          Above the event panel, because it is the wider frame: if both are
+          open, the reader is looking at an event inside a period and that is
+          the order they want to read them in. */}
+      {selectedPeriod && (
+        <div ref={periodDetailRef} className="mt-5 scroll-mt-4">
+          <PeriodDetail
+            period={selectedPeriod}
+            periods={periods}
+            related={relatedPeriods}
+            events={events}
+            sources={sources}
+            citations={citations}
+            onClose={() => setSelectedPeriodId(null)}
+            onShowContext={(from, to) => setView(clampWindow({ from, to }))}
+            onSelectPeriod={(next) => setSelectedPeriodId(next.id)}
+            onSelectEvent={setSelected}
+          />
+        </div>
+      )}
+
       {selected && (
         <div ref={detailRef} className="mt-5 scroll-mt-4 rounded-xl border border-border bg-card p-5 sm:p-6">
           <EventDetail
@@ -1279,6 +1428,32 @@ export function TimelineView({
           door, and the burials. Built to separate what was dug up from what it is taken to mean: a body in a pit with
           two antlers on its chest is an observation, and a funeral is an interpretation, and this dataset never lets
           the second be printed as the first.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasPeriods && (
+        <DatasetOffer
+          title="Add the time periods?"
+          busyLabel="Adding the periods…"
+          label="Add the time periods"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedTimePeriods(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Fifteen named stretches of time, drawn as quiet bands behind the events — the Mesozoic, the Bronze Age, the
+          Middle Palaeolithic, the medieval period. Each one says what KIND of name it is: a geological era ratified by
+          a standards body is a different sort of thing from a convention archaeologists use differently in every
+          region, and a strip that draws them identically teaches otherwise. None of them has a date. They have
+          boundary claims — the Iron Age has six, one per region, more than a thousand years apart — and you can open
+          any band to see who put the boundary there and why.
         </DatasetOffer>
       )}
 

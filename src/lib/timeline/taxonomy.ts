@@ -345,6 +345,63 @@ export function eventTypeLabel(key: string | null | undefined): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// What KIND of periodisation a time period is
+//
+// The most useful single fact about a named stretch of time, and the one a
+// timeline normally hides. "Mesozoic" and "Bronze Age" look alike on a strip
+// and are not alike at all: one has a base defined by a marker in a named rock
+// section that a standards body ratified, and the other is a convention that
+// begins at different times in different places and that no body has ever
+// ratified or could. A reader who cannot tell them apart has been taught that
+// all chronology is the same kind of knowledge.
+// ---------------------------------------------------------------------------
+
+export const PERIOD_TYPES = [
+  {
+    key: "formal_scientific",
+    label: "Formal scientific period",
+    hint:
+      "Defined and ratified by a standards body — for geological time, the International Commission on Stratigraphy. " +
+      "Its base is a marker in a named rock section, and its dates are revised as that marker is re-dated.",
+  },
+  {
+    key: "archaeological",
+    label: "Archaeological convention",
+    hint:
+      "A periodisation archaeologists use for a material or technological pattern. It begins and ends at different times " +
+      "in different regions, and different regional traditions draw it differently. Nobody ratifies it.",
+  },
+  {
+    key: "historical",
+    label: "Historical convention",
+    hint:
+      "A convention of historians, usually with an origin in one region's history. Useful, argued over, and not a description " +
+      "of anything that happened everywhere at once.",
+  },
+  {
+    key: "educational",
+    label: "Teaching umbrella",
+    hint:
+      "A span grouped together to make it teachable — not a unit any discipline formally recognises. " +
+      "Shown as one so a reader knows the difference.",
+  },
+] as const;
+
+export type PeriodTypeKey = (typeof PERIOD_TYPES)[number]["key"];
+export type PeriodType = PeriodTypeKey | (string & {});
+
+const PERIOD_TYPE_BY_KEY = new Map(PERIOD_TYPES.map((type) => [type.key as string, type]));
+
+export function periodTypeLabel(key: string | null | undefined): string {
+  if (!key) return "Period";
+  return PERIOD_TYPE_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function periodTypeHint(key: string | null | undefined): string {
+  return PERIOD_TYPE_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+// ---------------------------------------------------------------------------
 // The lanes Compare mode reads
 //
 // Only ever used to SEED a community's timeline_tracks on request — once
