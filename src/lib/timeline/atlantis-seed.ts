@@ -1,4 +1,4 @@
-import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
+import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
 
 // ATLANTIS — TWELVE DATES, NONE OF THEM THIS TIMELINE'S.
 //
@@ -587,5 +587,41 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         ],
       },
     ],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// How these three records relate
+//
+// Sparse on purpose. An edge is worth having when it says something a reader
+// could not get from the dates — that this record supplies the other's
+// material, or answers it, or is the mainstream reading of it. Edges that only
+// restate "these are both about Atlantis" would be noise.
+// ---------------------------------------------------------------------------
+
+export const ATLANTIS_LINKS: SeedEventLink[] = [
+  {
+    from: "solon-visit-egypt",
+    to: "plato-timaeus-critias",
+    relation: "source_of",
+    sourceKey: "plato_timaeus",
+    note:
+      "The journey is where the dialogues say the story comes from — priests to Solon, Solon to a family, the family to Critias. It is also the second number in the ~9600 BCE calculation.",
+  },
+  {
+    from: "plato-timaeus-critias",
+    to: "atlantis-destruction",
+    relation: "source_of",
+    sourceKey: "plato_timaeus",
+    note: "Everything anybody knows about Atlantis is in these two dialogues. There is no earlier mention of it anywhere.",
+  },
+  {
+    from: "plato-timaeus-critias",
+    to: "atlantis-destruction",
+    relation: "responds_to",
+    viewpoint: "conventional",
+    sourceKey: "britannica_atlantis",
+    note:
+      "On the mainstream reading the dialogues are not a report of the events but the whole of them — a philosophical and political construction rather than a source about a place.",
   },
 ];

@@ -5,7 +5,14 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff } from "@/lib/data/community";
-import { getClaimCitations, getSourceChains, getTimelineEventBySlug, getTimelineSourcesByIds } from "@/lib/data/timeline";
+import {
+  getClaimCitations,
+  getEventLinks,
+  getLinkedRecords,
+  getSourceChains,
+  getTimelineEventBySlug,
+  getTimelineSourcesByIds,
+} from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { EventDetail } from "../event-detail";
 
@@ -64,6 +71,17 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   const missing = citations.map((citation) => citation.source_id).filter((id) => !byId.has(id));
   for (const source of await getTimelineSourcesByIds(supabase, missing)) byId.set(source.id, source);
 
+  // The relationships this record is in, and the records at their far ends.
+  // Asked for by event id rather than fetched whole, because this page loads
+  // one record and should not pay for the community's entire graph. The source
+  // that ASSERTS a relationship is usually not one this event's dates cite, so
+  // it is pulled in too — an unattributed edge is the thing this table exists
+  // to prevent.
+  const links = await getEventLinks(supabase, community.id, event.id);
+  const linkedRecords = await getLinkedRecords(supabase, community.id, links);
+  const linkSources = links.map((link) => link.source_id).filter((id): id is string => Boolean(id) && !byId.has(id!));
+  for (const source of await getTimelineSourcesByIds(supabase, linkSources)) byId.set(source.id, source);
+
   const sources = [...byId.values()];
 
   return (
@@ -79,6 +97,8 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
         event={event}
         sources={sources}
         citations={citations}
+        links={links}
+        linkedRecords={linkedRecords}
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}

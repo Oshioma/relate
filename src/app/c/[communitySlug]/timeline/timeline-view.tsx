@@ -19,8 +19,14 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { TimelineClaimSource, TimelinePeriodLink, TimelineSource, TimelineTrack } from "@/types/database";
-import type { TimelineEventWithClaims, TimelineFilters } from "@/lib/data/timeline";
+import type {
+  TimelineClaimSource,
+  TimelineEventLink,
+  TimelinePeriodLink,
+  TimelineSource,
+  TimelineTrack,
+} from "@/types/database";
+import type { TimelineEventWithClaims, TimelineFilters, TimelineLinkedRecord } from "@/lib/data/timeline";
 import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
@@ -233,6 +239,8 @@ export function TimelineView({
   hasEarlySapiens,
   periods,
   periodLinks,
+  eventLinks,
+  linkedRecords,
   hasPeriods,
   hasAtlantis,
   hasLemuria,
@@ -269,6 +277,10 @@ export function TimelineView({
   periods: PeriodWithClaims[];
   /** The edges between periods, for "related periods" on the card. */
   periodLinks: TimelinePeriodLink[];
+  /** Asserted relationships between records — all of them; the drawer picks out its own. */
+  eventLinks: TimelineEventLink[];
+  /** The records those edges point at, which are usually outside the window. */
+  linkedRecords: TimelineLinkedRecord[];
   /** Whether the fifteen periods are already here. True for non-staff, who are never offered them. */
   hasPeriods: boolean;
   /** Whether the Atlantis dataset is already here. Same rule. */
@@ -1190,6 +1202,8 @@ export function TimelineView({
             event={selected}
             sources={sources}
             citations={citations}
+            links={eventLinks}
+            linkedRecords={linkedRecords}
             tracks={tracks}
             userId={userId}
             communitySlug={communitySlug}
@@ -1555,17 +1569,34 @@ export function TimelineView({
                 const result = await refreshSeededDatasets(communitySlug);
                 if (result && "error" in result) setSeedError(result.error);
                 else if (result && "updated" in result) {
-                  setSeedError(
-                    result.updated === 0
-                      ? "Nothing needed changing — every seeded record here already matches."
-                      : `Updated ${result.updated} ${result.updated === 1 ? "date" : "dates"}${
-                          result.changed.length > 0 ? ` on ${result.changed.join(", ")}` : ""
-                        }.${
-                          result.keptBecauseEdited > 0
-                            ? ` ${result.keptBecauseEdited} left alone because somebody here had edited them.`
-                            : ""
-                        }`
-                  );
+                  // Two different repairs, reported separately: a date that was
+                  // WRONG and has been corrected, and a connection that was
+                  // MISSING and has been added. Rolling them into one number
+                  // would tell a reader their dates had changed when nothing of
+                  // the sort had happened.
+                  const parts: string[] = [];
+                  if (result.updated > 0) {
+                    parts.push(
+                      `Updated ${result.updated} ${result.updated === 1 ? "date" : "dates"}${
+                        result.changed.length > 0 ? ` on ${result.changed.join(", ")}` : ""
+                      }.`
+                    );
+                  }
+                  if (result.linked > 0) {
+                    parts.push(
+                      `Added ${result.linked} ${result.linked === 1 ? "connection" : "connections"} between records.`
+                    );
+                  }
+                  // "Nothing changed" is the headline whenever nothing did —
+                  // the kept count goes after it rather than standing alone,
+                  // which read as though something had happened.
+                  if (parts.length === 0) parts.push("Nothing needed changing — every seeded record here already matches.");
+                  if (result.keptBecauseEdited > 0) {
+                    parts.push(
+                      `${result.keptBecauseEdited} ${result.keptBecauseEdited === 1 ? "date was" : "dates were"} left alone because somebody here had edited them.`
+                    );
+                  }
+                  setSeedError(parts.join(" "));
                 }
                 setReloadToken((token) => token + 1);
                 router.refresh();
@@ -1579,7 +1610,9 @@ export function TimelineView({
           rather than stated by him — the correction cannot reach a community that already took the dataset, because
           the seeders deliberately never overwrite what is already there. This checks. It updates only the wording,
           method, evidence and source of dates it can match exactly, it never adds or removes a date, and it leaves
-          untouched anything anybody here has edited.
+          untouched anything anybody here has edited. It also adds any CONNECTIONS BETWEEN RECORDS the dataset has
+          gained since — who said Mu and Lemuria were the same place, and which tradition puts which continent first —
+          because those arrived after both datasets had already shipped.
         </DatasetOffer>
       )}
 

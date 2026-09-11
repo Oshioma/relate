@@ -345,6 +345,85 @@ export function eventTypeLabel(key: string | null | undefined): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// How one record relates to another
+//
+// A relationship is a claim. "Mu is Lemuria" is something particular writers
+// asserted at a particular time, not a fact the database knows — so an edge
+// carries a source and a viewpoint the way a date claim does, and the wording
+// below is chosen so that no relation reads as a verdict.
+//
+// The distinction that earned this list its existence is between `associated`
+// and `identified`. Later writers TREAT Mu and Lemuria as one thing; that is a
+// fact about the literature. Whether they ARE one thing is not established by
+// anybody, and an edge that could not tell those apart would have settled it.
+// ---------------------------------------------------------------------------
+
+export const EVENT_RELATIONS = [
+  {
+    key: "precedes",
+    label: "Comes before",
+    inverse: "Comes after",
+    hint: "In this tradition's ordering, this record comes before that one. An ordering claim, which is a real claim even without dates attached.",
+  },
+  {
+    key: "associated",
+    label: "Often associated with",
+    inverse: "Often associated with",
+    hint:
+      "Later writers treat these together, or as the same thing. A fact about the literature — NOT a finding that they are the same, which is a different claim that needs its own source.",
+  },
+  {
+    key: "identified",
+    label: "Identified with, by a named source",
+    inverse: "Identified with, by a named source",
+    hint: "A particular source explicitly says these are the same. The source is on the edge, so a reader can see who made the identification rather than meeting it as settled.",
+  },
+  {
+    key: "responds_to",
+    label: "Answers or reworks",
+    inverse: "Answered or reworked by",
+    hint: "This record is a response to that one — an answer to its question, a reworking of its material, or a correction of it.",
+  },
+  {
+    key: "relevant",
+    label: "Relevant to, without being evidence for",
+    inverse: "Relevant to, without being evidence for",
+    hint:
+      "Connected by subject or geography and nothing more. The relation exists so that genuinely relevant things can be linked WITHOUT the link being read as support.",
+  },
+  {
+    key: "evidence_for",
+    label: "Offered as evidence for",
+    inverse: "Has this offered as evidence",
+    hint: "Somebody puts this forward as evidence for that. Who does, and on what grounds, is on the edge.",
+  },
+  {
+    key: "source_of",
+    label: "Supplied the material for",
+    inverse: "Draws its material from",
+    hint: "This record is where the other one's material comes from — a text, a testimony, an excavation.",
+  },
+  { key: "related", label: "Worth reading alongside", inverse: "Worth reading alongside", hint: "A pointer, in no particular direction." },
+] as const;
+
+export type EventRelationKey = (typeof EVENT_RELATIONS)[number]["key"];
+export type EventRelation = EventRelationKey | (string & {});
+
+const RELATION_BY_KEY = new Map(EVENT_RELATIONS.map((relation) => [relation.key as string, relation]));
+
+/** How this edge reads from the record it points AT, rather than from the one it starts at. */
+export function relationLabel(key: string | null | undefined, direction: "from" | "to" = "from"): string {
+  const known = RELATION_BY_KEY.get(key ?? "");
+  if (known) return direction === "from" ? known.label : known.inverse;
+  if (!key) return "Related to";
+  return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function relationHint(key: string | null | undefined): string {
+  return RELATION_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+// ---------------------------------------------------------------------------
 // What KIND of periodisation a time period is
 //
 // The most useful single fact about a named stretch of time, and the one a
