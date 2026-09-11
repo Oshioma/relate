@@ -17,6 +17,12 @@ import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability"
 
 import { STARTER_TRACKS } from "@/lib/timeline/taxonomy";
 import {
+  SHOWCASE_CLAIMS,
+  SHOWCASE_EVENT,
+  SHOWCASE_EVENT_SLUG,
+  SHOWCASE_SOURCES,
+} from "@/lib/timeline/showcase-event";
+import {
   claimDraftSchema,
   eventDraftSchema,
   resolveDateInput,
@@ -756,6 +762,154 @@ export async function seedStarterTracks(communitySlug: string) {
 }
 
 /** Put an event into (or take it out of) a lane. */
+/**
+ * Seed the Great Pyramid worked example into this community's timeline.
+ *
+ * The same shape as seedStarterTracks above — staff only, in-app, idempotent —
+ * because that is how this feature already seeds things and a second mechanism
+ * would be a second thing to keep working. Nothing is written into a community
+ * that has not asked for it.
+ *
+ * IDEMPOTENT BY SLUG AND TITLE. Run twice and the second run is a no-op: the
+ * event is matched on its slug within the community, and each source on its
+ * title. That matters more than usual here, because the alternative to a
+ * no-op is five duplicate claims on a showcase event.
+ */
+export async function seedShowcaseEvent(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the worked example." };
+
+  // Already here? Then there is nothing to do, and saying so is better than
+  // quietly making a second copy.
+  const { data: existing } = await supabase
+    .from("timeline_events")
+    .select("id, slug")
+    .eq("community_id", community.id)
+    .eq("slug", SHOWCASE_EVENT_SLUG)
+    .maybeSingle();
+  if (existing) return { ok: true as const, slug: existing.slug };
+
+  // Sources first: the claims need their ids. Reuse a source the community
+  // already has under the same title rather than adding a near-duplicate —
+  // the same rule the source picker teaches contributors.
+  const { data: known } = await supabase
+    .from("timeline_sources")
+    .select("id, title")
+    .eq("community_id", community.id);
+  const byTitle = new Map((known ?? []).map((row) => [row.title, row.id]));
+  const sourceIds = new Map<string, string>();
+
+  for (const source of SHOWCASE_SOURCES) {
+    const already = byTitle.get(source.title);
+    if (already) {
+      sourceIds.set(source.key, already);
+      continue;
+    }
+    const { data, error } = await supabase
+      .from("timeline_sources")
+      .insert({
+        community_id: community.id,
+        created_by: userId,
+        title: source.title,
+        author: source.author ?? null,
+        publisher: source.publisher ?? null,
+        work_title: source.workTitle ?? null,
+        reference: source.reference ?? null,
+        url: source.url ?? null,
+        source_type: source.sourceType,
+        notes: source.notes,
+        published_year: source.publishedYear ?? null,
+        published_display: source.publishedDisplay ?? "",
+        published_is_approximate: false,
+      })
+      .select("id")
+      .single();
+    if (error) return { error: error.message };
+    sourceIds.set(source.key, data.id);
+  }
+
+  // The citation chain, wired once every source has an id. Only where the
+  // relationship is genuinely true — Wikipedia really does cite these papers.
+  for (const source of SHOWCASE_SOURCES) {
+    if (!source.citedBy) continue;
+    const child = sourceIds.get(source.key);
+    const parent = sourceIds.get(source.citedBy);
+    if (!child || !parent) continue;
+    await supabase.from("timeline_sources").update({ cited_by_source_id: parent }).eq("id", child);
+  }
+
+  const { data: event, error: eventError } = await supabase
+    .from("timeline_events")
+    .insert({
+      community_id: community.id,
+      created_by: userId,
+      slug: SHOWCASE_EVENT.slug,
+      title: SHOWCASE_EVENT.title,
+      summary: SHOWCASE_EVENT.summary,
+      description: SHOWCASE_EVENT.description,
+      category: SHOWCASE_EVENT.category,
+      subcategory: SHOWCASE_EVENT.subcategory,
+      event_type: SHOWCASE_EVENT.eventType,
+      event_type_note: SHOWCASE_EVENT.eventTypeNote,
+      tags: SHOWCASE_EVENT.tags,
+      people: SHOWCASE_EVENT.people,
+      civilisations: SHOWCASE_EVENT.civilisations,
+      location_name: SHOWCASE_EVENT.locationName,
+      lat: SHOWCASE_EVENT.lat,
+      lng: SHOWCASE_EVENT.lng,
+      // Staff are seeding it, so it goes straight in — the same as anything
+      // else staff add. RLS allows this only because isStaff was checked above.
+      status: "published",
+    })
+    .select("id, slug")
+    .single();
+  if (eventError) return { error: eventError.message };
+
+  const rows = SHOWCASE_CLAIMS.map((claim) => ({
+    event_id: event.id,
+    community_id: community.id,
+    created_by: userId,
+    source_id: claim.sourceKey ? sourceIds.get(claim.sourceKey) ?? null : null,
+    start_year: claim.startYear,
+    end_year: claim.endYear ?? null,
+    date_precision: claim.datePrecision,
+    is_approximate: claim.isApproximate,
+    original_date_text: claim.originalDateText,
+    dating_method: claim.datingMethod,
+    chronology: claim.chronology,
+    evidence: claim.evidence,
+    notes: claim.notes ?? null,
+  }));
+
+  const { error: claimError } = await supabase.from("timeline_date_claims").insert(rows);
+  if (claimError) {
+    // An event with no dates cannot be drawn. Take it back out rather than
+    // leave a showcase entry that the timeline cannot show.
+    await supabase.from("timeline_events").delete().eq("id", event.id);
+    return { error: claimError.message };
+  }
+
+  // File it into the Ancient Egypt lane where the community has one, so the
+  // event shows up in Compare rather than only on the main strip. Best-effort:
+  // a community that never seeded the starter lanes still gets the event.
+  const { data: track } = await supabase
+    .from("timeline_tracks")
+    .select("id")
+    .eq("community_id", community.id)
+    .eq("slug", SHOWCASE_EVENT.trackSlug)
+    .maybeSingle();
+  if (track) {
+    await supabase
+      .from("timeline_event_tracks")
+      .insert({ event_id: event.id, track_id: track.id, community_id: community.id });
+  }
+
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true as const, slug: event.slug };
+}
+
 export async function setEventTracks(eventId: string, communitySlug: string, trackIds: string[]) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
