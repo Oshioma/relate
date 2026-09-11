@@ -21,8 +21,9 @@ import {
   SHOWCASE_EVENT,
   SHOWCASE_EVENT_SLUG,
   SHOWCASE_SOURCES,
+  showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
-import { bringEventPicturesIn, isHotlinked } from "@/lib/timeline/bring-in-image";
+import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -791,23 +792,39 @@ export async function seedShowcaseEvent(communitySlug: string) {
     .eq("slug", SHOWCASE_EVENT_SLUG)
     .maybeSingle();
   if (existing) {
-    // Already here — but a copy seeded before the pictures were brought in is
-    // still pointing at somebody else's server, and those photographs do not
-    // load. Running this again repairs that in place rather than making a
-    // second copy of the event, which is the only thing the reader wants.
-    const externals = [existing.image_url, ...(existing.media ?? []).map((item) => item.url)].filter(isHotlinked);
-    if (externals.length === 0) return { ok: true as const, slug: existing.slug };
+    // Already here, so this is not a seed — it is a repair, and there are two
+    // different things to repair.
+    //
+    // A copy taken before the photographs were part of the worked example has
+    // NONE: seeding is a no-op once the event exists, so #430's pictures never
+    // reached the communities that took it after #429. Those get the worked
+    // example's own photographs, added now.
+    //
+    // A copy taken after that has them as links to Wikimedia, which is the
+    // arrangement that shows empty grey boxes. Those get brought in.
+    //
+    // Either way it repairs the event in place. A second copy of the Great
+    // Pyramid is not what anybody is asking for.
+    if (!showcaseNeedsPictures(existing)) return { ok: true as const, slug: existing.slug, broughtIn: 0 };
 
+    const ownMedia = existing.media ?? [];
+    const hadNone = ownMedia.length === 0 && !existing.image_url;
     const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
-      pictures: { imageUrl: existing.image_url, media: existing.media ?? [] },
+      // A community that has added its own pictures keeps them; only one that
+      // has none at all is given the worked example's.
+      pictures: hadNone
+        ? { imageUrl: SHOWCASE_EVENT.imageUrl, media: [...SHOWCASE_EVENT.media] }
+        : { imageUrl: existing.image_url, media: ownMedia },
       userId,
       slug: SHOWCASE_EVENT_SLUG,
     });
-    if (broughtIn > 0) {
-      await supabase
+
+    if (broughtIn > 0 || hadNone) {
+      const { error: repairError } = await supabase
         .from("timeline_events")
         .update({ image_url: pictures.imageUrl, media: pictures.media })
         .eq("id", existing.id);
+      if (repairError) return { error: repairError.message };
       revalidatePath(timelinePath(community.slug));
     }
     return { ok: true as const, slug: existing.slug, broughtIn };
@@ -866,7 +883,7 @@ export async function seedShowcaseEvent(communitySlug: string) {
   // is written, so the event never carries a URL that points somewhere we do
   // not control. Anything that cannot be copied keeps its original URL, which
   // is no worse than the behaviour this replaces.
-  const { pictures: seedPictures } = await bringEventPicturesIn(supabase, {
+  const { pictures: seedPictures, broughtIn: seedBroughtIn } = await bringEventPicturesIn(supabase, {
     pictures: { imageUrl: SHOWCASE_EVENT.imageUrl, media: [...SHOWCASE_EVENT.media] },
     userId,
     slug: SHOWCASE_EVENT_SLUG,
@@ -977,7 +994,7 @@ export async function seedShowcaseEvent(communitySlug: string) {
   }
 
   revalidatePath(timelinePath(community.slug));
-  return { ok: true as const, slug: event.slug };
+  return { ok: true as const, slug: event.slug, broughtIn: seedBroughtIn };
 }
 
 export async function setEventTracks(eventId: string, communitySlug: string, trackIds: string[]) {
