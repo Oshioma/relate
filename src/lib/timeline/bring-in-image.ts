@@ -44,51 +44,82 @@ export function isHotlinked(url: string | null | undefined): boolean {
   return !ours || !url.startsWith(ours);
 }
 
+export type BringInResult = { url: string } | { reason: string };
+
 /**
- * Fetch one image and put it in the community's storage, returning the URL it
- * now lives at — or null if anything at all went wrong.
+ * Fetch one image and put it in the community's storage.
  *
- * NULL IS A NORMAL ANSWER. The caller keeps the original URL when this fails,
- * so a seed never breaks because a photograph could not be reached: the worst
- * case is the behaviour we already had. Failures are quiet for the same reason
- * — a community that cannot reach Wikimedia still gets its worked example, with
- * every word of it intact.
+ * FAILURE COMES BACK WITH A REASON, and that is not decoration. The first
+ * version returned null for everything — network refused, 403, an HTML error
+ * page, a rejected upload — and the person who pressed the button was told
+ * "couldn't be fetched just now", which is true of all four and useful for
+ * none. There is nothing they can do with that, and nothing anyone can debug
+ * from it. Four different problems need four different sentences.
+ *
+ * A failure is still not an error: the caller keeps the original URL, so the
+ * worst case is the behaviour this replaces.
  */
 export async function bringImageIn(
   supabase: SupabaseClient<Database>,
   { url, userId, name }: { url: string; userId: string; name: string }
-): Promise<string | null> {
-  if (!isHotlinked(url)) return url;
+): Promise<BringInResult> {
+  if (!isHotlinked(url)) return { url };
 
+  let response: Response;
   try {
-    const response = await fetch(url, {
+    response = await fetch(url, {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      // NO CACHING. Next patches global fetch and will try to store what comes
+      // back; an image is not what that cache is for, and a cache write that
+      // fails on a large body would take the whole copy down with it.
+      cache: "no-store",
       // Wikimedia asks for a User-Agent that says who is calling and offers a
       // way to get in touch. Sending one is their published condition for
       // automated requests, so it is sent.
       headers: { "User-Agent": "Relate/1.0 (community timeline; +https://github.com/Oshioma/relate)" },
     });
-    if (!response.ok) return null;
+  } catch (error) {
+    // Refused, blocked, timed out, DNS — the request never completed.
+    const detail = error instanceof Error ? error.message : String(error);
+    return { reason: `couldn't reach ${hostOf(url)} (${detail})` };
+  }
 
-    const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-    const extension = IMAGE_TYPES.get(contentType);
-    if (!extension) return null;
+  if (!response.ok) return { reason: `${hostOf(url)} answered ${response.status}` };
 
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength === 0 || bytes.byteLength > MAX_BYTES) return null;
+  const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  const extension = IMAGE_TYPES.get(contentType);
+  if (!extension) return { reason: `${hostOf(url)} sent ${contentType || "no content type"}, not an image` };
 
-    // The same per-user path scheme every other upload uses, so the storage
-    // policies that already exist are the ones that apply here too.
-    const path = `${userId}/timeline/${name}.${extension}`;
-    const { error } = await supabase.storage
-      .from("uploads")
-      .upload(path, bytes, { upsert: true, contentType });
-    if (error) return null;
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(await response.arrayBuffer());
+  } catch (error) {
+    return { reason: `the download from ${hostOf(url)} broke off (${error instanceof Error ? error.message : String(error)})` };
+  }
+  if (bytes.byteLength === 0) return { reason: `${hostOf(url)} sent an empty file` };
+  if (bytes.byteLength > MAX_BYTES) {
+    return { reason: `that picture is ${Math.round(bytes.byteLength / 1024 / 1024)}MB, over the 8MB limit` };
+  }
 
-    const { data } = supabase.storage.from("uploads").getPublicUrl(path);
-    return data.publicUrl || null;
+  // The same per-user path scheme every other upload uses, so the storage
+  // policies that already exist are the ones that apply here too.
+  const path = `${userId}/timeline/${name}.${extension}`;
+  const { error } = await supabase.storage
+    .from("uploads")
+    .upload(path, bytes, { upsert: true, contentType });
+  if (error) return { reason: `storage refused the upload: ${error.message}` };
+
+  const { data } = supabase.storage.from("uploads").getPublicUrl(path);
+  if (!data.publicUrl) return { reason: "storage accepted the file but gave back no address for it" };
+  return { url: data.publicUrl };
+}
+
+/** Just the host, for a message a person reads. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).host;
   } catch {
-    return null;
+    return "that address";
   }
 }
 
@@ -105,21 +136,28 @@ export type EventPictures = {
 export async function bringEventPicturesIn(
   supabase: SupabaseClient<Database>,
   { pictures, userId, slug }: { pictures: EventPictures; userId: string; slug: string }
-): Promise<{ pictures: EventPictures; broughtIn: number }> {
+): Promise<{ pictures: EventPictures; broughtIn: number; reason: string | null }> {
   // One copy per distinct URL: the cover image is usually also the first
   // picture in the gallery, and fetching it twice would be two downloads and
   // two objects for one photograph.
   const seen = new Map<string, string>();
   let broughtIn = 0;
+  // The first thing that went wrong, kept so the caller can say what happened
+  // rather than that something did.
+  let reason: string | null = null;
 
   const resolve = async (url: string, name: string): Promise<string> => {
     const known = seen.get(url);
     if (known) return known;
-    const stored = await bringImageIn(supabase, { url, userId, name });
-    const next = stored ?? url;
-    if (stored && stored !== url) broughtIn++;
-    seen.set(url, next);
-    return next;
+    const result = await bringImageIn(supabase, { url, userId, name });
+    if ("reason" in result) {
+      reason ??= result.reason;
+      seen.set(url, url);
+      return url;
+    }
+    if (result.url !== url) broughtIn++;
+    seen.set(url, result.url);
+    return result.url;
   };
 
   const media: EventPictures["media"] = [];
@@ -129,5 +167,5 @@ export async function bringEventPicturesIn(
 
   const imageUrl = pictures.imageUrl ? await resolve(pictures.imageUrl, `${slug}-cover`) : null;
 
-  return { pictures: { imageUrl, media }, broughtIn };
+  return { pictures: { imageUrl, media }, broughtIn, reason };
 }

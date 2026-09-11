@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { layoutTimeline } from "@/lib/timeline/layout";
@@ -13,7 +13,7 @@ import {
   clampWindow,
   type TimeWindow,
 } from "@/lib/timeline/time";
-import { timelineCategory } from "@/lib/timeline/taxonomy";
+import { timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
 import { useTimeNavigation } from "./use-time-navigation";
 
 // The map of time.
@@ -31,6 +31,8 @@ import { useTimeNavigation } from "./use-time-navigation";
 
 const ROW_HEIGHT = 34;
 const RULER_HEIGHT = 52;
+/** The gap between a marker and its caption — the same 6px the layout reserves. */
+const LABEL_GAP = 6;
 
 export function TimelineCanvas({
   events,
@@ -59,6 +61,31 @@ export function TimelineCanvas({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
+
+  // WHAT IS THIS? — answered without opening it.
+  //
+  // A caption on the strip is a truncated title and a date. Reading the strip
+  // means asking "what is that one?" over and over, and the only way to find
+  // out was to open it, read it, close it and lose your place. A preview on
+  // hover answers the question where the question is asked.
+  //
+  // Hover only, and deliberately: a tap on a phone opens the event, which is
+  // the right thing there, and a preview that fights the tap would make the
+  // strip worse rather than better.
+  const [preview, setPreview] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set());
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showPreview = (id: string, x: number, y: number) => {
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    // Long enough that sweeping the pointer across a row doesn't flash a card
+    // per caption; short enough that stopping on one feels immediate.
+    previewTimer.current = setTimeout(() => setPreview({ id, x, y }), 260);
+  };
+  const hidePreview = () => {
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    setPreview(null);
+  };
+  useEffect(() => () => { if (previewTimer.current) clearTimeout(previewTimer.current); }, []);
 
   // Both dimensions are measured rather than passed in, so the strip can be
   // sized by a responsive class and still know how many rows of events it has
@@ -93,6 +120,18 @@ export function TimelineCanvas({
 
   const nav = useTimeNavigation(containerRef, view, onWindowChange, scale);
 
+  // The event under the pointer, looked up from the layout each render so a
+  // reload or an edit can never leave the card describing a stale copy.
+  const previewPlaced = preview ? layout.events.find((item) => item.event.id === preview.id) ?? null : null;
+  const previewEvent = previewPlaced?.event ?? null;
+  const previewDate = previewPlaced?.dateLabel ?? null;
+  const previewCandidate = previewEvent?.image_url || previewEvent?.media?.[0]?.url || null;
+  // A PICTURE THAT DOES NOT LOAD IS WORSE THAN NO PICTURE. A hotlinked image
+  // whose host is unreachable renders as a blank box inside the card — the same
+  // empty rectangle that made the worked example look broken. Once an address
+  // has failed, it is treated as absent and the category band is shown instead.
+  const previewImage = previewCandidate && !failedImages.has(previewCandidate) ? previewCandidate : null;
+
   const presentX = fractionOf(view, present, scale) * width;
   const showPresent = presentX > -40 && presentX < width + 40;
   const eventsTop = RULER_HEIGHT + 8;
@@ -104,10 +143,14 @@ export function TimelineCanvas({
         role="application"
         aria-label="Timeline. Drag to move through time, pinch or scroll to zoom."
         tabIndex={0}
-        onPointerDown={nav.onPointerDown}
+        onPointerDown={(event) => {
+          hidePreview();
+          nav.onPointerDown(event);
+        }}
         onPointerMove={nav.onPointerMove}
         onPointerUp={nav.onPointerUp}
         onPointerCancel={nav.onPointerUp}
+        onPointerLeave={hidePreview}
         onKeyDown={nav.onKeyDown}
         onDoubleClick={nav.onDoubleClick}
         className={cn(
@@ -178,6 +221,15 @@ export function TimelineCanvas({
           const selected = placed.event.id === selectedId;
           const top = eventsTop + placed.row * ROW_HEIGHT;
           const pending = placed.event.status === "pending";
+          // Where the caption is actually drawn. The preview hangs off THIS
+          // rather than off the event's marker: an event whose earliest claim
+          // is off the left edge has its marker at a negative x, and a card
+          // anchored there opened in the far corner of the strip instead of
+          // beside the words the reader was pointing at.
+          const labelLeft =
+            placed.labelSide === "left"
+              ? Math.max(0, placed.xFrom - LABEL_GAP - placed.labelWidth)
+              : Math.max(0, placed.xTo + LABEL_GAP);
 
           return (
             // A ROW IS A FULL-WIDTH TRANSPARENT DIV, AND IT WAS EATING CLICKS.
@@ -246,7 +298,17 @@ export function TimelineCanvas({
                   if (nav.wasDragged()) return;
                   onSelect(placed.event);
                 }}
-                title={placed.event.title}
+                // No `title` attribute: the browser's own tooltip would open
+                // over the preview card below, saying less, a second later.
+                onPointerEnter={(pointerEvent) => {
+                  // Mouse only. A touch "hover" fires on the way to a tap and
+                  // would put a card over the thing being tapped.
+                  if (pointerEvent.pointerType !== "mouse") return;
+                  showPreview(placed.event.id, labelLeft, top);
+                }}
+                onPointerLeave={hidePreview}
+                onFocus={() => showPreview(placed.event.id, labelLeft, top)}
+                onBlur={hidePreview}
                 className={cn(
                   "pointer-events-auto absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -269,11 +331,7 @@ export function TimelineCanvas({
                 // Binding the rendered width to the reserved width makes the
                 // reservation true by construction: truncate now engages at
                 // exactly the point the packer assumed it would.
-                style={
-                  placed.labelSide === "left"
-                    ? { left: Math.max(0, placed.xFrom - 6 - placed.labelWidth), maxWidth: placed.labelWidth }
-                    : { left: Math.max(0, placed.xTo + 6), maxWidth: placed.labelWidth }
-                }
+                style={{ left: labelLeft, maxWidth: placed.labelWidth }}
               >
                 {placed.showLabel && (
                   <>
@@ -324,6 +382,67 @@ export function TimelineCanvas({
             {cluster.count}
           </button>
         ))}
+
+        {/* THE PREVIEW CARD.
+            Drawn last so it is over everything, and pointer-events-none so it
+            can never eat the click it is describing. Placed against whichever
+            edge keeps it on the strip: past the middle it hangs left, near the
+            bottom it sits above the row rather than below it. */}
+        {previewEvent && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute z-20 w-[260px] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+            style={{
+              left: Math.max(8, Math.min(width - 268, preview!.x + (preview!.x > width / 2 ? -268 : 12))),
+              top:
+                preview!.y + 210 > size.height
+                  ? Math.max(RULER_HEIGHT + 4, preview!.y - 200)
+                  : preview!.y + 30,
+            }}
+          >
+            {previewImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewImage}
+                alt=""
+                className="h-[120px] w-full object-cover"
+                loading="lazy"
+                onError={() =>
+                  setFailedImages((known) => {
+                    const next = new Set(known);
+                    next.add(previewImage);
+                    return next;
+                  })
+                }
+              />
+            ) : (
+              // NO PICTURE IS NOT AN EMPTY BOX. Most events have no image and
+              // never will; a grey rectangle where one would go makes every one
+              // of them look broken. The category's own colour and name is a
+              // truthful thing to show instead.
+              <div className={cn("flex h-[54px] items-center gap-2 px-3", timelineCategory(previewEvent.category).chipClass)}>
+                <span className={cn("h-2 w-2 shrink-0 rounded-full", timelineCategory(previewEvent.category).dotClass)} />
+                <span className="truncate text-xs font-semibold uppercase tracking-[0.12em]">
+                  {timelineCategoryLabel(previewEvent.category)}
+                </span>
+              </div>
+            )}
+            <div className="p-3">
+              <p className="text-sm font-semibold leading-snug text-foreground">{previewEvent.title}</p>
+              {previewDate && <p className="mt-0.5 text-xs font-medium text-muted-foreground tabular-nums">{previewDate}</p>}
+              {previewEvent.summary && (
+                <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                  {previewEvent.summary}
+                </p>
+              )}
+              {previewEvent.claims.length > 1 && (
+                <p className="mt-2 text-[11px] font-medium text-muted-foreground">
+                  {previewEvent.claims.length} proposed dates — click to see where they disagree
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {events.length === 0 && !loading && (
           <p className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 text-center text-sm text-muted-foreground">

@@ -226,6 +226,13 @@ export function TimelineView({
         if (id !== requestId.current) return;
         setEvents(payload.events);
         setTruncated(payload.truncated);
+        // AND THE OPEN PANEL, which is a copy of one of these events taken at
+        // the moment it was clicked. Without this an edit saved from the panel
+        // left the panel showing what the event used to be called — the strip
+        // reloaded around it and the panel did not.
+        setSelected((current) =>
+          current ? payload.events.find((event) => event.id === current.id) ?? current : current
+        );
       } finally {
         if (id === requestId.current) setLoading(false);
       }
@@ -621,7 +628,7 @@ export function TimelineView({
           onSelect={setSelected}
           loading={loading}
           truncated={truncated}
-          className="h-[260px] sm:h-[440px]"
+          className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
         <CompareLanes
@@ -748,6 +755,10 @@ export function TimelineView({
             // timeline rather than over it, jumping to "what else was happening
             // then" no longer has to close what you were reading.
             onShowContext={(from, to) => setView({ from, to })}
+          // A save writes to the database and refreshes the server components;
+          // this is what tells the client-side copy of the timeline to go and
+          // look again, so a renamed event is renamed on the strip too.
+          onSaved={() => setReloadToken((token) => token + 1)}
           />
         </div>
       )}
@@ -882,11 +893,17 @@ export function TimelineView({
                   setSeedError(result.error);
                   return;
                 }
-                // Nothing arrived. The photographs are fetched from Wikimedia
-                // once, here on the server, and that can simply fail — saying so
-                // is better than a button that looks like it did nothing.
+                // Nothing arrived. Say WHICH step failed and why: "couldn't
+                // be fetched just now" was true of a refused connection, a 403,
+                // an HTML error page and a rejected upload alike, and gave
+                // nobody anything to act on.
                 if (result && "broughtIn" in result && result.broughtIn === 0) {
-                  setSeedError("Those photographs couldn't be fetched just now. Try again in a moment.");
+                  const why = "reason" in result && result.reason ? result.reason : null;
+                  setSeedError(
+                    why
+                      ? `The photographs weren't brought in — ${why}.`
+                      : "The photographs weren't brought in, and the server didn't say why. Try again in a moment."
+                  );
                 }
                 setReloadToken((token) => token + 1);
                 router.refresh();
