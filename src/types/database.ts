@@ -2255,6 +2255,30 @@ export type TimelineRevision = {
   created_at: string;
 };
 
+// AN ASSERTED RELATIONSHIP BETWEEN TWO RECORDS.
+//
+// Carries a source and a viewpoint because a relationship is a claim somebody
+// makes, not a fact the database knows: "Mu is Lemuria" is something particular
+// writers said, and an unattributed edge would state it as though it were
+// settled. Stored once, from → to; the UI inverts the wording when showing it
+// on the other record.
+export type TimelineEventLink = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  from_event_id: string;
+  to_event_id: string;
+  /** An EVENT_RELATIONS key in src/lib/timeline/taxonomy.ts. */
+  relation: string;
+  /** Whose framework this relationship belongs to — the CLAIM_VIEWPOINTS vocabulary. */
+  viewpoint: string | null;
+  source_id: string | null;
+  note: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TimelineEventTrack = {
   event_id: string;
   track_id: string;
@@ -3015,6 +3039,22 @@ export type Database = {
         Insert: Partial<TimelineRevision> & { community_id: string; entity: string; action: string };
         Update: Partial<TimelineRevision>;
         Relationships: [FKey<"actor_id", "profiles">];
+      };
+      timeline_event_links: {
+        Row: TimelineEventLink;
+        Insert: Partial<TimelineEventLink> & {
+          community_id: string;
+          created_by: string;
+          from_event_id: string;
+          to_event_id: string;
+          relation: string;
+        };
+        Update: Partial<TimelineEventLink>;
+        Relationships: [
+          FKey<"from_event_id", "timeline_events">,
+          FKey<"to_event_id", "timeline_events">,
+          FKey<"source_id", "timeline_sources">,
+        ];
       };
       timeline_event_tracks: {
         Row: TimelineEventTrack;

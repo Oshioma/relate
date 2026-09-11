@@ -167,3 +167,23 @@ export type SeedPeriodLink = {
   to: string;
   relation: "contains" | "related";
 };
+
+/**
+ * An asserted relationship between two seeded records, by slug.
+ *
+ * Carries who says so and whose framework it belongs to, because a relationship
+ * is a claim: "Mu is Lemuria" is something particular writers asserted, and an
+ * unattributed edge would put it in the database's own voice.
+ */
+export type SeedEventLink = {
+  from: string;
+  to: string;
+  /** An EVENT_RELATIONS key. */
+  relation: string;
+  /** A CLAIM_VIEWPOINTS key — whose framework this relationship is part of. */
+  viewpoint?: string;
+  /** The source that asserts the relationship, where one does. */
+  sourceKey?: string;
+  /** Why, in a sentence. */
+  note: string;
+};

@@ -9,6 +9,7 @@ import type {
   TimelineClaimSource,
   TimelinePeriod,
   TimelinePeriodLink,
+  TimelineEventLink,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
@@ -779,6 +780,59 @@ export async function getClaimCitations(
     .limit(limit);
   if (error) throw error;
   return data ?? [];
+}
+
+/**
+ * Every asserted relationship between records in this community.
+ *
+ * Fetched whole, like the claim citations are, and for the same reason: there
+ * are far fewer edges than events, they are small rows, and the panel that
+ * reads them needs both directions at once — an edge shows on the record it
+ * points at as well as on the one it starts from.
+ */
+export async function getEventLinks(
+  supabase: Client,
+  communityId: string,
+  eventId?: string
+): Promise<TimelineEventLink[]> {
+  let query = supabase
+    .from("timeline_event_links")
+    .select("*")
+    .eq("community_id", communityId)
+    .order("sort_order", { ascending: true });
+  // The standalone event page wants only the edges that touch its own record.
+  // Both ends, because an edge is stored once and read from either side.
+  if (eventId) query = query.or(`from_event_id.eq.${eventId},to_event_id.eq.${eventId}`);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** The far end of an edge, in the few fields a link needs to name and reach it. */
+export type TimelineLinkedRecord = { id: string; title: string; slug: string; category: string | null };
+
+/**
+ * The records at the ends of these edges.
+ *
+ * Separate from the edges themselves because the panel needs a TITLE to show,
+ * and the event it points at is very often not on screen: Sclater's hypothesis
+ * sits in 1864 and the Mauritia paper in 2017, and no window holds both. One
+ * query for all of them rather than one per edge.
+ */
+export async function getLinkedRecords(
+  supabase: Client,
+  communityId: string,
+  links: TimelineEventLink[]
+): Promise<TimelineLinkedRecord[]> {
+  const ids = [...new Set(links.flatMap((link) => [link.from_event_id, link.to_event_id]))];
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("timeline_events")
+    .select("id, title, slug, category")
+    .eq("community_id", communityId)
+    .in("id", ids);
+  if (error) throw error;
+  return (data ?? []) as TimelineLinkedRecord[];
 }
 
 // ---------------------------------------------------------------------------

@@ -15,6 +15,8 @@ import {
   getClaimCitations,
   hasTimelineEvent,
   eventsMissingPictures,
+  getEventLinks,
+  getLinkedRecords,
   getTimelinePeriods,
   getTimelinePeriodLinks,
   hasTimelinePeriod,
@@ -93,6 +95,7 @@ export default async function TimelinePage({
     citations,
     periods,
     periodLinks,
+    eventLinks,
     hasHannibal,
     hasDeepTime,
     hasEarlySapiens,
@@ -119,6 +122,10 @@ export default async function TimelinePage({
     // every pan. Two small queries once beats one query per pan.
     getTimelinePeriods(supabase, community.id),
     getTimelinePeriodLinks(supabase, community.id),
+    // The edges between records, fetched whole for the same reason the periods
+    // are: there are few of them, they are small, and the drawer that reads
+    // them opens on any event without another round trip.
+    getEventLinks(supabase, community.id),
     // One head-count, to decide whether to offer the Hannibal dataset. Asked
     // only for staff, who are the only people who could act on the answer.
     isStaff ? hasTimelineEvent(supabase, community.id, HANNIBAL_ANCHOR_SLUG) : Promise.resolve(true),
@@ -137,6 +144,11 @@ export default async function TimelinePage({
         )
       : Promise.resolve(false),
   ]);
+
+  // The titles at the ends of those edges. A second query because it depends on
+  // the first, and small: the far end of a link is very often outside the
+  // window — Sclater's hypothesis is in 1864 and the Mauritia paper in 2017.
+  const linkedRecords = await getLinkedRecords(supabase, community.id, eventLinks);
 
   return (
     // WIDER THAN THE REST OF THE APP, ON PURPOSE.
@@ -170,6 +182,8 @@ export default async function TimelinePage({
         // works exactly as before with no periods at all.
         periods={periods}
         periodLinks={periodLinks}
+        eventLinks={eventLinks}
+        linkedRecords={linkedRecords}
         hasPeriods={hasPeriods}
         hasAtlantis={hasAtlantis}
         hasLemuria={hasLemuria}

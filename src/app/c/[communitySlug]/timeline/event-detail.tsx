@@ -6,13 +6,14 @@ import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
-import type { TimelineClaimSource, TimelineSource, TimelineTrack } from "@/types/database";
-import type { TimelineEventWithClaims } from "@/lib/data/timeline";
+import type { TimelineClaimSource, TimelineEventLink, TimelineSource, TimelineTrack } from "@/types/database";
+import type { TimelineEventWithClaims, TimelineLinkedRecord } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
 import { EditEventFlow } from "./edit-event-flow";
 import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
+import { RelatedRecords } from "./related-records";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
 import { eventTypeHint, eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
 import {
@@ -34,6 +35,8 @@ export function EventDetail({
   event,
   sources,
   citations = [],
+  links = [],
+  linkedRecords = [],
   tracks = [],
   userId = null,
   communitySlug,
@@ -47,6 +50,10 @@ export function EventDetail({
   sources: TimelineSource[];
   /** Every extra claim→source link in the community; filtered per claim below. */
   citations?: TimelineClaimSource[];
+  /** Asserted relationships between records; the ones touching this event are picked out below. */
+  links?: TimelineEventLink[];
+  /** The records at the far ends of those edges — usually outside the visible window. */
+  linkedRecords?: TimelineLinkedRecord[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -355,6 +362,20 @@ export function EventDetail({
           </div>
         )}
       </div>
+
+      {/* ---- What else this is tied to ------------------------------------
+          After the dates, deliberately. The dates are what the page is FOR;
+          the relationships are the second question — and on a record like
+          Sclater's Lemuria, where every date belongs to somebody's argument,
+          they are how a reader finds the rest of the argument. Renders nothing
+          at all when there are no edges, which is the normal state. */}
+      <RelatedRecords
+        eventId={event.id}
+        links={links}
+        records={linkedRecords}
+        sources={sources}
+        communitySlug={communitySlug}
+      />
 
       {(canEdit || event.status === "pending") && (
         <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-border pt-4">

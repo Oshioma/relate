@@ -1,5 +1,5 @@
 import { astronomicalFromYearsAgo } from "./time";
-import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
+import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
 
 // LEMURIA — THE DATASET WITH TWO CLOCKS RUNNING.
 //
@@ -769,3 +769,141 @@ const GEOLOGY: SeedEvent[] = [
 ];
 
 export const LEMURIA_EVENTS: SeedEvent[] = [...IDEA_HISTORY, ...CLAIMED_PREHISTORY, ...GEOLOGY];
+
+// ---------------------------------------------------------------------------
+// How these records relate
+//
+// This is the dataset the relations table was built for. Almost everything
+// interesting about Lemuria is a relationship rather than a date: who took the
+// word from whom, what answers what, and — the one that matters most — which
+// connections are association and which are evidence.
+//
+// Note what is NOT here. There is no edge saying Mu IS Lemuria. There is an
+// edge saying later writers treat them as one, which is a fact about the
+// literature, and it carries the source that says so. And Mauritia is linked as
+// "relevant to, without being evidence for", which is a relation that exists
+// precisely so that genuinely relevant things can be connected without the
+// connection being read as support.
+// ---------------------------------------------------------------------------
+
+export const LEMURIA_LINKS: SeedEventLink[] = [
+  // --- where the word went -------------------------------------------------
+  {
+    from: "blavatsky-lemuria-root-race",
+    to: LEMURIA_ANCHOR_SLUG,
+    relation: "responds_to",
+    viewpoint: "alternative",
+    sourceKey: "wikipedia_lemuria",
+    note:
+      "Blavatsky took Sclater's name and gave it an entirely different job. Nothing in the 1864 paper leads to a root race; the continuity is a borrowed word, which is why this is filed as a reworking rather than as a development.",
+  },
+  {
+    from: "scott-elliot-lost-lemuria",
+    to: "blavatsky-lemuria-root-race",
+    relation: "responds_to",
+    viewpoint: "alternative",
+    note: "Scott-Elliot elaborates the Theosophical Lemuria that Blavatsky had established sixteen years earlier, adding geography, inhabitants and maps.",
+  },
+  {
+    from: "steiner-lemurian-epoch",
+    to: "blavatsky-lemuria-root-race",
+    relation: "responds_to",
+    viewpoint: "alternative",
+    sourceKey: "steiner_cosmic_memory",
+    note:
+      "Steiner was writing inside the Theosophical Society when these essays appeared — he led its German Section from 1902 to 1912 — so his Lemurian epoch is a development of this tradition rather than an independent account of it.",
+  },
+
+  // --- the orderings, one per tradition ------------------------------------
+  {
+    from: "lemuria-claimed-epoch",
+    to: "atlantis-destruction",
+    relation: "precedes",
+    viewpoint: "alternative",
+    sourceKey: "blavatsky_sd",
+    note:
+      "THEOSOPHY: the Lemurian Third Root Race precedes the Atlantean Fourth. Stored as its own edge rather than merged with Steiner's, because two traditions asserting an ordering are two claims.",
+  },
+  {
+    from: "lemuria-claimed-epoch",
+    to: "atlantis-destruction",
+    relation: "precedes",
+    viewpoint: "traditional",
+    sourceKey: "steiner_cosmic_memory",
+    note:
+      "STEINER: the Lemurian epoch precedes the Atlantean, which precedes the post-Atlantean. The same ordering as Theosophy's — and not independent corroboration of it, for the reason on the edge above.",
+  },
+
+  // --- Mu, and the thing that is NOT asserted ------------------------------
+  {
+    from: "mu-destruction",
+    to: "lemuria-claimed-epoch",
+    relation: "associated",
+    sourceKey: "wikipedia_mu",
+    note:
+      "Later popular and esoteric writing treats Mu and Lemuria as one continent under two names. This edge records THAT — a fact about the literature. It is deliberately not an identification: no source establishes that they are the same, and the traditions have separate origins in separate oceans.",
+  },
+  {
+    from: "lemuria-and-mu-become-associated",
+    to: "mu-destruction",
+    relation: "responds_to",
+    note: "The merging, as its own datable development — which is more interesting, and better evidenced, than the merger.",
+  },
+  {
+    from: "lemuria-and-mu-become-associated",
+    to: "lemuria-claimed-epoch",
+    relation: "responds_to",
+    note: "The other half of the same merging.",
+  },
+  {
+    from: "churchward-publishes-mu",
+    to: "mu-destruction",
+    relation: "source_of",
+    sourceKey: "churchward1926",
+    note: "The 1926 book is where the claim comes from — and the year its \"about 12,000 years ago\" is counted back from.",
+  },
+
+  // --- what the evidence actually does -------------------------------------
+  {
+    from: "plate-tectonics-supersedes-lemuria",
+    to: LEMURIA_ANCHOR_SLUG,
+    relation: "responds_to",
+    viewpoint: "conventional",
+    sourceKey: "usgs_dynamic_earth",
+    note:
+      "Plate tectonics answers Sclater's question without his continent. It addresses the 1864 hypothesis specifically; it is not a finding about the traditions that later borrowed the name.",
+  },
+  {
+    from: "india-madagascar-separation",
+    to: LEMURIA_ANCHOR_SLUG,
+    relation: "evidence_for",
+    viewpoint: "geological",
+    sourceKey: "berkeley_madagascar",
+    note:
+      "The real land connection Sclater was reaching for, and the real answer to his question about lemurs — 88 million years ago, by continents drifting apart rather than by anything sinking.",
+  },
+  {
+    from: "gondwana-breakup",
+    to: "india-madagascar-separation",
+    relation: "precedes",
+    viewpoint: "geological",
+    sourceKey: "berkeley_madagascar",
+    note: "The break-up that put Madagascar and India on separate plates in the first place.",
+  },
+  {
+    from: "mauritia-fragment",
+    to: LEMURIA_ANCHOR_SLUG,
+    relation: "relevant",
+    viewpoint: "geological",
+    sourceKey: "ashwal2017",
+    note:
+      "Sclater asked about lost land in broadly this region and there is some — of a completely different kind, at a completely different date, doing none of the work he wanted it for. Linked as relevant and explicitly NOT as evidence: there are no artefacts, no habitation, and the crust was last at the surface 85 million years before any primate existed.",
+  },
+  {
+    from: "mauritia-discovered",
+    to: "mauritia-fragment",
+    relation: "source_of",
+    sourceKey: "ashwal2017",
+    note: "The 2017 paper, and the geology it established — the discovery and the thing discovered, kept as two records because they are dated 85 million years apart.",
+  },
+];

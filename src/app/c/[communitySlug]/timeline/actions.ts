@@ -31,10 +31,10 @@ import {
   EARLY_SAPIENS_SOURCES,
   EARLY_SAPIENS_TRACK,
 } from "@/lib/timeline/early-sapiens-seed";
-import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
+import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
-import { ATLANTIS_EVENTS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
-import { LEMURIA_EVENTS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
+import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
+import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -1121,11 +1121,11 @@ async function seedDataset(
   supabase: SupabaseClient<Database>,
   community: Community,
   userId: string,
-  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string }
+  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string; links?: SeedEventLink[] }
 ): Promise<
-  { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number }
+  { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number; linked: number }
 > {
-  const { events: seedEvents, sources: seedSources, track, label } = dataset;
+  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [] } = dataset;
 
   // --- The lane -------------------------------------------------------------
   const { data: existingTrack } = await supabase
@@ -1315,7 +1315,92 @@ async function seedDataset(
     added++;
   }
 
-  return { ok: true as const, added, skipped: skipped.length, failed: failed.length, repaired };
+  // --- The relationships ----------------------------------------------------
+  //
+  // Written last, because an edge can point forwards to a record that had not
+  // been inserted when its own turn came round.
+  const linked = await syncSeedLinks(supabase, community.id, userId, seedLinks, sourceIds, label);
+
+  return { ok: true as const, added, skipped: skipped.length, failed: failed.length, repaired, linked };
+}
+
+/**
+ * Insert the edges of a seeded dataset that this community does not have yet.
+ *
+ * SHARED BY THE SEEDER AND THE REFRESH, and that is the point. Relationships
+ * arrived after both datasets had already been taken, so every community that
+ * had Atlantis or Lemuria would otherwise have kept a version of them with no
+ * cross-references at all — which is most of what there is to know about
+ * Lemuria. The refresh exists for exactly that situation, so it runs this too.
+ *
+ * IDEMPOTENT BY READING WHAT IS THERE rather than by upserting: the uniqueness
+ * rule is an expression index over coalesce(viewpoint, ''), and an upsert
+ * cannot name an expression index.
+ *
+ * IT ONLY EVER ADDS. An edge already present is left exactly as it is, note and
+ * all — somebody may have rewritten it, and a maintenance job that overwrites a
+ * person's words is worse than one that does nothing. The same rule the claim
+ * refresh follows, arrived at more cheaply here because an edge has no dates to
+ * reconcile: its identity IS its (pair, relation, viewpoint).
+ */
+async function syncSeedLinks(
+  supabase: SupabaseClient<Database>,
+  communityId: string,
+  userId: string,
+  seedLinks: SeedEventLink[],
+  sourceIds: Map<string, string>,
+  label: string
+): Promise<number> {
+  if (seedLinks.length === 0) return 0;
+
+  const slugs = [...new Set(seedLinks.flatMap((link) => [link.from, link.to]))];
+  const { data: linkedEvents } = await supabase
+    .from("timeline_events")
+    .select("id, slug")
+    .eq("community_id", communityId)
+    .in("slug", slugs);
+  const idBySlug = new Map((linkedEvents ?? []).map((row) => [row.slug, row.id]));
+
+  const { data: existingLinks } = await supabase
+    .from("timeline_event_links")
+    .select("from_event_id, to_event_id, relation, viewpoint")
+    .eq("community_id", communityId);
+  const already = new Set(
+    (existingLinks ?? []).map((row) => `${row.from_event_id}|${row.to_event_id}|${row.relation}|${row.viewpoint ?? ""}`)
+  );
+
+  const linkRows = seedLinks.flatMap((link, index) => {
+    const from = idBySlug.get(link.from);
+    const to = idBySlug.get(link.to);
+    // A record the community never took, or took and deleted. The edge is
+    // simply not written — half an edge is not a thing.
+    if (!from || !to || from === to) return [];
+    const key = `${from}|${to}|${link.relation}|${link.viewpoint ?? ""}`;
+    if (already.has(key)) return [];
+    already.add(key);
+    return [{
+      community_id: communityId,
+      created_by: userId,
+      from_event_id: from,
+      to_event_id: to,
+      relation: link.relation,
+      viewpoint: link.viewpoint ?? null,
+      source_id: link.sourceKey ? sourceIds.get(link.sourceKey) ?? null : null,
+      note: link.note,
+      sort_order: index,
+    }];
+  });
+
+  if (linkRows.length === 0) return 0;
+
+  const { error } = await supabase.from("timeline_event_links").insert(linkRows);
+  // Not fatal, for the same reason citations are not: records without their
+  // cross-references are worth far more than no records at all.
+  if (error) {
+    console.error(`${label} links failed:`, JSON.stringify(error));
+    return 0;
+  }
+  return linkRows.length;
 }
 
 /**
@@ -1519,6 +1604,7 @@ export async function seedAtlantisDataset(communitySlug: string) {
     events: ATLANTIS_EVENTS,
     sources: ATLANTIS_SOURCES,
     track: ATLANTIS_TRACK,
+    links: ATLANTIS_LINKS,
     label: "Atlantis",
   });
   revalidatePath(timelinePath(community.slug));
@@ -1559,7 +1645,7 @@ export async function seedAtlantisDataset(communitySlug: string) {
 //   also match on the source's own wording, or it is skipped and counted.
 // ---------------------------------------------------------------------------
 
-type SeedDatasetSpec = { label: string; events: SeedEvent[]; sources: SeedSource[] };
+type SeedDatasetSpec = { label: string; events: SeedEvent[]; sources: SeedSource[]; links?: SeedEventLink[] };
 
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
@@ -1567,8 +1653,8 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Hannibal", events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
   { label: "Deep time", events: DEEP_TIME_EVENTS, sources: DEEP_TIME_SOURCES },
   { label: "Early Homo sapiens", events: EARLY_SAPIENS_EVENTS, sources: EARLY_SAPIENS_SOURCES },
-  { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES },
-  { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES },
+  { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES, links: ATLANTIS_LINKS },
+  { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
 ];
 
 /**
@@ -1624,6 +1710,10 @@ export async function refreshSeededDatasets(communitySlug: string) {
   let updated = 0;
   let keptBecauseEdited = 0;
   let skippedAmbiguous = 0;
+  // Edges the dataset has gained since this community took it. Counted apart
+  // from corrected claims because they are a different kind of repair: nothing
+  // was wrong, something was missing.
+  let linked = 0;
   const changed: string[] = [];
 
   for (const dataset of SEEDED_DATASETS) {
@@ -1714,10 +1804,23 @@ export async function refreshSeededDatasets(communitySlug: string) {
         if (!changed.includes(seed.title)) changed.push(seed.title);
       }
     }
+
+    // THE EDGES THIS COMMUNITY NEVER GOT. Relationships were added to the
+    // datasets after both had shipped, so a community that took Lemuria early
+    // has thirteen records and no line drawn between any of them — Mu sitting
+    // beside Lemuria with nothing saying who put them together. Adds what is
+    // missing and never touches what is there.
+    if (dataset.links && dataset.links.length > 0) {
+      const added = await syncSeedLinks(supabase, community.id, userId, dataset.links, sourceIds, dataset.label);
+      if (added > 0) {
+        linked += added;
+        if (!changed.includes(dataset.label)) changed.push(dataset.label);
+      }
+    }
   }
 
   revalidatePath(timelinePath(community.slug));
-  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, changed };
+  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, linked, changed };
 }
 
 /**
@@ -1734,6 +1837,7 @@ export async function seedLemuriaDataset(communitySlug: string) {
     events: LEMURIA_EVENTS,
     sources: LEMURIA_SOURCES,
     track: LEMURIA_TRACK,
+    links: LEMURIA_LINKS,
     label: "Lemuria",
   });
   revalidatePath(timelinePath(community.slug));
