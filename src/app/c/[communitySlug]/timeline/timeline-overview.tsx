@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { fractionOf, positionAt, timelineExtentWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
+import { fractionOf, positionAt, timelineExtentWindow, type TimeWindow } from "@/lib/timeline/time";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -36,14 +36,12 @@ export function TimelineOverview({
   markers,
   window: view,
   onWindowChange,
-  scale = "linear",
   className,
 }: {
   /** One mark per date claim across the whole timeline — positions only. */
   markers: { position: number; category: string }[];
   window: TimeWindow;
   onWindowChange: (next: TimeWindow) => void;
-  scale?: TimeScale;
   className?: string;
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
@@ -53,14 +51,35 @@ export function TimelineOverview({
   // the whole of its job, so its own frame never changes.
   const full = useMemo(() => timelineExtentWindow(), []);
 
-  const toFraction = useCallback((position: number) => fractionOf(full, position, scale), [full, scale]);
+  // THE BAR IS ALWAYS SPACED BY MAGNITUDE, whatever the strip is doing.
+  //
+  // Linear spacing makes this control useless, and the arithmetic is brutal:
+  // 13.9 billion years across a 975px bar is 14.3 MILLION YEARS PER PIXEL.
+  // Every event after the Big Bang — the pyramids, the Norman Conquest, the
+  // Moon landing, now — falls inside the final 0.00 pixels. They stack
+  // invisibly against the right edge, the window box pins there too, and
+  // dragging "all the way right" still cannot reach the present, because the
+  // present is a fraction of one pixel from the end.
+  //
+  // Log spacing is what makes the bar navigable: the same four events land at
+  // 291, 772, 822 and 912 pixels instead of all at 975. This is a navigator,
+  // not a ruler — the span above it reports the true number of years, and the
+  // strip below honours whichever scale the reader chose.
+  const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
 
   const boxFrom = toFraction(view.from);
   const boxTo = toFraction(view.to);
 
+  // Within a few pixels of either end, snap to the actual end of the timeline.
+  // Without this the last pixel is still worth millions of years and "drag it
+  // all the way over" never quite arrives — you stop just short of the present
+  // and cannot tell why.
+  const SNAP_PX = 6;
   const fractionAtClientX = useCallback((clientX: number) => {
     const rect = railRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0) return 0;
+    if (clientX - rect.left <= SNAP_PX) return 0;
+    if (rect.right - clientX <= SNAP_PX) return 1;
     return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   }, []);
 
@@ -76,11 +95,11 @@ export function TimelineOverview({
       const width = boxTo - boxFrom;
       const clamped = Math.max(0, Math.min(1 - width, fraction));
       onWindowChange({
-        from: positionAt(full, clamped, scale),
-        to: positionAt(full, clamped + width, scale),
+        from: positionAt(full, clamped, "log"),
+        to: positionAt(full, clamped + width, "log"),
       });
     },
-    [boxFrom, boxTo, full, onWindowChange, scale]
+    [boxFrom, boxTo, full, onWindowChange]
   );
 
   /**
@@ -100,13 +119,13 @@ export function TimelineOverview({
       const gap = minFraction();
       if (edge === "from") {
         const next = Math.max(0, Math.min(fraction, boxTo - gap));
-        onWindowChange({ from: positionAt(full, next, scale), to: view.to });
+        onWindowChange({ from: positionAt(full, next, "log"), to: view.to });
       } else {
         const next = Math.min(1, Math.max(fraction, boxFrom + gap));
-        onWindowChange({ from: view.from, to: positionAt(full, next, scale) });
+        onWindowChange({ from: view.from, to: positionAt(full, next, "log") });
       }
     },
-    [boxFrom, boxTo, full, minFraction, onWindowChange, scale, view.from, view.to]
+    [boxFrom, boxTo, full, minFraction, onWindowChange, view.from, view.to]
   );
 
   /** Which part of the box a press at this fraction is reaching for. */

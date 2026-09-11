@@ -582,7 +582,6 @@ export function TimelineView({
         markers={markers}
         window={view}
         onWindowChange={setView}
-        scale={scale}
         className="mt-3"
       />
 

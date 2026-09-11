@@ -217,11 +217,24 @@ export function TimelineCanvas({
                 }}
                 title={placed.event.title}
                 className={cn(
-                  "absolute top-0 flex h-[26px] max-w-[220px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
+                  "absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected && "bg-accent-soft ring-1 ring-accent"
                 )}
-                style={{ left: Math.max(0, placed.xTo + 6) }}
+                // THE LABEL MAY NOT DRAW WIDER THAN THE SPACE RESERVED FOR IT.
+                //
+                // The layout packs rows by reserving labelWidth per event and
+                // then hides any caption whose neighbour is closer than that.
+                // The reservation was capped at 190px while the button was
+                // capped at 220px and `truncate` had nothing to truncate
+                // against — so a long title drew past its own reservation and
+                // straight through the label next to it. Four titles on one
+                // row came out superimposed and unreadable.
+                //
+                // Binding the rendered width to the reserved width makes the
+                // reservation true by construction: truncate now engages at
+                // exactly the point the packer assumed it would.
+                style={{ left: Math.max(0, placed.xTo + 6), maxWidth: placed.labelWidth }}
               >
                 {placed.showLabel && (
                   <>
