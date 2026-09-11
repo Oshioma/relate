@@ -63,6 +63,14 @@ export type SeedClaim = {
   uncertaintyMinus?: number;
   isApproximate: boolean;
   /**
+   * Which region this claim describes — "Near East", "Britain", "West Africa".
+   * Only ever set on a PERIOD BOUNDARY, where the whole point is that the Iron
+   * Age does not begin at one moment everywhere. Omitted on an event's dates.
+   */
+  region?: string;
+  /** The span has no end: it runs to the present. Never paired with endYear. */
+  isOngoing?: boolean;
+  /**
    * The claim in the source's own terms — "an eight-month siege", "nine years
    * old when Hamilcar crossed to Iberia". Unique within its event, because the
    * seeder matches claims back to their citations by this text.
@@ -114,4 +122,48 @@ export type SeedTrack = {
   slug: string;
   kind: "region" | "theme";
   color: string;
+};
+
+// ---------------------------------------------------------------------------
+// A TIME PERIOD, and the boundaries different people put on it
+//
+// A period is not an event and is not seeded like one: it has no single date,
+// it is drawn as a band rather than as a marker, and its start and end are
+// claims in exactly the way an event's date is a claim. The only thing that
+// changes between an event's claims and a period's is that a boundary may say
+// WHICH REGION it is for, because the Bronze Age begins around 3300 BCE in
+// Mesopotamia and around 2500 BCE in Britain and those are two sourced
+// statements about one convention, not two conventions.
+// ---------------------------------------------------------------------------
+
+export type SeedPeriod = {
+  slug: string;
+  name: string;
+  /** "Age of Dinosaurs", "Neolithic Revolution" — the same period, not another one. */
+  aliases?: string[];
+  summary: string;
+  description: string;
+  /** A PERIOD_TYPES key: formal_scientific, archaeological, historical, educational. */
+  periodType: string;
+  /** Whose framework this is — "Mainstream palaeontology and geology". */
+  framework?: string;
+  /** What makes this period this period at all. */
+  definingCriteria?: string;
+  /** What has actually been dug up, measured or observed. */
+  evidence?: string;
+  /** What that evidence is taken to mean, and by whom. Kept apart from it on purpose. */
+  interpretation?: string;
+  /** Set only where the period ITSELF is regional, not merely its boundaries. */
+  region?: string;
+  /** Orders bands that semantic zoom has already chosen. Not a visibility switch. */
+  displayPriority?: number;
+  /** The boundary claims. Two regions disagreeing is the normal case, not an error. */
+  claims: SeedClaim[];
+};
+
+/** An edge between two seeded periods, by slug. 'contains' is hierarchy. */
+export type SeedPeriodLink = {
+  from: string;
+  to: string;
+  relation: "contains" | "related";
 };

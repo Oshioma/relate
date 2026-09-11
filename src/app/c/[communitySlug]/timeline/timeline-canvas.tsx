@@ -13,6 +13,7 @@ import {
 } from "@/lib/timeline/layout";
 import {
   axisTicks,
+  formatYear,
   fractionOf,
   type TimeScale,
   scaleBandFor,
@@ -20,7 +21,8 @@ import {
   clampWindow,
   type TimeWindow,
 } from "@/lib/timeline/time";
-import { timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
+import { timelineCategory, timelineCategoryLabel, periodTypeLabel } from "@/lib/timeline/taxonomy";
+import { periodBands, periodExtent, type PeriodWithClaims } from "@/lib/timeline/periods";
 import { useTimeNavigation } from "./use-time-navigation";
 
 // The map of time.
@@ -37,6 +39,12 @@ import { useTimeNavigation } from "./use-time-navigation";
 // smaller problem to solve directly than to configure around.
 
 const RULER_HEIGHT = 52;
+/** One band of period context. Compact on purpose: events are the subject, periods the frame. */
+const BAND_HEIGHT = 21;
+const BAND_GAP = 2;
+/** How many lanes of context the strip gives up, at desktop and at phone width. */
+const BAND_LANES = 3;
+const BAND_LANES_NARROW = 2;
 /** The gap between a marker and its caption — the same 6px the layout reserves. */
 const LABEL_GAP = 6;
 /** The caption's own top and bottom padding (py-[3px]), plus a pixel of rounding slack. */
@@ -44,24 +52,31 @@ const CAPTION_PAD_PX = 8;
 
 export function TimelineCanvas({
   events,
+  periods = [],
   window: view,
   scale = "linear",
   onWindowChange,
   present,
   selectedId,
+  selectedPeriodId = null,
   onSelect,
+  onSelectPeriod,
   className,
   loading = false,
   truncated = false,
 }: {
   events: TimelineEventWithClaims[];
+  /** Context bands. Empty is the normal case for a community that has none. */
+  periods?: PeriodWithClaims[];
   window: TimeWindow;
   /** Linear years, or spaced by order of magnitude. See TimeScale in time.ts. */
   scale?: TimeScale;
   onWindowChange: (next: TimeWindow) => void;
   present: number;
   selectedId: string | null;
+  selectedPeriodId?: string | null;
   onSelect: (event: TimelineEventWithClaims) => void;
+  onSelectPeriod?: (period: PeriodWithClaims) => void;
   /** Height comes from a class rather than a number, so one canvas can be short on a phone and tall on a desktop. */
   className?: string;
   loading?: boolean;
@@ -117,7 +132,29 @@ export function TimelineCanvas({
   // caption that wrapped onto three lines is taller than one that didn't — so
   // the layout is given the budget and spends it, rather than being told how
   // many rows the caller guessed would fit.
-  const areaHeight = Math.max(ROW_BASE_PX, size.height - RULER_HEIGHT - 12);
+
+  // THE CONTEXT BANDS, AND WHAT THEY COST.
+  //
+  // Which periods are worth drawing here is decided from their duration against
+  // the viewport — see periodBands — so there is no list of period names in this
+  // component, and a period added next year needs no change to it. What IS
+  // decided here is how much of the strip context may take: at most three lanes
+  // on a desktop, two on a phone, and whatever they use comes off the events
+  // area. Events are the subject; periods are the frame, and a frame that
+  // crowds out the picture has stopped being one.
+  const bands = useMemo(
+    () =>
+      periodBands(periods, view, width, {
+        maxLanes: width >= 640 ? BAND_LANES : BAND_LANES_NARROW,
+        present,
+        scale,
+      }),
+    [periods, view, width, present, scale]
+  );
+  const bandLanes = bands.reduce((max, band) => Math.max(max, band.lane + 1), 0);
+  const bandsHeight = bandLanes === 0 ? 0 : bandLanes * (BAND_HEIGHT + BAND_GAP) + 4;
+
+  const areaHeight = Math.max(ROW_BASE_PX, size.height - RULER_HEIGHT - 12 - bandsHeight);
 
   // WHAT THE CAPTION ACTUALLY TOOK, fed back into what is reserved for it.
   //
@@ -190,7 +227,8 @@ export function TimelineCanvas({
 
   const presentX = fractionOf(view, present, scale) * width;
   const showPresent = presentX > -40 && presentX < width + 40;
-  const eventsTop = RULER_HEIGHT + 8;
+  const bandsTop = RULER_HEIGHT + 4;
+  const eventsTop = RULER_HEIGHT + 8 + bandsHeight;
 
   return (
     <div className="relative">
@@ -253,6 +291,60 @@ export function TimelineCanvas({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 border-b border-border" style={{ top: RULER_HEIGHT }} />
+
+        {/* ---- Period context bands ---------------------------------------
+            Understated by design. A period is what the events are read
+            against, not a thing on the timeline in its own right, so these are
+            low-contrast, compact, and gone the moment they are too narrow to
+            carry a name.
+
+            The type is WRITTEN on the band as well as coloured. A reader who
+            cannot tell a ratified geological unit from a teaching label has
+            been told the wrong thing about both, and colour alone would say it
+            only to people who can see the difference. */}
+        {bands.map((band) => {
+          const selected = band.period.id === selectedPeriodId;
+          const extent = periodExtent(band.period, present);
+          return (
+            <button
+              key={band.period.id}
+              type="button"
+              onClick={() => {
+                if (nav.wasDragged()) return;
+                onSelectPeriod?.(band.period);
+              }}
+              title={`${band.period.name} — ${periodTypeLabel(band.period.period_type)}`}
+              className={cn(
+                "absolute flex items-center gap-2 overflow-hidden rounded-md border px-2 text-left transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selected ? "border-accent bg-accent-soft" : "border-border/60 bg-muted/50 hover:bg-muted"
+              )}
+              style={{
+                top: bandsTop + band.lane * (BAND_HEIGHT + BAND_GAP),
+                left: band.x,
+                width: Math.max(1, band.x2 - band.x),
+                height: BAND_HEIGHT,
+              }}
+            >
+              {/* A band running off the edge of the window says so, rather than
+                  ending in a tidy line a reader would take for its boundary. */}
+              {band.clippedStart && <span aria-hidden className="shrink-0 text-[11px] text-muted-foreground">←</span>}
+              <span className="truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                {band.period.name}
+              </span>
+              {extent && (
+                <span className="hidden shrink-0 text-[11px] tabular-nums text-muted-foreground/80 sm:inline">
+                  {formatYear(Math.floor(extent.from), { compact: true })}
+                  {extent.ongoing ? " – present" : ` – ${formatYear(Math.floor(extent.to), { compact: true })}`}
+                </span>
+              )}
+              <span className="ml-auto hidden shrink-0 text-[10px] font-medium uppercase tracking-[0.06em] text-muted-foreground/70 lg:inline">
+                {periodTypeLabel(band.period.period_type)}
+              </span>
+              {band.clippedEnd && <span aria-hidden className="shrink-0 text-[11px] text-muted-foreground">→</span>}
+            </button>
+          );
+        })}
 
         {showPresent && (
           <div className="pointer-events-none absolute inset-y-0" style={{ left: presentX }}>
