@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { layoutTimeline } from "@/lib/timeline/layout";
+import {
+  LABEL_LINE_PX,
+  layoutTimeline,
+  MAX_LABEL_LINES,
+  ROW_BASE_PX,
+  rowHeightFor,
+  type MeasuredLabels,
+} from "@/lib/timeline/layout";
 import {
   axisTicks,
   fractionOf,
@@ -29,10 +36,11 @@ import { useTimeNavigation } from "./use-time-navigation";
 // years and a ruler that changes what it is COUNTING as you go, which is a
 // smaller problem to solve directly than to configure around.
 
-const ROW_HEIGHT = 34;
 const RULER_HEIGHT = 52;
 /** The gap between a marker and its caption — the same 6px the layout reserves. */
 const LABEL_GAP = 6;
+/** The caption's own top and bottom padding (py-[3px]), plus a pixel of rounding slack. */
+const CAPTION_PAD_PX = 8;
 
 export function TimelineCanvas({
   events,
@@ -105,11 +113,59 @@ export function TimelineCanvas({
   }, []);
 
   const width = size.width;
-  const rowsAvailable = Math.max(1, Math.floor((size.height - RULER_HEIGHT - 12) / ROW_HEIGHT));
+  // Pixels, not a row count. Rows are no longer a fixed pitch — a row holding a
+  // caption that wrapped onto three lines is taller than one that didn't — so
+  // the layout is given the budget and spends it, rather than being told how
+  // many rows the caller guessed would fit.
+  const areaHeight = Math.max(ROW_BASE_PX, size.height - RULER_HEIGHT - 12);
+
+  // WHAT THE CAPTION ACTUALLY TOOK, fed back into what is reserved for it.
+  //
+  // The layout has to know how tall a caption is BEFORE the caption exists, so
+  // it estimates — and an estimate one line short clips the date off the bottom,
+  // which is the bug this change exists to remove. The browser knows the real
+  // answer as soon as it has drawn the thing, so it is asked, and the next
+  // layout uses the measurement instead of the guess.
+  //
+  // It settles in one extra frame and then stops: a caption measured at three
+  // lines is reserved three lines, is drawn at three lines, and measures three
+  // lines again. The map is a ref because writing to it must not itself cause a
+  // render; `measureTick` is the one deliberate nudge, bumped only when a
+  // number actually changed.
+  const [measured, setMeasured] = useState<MeasuredLabels>(() => new Map());
+
   const layout = useMemo(
-    () => layoutTimeline(events, view, width, rowsAvailable, scale),
-    [events, view, width, rowsAvailable, scale]
+    () => layoutTimeline(events, view, width, areaHeight, scale, measured),
+    [events, view, width, areaHeight, scale, measured]
   );
+
+  const measureCaption = useCallback((element: HTMLButtonElement | null) => {
+    if (!element) return;
+    const id = element.dataset.eventId;
+    const boxWidth = Number(element.dataset.labelWidth);
+    if (!id || !Number.isFinite(boxWidth)) return;
+    // A caption the layout decided not to draw holds nothing but a screen-reader
+    // title, and measures one line. Recording that would tell the next layout
+    // that this event needs one line — and the moment a pan gives it room for
+    // its caption back, the caption is drawn into a single line's worth of
+    // space and clipped. Only a caption actually on the page is measured.
+    if (element.dataset.labelled !== "true") return;
+    // scrollHeight is the full content height even where max-height is clipping
+    // it, which is exactly the question being asked.
+    const lines = Math.min(
+      MAX_LABEL_LINES,
+      Math.max(1, Math.round((element.scrollHeight - CAPTION_PAD_PX) / LABEL_LINE_PX))
+    );
+    setMeasured((known) => {
+      const seen = known.get(id);
+      // Returning the same map is how this stops: React bails out of the
+      // re-render, so a caption whose measurement hasn't changed costs nothing.
+      if (seen && seen.lines === lines && Math.abs(seen.width - boxWidth) < 0.5) return known;
+      const next = new Map(known);
+      next.set(id, { width: boxWidth, lines });
+      return next;
+    });
+  }, []);
 
   const ticks = useMemo(
     () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 190)), scale }) : []),
@@ -219,7 +275,8 @@ export function TimelineCanvas({
         {layout.events.map((placed) => {
           const meta = timelineCategory(placed.event.category);
           const selected = placed.event.id === selectedId;
-          const top = eventsTop + placed.row * ROW_HEIGHT;
+          const top = eventsTop + placed.top;
+          const rowHeight = layout.rowHeights[placed.row] ?? rowHeightFor(1);
           const pending = placed.event.status === "pending";
           // Where the caption is actually drawn. The preview hangs off THIS
           // rather than off the event's marker: an event whose earliest claim
@@ -250,7 +307,7 @@ export function TimelineCanvas({
             <div
               key={placed.event.id}
               className="pointer-events-none absolute"
-              style={{ top, left: 0, right: 0, height: ROW_HEIGHT }}
+              style={{ top, left: 0, right: 0, height: rowHeight }}
             >
               {/* The disagreement itself: a rail spanning every date any source
                   proposes, so "the sources are 220 years apart" is something you
@@ -293,6 +350,10 @@ export function TimelineCanvas({
 
               <button
                 type="button"
+                ref={measureCaption}
+                data-event-id={placed.event.id}
+                data-label-width={placed.labelWidth}
+                data-labelled={placed.showLabel ? "true" : "false"}
                 onClick={() => {
                   // A pan that ends over a label must not also open it.
                   if (nav.wasDragged()) return;
@@ -310,12 +371,21 @@ export function TimelineCanvas({
                 onFocus={() => showPreview(placed.event.id, labelLeft, top)}
                 onBlur={hidePreview}
                 className={cn(
-                  "pointer-events-auto absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
+                  // A BLOCK OF FLOWING TEXT, NOT A ROW OF BOXES.
+                  //
+                  // It was a flex row, which is why the title had to truncate:
+                  // flex lays its children out on one line and shrinks whichever
+                  // of them is allowed to shrink, and that was always the title.
+                  // As normal inline content the title, the date and the chips
+                  // flow into the box together and wrap at its edge — which is
+                  // also exactly the model measureLabel counts lines with, so
+                  // the space reserved and the space used are the same thing.
+                  "pointer-events-auto absolute top-0 min-h-[26px] rounded-lg py-[3px] pl-1 pr-2 text-left text-[13px] leading-[17px]",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   // Flipped captions hug their own marker, so the text sits
                   // beside the dot it belongs to rather than trailing away
                   // from it across empty axis.
-                  placed.labelSide === "left" && "justify-end pl-2 pr-1 text-right",
+                  placed.labelSide === "left" && "pl-2 pr-1 text-right",
                   selected && "bg-accent-soft ring-1 ring-accent"
                 )}
                 // THE LABEL MAY NOT DRAW WIDER THAN THE SPACE RESERVED FOR IT.
@@ -331,11 +401,36 @@ export function TimelineCanvas({
                 // Binding the rendered width to the reserved width makes the
                 // reservation true by construction: truncate now engages at
                 // exactly the point the packer assumed it would.
-                style={{ left: labelLeft, maxWidth: placed.labelWidth }}
+                // THE TITLE GOES DOWN, NOT AWAY.
+                //
+                // Clamped in LINES rather than truncated at a character: "Great
+                // Pyramid of Giza" read "Great Pyr…" on a strip with four
+                // hundred empty pixels underneath it, because the date and the
+                // "5 dates" chip beside it needed room and the title was the
+                // only thing that would give. Horizontal space on a timeline is
+                // time and cannot simply be handed to a caption; vertical space
+                // is free, so the words wrap and the row grows to fit them (see
+                // rowHeightFor). Only a caption longer than three lines is cut.
+                style={{
+                  left: labelLeft,
+                  width: placed.labelWidth,
+                  // Exactly the height the layout reserved for this caption, so
+                  // the space asked for and the space taken are the same number.
+                  // Not `line-clamp`: with `-webkit-box` the browser puts each
+                  // child element on a line of its own, which turned "Tower of
+                  // Babel c. 2901 BCE" into two lines and cut the date off
+                  // several longer ones altogether.
+                  // The lines reserved, plus the caption's own padding, plus two
+                  // pixels because a line box rounds up a fraction and a
+                  // caption an exact fit is a caption that scrolls.
+                  maxHeight: placed.labelLines * LABEL_LINE_PX + CAPTION_PAD_PX,
+                  overflow: "hidden",
+                  overflowWrap: "anywhere",
+                }}
               >
                 {placed.showLabel && (
                   <>
-                    <span className="truncate font-medium text-foreground">{placed.event.title}</span>
+                    <span className="font-medium text-foreground">{placed.event.title}</span>
                     {/* WHEN, NEXT TO WHAT. A caption that reads only "First
                         Moon landing" makes the reader measure it off the ruler
                         by eye; the date beside it answers the question the
@@ -345,17 +440,19 @@ export function TimelineCanvas({
                         `shrink-0` so the title truncates and the date never
                         does: half a date is worse than none. */}
                     {placed.dateLabel && (
-                      <span className="shrink-0 text-[12px] font-medium text-muted-foreground tabular-nums">
+                      // `whitespace-nowrap` so the date moves to the next line
+                      // whole. Half a date is worse than none.
+                      <span className="ml-1.5 whitespace-nowrap text-[12px] font-medium text-muted-foreground tabular-nums">
                         {placed.dateLabel}
                       </span>
                     )}
                     {placed.disputed && (
-                      <span className="shrink-0 rounded-full bg-danger/12 px-1.5 text-[10px] font-semibold text-danger">
+                      <span className="ml-1.5 whitespace-nowrap rounded-full bg-danger/12 px-1.5 text-[10px] font-semibold text-danger">
                         {placed.event.claims.length} dates
                       </span>
                     )}
                     {pending && (
-                      <span className="shrink-0 rounded-full bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground">
+                      <span className="ml-1.5 whitespace-nowrap rounded-full bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground">
                         Pending
                       </span>
                     )}
@@ -375,7 +472,7 @@ export function TimelineCanvas({
             type="button"
             onClick={() => onWindowChange(clampWindow({ from: cluster.from, to: cluster.to }))}
             className="absolute flex h-[22px] items-center gap-1 rounded-full bg-muted px-2 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:bg-accent-soft"
-            style={{ top: eventsTop + cluster.row * ROW_HEIGHT + 2, left: Math.max(0, cluster.x - 12) }}
+            style={{ top: eventsTop + cluster.top + 2, left: Math.max(0, cluster.x - 12) }}
             title={`${cluster.count} events here — zoom in`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
