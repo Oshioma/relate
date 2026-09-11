@@ -63,6 +63,7 @@ function claim(fields: Partial<TimelineDateClaim> & { start_year: number }): Tim
     is_approximate: false,
     region: null,
     is_ongoing: false,
+    seed_synced_at: null,
     uncertainty_plus: null,
     uncertainty_minus: null,
     original_date_text: "",

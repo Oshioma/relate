@@ -38,7 +38,9 @@ import {
   seedDeepTimeDataset,
   seedEarlySapiensDataset,
   seedHannibalDataset,
+  refreshSeededDatasets,
   seedAtlantisDataset,
+  seedLemuriaDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -233,6 +235,7 @@ export function TimelineView({
   periodLinks,
   hasPeriods,
   hasAtlantis,
+  hasLemuria,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -270,6 +273,8 @@ export function TimelineView({
   hasPeriods: boolean;
   /** Whether the Atlantis dataset is already here. Same rule. */
   hasAtlantis: boolean;
+  /** Whether the Lemuria dataset is already here. Same rule. */
+  hasLemuria: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1503,6 +1508,78 @@ export function TimelineView({
           written in a source, a date somebody calculated from a source, and a date that exists only as a remembered
           remark — and Plato&apos;s famous 9600 BCE turns out to be the second of those. The mainstream academic
           position comes with it, in full, on the one record here that can actually be dated.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasLemuria && (
+        <DatasetOffer
+          title="Add the Lemuria dataset?"
+          busyLabel="Adding the records…"
+          label="Add the Lemuria dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedLemuriaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Thirteen records on two clocks at once. Sclater proposed Lemuria in 1864 to explain lemurs — no people, no
+          civilisation — and Theosophy took the word twenty-four years later and put a root race behind it, 34½ million
+          years back. Every claim here carries BOTH dates: when somebody said it, and when they say it happened. Zoom
+          out far enough to see the claims and you can no longer see the claimants, which is the lesson. The geology
+          that actually answers Sclater&apos;s question is here too — Gondwana, the India&ndash;Madagascar split, and
+          the genuinely sunken continental crust under Mauritius, correctly dated and correctly described.
+        </DatasetOffer>
+      )}
+
+      {/* ---- Bringing a dataset that is already here up to date --------------
+          The seeders skip an event that already exists, which is what makes
+          running one twice harmless — and also means a correction to a seed
+          file never reaches a community that took the dataset earlier. This is
+          the way back. Offered to staff whenever this community has any seeded
+          records at all; pressing it on an up-to-date community says so and
+          changes nothing. */}
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria) && (
+        <DatasetOffer
+          title="Bring the seeded datasets up to date?"
+          busyLabel="Checking the records…"
+          label="Check for corrections"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await refreshSeededDatasets(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                else if (result && "updated" in result) {
+                  setSeedError(
+                    result.updated === 0
+                      ? "Nothing needed changing — every seeded record here already matches."
+                      : `Updated ${result.updated} ${result.updated === 1 ? "date" : "dates"}${
+                          result.changed.length > 0 ? ` on ${result.changed.join(", ")}` : ""
+                        }.${
+                          result.keptBecauseEdited > 0
+                            ? ` ${result.keptBecauseEdited} left alone because somebody here had edited them.`
+                            : ""
+                        }`
+                  );
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Research does not stop when a dataset ships. When a seeded date turns out to rest on something different from
+          what the file first said — as Steiner&apos;s 7227 BC did, which is counted back from a boundary he gives
+          rather than stated by him — the correction cannot reach a community that already took the dataset, because
+          the seeders deliberately never overwrite what is already there. This checks. It updates only the wording,
+          method, evidence and source of dates it can match exactly, it never adds or removes a date, and it leaves
+          untouched anything anybody here has edited.
         </DatasetOffer>
       )}
 

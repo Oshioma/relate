@@ -34,6 +34,7 @@ import {
 import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
+import { LEMURIA_EVENTS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -1519,6 +1520,221 @@ export async function seedAtlantisDataset(communitySlug: string) {
     sources: ATLANTIS_SOURCES,
     track: ATLANTIS_TRACK,
     label: "Atlantis",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// BRINGING AN ALREADY-SEEDED DATASET UP TO DATE
+//
+// The seeders are idempotent by slug: an event already present is skipped
+// entirely, which is what makes running one twice harmless. It also means a
+// correction to a seed file never reaches a community that took the dataset
+// before the correction was made.
+//
+// That is a real problem rather than a theoretical one. The Atlantis dataset
+// shipped with Rudolf Steiner's 7227 BC filed as a date he states; research
+// afterwards established that he states no such thing — the figure is counted
+// back from an epoch boundary he does give — so the claim's method, its
+// evidence, its source and its wording all changed. A community that took the
+// dataset the day before would still be showing a reader the wrong account of
+// where that number comes from, for ever, with no way to find out.
+//
+// So: one button that reconciles what is stored against what the seed files now
+// say. It is deliberately conservative.
+//
+//   IT NEVER TOUCHES ANYTHING A PERSON HAS EDITED. Every edit in this feature
+//   is recorded in timeline_revisions by a trigger, so "has a human changed
+//   this?" is a question with an actual answer rather than a guess. A row with
+//   an 'updated' revision against it is left exactly as the community left it,
+//   and reported as skipped.
+//
+//   IT NEVER ADDS OR REMOVES CLAIMS. Only the editorial fields of a claim
+//   already there — what it says and where it came from — and only where the
+//   match is unambiguous.
+//
+//   IT NEVER GUESSES. A claim is matched by its date, and where two claims on
+//   one event share a date (Plato and Donnelly both sit at ~9600 BCE) it must
+//   also match on the source's own wording, or it is skipped and counted.
+// ---------------------------------------------------------------------------
+
+type SeedDatasetSpec = { label: string; events: SeedEvent[]; sources: SeedSource[] };
+
+/** Every dataset this file can seed, for the refresh to walk. */
+const SEEDED_DATASETS: SeedDatasetSpec[] = [
+  { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
+  { label: "Hannibal", events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
+  { label: "Deep time", events: DEEP_TIME_EVENTS, sources: DEEP_TIME_SOURCES },
+  { label: "Early Homo sapiens", events: EARLY_SAPIENS_EVENTS, sources: EARLY_SAPIENS_SOURCES },
+  { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES },
+  { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES },
+];
+
+/**
+ * Which of these claims A PERSON has edited — as opposed to a previous run of
+ * this same refresh, or a backfill.
+ *
+ * Two tests, and both are needed:
+ *
+ *   actor_id is not null — a write from the SQL console, a migration or a
+ *   service-role job is not somebody's editorial decision and must not freeze
+ *   the row.
+ *
+ *   the change set does not mention seed_synced_at — the refresh stamps that
+ *   column in the same UPDATE as the correction, so its own revisions always
+ *   carry the key and a person's never do. Without this the feature would work
+ *   exactly once per claim and then silently refuse for ever, because its own
+ *   first correction would look like an edit to protect.
+ */
+async function editedByAPerson(
+  supabase: SupabaseClient<Database>,
+  communityId: string,
+  claimIds: string[]
+): Promise<Set<string>> {
+  if (claimIds.length === 0) return new Set();
+  const { data } = await supabase
+    .from("timeline_revisions")
+    .select("claim_id, actor_id, changes")
+    .eq("community_id", communityId)
+    .eq("entity", "claim")
+    .eq("action", "updated")
+    .in("claim_id", claimIds);
+
+  const edited = new Set<string>();
+  for (const row of data ?? []) {
+    if (!row.claim_id || !row.actor_id) continue;
+    if (row.changes && Object.prototype.hasOwnProperty.call(row.changes, "seed_synced_at")) continue;
+    edited.add(row.claim_id);
+  }
+  return edited;
+}
+
+/**
+ * Reconcile the seeded records this community already has against what the seed
+ * files say now. Staff only, and safe to run at any time: a community with
+ * nothing out of date gets "nothing needed changing".
+ */
+export async function refreshSeededDatasets(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can bring the seeded datasets up to date." };
+
+  let updated = 0;
+  let keptBecauseEdited = 0;
+  let skippedAmbiguous = 0;
+  const changed: string[] = [];
+
+  for (const dataset of SEEDED_DATASETS) {
+    // Which of this dataset's events the community actually has.
+    const { data: presentRows } = await supabase
+      .from("timeline_events")
+      .select("id, slug")
+      .eq("community_id", community.id)
+      .in("slug", dataset.events.map((event) => event.slug));
+    const present = presentRows ?? [];
+    if (present.length === 0) continue;
+
+    // Sources first: a corrected claim often cites something the community has
+    // never had — the two Steiner lectures did not exist in the dataset when it
+    // first shipped. This inserts what is missing and reuses what is there.
+    const resolved = await resolveSeedSources(supabase, community, userId, dataset.sources);
+    if ("error" in resolved) return resolved;
+    const { sourceIds } = resolved;
+
+    const idBySlug = new Map(present.map((row) => [row.slug, row.id]));
+
+    for (const seed of dataset.events) {
+      const eventId = idBySlug.get(seed.slug);
+      if (!eventId) continue;
+
+      const { data: storedClaims } = await supabase
+        .from("timeline_date_claims")
+        .select("id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id")
+        .eq("event_id", eventId);
+      const stored = storedClaims ?? [];
+      if (stored.length === 0) continue;
+
+      const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
+
+      for (const seedClaim of seed.claims) {
+        const wantStart = seedClaim.startYear;
+        const wantEnd = seedClaim.endYear ?? null;
+        const sameDate = stored.filter(
+          (claim) => claim.start_year === wantStart && (claim.end_year ?? null) === wantEnd
+        );
+
+        let match = sameDate.length === 1 ? sameDate[0] : null;
+        if (!match && sameDate.length > 1) {
+          // Two claims on one event at the same date — Plato and Donnelly both
+          // sit at ~9600 BCE. Fall back to the source's own wording, which is
+          // unique within an event by the seeder's own rule.
+          const byText = sameDate.filter((claim) => claim.original_date_text === seedClaim.originalDateText);
+          if (byText.length === 1) match = byText[0];
+        }
+        if (!match) {
+          // Either the date moved (a different claim now) or the match is
+          // ambiguous. Either way this is not a row to guess at.
+          skippedAmbiguous++;
+          continue;
+        }
+        if (editedHere.has(match.id)) {
+          keptBecauseEdited++;
+          continue;
+        }
+
+        const wantSource = seedClaim.sourceKey ? sourceIds.get(seedClaim.sourceKey) ?? null : null;
+        const next = {
+          original_date_text: seedClaim.originalDateText,
+          dating_method: seedClaim.datingMethod,
+          chronology: seedClaim.chronology,
+          evidence: seedClaim.evidence,
+          notes: seedClaim.notes ?? null,
+          source_id: wantSource,
+        };
+        const alreadyRight =
+          match.original_date_text === next.original_date_text &&
+          match.dating_method === next.dating_method &&
+          match.chronology === next.chronology &&
+          match.evidence === next.evidence &&
+          (match.notes ?? null) === next.notes &&
+          (match.source_id ?? null) === next.source_id;
+        if (alreadyRight) continue;
+
+        // seed_synced_at rides along in the SAME update, so the revision the
+        // trigger writes carries the key that marks this as the refresh's work
+        // rather than a person's. See editedByAPerson.
+        const { error } = await supabase
+          .from("timeline_date_claims")
+          .update({ ...next, seed_synced_at: new Date().toISOString() })
+          .eq("id", match.id);
+        if (error) continue;
+        updated++;
+        if (!changed.includes(seed.title)) changed.push(seed.title);
+      }
+    }
+  }
+
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, changed };
+}
+
+/**
+ * Lemuria, Mu, and the geology that answers the question they came from.
+ * See lemuria-seed.ts.
+ */
+export async function seedLemuriaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the Lemuria dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: LEMURIA_EVENTS,
+    sources: LEMURIA_SOURCES,
+    track: LEMURIA_TRACK,
+    label: "Lemuria",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
