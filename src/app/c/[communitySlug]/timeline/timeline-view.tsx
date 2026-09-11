@@ -473,144 +473,150 @@ export function TimelineView({
         </button>
       )}
 
+      {/* ---- One line: search, categories, filters ----------------------
+          Three stacked rows of controls pushed the timeline itself below
+          the fold on a laptop. They are one row now, wrapping only when
+          the width genuinely runs out: the search box takes what is left
+          after the chips and the filters, which is the right way round —
+          the chips and filters are fixed-size and the search is elastic. */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
       {/* ---- Search ------------------------------------------------------ */}
-      <div className="relative mb-3">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={term}
-          onChange={(event) => setTerm(event.target.value)}
-          placeholder="Search the timeline — an event, a person, a civilisation, a source…"
-          className="pl-9"
-        />
-        {term && (
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={term}
+            onChange={(event) => setTerm(event.target.value)}
+            placeholder="Search the timeline — an event, a person, a civilisation, a source…"
+            className="pl-9"
+          />
+          {term && (
+            <button
+              type="button"
+              onClick={() => setTerm("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+
+          {activeResults && activeResults.length > 0 && (
+            <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+              {activeResults.map((event) => {
+                const meta = timelineCategory(event.category);
+                return (
+                  <li key={event.id}>
+                    <button
+                      type="button"
+                      onClick={() => goTo(event)}
+                      className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-muted"
+                    >
+                      <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dotClass)} aria-hidden />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-foreground">{event.title}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {event.claims.length > 0 ? claimHeadline(event.claims[0]).headline : "No date yet"}
+                          {event.claims.length > 1 ? ` · ${event.claims.length} proposed dates` : ""}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {activeResults && activeResults.length === 0 && (
+            <p className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground shadow-lg">
+              Nothing matches “{term}”.
+            </p>
+          )}
+        </div>
+      {/* ---- Category rail + filters ------------------------------------- */}
+        <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1">
           <button
             type="button"
-            onClick={() => setTerm("")}
-            aria-label="Clear search"
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted"
+            onClick={() => setCategory("")}
+            aria-pressed={category === ""}
+            className={cn(
+              "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              category === "" ? "bg-accent text-accent-foreground shadow-sm" : "bg-accent-soft/60 text-foreground hover:bg-accent-soft"
+            )}
           >
-            <X className="h-4 w-4" />
+            All
           </button>
-        )}
-
-        {activeResults && activeResults.length > 0 && (
-          <ul className="absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
-            {activeResults.map((event) => {
-              const meta = timelineCategory(event.category);
-              return (
-                <li key={event.id}>
-                  <button
-                    type="button"
-                    onClick={() => goTo(event)}
-                    className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left hover:bg-muted"
-                  >
-                    <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dotClass)} aria-hidden />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground">{event.title}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {event.claims.length > 0 ? claimHeadline(event.claims[0]).headline : "No date yet"}
-                        {event.claims.length > 1 ? ` · ${event.claims.length} proposed dates` : ""}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {activeResults && activeResults.length === 0 && (
-          <p className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl border border-border bg-card px-3.5 py-3 text-sm text-muted-foreground shadow-lg">
-            Nothing matches “{term}”.
-          </p>
-        )}
-      </div>
-
-      {/* ---- Category rail + filters ------------------------------------- */}
-      <div className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-        <button
-          type="button"
-          onClick={() => setCategory("")}
-          aria-pressed={category === ""}
-          className={cn(
-            "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-            category === "" ? "bg-accent text-accent-foreground shadow-sm" : "bg-accent-soft/60 text-foreground hover:bg-accent-soft"
-          )}
-        >
-          All
-        </button>
-        {TIMELINE_CATEGORIES.filter((meta) => facets.categories.includes(meta.key) || meta.key === "history").map((meta) => {
-          const Icon = meta.icon;
-          const active = category === meta.key;
-          return (
-            <button
-              key={meta.key}
-              type="button"
-              onClick={() => setCategory(active ? "" : meta.key)}
-              aria-pressed={active}
-              className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                active ? "bg-accent text-accent-foreground shadow-sm" : "bg-accent-soft/60 text-foreground hover:bg-accent-soft"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {meta.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setShowFilters((open) => !open)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
-            activeFilterCount > 0 ? "bg-accent-soft text-accent" : "bg-muted/60 text-muted-foreground hover:bg-muted"
-          )}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          Filters
-          {activeFilterCount > 0 && <span className="tabular-nums">({activeFilterCount})</span>}
-          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showFilters && "rotate-180")} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setDisputedOnly((current) => !current)}
-          aria-pressed={disputedOnly}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
-            disputedOnly ? "bg-danger/12 text-danger" : "bg-muted/60 text-muted-foreground hover:bg-muted"
-          )}
-        >
-          <Scale className="h-4 w-4" />
-          Where sources disagree
-        </button>
-
-        <div className="ml-auto flex rounded-full bg-muted p-0.5">
-          {(
-            [
-              { key: "timeline", label: "Timeline", icon: Milestone },
-              { key: "compare", label: "Compare", icon: Layers },
-            ] as const
-          ).map((option) => {
-            const Icon = option.icon;
+          {TIMELINE_CATEGORIES.filter((meta) => facets.categories.includes(meta.key) || meta.key === "history").map((meta) => {
+            const Icon = meta.icon;
+            const active = category === meta.key;
             return (
               <button
-                key={option.key}
+                key={meta.key}
                 type="button"
-                onClick={() => setMode(option.key)}
-                aria-pressed={mode === option.key}
+                onClick={() => setCategory(active ? "" : meta.key)}
+                aria-pressed={active}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
-                  mode === option.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  active ? "bg-accent text-accent-foreground shadow-sm" : "bg-accent-soft/60 text-foreground hover:bg-accent-soft"
                 )}
               >
                 <Icon className="h-4 w-4" />
-                {option.label}
+                {meta.label}
               </button>
             );
           })}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowFilters((open) => !open)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+              activeFilterCount > 0 ? "bg-accent-soft text-accent" : "bg-muted/60 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+            {activeFilterCount > 0 && <span className="tabular-nums">({activeFilterCount})</span>}
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showFilters && "rotate-180")} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDisputedOnly((current) => !current)}
+            aria-pressed={disputedOnly}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+              disputedOnly ? "bg-danger/12 text-danger" : "bg-muted/60 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <Scale className="h-4 w-4" />
+            Where sources disagree
+          </button>
+
+          <div className="ml-auto flex rounded-full bg-muted p-0.5">
+            {(
+              [
+                { key: "timeline", label: "Timeline", icon: Milestone },
+                { key: "compare", label: "Compare", icon: Layers },
+              ] as const
+            ).map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setMode(option.key)}
+                  aria-pressed={mode === option.key}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                    mode === option.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -721,6 +727,68 @@ export function TimelineView({
         </div>
       )}
 
+      {/* ---- Choose a span --------------------------------------------
+          Above the timeline rather than below it, because this is the
+          first thing a reader does: pick how much time to look at, then
+          look at it. Underneath the strip they were a footnote to a
+          decision that had already been made. */}
+      {/* ---- Eras ------------------------------------------------------------
+          Scrolls sideways where there is not room and wraps where there is, so
+          the cards keep their size rather than being squeezed into illegibility
+          on a narrow screen. */}
+      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        {/* Everything this community has, framed. First in the row because it
+            is the jump people actually want — the fixed eras beside it are
+            spans of history, this one is a span of YOUR timeline. */}
+        {extent && (
+          <SpanCard
+            accent
+            icon={<Maximize2 className="h-4 w-4" />}
+            {...durationParts(Math.max(1, extent.to - extent.from))}
+            caption="Whole timeline"
+            active={matchesWindow({ from: extent.from, to: extent.to })}
+            onClick={fitEverything}
+          />
+        )}
+        {TIMELINE_JUMPS.map((jump) => (
+          <SpanCard
+            key={jump.key}
+            {...durationParts(jump.window.to - jump.window.from)}
+            caption={jump.label}
+            active={matchesWindow(jump.window)}
+            onClick={() => setView(jump.window)}
+          />
+        ))}
+      </div>
+
+      {/* ---- How far back ---------------------------------------------------
+          The era chips above are PLACES; this row is DEPTHS. Every one ends at
+          the same point just past today and only the reach changes, so going
+          along the row is one continuous zoom out from the present — which is
+          the question a learner asks far more often than "show me the Medieval
+          period". */}
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          Back from {LOOKBACK_END_YEAR}
+        </p>
+        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {LOOKBACK_SPANS.map((years) => {
+            const window = lookbackWindow(years);
+            return (
+              <SpanCard
+                key={years}
+                {...durationParts(years)}
+                // Where it actually lands, so the reader can see that 7,500
+                // years is the Neolithic without having to do the subtraction.
+                caption={`from ${formatYear(Math.floor(window.from), { compact: true })}`}
+                active={matchesWindow(window)}
+                onClick={() => setView(window)}
+              />
+            );
+          })}
+        </div>
+      </div>
+
       {/* ---- How much time is on screen ------------------------------------
           Above the strip in both windowed modes, and absent from "whole",
           where the answer is "all of it" and a measurement of the view would
@@ -829,35 +897,6 @@ export function TimelineView({
         </button>
       </div>
 
-      {/* ---- Eras ------------------------------------------------------------
-          Scrolls sideways where there is not room and wraps where there is, so
-          the cards keep their size rather than being squeezed into illegibility
-          on a narrow screen. */}
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-        {/* Everything this community has, framed. First in the row because it
-            is the jump people actually want — the fixed eras beside it are
-            spans of history, this one is a span of YOUR timeline. */}
-        {extent && (
-          <SpanCard
-            accent
-            icon={<Maximize2 className="h-4 w-4" />}
-            {...durationParts(Math.max(1, extent.to - extent.from))}
-            caption="Whole timeline"
-            active={matchesWindow({ from: extent.from, to: extent.to })}
-            onClick={fitEverything}
-          />
-        )}
-        {TIMELINE_JUMPS.map((jump) => (
-          <SpanCard
-            key={jump.key}
-            {...durationParts(jump.window.to - jump.window.from)}
-            caption={jump.label}
-            active={matchesWindow(jump.window)}
-            onClick={() => setView(jump.window)}
-          />
-        ))}
-      </div>
-
       {/* ---- The event you clicked -----------------------------------------
           Inline, under the strip, rather than in a drawer over the top of it.
           A panel that covers the timeline hides the very thing the event needs
@@ -924,34 +963,6 @@ export function TimelineView({
 
         </div>
       )}
-
-      {/* ---- How far back ---------------------------------------------------
-          The era chips above are PLACES; this row is DEPTHS. Every one ends at
-          the same point just past today and only the reach changes, so going
-          along the row is one continuous zoom out from the present — which is
-          the question a learner asks far more often than "show me the Medieval
-          period". */}
-      <div className="mt-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Back from {LOOKBACK_END_YEAR}
-        </p>
-        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-          {LOOKBACK_SPANS.map((years) => {
-            const window = lookbackWindow(years);
-            return (
-              <SpanCard
-                key={years}
-                {...durationParts(years)}
-                // Where it actually lands, so the reader can see that 7,500
-                // years is the Neolithic without having to do the subtraction.
-                caption={`from ${formatYear(Math.floor(window.from), { compact: true })}`}
-                active={matchesWindow(window)}
-                onClick={() => setView(window)}
-              />
-            );
-          })}
-        </div>
-      </div>
 
       {/* ---- The worked example --------------------------------------------
           Offered to staff until it is taken, then never again — hasShowcase

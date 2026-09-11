@@ -65,6 +65,23 @@ export async function bringImageIn(
 ): Promise<BringInResult> {
   if (!isHotlinked(url)) return { url };
 
+  // The address as stored, then whatever else is worth trying for it.
+  const attempts = [url, ...wikimediaAlternatives(url)];
+  let firstReason: string | null = null;
+
+  for (const attempt of attempts) {
+    const result = await fetchAndStore(supabase, { url: attempt, userId, name });
+    if ("url" in result) return result;
+    firstReason ??= result.reason;
+  }
+  return { reason: firstReason ?? "that picture could not be brought in" };
+}
+
+/** One attempt at one address: fetch it, check it, store it. */
+async function fetchAndStore(
+  supabase: SupabaseClient<Database>,
+  { url, userId, name }: { url: string; userId: string; name: string }
+): Promise<BringInResult> {
   let response: Response;
   try {
     response = await fetch(url, {
@@ -84,7 +101,15 @@ export async function bringImageIn(
     return { reason: `couldn't reach ${hostOf(url)} (${detail})` };
   }
 
-  if (!response.ok) return { reason: `${hostOf(url)} answered ${response.status}` };
+  if (!response.ok) {
+    // Wikimedia's error pages say what was wrong with the request in one line,
+    // and that line is worth far more than the bare status code.
+    const detail = await response
+      .text()
+      .then((body) => body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 120))
+      .catch(() => "");
+    return { reason: `${hostOf(url)} answered ${response.status}${detail ? ` — ${detail}` : ""}` };
+  }
 
   const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
   const extension = IMAGE_TYPES.get(contentType);
@@ -112,6 +137,44 @@ export async function bringImageIn(
   const { data } = supabase.storage.from("uploads").getPublicUrl(path);
   if (!data.publicUrl) return { reason: "storage accepted the file but gave back no address for it" };
   return { url: data.publicUrl };
+}
+
+// A WIKIMEDIA THUMBNAIL CANNOT BE WIDER THAN THE FILE IT COMES FROM.
+//
+// This is the whole reason the Great Pyramid's photographs never appeared
+// anywhere — not in the app, not in a browser, not once. The stored addresses
+// asked upload.wikimedia.org for a 1024px thumbnail of an old upload that is
+// smaller than 1024px, and Wikimedia answers a request it cannot satisfy with
+// 400. Hand-built thumbnail paths carry that trap: you have to know the
+// original's dimensions to pick a width, and nothing about the file name tells
+// you them.
+//
+// Special:FilePath is the documented way to ask for a file by NAME and let
+// Wikimedia choose the thumbnail — so the size question is answered by the only
+// party that knows the answer. Tried with a width first, then without, which is
+// full resolution and always exists if the file does.
+//
+// Derived from the failing address rather than stored alongside it, so this
+// also repairs communities that already have the broken URLs written into their
+// events.
+export function wikimediaAlternatives(url: string): string[] {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return [];
+  }
+  if (!parsed.host.endsWith("wikimedia.org") && !parsed.host.endsWith("wikipedia.org")) return [];
+
+  const segments = parsed.pathname.split("/").filter(Boolean);
+  if (segments.length === 0) return [];
+  // /wikipedia/commons/thumb/e/e3/Name.jpg/1024px-Name.jpg → the name is the
+  // second-to-last segment. /wikipedia/commons/e/e3/Name.jpg → it is the last.
+  const name = segments.includes("thumb") ? segments[segments.length - 2] : segments[segments.length - 1];
+  if (!name || !name.includes(".")) return [];
+
+  const base = `https://commons.wikimedia.org/wiki/Special:FilePath/${name}`;
+  return [`${base}?width=1024`, base];
 }
 
 /** Just the host, for a message a person reads. */

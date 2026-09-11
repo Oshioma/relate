@@ -364,16 +364,25 @@ export const SHOWCASE_EVENT = {
   // in the caption where a reader can actually see them. Attribution is a
   // condition of these licences, not a courtesy, so it travels with the image
   // rather than sitting in a field nothing renders.
+  //
+  // ADDRESSED BY FILE NAME, NOT BY A HAND-BUILT THUMBNAIL PATH. These used to
+  // be upload.wikimedia.org/.../thumb/e/e3/Name.jpg/1024px-Name.jpg — and a
+  // Wikimedia thumbnail may not be wider than the file it comes from, so asking
+  // for 1024px of an older upload that is smaller than that is a request the
+  // server answers with 400. The pictures never appeared for anyone, anywhere.
+  //
+  // Special:FilePath is the documented way to ask for a file by name and let
+  // Wikimedia pick a size it can actually produce.
   imageUrl:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/1024px-Kheops-Pyramid.jpg",
+    "https://commons.wikimedia.org/wiki/Special:FilePath/Kheops-Pyramid.jpg?width=1024",
   media: [
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/1024px-Kheops-Pyramid.jpg",
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Kheops-Pyramid.jpg?width=1024",
       caption: "The Great Pyramid of Khufu from the north-east. Photograph by Nina Aldin Thune, CC BY 2.5, via Wikimedia Commons.",
       kind: "image",
     },
     {
-      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/All_Gizah_Pyramids.jpg/1024px-All_Gizah_Pyramids.jpg",
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/All_Gizah_Pyramids.jpg?width=1024",
       caption: "The Giza plateau, with all three main pyramids and the subsidiary queens' pyramids. Photograph by Ricardo Liberato, CC BY-SA 2.0, via Wikimedia Commons.",
       kind: "image",
     },
