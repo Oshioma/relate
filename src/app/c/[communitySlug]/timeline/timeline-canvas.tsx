@@ -259,6 +259,19 @@ export function TimelineCanvas({
                 {placed.showLabel && (
                   <>
                     <span className="truncate font-medium text-foreground">{placed.event.title}</span>
+                    {/* WHEN, NEXT TO WHAT. A caption that reads only "First
+                        Moon landing" makes the reader measure it off the ruler
+                        by eye; the date beside it answers the question the
+                        strip exists to answer. Where the sources disagree this
+                        is the whole envelope of their proposals rather than
+                        one of them picked out — see eventDateLabel.
+                        `shrink-0` so the title truncates and the date never
+                        does: half a date is worse than none. */}
+                    {placed.dateLabel && (
+                      <span className="shrink-0 text-[12px] font-medium text-muted-foreground tabular-nums">
+                        {placed.dateLabel}
+                      </span>
+                    )}
                     {placed.disputed && (
                       <span className="shrink-0 rounded-full bg-danger/12 px-1.5 text-[10px] font-semibold text-danger">
                         {placed.event.claims.length} dates

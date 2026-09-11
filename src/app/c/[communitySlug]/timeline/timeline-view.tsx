@@ -37,6 +37,10 @@ import {
   presentPosition,
   windowAround,
   zoomWindow,
+  LOOKBACK_END_YEAR,
+  LOOKBACK_SPANS,
+  formatDuration,
+  lookbackWindow,
   TIMELINE_JUMPS,
   type TimeScale,
   type TimeWindow,
@@ -765,6 +769,30 @@ export function TimelineView({
 
         </div>
       )}
+
+      {/* ---- How far back ---------------------------------------------------
+          The era chips above are PLACES; this row is DEPTHS. Every one ends at
+          the same point just past today and only the reach changes, so going
+          along the row is one continuous zoom out from the present — which is
+          the question a learner asks far more often than "show me the Medieval
+          period". */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+          Back from {LOOKBACK_END_YEAR} —
+        </span>
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {LOOKBACK_SPANS.map((years) => (
+            <button
+              key={years}
+              type="button"
+              onClick={() => setView(lookbackWindow(years))}
+              className="shrink-0 rounded-full bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {formatDuration(years)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ---- The worked example --------------------------------------------
           Offered to staff until it is taken, then never again — hasShowcase
