@@ -159,6 +159,39 @@ export const ATLANTIS_SOURCES: SeedSource[] = [
       "Steiner's own account of an Atlantean age, written from what he describes as reading the Akashic record. Cited for the account; the date below comes from the anthroposophical chronology built on it, not from this text.",
   },
   {
+    key: "steiner_ga95",
+    title: "The Post-Atlantean Culture-Epochs",
+    author: "Rudolf Steiner",
+    workTitle: "At the Gates of Spiritual Science (GA 95)",
+    reference: "Lecture 11, Stuttgart, 1 September 1906",
+    url: "https://rsarchive.org/Lectures/GateSpiSci/19060901p01.html",
+    sourceType: "primary",
+    publishedDisplay: "lecture of 1 September 1906",
+    notes:
+      "Steiner's own lecture on the scheme the 7227 BC figure is produced by: seven post-Atlantean culture-epochs following the Atlantean flood. Cited for the scheme, which is his; the 7227 BC number is not in it.",
+  },
+  {
+    key: "steiner_ga124",
+    title: "The Tasks of the Fifth Post-Atlantean Epoch",
+    author: "Rudolf Steiner",
+    workTitle: "Background to the Gospel of St. Mark (GA 124)",
+    reference: "Lecture 3, Berlin, 7 November 1910",
+    url: "https://rsarchive.org/Lectures/GA124/English/RSP1985/19101107p02.html",
+    sourceType: "primary",
+    publishedDisplay: "lecture of 7 November 1910",
+    notes:
+      "One of the lectures in which Steiner gives the epoch boundaries the chronology is counted back from — the Graeco-Roman epoch running from 747 B.C. to 1413 A.D., and the fifth epoch beginning there.",
+  },
+  {
+    key: "steiner_theosophy_history",
+    title: "Rudolf Steiner: From Theosophy to Anthroposophy (1902–1913)",
+    publisher: "PhilPapers",
+    url: "https://philpapers.org/archive/PAURSF.pdf",
+    sourceType: "academic_paper",
+    notes:
+      "An academic account of the eleven years Steiner spent inside the Theosophical Society before founding the Anthroposophical Society. Cited for the lineage between two of the claims on this record, not for any date in them.",
+  },
+  {
     key: "anthrowiki_epochs",
     title: "Cultural epochs",
     publisher: "AnthroWiki",
@@ -312,25 +345,45 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         evidence:
           "WHAT THE SOURCE SAYS: in the Theosophical account, Atlantis is destroyed in stages; the last remaining island, Poseidonis, is submerged in the fourth and final catastrophe of 9564 B.C. EVIDENCE TYPE: an explicit date, stated in a published book, arrived at by what the author describes as clairvoyant investigation of Akashic records. LIMITATION: the method is not one that can be checked by anybody else, which is a fact about it rather than a verdict on it.",
         notes:
-          "Worth setting beside Plato's calculated ~9600 BCE, thirty-six years away. Scott-Elliot was writing after Donnelly and within a tradition that already took Plato's chronology seriously; the closeness is not independent agreement.",
+          "Worth setting beside Plato's calculated ~9600 BCE, thirty-six years away. Scott-Elliot was writing after Donnelly and within a tradition that already took Plato's chronology seriously; the closeness is not independent agreement.\n\n" +
+          "It runs forward as well as back. Rudolf Steiner joined the Theosophical Society six years after this book and led its German Section for a decade, so the anthroposophical 7227 BC further down this record belongs to the same lineage — three esoteric dates on this page, one tradition.",
       },
       {
-        sourceKey: "anthrowiki_epochs",
+        sourceKey: "steiner_ga124",
         startYear: bce(7227),
         datePrecision: "year",
         isApproximate: true,
-        originalDateText: "7227 BC",
-        datingMethod: "source_assertion",
+        originalDateText: "counted back from 747 B.C. in epochs of about 2,160 years",
+        datingMethod: "textual_interpretation",
         chronology: "alternative",
         evidence:
-          "WHAT THE SOURCE SAYS: in anthroposophical chronology the post-Atlantean age begins in 7227 BC with the sinking of Atlantis, and is divided into seven cultural epochs of about 2,160 years each. EVIDENCE TYPE: a chronology constructed within the movement from Steiner's account, which is itself given as spiritual perception. LIMITATION: the figure comes from the anthroposophical literature rather than from the Atlantis text cited beside it.",
+          "WHAT STEINER ACTUALLY GIVES: not a date for Atlantis, but a scheme. Seven post-Atlantean culture-epochs follow the Atlantean flood, each of about 2,160 years, and he states two of their boundaries in his own lectures — the Graeco-Roman epoch running from 747 B.C. to 1413 A.D. " +
+          "HOW 7227 BC IS REACHED: by counting back from 747 B.C. in steps of 2,160 years. Egypto-Chaldean begins 2907 BC, Ancient Persian 5067 BC, Ancient Indian 7227 BC — and the start of the first epoch is the end of Atlantis. " +
+          "EVIDENCE TYPE: arithmetic on a figure inside an esoteric scheme. The 2,160 years is one twelfth of the precession of the equinoxes, so the whole ladder is astronomical periodicity rather than anything observed about a place. " +
+          "LIMITATION: 7227 BC is a CALCULATED date, in exactly the sense Plato's 9600 BCE is. Steiner does not write it about Atlantis, and a reader who meets it as \"Steiner's date for Atlantis\" has been told something the sources do not support.",
         notes:
-          "The brief this dataset was written from placed Steiner's Atlantis at about 10,000 BCE. The date that could be verified in anthroposophical sources is 7227 BC — nearly three thousand years later — so that is what is stored, with the discrepancy recorded here rather than split.",
+          "TWO CORRECTIONS ARE RECORDED HERE RATHER THAN SMOOTHED AWAY. The brief this dataset was written from placed Steiner's Atlantis at about 10,000 BCE; the figure the anthroposophical literature actually carries is 7227 BC, nearly three thousand years later. And the figure is not an assertion but a subtraction — which is why this claim is filed as a calculated date and not, as it first was, as a source simply stating one.\n\n" +
+          "NOT AN INDEPENDENT WITNESS. Steiner was General Secretary of the German Section of the Theosophical Society from October 1902 until the Anthroposophical Society was founded in December 1912, and W. Scott-Elliot's Theosophical Atlantis — 9564 B.C., also on this record — was published in 1896, within the tradition Steiner then spent eleven years inside. The two esoteric chronologies here are one lineage, not two accounts agreeing.",
         citations: [
+          {
+            sourceKey: "steiner_ga95",
+            relation: "supports",
+            note: "Steiner's lecture on the post-Atlantean culture-epochs — the scheme the arithmetic runs on, in his own words.",
+          },
+          {
+            sourceKey: "anthrowiki_epochs",
+            relation: "supports",
+            note: "The anthroposophical reference work that carries the completed chronology, including the 7227 BC figure and the epoch dates back to it.",
+          },
           {
             sourceKey: "steiner_cosmic_memory",
             relation: "context",
-            note: "Steiner's own account of the Atlantean age, from which this chronology is built. The 7227 BC figure is not in it.",
+            note: "Steiner's own account of the Atlantean age, written 1904–1908. No date in our reckoning appears in it.",
+          },
+          {
+            sourceKey: "steiner_theosophy_history",
+            relation: "context",
+            note: "The eleven years Steiner spent in the Theosophical Society, which is why his Atlantis and Scott-Elliot's are the same lineage rather than two sources agreeing.",
           },
         ],
       },
