@@ -417,8 +417,19 @@ export function formatClaimDate(claim: ClaimTimeParts): string {
       }
       return `${prefix}${start}`;
     }
-    const end = formatDeepTime(claim.end_year, unit.key, decimals, null);
-    return `${prefix}${end} – ${start}`;
+    // A DEEP-TIME RANGE IS WRITTEN OLDEST FIRST, AND SAYS "YEARS AGO" ONCE.
+    //
+    // It used to print "200,000 years ago – 700,000 years ago": the younger end
+    // first, because that is the lower number on the axis, and the unit twice,
+    // because each end was formatted on its own. Nobody writes a span of deep
+    // time that way — it is "700,000–200,000 years ago", counting back — and the
+    // doubled unit reads as two dates rather than one range.
+    const older = formatDeepTime(claim.start_year, unit.key, decimals, null);
+    const younger = formatDeepTime(claim.end_year, unit.key, decimals, null);
+    const tailOf = (text: string) => text.match(/ (?:million |billion )?years ago$/)?.[0] ?? "";
+    const tail = tailOf(younger);
+    const number = (text: string) => text.slice(0, text.length - tailOf(text).length);
+    return `${prefix}${number(older)}–${number(younger)}${tail}`;
   }
 
   const start = formatCalendarPoint(claim, claim.start_year, claim.start_month, claim.start_day);
@@ -510,6 +521,21 @@ export function eventDateLabel(claims: ClaimTimeParts[]): string | null {
     hi = Math.max(hi, start, end);
   }
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
+
+  // DEEP TIME IS NOT WRITTEN IN BCE. An event whose claims are all measured in
+  // thousands or millions of years is written the way those claims are written:
+  // "765,000 – 550,000 years ago", not "798,051 BCE – 548,051 BCE", which
+  // invents a precision none of the claims has and reads as nonsense besides.
+  if (claims.every((claim) => unitTakesDecimals(claim.date_precision))) {
+    const older = yearsAgoOf(lo);
+    const younger = yearsAgoOf(hi);
+    if (Math.abs(older - younger) < 1) return `${formatDuration(older)} ago`;
+    const youngerParts = durationParts(younger);
+    const olderParts = durationParts(older);
+    return olderParts.unit === youngerParts.unit
+      ? `${olderParts.value} – ${youngerParts.value} ${youngerParts.unit} ago`
+      : `${formatDuration(older)} – ${formatDuration(younger)} ago`;
+  }
 
   // FLOOR, NOT ROUND. A position is a year plus a fraction of it, so the 2nd of
   // August 216 BCE sits at −214.4 — and rounding that lands in the following

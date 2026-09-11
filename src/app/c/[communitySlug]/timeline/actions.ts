@@ -25,6 +25,8 @@ import {
 } from "@/lib/timeline/showcase-event";
 import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
 import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
+import { DEEP_TIME_EVENTS, DEEP_TIME_SOURCES, DEEP_TIME_TRACK } from "@/lib/timeline/deep-time-seed";
+import type { SeedEvent, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -1003,40 +1005,43 @@ export async function seedShowcaseEvent(communitySlug: string) {
 }
 
 /**
- * Seed the Hannibal / Second Punic War dataset into this community's timeline.
+ * Seed a prepared dataset into this community's timeline.
  *
- * Seventeen events, each with its own claims and its own sources. The same shape
- * as the worked example above — staff only, in-app, idempotent — but bigger,
- * so the rules are worth stating:
+ * One function for both of them — the Great Pyramid's neighbours, Hannibal,
+ * and the Middle Pleistocene — because they are the same operation over
+ * different data, and two copies of this would be two things to keep correct.
  *
  * IDEMPOTENT PER EVENT, NOT PER DATASET. An event already present under its
  * slug is skipped whole: its claims are not touched, its citations are not
  * re-added, and anything a community has edited stays edited. Run it twice and
  * the second run adds nothing; run it after a community has deleted three of
- * the sixteen and only those three come back.
+ * seventeen and only those three come back.
  *
- * SOURCES ARE SHARED AND REUSED. A source already in the community under the
- * same title is used rather than duplicated — the same rule the source picker
- * teaches contributors, and the reason Polybius ends up cited by a dozen claims
- * instead of appearing a dozen times.
+ * SOURCES ARE MATCHED ON TITLE AND AUTHOR. This dataset cites two different
+ * books both called "Hannibal" — Lancel's and Hunt's. Keyed on title alone the
+ * second would silently reuse the first, and a claim about the Col du Clapier
+ * would end up attributed to a book that never mentions it. Attribution is the
+ * whole point of this feature, so the key includes the author.
  *
  * PARTIAL FAILURE DOES NOT ROLL THE WHOLE THING BACK. If one event fails to
  * insert, the ones already added stay and the count comes back honest. An
  * event whose CLAIMS fail is removed again, because an event with no dates
  * cannot be drawn on a timeline.
  */
-export async function seedHannibalDataset(communitySlug: string) {
-  const context = await requireTimelineWriter(communitySlug);
-  if ("error" in context) return context;
-  const { supabase, community, userId, isStaff } = context;
-  if (!isStaff) return { error: "Only staff can add the Hannibal dataset." };
+async function seedDataset(
+  supabase: SupabaseClient<Database>,
+  community: Community,
+  userId: string,
+  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string }
+): Promise<{ error: string } | { ok: true; added: number; skipped: number; failed: number }> {
+  const { events: seedEvents, sources: seedSources, track, label } = dataset;
 
   // --- The lane -------------------------------------------------------------
   const { data: existingTrack } = await supabase
     .from("timeline_tracks")
     .select("id")
     .eq("community_id", community.id)
-    .eq("slug", HANNIBAL_TRACK.slug)
+    .eq("slug", track.slug)
     .maybeSingle();
 
   let trackId = existingTrack?.id ?? null;
@@ -1046,10 +1051,10 @@ export async function seedHannibalDataset(communitySlug: string) {
       .insert({
         community_id: community.id,
         created_by: userId,
-        name: HANNIBAL_TRACK.name,
-        slug: HANNIBAL_TRACK.slug,
-        kind: HANNIBAL_TRACK.kind,
-        color: HANNIBAL_TRACK.color,
+        name: track.name,
+        slug: track.slug,
+        kind: track.kind,
+        color: track.color,
         sort_order: 50,
       })
       .select("id")
@@ -1058,13 +1063,6 @@ export async function seedHannibalDataset(communitySlug: string) {
   }
 
   // --- The sources ----------------------------------------------------------
-  // MATCHED ON TITLE AND AUTHOR, NOT TITLE ALONE.
-  //
-  // This dataset cites two different books both called "Hannibal" — Lancel's
-  // and Hunt's. Keyed on title, the second would silently reuse the first, and
-  // a claim about the Col du Clapier would end up attributed to a book that
-  // never mentions it. Attribution is the whole point of this feature, so the
-  // key includes the author.
   const sourceKeyOf = (title: string, author: string | null | undefined) =>
     `${title.trim().toLowerCase()}|${(author ?? "").trim().toLowerCase()}`;
 
@@ -1075,7 +1073,7 @@ export async function seedHannibalDataset(communitySlug: string) {
   const byTitle = new Map((known ?? []).map((row) => [sourceKeyOf(row.title, row.author), row.id]));
   const sourceIds = new Map<string, string>();
 
-  for (const source of HANNIBAL_SOURCES) {
+  for (const source of seedSources) {
     const already = byTitle.get(sourceKeyOf(source.title, source.author));
     if (already) {
       sourceIds.set(source.key, already);
@@ -1102,13 +1100,13 @@ export async function seedHannibalDataset(communitySlug: string) {
       .single();
     if (error) return { error: error.message };
     sourceIds.set(source.key, data.id);
-    // Added to the map as well as the list: two entries in this file that were
+    // Added to the map as well as the list: two entries in one file that are
     // the same work would otherwise be inserted twice in a single run.
     byTitle.set(sourceKeyOf(source.title, source.author), data.id);
   }
 
   // The citation chain, wired once every source has an id.
-  for (const source of HANNIBAL_SOURCES) {
+  for (const source of seedSources) {
     if (!source.citedBy) continue;
     const child = sourceIds.get(source.key);
     const parent = sourceIds.get(source.citedBy);
@@ -1121,14 +1119,14 @@ export async function seedHannibalDataset(communitySlug: string) {
     .from("timeline_events")
     .select("slug")
     .eq("community_id", community.id)
-    .in("slug", HANNIBAL_EVENTS.map((event) => event.slug));
+    .in("slug", seedEvents.map((event) => event.slug));
   const present = new Set((presentRows ?? []).map((row) => row.slug));
 
   let added = 0;
   const skipped: string[] = [];
   const failed: string[] = [];
 
-  for (const seed of HANNIBAL_EVENTS) {
+  for (const seed of seedEvents) {
     if (present.has(seed.slug)) {
       skipped.push(seed.slug);
       continue;
@@ -1172,6 +1170,12 @@ export async function seedHannibalDataset(communitySlug: string) {
       start_day: claim.startDay ?? null,
       end_year: claim.endYear ?? null,
       date_precision: claim.datePrecision,
+      precision_decimals: claim.precisionDecimals ?? 0,
+      // A stated measurement error, kept as one. See SeedClaim: a tolerance is
+      // never folded into end_year, because "609 ± 40 ka" and "700–500 ka" are
+      // different assertions about different things.
+      uncertainty_plus: claim.uncertaintyPlus ?? null,
+      uncertainty_minus: claim.uncertaintyMinus ?? null,
       is_approximate: claim.isApproximate,
       original_date_text: claim.originalDateText,
       dating_method: claim.datingMethod,
@@ -1218,7 +1222,7 @@ export async function seedHannibalDataset(communitySlug: string) {
       const { error: citationError } = await supabase.from("timeline_claim_sources").insert(citationRows);
       // Not fatal, for the same reason as the worked example: an entry missing
       // its further reading is worth far more than no entry at all.
-      if (citationError) console.error("Hannibal citations failed:", JSON.stringify(citationError));
+      if (citationError) console.error(`${label} citations failed:`, JSON.stringify(citationError));
     }
 
     if (trackId) {
@@ -1230,8 +1234,41 @@ export async function seedHannibalDataset(communitySlug: string) {
     added++;
   }
 
-  revalidatePath(timelinePath(community.slug));
   return { ok: true as const, added, skipped: skipped.length, failed: failed.length };
+}
+
+/** Seventeen events from the Second Punic War. See hannibal-seed.ts. */
+export async function seedHannibalDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the Hannibal dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: HANNIBAL_EVENTS,
+    sources: HANNIBAL_SOURCES,
+    track: HANNIBAL_TRACK,
+    label: "Hannibal",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/** Ten records from the Middle Pleistocene. See deep-time-seed.ts. */
+export async function seedDeepTimeDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the deep time dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: DEEP_TIME_EVENTS,
+    sources: DEEP_TIME_SOURCES,
+    track: DEEP_TIME_TRACK,
+    label: "Deep time",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
 }
 
 export async function setEventTracks(eventId: string, communitySlug: string, trackIds: string[]) {

@@ -33,6 +33,7 @@ import {
   loadTimelineEvent,
   loadTimelineWindow,
   searchTimeline,
+  seedDeepTimeDataset,
   seedHannibalDataset,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -171,6 +172,7 @@ export function TimelineView({
   markers,
   hasShowcase,
   hasHannibal,
+  hasDeepTime,
   showcaseNeedsPictures,
   citations,
   initialTruncated,
@@ -195,6 +197,8 @@ export function TimelineView({
   hasShowcase: boolean;
   /** Whether the Hannibal dataset is already here. True for non-staff, who are never offered it. */
   hasHannibal: boolean;
+  /** Whether the Middle Pleistocene dataset is already here. Same rule. */
+  hasDeepTime: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
   showcaseNeedsPictures: boolean;
   /** Every extra claim→source link in the community, for the detail panel. */
@@ -234,6 +238,7 @@ export function TimelineView({
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
   const [seedingHannibal, setSeedingHannibal] = useState(false);
+  const [seedingDeepTime, setSeedingDeepTime] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
@@ -1138,6 +1143,50 @@ export function TimelineView({
             }}
           >
             {seedingHannibal ? "Adding the events…" : "Add the Hannibal dataset"}
+          </Button>
+          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
+        </div>
+      )}
+
+      {/* ---- The deep time dataset -------------------------------------------
+          The same idea as the Hannibal set, asked of a period with no texts at
+          all: ten records where every date is an inference from teeth, magnetised
+          rock, isotopes or DNA, and several of them sit nowhere near each other
+          on the strip because the evidence puts them where it puts them. */}
+      {isStaff && !hasDeepTime && (
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
+          <p className="text-sm font-semibold text-foreground">Add the deep time dataset?</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            Ten records from the Middle Pleistocene — Homo heidelbergensis, Acheulean handaxes, Boxgrove, the ice age
+            cycles, the Neanderthal divergence, the Brunhes&ndash;Matuyama magnetic reversal. There are no texts from
+            any of it, so every date is an inference from teeth, magnetised rock, ocean isotopes or DNA, and where the
+            specialists disagree by a quarter of a million years the disagreement is shown rather than averaged away.
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-3"
+            disabled={seedingDeepTime}
+            onClick={() => {
+              setSeedingDeepTime(true);
+              startSeed(async () => {
+                const result = await seedDeepTimeDataset(communitySlug);
+                setSeedingDeepTime(false);
+                if (result && "error" in result) {
+                  setSeedError(result.error);
+                  return;
+                }
+                if (result && "failed" in result && result.failed > 0) {
+                  setSeedError(
+                    `Added ${result.added} of ${result.added + result.failed} events — ${result.failed} could not be added.`
+                  );
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+              });
+            }}
+          >
+            {seedingDeepTime ? "Adding the records…" : "Add the deep time dataset"}
           </Button>
           {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
