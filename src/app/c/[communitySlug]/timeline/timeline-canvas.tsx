@@ -7,6 +7,7 @@ import { layoutTimeline } from "@/lib/timeline/layout";
 import {
   axisTicks,
   fractionOf,
+  type TimeScale,
   scaleBandFor,
   SCALE_BAND_LABELS,
   clampWindow,
@@ -34,6 +35,7 @@ const RULER_HEIGHT = 46;
 export function TimelineCanvas({
   events,
   window: view,
+  scale = "linear",
   onWindowChange,
   present,
   selectedId,
@@ -44,6 +46,8 @@ export function TimelineCanvas({
 }: {
   events: TimelineEventWithClaims[];
   window: TimeWindow;
+  /** Linear years, or spaced by order of magnitude. See TimeScale in time.ts. */
+  scale?: TimeScale;
   onWindowChange: (next: TimeWindow) => void;
   present: number;
   selectedId: string | null;
@@ -76,20 +80,20 @@ export function TimelineCanvas({
   const width = size.width;
   const rowsAvailable = Math.max(1, Math.floor((size.height - RULER_HEIGHT - 12) / ROW_HEIGHT));
   const layout = useMemo(
-    () => layoutTimeline(events, view, width, rowsAvailable),
-    [events, view, width, rowsAvailable]
+    () => layoutTimeline(events, view, width, rowsAvailable, scale),
+    [events, view, width, rowsAvailable, scale]
   );
 
   const ticks = useMemo(
-    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 130)) }) : []),
-    [view, width]
+    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 130)), scale }) : []),
+    [view, width, scale]
   );
 
   const band = scaleBandFor(view.to - view.from);
 
-  const nav = useTimeNavigation(containerRef, view, onWindowChange);
+  const nav = useTimeNavigation(containerRef, view, onWindowChange, scale);
 
-  const presentX = fractionOf(view, present) * width;
+  const presentX = fractionOf(view, present, scale) * width;
   const showPresent = presentX > -40 && presentX < width + 40;
   const eventsTop = RULER_HEIGHT + 8;
 
@@ -127,7 +131,7 @@ export function TimelineCanvas({
             billions of years, then millennia, then decades, then months. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-full">
           {ticks.map((tick) => {
-            const x = fractionOf(view, tick.position) * width;
+            const x = fractionOf(view, tick.position, scale) * width;
             if (x < -60 || x > width + 60) return null;
             return (
               <div key={tick.position} className="absolute inset-y-0" style={{ left: x }}>
@@ -264,11 +268,19 @@ export function TimelineCanvas({
 
         {/* The scale badge sits under the ruler on a phone and beside it on a
             desktop: at 390px wide the ticks reach the right edge, and a badge
-            in the corner landed on top of "4 bya". */}
-        <div className="pointer-events-none absolute right-3 bottom-2 flex items-center gap-2 sm:bottom-auto sm:top-2">
+            in the corner landed on top of "4 bya".
+            The LOG ruler reaches the right edge at every width — "Now" is the
+            last tick and the present is always on screen — so there it stays at
+            the bottom on desktop too, for the same reason. */}
+        <div
+          className={cn(
+            "pointer-events-none absolute right-3 bottom-2 flex items-center gap-2",
+            scale === "linear" && "sm:bottom-auto sm:top-2"
+          )}
+        >
           {loading && <span className="text-[11px] text-muted-foreground">Loading…</span>}
           <span className="rounded-full bg-muted/80 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {SCALE_BAND_LABELS[band]}
+            {scale === "log" ? "Log scale — spacing distorted" : SCALE_BAND_LABELS[band]}
           </span>
         </div>
       </div>

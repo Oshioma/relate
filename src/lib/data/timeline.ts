@@ -671,6 +671,46 @@ export async function getSourceChains(
   return chains;
 }
 
+/**
+ * WHERE EVERY EVENT SITS, and nothing else about it.
+ *
+ * The overview bar needs one number per event across the whole timeline, which
+ * is the one read that cannot be bounded by the visible window — the entire
+ * point of it is to show what is OUTSIDE the window.
+ *
+ * It is affordable because it is numbers. No titles, no summaries, no claims,
+ * no sources: a thousand events is a few kilobytes, where a thousand full
+ * events would be megabytes. That distinction is what makes this safe and made
+ * the earlier "read everything" version not.
+ *
+ * Loaded with the page, never on a click, so it costs no spinner.
+ */
+export async function getEventMarkers(
+  supabase: Client,
+  communityId: string,
+  limit = 5_000
+): Promise<{ position: number; category: string }[]> {
+  const { data, error } = await supabase
+    .from("timeline_date_claims")
+    .select("start_position, event:event_id!inner (category, status)")
+    .eq("community_id", communityId)
+    .order("start_position", { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as {
+    start_position: number;
+    event: { category: string | null; status: string } | null;
+  }[];
+
+  // One mark per CLAIM, not per event, and deliberately: an event whose sources
+  // disagree genuinely occupies two places on the timeline, and the bar that
+  // shows you where things are should show both.
+  return rows
+    .filter((row) => row.event?.status === "published")
+    .map((row) => ({ position: row.start_position, category: row.event?.category ?? "other" }));
+}
+
 function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {
   const grouped = new Map<K, T[]>();
   for (const row of rows) {

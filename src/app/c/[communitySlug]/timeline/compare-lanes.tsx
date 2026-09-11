@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { layoutLane } from "@/lib/timeline/layout";
-import { axisTicks, fractionOf, type TimeWindow } from "@/lib/timeline/time";
+import { axisTicks, fractionOf, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
 import { trackColor } from "@/lib/timeline/taxonomy";
 import { useTimeNavigation } from "./use-time-navigation";
 
@@ -29,6 +29,7 @@ export function CompareLanes({
   selectedTrackIds,
   events,
   window: view,
+  scale = "linear",
   onWindowChange,
   onSelect,
   selectedId,
@@ -37,13 +38,15 @@ export function CompareLanes({
   selectedTrackIds: string[];
   events: TimelineEventWithClaims[];
   window: TimeWindow;
+  /** Linear years, or spaced by order of magnitude. See TimeScale in time.ts. */
+  scale?: TimeScale;
   onWindowChange: (next: TimeWindow) => void;
   onSelect: (event: TimelineEventWithClaims) => void;
   selectedId: string | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  const nav = useTimeNavigation(containerRef, view, onWindowChange);
+  const nav = useTimeNavigation(containerRef, view, onWindowChange, scale);
 
   useLayoutEffect(() => {
     const element = containerRef.current;
@@ -57,8 +60,8 @@ export function CompareLanes({
   const lanes = useMemo(() => tracks.filter((track) => selectedTrackIds.includes(track.id)), [tracks, selectedTrackIds]);
 
   const ticks = useMemo(
-    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 140)) }) : []),
-    [view, width]
+    () => (width > 0 ? axisTicks(view.from, view.to, { target: Math.max(3, Math.round(width / 140)), scale }) : []),
+    [view, width, scale]
   );
 
   const byLane = useMemo(() => {
@@ -103,7 +106,7 @@ export function CompareLanes({
       {/* One ruler for every lane — which is what makes a vertical line a moment. */}
       <div className="pointer-events-none absolute inset-0">
         {ticks.map((tick) => {
-          const x = fractionOf(view, tick.position) * width;
+          const x = fractionOf(view, tick.position, scale) * width;
           if (x < -60 || x > width + 60) return null;
           return (
             <div key={tick.position} className="absolute inset-y-0" style={{ left: x }}>
@@ -118,7 +121,7 @@ export function CompareLanes({
 
       {lanes.map((lane, laneIndex) => {
         const laneEvents = byLane.get(lane.id) ?? [];
-        const placed = layoutLane(laneEvents, view, width);
+        const placed = layoutLane(laneEvents, view, width, scale);
         const color = trackColor(lane.color, laneIndex);
         const top = RULER_HEIGHT + laneIndex * LANE_HEIGHT;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
-import { clampWindow, panWindow, zoomWindow, type TimeWindow } from "@/lib/timeline/time";
+import { panWindow, zoomWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
 
 // Moving through time: drag to pan, wheel or pinch to zoom, arrow keys for the
 // keyboard. Shared by the main canvas and by Compare mode's lanes so both feel
@@ -17,7 +17,11 @@ const WHEEL_SENSITIVITY = 0.0016;
 export function useTimeNavigation(
   containerRef: RefObject<HTMLElement | null>,
   view: TimeWindow,
-  onWindowChange: (next: TimeWindow) => void
+  onWindowChange: (next: TimeWindow) => void,
+  // Every gesture below moves the PICTURE, so each has to be expressed in the
+  // space the picture is drawn in. On a log axis a drag that shifted a fixed
+  // number of years would crawl at the deep end and bolt at the shallow one.
+  scale: TimeScale = "linear"
 ) {
   // A drag must read the window it began with, without re-subscribing its
   // listeners every time the window moves. Written in an effect rather than in
@@ -48,15 +52,15 @@ export function useTimeNavigation(
       // A trackpad's horizontal swipe is a pan; everything else is a zoom about
       // the cursor. Matching what maps do matters more here than being clever.
       if (!nativeEvent.ctrlKey && Math.abs(nativeEvent.deltaX) > Math.abs(nativeEvent.deltaY)) {
-        onWindowChange(panWindow(viewRef.current, nativeEvent.deltaX / Math.max(1, rect.width)));
+        onWindowChange(panWindow(viewRef.current, nativeEvent.deltaX / Math.max(1, rect.width), scale));
         return;
       }
-      onWindowChange(zoomWindow(viewRef.current, Math.exp(nativeEvent.deltaY * WHEEL_SENSITIVITY), anchor));
+      onWindowChange(zoomWindow(viewRef.current, Math.exp(nativeEvent.deltaY * WHEEL_SENSITIVITY), anchor, scale));
     }
 
     element.addEventListener("wheel", handleWheel, { passive: false });
     return () => element.removeEventListener("wheel", handleWheel);
-  }, [containerRef, onWindowChange]);
+  }, [containerRef, onWindowChange, scale]);
 
   const onPointerDown = useCallback(
     (event: React.PointerEvent<HTMLElement>) => {
@@ -108,7 +112,7 @@ export function useTimeNavigation(
         const distance = Math.max(1, Math.abs(a.x - b.x));
         // Fingers apart means zoom in, which is a NARROWER window — hence the
         // reciprocal rather than the ratio.
-        onWindowChange(zoomWindow(pinch.current.window, pinch.current.distance / distance, pinch.current.centre));
+        onWindowChange(zoomWindow(pinch.current.window, pinch.current.distance / distance, pinch.current.centre, scale));
         return;
       }
 
@@ -121,11 +125,9 @@ export function useTimeNavigation(
         // strip — and only now, so a tap keeps its click (see onPointerDown).
         element.setPointerCapture?.(event.pointerId);
       }
-      const span = drag.current.window.to - drag.current.window.from;
-      const shift = (-dx / Math.max(1, rect.width)) * span;
-      onWindowChange(clampWindow({ from: drag.current.window.from + shift, to: drag.current.window.to + shift }));
+      onWindowChange(panWindow(drag.current.window, -dx / Math.max(1, rect.width), scale));
     },
-    [containerRef, onWindowChange]
+    [containerRef, onWindowChange, scale]
   );
 
   const onPointerUp = useCallback((event: React.PointerEvent<HTMLElement>) => {
@@ -146,28 +148,28 @@ export function useTimeNavigation(
       const step = event.shiftKey ? 0.5 : 0.15;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        onWindowChange(panWindow(viewRef.current, -step));
+        onWindowChange(panWindow(viewRef.current, -step, scale));
       } else if (event.key === "ArrowRight") {
         event.preventDefault();
-        onWindowChange(panWindow(viewRef.current, step));
+        onWindowChange(panWindow(viewRef.current, step, scale));
       } else if (event.key === "+" || event.key === "=") {
         event.preventDefault();
-        onWindowChange(zoomWindow(viewRef.current, 1 / 1.6));
+        onWindowChange(zoomWindow(viewRef.current, 1 / 1.6, 0.5, scale));
       } else if (event.key === "-" || event.key === "_") {
         event.preventDefault();
-        onWindowChange(zoomWindow(viewRef.current, 1.6));
+        onWindowChange(zoomWindow(viewRef.current, 1.6, 0.5, scale));
       }
     },
-    [onWindowChange]
+    [onWindowChange, scale]
   );
 
   const onDoubleClick = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect || rect.width === 0) return;
-      onWindowChange(zoomWindow(viewRef.current, 1 / 2.5, (event.clientX - rect.left) / rect.width));
+      onWindowChange(zoomWindow(viewRef.current, 1 / 2.5, (event.clientX - rect.left) / rect.width, scale));
     },
-    [containerRef, onWindowChange]
+    [containerRef, onWindowChange, scale]
   );
 
   /** True when the gesture that just ended was a pan, so a click can decline to also select. */

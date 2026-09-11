@@ -772,7 +772,79 @@ export type AxisTick = {
  * function, same window arithmetic — only the step and the wording change,
  * which is what makes zooming feel like a map rather than a slider.
  */
-export function axisTicks(from: number, to: number, options: { target?: number } = {}): AxisTick[] {
+// THE LOG AXIS'S OWN RULER.
+//
+// Round years, which is what the linear ruler counts in, are the wrong unit
+// here: on a log axis the readable gridlines are ORDERS OF MAGNITUDE — ten
+// years ago, a hundred, a thousand, a million, a billion. That ladder is also
+// the one a person narrates deep time with, so the labels come out as sentences
+// somebody would say rather than as numbers with nine zeros in them.
+//
+// The intermediate 3× rungs are there so a half-decade window still gets a
+// gridline or two instead of going bare.
+const LOG_TICK_AGOS = [
+  1, 3, 10, 30, 100, 300, 1_000, 3_000, 10_000, 30_000, 100_000, 300_000,
+  1_000_000, 3_000_000, 10_000_000, 30_000_000, 100_000_000, 300_000_000,
+  1_000_000_000, 3_000_000_000, 10_000_000_000,
+];
+
+function logTicks(from: number, to: number, target: number): AxisTick[] {
+  const now = presentPosition();
+  const lo = Math.min(from, to);
+  const hi = Math.max(from, to);
+
+  // Every rung in view, past and future, plus the present itself when it is on
+  // screen — "Now" is the one gridline on this axis that is not a magnitude.
+  const candidates: { position: number; ago: number }[] = [];
+  for (const ago of LOG_TICK_AGOS) {
+    for (const signed of [ago, -ago]) {
+      const position = now - signed;
+      if (position >= lo && position <= hi) candidates.push({ position, ago: signed });
+    }
+  }
+  if (now >= lo && now <= hi) candidates.push({ position: now, ago: 0 });
+  candidates.sort((a, b) => a.position - b.position);
+
+  // Thin evenly if the ladder is denser than the axis has room for, keeping the
+  // ends so the ruler never stops short of the edge it is measuring to — and
+  // always keeping NOW. The present is the point this whole axis is measured
+  // from; a log ruler that has thinned away its own origin is a ruler with no
+  // zero on it.
+  const stride = Math.max(1, Math.ceil(candidates.length / Math.max(2, target)));
+  const kept = candidates.filter(
+    (candidate, index) => candidate.ago === 0 || index % stride === 0 || index === candidates.length - 1
+  );
+
+  return kept.map(({ position, ago }) => ({
+    position,
+    label: logTickLabel(ago),
+    // Powers of ten are the structural rungs; the 3× ones between them are not.
+    major: ago === 0 || isPowerOfTen(Math.abs(ago)),
+  }));
+}
+
+function isPowerOfTen(value: number): boolean {
+  if (value <= 0) return false;
+  const log = Math.log10(value);
+  return Math.abs(log - Math.round(log)) < 1e-9;
+}
+
+function logTickLabel(ago: number): string {
+  if (ago === 0) return "Now";
+  if (ago > 0) return `${formatDuration(ago)} ago`;
+  return `in ${formatDuration(-ago)}`;
+}
+
+export function axisTicks(
+  from: number,
+  to: number,
+  options: { target?: number; scale?: TimeScale } = {}
+): AxisTick[] {
+  if (options.scale === "log") return logTicks(from, to, options.target ?? 8);
+  return linearTicks(from, to, options);
+}
+
+function linearTicks(from: number, to: number, options: { target?: number } = {}): AxisTick[] {
   const span = Math.max(MIN_WINDOW_YEARS, to - from);
   const step = stepFor(span, options.target ?? 8);
   const first = Math.ceil(from / step) * step;
@@ -825,6 +897,11 @@ function tickLabel(position: number, step: number): string {
 
 export type TimeWindow = { from: number; to: number };
 
+/** The whole axis, end to end — the frame the overview bar never changes out of. */
+export function timelineExtentWindow(): TimeWindow {
+  return { from: TIMELINE_MIN_YEAR, to: TIMELINE_MAX_YEAR };
+}
+
 /** Keep a window inside the span, no narrower than a few days, no wider than everything. */
 export function clampWindow(window: TimeWindow): TimeWindow {
   const fullSpan = TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR;
@@ -846,16 +923,44 @@ export function clampWindow(window: TimeWindow): TimeWindow {
  * span at 13 billion years as it does at ten — the reason this navigates like a
  * map instead of a scrollbar.
  */
-export function zoomWindow(window: TimeWindow, factor: number, anchor = 0.5): TimeWindow {
-  const span = window.to - window.from;
-  const focus = window.from + span * anchor;
+// Zoom and pan happen in whatever space the axis is DRAWN in, not always in
+// years. On a log axis a gesture that moved a fixed number of years would crawl
+// at the deep end and bolt at the shallow one — the finger has to move the
+// picture, and the picture is spaced logarithmically.
+export function zoomWindow(window: TimeWindow, factor: number, anchor = 0.5, scale: TimeScale = "linear"): TimeWindow {
+  if (scale === "linear") {
+    const span = window.to - window.from;
+    const focus = window.from + span * anchor;
+    const nextSpan = span * factor;
+    return clampWindow({ from: focus - nextSpan * anchor, to: focus + nextSpan * (1 - anchor) });
+  }
+
+  const now = presentPosition();
+  const lo = logValueOf(window.from, now);
+  const hi = logValueOf(window.to, now);
+  const span = hi - lo;
+  const focus = lo + span * anchor;
   const nextSpan = span * factor;
-  return clampWindow({ from: focus - nextSpan * anchor, to: focus + nextSpan * (1 - anchor) });
+  return clampWindow({
+    from: positionFromLogValue(focus - nextSpan * anchor, now),
+    to: positionFromLogValue(focus + nextSpan * (1 - anchor), now),
+  });
 }
 
-export function panWindow(window: TimeWindow, byFraction: number): TimeWindow {
-  const span = window.to - window.from;
-  return clampWindow({ from: window.from + span * byFraction, to: window.to + span * byFraction });
+export function panWindow(window: TimeWindow, byFraction: number, scale: TimeScale = "linear"): TimeWindow {
+  if (scale === "linear") {
+    const span = window.to - window.from;
+    return clampWindow({ from: window.from + span * byFraction, to: window.to + span * byFraction });
+  }
+
+  const now = presentPosition();
+  const lo = logValueOf(window.from, now);
+  const hi = logValueOf(window.to, now);
+  const shift = (hi - lo) * byFraction;
+  return clampWindow({
+    from: positionFromLogValue(lo + shift, now),
+    to: positionFromLogValue(hi + shift, now),
+  });
 }
 
 /** A window centred on a position, `span` years wide. */
@@ -863,9 +968,70 @@ export function windowAround(position: number, span: number): TimeWindow {
   return clampWindow({ from: position - span / 2, to: position + span / 2 });
 }
 
+// ---------------------------------------------------------------------------
+// TWO WAYS OF SPACING TIME
+//
+// LINEAR is the honest one: a year is the same width wherever it falls, so the
+// gap between two events is the gap you see. It is also the one that makes a
+// homeschool timeline unreadable, because 13.8 billion years of it and five
+// thousand years of it are the same axis, and at any zoom that shows the Big
+// Bang the whole of recorded history is a quarter of a pixel.
+//
+// LOG spaces time by ORDER OF MAGNITUDE instead: a decade, a century, a
+// millennium and a million years each get about the same width. Everything is
+// reachable at once — the Big Bang on the left, this morning on the right, and
+// the Norman Conquest visible rather than implied.
+//
+// It is a DISTORTION and the UI has to keep saying so, because a reader who
+// takes a log axis for a linear one has been told something false about how far
+// apart two events are. That is why it is a toggle rather than the default, why
+// it is labelled on the axis itself, and why the ruler above still reports the
+// true span in years.
+//
+// The transform is a symmetric log of years-before-present:
+//
+//     value(position) = ±log10(1 + |years ago|)
+//
+// The +1 is what lets "now" exist on a log axis at all (log10(1) = 0 rather
+// than −∞), and the sign flip is what lets the future sit to the right of it
+// instead of folding back over the past. It is continuous through the present,
+// monotonic across the whole range, and exactly invertible.
+// ---------------------------------------------------------------------------
+
+export type TimeScale = "linear" | "log";
+
+/** A position as its place on the log axis. Increases with position, like the linear one. */
+export function logValueOf(position: number, now: number = presentPosition()): number {
+  const ago = now - position;
+  const magnitude = Math.log10(1 + Math.abs(ago));
+  return ago >= 0 ? -magnitude : magnitude;
+}
+
+/** The inverse of logValueOf — exact, so panning and zooming round-trip without drift. */
+export function positionFromLogValue(value: number, now: number = presentPosition()): number {
+  const magnitude = Math.pow(10, Math.abs(value)) - 1;
+  return now - (value <= 0 ? magnitude : -magnitude);
+}
+
 /** 0–1 across the window; outside that when the position is off-screen. */
-export function fractionOf(window: TimeWindow, position: number): number {
-  return (position - window.from) / (window.to - window.from);
+export function fractionOf(window: TimeWindow, position: number, scale: TimeScale = "linear"): number {
+  if (scale === "linear") return (position - window.from) / (window.to - window.from);
+
+  const now = presentPosition();
+  const lo = logValueOf(window.from, now);
+  const hi = logValueOf(window.to, now);
+  if (hi === lo) return 0;
+  return (logValueOf(position, now) - lo) / (hi - lo);
+}
+
+/** The inverse of fractionOf: where on the timeline a fraction across the window lands. */
+export function positionAt(window: TimeWindow, fraction: number, scale: TimeScale = "linear"): number {
+  if (scale === "linear") return window.from + (window.to - window.from) * fraction;
+
+  const now = presentPosition();
+  const lo = logValueOf(window.from, now);
+  const hi = logValueOf(window.to, now);
+  return positionFromLogValue(lo + (hi - lo) * fraction, now);
 }
 
 // The jumps in the zoom rail. Each is a place a reader actually wants to be,
