@@ -1,5 +1,5 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimInterval, eventDateLabel, fractionOf, type TimeScale, type TimeWindow } from "./time";
+import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, type TimeScale, type TimeWindow } from "./time";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -290,6 +290,12 @@ function placeClaim(
   // (see claimInterval), so nothing is added here — doing both was how a
   // century-precision claim ended up drawn two centuries wide.
   const interval = claimInterval(claim);
+  // UNREACHABLE FROM THE LAYOUT, which filters positionless claims out before
+  // calling this — and it has to, because the zero below is not "nowhere", it
+  // is the left edge of the visible window. Kept only so the function is total,
+  // and deliberately not given a plausible-looking position: a positionless
+  // claim that reaches the canvas should be obviously wrong, not quietly wrong.
+  if (!interval) return { id: claim.id, x: 0, x2: 0, isRange: false, isApproximate: false };
   return {
     id: claim.id,
     x: fractionOf(window, interval.lo, scale) * width,
@@ -317,7 +323,15 @@ export function layoutTimeline(
 
   const placed = events
     .map((event): PlacedEvent | null => {
-      const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
+      // ONLY THE CLAIMS THAT PLACE THEMSELVES GET DRAWN. A claim asserting no
+      // finite beginning has no x, and letting it through produced a zero —
+      // which is not "nowhere", it is the left edge of the window, so the
+      // event's footprint stretched from the start of the visible span to
+      // wherever its real dates were. An event with nothing positioned is
+      // dropped from the strip entirely, which is the honest answer: it is
+      // read on its record, because there is nowhere on a strip of time to
+      // put a claim that names no time.
+      const claims = event.claims.filter(claimIsPositioned).map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const dateLabel = eventDateLabel(event.claims);
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
@@ -640,7 +654,15 @@ export function layoutLane(
   if (width <= 0) return [];
   const placed = events
     .map((event): PlacedEvent | null => {
-      const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
+      // ONLY THE CLAIMS THAT PLACE THEMSELVES GET DRAWN. A claim asserting no
+      // finite beginning has no x, and letting it through produced a zero —
+      // which is not "nowhere", it is the left edge of the window, so the
+      // event's footprint stretched from the start of the visible span to
+      // wherever its real dates were. An event with nothing positioned is
+      // dropped from the strip entirely, which is the honest answer: it is
+      // read on its record, because there is nowhere on a strip of time to
+      // put a claim that names no time.
+      const claims = event.claims.filter(claimIsPositioned).map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const dateLabel = eventDateLabel(event.claims);
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));

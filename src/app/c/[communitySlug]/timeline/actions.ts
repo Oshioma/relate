@@ -35,6 +35,7 @@ import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/time
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
+import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
   claimDraftSchema,
   eventDraftSchema,
@@ -945,7 +946,7 @@ export async function seedShowcaseEvent(communitySlug: string) {
     community_id: community.id,
     created_by: userId,
     source_id: claim.sourceKey ? sourceIds.get(claim.sourceKey) ?? null : null,
-    start_year: claim.startYear,
+    start_year: claim.startYear ?? null,
     end_year: claim.endYear ?? null,
     date_precision: claim.datePrecision,
     is_approximate: claim.isApproximate,
@@ -1246,12 +1247,17 @@ async function seedDataset(
       community_id: community.id,
       created_by: userId,
       source_id: claim.sourceKey ? sourceIds.get(claim.sourceKey) ?? null : null,
-      start_year: claim.startYear,
+      // Undefined becomes null: a claim that places nothing on the axis, which
+      // the database accepts only alongside a positionless temporal type.
+      start_year: claim.startYear ?? null,
       start_month: claim.startMonth ?? null,
       start_day: claim.startDay ?? null,
       end_year: claim.endYear ?? null,
       date_precision: claim.datePrecision,
       precision_decimals: claim.precisionDecimals ?? 0,
+      temporal_claim_type: claim.temporalClaimType ?? null,
+      duration_years: claim.durationYears ?? null,
+      what_is_dated: claim.whatIsDated ?? null,
       // A stated measurement error, kept as one. See SeedClaim: a tolerance is
       // never folded into end_year, because "609 ± 40 ka" and "700–500 ka" are
       // different assertions about different things.
@@ -1655,6 +1661,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Early Homo sapiens", events: EARLY_SAPIENS_EVENTS, sources: EARLY_SAPIENS_SOURCES },
   { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES, links: ATLANTIS_LINKS },
   { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
+  { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
 ];
 
 /**
@@ -1741,7 +1748,9 @@ export async function refreshSeededDatasets(communitySlug: string) {
 
       const { data: storedClaims } = await supabase
         .from("timeline_date_claims")
-        .select("id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id")
+        .select(
+          "id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id, temporal_claim_type, duration_years, what_is_dated"
+        )
         .eq("event_id", eventId);
       const stored = storedClaims ?? [];
       if (stored.length === 0) continue;
@@ -1749,10 +1758,17 @@ export async function refreshSeededDatasets(communitySlug: string) {
       const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
 
       for (const seedClaim of seed.claims) {
-        const wantStart = seedClaim.startYear;
+        // NULL MATCHES NULL. A seeded claim that places nothing has no
+        // startYear, and comparing undefined against a stored null matched
+        // nothing at all — so every positionless claim would have been counted
+        // ambiguous and never reconciled. Both sides are normalised to null so
+        // "no position" is a value that can be matched on, and the several
+        // positionless claims on one record are then told apart by their
+        // wording, which is the fallback that already exists below.
+        const wantStart = seedClaim.startYear ?? null;
         const wantEnd = seedClaim.endYear ?? null;
         const sameDate = stored.filter(
-          (claim) => claim.start_year === wantStart && (claim.end_year ?? null) === wantEnd
+          (claim) => (claim.start_year ?? null) === wantStart && (claim.end_year ?? null) === wantEnd
         );
 
         let match = sameDate.length === 1 ? sameDate[0] : null;
@@ -1782,6 +1798,14 @@ export async function refreshSeededDatasets(communitySlug: string) {
           evidence: seedClaim.evidence,
           notes: seedClaim.notes ?? null,
           source_id: wantSource,
+          // The three columns the cosmology work added. A community holding an
+          // older copy of a dataset has them null, and they are exactly the
+          // fields that stop its claims being read as rival figures — so the
+          // refresh carries them in rather than leaving them to a re-seed that
+          // idempotence would skip.
+          temporal_claim_type: seedClaim.temporalClaimType ?? null,
+          duration_years: seedClaim.durationYears ?? null,
+          what_is_dated: seedClaim.whatIsDated ?? null,
         };
         const alreadyRight =
           match.original_date_text === next.original_date_text &&
@@ -1789,7 +1813,10 @@ export async function refreshSeededDatasets(communitySlug: string) {
           match.chronology === next.chronology &&
           match.evidence === next.evidence &&
           (match.notes ?? null) === next.notes &&
-          (match.source_id ?? null) === next.source_id;
+          (match.source_id ?? null) === next.source_id &&
+          (match.temporal_claim_type ?? null) === next.temporal_claim_type &&
+          (match.duration_years ?? null) === next.duration_years &&
+          (match.what_is_dated ?? null) === next.what_is_dated;
         if (alreadyRight) continue;
 
         // seed_synced_at rides along in the SAME update, so the revision the
@@ -1839,6 +1866,27 @@ export async function seedLemuriaDataset(communitySlug: string) {
     track: LEMURIA_TRACK,
     links: LEMURIA_LINKS,
     label: "Lemuria",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The beginning and age of the universe — and the claim that it has neither.
+ * See cosmology-seed.ts.
+ */
+export async function seedCosmologyDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the cosmology dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: COSMOLOGY_EVENTS,
+    sources: COSMOLOGY_SOURCES,
+    track: COSMOLOGY_TRACK,
+    links: COSMOLOGY_LINKS,
+    label: "Beginning of the universe",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

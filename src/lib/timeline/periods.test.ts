@@ -48,6 +48,9 @@ function claim(fields: Partial<TimelineDateClaim> & { start_year: number }): Tim
     event_id: null,
     period_id: null,
     community_id: "c",
+    temporal_claim_type: null,
+    duration_years: null,
+    what_is_dated: null,
     created_by: "u",
     source_id: null,
     start_month: null,
@@ -270,6 +273,7 @@ test("a coarse boundary is drawn as wide as its precision, not as a point", () =
     is_approximate: true,
   });
   const interval = claimInterval(approximate);
+  assert.ok(interval, "a dated claim has an interval");
   assert.ok(interval.hi > interval.lo, "a coarse point claim must have width");
 
   const extent = periodExtent(period("msa", [approximate]), NOW);
@@ -530,6 +534,10 @@ test("an ongoing period is never given an end year as well", () => {
 test("seeded boundary ranges run forwards", () => {
   for (const seed of PERIODS) {
     for (const boundary of seed.claims) {
+      // A period boundary always places itself — the positionless claim types
+      // are for records about the nature of time, not for the edges of the
+      // Bronze Age — so this doubles as a check that none has crept in.
+      assert.ok(boundary.startYear != null, `${seed.slug} has a boundary with no start year`);
       if (boundary.endYear != null) {
         assert.ok(
           boundary.endYear >= boundary.startYear,

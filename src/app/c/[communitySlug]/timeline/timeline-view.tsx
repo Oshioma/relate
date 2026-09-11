@@ -47,6 +47,7 @@ import {
   refreshSeededDatasets,
   seedAtlantisDataset,
   seedLemuriaDataset,
+  seedCosmologyDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -244,6 +245,7 @@ export function TimelineView({
   hasPeriods,
   hasAtlantis,
   hasLemuria,
+  hasCosmology,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -287,6 +289,7 @@ export function TimelineView({
   hasAtlantis: boolean;
   /** Whether the Lemuria dataset is already here. Same rule. */
   hasLemuria: boolean;
+  hasCosmology: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -555,8 +558,11 @@ export function TimelineView({
   }, [term, communitySlug, searching]);
 
   const goTo = useCallback((event: TimelineEventWithClaims) => {
-    if (event.claims.length > 0) {
-      const position = claimMidpoint(event.claims[0]);
+    // Jump to the first claim that is actually somewhere. An event whose only
+    // claims are positionless has nowhere to jump to, so the strip stays put
+    // and the record simply opens.
+    const position = event.claims.map(claimMidpoint).find((midpoint) => midpoint != null) ?? null;
+    if (position != null) {
       // A window proportional to the event's own age: fifty years around a
       // modern event, fifty million around a geological one. A fixed span would
       // put the reader either inside a blank century or outside their own event.
@@ -600,6 +606,9 @@ export function TimelineView({
           matchesFilters(event) &&
           event.claims.some((claim) => {
             const interval = claimInterval(claim);
+            // No position, never in the window — the same answer the server's
+            // own start_position filter gives, so the list and the strip agree.
+            if (!interval) return false;
             return interval.hi >= view.from && interval.lo <= view.to;
           })
       ),
@@ -1551,6 +1560,34 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasCosmology && (
+        <DatasetOffer
+          title="Add the beginning of the universe?"
+          busyLabel="Adding the records…"
+          label="Add the cosmology dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedCosmologyDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The hardest record here, and the one that changed what this timeline can hold: one of the serious answers is
+          that there is no date. The classical Steady State model of Bondi, Gold and Hoyle says the universe has no
+          finite beginning — a claim made in named papers, not a date nobody has found — so it is stored as a claim
+          with no position and is not drawn on the strip, because it claims none. Beside it sit Planck&apos;s two
+          measured ages (they differ, and both are shown), the cyclic models that put something before the Big Bang,
+          the Hindu cycles as LENGTHS rather than dates, and Ussher&apos;s 4004 BCE — which the Bible does not say and
+          Ussher calculated. Every claim names what it dates, because the age of cosmic expansion and the creation of
+          the world are different propositions and stacking them as rival figures would be the lie.
+        </DatasetOffer>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1558,7 +1595,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"
@@ -1593,7 +1630,9 @@ export function TimelineView({
                   if (parts.length === 0) parts.push("Nothing needed changing — every seeded record here already matches.");
                   if (result.keptBecauseEdited > 0) {
                     parts.push(
-                      `${result.keptBecauseEdited} ${result.keptBecauseEdited === 1 ? "date was" : "dates were"} left alone because somebody here had edited them.`
+                      result.keptBecauseEdited === 1
+                        ? "1 date was left alone because somebody here had edited it."
+                        : `${result.keptBecauseEdited} dates were left alone because somebody here had edited them.`
                     );
                   }
                   setSeedError(parts.join(" "));

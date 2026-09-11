@@ -66,6 +66,10 @@ export function periodExtent(period: PeriodWithClaims, present: number): PeriodE
     // claimInterval already widens a point claim to the width its precision
     // implies, so "c. 1200 BCE" at year precision is not drawn as an instant.
     const interval = claimInterval(claim);
+    // A boundary that places nothing cannot contribute an edge. A period whose
+    // every boundary is like that has no extent and is not drawn — which is
+    // right: there is nowhere to draw it.
+    if (!interval) continue;
     from = Math.min(from, interval.lo);
     // A claim that runs to the present has no end_year on purpose — writing one
     // would invent a boundary nobody claimed — so the present is supplied here,
@@ -232,6 +236,10 @@ export function periodsForClaim(
   present: number
 ): PeriodMembership[] {
   const interval = claimInterval(claim);
+  // A claim with no position is inside no period. "No finite beginning" does
+  // not fall in the Holocene, and a containment test that returned true would
+  // be asserting something nobody claimed.
+  if (!interval) return [];
   const found: { membership: PeriodMembership; span: number }[] = [];
 
   for (const period of periods) {

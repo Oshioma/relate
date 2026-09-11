@@ -16,8 +16,13 @@ import { claimHeadline, claimMidpoint, compareClaims, describeComparison, presen
 // genuinely better for "read everything in order".
 
 function earliest(event: TimelineEventWithClaims): number {
-  if (event.claims.length === 0) return 0;
-  return Math.min(...event.claims.map(claimMidpoint));
+  // Sorted by the earliest thing anybody PLACES. An event also carrying "no
+  // finite beginning" sorts by its dated claims; one carrying nothing but
+  // positionless claims has no place in a chronological order and goes to the
+  // front, where the list's own heading explains it.
+  const placed = event.claims.map(claimMidpoint).filter((midpoint): midpoint is number => midpoint != null);
+  if (placed.length === 0) return 0;
+  return Math.min(...placed);
 }
 
 export function TimelineList({

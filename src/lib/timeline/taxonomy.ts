@@ -424,6 +424,128 @@ export function relationHint(key: string | null | undefined): string {
 }
 
 // ---------------------------------------------------------------------------
+// WHAT KIND OF CLAIM ABOUT TIME THIS IS
+//
+// The timeline has always been able to say WHEN a source puts something and
+// WHOSE framework that belongs to. What it could not say is what kind of
+// temporal assertion is being made at all — and on the age of the universe
+// that is the whole argument rather than a detail.
+//
+// "13.8 billion years ago" and "4004 BCE" are both numbers on the same axis,
+// and they are not the same kind of statement: one is a parameter fitted to
+// observations and revised when the observations improve, the other is the
+// output of an addition somebody performed on genealogies. A reader who cannot
+// tell those apart has been taught that all dating is one activity.
+//
+// And the last four are the reason the column exists. A model asserting that
+// the universe has no first moment is making a claim about time — a strong one,
+// argued for in named papers — not failing to supply a date. Everything above
+// is POSITIONED; everything below asserts something a position cannot express.
+// ---------------------------------------------------------------------------
+
+export const TEMPORAL_CLAIM_TYPES = [
+  {
+    key: "absolute_date",
+    label: "A date",
+    positioned: true,
+    hint: "A specific date, given as such — 14 October 1066. What most records on a timeline are.",
+  },
+  {
+    key: "approximate_date",
+    label: "An approximate date",
+    positioned: true,
+    hint: "A date the source itself hedges — “c. 2560 BCE”. The hedge belongs to the source, not to us.",
+  },
+  {
+    key: "date_range",
+    label: "A range",
+    positioned: true,
+    hint: "Somewhere between two dates, with the source declining to narrow it further.",
+  },
+  {
+    key: "years_ago",
+    label: "Counted back from now",
+    positioned: true,
+    hint:
+      "Stated as an age rather than as a calendar year — “about 12,000 years ago”. The calendar date is then arithmetic, " +
+      "and it moves as the year the source was written recedes.",
+  },
+  {
+    key: "calculated_date",
+    label: "A calculated date",
+    positioned: true,
+    hint:
+      "Derived by somebody's reckoning from other material rather than measured or recorded — Ussher's 4004 BCE, added up " +
+      "from genealogies. The calculation is the claim, and whose it is matters.",
+  },
+  {
+    key: "relative_date",
+    label: "Fixed against another event",
+    positioned: true,
+    hint: "Dated by its distance from something else rather than against a calendar.",
+  },
+  { key: "before_event", label: "Before another event", positioned: true, hint: "Known only to be earlier than something else." },
+  { key: "after_event", label: "After another event", positioned: true, hint: "Known only to be later than something else." },
+
+  // --- Nothing below here goes on the axis ---------------------------------
+  {
+    key: "cyclic",
+    label: "A repeating cycle",
+    positioned: false,
+    hint:
+      "Time as a cycle rather than a line: the span repeats, and asking which one we are in is a different question from " +
+      "when it started. A length within such a cycle has no position either.",
+  },
+  {
+    key: "eternal",
+    label: "Eternal",
+    positioned: false,
+    hint: "Asserted to have always existed and to have no end. Not a date anybody has failed to find.",
+  },
+  {
+    key: "no_beginning",
+    label: "No finite beginning",
+    positioned: false,
+    hint:
+      "Asserted to have no first moment. A positive claim about time — the classical Steady State model argues for it — and " +
+      "not a gap in the record. It has no place on the axis because it claims none.",
+  },
+  {
+    key: "unknown",
+    label: "Explicitly not known",
+    positioned: false,
+    hint: "The source says the date is not known, which is different from nobody having filled it in.",
+  },
+] as const;
+
+export type TemporalClaimTypeKey = (typeof TEMPORAL_CLAIM_TYPES)[number]["key"];
+export type TemporalClaimType = TemporalClaimTypeKey | (string & {});
+
+const TEMPORAL_TYPE_BY_KEY = new Map(TEMPORAL_CLAIM_TYPES.map((type) => [type.key as string, type]));
+
+export function temporalTypeLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return TEMPORAL_TYPE_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function temporalTypeHint(key: string | null | undefined): string {
+  return TEMPORAL_TYPE_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * Does a claim of this kind belong on the axis?
+ *
+ * The database asks the same question in a CHECK constraint, and the two lists
+ * must agree: these four are exactly the types permitted a null start_year.
+ * Unknown keys are treated as positioned, which is the safe direction — a claim
+ * WITH a date whose type we do not recognise still draws correctly.
+ */
+export function temporalTypeIsPositioned(key: string | null | undefined): boolean {
+  const known = TEMPORAL_TYPE_BY_KEY.get(key ?? "");
+  return known ? known.positioned : true;
+}
+
+// ---------------------------------------------------------------------------
 // What KIND of periodisation a time period is
 //
 // The most useful single fact about a named stretch of time, and the one a
