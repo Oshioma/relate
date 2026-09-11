@@ -30,6 +30,42 @@ const LABEL_GAP_PX = 6;
 /** Breathing room between one event's label and the next event's marker. */
 const ROW_GAP_PX = 14;
 
+// HOW WIDE A CAPTION MAY GET BEFORE IT WRAPS, AND HOW TALL IT MAY THEN GROW.
+//
+// Captions used to be one line, truncated with an ellipsis at a fixed width.
+// That is the right answer when the strip is out of room and the wrong one
+// nearly always: the events area is normally half empty vertically, and
+// "Inanna becomes associate…" was being cut off above several hundred pixels of
+// nothing. Horizontal space on a timeline is time — it is genuinely scarce, and
+// a caption cannot simply be given more of it. Vertical space is not, so a long
+// title goes DOWN instead of being thrown away.
+//
+// The box is therefore capped in width and allowed up to three lines; a row
+// containing a wrapped caption is made taller to fit it, and only that row.
+export const LABEL_BOX_PX = 200;
+/** Narrow captions still need a box a couple of words wide, or every one of them wraps. */
+const MIN_LABEL_BOX_PX = 56;
+// Five lines is a caption nobody wants and still better than a title cut in
+// half: at 200px that is around six hundred pixels of text, which only the
+// longest title plus a deep-time date range plus a chip reaches.
+export const MAX_LABEL_LINES = 5;
+/** The caption's own left and right padding (pl-1 pr-2), which the box width includes. */
+const LABEL_PAD_PX = 12;
+/** The gap before the date and before each chip (ml-1.5). */
+const LABEL_PIECE_GAP_PX = 6;
+/** A chip's own left and right padding (px-1.5). */
+const CHIP_PAD_PX = 12;
+
+/** The height of a row whose tallest caption is one line. */
+export const ROW_BASE_PX = 34;
+/** What each extra line of a wrapped caption adds to its row. Matches leading-[17px]. */
+export const LABEL_LINE_PX = 17;
+
+/** How tall a row is, given the tallest caption in it. */
+export function rowHeightFor(lines: number): number {
+  return ROW_BASE_PX + Math.max(0, lines - 1) * LABEL_LINE_PX;
+}
+
 export type PlacedClaim = {
   id: string;
   x: number;
@@ -51,6 +87,10 @@ export type PlacedEvent = {
   disputed: boolean;
   showLabel: boolean;
   labelWidth: number;
+  /** How many lines the caption needs at labelWidth. Its row is sized to the largest. */
+  labelLines: number;
+  /** Pixels from the top of the events area. Rows are not a fixed pitch — see rowHeightFor. */
+  top: number;
   /** Which side of the marker the caption sits on. See the flip in layoutTimeline. */
   labelSide: "right" | "left";
   /** The event's date, written for a caption. Null when no claim supplies one. */
@@ -60,6 +100,8 @@ export type PlacedEvent = {
 export type PlacedCluster = {
   key: string;
   row: number;
+  /** Pixels from the top of the events area, like PlacedEvent.top. */
+  top: number;
   x: number;
   count: number;
   /** The window to move to when this cluster is opened. */
@@ -67,29 +109,165 @@ export type PlacedCluster = {
   to: number;
 };
 
+/**
+ * What a caption ACTUALLY measured, once the browser has drawn it.
+ *
+ * measureLabel is a good guess and a guess is not good enough here: one line
+ * short and the date is clipped off the bottom, which is the bug this whole
+ * change exists to remove. So the canvas measures each caption it has drawn and
+ * hands the answer back, and from the second frame on the height reserved for a
+ * caption is the height that caption takes. Keyed by event and by the box width
+ * it was measured at, because the same title in a narrower box is a different
+ * number of lines.
+ */
+export type MeasuredLabels = Map<string, { width: number; lines: number }>;
+
 export type TimelineLayout = {
   events: PlacedEvent[];
   clusters: PlacedCluster[];
   rows: number;
+  /** Every row's height in pixels, in order. Rows differ when captions wrap. */
+  rowHeights: number[];
+  /** What the events area actually used, so the caller can tell whether it fitted. */
+  height: number;
 };
 
-function estimateLabelWidth(title: string, dateLabel: string | null): number {
-  // ~6.2px per character at the 13px the labels render at, capped so one long
-  // title can't reserve half the strip.
-  const titleWidth = Math.min(190, Math.max(48, title.length * 6.2 + 18));
+/**
+ * How much room a caption needs — as a box width and a number of lines.
+ *
+ * EVERYTHING DRAWN IN THE CAPTION IS MEASURED, or it is not really reserved.
+ * The packer hides any caption whose neighbour is closer than the width
+ * reserved for it, so anything drawn but not counted here is drawn through the
+ * label next to it. The date was the first thing to be missed that way; the
+ * "5 dates" and "Pending" chips were the second, which is why "Great Pyramid of
+ * Giza" came out as "Great Pyr…" — the title was being squeezed by two things
+ * the reservation did not know about.
+ *
+ * Then the total is folded onto up to MAX_LABEL_LINES lines rather than
+ * truncated, because the strip runs out of width long before it runs out of
+ * height.
+ */
+// MEASURING TEXT INSTEAD OF GUESSING AT IT.
+//
+// The width of a caption used to be characters × 6.2px. That is fine for
+// deciding whether two labels collide and hopeless for deciding how many lines
+// one needs: it was wrong by a word either way, so a caption the layout called
+// two lines rendered as three and had its date clipped off the bottom.
+//
+// The browser will tell us exactly, so it is asked. One canvas, one cache, and
+// the answer is the same one the renderer will arrive at. On the server — where
+// this runs during SSR with width 0 and produces nothing — there is no canvas
+// and the old estimate stands in.
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+const textCache = new Map<string, number>();
 
-  // THE DATE IS RESERVED TOO, OR IT IS NOT REALLY THERE.
-  //
-  // The packer hides any caption whose neighbour is closer than the width
-  // reserved for it, and the canvas truncates at exactly that width. A date
-  // drawn beside the title but left out of this number is therefore drawn
-  // either through the next label or not at all — the same class of bug as the
-  // 190/220 mismatch that put four titles on top of each other. It is measured
-  // slightly narrower per character because it renders a point smaller and in
-  // tabular figures.
-  const dateWidth = dateLabel ? dateLabel.length * 5.8 + 8 : 0;
+function fontStack(): string {
+  if (typeof window === "undefined") return "sans-serif";
+  const family = window.getComputedStyle(document.body).fontFamily;
+  return family || "sans-serif";
+}
 
-  return Math.min(330, titleWidth + dateWidth);
+/**
+ * Canvas measurement comes out a few percent under what the same string
+ * actually occupies — letter-spacing, font features and the webfont the canvas
+ * may not have are all small differences in the same direction. Three percent
+ * short is a word, and a word short means the date wraps to a line the layout
+ * didn't reserve and is clipped off the bottom.
+ *
+ * So the number is biased UP. The two ways to be wrong here are not equal:
+ * over-reserving spends a few pixels of height, which this strip has plenty of,
+ * and under-reserving loses words, which is the bug this whole change exists to
+ * fix.
+ */
+const TEXT_SAFETY = 1.06;
+
+function textWidth(text: string, weight: number, size: number): number {
+  const key = `${weight}|${size}|${text}`;
+  const cached = textCache.get(key);
+  if (cached !== undefined) return cached;
+
+  if (measureCtx === undefined) {
+    measureCtx = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
+  }
+  const measured = measureCtx
+    ? (measureCtx.font = `${weight} ${size}px ${fontStack()}`, measureCtx.measureText(text).width)
+    : // No canvas: the old per-character estimate, scaled by size.
+      text.length * size * 0.48;
+
+  const width = measured * TEXT_SAFETY;
+  textCache.set(key, width);
+  return width;
+}
+
+/** One unbreakable run of text, and the gap that precedes it. */
+type LabelToken = { width: number; gap: number };
+
+/**
+ * How much room a caption needs — as a box width and a number of lines.
+ *
+ * EVERYTHING DRAWN IN THE CAPTION IS MEASURED, or it is not really reserved.
+ * The packer hides any caption whose neighbour is closer than the width
+ * reserved for it, so anything drawn but not counted here is drawn through the
+ * label next to it. The date was the first thing to be missed that way; the
+ * "5 dates" and "Pending" chips were the second, which is why "Great Pyramid of
+ * Giza" came out as "Great Pyr…" — the title was being squeezed by two things
+ * the reservation did not know about.
+ *
+ * Then the content is flowed onto lines exactly as the browser will flow it,
+ * rather than truncated, because the strip runs out of width long before it
+ * runs out of height.
+ */
+function measureLabel(
+  title: string,
+  dateLabel: string | null,
+  badges: { disputed: boolean; pending: boolean; claimCount: number }
+): { width: number; lines: number } {
+  const space = textWidth(" ", 500, 13);
+  const tokens: LabelToken[] = [];
+
+  // The title breaks between words like any prose.
+  const words = title.split(/\s+/).filter(Boolean);
+  words.forEach((word, index) => {
+    tokens.push({ width: textWidth(word, 500, 13), gap: index === 0 ? 0 : space });
+  });
+
+  // The date and the chips do not break. "135,000 – 92,000 years ago" moves to
+  // the next line whole, because half a date is worse than none.
+  if (dateLabel) tokens.push({ width: textWidth(dateLabel, 500, 12), gap: LABEL_PIECE_GAP_PX });
+  if (badges.disputed) {
+    tokens.push({ width: textWidth(`${badges.claimCount} dates`, 600, 10) + CHIP_PAD_PX, gap: LABEL_PIECE_GAP_PX });
+  }
+  if (badges.pending) {
+    tokens.push({ width: textWidth("Pending", 600, 10) + CHIP_PAD_PX, gap: LABEL_PIECE_GAP_PX });
+  }
+
+  const natural = tokens.reduce((sum, token) => sum + token.gap + token.width, 0);
+  const content = Math.max(MIN_LABEL_BOX_PX, Math.min(LABEL_BOX_PX, natural));
+
+  // Greedy line-filling: the same algorithm the browser uses, on the same
+  // numbers, so the space reserved and the space taken are the same space.
+  let lines = 1;
+  let used = 0;
+  for (const token of tokens) {
+    const needed = used === 0 ? token.width : token.gap + token.width;
+    if (used > 0 && used + needed > content) {
+      lines += 1;
+      used = token.width;
+    } else {
+      used += needed;
+    }
+    // A single word too long for the box breaks inside itself
+    // (overflow-wrap: anywhere), which costs whole lines.
+    if (used > content) {
+      const extra = Math.ceil(used / content) - 1;
+      lines += extra;
+      used -= extra * content;
+    }
+  }
+
+  // The BOX is the content plus its own padding. Measuring the two as one
+  // number was worth twelve pixels — most of a word at this size.
+  return { width: content + LABEL_PAD_PX, lines: Math.min(MAX_LABEL_LINES, lines) };
 }
 
 /**
@@ -125,10 +303,17 @@ export function layoutTimeline(
   events: TimelineEventWithClaims[],
   window: TimeWindow,
   width: number,
-  maxRows: number,
-  scale: TimeScale = "linear"
+  /**
+   * The pixels the events area has. Rows are no longer a fixed pitch — a row
+   * holding a wrapped caption is taller than one that isn't — so the budget has
+   * to be given in pixels rather than as a row count the caller guessed.
+   */
+  availableHeight: number,
+  scale: TimeScale = "linear",
+  /** What the browser reported for captions it has already drawn. See MeasuredLabels. */
+  measured?: MeasuredLabels
 ): TimelineLayout {
-  if (width <= 0) return { events: [], clusters: [], rows: 0 };
+  if (width <= 0) return { events: [], clusters: [], rows: 0, rowHeights: [], height: 0 };
 
   const placed = events
     .map((event): PlacedEvent | null => {
@@ -143,16 +328,30 @@ export function layoutTimeline(
       const disputed =
         claims.length > 1 &&
         claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5 || Math.abs(c.x2 - claims[0].x2) > 0.5);
+      const label = measureLabel(event.title, dateLabel, {
+        disputed,
+        pending: event.status === "pending",
+        claimCount: event.claims.length,
+      });
+      // The measurement wins over the estimate, but only if it was taken at the
+      // width this caption is about to be drawn at.
+      const seen = measured?.get(event.id);
+      const lines =
+        seen && Math.abs(seen.width - label.width) < 0.5
+          ? Math.min(MAX_LABEL_LINES, seen.lines)
+          : label.lines;
       return {
         event,
         row: 0,
+        top: 0,
         x: xFrom,
         xFrom,
         xTo,
         claims,
         disputed,
         showLabel: true,
-        labelWidth: estimateLabelWidth(event.title, dateLabel),
+        labelWidth: label.width,
+        labelLines: lines,
         labelSide: "right",
         dateLabel,
       };
@@ -199,7 +398,7 @@ export function layoutTimeline(
       const x = run.reduce((sum, item) => sum + item.xFrom, 0) / run.length;
       const from = window.from + (Math.min(...run.map((r) => r.xFrom)) - CLUSTER_PX) * yearsPerPixel;
       const to = window.from + (Math.max(...run.map((r) => r.xTo)) + CLUSTER_PX) * yearsPerPixel;
-      clusters.push({ key: run.map((r) => r.event.id).join(":").slice(0, 60), row: 0, x, count: run.length, from, to });
+      clusters.push({ key: run.map((r) => r.event.id).join(":").slice(0, 60), row: 0, top: 0, x, count: run.length, from, to });
     } else {
       survivors.push(...run);
     }
@@ -214,9 +413,14 @@ export function layoutTimeline(
   // when every row is captioned does it squeeze into one where the marker fits
   // — so labels spread out while they can, and a crowded stretch degrades to
   // bare dots rather than to events that aren't drawn.
+  //
+  // The row limit here is optimistic: it assumes every row ends up one line
+  // tall, and the height budget is applied properly further down, once each
+  // row's contents — and therefore its real height — are known.
+  const maxRows = Math.max(1, Math.floor(availableHeight / ROW_BASE_PX));
   const labelEnds: number[] = [];
   const markerEnds: number[] = [];
-  const placedRows: PlacedEvent[] = [];
+  let placedRows: PlacedEvent[] = [];
   const overflow: PlacedEvent[] = [];
 
   for (const item of survivors) {
@@ -238,6 +442,48 @@ export function layoutTimeline(
     markerEnds[row] = item.xTo + ROW_GAP_PX;
     labelEnds[row] = item.xTo + item.labelWidth + ROW_GAP_PX;
     placedRows.push(item);
+  }
+
+  // --- Spend the height budget, now that the rows have contents ----------------------
+  //
+  // A row is as tall as its tallest caption. Rows are therefore measured rather
+  // than assumed, and any row that would hang off the bottom of the strip is
+  // given up: its events go to overflow, where they become a "+N" marker like
+  // any other event that didn't fit. Nothing is drawn outside the box, and
+  // nothing is silently lost.
+  const linesPerRow = (rows: PlacedEvent[]): number[] => {
+    const lines: number[] = [];
+    for (const item of rows) {
+      lines[item.row] = Math.max(lines[item.row] ?? 1, item.showLabel ? item.labelLines : 1);
+    }
+    for (let r = 0; r < labelEnds.length; r++) lines[r] = lines[r] ?? 1;
+    return lines;
+  };
+
+  let rowLines = linesPerRow(placedRows);
+  let rowTops: number[] = [];
+  let used = 0;
+  let rowsThatFit = 0;
+  for (let r = 0; r < rowLines.length; r++) {
+    const height = rowHeightFor(rowLines[r]);
+    // The first row always draws, even on a strip too short for it: a phone in
+    // landscape with one three-line caption should show the caption clipped,
+    // not show nothing at all.
+    if (r > 0 && used + height > availableHeight) break;
+    rowTops[r] = used;
+    used += height;
+    rowsThatFit = r + 1;
+  }
+
+  if (rowsThatFit < rowLines.length) {
+    const kept: PlacedEvent[] = [];
+    for (const item of placedRows) {
+      if (item.row < rowsThatFit) kept.push(item);
+      else overflow.push(item);
+    }
+    placedRows = kept;
+    rowLines = rowLines.slice(0, rowsThatFit);
+    rowTops = rowTops.slice(0, rowsThatFit);
   }
 
   // Then decide captions, per row, now that the row's contents are known: a
@@ -299,6 +545,18 @@ export function layoutTimeline(
     }
   }
 
+  // A row whose captions were all dropped doesn't need the height they asked
+  // for. Re-measuring after the side decision is what keeps a crowded strip
+  // from reserving three lines for labels it isn't drawing.
+  const finalLines = linesPerRow(placedRows).slice(0, Math.max(1, rowLines.length));
+  rowTops = [];
+  used = 0;
+  for (let r = 0; r < finalLines.length; r++) {
+    rowTops[r] = used;
+    used += rowHeightFor(finalLines[r]);
+  }
+  for (const item of placedRows) item.top = rowTops[item.row] ?? 0;
+
   // Whatever still doesn't fit becomes "+N" markers, bucketed by position, in
   // the last row. Nothing is silently dropped.
   if (overflow.length > 0) {
@@ -310,13 +568,14 @@ export function layoutTimeline(
       if (list) list.push(item);
       else buckets.set(bucket, [item]);
     }
-    const row = Math.max(0, Math.min(maxRows, labelEnds.length) - 1);
+    const row = Math.max(0, finalLines.length - 1);
     for (const [bucket, items] of buckets) {
       // A "+1" chip reads as a bug rather than as a crowd. One leftover event
       // goes back on the strip as a bare marker — it may sit under a neighbour's
       // label, which is a smaller cost than a badge that says nothing.
       if (items.length === 1) {
         items[0].row = row;
+        items[0].top = rowTops[row] ?? 0;
         items[0].showLabel = false;
         placedRows.push(items[0]);
         continue;
@@ -325,6 +584,7 @@ export function layoutTimeline(
       clusters.push({
         key: `overflow-${bucket}`,
         row,
+        top: rowTops[row] ?? 0,
         x,
         count: items.length,
         from: window.from + (x - bucketPx) * yearsPerPixel,
@@ -342,29 +602,32 @@ export function layoutTimeline(
   // neither readable. Seeding the row ends from labelEnds means a cluster only
   // takes a place on a row where nothing already reaches that far, which is the
   // same rule the events themselves are packed by.
-  const clusterRowEnds: number[] = [...labelEnds];
+  const clusterRowEnds: number[] = labelEnds.slice(0, finalLines.length);
   for (const cluster of clusters.filter((c) => !c.key.startsWith("overflow-"))) {
     const start = cluster.x - 14;
     const end = cluster.x + 46;
     let row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1) {
-      row = Math.min(clusterRowEnds.length, Math.max(0, maxRows - 1));
-      if (clusterRowEnds.length <= row) clusterRowEnds.push(end);
-      else clusterRowEnds[row] = end;
+      row = Math.max(0, finalLines.length - 1);
+      clusterRowEnds[row] = end;
     } else {
       clusterRowEnds[row] = end;
     }
     cluster.row = row;
+    cluster.top = rowTops[row] ?? 0;
   }
 
-  const rows = Math.max(
-    labelEnds.length,
-    clusters.reduce((max, cluster) => Math.max(max, cluster.row + 1), 0)
-  );
+  const rowHeights = finalLines.map(rowHeightFor);
 
   // `placedRows`, not `survivors`: an event that overflowed is represented by
   // its cluster and must not also be drawn, or it is counted twice.
-  return { events: placedRows, clusters, rows: Math.max(1, rows) };
+  return {
+    events: placedRows,
+    clusters,
+    rows: Math.max(1, rowHeights.length),
+    rowHeights,
+    height: rowHeights.reduce((sum, height) => sum + height, 0),
+  };
 }
 
 /** The same placement for one lane of Compare mode: a single row, labels dropped where they'd collide. */
@@ -382,16 +645,24 @@ export function layoutLane(
       const dateLabel = eventDateLabel(event.claims);
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
       const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
+      const disputed = claims.length > 1 && claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5);
+      const label = measureLabel(event.title, dateLabel, {
+        disputed,
+        pending: event.status === "pending",
+        claimCount: event.claims.length,
+      });
       return {
         event,
         row: 0,
+        top: 0,
         x: xFrom,
         xFrom,
         xTo,
         claims,
-        disputed: claims.length > 1 && claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5),
+        disputed,
         showLabel: true,
-        labelWidth: estimateLabelWidth(event.title, dateLabel),
+        labelWidth: label.width,
+        labelLines: label.lines,
         labelSide: "right",
         dateLabel,
       };
