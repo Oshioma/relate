@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { fractionOf, positionAt, timelineExtentWindow, type TimeWindow } from "@/lib/timeline/time";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
@@ -25,10 +25,24 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // Never thinner than this, whatever the maths says. A century out of 13.9
 // billion years is a millionth of a pixel wide, and a handle you cannot see is
 // a handle you cannot grab. Wide enough for two edge grips and a middle.
-const MIN_BOX_PX = 22;
+const MIN_BOX_PX = 30;
 
 // How close to an edge counts as grabbing that edge rather than the box.
 const EDGE_GRAB_PX = 9;
+
+// ...but an edge grip may never eat more than this share of the box. THIS IS
+// WHAT MAKES DRAGGING THE BOX MOVE IT.
+//
+// The grips were a flat nine pixels from each edge, measured against the box's
+// TRUE width. A zoomed-in window is a couple of pixels wide by that measure
+// even though it is drawn MIN_BOX_PX wide — so every press anywhere inside the
+// visible box landed within nine pixels of an edge, and every drag resized
+// instead of moving. Dragging right stretched the window rather than travelling
+// through time, which is exactly the complaint.
+//
+// Capping the grips at a third of the DRAWN box leaves a middle that is always
+// there to take hold of, at every zoom.
+const EDGE_GRAB_SHARE = 1 / 3;
 
 type DragMode = "move" | "from" | "to";
 
@@ -46,6 +60,20 @@ export function TimelineOverview({
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ mode: DragMode; grabOffset: number } | null>(null);
+
+  // The rail's width is measured rather than assumed, because the DRAWN box and
+  // the TRUE box are different things (see MIN_BOX_PX) and both the hit-testing
+  // and the grips have to agree on which one is on screen. Doing that in pixels
+  // needs the width during render, not only during a pointer event.
+  const [railWidth, setRailWidth] = useState(0);
+  useEffect(() => {
+    const element = railRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver((entries) => setRailWidth(entries[0].contentRect.width));
+    observer.observe(element);
+    setRailWidth(element.clientWidth);
+    return () => observer.disconnect();
+  }, []);
 
   // The bar always shows everything, whatever the strip is showing — that is
   // the whole of its job, so its own frame never changes.
@@ -70,6 +98,18 @@ export function TimelineOverview({
   const boxFrom = toFraction(view.from);
   const boxTo = toFraction(view.to);
 
+  // WHAT IS ACTUALLY ON SCREEN, which is not always what the maths says.
+  //
+  // A narrow window is drawn MIN_BOX_PX wide so it can be seen and grabbed. Every
+  // decision about the pointer has to be made against THAT box — the one under
+  // the reader's finger — or the control answers gestures aimed at a box nobody
+  // can see. The box is nudged back inside the rail when widening it would push
+  // it off the right-hand end.
+  const minBox = railWidth > 0 ? MIN_BOX_PX / railWidth : 0.02;
+  const drawnWidth = Math.max(minBox, Math.min(1, boxTo - boxFrom));
+  const drawnFrom = Math.max(0, Math.min(1 - drawnWidth, boxFrom));
+  const drawnTo = drawnFrom + drawnWidth;
+
   // Within a few pixels of either end, snap to the actual end of the timeline.
   // Without this the last pixel is still worth millions of years and "drag it
   // all the way over" never quite arrives — you stop just short of the present
@@ -84,10 +124,7 @@ export function TimelineOverview({
   }, []);
 
   /** The narrowest the window may get, expressed as a fraction of the whole bar. */
-  const minFraction = useCallback(() => {
-    const width = railRef.current?.getBoundingClientRect().width ?? 0;
-    return width > 0 ? MIN_BOX_PX / width : 0.01;
-  }, []);
+  const minFraction = useCallback(() => minBox, [minBox]);
 
   /** Move the window so its LEFT edge lands at this fraction, keeping its width. */
   const moveTo = useCallback(
@@ -128,17 +165,41 @@ export function TimelineOverview({
     [boxFrom, boxTo, full, minFraction, onWindowChange, view.from, view.to]
   );
 
-  /** Which part of the box a press at this fraction is reaching for. */
+  /**
+   * Which part of the box a press at this fraction is reaching for.
+   *
+   * Measured against the DRAWN box, and never letting the two grips meet in the
+   * middle. Taking hold of the body of the box means MOVE — that is the gesture
+   * that travels through time, and it has to be the one you get by default.
+   * Only the outer third at each end stretches.
+   */
   const modeAt = useCallback(
     (fraction: number): DragMode => {
-      const width = railRef.current?.getBoundingClientRect().width ?? 0;
-      if (width === 0) return "move";
-      const edge = EDGE_GRAB_PX / width;
-      if (Math.abs(fraction - boxFrom) <= edge) return "from";
-      if (Math.abs(fraction - boxTo) <= edge) return "to";
+      if (railWidth === 0) return "move";
+      const edge = Math.min(EDGE_GRAB_PX / railWidth, drawnWidth * EDGE_GRAB_SHARE);
+      if (Math.abs(fraction - drawnFrom) <= edge) return "from";
+      if (Math.abs(fraction - drawnTo) <= edge) return "to";
       return "move";
     },
-    [boxFrom, boxTo]
+    [drawnFrom, drawnTo, drawnWidth, railWidth]
+  );
+
+  /**
+   * Slide the box so it keeps the same grip under the pointer.
+   *
+   * The two ends are special. fractionAtClientX snaps the last few pixels to 0
+   * and 1, and subtracting a grip offset from a snapped end lands short of it —
+   * on a log bar "short of the end" can be a factor of two in years, so "drag
+   * it all the way right" would stop somewhere in the Middle Ages and look
+   * broken. At the ends the box is pinned to the end instead.
+   */
+  const moveByGrab = useCallback(
+    (fraction: number, grabOffset: number) => {
+      if (fraction >= 1) return moveTo(1);
+      if (fraction <= 0) return moveTo(0);
+      moveTo(fraction - grabOffset);
+    },
+    [moveTo]
   );
 
   /** Keyboard equivalents, so the control is not mouse-only. */
@@ -164,12 +225,12 @@ export function TimelineOverview({
           event.currentTarget.setPointerCapture(event.pointerId);
 
           if (mode === "move") {
-            const width = boxTo - boxFrom;
             // Grabbing inside the box moves it from where you took hold;
-            // clicking outside it jumps, centring on where you clicked.
-            const inside = fraction >= boxFrom && fraction <= boxTo;
-            drag.current = { mode, grabOffset: inside ? fraction - boxFrom : width / 2 };
-            moveTo(fraction - drag.current.grabOffset);
+            // clicking outside it jumps, centring on where you clicked. Both
+            // measured on the drawn box, which is the one that was grabbed.
+            const inside = fraction >= drawnFrom && fraction <= drawnTo;
+            drag.current = { mode, grabOffset: inside ? fraction - drawnFrom : drawnWidth / 2 };
+            moveByGrab(fraction, drag.current.grabOffset);
             return;
           }
           drag.current = { mode, grabOffset: 0 };
@@ -178,7 +239,7 @@ export function TimelineOverview({
         onPointerMove={(event) => {
           if (!drag.current) return;
           const fraction = fractionAtClientX(event.clientX);
-          if (drag.current.mode === "move") moveTo(fraction - drag.current.grabOffset);
+          if (drag.current.mode === "move") moveByGrab(fraction, drag.current.grabOffset);
           else resizeTo(drag.current.mode, fraction);
         }}
         onPointerUp={(event) => {
@@ -205,10 +266,7 @@ export function TimelineOverview({
         {/* The stretch on screen, with a grip at each end. */}
         <span
           className="pointer-events-none absolute inset-y-0 rounded-md border-2 border-accent bg-accent/15"
-          style={{
-            left: `${Math.max(0, Math.min(1, boxFrom)) * 100}%`,
-            width: `max(${MIN_BOX_PX}px, ${Math.max(0, Math.min(1, boxTo - boxFrom)) * 100}%)`,
-          }}
+          style={{ left: `${drawnFrom * 100}%`, width: `${drawnWidth * 100}%` }}
         >
           {/* Drawn inside the box so they cannot drift away from its edges. */}
           <span className="absolute inset-y-1 left-0 w-1 rounded-full bg-accent" />
@@ -227,7 +285,7 @@ export function TimelineOverview({
             if (event.key === "ArrowRight") { event.preventDefault(); nudge("from", 1); }
           }}
           className="absolute inset-y-0 w-3 -translate-x-1/2 cursor-ew-resize focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ left: `${Math.max(0, Math.min(1, boxFrom)) * 100}%` }}
+          style={{ left: `${drawnFrom * 100}%` }}
         />
         <button
           type="button"
@@ -237,13 +295,13 @@ export function TimelineOverview({
             if (event.key === "ArrowRight") { event.preventDefault(); nudge("to", 1); }
           }}
           className="absolute inset-y-0 w-3 -translate-x-1/2 cursor-ew-resize focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ left: `${Math.max(0, Math.min(1, boxTo)) * 100}%` }}
+          style={{ left: `${drawnTo * 100}%` }}
         />
       </div>
 
       <p className="mt-1 text-xs text-muted-foreground">
-        Everything on this timeline. Drag the box to move through time, or pull either end to widen what you are
-        looking at — pull the left grip to the far left and the whole early timeline comes into view.
+        Everything on this timeline. Drag the box itself to travel through time — left towards the beginning, right
+        towards now — or pull either end to widen what you are looking at.
       </p>
     </div>
   );
