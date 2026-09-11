@@ -25,6 +25,7 @@ import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
+import { TimelineOverview } from "./timeline-overview";
 import { EventDetail } from "./event-detail";
 import { AddEventFlow } from "./add-event-flow";
 import { loadTimelineEvent, loadTimelineWindow, searchTimeline, seedStarterTracks } from "./actions";
@@ -37,6 +38,7 @@ import {
   windowAround,
   zoomWindow,
   TIMELINE_JUMPS,
+  type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
 
@@ -90,6 +92,7 @@ export function TimelineView({
   initialWindow,
   initialTotal,
   extent,
+  markers,
   initialTruncated,
   sources,
   tracks,
@@ -106,6 +109,8 @@ export function TimelineView({
   initialTotal: number;
   /** The stretch this community's events actually occupy. Null when it has none. */
   extent: { from: number; to: number } | null;
+  /** One mark per date claim, for the overview bar — positions only. */
+  markers: { position: number; category: string }[];
   initialTruncated: boolean;
   sources: TimelineSource[];
   tracks: TimelineTrack[];
@@ -134,6 +139,9 @@ export function TimelineView({
   const total = initialTotal;
 
   const [mode, setMode] = useState<Mode>("timeline");
+  // Linear by default, always. A log axis is a distortion — a useful one, but a
+  // reader who has not chosen it must never be shown it.
+  const [scale, setScale] = useState<TimeScale>("linear");
   const [showList, setShowList] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -556,7 +564,18 @@ export function TimelineView({
           Above the strip in both windowed modes, and absent from "whole",
           where the answer is "all of it" and a measurement of the view would
           be measuring nothing. */}
-      <SpanRuler window={view} />
+      <SpanRuler window={view} scale={scale} />
+
+      {/* Where everything is, and where you are in it. Above the strip, under
+          the measurement, so the three read as one instrument: how wide, what
+          is out there, and then the detail. */}
+      <TimelineOverview
+        markers={markers}
+        window={view}
+        onWindowChange={setView}
+        scale={scale}
+        className="mt-3"
+      />
 
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
@@ -567,6 +586,7 @@ export function TimelineView({
         <TimelineCanvas
           events={displayed}
           window={view}
+          scale={scale}
           onWindowChange={setView}
           present={presentPosition()}
           selectedId={selected?.id ?? null}
@@ -581,6 +601,7 @@ export function TimelineView({
           selectedTrackIds={compareTrackIds}
           events={displayed}
           window={view}
+          scale={scale}
           onWindowChange={setView}
           onSelect={setSelected}
           selectedId={selected?.id ?? null}
@@ -608,6 +629,34 @@ export function TimelineView({
           >
             <Minus className="h-4 w-4" />
           </button>
+        </div>
+
+        {/* LINEAR OR LOG.
+            Two buttons rather than a switch, because a switch has an "off" and
+            neither of these is off — they are two ways of spacing the same
+            time, and the reader is choosing between them rather than enabling
+            something. */}
+        <div className="flex items-center gap-0.5 rounded-full bg-muted p-0.5">
+          {(
+            [
+              { key: "linear", label: "Years", hint: "A year is the same width wherever it falls." },
+              { key: "log", label: "Log", hint: "Each ten-fold step in age gets equal width, so deep time and last week are both readable. Distances are distorted." },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => setScale(option.key)}
+              aria-pressed={scale === option.key}
+              title={option.hint}
+              className={cn(
+                "rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors",
+                scale === option.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
 
         <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">

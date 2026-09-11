@@ -10,6 +10,7 @@ import {
   getTimelineFacets,
   getTimelineExtent,
   getPendingTimelineEvents,
+  getEventMarkers,
 } from "@/lib/data/timeline";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
@@ -67,12 +68,15 @@ export default async function TimelinePage({
   const extent = await getTimelineExtent(supabase, community.id);
   const view = openingWindow(query, extent);
 
-  const [initial, tracks, sources, facets, pending] = await Promise.all([
+  const [initial, tracks, sources, facets, pending, markers] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
     getTimelineSources(supabase, community.id),
     getTimelineFacets(supabase, community.id),
     isStaff ? getPendingTimelineEvents(supabase, community.id) : Promise.resolve([]),
+    // Positions only, for the overview bar. Numbers, so it costs a page of
+    // text even for a community with thousands of events.
+    getEventMarkers(supabase, community.id),
   ]);
 
   return (
@@ -86,6 +90,7 @@ export default async function TimelinePage({
         // The stretch this community's events actually occupy, so "Whole
         // timeline" can frame all of them without asking the server again.
         extent={extent}
+        markers={markers}
         sources={sources}
         tracks={tracks}
         facets={facets}

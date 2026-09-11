@@ -1,5 +1,5 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimInterval, fractionOf, type TimeWindow } from "./time";
+import { claimInterval, fractionOf, type TimeScale, type TimeWindow } from "./time";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -85,7 +85,8 @@ function estimateLabelWidth(title: string): number {
 function placeClaim(
   claim: TimelineEventWithClaims["claims"][number],
   window: TimeWindow,
-  width: number
+  width: number,
+  scale: TimeScale
 ): PlacedClaim {
   // The interval already carries the width a point claim's precision implies
   // (see claimInterval), so nothing is added here — doing both was how a
@@ -93,8 +94,8 @@ function placeClaim(
   const interval = claimInterval(claim);
   return {
     id: claim.id,
-    x: fractionOf(window, interval.lo) * width,
-    x2: fractionOf(window, interval.hi) * width,
+    x: fractionOf(window, interval.lo, scale) * width,
+    x2: fractionOf(window, interval.hi, scale) * width,
     isRange: interval.kind !== "point",
     isApproximate: claim.is_approximate || interval.kind !== "point",
   };
@@ -104,13 +105,14 @@ export function layoutTimeline(
   events: TimelineEventWithClaims[],
   window: TimeWindow,
   width: number,
-  maxRows: number
+  maxRows: number,
+  scale: TimeScale = "linear"
 ): TimelineLayout {
   if (width <= 0) return { events: [], clusters: [], rows: 0 };
 
   const placed = events
     .map((event): PlacedEvent | null => {
-      const claims = event.claims.map((claim) => placeClaim(claim, window, width));
+      const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
       const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
@@ -278,12 +280,13 @@ export function layoutTimeline(
 export function layoutLane(
   events: TimelineEventWithClaims[],
   window: TimeWindow,
-  width: number
+  width: number,
+  scale: TimeScale = "linear"
 ): PlacedEvent[] {
   if (width <= 0) return [];
   const placed = events
     .map((event): PlacedEvent | null => {
-      const claims = event.claims.map((claim) => placeClaim(claim, window, width));
+      const claims = event.claims.map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
       const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));

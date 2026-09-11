@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { formatDuration, formatYear, type TimeWindow } from "@/lib/timeline/time";
+import { formatDuration, formatYear, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
 
 // HOW MUCH TIME AM I LOOKING AT?
 //
@@ -26,7 +26,7 @@ import { formatDuration, formatYear, type TimeWindow } from "@/lib/timeline/time
 // this page that is always true — a filtered timeline showing three events
 // still covers the stretch of time the reader chose.
 
-export function SpanRuler({ window: view }: { window: TimeWindow }) {
+export function SpanRuler({ window: view, scale = "linear" }: { window: TimeWindow; scale?: TimeScale }) {
   const years = Math.abs(view.to - view.from);
 
   return (
@@ -51,7 +51,14 @@ export function SpanRuler({ window: view }: { window: TimeWindow }) {
       {/* The two ends, under the arrows that mark them. */}
       <div className="mt-1 flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
         <span className="font-medium">{formatYear(view.from)}</span>
-        <span className="hidden sm:inline">across the timeline below</span>
+        {/* THE HONEST NUMBER.
+            On a log axis the picture below no longer spaces years evenly, so
+            this is the one place still reporting the true span — and it says
+            so, because a distorted picture with an undistorted number beside
+            it is only safe while the reader knows which is which. */}
+        <span className="hidden sm:inline">
+          {scale === "log" ? "across the timeline below — spaced by magnitude, not evenly" : "across the timeline below"}
+        </span>
         <span className="font-medium">{formatYear(view.to)}</span>
       </div>
     </div>
