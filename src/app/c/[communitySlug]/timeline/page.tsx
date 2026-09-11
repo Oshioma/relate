@@ -15,6 +15,7 @@ import {
   getClaimCitations,
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG } from "@/lib/timeline/showcase-event";
+import { isHotlinked } from "@/lib/timeline/bring-in-image";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -99,6 +100,13 @@ export default async function TimelinePage({
         extent={extent}
         markers={markers}
         hasShowcase={showcase != null}
+        // Seeded before the pictures were brought in, so they still point at
+        // Wikimedia and do not load. Staff get offered the repair; nobody else
+        // sees anything, because there is nothing they could do about it.
+        showcaseHotlinked={
+          showcase != null &&
+          [showcase.image_url, ...showcase.media.map((item) => item.url)].some(isHotlinked)
+        }
         citations={citations}
         sources={sources}
         tracks={tracks}

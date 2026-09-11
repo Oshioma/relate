@@ -180,7 +180,26 @@ export function TimelineCanvas({
           const pending = placed.event.status === "pending";
 
           return (
-            <div key={placed.event.id} className="absolute" style={{ top, left: 0, right: 0, height: ROW_HEIGHT }}>
+            // A ROW IS A FULL-WIDTH TRANSPARENT DIV, AND IT WAS EATING CLICKS.
+            //
+            // Every event gets one of these, spanning the whole strip so its
+            // marker and caption can be positioned inside it. Two events in the
+            // same row therefore produce two overlapping full-width divs — and
+            // the later one in the DOM sits on top of the earlier one's caption.
+            // Clicking that caption hit the transparent div instead of the
+            // button, and nothing happened. (Playwright put it plainly:
+            // "<div class='absolute'> intercepts pointer events".)
+            //
+            // The row is scaffolding, so it takes no pointer events at all and
+            // the button inside it takes its own back. Everything else in here
+            // is decoration, and a press on it now falls through to the canvas
+            // underneath, which is what pans the timeline — so a drag that
+            // starts on an event's rail drags time, as it should.
+            <div
+              key={placed.event.id}
+              className="pointer-events-none absolute"
+              style={{ top, left: 0, right: 0, height: ROW_HEIGHT }}
+            >
               {/* The disagreement itself: a rail spanning every date any source
                   proposes, so "the sources are 220 years apart" is something you
                   SEE before you read it. */}
@@ -229,7 +248,7 @@ export function TimelineCanvas({
                 }}
                 title={placed.event.title}
                 className={cn(
-                  "absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
+                  "pointer-events-auto absolute top-0 flex h-[26px] items-center gap-1.5 rounded-full pl-1 pr-2 text-[13px]",
                   "transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   // Flipped captions hug their own marker, so the text sits
                   // beside the dot it belongs to rather than trailing away
