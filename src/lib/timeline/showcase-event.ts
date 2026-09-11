@@ -26,52 +26,14 @@
 //     gets the same treatment: what the evidence does and does not establish.
 
 import { isHotlinked } from "./bring-in-image";
+import type { SeedCitation, SeedClaim, SeedSource } from "./seed-types";
 
-export type ShowcaseSource = {
-  /** Stable key within this file, so claims can name their source. Not stored. */
-  key: string;
-  title: string;
-  author?: string;
-  publisher?: string;
-  workTitle?: string;
-  /** Volume/pages/DOI/chapter — whatever locates the passage. */
-  reference?: string;
-  url?: string;
-  sourceType: string;
-  publishedYear?: number;
-  publishedDisplay?: string;
-  /** What this source is cited FOR. Not a summary of the whole work. */
-  notes: string;
-  /** Key of the source that cites this one, where that is genuinely true. */
-  citedBy?: string;
-};
-
-export type ShowcaseCitation = {
-  sourceKey: string;
-  /** What this source DOES to the claim. Never a score. */
-  relation: "supports" | "disputes" | "context";
-  note: string;
-};
-
-export type ShowcaseClaim = {
-  /** The source that ASSERTS this date. */
-  sourceKey: string | null;
-  /** Everything else worth reading on it — evidence, criticism, context. */
-  citations?: ShowcaseCitation[];
-  /** Astronomical year numbering: 1 BCE = 0, 2 BCE = −1. See time.ts. */
-  startYear: number;
-  endYear?: number;
-  datePrecision: string;
-  isApproximate: boolean;
-  /** The claim in its own words, kept verbatim. */
-  originalDateText: string;
-  datingMethod: string;
-  /** The viewpoint (the `chronology` column). "conventional" is the mainstream one. */
-  chronology: string;
-  /** "Why this date?" — what produced it and what it does and does not establish. */
-  evidence: string;
-  notes?: string;
-};
+// The shapes live in seed-types.ts now, shared with the Hannibal dataset. The
+// old names stay as aliases because they read better in this file, and because
+// renaming them here would be churn for nothing.
+export type ShowcaseSource = SeedSource;
+export type ShowcaseCitation = SeedCitation;
+export type ShowcaseClaim = SeedClaim;
 
 /** BCE year → astronomical year. 2560 BCE is −2559. */
 const bce = (year: number): number => 1 - year;

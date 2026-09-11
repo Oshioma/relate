@@ -720,6 +720,26 @@ export async function getEventMarkers(
  * Fetching them with the page means a claim card can show what disputes it
  * without a second round trip when somebody opens it.
  */
+/**
+ * Is one particular event already in this community, by slug?
+ *
+ * A head-count rather than a fetch: the seed cards only need to know whether
+ * the dataset has been taken, and loading a whole event with its claims and
+ * sources to answer a yes/no question is work nobody asked for.
+ */
+export async function hasTimelineEvent(
+  supabase: SupabaseClient<Database>,
+  communityId: string,
+  slug: string
+): Promise<boolean> {
+  const { count } = await supabase
+    .from("timeline_events")
+    .select("id", { count: "exact", head: true })
+    .eq("community_id", communityId)
+    .eq("slug", slug);
+  return (count ?? 0) > 0;
+}
+
 export async function getClaimCitations(
   supabase: Client,
   communityId: string,

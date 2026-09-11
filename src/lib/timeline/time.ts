@@ -491,17 +491,34 @@ export function eventDateLabel(claims: ClaimTimeParts[]): string | null {
   const written = new Set(claims.map((claim) => formatClaimDate(claim)));
   if (written.size === 1) return formatClaimDate(claims[0]);
 
+  // THE ENVELOPE IS BUILT FROM WHAT THE CLAIMS SAY, NOT FROM THEIR RESOLUTION.
+  //
+  // claimInterval pads a point claim out to the width its precision implies —
+  // the year 216 BCE is the whole of that year, which is correct for drawing it
+  // and wrong for writing it. Five claims that all say 216 BCE came out as
+  // "216 BCE – 215 BCE", which reads as a two-year range and is not what any of
+  // them claims. So the envelope runs from the earliest thing claimed to the
+  // latest thing claimed: a range claim contributes its end, a point claim
+  // contributes its point.
   let lo = Infinity;
   let hi = -Infinity;
   for (const claim of claims) {
-    const interval = claimInterval(claim);
-    lo = Math.min(lo, interval.lo);
-    hi = Math.max(hi, interval.hi);
+    const start = positionOf(claim.start_year, claim.start_month, claim.start_day);
+    const end =
+      claim.end_year == null ? start : positionOf(claim.end_year, claim.end_month, claim.end_day);
+    lo = Math.min(lo, start, end);
+    hi = Math.max(hi, start, end);
   }
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
 
-  const from = formatYear(Math.round(lo), { compact: true });
-  const to = formatYear(Math.round(hi), { compact: true });
+  // FLOOR, NOT ROUND. A position is a year plus a fraction of it, so the 2nd of
+  // August 216 BCE sits at −214.4 — and rounding that lands in the following
+  // year, which is how five claims that all said 216 BCE came out as
+  // "216 BCE – 215 BCE". Flooring takes the year the date is IN, which is what
+  // a year label means. (The same slip would have printed a July 1969 date as
+  // 1970.)
+  const from = formatYear(Math.floor(lo), { compact: true });
+  const to = formatYear(Math.floor(hi), { compact: true });
   return from === to ? from : `${from} – ${to}`;
 }
 
