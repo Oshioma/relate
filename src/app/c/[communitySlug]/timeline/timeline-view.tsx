@@ -50,6 +50,7 @@ import {
   durationParts,
   formatYear,
   claimInterval,
+  claimsDisagree,
   lookbackWindow,
   TIMELINE_JUMPS,
   type TimeScale,
@@ -296,7 +297,26 @@ export function TimelineView({
   // behaviour it has always had.
   const requestId = useRef(0);
   const loadedRef = useRef<{ from: number; to: number; key: string } | null>(null);
-  const loadKey = `${JSON.stringify(filters)}#${reloadToken}`;
+
+  // AND THE FILTERS ARE APPLIED HERE, NOT THERE.
+  //
+  // Every press of a category chip was a round trip — "Archaeology" meant
+  // waiting on the network to find out which of twenty-eight events say
+  // archaeology. Once a window is loaded whole, every filter this page offers
+  // can be answered from what is already in memory: a category is a field, a
+  // lane is a list of ids on the event, a source type is a lookup in the source
+  // list the page was given, and "where sources disagree" is the same function
+  // the server runs. So the filters are client-side and instant.
+  //
+  // The server still does the filtering for a timeline too big to load whole,
+  // because there the capped window has to be a window of MATCHING events or
+  // the filter would silently show only the first four hundred.
+  const canFilterHere = total > 0 && total <= TIMELINE_WINDOW_CAP;
+  const serverFilters: TimelineFilters = useMemo(
+    () => (canFilterHere ? { includePending: filters.includePending } : filters),
+    [canFilterHere, filters]
+  );
+  const loadKey = `${JSON.stringify(serverFilters)}#${reloadToken}`;
 
   useEffect(() => {
     const span = view.to - view.from;
@@ -314,7 +334,7 @@ export function TimelineView({
     const handle = setTimeout(async () => {
       setLoading(true);
       try {
-        const payload = await loadTimelineWindow(communitySlug, wanted.from, wanted.to, filters);
+        const payload = await loadTimelineWindow(communitySlug, wanted.from, wanted.to, serverFilters);
         // A slow response for a window the reader has already left must not
         // overwrite a fast one for the window they are in.
         if (id !== requestId.current) return;
@@ -337,7 +357,7 @@ export function TimelineView({
       }
     }, REFETCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [communitySlug, view.from, view.to, filters, loadKey, total]);
+  }, [communitySlug, view.from, view.to, serverFilters, loadKey, total]);
 
   // WHOLE TIMELINE — everything this community has, in one frame.
   //
@@ -409,18 +429,42 @@ export function TimelineView({
     setResults(null);
   }, []);
 
+  /** Source ids of the chosen type, for "show me what archaeology says". */
+  const sourceIdsOfType = useMemo(() => {
+    if (!sourceType) return null;
+    return new Set(sources.filter((source) => source.source_type === sourceType).map((source) => source.id));
+  }, [sources, sourceType]);
+
+  // The same questions the server asks, asked of the events already in hand.
+  const matchesFilters = useCallback(
+    (event: TimelineEventWithClaims) => {
+      if (category && event.category !== category) return false;
+      if (trackId && !event.trackIds.includes(trackId)) return false;
+      if (person && !event.people.includes(person)) return false;
+      if (civilisation && !event.civilisations.includes(civilisation)) return false;
+      if (chronology && !event.claims.some((claim) => claim.chronology === chronology)) return false;
+      if (sourceIdsOfType && !event.claims.some((claim) => claim.source_id && sourceIdsOfType.has(claim.source_id)))
+        return false;
+      if (disputedOnly && !claimsDisagree(event.claims)) return false;
+      return true;
+    },
+    [category, trackId, person, civilisation, chronology, sourceIdsOfType, disputedOnly]
+  );
+
   // Loaded is wider than shown (see the loader above), so the list is filtered
   // back to the window: a reader scrolling the list should see what the strip
   // is showing, not the margin either side of it that happens to be in memory.
   const inWindow = useMemo(
     () =>
-      events.filter((event) =>
-        event.claims.some((claim) => {
-          const interval = claimInterval(claim);
-          return interval.hi >= view.from && interval.lo <= view.to;
-        })
+      events.filter(
+        (event) =>
+          matchesFilters(event) &&
+          event.claims.some((claim) => {
+            const interval = claimInterval(claim);
+            return interval.hi >= view.from && interval.lo <= view.to;
+          })
       ),
-    [events, view.from, view.to]
+    [events, matchesFilters, view.from, view.to]
   );
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
@@ -728,15 +772,14 @@ export function TimelineView({
       )}
 
       {/* ---- Choose a span --------------------------------------------
-          Above the timeline rather than below it, because this is the
-          first thing a reader does: pick how much time to look at, then
-          look at it. Underneath the strip they were a footnote to a
-          decision that had already been made. */}
-      {/* ---- Eras ------------------------------------------------------------
-          Scrolls sideways where there is not room and wraps where there is, so
-          the cards keep their size rather than being squeezed into illegibility
-          on a narrow screen. */}
-      <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          Above the timeline rather than below it, because this is the first
+          thing a reader does: pick how much time to look at, then look at it.
+
+          ONE ROW, SCROLLING. Wrapped across two rows these took a quarter of
+          the screen before the timeline began. On one line they are a rail you
+          push along — eras first, then the look-backs from today, with a rule
+          between the two kinds. */}
+      <div className="-mx-4 mb-3 flex w-0 min-w-full gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         {/* Everything this community has, framed. First in the row because it
             is the jump people actually want — the fixed eras beside it are
             spans of history, this one is a span of YOUR timeline. */}
@@ -759,34 +802,28 @@ export function TimelineView({
             onClick={() => setView(jump.window)}
           />
         ))}
-      </div>
 
-      {/* ---- How far back ---------------------------------------------------
-          The era chips above are PLACES; this row is DEPTHS. Every one ends at
-          the same point just past today and only the reach changes, so going
-          along the row is one continuous zoom out from the present — which is
-          the question a learner asks far more often than "show me the Medieval
-          period". */}
-      <div className="mt-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Back from {LOOKBACK_END_YEAR}
-        </p>
-        <div className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-          {LOOKBACK_SPANS.map((years) => {
-            const window = lookbackWindow(years);
-            return (
-              <SpanCard
-                key={years}
-                {...durationParts(years)}
-                // Where it actually lands, so the reader can see that 7,500
-                // years is the Neolithic without having to do the subtraction.
-                caption={`from ${formatYear(Math.floor(window.from), { compact: true })}`}
-                active={matchesWindow(window)}
-                onClick={() => setView(window)}
-              />
-            );
-          })}
-        </div>
+        {/* The eras above are PLACES; what follows is DEPTHS. Every one of them
+            ends at the same point just past today and only the reach changes,
+            so going along the row is one continuous zoom out from the present —
+            which is the question a learner asks far more often than "show me
+            the Medieval period". */}
+        <div className="mx-1 w-px shrink-0 self-stretch bg-border" aria-hidden />
+
+        {LOOKBACK_SPANS.map((years) => {
+          const span = lookbackWindow(years);
+          return (
+            <SpanCard
+              key={years}
+              {...durationParts(years)}
+              // Both ends, so the row needs no heading to say what it is: these
+              // all finish just past today, and only the reach back changes.
+              caption={`${formatYear(Math.floor(span.from), { compact: true })} – ${LOOKBACK_END_YEAR}`}
+              active={matchesWindow(span)}
+              onClick={() => setView(span)}
+            />
+          );
+        })}
       </div>
 
       {/* ---- How much time is on screen ------------------------------------
