@@ -1033,7 +1033,9 @@ async function seedDataset(
   community: Community,
   userId: string,
   dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string }
-): Promise<{ error: string } | { ok: true; added: number; skipped: number; failed: number }> {
+): Promise<
+  { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number }
+> {
   const { events: seedEvents, sources: seedSources, track, label } = dataset;
 
   // --- The lane -------------------------------------------------------------
@@ -1126,11 +1128,46 @@ async function seedDataset(
   const skipped: string[] = [];
   const failed: string[] = [];
 
+  let repaired = 0;
+
   for (const seed of seedEvents) {
     if (present.has(seed.slug)) {
       skipped.push(seed.slug);
+      // ALREADY HERE — BUT PERHAPS WITHOUT ITS PICTURES. A community that took
+      // this dataset before the pictures were part of it has events that were
+      // never offered any, and skipping the event skips them for ever. Only an
+      // event with NO pictures at all is topped up; anything a community added
+      // itself is left alone.
+      if (seed.imageUrl || seed.media?.length) {
+        const { data: existing } = await supabase
+          .from("timeline_events")
+          .select("id, image_url, media")
+          .eq("community_id", community.id)
+          .eq("slug", seed.slug)
+          .maybeSingle();
+        if (existing && !existing.image_url && (existing.media ?? []).length === 0) {
+          const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
+            pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+            userId,
+            slug: seed.slug,
+          });
+          await supabase
+            .from("timeline_events")
+            .update({ image_url: pictures.imageUrl, media: pictures.media })
+            .eq("id", existing.id);
+          if (broughtIn > 0) repaired++;
+        }
+      }
       continue;
     }
+
+    // Copied into the community's own storage before the event is written, so
+    // it never carries an address pointing somewhere we do not control.
+    const { pictures } = await bringEventPicturesIn(supabase, {
+      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+      userId,
+      slug: seed.slug,
+    });
 
     const { data: event, error: eventError } = await supabase
       .from("timeline_events")
@@ -1151,6 +1188,8 @@ async function seedDataset(
         location_name: seed.locationName ?? null,
         lat: seed.lat ?? null,
         lng: seed.lng ?? null,
+        image_url: pictures.imageUrl,
+        media: pictures.media,
         status: "published",
       })
       .select("id, slug")
@@ -1234,7 +1273,7 @@ async function seedDataset(
     added++;
   }
 
-  return { ok: true as const, added, skipped: skipped.length, failed: failed.length };
+  return { ok: true as const, added, skipped: skipped.length, failed: failed.length, repaired };
 }
 
 /** Seventeen events from the Second Punic War. See hannibal-seed.ts. */

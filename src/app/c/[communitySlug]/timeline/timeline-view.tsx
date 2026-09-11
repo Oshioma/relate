@@ -173,6 +173,7 @@ export function TimelineView({
   hasShowcase,
   hasHannibal,
   hasDeepTime,
+  hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
   initialTruncated,
@@ -199,6 +200,8 @@ export function TimelineView({
   hasHannibal: boolean;
   /** Whether the Middle Pleistocene dataset is already here. Same rule. */
   hasDeepTime: boolean;
+  /** The Hannibal dataset is here, but was taken before it had pictures. */
+  hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
   showcaseNeedsPictures: boolean;
   /** Every extra claim→source link in the community, for the detail panel. */
@@ -393,6 +396,18 @@ export function TimelineView({
   // the reader has just pressed one and cannot tell which. Matched loosely,
   // because panning a few pixels should not un-select the span you chose, and
   // exactly enough that two neighbouring spans are never both lit.
+  // THE WHOLE RAIL RUNS ONE WAY: shallowest on the left, deepest on the right.
+  //
+  // The eras were listed oldest-first and the look-backs shortest-first, so
+  // reading along the row you went from the Big Bang down to today and then
+  // straight back out to a billion years — the direction reversed halfway and
+  // the row stopped meaning anything. Sorted by span here rather than in the
+  // shared list, which is in chronological order for good reasons of its own.
+  const eraCards = useMemo(
+    () => [...TIMELINE_JUMPS].sort((a, b) => a.window.to - a.window.from - (b.window.to - b.window.from)),
+    []
+  );
+
   const matchesWindow = useCallback(
     (candidate: TimeWindow) => {
       const span = view.to - view.from;
@@ -798,7 +813,7 @@ export function TimelineView({
             onClick={fitEverything}
           />
         )}
-        {TIMELINE_JUMPS.map((jump) => (
+        {eraCards.map((jump) => (
           <SpanCard
             key={jump.key}
             {...durationParts(jump.window.to - jump.window.from)}
@@ -1109,14 +1124,29 @@ export function TimelineView({
           narratives that disagree about casualty figures, a modern radiocarbon
           study, and a legend about vinegar. Offered to staff until it is
           taken. Nothing is seeded into a community that has not asked. */}
-      {isStaff && !hasHannibal && (
+      {isStaff && (!hasHannibal || hannibalNeedsPictures) && (
         <div className="mt-8 rounded-xl border border-dashed border-border bg-muted/30 p-5">
-          <p className="text-sm font-semibold text-foreground">Add the Hannibal dataset?</p>
+          <p className="text-sm font-semibold text-foreground">
+            {hasHannibal ? "The Hannibal dataset is missing its pictures" : "Add the Hannibal dataset?"}
+          </p>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Seventeen events from the Second Punic War — Hannibal&rsquo;s birth, the oath, Saguntum, the Alps, Cannae,
-            the march on Rome — built to show how historical knowledge is actually assembled: contemporary objects,
-            a near-contemporary witness, two ancient histories that disagree, later legend, and modern scholarship,
-            each kept apart and labelled. Where the ancient sources give different numbers, both numbers are shown.
+            {hasHannibal ? (
+              <>
+                Its events were added before the pictures were part of it. Bring them in and six of them gain a
+                picture — a Barcid coin, the disputed bust from Capua, Turner&rsquo;s storm, the woodcut that invented
+                the elephants-in-the-snow image — each copied into this community&rsquo;s own storage, with the
+                creator and licence in the caption, and each captioned for what it actually is rather than as
+                evidence.
+              </>
+            ) : (
+              <>
+                Seventeen events from the Second Punic War — Hannibal&rsquo;s birth, the oath, Saguntum, the Alps,
+                Cannae, the march on Rome — built to show how historical knowledge is actually assembled:
+                contemporary objects, a near-contemporary witness, two ancient histories that disagree, later legend,
+                and modern scholarship, each kept apart and labelled. Where the ancient sources give different
+                numbers, both numbers are shown.
+              </>
+            )}
           </p>
           <Button
             type="button"
@@ -1142,7 +1172,11 @@ export function TimelineView({
               });
             }}
           >
-            {seedingHannibal ? "Adding the events…" : "Add the Hannibal dataset"}
+            {seedingHannibal
+              ? "Working…"
+              : hasHannibal
+                ? "Bring the Hannibal pictures in"
+                : "Add the Hannibal dataset"}
           </Button>
           {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
