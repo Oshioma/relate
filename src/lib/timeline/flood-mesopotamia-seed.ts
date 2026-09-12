@@ -569,6 +569,23 @@ const DEPOSITS: SeedEvent[] = [
     eventType: "archaeological_interpretation",
     tags: ["flood", "mesopotamia", "kish", "excavation"],
     locationName: "Kish, central Iraq",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ruins_of_the_ziggurat_of_the_ancient_city_of_Kish,_Tell_al-Uhaymir,_Iraq.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ruins_of_the_ziggurat_of_the_ancient_city_of_Kish,_Tell_al-Uhaymir,_Iraq.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Tell al-Uhaymir, the mound of Kish. THE BRICK MASS IS NOT THE FLOOD LAYER: this ziggurat is Neo- " +
+          "Babylonian, two thousand years later than the silt Watelin recorded deep in the mound. The photograph " +
+          "shows where the deposit was dug, which is as close as a photograph gets to it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ncse_flood_archaeology",

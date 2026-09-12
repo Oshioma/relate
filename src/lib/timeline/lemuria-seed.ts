@@ -735,6 +735,23 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
     eventTypeNote: "An alternative-history account, presented as such. Its date is a calculation from a relative statement in the source, not a figure the source gives.",
     tags: ["mu", "churchward", "contested-chronology", "lost-continent", "pacific"],
     people: ["James Churchward"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Book_map1.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Book_map1.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The map from James Churchward's The Lost Continent of Mu, 1926. Churchward said he read it off tablets " +
+          "shown to him by a priest in India, which nobody else has seen. It is drawn with the confidence of a " +
+          "survey, and nothing behind it has ever been produced.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "churchward1926",

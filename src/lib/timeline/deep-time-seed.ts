@@ -319,6 +319,23 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     people: ["Homo heidelbergensis"],
     civilisations: [],
     locationName: "Africa and Europe",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mandibel_from_Mauer.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Mandibel_from_Mauer.JPG?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The lower jaw found in a sand pit at Mauer, near Heidelberg, in 1907. It is the type specimen: the " +
+          "name Homo heidelbergensis exists because of this jaw. Everything assigned to the species since has " +
+          "been assigned by comparison with one mandible and no cranium.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "smithsonian",
@@ -451,6 +468,36 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     locationName: "Eartham Quarry, Boxgrove, West Sussex, England",
     lat: 50.8639,
     lng: -0.7186,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Boxgrove_handaxe.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boxgrove_handaxe.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A flint handaxe from Boxgrove in West Sussex. Hundreds were recovered, some lying where they were " +
+          "struck with the waste flakes still around them. They date the occupation and show what was being made; " +
+          "about who made it they say only that the hands were capable of this.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Boxgrove_Tibia.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The Boxgrove tibia, found in 1993. With two incisor teeth it is the only human bone from the site \u2014 " +
+          "one shin bone for the whole occupation. That is why the species attached to it is argued over: the " +
+          "attribution is being made from a single limb bone and no skull.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "roberts1994",
@@ -852,6 +899,24 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     locationName: "Global — defined at the Chiba section, Japan",
     lat: 35.2833,
     lng: 140.1333,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Geomagnetic_polarity_late_Cenozoic.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Geomagnetic_polarity_late_Cenozoic.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "The polarity record of the last few million years, black for normal and white for reversed. The " +
+          "Brunhes\u2013Matuyama boundary is the most recent of these switches, and it works as a dating horizon " +
+          "because it is the same everywhere \u2014 a bar on a chart, not something anyone alive at the time could " +
+          "have noticed.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "chibaGSSP",

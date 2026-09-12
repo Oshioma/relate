@@ -252,6 +252,24 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     subcategory: "Ice age",
     eventType: "scientific_model",
     tags: ["ice-age", "sea-level", "deglaciation", "context"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+        shows: "diagram",
+        caption:
+          "Sea level across the last twenty-two thousand years, compiled from several published records. This " +
+          "curve is why coastal drowning stories have something physical to be about. It is also a compilation: " +
+          "the scatter between the underlying data sets has been smoothed into one line, and the line is smoother " +
+          "than the evidence.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "clark2009",
@@ -358,6 +376,24 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     subcategory: "Climate",
     eventType: "scientific_model",
     tags: ["younger-dryas", "climate", "abrupt-change", "ice-core"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Dryas_octopetala_-_Reinrose.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Dryas_octopetala_-_Reinrose.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Dryas octopetala, the mountain avens, alive in northern Norway. The cold period is named after this " +
+          "plant because its pollen returns in European sediment cores at the point the warming reverses. THIS " +
+          "PLANT IS NOT THAT EVIDENCE \u2014 the evidence is pollen in a core, and the name is a naturalists' " +
+          "convention attached to it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "rasmussen2014",
@@ -409,6 +445,23 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     subcategory: "Climate",
     eventType: "scientific_model",
     tags: ["younger-dryas", "holocene", "climate", "ice-core"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/TempAndSnowAccumulation_GISP2_Alley2000-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/TempAndSnowAccumulation_GISP2_Alley2000-en.svg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Central Greenland temperature and snow accumulation from the GISP2 ice core. The step at the end of " +
+          "the Younger Dryas is where the Holocene is defined to begin. It is one core from one ice sheet: the " +
+          "date is sharp because the annual layers can be counted, not because the whole planet turned at once.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "rasmussen2014",

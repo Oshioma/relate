@@ -329,6 +329,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     locationName: "Carthage",
     lat: 36.8528,
     lng: 10.3233,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Benjamin_West_(1738-1820)_-_The_Oath_of_Hannibal_-_RCIN_405417_-_Royal_Collection.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Benjamin_West_(1738-1820)_-_The_Oath_of_Hannibal_-_RCIN_405417_-_Royal_Collection.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Benjamin West painted this in 1770 \u2014 some two thousand years after the sacrifice it shows, and with " +
+          "nothing to work from but the text. It is a record of how the scene has been imagined. Every detail in " +
+          "it beyond \u201ca boy, an altar, and his father\u201d is West's invention.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "polybius",
@@ -445,6 +462,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     locationName: "Saguntum (Sagunto, Spain)",
     lat: 39.6766,
     lng: -0.2733,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Castillo04_Sagunto.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Castillo04_Sagunto.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The ridge above Sagunto, where the Iberian town stood. THE WALLS IN THE PICTURE ARE NOT THE WALLS " +
+          "HANNIBAL BESIEGED: the castle is a Roman, Islamic and Spanish accumulation on the same height. What " +
+          "the photograph shows honestly is the position \u2014 a hill above a coastal plain, held for eight months.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -499,6 +533,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca", "Quintus Fabius Maximus"],
     civilisations: ["Carthage", "Rome"],
     locationName: "Carthage and Rome",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mediterranean_at_218_BC-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Mediterranean_at_218_BC-en.svg?width=1024",
+        shows: "map",
+        caption:
+          "The Mediterranean as drawn for 218 BCE, with the two powers shaded. Shading makes a border look " +
+          "settled, and the declaration of war turned on exactly the thing shading cannot show: whether Saguntum " +
+          "lay inside an agreed line at all, and whether such a line had ever been agreed.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -608,6 +659,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca", "Publius Cornelius Scipio"],
     civilisations: ["Carthage", "Rome"],
     locationName: "The lower Rhône, southern Gaul",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traverse_le_Rh%C3%B4ne_Henri_Motte_1878.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traverse_le_Rh%C3%B4ne_Henri_Motte_1878.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Henri-Paul Motte showed this at the Salon of 1878: elephants ferried over the Rh\u00f4ne on rafts covered " +
+          "with earth. The rafts and the earth are in Polybius. The dress, the faces, the rearing panic and the " +
+          "crowd are nineteenth-century French history painting.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -860,6 +928,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca", "Publius Cornelius Scipio", "Scipio Africanus"],
     civilisations: ["Carthage", "Rome"],
     locationName: "Near the River Ticinus, northern Italy",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Le_combat_du_Tessin_(Tapisserie,_Louvre,_OA_6067).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Le_combat_du_Tessin_(Tapisserie,_Louvre,_OA_6067).jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "The fight at the Ticinus woven on a tapestry now in the Louvre, roughly seventeen centuries after the " +
+          "cavalry action it depicts, in the armour of the weaver's own day. It records that the battle stayed " +
+          "worth picturing \u2014 nothing about how it looked.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -908,6 +993,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca", "Tiberius Sempronius Longus", "Mago Barca"],
     civilisations: ["Carthage", "Rome"],
     locationName: "The River Trebia, near Placentia (Piacenza), Italy",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_Trebia-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_Trebia-en.svg?width=1024",
+        shows: "map",
+        caption:
+          "A United States Military Academy teaching map of the Trebia. Arrows turn a reconstruction into a " +
+          "diagram: the ambush position, the numbers on each side and even which bank the Romans crossed to are " +
+          "all argued over, and none of that argument survives being drawn as a line.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -957,6 +1059,36 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     locationName: "The northern shore of Lake Trasimene, Italy",
     lat: 43.1667,
     lng: 12.1,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_of_Lake_Trasimene,_217_BC.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_of_Lake_Trasimene,_217_BC.svg?width=1024",
+        shows: "map",
+        caption:
+          "The ambush as a West Point teaching map \u2014 Hannibal along the high ground, the Roman column strung out " +
+          "on the lake road. THE SHORELINE IS THE MODERN ONE. Trasimene stood higher in 217 BCE, so part of the " +
+          "ground the fighting happened on is now under water and part of the water shown here was then dry.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Trasimene_battlefield.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The ground north of Lake Trasimene today. Nothing in the landscape marks the battle, and nothing in it " +
+          "contradicts the accounts either \u2014 which is the ordinary condition of a battlefield that has never been " +
+          "excavated.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",
@@ -1180,6 +1312,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     locationName: "Rome",
     lat: 41.9028,
     lng: 12.4964,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/M._Tullius_Cicero,_Capitoline_Museum,_Rome.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/M._Tullius_Cicero,_Capitoline_Museum,_Rome.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "The marble head in the Capitoline Museums traditionally called Cicero, in whose Philippics the phrase " +
+          "turns up already worn smooth into a figure of speech. The identification rests on comparison with " +
+          "coins and later copies rather than on an inscription naming him.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "cicero",
@@ -1227,6 +1376,23 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca", "Quintus Fabius Maximus", "Hasdrubal Barca"],
     civilisations: ["Carthage", "Rome"],
     locationName: "Southern and central Italy",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_route_of_invasion-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_route_of_invasion-en.svg?width=1024",
+        shows: "map",
+        caption:
+          "The invasion route as conventionally drawn, from Iberia over the Pyrenees, the Rh\u00f4ne and the Alps into " +
+          "Italy. The line is firm where the ancient narratives name towns and wholly a matter of argument where " +
+          "they do not \u2014 the Alpine pass above all, which this map commits to and the sources never name.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "lazenby",

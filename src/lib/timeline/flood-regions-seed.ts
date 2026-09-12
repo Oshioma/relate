@@ -344,6 +344,23 @@ export const FLOOD_REGIONS_EVENTS: SeedEvent[] = [
     // No warning, nobody chosen, no punishment, no repopulation of humanity —
     // the survivors repopulate the giants. A container, not a built ark.
     motifs: ["conflict_of_powers", "no_warning", "container", "few_survive", "previous_world_destroyed"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ymir_gets_killed_by_Froelich.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ymir_gets_killed_by_Froelich.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Lorenz Fr\u00f8lich's drawing of Ymir's killing, made in the nineteenth century for a Danish edition of the " +
+          "Norse myths. A Victorian illustrator picturing a thirteenth-century Icelandic text about something " +
+          "older than that: three removes, and nothing in the line work marks which details come from the text.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "snorri_gylfaginning",
