@@ -81,6 +81,12 @@ import {
   ANCIENT_SITES_WORKED_STONE_TRACK,
 } from "@/lib/timeline/ancient-sites-worked-stone-seed";
 import {
+  ANCIENT_SITES_ACCEPTED_EVENTS,
+  ANCIENT_SITES_ACCEPTED_LINKS,
+  ANCIENT_SITES_ACCEPTED_SOURCES,
+  ANCIENT_SITES_ACCEPTED_TRACK,
+} from "@/lib/timeline/ancient-sites-accepted-surprise-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1846,6 +1852,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_WORKED_STONE_LINKS,
   },
   {
+    label: "When the accepted date is the surprising one",
+    track: ANCIENT_SITES_ACCEPTED_TRACK,
+    events: ANCIENT_SITES_ACCEPTED_EVENTS,
+    sources: ANCIENT_SITES_ACCEPTED_SOURCES,
+    links: ANCIENT_SITES_ACCEPTED_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2569,6 +2582,30 @@ export async function seedAncientSitesWorkedStoneDataset(communitySlug: string) 
     track: ANCIENT_SITES_WORKED_STONE_TRACK,
     links: ANCIENT_SITES_WORKED_STONE_LINKS,
     label: "Worked stone: who cut it, and how anybody knows",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Malta, Nan Madol and Rapa Nui. Three accepted chronologies that are more
+ * surprising than the alternative accounts attached to them — and one of them,
+ * Rapa Nui, is where the mainstream date moved LATER, which is the half of
+ * revision a reader rarely meets.
+ * See ancient-sites-accepted-surprise-seed.ts.
+ */
+export async function seedAncientSitesAcceptedDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_ACCEPTED_EVENTS,
+    sources: ANCIENT_SITES_ACCEPTED_SOURCES,
+    track: ANCIENT_SITES_ACCEPTED_TRACK,
+    links: ANCIENT_SITES_ACCEPTED_LINKS,
+    label: "When the accepted date is the surprising one",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
