@@ -336,3 +336,8 @@ export async function fetchCommonsAttribution(
   const credit = [artist, licence, "via Wikimedia Commons"].filter(Boolean).join(", ");
   return { credit, artist, licence };
 }
+
+/** The human-readable file page, where Commons states the author and the licence. */
+export function commonsFilePageUrl(fileName: string): string {
+  return `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(fileName).replace(/%20/g, "_")}`;
+}

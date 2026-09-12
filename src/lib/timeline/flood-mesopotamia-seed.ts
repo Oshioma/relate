@@ -205,6 +205,23 @@ const TRADITIONS: SeedEvent[] = [
     // Only what the surviving text contains. The tablet is fragmentary, and the
     // gaps are why this list is shorter than the Gilgamesh one below.
     motifs: ["divine_warning", "chosen_survivor", "boat", "waters_recede"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/CBS10673_Sumerian_Flood_Story_Penn_Museum.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/CBS10673_Sumerian_Flood_Story_Penn_Museum.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "CBS 10673, the Penn Museum tablet carrying the Sumerian flood story. IT IS A FRAGMENT: roughly a " +
+          "third of the text survives, the beginning is lost, and the flood itself occupies a broken passage \u2014 " +
+          "so how much of the story it once told is not known.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "eridu_genesis",
@@ -250,6 +267,23 @@ const TRADITIONS: SeedEvent[] = [
     people: ["Atrahasis", "Enki", "Ipiq-Aya"],
     civilisations: ["Babylonia"],
     motifs: ["divine_warning", "divine_punishment", "human_behaviour", "chosen_survivor", "boat", "animals_preserved"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cuneiform_tablet-_Atra-hasis,_Babylonian_flood_myth_MET_266811.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Cuneiform_tablet-_Atra-hasis,_Babylonian_flood_myth_MET_266811.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A cuneiform tablet of Atra-hasis in the Metropolitan Museum of Art. The story survives across " +
+          "several copies from different centuries rather than in one manuscript, and the standard text is a " +
+          "reconstruction from them.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "atrahasis_tablet",
@@ -320,6 +354,23 @@ const TRADITIONS: SeedEvent[] = [
       "sacrifice_after",
       "prolonged_rain",
     ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/British_Museum_Flood_Tablet.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/British_Museum_Flood_Tablet.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "Tablet XI of the Epic of Gilgamesh \u2014 the Flood Tablet \u2014 from the library of Ashurbanipal at Nineveh, " +
+          "seventh century BCE. This is the object George Smith read in 1872, and the copy is some twelve " +
+          "hundred years younger than the story it carries.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "gilgamesh_xi",
@@ -381,6 +432,23 @@ const TRADITIONS: SeedEvent[] = [
     locationName: "Southern Mesopotamia",
     civilisations: ["Sumer"],
     motifs: ["previous_world_destroyed"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/The_Sumerian_King_List,_Ashmolean_Museum,_Oxford.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Sumerian_King_List,_Ashmolean_Museum,_Oxford.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The Weld-Blundell Prism in the Ashmolean Museum, the fullest copy of the Sumerian King List. It " +
+          "gives reigns of tens of thousands of years before the flood and ordinary ones after it, which is a " +
+          "statement about how the list is organised rather than a record of how long anybody lived.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "sumerian_king_list",
@@ -421,6 +489,23 @@ const DEPOSITS: SeedEvent[] = [
     tags: ["flood", "mesopotamia", "ur", "excavation", "woolley"],
     locationName: "Ur, southern Iraq",
     people: ["Leonard Woolley", "Max Mallowan"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Royal_Cemetery_of_Ur_excavations_(B%26W).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Royal_Cemetery_of_Ur_excavations_(B%26W).jpg?width=1024",
+        shows: "site",
+        caption:
+          "Woolley's excavations at Ur. The flood deposit he announced in 1929 was found in a small number of " +
+          "deep pits, and later work showed it is not present across the whole site \u2014 which is why this record " +
+          "separates what was dug from what was concluded.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "woolley_ur",
@@ -548,6 +633,23 @@ const BIBLICAL: SeedEvent[] = [
       "repopulation",
       "prolonged_rain",
       "waters_from_below",
+    ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The title page of Ussher's Annales Veteris Testamenti, 1650, where the 4004 BCE creation date is " +
+          "calculated. THE BIBLE DOES NOT CONTAIN THIS DATE: Ussher derived it from biblical genealogies " +
+          "together with Persian and Roman chronology, and the arithmetic is his.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

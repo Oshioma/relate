@@ -129,6 +129,23 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
     // Deliberately short. No boat, no chosen survivor, no divine punishment, no
     // repopulation — none of which the tradition contains.
     motifs: ["river_flood", "land_drained"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/King_Yu_of_Xia.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/King_Yu_of_Xia.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Yu the Great, painted by Ma Lin in the Song dynasty \u2014 some three thousand years after the events the " +
+          "tradition describes, and about fifteen hundred years after Sima Qian wrote Yu into history. It is " +
+          "evidence for how Yu was pictured in the thirteenth century CE and for nothing earlier.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "great_flood_china",

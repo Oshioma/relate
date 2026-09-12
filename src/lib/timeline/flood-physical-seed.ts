@@ -200,6 +200,24 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     subcategory: "Ice age",
     eventType: "scientific_model",
     tags: ["ice-age", "sea-level", "glacial", "context"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pleistocene_north_ice_map.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pleistocene_north_ice_map.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The maximum extent of northern-hemisphere ice during the Pleistocene. A MAP IS AN ARGUMENT: the ice " +
+          "margins are reconstructed from the landforms and deposits the ice left behind, they did not all " +
+          "stand at their maximum on the same date, and a single clean line is a drawing convention rather than " +
+          "a shoreline anybody saw.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "clark2009",
@@ -267,6 +285,24 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     subcategory: "Sea level",
     eventType: "scientific_model",
     tags: ["sea-level", "meltwater-pulse", "deglaciation", "coral"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Sea level since the Last Glacial Maximum, compiled from many separate studies. Meltwater Pulse 1A is " +
+          "the steep step near 14,000 years before present \u2014 and the horizontal axis is in YEARS BEFORE " +
+          "PRESENT, where present is 1950, which is the whole reason this record carries the conversion rather " +
+          "than a BCE figure.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "deschamps2012",
@@ -443,6 +479,35 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["megaflood", "glacial-lake", "scablands", "north-america"],
     locationName: "Columbia Basin, eastern Washington",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Channeled_Scablands.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Channeled_Scablands.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The Channeled Scablands of eastern Washington: bare basalt stripped of its soil, cut into channels " +
+          "far larger than any river now there. This landscape is the evidence, and J Harlen Bretz's reading of " +
+          "it was rejected for forty years before the floods were accepted.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/DryFalls_WA.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Dry Falls, where a waterfall several times the width of Niagara once ran and now stands empty. The " +
+          "scale of the plunge pool is one of the measurements the flood discharge is reconstructed from.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "waitt1983",
@@ -484,6 +549,22 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["megaflood", "glacial-lake", "north-america", "dating-conventions"],
     locationName: "Red Rock Pass, Idaho, and the Snake River",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Lake_Bonneville.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Lake_Bonneville.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Lake Bonneville at its highest stand, of which the Great Salt Lake is the remnant. The flood left by " +
+          "way of Red Rock Pass in southeastern Idaho, at the northern end.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "oviatt_bonneville",
