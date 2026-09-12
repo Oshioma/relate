@@ -283,6 +283,24 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
     tags: ["atlantis", "plato", "solon", "contested-chronology", "esoteric", "younger-dryas", "thera"],
     people: ["Plato", "Solon", "Ignatius Donnelly", "W. Scott-Elliot", "Edgar Cayce", "Rudolf Steiner", "G. I. Gurdjieff", "Angelos Galanopoulos"],
     civilisations: ["Ancient Greece", "Ancient Egypt", "Minoan civilisation"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Atlantis_Kircher_Mundus_subterraneus_1678.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Atlantis_Kircher_Mundus_subterraneus_1678.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Athanasius Kircher's map of Atlantis, from Mundus Subterraneus, published about two thousand years " +
+          "after Plato wrote. NOTE WHICH WAY UP IT IS: south is at the top, which is a convention of the " +
+          "engraving and not a claim about the ocean. Kircher drew a continent from a dialogue; no survey, no " +
+          "soundings, no source but the text.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       // --- The esoteric chronologies, oldest first -------------------------
       {
@@ -529,6 +547,23 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
     tags: ["atlantis", "plato", "solon", "classical-greece", "contested-chronology"],
     people: ["Plato", "Solon", "Critias"],
     civilisations: ["Ancient Greece", "Ancient Egypt"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Plato_Silanion_Musei_Capitolini_MC1377.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Plato_Silanion_Musei_Capitolini_MC1377.png?width=1024",
+        shows: "artefact",
+        caption:
+          "A Roman copy of a portrait of Plato, after an original attributed to Silanion made for the Academy. " +
+          "Every ancient portrait of Plato is a copy of a copy, and this is a picture of the writer rather than " +
+          "evidence about what he wrote.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "britannica_timaeus",
@@ -572,6 +607,23 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
     people: ["Solon"],
     civilisations: ["Ancient Greece", "Ancient Egypt"],
     locationName: "Sais, Egypt",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Athanasius_Kircher's_Atlantis.gif?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Athanasius_Kircher's_Atlantis.gif?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Kircher's Atlantis again, in the form most often reproduced. It is shown here because the journey to " +
+          "Sais is known ONLY from Plato's own framing of the story \u2014 there is no Egyptian record of it \u2014 and " +
+          "what illustrates that record is the tradition of drawing, not a document.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "britannica_solon",

@@ -253,6 +253,35 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventTypeNote: "A datable publication. The claims it later attracted are elsewhere on this timeline, at the dates their authors put them.",
     tags: ["lemuria", "history-of-an-idea", "biogeography", "madagascar", "sclater"],
     people: ["Philip Lutley Sclater"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/PLSclater.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/PLSclater.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Philip Lutley Sclater, who proposed Lemuria in 1864. HE WAS SOLVING A REAL PROBLEM: lemurs in " +
+          "Madagascar and India and not in Africa between them, at a time when no mechanism for moving " +
+          "continents was known. A sunken land bridge was a reasonable answer to the question as it then stood.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ring-tailed_lemur_(Lemur_catta).jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Lemur catta in Madagascar. The distribution of these animals is the observation Lemuria was invented " +
+          "to explain \u2014 and the one that plate tectonics and ocean rafting later explained without it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "sclater1864",
@@ -288,6 +317,23 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventTypeNote: "A datable publication. What it asserts about prehistory is recorded separately, as claims with their own dates.",
     tags: ["lemuria", "history-of-an-idea", "theosophy", "root-race", "blavatsky"],
     people: ["Helena Petrovna Blavatsky"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Helena_Petrovna_Blavatsky.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Helena_Petrovna_Blavatsky.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Helena Blavatsky, who took a zoologist's land bridge and made it the home of a root race. THIS IS " +
+          "THE HINGE OF THE WHOLE RECORD: after 1888 the word means two different things, and the scientific " +
+          "proposal is regularly cited as though it supported the esoteric one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "blavatsky_sd",
@@ -321,6 +367,23 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventType: "historical",
     tags: ["lemuria", "history-of-an-idea", "theosophy", "scott-elliot", "atlantis"],
     people: ["W. Scott-Elliot"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Lemuria.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Lemuria.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Scott-Elliot's map of Lemuria. A MAP IS NOT A SURVEY: this one was drawn from claimed clairvoyant " +
+          "investigation rather than from soundings or geology, and it is evidence for what was believed in " +
+          "1904 and for nothing about the sea floor.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "scott_elliot_lemuria",
@@ -352,6 +415,23 @@ const IDEA_HISTORY: SeedEvent[] = [
       "A relative chronology. The source gives an order of ages and no years, and the record is stored that way rather than being given a date it does not have.",
     tags: ["lemuria", "history-of-an-idea", "anthroposophy", "steiner", "atlantis", "relative-chronology"],
     people: ["Rudolf Steiner"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Rudolf Steiner about 1905, in the years he was setting out the epochs. His Lemuria is neither " +
+          "Sclater's land bridge nor quite Blavatsky's root race, and this record keeps the three apart rather " +
+          "than merging them into one tradition.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "steiner_cosmic_memory",
@@ -383,6 +463,23 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventType: "historical",
     tags: ["mu", "history-of-an-idea", "churchward", "lost-continent", "pacific"],
     people: ["James Churchward"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Golden-age-mu-map.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Golden-age-mu-map.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Churchward's map of Mu, 1927. Mu is a SEPARATE claim from Lemuria with a separate origin \u2014 " +
+          "Churchward placed his continent in the Pacific, not the Indian Ocean \u2014 and the two were merged later " +
+          "by other writers rather than by him.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "churchward1926",
@@ -454,6 +551,23 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventTypeNote:
       "The generally accepted account in current earth science. That does not make it unquestionably true; it makes it the broadly accepted reading, which is a different and more useful thing to know.",
     tags: ["lemuria", "plate-tectonics", "geology", "mainstream", "history-of-an-idea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Tectonic_plates_(2022).svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Tectonic_plates_(2022).svg?width=1024",
+        shows: "diagram",
+        caption:
+          "The plates, as currently mapped. Plate tectonics did not disprove Lemuria so much as remove the need " +
+          "for it: the animal distributions Sclater was trying to explain follow from continents that moved, so " +
+          "no sunken land bridge has to be invoked.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "usgs_dynamic_earth",
@@ -680,6 +794,23 @@ const GEOLOGY: SeedEvent[] = [
     subcategory: "Geological history",
     eventType: "scientific_model",
     tags: ["gondwana", "geology", "plate-tectonics", "madagascar", "lemuria", "deep-time"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gondwana_420_Ma.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gondwana_420_Ma.png?width=1024",
+        shows: "map",
+        caption:
+          "Gondwana reconstructed. This is the real continent that really did break apart \u2014 and it is not " +
+          "Lemuria: it is vastly older, it is reconstructed from palaeomagnetism and matching geology rather " +
+          "than from missing lemurs, and no part of it was above water within human history.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "berkeley_madagascar",

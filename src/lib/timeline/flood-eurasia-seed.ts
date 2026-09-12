@@ -144,6 +144,23 @@ const GREEK: SeedEvent[] = [
       "humanity_remade",
       "prolonged_rain",
     ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Virgil_Solis_-_Deucalion_Pyrrha.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Virgil_Solis_-_Deucalion_Pyrrha.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Deucalion and Pyrrha throwing stones behind them to repopulate the earth, engraved by Virgil Solis " +
+          "for a sixteenth-century Ovid. The picture is two thousand years after the Greek sources and " +
+          "illustrates the story as Ovid tells it, which is already a Roman retelling.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "parian_marble",
@@ -241,6 +258,23 @@ const GREEK: SeedEvent[] = [
     people: ["Plato", "Solon"],
     civilisations: ["Ancient Greece", "Ancient Egypt"],
     motifs: ["multiple_floods", "fire_and_flood", "previous_world_destroyed"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/The_Parian_Marble.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Parian_Marble.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The Parian Marble, a chronicle carved on stone in the third century BCE that dates Deucalion's flood " +
+          "among its entries. IT IS A CHRONOGRAPHER'S DATE, twelve centuries after the event it places, and it " +
+          "is evidence for how Greeks in the 260s BCE reckoned their past.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "plato_timaeus_floods",
@@ -288,6 +322,23 @@ const INDIAN: SeedEvent[] = [
       "waters_recede",
       "repopulation",
       "carried_by_animal",
+    ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Matsya_Avatar,_ca_1870.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Matsya_Avatar,_ca_1870.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Matsya, the fish, with Manu \u2014 an Indian watercolour of about 1870. The fish is not identified with " +
+          "Vi\u1e63\u1e47u in the earliest telling: that identification is a later development, which this timeline dates " +
+          "as its own event rather than folding into the story.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -341,6 +392,23 @@ const INDIAN: SeedEvent[] = [
     eventType: "historical",
     tags: ["india", "matsya", "vishnu", "purana", "tradition-history"],
     people: ["Viṣṇu", "Brahmā"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Matsya_avatara,_first_incarnation_of_Vishnu.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Matsya_avatara,_first_incarnation_of_Vishnu.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Matsya as the first incarnation of Vi\u1e63\u1e47u, from an illustrated manuscript of about 1803. By the time " +
+          "this was painted the identification had been settled for centuries \u2014 which is exactly what makes it " +
+          "a picture of the later tradition rather than of the earlier one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "matsya_development",
