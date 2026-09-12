@@ -6,6 +6,7 @@ import { LEMURIA_EVENTS } from "./lemuria-seed";
 import { DEEP_TIME_EVENTS } from "./deep-time-seed";
 import { EARLY_SAPIENS_EVENTS } from "./early-sapiens-seed";
 import { COSMOLOGY_EVENTS } from "./cosmology-seed";
+import { FLOOD_PHYSICAL_EVENTS } from "./flood-physical-seed";
 import { PERIODS } from "./period-seed";
 import { agoFrom, astronomicalFromYearsAgo, BP_REFERENCE_YEAR, yearsAgoOf } from "./time";
 import { DATE_CONVENTIONS, conventionNeedsReferenceYear } from "./taxonomy";
@@ -29,6 +30,7 @@ const ALL_CLAIMS: { dataset: string; slug: string; claim: SeedClaim }[] = [
   ["Deep time", DEEP_TIME_EVENTS],
   ["Early sapiens", EARLY_SAPIENS_EVENTS],
   ["Cosmology", COSMOLOGY_EVENTS],
+  ["Ice age floods", FLOOD_PHYSICAL_EVENTS],
 ].flatMap(([dataset, events]) =>
   (events as { slug: string; claims: SeedClaim[] }[]).flatMap((event) =>
     event.claims.map((claim) => ({ dataset: dataset as string, slug: event.slug, claim }))
