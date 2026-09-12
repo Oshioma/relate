@@ -64,6 +64,7 @@ import {
   seedAncientSitesAmericasDataset,
   seedAncientSitesArtefactsDataset,
   seedAncientSitesSubmergedDataset,
+  seedAncientSitesWorkedStoneDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -275,6 +276,7 @@ export function TimelineView({
   hasAncientSitesAmericas,
   hasAncientSitesArtefacts,
   hasAncientSitesSubmerged,
+  hasAncientSitesWorkedStone,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -333,6 +335,7 @@ export function TimelineView({
   hasAncientSitesAmericas: boolean;
   hasAncientSitesArtefacts: boolean;
   hasAncientSitesSubmerged: boolean;
+  hasAncientSitesWorkedStone: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1833,6 +1836,39 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesWorkedStone && (
+        <DatasetOffer
+          title="Add the worked-stone sites?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesWorkedStoneDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Baalbek, the Osireion at Abydos, and Giza — three sites where NOBODY doubts the stone was cut by people, so
+          the argument is about who cut it. That makes each record a study in where a date for worked stone can
+          actually come from. At Baalbek it comes from the quarry: the two largest blocks were never moved at all,
+          and one was abandoned because of a flaw along an edge, which is a quarryman&apos;s decision recorded in
+          rock. &quot;Nobody could have moved stones that size&quot; is answered by the fact that nobody did. At
+          Abydos there are THREE named attributions and all three were specialists — Seti I by a cartouche on the
+          entrance passage (and not one inscription inside), the 4th Dynasty by Naville from the cyclopean masonry,
+          and Amenemhet III via Strabo. And Giza carries three uses of precession on one record: Spence dated the
+          ACT of orienting the Great Pyramid to within a few years and other specialists published against her;
+          Bauval ran Orion&apos;s belt backwards to 10,500 BCE, which is a date for a SKY; and Posnansky at Tiwanaku
+          ran a solstice azimuth backwards at a star&apos;s rate and got nothing. Same physics, three standings.
+          Giza&apos;s mortar is here too, with its real scatter — about 400 years, running older than the textbook
+          date. Tidier summaries in either direction are both wrong.
         </DatasetOffer>
       )}
 
