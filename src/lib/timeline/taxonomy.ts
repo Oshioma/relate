@@ -246,7 +246,20 @@ export const CLAIM_VIEWPOINTS = [
     hint:
       "The generally accepted account in current scholarship — academic research, archaeology, science, textbooks, museums, universities. " +
       "This does NOT mean the claim is unquestionably true. It means this is the broadly accepted interpretation today.",
+    blurb: "Where the weight of current scholarship sits today. Not a verdict that it is true, and not permanent.",
     mainstream: true,
+  },
+  {
+    key: "alternative_widespread",
+    label: "Widely-held alternative view",
+    hint:
+      "An alternative reading that a great many people hold, and that most readers will have met before — Atlantis as a real place, " +
+      "a young earth counted from scripture. THIS SAYS HOW WIDELY THE IDEA IS HELD AND NOTHING ELSE: a popular alternative and an " +
+      "obscure one can be equally unsupported, and being widely believed is not evidence. It is here because \"outside the mainstream\" " +
+      "covers both an idea taught in millions of homes and one proposed once in a pamphlet, and a reader deserves to know which they " +
+      "are looking at.",
+    blurb:
+      "Outside the mainstream and held by a great many people. That is about reach, not support — being widely believed is not evidence.",
   },
   {
     key: "alternative",
@@ -254,6 +267,7 @@ export const CLAIM_VIEWPOINTS = [
     hint:
       "A reading put forward outside the mainstream account. Naming it alternative says where it sits, not that it is wrong — " +
       "the evidence and the reasoning are shown so a reader can weigh it themselves.",
+    blurb: "Put forward outside the mainstream account. That says where it sits, not that it is wrong.",
   },
   { key: "disputed", label: "Disputed / contested claim", hint: "Specialists actively disagree about this one." },
   { key: "historical", label: "Historical account", hint: "As given in the written historical record." },
@@ -291,6 +305,25 @@ export function viewpointOrder(key: string | null | undefined): number {
 
 export function viewpointHint(key: string | null | undefined): string {
   return VIEWPOINT_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * The one-line version, for places that show a viewpoint as a column heading.
+ *
+ * `hint` is written for the editor's dropdown, where somebody is choosing and
+ * a full explanation is what they need. The comparison panel prints the same
+ * text as a subtitle in a narrow column, and a hint long enough to be useful
+ * in a dropdown is long enough there to bury the dates underneath it — the
+ * widely-held-alternative column ran to eleven lines of subtitle above a
+ * single claim, which reads as a warning notice rather than a label.
+ *
+ * So: `blurb` where the long form does not fit, and the long form everywhere
+ * it still does. Nothing needs a blurb it does not have.
+ */
+export function viewpointBlurb(key: string | null | undefined): string {
+  const entry = VIEWPOINT_BY_KEY.get(key ?? "");
+  if (entry && "blurb" in entry && entry.blurb) return entry.blurb;
+  return entry?.hint ?? "";
 }
 
 /**
@@ -340,7 +373,22 @@ export function isMainstreamViewpoint(key: string | null | undefined): boolean {
  * different relationships into one.
  */
 export function isAlternativeViewpoint(key: string | null | undefined): boolean {
-  return key === "alternative";
+  return key === "alternative" || key === "alternative_widespread";
+}
+
+/**
+ * Is this an alternative that most readers will already have met?
+ *
+ * A distinction of REACH, not of merit, and the wording everywhere is chosen so
+ * it cannot be read as the second. "Outside the mainstream" currently covers
+ * both an idea taught in millions of homes and one proposed once in a pamphlet;
+ * a reader deserves to know which is in front of them, and that is a fact about
+ * how many people hold the idea rather than about how well supported it is.
+ *
+ * Being widely believed is not evidence, and the hint says so in as many words.
+ */
+export function isWidespreadAlternative(key: string | null | undefined): boolean {
+  return key === "alternative_widespread";
 }
 
 export function chronologyLabel(key: string | null | undefined): string {

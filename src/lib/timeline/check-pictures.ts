@@ -213,3 +213,126 @@ export async function checkPictures(
   await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, worker));
   return results;
 }
+
+// =============================================================================
+// WHO MADE THIS PICTURE, AND UNDER WHAT LICENCE
+//
+// Attribution is a CONDITION of the licences these images are published under,
+// not a courtesy. So a picture whose author and licence cannot be established
+// must not be attached to a record — the same rule this project applies to
+// citations, for the same reason.
+//
+// That rule is what has kept images off the flood and cosmology datasets. The
+// filenames are easy to find; the author and licence are held in the Commons
+// API and cannot be read from the filename. This reads them.
+//
+// The result is used at SEED TIME rather than displayed: a seeded picture gets
+// its caption assembled from what Commons returns, and a picture whose
+// attribution cannot be retrieved is skipped rather than attached without one.
+// Failing closed is the whole point.
+// =============================================================================
+
+export type PictureAttribution = {
+  /** Ready to print: creator, licence, and where it came from. */
+  credit: string;
+  artist: string | null;
+  licence: string | null;
+};
+
+/** The Commons file name inside a Special:FilePath or upload.wikimedia.org URL, if there is one. */
+export function commonsFileName(raw: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (!/(^|\.)wikimedia\.org$|(^|\.)wikipedia\.org$/.test(url.hostname)) return null;
+
+  const viaFilePath = url.pathname.match(/\/Special:FilePath\/(.+)$/);
+  if (viaFilePath) return decodeURIComponent(viaFilePath[1]);
+
+  // upload.wikimedia.org/wikipedia/commons/a/ab/Name.jpg
+  //
+  // The /thumb/ form has to be matched FIRST and by its own pattern, because
+  // it carries one segment more than the plain form: the original file name,
+  // and then a resized copy of it.
+  //
+  //   plain   .../commons/a/ab/Name.jpg
+  //   thumb   .../commons/thumb/a/ab/Name.jpg/800px-Name.jpg
+  //                                 ^^^^^^^^ the file  ^^^^^^^^^^^^^ a render of it
+  //
+  // Reading the last segment of a thumbnail URL gives "800px-Name.jpg", which
+  // is not a file on Commons and would come back missing — so the name has to
+  // come from the segment before it.
+  const viaThumb = url.pathname.match(/\/wikipedia\/[^/]+\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/([^/]+)\/[^/]+$/);
+  if (viaThumb) return decodeURIComponent(viaThumb[1]);
+
+  const viaUpload = url.pathname.match(/\/wikipedia\/[^/]+\/[0-9a-f]\/[0-9a-f]{2}\/([^/]+)$/);
+  if (viaUpload) return decodeURIComponent(viaUpload[1]);
+  return null;
+}
+
+/** Strip the markup Commons returns in its artist field, which is usually a link. */
+function plainText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Ask Commons who made a file and under what licence.
+ *
+ * Returns null when it cannot be established — which the caller must treat as
+ * "do not use this picture", not as "use it without a credit".
+ */
+export async function fetchCommonsAttribution(
+  fileName: string,
+  fetchImpl: typeof fetch = fetch,
+  timeoutMs = 8000
+): Promise<PictureAttribution | null> {
+  const endpoint = new URL("https://commons.wikimedia.org/w/api.php");
+  endpoint.searchParams.set("action", "query");
+  endpoint.searchParams.set("format", "json");
+  endpoint.searchParams.set("prop", "imageinfo");
+  endpoint.searchParams.set("iiprop", "extmetadata");
+  endpoint.searchParams.set("titles", `File:${fileName}`);
+  endpoint.searchParams.set("origin", "*");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let payload: unknown;
+  try {
+    const response = await fetchImpl(endpoint, { signal: controller.signal });
+    if (!response.ok) return null;
+    payload = await response.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const pages = (payload as { query?: { pages?: Record<string, unknown> } })?.query?.pages;
+  if (!pages) return null;
+  const page = Object.values(pages)[0] as
+    | { imageinfo?: { extmetadata?: Record<string, { value?: string }> }[]; missing?: string }
+    | undefined;
+  if (!page || "missing" in page) return null;
+
+  const meta = page.imageinfo?.[0]?.extmetadata;
+  if (!meta) return null;
+
+  const artist = meta.Artist?.value ? plainText(meta.Artist.value) : null;
+  const licence = meta.LicenseShortName?.value ? plainText(meta.LicenseShortName.value) : null;
+  // A file with neither is unusable: there is nothing to credit and no licence
+  // to comply with. Better to have no picture than an uncredited one.
+  if (!artist && !licence) return null;
+
+  const credit = [artist, licence, "via Wikimedia Commons"].filter(Boolean).join(", ");
+  return { credit, artist, licence };
+}

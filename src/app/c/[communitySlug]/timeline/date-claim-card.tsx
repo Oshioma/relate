@@ -21,6 +21,7 @@ import {
   datingMethodHint,
   isAlternativeViewpoint,
   isMainstreamViewpoint,
+  isWidespreadAlternative,
   datingMethodLabel,
   sourceTierLabel,
   sourceTypeLabel,
@@ -199,12 +200,18 @@ export function DateClaimCard({
               mainstream ? "text-danger" : "text-accent"
             )}
           >
-            {mainstream ? "Mainstream academic view" : "Alternative interpretation"}
+            {mainstream
+              ? "Mainstream academic view"
+              : isWidespreadAlternative(claim.chronology)
+                ? "Widely-held alternative view"
+                : "Alternative interpretation"}
           </span>
           <span className="text-muted-foreground">
             {mainstream
               ? "Where the weight of current scholarship sits — not a verdict that this is true or that the others are wrong, and not permanent."
-              : "Put forward outside the mainstream account. Named to say where it sits, not that it is wrong — the evidence and the reasoning are below."}
+              : isWidespreadAlternative(claim.chronology)
+                ? "Outside the mainstream account and held by a great many people. That is a statement about how widely the idea is held, not about how well it is supported — being widely believed is not evidence."
+                : "Put forward outside the mainstream account. Named to say where it sits, not that it is wrong — the evidence and the reasoning are below."}
           </span>
         </p>
       )}
