@@ -44,6 +44,12 @@ import {
   FLOOD_REGIONS_TRACK,
 } from "@/lib/timeline/flood-regions-seed";
 import {
+  ANCIENT_SITES_EVENTS,
+  ANCIENT_SITES_LINKS,
+  ANCIENT_SITES_SOURCES,
+  ANCIENT_SITES_TRACK,
+} from "@/lib/timeline/ancient-sites-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1767,6 +1773,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: FLOOD_REGIONS_LINKS,
   },
   {
+    label: "Ancient sites: where the proposed dates disagree",
+    track: ANCIENT_SITES_TRACK,
+    events: ANCIENT_SITES_EVENTS,
+    sources: ANCIENT_SITES_SOURCES,
+    links: ANCIENT_SITES_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2331,6 +2344,28 @@ export async function seedFloodRegionsDataset(communitySlug: string) {
     track: FLOOD_REGIONS_TRACK,
     links: FLOOD_REGIONS_LINKS,
     label: "Flood traditions: North America, the Pacific, northern Europe",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Sites where somebody has proposed a date substantially different from the
+ * mainstream archaeological one — with every date kept as a separate claim
+ * saying what it is a date FOR. See ancient-sites-seed.ts.
+ */
+export async function seedAncientSitesDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_EVENTS,
+    sources: ANCIENT_SITES_SOURCES,
+    track: ANCIENT_SITES_TRACK,
+    links: ANCIENT_SITES_LINKS,
+    label: "Ancient sites: where the proposed dates disagree",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

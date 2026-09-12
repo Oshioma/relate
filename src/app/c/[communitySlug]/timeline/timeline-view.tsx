@@ -58,6 +58,7 @@ import {
   seedFloodSubmergedDataset,
   seedFloodAmericasDataset,
   seedFloodRegionsDataset,
+  seedAncientSitesDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -264,6 +265,7 @@ export function TimelineView({
   hasFloodSubmerged,
   hasFloodAmericas,
   hasFloodRegions,
+  hasAncientSites,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -317,6 +319,7 @@ export function TimelineView({
   hasFloodSubmerged: boolean;
   hasFloodAmericas: boolean;
   hasFloodRegions: boolean;
+  hasAncientSites: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1764,6 +1767,37 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSites && (
+        <DatasetOffer
+          title="Add the ancient sites whose proposed dates disagree?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Five records where a site carries more than one proposed date, and the dates are answers to different
+          questions. The Great Sphinx has three, four and a half thousand years apart: Egyptology dating a monument by
+          its place in Khafre&apos;s complex, Schoch dating the WEATHERING and reasoning back to a wetter climate, and
+          Hancock and Bauval dating the SKY of 10,500 BCE. Gunung Padang has the clearest case of the confusion the
+          whole dataset is built against — a paper proposing construction 27,000 years ago, retracted because the
+          radiocarbon came from soil that was not associated with any artefacts, so the sediment really is that old
+          and nothing follows about anybody building in it. The Ottosdal objects carry one date and it is of the rock
+          they came out of, not of them. The Cerutti mastodon is a disputed claim in Nature rather than an
+          alternative-history one, and the reply by ten specialists is on the record with it. And Göbekli Tepe is
+          here as the control: older than Schoch&apos;s Sphinx, disputed by nobody, because OLD IS NOT THE SAME AS
+          ALTERNATIVE.
         </DatasetOffer>
       )}
 

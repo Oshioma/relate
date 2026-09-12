@@ -188,6 +188,42 @@ export const DATING_METHODS = [
   { key: "stratigraphic", label: "Stratigraphy", hint: "Which layer it was in, and what lies above and below." },
   { key: "radiocarbon", label: "Radiocarbon dating", hint: "Carbon-14 decay in organic material." },
   { key: "radiometric", label: "Radiometric dating", hint: "Decay of longer-lived isotopes in rock." },
+  {
+    key: "uranium_series",
+    label: "Uranium-series dating",
+    hint:
+      "Uranium and thorium decay, usually in carbonate, bone or shell. On BONE it is an open system — uranium moves in " +
+      "and out after death — so a bone date is a model, and which model was used changes the answer.",
+  },
+  {
+    key: "luminescence",
+    label: "Luminescence (OSL / TL)",
+    hint: "How long since a grain of sediment last saw daylight, or a burnt stone was last heated.",
+  },
+  {
+    key: "palaeomagnetism",
+    label: "Palaeomagnetism",
+    hint: "Matching the magnetic direction locked into rock or sediment against the known record of the field's reversals.",
+  },
+  {
+    key: "sea_level_reconstruction",
+    label: "Sea-level reconstruction",
+    hint:
+      "When a place now underwater was last dry. It dates the DROWNING, which is the latest a thing standing there " +
+      "could have been built — never the building of it.",
+  },
+  {
+    key: "stylistic_comparison",
+    label: "Stylistic comparison",
+    hint: "Dated by resemblance to something else already dated. It inherits every uncertainty of the thing compared to.",
+  },
+  {
+    key: "claimant_inference",
+    label: "The claimant's own inference",
+    hint:
+      "A date reasoned to by the person proposing it, from evidence that does not itself carry that date. Not a " +
+      "measurement of anything — which is not the same as being wrong, and is the thing worth being able to see.",
+  },
   { key: "dendrochronology", label: "Dendrochronology (tree rings)", hint: "Counting and matching growth rings." },
   { key: "geological", label: "Geological dating", hint: "The rock record, and how long it takes to form." },
   { key: "astronomical", label: "Astronomical calculation", hint: "Eclipses and other sky events that can be calculated backwards." },
