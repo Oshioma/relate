@@ -478,6 +478,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sagunto_-_Roman_Theatre_&_Castle_-_20200225-01_PvE_(Q3896297).jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Roman theatre below the castle at Sagunto. The theatre is later than the siege \u2014 Roman Saguntum " +
+          "was rebuilt after the war \u2014 so the picture shows the town's next chapter rather than the one on this " +
+          "record, and the layering of periods on one hill is exactly why the site is hard to photograph " +
+          "honestly.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1101,6 +1115,19 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
           "The ground north of Lake Trasimene today. Nothing in the landscape marks the battle, and nothing in it " +
           "contradicts the accounts either \u2014 which is the ordinary condition of a battlefield that has never been " +
           "excavated.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_of_lake_trasimene.gif?width=1024",
+        shows: "map",
+        caption:
+          "A second reconstruction of the ambush. Comparing two maps of one battle is the quickest way to see how " +
+          "much of a battle map is interpretation: the sources are the same, and the placement of the troops is " +
+          "not.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.

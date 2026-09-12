@@ -429,8 +429,15 @@ export function EventDetail({
                       to be visible — attribution is a licence condition — but
                       it is not a description of the picture, and running it on
                       the end of the caption put a URL into the alt text. */}
+                  {/* break-words: a fetched credit ends in the file-page URL,
+                      which is one long unbroken token. In a one-picture record
+                      it merely ran to the edge; in a gallery of four it
+                      overflowed its grid column and printed across the caption
+                      beside it. */}
                   {item.credit && (
-                    <span className="mt-1 block text-[11px] leading-snug opacity-80">{item.credit}</span>
+                    <span className="mt-1 block break-words text-[11px] leading-snug opacity-80">
+                      {item.credit}
+                    </span>
                   )}
                 </figcaption>
               </figure>

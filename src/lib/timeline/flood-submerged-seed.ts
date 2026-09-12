@@ -170,6 +170,32 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Clement_Reid_-_Map_Doggerbank.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Clement Reid's map of the Dogger Bank, and the oldest image on this record. Reid was arguing from " +
+          "peat, freshwater shells and the 'moorlog' that North Sea trawlers kept dredging up \u2014 evidence that the " +
+          "sea floor had once been land. The modelling came a century later; the argument did not.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Doggerland_10,000_BP.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Doggerland at about 10,000 years before present \u2014 later than the map above, with the sea well " +
+          "advanced. Two maps of one place at two moments is the honest way to show a drowning, because a single " +
+          "outline invites a reader to think the coast sat still.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -216,6 +242,19 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
           "A sand bed in the Montrose Basin in eastern Scotland, read as laid down by the Storegga tsunami. This " +
           "is the kind of thing the event is known from: marine sand driven into coastal peat. It is also the " +
           "whole difficulty, because a layer like this has to be told apart from an ordinary storm surge.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Storeggaskredet.gif?width=1024",
+        shows: "map",
+        caption:
+          "The Storegga slide itself: the scar on the Norwegian continental shelf where an enormous volume of " +
+          "sediment let go. The tsunami is the consequence; this is the cause, and it is the part that is " +
+          "measured rather than inferred.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
@@ -273,6 +312,18 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_Sundaland.png?width=1024",
+        shows: "map",
+        caption:
+          "Sundaland drawn on its own, without Sahul beside it. It is worth seeing the shelf by itself: the land " +
+          "lost here is larger than most of the countries now standing on what remains of it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -320,6 +371,19 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
           "The Persian Gulf from orbit. It is shallow enough that a large fall in sea level empties most of it, " +
           "which is the physical fact the proposed basin oasis rests on. The picture shows the basin; that people " +
           "lived in it is an inference from depth and rivers, not from anything excavated down there.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/STS004-37-716_-_Strait_of_Hormuz.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Strait of Hormuz, photographed from the Space Shuttle. This narrow sill is what controls the whole " +
+          "question: with sea level low enough, the Gulf behind it drains and the basin is dry land; once the sea " +
+          "rises past the sill, it fills. The proposed oasis stands or falls on the depth of this gap.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
