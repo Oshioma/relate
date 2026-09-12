@@ -37,6 +37,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_EURASIA_EVENTS,
+  FLOOD_EURASIA_LINKS,
+  FLOOD_EURASIA_SOURCES,
+  FLOOD_EURASIA_TRACK,
+} from "@/lib/timeline/flood-eurasia-seed";
+import {
   FLOOD_MESOPOTAMIA_EVENTS,
   FLOOD_MESOPOTAMIA_LINKS,
   FLOOD_MESOPOTAMIA_SOURCES,
@@ -1679,6 +1685,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
   { label: "Ice age floods and sea level", events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Flood traditions: Greece, India, Iran",
+    events: FLOOD_EURASIA_EVENTS,
+    sources: FLOOD_EURASIA_SOURCES,
+    links: FLOOD_EURASIA_LINKS,
+  },
+  {
     label: "Mesopotamian flood traditions",
     events: FLOOD_MESOPOTAMIA_EVENTS,
     sources: FLOOD_MESOPOTAMIA_SOURCES,
@@ -1888,6 +1900,27 @@ export async function seedLemuriaDataset(communitySlug: string) {
     track: LEMURIA_TRACK,
     links: LEMURIA_LINKS,
     label: "Lemuria",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Greek, Indian and Iranian flood and catastrophe traditions.
+ * See flood-eurasia-seed.ts.
+ */
+export async function seedFloodEurasiaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the flood traditions dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_EURASIA_EVENTS,
+    sources: FLOOD_EURASIA_SOURCES,
+    track: FLOOD_EURASIA_TRACK,
+    links: FLOOD_EURASIA_LINKS,
+    label: "Flood traditions: Greece, India, Iran",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

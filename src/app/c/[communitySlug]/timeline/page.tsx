@@ -31,6 +31,7 @@ import { LEMURIA_ANCHOR_SLUG } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_ANCHOR_SLUG } from "@/lib/timeline/cosmology-seed";
 import { FLOOD_PHYSICAL_ANCHOR_SLUG } from "@/lib/timeline/flood-physical-seed";
 import { FLOOD_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/flood-mesopotamia-seed";
+import { FLOOD_EURASIA_ANCHOR_SLUG } from "@/lib/timeline/flood-eurasia-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -108,6 +109,7 @@ export default async function TimelinePage({
     hasCosmology,
     hasFloodPhysical,
     hasFloodMesopotamia,
+    hasFloodEurasia,
     hannibalNeedsPictures,
   ] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
@@ -143,6 +145,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, COSMOLOGY_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_PHYSICAL_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_MESOPOTAMIA_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_EURASIA_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -199,6 +202,7 @@ export default async function TimelinePage({
         hasCosmology={hasCosmology}
         hasFloodPhysical={hasFloodPhysical}
         hasFloodMesopotamia={hasFloodMesopotamia}
+        hasFloodEurasia={hasFloodEurasia}
         hannibalNeedsPictures={hannibalNeedsPictures}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
