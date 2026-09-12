@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronDown,
+  Globe2,
   Layers,
   List,
   Maximize2,
@@ -1239,6 +1241,17 @@ export function TimelineView({
           <List className="h-4 w-4" />
           {showList ? "Hide the list" : "Read as a list"}
         </button>
+
+        {/* THE LIMITS OF THE DATASET, WHERE SOMEBODY READING IT WILL SEE THEM.
+            Not tucked into staff tools: which regions are missing, and why, is
+            part of what this timeline means rather than a maintenance note. */}
+        <Link
+          href={`/c/${communitySlug}/timeline/coverage`}
+          className="hidden items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+        >
+          <Globe2 className="h-4 w-4" />
+          What this covers
+        </Link>
       </div>
 
       {/* ---- The event you clicked -----------------------------------------
