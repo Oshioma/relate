@@ -602,6 +602,24 @@ const IDEA_HISTORY: SeedEvent[] = [
     subcategory: "Modern geology",
     eventType: "scientific_model",
     tags: ["lemuria", "mauritia", "geology", "indian-ocean", "gondwana", "history-of-an-idea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mauritius_and_R%C3%A9union_satellite_image.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Mauritius_and_R%C3%A9union_satellite_image.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Mauritius, with R\u00e9union to the south-west. The zircons were recovered from a trachyte plug on this " +
+          "island. NOTHING VISIBLE HERE IS OLD: the island is 5.7 million years old, volcanic, and sitting on " +
+          "ocean floor. What the 2017 paper argues for is buried underneath it and has never been at the surface " +
+          "in human times.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ashwal2017",
@@ -643,6 +661,24 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
       "Filed as disputed because the sources genuinely disagree with each other by tens of millions of years — not as a judgement on any of them. These claims come from traditions that do not present themselves as archaeology and should not be read as though they did.",
     tags: ["lemuria", "theosophy", "root-race", "contested-chronology", "esoteric", "deep-time"],
     people: ["Helena Petrovna Blavatsky", "W. Scott-Elliot", "Edgar Cayce", "Annie Besant", "C. W. Leadbeater"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Annie_Besant,_LoC.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Annie_Besant,_LoC.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Annie Besant, who with C. W. Leadbeater worked out the detailed Theosophical chronologies in Man: " +
+          "Whence, How and Whither (1913). SHE IS NOT THE SOURCE OF THE 34\u00bd-MILLION-YEAR FIGURE on this record: " +
+          "that is attributed to the tradition generally, and who first gave it could not be established. Her " +
+          "book is the likeliest home for it, which is not the same as having checked.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "theosophy_wiki_rootrace",
@@ -858,6 +894,24 @@ const GEOLOGY: SeedEvent[] = [
     subcategory: "Geological history",
     eventType: "scientific_model",
     tags: ["gondwana", "geology", "india", "madagascar", "lemuria", "deep-time"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Indian_plate_movement_towards_Eurasia_71_Mya_onward.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Indian_plate_movement_towards_Eurasia_71_Mya_onward.jpg?width=1024",
+        shows: "map",
+        caption:
+          "India's journey north after it broke away, drawn from 71 million years ago onward. THE SEQUENCE STARTS " +
+          "SEVENTEEN MILLION YEARS AFTER THE SEPARATION this record is about \u2014 by the first frame the split has " +
+          "already happened. What it shows is the consequence: a continent crossing an ocean, not a continent " +
+          "sinking.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_insular_india",
@@ -891,6 +945,23 @@ const GEOLOGY: SeedEvent[] = [
     eventType: "scientific_model",
     eventTypeNote: "A geological finding, dated radiometrically. Related to the Lemuria story by geography and by the question it answers — not by being the thing anybody was looking for.",
     tags: ["mauritia", "geology", "indian-ocean", "gondwana", "lemuria", "deep-time", "zircon"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Mascarene_Plateau_topography.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Mascarene_Plateau_topography.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The Mascarene Plateau \u2014 shallow water running north from Mauritius towards the Seychelles. Mauritia is " +
+          "proposed to lie beneath ground like this. The map shows depth and nothing else: no artefacts, no " +
+          "habitation, and crust that was last at the surface some eighty-five million years ago.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ashwal2017",
