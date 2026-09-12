@@ -196,6 +196,13 @@ export const DATING_METHODS = [
       "and out after death — so a bone date is a model, and which model was used changes the answer.",
   },
   {
+    key: "amino_acid_racemisation",
+    label: "Amino acid racemisation",
+    hint:
+      "How far the amino acids in a shell or bone have converted from one mirror-image form to the other. It is a " +
+      "rate that depends on temperature, so it dates well against a local reference and poorly on its own.",
+  },
+  {
     key: "luminescence",
     label: "Luminescence (OSL / TL)",
     hint: "How long since a grain of sediment last saw daylight, or a burnt stone was last heated.",
