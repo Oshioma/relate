@@ -21,7 +21,13 @@ import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
-import { eventTypeHint, eventTypeLabel, timelineCategory, timelineCategoryLabel } from "@/lib/timeline/taxonomy";
+import {
+  eventTypeHint,
+  eventTypeLabel,
+  groupMotifs,
+  timelineCategory,
+  timelineCategoryLabel,
+} from "@/lib/timeline/taxonomy";
 import {
   claimMidpoint,
   claimsDisagree,
@@ -496,6 +502,44 @@ export function EventDetail({
           </div>
         )}
       </div>
+
+      {/* ---- What the account contains ------------------------------------
+          Most traditions that could be compared here share no dates at all,
+          and the ones that do got them from a later chronographer. Structure
+          is what can actually be compared — and every mark is something the
+          CITED SOURCE contains. An absent motif means "not found in the
+          source", never "absent from the tradition", which is the difference
+          between a comparison and a manufactured parallel. */}
+      {event.motifs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            What this account contains
+          </h2>
+          <p className="mb-3 max-w-3xl text-sm text-muted-foreground">
+            Marked only where the cited source has it. Nothing here is filled in from what a story is assumed to
+            contain — an unmarked element means it was not found in the source, not that the tradition lacks it.
+          </p>
+          <div className="space-y-3">
+            {groupMotifs(event.motifs).map(({ group, motifs }) => (
+              <div key={group} className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
+                <span className="w-24 shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {group}
+                </span>
+                <div className="flex min-w-0 flex-wrap gap-1.5">
+                  {motifs.map((motif) => (
+                    <span
+                      key={motif.key}
+                      className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+                    >
+                      {motif.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ---- What else this is tied to ------------------------------------
           After the dates, deliberately. The dates are what the page is FOR;

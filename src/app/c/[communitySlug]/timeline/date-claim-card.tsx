@@ -13,6 +13,7 @@ import {
   formatClaimDate,
   formatDateParts,
   formatDuration,
+  formatYear,
   type IntervalKind,
 } from "@/lib/timeline/time";
 import {
@@ -188,6 +189,19 @@ export function DateClaimCard({
                 confusion lives: "13.8 billion years" and "4004 BCE" on one
                 record are not two answers, and this is the line that says so
                 on each of them. */}
+            {/* WHAT THE SOURCE ACTUALLY SAID, AND WHAT IT COUNTED FROM.
+                "12,000 years ago" is not "12,000 BCE" — they are 1,949 years
+                apart — and the calendar year underneath is this timeline's
+                arithmetic, not the source's words. Printed wherever the
+                convention is recorded, so a reader can redo the subtraction. */}
+            {claim.date_convention && claim.convention_reference_year != null && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Counted back from <span className="font-medium text-foreground">{formatYear(claim.convention_reference_year)}</span>
+                {claim.date_convention === "before_present"
+                  ? " — the scientific “before present”, fixed at 1950 so published dates do not drift."
+                  : " — the source's own time, not ours."}
+              </p>
+            )}
             {claim.what_is_dated && (
               <p className="mt-1 text-sm">
                 <span className="text-muted-foreground">Dates: </span>

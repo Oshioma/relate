@@ -51,6 +51,8 @@ function claim(fields: Partial<TimelineDateClaim> & { start_year: number }): Tim
     temporal_claim_type: null,
     duration_years: null,
     what_is_dated: null,
+    date_convention: null,
+    convention_reference_year: null,
     created_by: "u",
     source_id: null,
     start_month: null,

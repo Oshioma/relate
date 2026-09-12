@@ -98,6 +98,16 @@ export type SeedClaim = {
   /** A LENGTH with no position, in years. Never paired with endYear. */
   durationYears?: number;
   /**
+   * A DATE_CONVENTIONS key — how the SOURCE expressed the date.
+   *
+   * Set it wherever the figure came out of anything but a calendar, and set
+   * conventionReferenceYear with it. "14,600 years ago" and "14,600 BCE" are
+   * 1,950 years apart, and without this the row records only the answer.
+   */
+  dateConvention?: string;
+  /** What "ago" counts back from — 1950 for a scientific BP figure, the year of writing otherwise. */
+  conventionReferenceYear?: number;
+  /**
    * Which proposition this date is a date FOR. Set when one record carries
    * claims about genuinely different things — the age of the observable
    * universe and the creation of the world are not rival answers to one
@@ -136,6 +146,14 @@ export type SeedEvent = {
   /** Only where the place is genuinely known. A coordinate is an assertion. */
   lat?: number | null;
   lng?: number | null;
+  /**
+   * NARRATIVE_MOTIFS keys the CITED SOURCE actually contains.
+   *
+   * Never filled in from memory or from what the tradition "obviously" has:
+   * an unmarked motif means "not found in the source". The comparison is only
+   * worth making if the marks can be checked against the text.
+   */
+  motifs?: string[];
   claims: SeedClaim[];
 };
 

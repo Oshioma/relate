@@ -48,6 +48,7 @@ import {
   seedAtlantisDataset,
   seedLemuriaDataset,
   seedCosmologyDataset,
+  seedFloodPhysicalDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -246,6 +247,7 @@ export function TimelineView({
   hasAtlantis,
   hasLemuria,
   hasCosmology,
+  hasFloodPhysical,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -290,6 +292,7 @@ export function TimelineView({
   /** Whether the Lemuria dataset is already here. Same rule. */
   hasLemuria: boolean;
   hasCosmology: boolean;
+  hasFloodPhysical: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1588,6 +1591,34 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodPhysical && (
+        <DatasetOffer
+          title="Add the ice age floods and sea level?"
+          busyLabel="Adding the records…"
+          label="Add the ice age floods dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodPhysicalDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The floods that actually happened, dated from ice and rock — and seeded before any flood tradition, on
+          purpose, because a physical event that exists as the explanation for a story has already been bent to fit
+          it. Meltwater Pulse 1A raised the sea fourteen metres in under 350 years; the Missoula floods were forty or
+          more, not one; Meltwater Pulse 1B may not have happened at all, and both sides of that argument are here.
+          Every date is stored as its sources publish it — years before 1950 — because &ldquo;14,650 years ago&rdquo;
+          is 12,700 BCE and not 14,650 BCE, and the 1,949-year difference is enough to manufacture a correlation out
+          of nothing. The Bonneville flood carries the same lesson in a different unit: its famous
+          &ldquo;14,500 years ago&rdquo; is a radiocarbon age, and the calendar age is three thousand years older.
+        </DatasetOffer>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1595,7 +1626,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"

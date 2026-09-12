@@ -37,6 +37,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_PHYSICAL_EVENTS,
+  FLOOD_PHYSICAL_LINKS,
+  FLOOD_PHYSICAL_SOURCES,
+  FLOOD_PHYSICAL_TRACK,
+} from "@/lib/timeline/flood-physical-seed";
+import {
   claimDraftSchema,
   eventDraftSchema,
   resolveDateInput,
@@ -1228,6 +1234,7 @@ async function seedDataset(
         tags: seed.tags,
         people: seed.people ?? [],
         civilisations: seed.civilisations ?? [],
+        motifs: seed.motifs ?? [],
         location_name: seed.locationName ?? null,
         lat: seed.lat ?? null,
         lng: seed.lng ?? null,
@@ -1258,6 +1265,8 @@ async function seedDataset(
       temporal_claim_type: claim.temporalClaimType ?? null,
       duration_years: claim.durationYears ?? null,
       what_is_dated: claim.whatIsDated ?? null,
+      date_convention: claim.dateConvention ?? null,
+      convention_reference_year: claim.conventionReferenceYear ?? null,
       // A stated measurement error, kept as one. See SeedClaim: a tolerance is
       // never folded into end_year, because "609 ± 40 ka" and "700–500 ka" are
       // different assertions about different things.
@@ -1662,6 +1671,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES, links: ATLANTIS_LINKS },
   { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
   { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
+  { label: "Ice age floods and sea level", events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
 ];
 
 /**
@@ -1866,6 +1876,27 @@ export async function seedLemuriaDataset(communitySlug: string) {
     track: LEMURIA_TRACK,
     links: LEMURIA_LINKS,
     label: "Lemuria",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The physical floods and sea-level changes — Part A of the flood material.
+ * Seeded before any tradition, on purpose. See flood-physical-seed.ts.
+ */
+export async function seedFloodPhysicalDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the ice age floods dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_PHYSICAL_EVENTS,
+    sources: FLOOD_PHYSICAL_SOURCES,
+    track: FLOOD_PHYSICAL_TRACK,
+    links: FLOOD_PHYSICAL_LINKS,
+    label: "Ice age floods and sea level",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

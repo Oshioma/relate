@@ -1,4 +1,4 @@
-import { astronomicalFromYearsAgo } from "./time";
+import { agoFrom, astronomicalFromYearsAgo } from "./time";
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
 
 // LEMURIA — THE DATASET WITH TWO CLOCKS RUNNING.
@@ -624,8 +624,14 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
     claims: [
       {
         sourceKey: "churchward1926",
-        startYear: bce(48_074),
-        endYear: bce(10_074),
+        // Counted from 1926, the year of publication — and counted with
+        // agoFrom rather than by hand, because bce() takes a BCE year while a
+        // subtraction yields an astronomical one. The hand-computed values
+        // here were bce(48_074) and bce(10_074), each a year short.
+        startYear: agoFrom(1926, 50_000),
+        endYear: agoFrom(1926, 12_000),
+        dateConvention: "years_ago",
+        conventionReferenceYear: 1926,
         datePrecision: "millennium",
         isApproximate: true,
         originalDateText: "flourished between 50,000 and 12,000 years ago",
@@ -638,7 +644,9 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
       },
       {
         sourceKey: "churchward1926",
-        startYear: bce(10_074),
+        startYear: agoFrom(1926, 12_000),
+        dateConvention: "years_ago",
+        conventionReferenceYear: 1926,
         datePrecision: "century",
         isApproximate: true,
         originalDateText: "about 12,000 years ago",
