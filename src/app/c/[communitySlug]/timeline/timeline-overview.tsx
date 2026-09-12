@@ -218,7 +218,18 @@ export function TimelineOverview({
       <div
         ref={railRef}
         role="presentation"
-        className="relative h-9 w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted/40"
+        // touch-pan-y, THE SAME AS THE STRIP AND THE COMPARE LANES.
+        //
+        // This rail had NO touch-action at all, which made it the likeliest
+        // surface behind "scrolling left scrolls down on the page": it is a
+        // thin bar directly above the strip, easy to graze while panning, and
+        // with nothing declared the browser scrolled the page with the
+        // vertical part of a swipe while these handlers moved the window with
+        // the horizontal part.
+        //
+        // pan-y makes the browser choose one: vertical is a page scroll and
+        // never arrives here, horizontal arrives here and the page holds still.
+        className="relative h-9 w-full cursor-pointer touch-pan-y overflow-hidden rounded-lg border border-border bg-muted/40"
         onPointerDown={(event) => {
           const fraction = fractionAtClientX(event.clientX);
           const mode = modeAt(fraction);

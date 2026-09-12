@@ -100,7 +100,8 @@ export function CompareLanes({
       onPointerCancel={nav.onPointerUp}
       onKeyDown={nav.onKeyDown}
       onDoubleClick={nav.onDoubleClick}
-      className="relative w-full touch-none select-none overflow-hidden rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      // Same reasoning as the strip: vertical scrolls the page, horizontal pans.
+      className="relative w-full touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{ height: RULER_HEIGHT + lanes.length * LANE_HEIGHT + 8 }}
     >
       {/* One ruler for every lane — which is what makes a vertical line a moment. */}
