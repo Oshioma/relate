@@ -65,6 +65,7 @@ import {
   seedAncientSitesArtefactsDataset,
   seedAncientSitesSubmergedDataset,
   seedAncientSitesWorkedStoneDataset,
+  seedAncientSitesAcceptedDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -277,6 +278,7 @@ export function TimelineView({
   hasAncientSitesArtefacts,
   hasAncientSitesSubmerged,
   hasAncientSitesWorkedStone,
+  hasAncientSitesAccepted,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -336,6 +338,7 @@ export function TimelineView({
   hasAncientSitesArtefacts: boolean;
   hasAncientSitesSubmerged: boolean;
   hasAncientSitesWorkedStone: boolean;
+  hasAncientSitesAccepted: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1836,6 +1839,39 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesAccepted && (
+        <DatasetOffer
+          title="Add the sites where the accepted date is the surprising one?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesAcceptedDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Read enough disputed-date records and a false impression creeps in: that the alternative claim is always
+          the astonishing one and official chronology is always the deflating answer. These three are all
+          mainstream, all arrived at by ordinary means, and all MORE interesting than the alternative accounts
+          attached to them. Malta&apos;s temples are among the oldest free-standing buildings on Earth — older than
+          Giza, older than Stonehenge — and that is the radiocarbon answer; nobody needed an alternative chronology
+          to get there. Nan Madol is the most precisely dated building in the whole dataset, because uranium–thorium
+          was run on coral IN THE WALL rather than on a deposit nearby: a twenty-year window, AD 1180 to 1200. And
+          Rapa Nui is where the MAINSTREAM date moved, and moved LATER — AD 400–800 was the accepted figure for
+          decades until Hunt and Lipo&apos;s stricter sample selection put settlement at about AD 1200. Put that
+          beside Pedra Furada, where the accepted date moved earlier, and you get the useful lesson: revision runs
+          both ways, by the same methods, and neither direction is a scandal. What changed at Rapa Nui was which
+          measurements to believe — they excluded old wood, the same contaminant that makes Giza&apos;s mortar dates
+          messy and cannot be excluded there.
         </DatasetOffer>
       )}
 
