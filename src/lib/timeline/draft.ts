@@ -211,6 +211,31 @@ export const eventDraftSchema = z.object({
   lat: z.number().min(-90).max(90).nullish(),
   lng: z.number().min(-180).max(180).nullish(),
   image_url: z.string().trim().max(2000).nullish(),
+  /**
+   * PICTURES, PLURAL — the same column the seeded datasets have always used.
+   *
+   * The editor had one image field and the database has had `media` since the
+   * feature shipped, so a seeded record could carry three captioned pictures
+   * and a person using the app could add exactly one, uncaptioned, with no way
+   * to say what it was a picture OF. That last part is the one that mattered:
+   * `shows` is what stops a nineteenth-century painting being read as a
+   * photograph of the event, and it was unreachable from the UI.
+   *
+   * `caption` is capped generously because the seeded ones run long on purpose
+   * — a caption here does the work of saying what a picture is NOT.
+   */
+  media: z
+    .array(
+      z.object({
+        url: z.string().trim().min(1).max(2000),
+        caption: z.string().trim().max(2000).optional(),
+        credit: z.string().trim().max(500).optional(),
+        kind: z.string().trim().max(40).optional(),
+        shows: z.string().trim().max(60).optional(),
+      })
+    )
+    .max(12)
+    .default([]),
   track_ids: z.array(z.string().uuid()).max(20).default([]),
   // At least one: an event with no proposed date has nowhere to be drawn.
   claims: z.array(claimDraftSchema).min(1).max(12),

@@ -1,10 +1,11 @@
 "use client";
 
+import { Plus, X } from "lucide-react";
 import { Input, Textarea, Label } from "@/components/ui/input";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
-import { TIMELINE_CATEGORIES, TIMELINE_EVENT_TYPES } from "@/lib/timeline/taxonomy";
+import { MEDIA_KINDS, TIMELINE_CATEGORIES, TIMELINE_EVENT_TYPES, mediaKindHint } from "@/lib/timeline/taxonomy";
 
 // The event's own details — everything except its dates.
 //
@@ -25,8 +26,26 @@ export type EventFieldValues = {
   civilisations: string;
   locationName: string;
   imageUrl: string | null;
+  /**
+   * EVERY PICTURE ON THIS RECORD, not just a cover.
+   *
+   * The first one is the cover — that is what imageUrl is derived from on save
+   * — so nobody has to upload the same file twice to get both.
+   */
+  media: MediaDraft[];
   trackIds: string[];
 };
+
+export type MediaDraft = {
+  url: string;
+  caption: string;
+  credit: string;
+  shows: string;
+};
+
+export function emptyMedia(): MediaDraft {
+  return { url: "", caption: "", credit: "", shows: "" };
+}
 
 export function parseList(value: string): string[] {
   return value
@@ -52,6 +71,14 @@ export function EventFields({
   uploadKey: string;
   autoFocus?: boolean;
 }) {
+  /** Change one picture in the list, leaving the rest exactly as they are. */
+  function updateMedia(index: number, patch: Partial<MediaDraft>) {
+    onChange({
+      ...value,
+      media: value.media.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+    });
+  }
+
   function update(patch: Partial<EventFieldValues>) {
     onChange({ ...value, ...patch });
   }
@@ -191,26 +218,107 @@ export function EventFields({
       <p className="text-xs text-muted-foreground">People, civilisations and tags are comma separated.</p>
 
       <div>
-        <Label>Picture</Label>
-        <ImageUpload
-          // Keyed on the URL so the preview follows it. ImageUpload seeds its
-          // preview from currentUrl once, on mount — which is right when a
-          // person picks the file themselves, and wrong here, where the picture
-          // arrives from a pasted link after the control is already on screen.
-          // Without this the image was attached and saved with nothing on
-          // screen to say so.
-          key={value.imageUrl ?? "no-picture"}
-          bucket="uploads"
-          basePath={`${userId}/timeline/${uploadKey}`}
-          currentUrl={value.imageUrl}
-          onUploaded={(url) => update({ imageUrl: url })}
-          shape="square"
-          size={120}
-          aspect={16 / 9}
-          label="Add a picture"
-          hint="Optional. A photograph, painting or diagram."
-        />
+        <Label>Pictures</Label>
+        <p className="mb-2 text-xs text-muted-foreground">
+          The first one is used as the cover. For each, say what it is a picture{" "}
+          <em>of</em> — a photograph of the evidence and a nineteenth-century painting of the same event are not the
+          same kind of thing, and a painting that does not say so reads as a record.
+        </p>
+
+        <div className="space-y-3">
+          {value.media.map((item, index) => (
+            <div key={index} className="rounded-xl border border-border bg-card p-3">
+              <div className="flex flex-wrap items-start gap-3">
+                <ImageUpload
+                  // Keyed on the URL for the same reason the cover was: the
+                  // control seeds its preview from currentUrl once, on mount.
+                  key={item.url || `slot-${index}`}
+                  bucket="uploads"
+                  basePath={`${userId}/timeline/${uploadKey}-${index + 1}`}
+                  currentUrl={item.url || null}
+                  onUploaded={(url) => updateMedia(index, { url })}
+                  shape="square"
+                  size={104}
+                  aspect={16 / 9}
+                  label={index === 0 ? "Cover picture" : `Picture ${index + 1}`}
+                  hint=""
+                />
+
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div>
+                    <Label>What does this show?</Label>
+                    <select
+                      value={item.shows}
+                      onChange={(event) => updateMedia(index, { shows: event.target.value })}
+                      aria-label={`What picture ${index + 1} shows`}
+                      className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
+                    >
+                      <option value="">Not said</option>
+                      {MEDIA_KINDS.map((kind) => (
+                        <option key={kind.key} value={kind.key}>
+                          {kind.label}
+                        </option>
+                      ))}
+                    </select>
+                    {mediaKindHint(item.shows) && (
+                      <p className="mt-1 text-xs text-muted-foreground">{mediaKindHint(item.shows)}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label>Caption</Label>
+                    <Textarea
+                      value={item.caption}
+                      onChange={(event) => updateMedia(index, { caption: event.target.value })}
+                      aria-label={`Caption for picture ${index + 1}`}
+                      rows={2}
+                      placeholder="What it shows — and what it is not evidence of."
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Who made it, and under what terms</Label>
+                    <Input
+                      value={item.credit}
+                      onChange={(event) => updateMedia(index, { credit: event.target.value })}
+                      aria-label={`Credit for picture ${index + 1}`}
+                      placeholder="Photographer, licence, where it came from"
+                    />
+                    {/* Kept out of the caption on purpose: the caption is also
+                        the alt text, and a licence read aloud with a URL
+                        spelled out is not a description of a photograph. */}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Shown under the picture, not inside the caption. Required by most licences if the picture is not
+                      yours.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...value, media: value.media.filter((_, i) => i !== index) })}
+                  aria-label={`Remove picture ${index + 1}`}
+                  className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-danger"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {value.media.length < 12 && (
+          <button
+            type="button"
+            onClick={() => onChange({ ...value, media: [...value.media, emptyMedia()] })}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {value.media.length === 0 ? "Add a picture" : "Add another picture"}
+          </button>
+        )}
       </div>
+
 
       {tracks.length > 0 && (
         <div>
