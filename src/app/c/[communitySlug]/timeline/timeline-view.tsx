@@ -344,7 +344,28 @@ export function TimelineView({
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
   const [seedingHannibal, setSeedingHannibal] = useState(false);
-  const [seedError, setSeedError] = useState<string | null>(null);
+  // EVERY ANSWER THESE BUTTONS GIVE NEEDS A PLACE THAT IS ALWAYS ON THE PAGE.
+  //
+  // This was seedError: a string, rendered in exactly three places, each one
+  // INSIDE a dataset-offer block that withdraws as soon as its dataset is
+  // seeded. On a timeline that has been set up, all three are gone — so
+  // seventeen call sites wrote their answer into a variable nothing displayed.
+  // A failed "Add the Lemuria dataset" said nothing. "Check for corrections"
+  // said nothing. The buttons looked broken because, from the outside, they
+  // were.
+  //
+  // The picture check was fixed by giving it its own panel, and that fixed one
+  // button out of seventeen. This is the same fix made once, for all of them:
+  // one report, one place, stays until dismissed.
+  //
+  // A TONE, because not every answer is a failure. "Put back 2 missing records"
+  // rendered in danger red was the other half of the same bug.
+  const [seedReport, setSeedReport] = useState<{ tone: "error" | "note"; text: string } | null>(null);
+  // Kept as functions with the old name so the sixteen error call sites read
+  // exactly as they did, and so adding a button cannot accidentally reintroduce
+  // a string with nowhere to go.
+  const setSeedError = (text: string) => setSeedReport({ tone: "error", text });
+  const setSeedNote = (text: string) => setSeedReport({ tone: "note", text });
   // THE PICTURE REPORT NEEDS ITS OWN STATE AND ITS OWN PLACE ON THE PAGE.
   // It used to write into seedError, which is only rendered inside three of the
   // dataset-offer blocks — so once those datasets were seeded and their offers
@@ -1332,7 +1353,6 @@ export function TimelineView({
           >
             {seeding ? "Adding…" : "Add the worked example"}
           </Button>
-          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
       )}
 
@@ -1386,7 +1406,6 @@ export function TimelineView({
           >
             {seeding ? "Bringing them in…" : "Bring the pictures in"}
           </Button>
-          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
       )}
 
@@ -1452,7 +1471,6 @@ export function TimelineView({
                 ? "Bring the Hannibal pictures in"
                 : "Add the Hannibal dataset"}
           </Button>
-          {seedError && <p className="mt-2 text-sm text-danger">{seedError}</p>}
         </div>
       )}
 
@@ -1484,6 +1502,8 @@ export function TimelineView({
           specialists disagree by a quarter of a million years the disagreement is shown rather than averaged away.
         </DatasetOffer>
       )}
+
+
 
       {isStaff && !hasEarlySapiens && (
         <DatasetOffer
@@ -1910,7 +1930,7 @@ export function TimelineView({
                         : `${result.keptBecauseEdited} dates were left alone because somebody here had edited them.`
                     );
                   }
-                  setSeedError(parts.join(" "));
+                  setSeedNote(parts.join(" "));
                 }
                 setReloadToken((token) => token + 1);
                 router.refresh();
@@ -1935,6 +1955,43 @@ export function TimelineView({
           could not be added again from anywhere in the app. Anything restored is named in the result, so if you
           removed one on purpose you can see it is back and remove it again.
         </DatasetOffer>
+      )}
+
+      {/* WHAT THE LAST BUTTON SAID. One place, always on the page, stays until
+          dismissed. Before this existed the answer was written into a variable
+          rendered only inside offers that withdraw once their dataset is
+          seeded, so on a set-up timeline every one of these buttons was silent.
+          Placed with the offers rather than at the top of the page because this
+          is where the button that produced it is. */}
+      {isStaff && seedReport && (
+        <div
+          // A message below the fold is a message nobody reads, which is the
+          // failure this panel exists to fix — so it brings itself into view.
+          ref={(node) => node?.scrollIntoView({ block: "center", behavior: "smooth" })}
+          className={cn(
+            "mt-3 rounded-xl border p-4 sm:p-5",
+            seedReport.tone === "error" ? "border-danger/40 bg-danger/5" : "border-border bg-card"
+          )}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p
+              className={cn(
+                "text-sm",
+                seedReport.tone === "error" ? "font-medium text-danger" : "text-foreground"
+              )}
+            >
+              {seedReport.text}
+            </p>
+            <button
+              type="button"
+              onClick={() => setSeedReport(null)}
+              aria-label="Dismiss this message"
+              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ---- Detail panel --------------------------------------------------- */}
