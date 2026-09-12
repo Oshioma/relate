@@ -508,6 +508,35 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Great_Sphinx,_Pyramids_of_Gizeh-1839)_by_David_Roberts,_RA.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "David Roberts drew this in July 1839, and it is the oldest image on this record. IT SHOWS THE SPHINX " +
+          "BURIED TO THE SHOULDERS \u2014 not artistic licence: for most of its recorded history the body has been " +
+          "under sand, and it was dug out again and again from antiquity onwards. How much of its life the " +
+          "monument spent buried bears on any argument that reasons from how weathered it is, in whichever " +
+          "direction.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Maxime_Du_Camp_-_Le_Sphinx,_Egypt_Moyenne_-_Google_Art_Project.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Maxime Du Camp's calotype, from his Egyptian expedition of 1849\u201351 and among the earliest photographs " +
+          "of the Sphinx there are. Sand still stands against the body. A photograph made before the twentieth- " +
+          "century clearances records a state of the monument no living person has seen \u2014 which is the thing an " +
+          "old image can do that a new one cannot.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

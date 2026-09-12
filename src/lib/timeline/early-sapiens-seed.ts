@@ -372,6 +372,24 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
     eventTypeNote: "A chain of observations, each checkable, supporting an interpretation that is not itself an observation.",
     tags: ["shell-beads", "ornaments", "symbolic-behaviour", "skhul", "bizmoune", "deep-time"],
     locationName: "North Africa, southern Africa and the Levant",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bizmoun_perforated_shell_beads_(reproduction).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bizmoun_perforated_shell_beads_(reproduction).jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "Perforated shell beads of the kind recovered at Bizmoune in Morocco. THESE ARE A REPRODUCTION, not the " +
+          "excavated shells. The hole is the whole argument: a shell pierced in a particular place, worn smooth " +
+          "where a string would sit, is read as an ornament \u2014 and distinguishing that from a hole made by a " +
+          "predatory snail is what the specialist literature on these is mostly about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "vanhaeren2006",
