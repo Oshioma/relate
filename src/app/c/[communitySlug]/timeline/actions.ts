@@ -1476,6 +1476,16 @@ export async function seedTimePeriods(communitySlug: string) {
       continue;
     }
 
+    // Copied into the community's own storage, and the credits resolved from
+    // each picture's own source, before the period is written — the same call
+    // an event makes, so a period picture cannot end up on a different footing
+    // from an event one.
+    const { pictures } = await bringEventPicturesIn(supabase, {
+      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+      userId,
+      slug: seed.slug,
+    });
+
     const { data: period, error: periodError } = await supabase
       .from("timeline_periods")
       .insert({
@@ -1493,6 +1503,8 @@ export async function seedTimePeriods(communitySlug: string) {
         interpretation: seed.interpretation ?? null,
         region: seed.region ?? null,
         display_priority: seed.displayPriority ?? 0,
+        image_url: pictures.imageUrl,
+        media: pictures.media,
         status: "published",
       })
       .select("id, slug")

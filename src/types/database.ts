@@ -2157,6 +2157,16 @@ export type TimelinePeriod = {
   // Orders what semantic zoom has already chosen. Not a visibility switch and
   // not a ranking of importance.
   display_priority: number;
+  // PICTURES, THE SAME TWO COLUMNS EVENTS USE. Deliberately the same names, so
+  // the copy-into-storage path, the credit resolver, the picture check and the
+  // media renderer all work on a period without a second implementation.
+  //
+  // A period picture carries a risk an event picture does not: a photograph of
+  // one bronze object printed across a band covering two thousand years and
+  // several continents reads as a portrait of the whole span. Nothing in the
+  // type can stop that — `shows` and the caption are what do.
+  image_url: string | null;
+  media: { url: string; caption?: string; credit?: string; kind?: string; shows?: string }[];
   status: TimelineEventStatus;
   reviewed_by: string | null;
   reviewed_at: string | null;

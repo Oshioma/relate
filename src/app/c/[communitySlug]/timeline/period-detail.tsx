@@ -11,6 +11,9 @@ import {
   chronologyLabel,
   datingMethodHint,
   datingMethodLabel,
+  mediaKindHint,
+  mediaKindLabel,
+  mediaKindNeedsWarning,
   periodTypeHint,
   periodTypeLabel,
   viewpointHint,
@@ -253,6 +256,62 @@ export function PeriodDetail({
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{periodTypeHint(period.period_type)}</p>
         )}
       </div>
+
+      {/* PICTURES OF A PERIOD, AFTER THE LABEL THAT SAYS HOW TO READ IT.
+          Order matters here more than it does on an event. A photograph of one
+          bronze object above the words "Bronze Age" reads as a portrait of two
+          thousand years across several continents; the same photograph below
+          "ARCHAEOLOGICAL — a convention for a material pattern, beginning at
+          different times in different places" reads as one example of that
+          pattern, which is what it is. So the periodisation box comes first
+          and the pictures come after it, never above. */}
+      {period.media.length > 0 && (
+        <div className="mt-5">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            Examples
+          </h3>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Things from within this span — not a portrait of it. These periods run from a few centuries to more than
+            a billion years, and none of them has a single representative object: nothing below is standing in for
+            the whole of the period it sits under.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {period.media.map((item, index) => (
+              <figure key={`${item.url}-${index}`} className="min-w-0">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted">
+                  {/* Plain <img>, as everywhere else these arbitrary URLs are
+                      drawn: next/image would need every host configured. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.url} alt={item.caption ?? ""} loading="lazy" className="h-full w-full object-cover" />
+                </div>
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {mediaKindLabel(item.shows) && (
+                    <span
+                      className={cn(
+                        "mr-1.5 inline-block rounded-full px-2 py-0.5 font-medium",
+                        mediaKindNeedsWarning(item.shows)
+                          ? "bg-accent-soft text-foreground ring-1 ring-border"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {mediaKindLabel(item.shows)}
+                    </span>
+                  )}
+                  {item.caption}
+                  {mediaKindNeedsWarning(item.shows) && (
+                    <span className="mt-1 block italic">{mediaKindHint(item.shows)}</span>
+                  )}
+                  {/* Visible, because attribution is a licence condition — but
+                      out of the caption, which is also the alt text. */}
+                  {item.credit && (
+                    <span className="mt-1 block text-[11px] leading-snug opacity-80">{item.credit}</span>
+                  )}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
 
       {period.summary && <p className="mt-4 text-base text-foreground">{period.summary}</p>}
       {period.description && (

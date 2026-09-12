@@ -218,6 +218,25 @@ export type SeedPeriod = {
   region?: string;
   /** Orders bands that semantic zoom has already chosen. Not a visibility switch. */
   displayPriority?: number;
+  /**
+   * Pictures, exactly as an event carries them — see SeedEvent above for the
+   * shape and for what `shows` and `creditFrom` are each for.
+   *
+   * A PERIOD PICTURE IS THE EASIEST ONE TO GET WRONG. A period is the frame
+   * every event is read against, so one bronze object printed across a band
+   * covering two thousand years and several continents reads as a portrait of
+   * the whole span. Every caption here has to say what its picture is an
+   * example OF rather than letting it stand for the period.
+   */
+  imageUrl?: string;
+  media?: {
+    url: string;
+    caption?: string;
+    credit?: string;
+    kind?: string;
+    shows?: string;
+    creditFrom?: "source";
+  }[];
   /** The boundary claims. Two regions disagreeing is the normal case, not an error. */
   claims: SeedClaim[];
 };
