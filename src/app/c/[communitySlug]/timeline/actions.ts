@@ -38,6 +38,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_CHINA_EVENTS,
+  FLOOD_CHINA_LINKS,
+  FLOOD_CHINA_SOURCES,
+  FLOOD_CHINA_TRACK,
+} from "@/lib/timeline/flood-china-seed";
+import {
   FLOOD_EURASIA_EVENTS,
   FLOOD_EURASIA_LINKS,
   FLOOD_EURASIA_SOURCES,
@@ -1686,6 +1692,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
   { label: "Ice age floods and sea level", events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Flood traditions: China",
+    events: FLOOD_CHINA_EVENTS,
+    sources: FLOOD_CHINA_SOURCES,
+    links: FLOOD_CHINA_LINKS,
+  },
+  {
     label: "Flood traditions: Greece, India, Iran",
     events: FLOOD_EURASIA_EVENTS,
     sources: FLOOD_EURASIA_SOURCES,
@@ -1985,6 +1997,27 @@ export async function checkTimelinePictures(communitySlug: string): Promise<
   const records = (data ?? []).filter((record) => record.image_url || (record.media ?? []).length > 0);
   const results = await checkPictures(records);
   return { ok: true as const, checked: results.length, problems: results.filter((result) => result.outcome !== "ok") };
+}
+
+/**
+ * The Chinese Great Flood, and the geological flood proposed as its origin.
+ * See flood-china-seed.ts.
+ */
+export async function seedFloodChinaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the flood traditions dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_CHINA_EVENTS,
+    sources: FLOOD_CHINA_SOURCES,
+    track: FLOOD_CHINA_TRACK,
+    links: FLOOD_CHINA_LINKS,
+    label: "Flood traditions: China",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
 }
 
 /**

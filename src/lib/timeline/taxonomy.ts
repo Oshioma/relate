@@ -246,6 +246,7 @@ export const CLAIM_VIEWPOINTS = [
     hint:
       "The generally accepted account in current scholarship — academic research, archaeology, science, textbooks, museums, universities. " +
       "This does NOT mean the claim is unquestionably true. It means this is the broadly accepted interpretation today.",
+    mainstream: true,
   },
   {
     key: "alternative",
@@ -256,10 +257,10 @@ export const CLAIM_VIEWPOINTS = [
   },
   { key: "disputed", label: "Disputed / contested claim", hint: "Specialists actively disagree about this one." },
   { key: "historical", label: "Historical account", hint: "As given in the written historical record." },
-  { key: "archaeological", label: "Archaeological", hint: "Worked out from physical evidence and site sequences." },
-  { key: "scientific", label: "Scientific", hint: "From measurement, dating or modelling." },
+  { key: "archaeological", label: "Archaeological", hint: "Worked out from physical evidence and site sequences.", mainstream: true },
+  { key: "scientific", label: "Scientific", hint: "From measurement, dating or modelling.", mainstream: true },
   { key: "hypothesis", label: "Scientific hypothesis", hint: "Proposed and testable, not yet established." },
-  { key: "geological", label: "Geological", hint: "From the rock record and its timescale." },
+  { key: "geological", label: "Geological", hint: "From the rock record and its timescale.", mainstream: true },
   { key: "traditional", label: "Traditional account", hint: "Carried by a tradition or a people's own telling." },
   { key: "oral_tradition", label: "Oral tradition", hint: "Passed on by telling rather than by writing." },
   { key: "indigenous", label: "Indigenous knowledge", hint: "The knowledge of a people about their own history and country." },
@@ -290,6 +291,56 @@ export function viewpointOrder(key: string | null | undefined): number {
 
 export function viewpointHint(key: string | null | undefined): string {
   return VIEWPOINT_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * IS THIS THE CURRENT MAINSTREAM ACADEMIC POSITION?
+ *
+ * Four viewpoints are: the general mainstream reading, and the three that name
+ * the disciplines producing it — scientific, archaeological, geological. Those
+ * three are marked because on this timeline they are used for the established
+ * finding rather than for a method: a radiometric date on a flood deposit is
+ * where current scholarship sits.
+ *
+ * WHAT IT DELIBERATELY EXCLUDES, and why each:
+ *
+ *   hypothesis   — proposed and testable, not established. The cyclic
+ *                  cosmologies and the Younger Dryas impact hypothesis live
+ *                  here, and marking them mainstream would be the single most
+ *                  misleading thing this function could do.
+ *   historical   — "as given in the written record", which is a kind of source
+ *                  rather than a position. The Steady State model uses it, and
+ *                  it is emphatically not the current mainstream.
+ *   disputed     — specialists actively disagree, so there is no single
+ *                  mainstream answer to mark.
+ *
+ * AND WHAT THE MARK MEANS. Where the weight of current scholarship sits — not
+ * that the claim is true, not that the others are wrong, and not permanently.
+ * The Steady State model was mainstream once. The UI prints that caveat beside
+ * every mark rather than leaving it to be inferred.
+ */
+export function isMainstreamViewpoint(key: string | null | undefined): boolean {
+  const viewpoint = VIEWPOINT_BY_KEY.get(key ?? "");
+  return viewpoint != null && "mainstream" in viewpoint && viewpoint.mainstream === true;
+}
+
+/**
+ * IS THIS EXPLICITLY AN ALTERNATIVE TO THE MAINSTREAM ACCOUNT?
+ *
+ * The counterpart to isMainstreamViewpoint, and it exists so that marking one
+ * pole does not silently demote everything else. A page where only the
+ * mainstream claim is boxed tells a reader that everything unboxed is lesser
+ * and unexamined; a page where both poles are marked tells them there are two
+ * named positions and invites the comparison.
+ *
+ * Only "alternative" qualifies. A hypothesis is a proposal INSIDE current
+ * science rather than an alternative to it, a disputed claim has specialists
+ * on both sides, and a traditional or religious account is not competing for
+ * the same job — marking any of them as "the alternative" would flatten three
+ * different relationships into one.
+ */
+export function isAlternativeViewpoint(key: string | null | undefined): boolean {
+  return key === "alternative";
 }
 
 export function chronologyLabel(key: string | null | undefined): string {

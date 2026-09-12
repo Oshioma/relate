@@ -51,6 +51,7 @@ import {
   seedFloodPhysicalDataset,
   seedFloodMesopotamiaDataset,
   seedFloodEurasiaDataset,
+  seedFloodChinaDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -253,6 +254,7 @@ export function TimelineView({
   hasFloodPhysical,
   hasFloodMesopotamia,
   hasFloodEurasia,
+  hasFloodChina,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -300,6 +302,7 @@ export function TimelineView({
   hasFloodPhysical: boolean;
   hasFloodMesopotamia: boolean;
   hasFloodEurasia: boolean;
+  hasFloodChina: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1682,6 +1685,32 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodChina && (
+        <DatasetOffer
+          title="Add the Chinese Great Flood?"
+          busyLabel="Adding the records…"
+          label="Add the Chinese flood records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodChinaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The sharpest case in the flood material, because the argument is in the journals. In 2016 Science published a
+          paper placing an outburst flood at Jishi Gorge around 1920 BCE and identifying it as the flood Yu controlled —
+          and Science then published a Comment arguing the events are not even contemporary. Both are here, because
+          seeding one would turn a live dispute into a finding. The tradition is also a different shape from every
+          other on this timeline: no ark, no chosen survivor, no end of humanity. Gun fails by damming the water and Yu
+          succeeds by giving it a path to the sea, and the moral is about method.
+        </DatasetOffer>
+      )}
+
       {/* ---- Are the pictures actually there? --------------------------------
           A picture is added by writing a URL into a file, and nobody can tell
           whether it resolves until somebody opens the record. A broken one is
@@ -1733,7 +1762,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia || hasFloodChina) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"
