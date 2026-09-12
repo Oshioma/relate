@@ -2025,6 +2025,16 @@ export function TimelineView({
                       `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"} to records that had none.`
                     );
                   }
+                  // SAY THAT MORE ARE COMING, or the run looks like it failed
+                  // halfway. Each press brings in a fixed number so the request
+                  // always finishes; the rest wait for the next one.
+                  if (result.picturesStillMissing > 0) {
+                    parts.push(
+                      `${result.picturesStillMissing} more ${
+                        result.picturesStillMissing === 1 ? "record is" : "records are"
+                      } still waiting for pictures — press this again to continue.`
+                    );
+                  }
                   if (result.updated > 0) {
                     parts.push(
                       `Updated ${result.updated} ${result.updated === 1 ? "date" : "dates"}${
