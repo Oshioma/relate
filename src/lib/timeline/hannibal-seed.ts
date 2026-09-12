@@ -266,6 +266,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Mommsen_p265.jpg?width=1024",
+        shows: "artefact",
         caption:
           "The marble bust from Capua long called Hannibal, engraved for Mommsen's history. THE IDENTIFICATION IS DOUBTED: the Naples museum catalogue of 1888 marked it with a question mark, and it has been argued to be a Renaissance work rather than an ancient one. Public domain, via Wikimedia Commons.",
         kind: "image",
@@ -387,6 +388,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Carthage%2C_quarter_shekel%2C_237-209_BC%2C_SNG_BM_Spain_102.jpg?width=1024",
+        shows: "artefact",
         caption:
           "Silver quarter shekel struck under Carthaginian rule in Iberia, c. 237–209 BCE: a male head with a club at the shoulder — usually identified as Melqart — and an elephant. Photograph by Classical Numismatic Group, CC BY-SA 2.5, via Wikimedia Commons.",
         kind: "image",
@@ -668,6 +670,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Joseph_Mallord_William_Turner_-_Snow_Storm%2C_Hannibal_and_his_Army_Crossing_the_Alps_-_WGA23167.jpg?width=1024",
+        shows: "later_artwork",
         caption:
           "J. M. W. Turner, 'Snow Storm: Hannibal and his Army Crossing the Alps', 1812, Tate. A Romantic painting of a storm, made two thousand years after the event and evidence for nothing about the route. Public domain, via Wikimedia Commons.",
         kind: "image",
@@ -783,6 +786,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Heinrich_Leutemann_-_Hannibals_%C3%9Cbergang_%C3%BCber_die_Alpen_%28cropped%29.jpg?width=1024",
+        shows: "later_artwork",
         caption:
           "Heinrich Leutemann, 'Hannibals Übergang über die Alpen', woodcut, 1866. This is where the popular image of elephants in the snow comes from — a 19th-century illustration, not a record. Public domain, via Wikimedia Commons.",
         kind: "image",
@@ -1016,6 +1020,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_cannae_destruction.png?width=1024",
+        shows: "reconstruction",
         caption:
           "The double envelopment at Cannae, from a teaching map by the Department of History, United States Military Academy. A modern reconstruction of the manoeuvre, drawn from the ancient narratives. Public domain, via Wikimedia Commons.",
         kind: "image",
@@ -1282,6 +1287,7 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     media: [
       {
         url: "https://commons.wikimedia.org/wiki/Special:FilePath/Carthage%2C_quarter_shekel%2C_237-209_BC%2C_SNG_BM_Spain_102.jpg?width=1024",
+        shows: "artefact",
         caption:
           "Silver quarter shekel struck under Carthaginian rule in Iberia, c. 237–209 BCE: a male head with a club at the shoulder — usually identified as Melqart — and an elephant. Photograph by Classical Numismatic Group, CC BY-SA 2.5, via Wikimedia Commons.",
         kind: "image",

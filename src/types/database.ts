@@ -2089,7 +2089,11 @@ export type TimelineEvent = {
   lat: number | null;
   lng: number | null;
   image_url: string | null;
-  media: { url: string; caption?: string; kind?: string }[];
+  // `kind` is the MEDIA TYPE — image, video. `shows` is what the picture is a
+  // picture OF, from MEDIA_KINDS: a photograph of the evidence, a map, a
+  // nineteenth-century painting of the tradition. The second is the one that
+  // stops a dramatic illustration being read as a record of the event.
+  media: { url: string; caption?: string; kind?: string; shows?: string }[];
   people: string[];
   civilisations: string[];
   // WHAT THE STORY CONTAINS — NARRATIVE_MOTIFS keys, for comparing traditions

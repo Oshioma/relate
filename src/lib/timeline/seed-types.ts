@@ -142,7 +142,13 @@ export type SeedEvent = {
    * caption is where that gets said.
    */
   imageUrl?: string;
-  media?: { url: string; caption?: string; kind?: string }[];
+  /**
+   * `kind` is the media type; `shows` is what the picture is a picture OF — a
+   * MEDIA_KINDS key. Set `shows` on every seeded picture: a later artwork or a
+   * reconstruction that does not declare itself reads as a photograph of the
+   * event, which is the most persuasive kind of wrong a record can be.
+   */
+  media?: { url: string; caption?: string; kind?: string; shows?: string }[];
   /** Only where the place is genuinely known. A coordinate is an assertion. */
   lat?: number | null;
   lng?: number | null;

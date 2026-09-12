@@ -378,11 +378,13 @@ export const SHOWCASE_EVENT = {
   media: [
     {
       url: "https://commons.wikimedia.org/wiki/Special:FilePath/Kheops-Pyramid.jpg?width=1024",
+      shows: "site",
       caption: "The Great Pyramid of Khufu from the north-east. Photograph by Nina Aldin Thune, CC BY 2.5, via Wikimedia Commons.",
       kind: "image",
     },
     {
       url: "https://commons.wikimedia.org/wiki/Special:FilePath/All_Gizah_Pyramids.jpg?width=1024",
+      shows: "site",
       caption: "The Giza plateau, with all three main pyramids and the subsidiary queens' pyramids. Photograph by Ricardo Liberato, CC BY-SA 2.0, via Wikimedia Commons.",
       kind: "image",
     },
