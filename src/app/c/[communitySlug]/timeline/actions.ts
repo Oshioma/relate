@@ -38,6 +38,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_SUBMERGED_EVENTS,
+  FLOOD_SUBMERGED_LINKS,
+  FLOOD_SUBMERGED_SOURCES,
+  FLOOD_SUBMERGED_TRACK,
+} from "@/lib/timeline/flood-submerged-seed";
+import {
   FLOOD_CHINA_EVENTS,
   FLOOD_CHINA_LINKS,
   FLOOD_CHINA_SOURCES,
@@ -1722,6 +1728,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Ice age floods and sea level",
     track: FLOOD_PHYSICAL_TRACK, events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Drowned lands, and the coasts people remember",
+    track: FLOOD_SUBMERGED_TRACK,
+    events: FLOOD_SUBMERGED_EVENTS,
+    sources: FLOOD_SUBMERGED_SOURCES,
+    links: FLOOD_SUBMERGED_LINKS,
+  },
+  {
     label: "Flood traditions: China",
     track: FLOOD_CHINA_TRACK,
     events: FLOOD_CHINA_EVENTS,
@@ -2145,6 +2158,27 @@ export async function seedFloodChinaDataset(communitySlug: string) {
     track: FLOOD_CHINA_TRACK,
     links: FLOOD_CHINA_LINKS,
     label: "Flood traditions: China",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The drowned landscapes, and the Australian coastal traditions.
+ * See flood-submerged-seed.ts.
+ */
+export async function seedFloodSubmergedDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the drowned lands dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_SUBMERGED_EVENTS,
+    sources: FLOOD_SUBMERGED_SOURCES,
+    track: FLOOD_SUBMERGED_TRACK,
+    links: FLOOD_SUBMERGED_LINKS,
+    label: "Drowned lands, and the coasts people remember",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
