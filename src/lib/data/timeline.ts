@@ -1006,3 +1006,29 @@ function groupBy<T, K>(rows: T[], key: (row: T) => K): Map<K, T[]> {
   }
   return grouped;
 }
+
+/**
+ * Every record that has motifs, for the comparison grid.
+ *
+ * MOTIFS ARE THE ONE THING THESE RECORDS CAN BE COMPARED ON. Most of them
+ * carry no date at all — a Popol Vuh flood, a Haudenosaunee creation, a llama
+ * on Villca Coto — so a timeline cannot put them side by side and a table of
+ * dates would be almost entirely empty. What they do have is content: whether
+ * anybody was warned, by whom, what the water was, what if anything floated.
+ *
+ * Ordered by title so the grid is stable between loads rather than reordering
+ * itself whenever the database feels like it.
+ */
+export async function getEventsWithMotifs(
+  supabase: Client,
+  communityId: string
+): Promise<Pick<TimelineEvent, "id" | "slug" | "title" | "summary" | "category" | "subcategory" | "civilisations" | "motifs">[]> {
+  const { data, error } = await supabase
+    .from("timeline_events")
+    .select("id, slug, title, summary, category, subcategory, civilisations, motifs")
+    .eq("community_id", communityId)
+    .eq("status", "published")
+    .order("title", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).filter((event) => (event.motifs ?? []).length > 0);
+}
