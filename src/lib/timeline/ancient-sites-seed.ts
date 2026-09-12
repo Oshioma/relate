@@ -282,6 +282,24 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
     locationName: "Göbekli Tepe, Şanlıurfa Province, Türkiye",
     lat: 37.2233,
     lng: 38.9222,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%B6beklitepe_Building_D_5323.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%B6beklitepe_Building_D_5323.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The two central T-shaped pillars of Enclosure D, carrying low-relief arms and hands, belts and fox- " +
+          "pelt loincloths. These are the structures the radiocarbon sequence dates, and the wall plaster sample " +
+          "came from this enclosure. They were standing some eleven and a half thousand years ago, before " +
+          "farming, and nobody disputes it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "dietrich2013",
@@ -359,6 +377,24 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
     locationName: "Gunung Padang, Cianjur Regency, West Java, Indonesia",
     lat: -6.9944,
     lng: 107.0564,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Situs_Megalitikum_Gunung_Padang_Cianjur.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Situs_Megalitikum_Gunung_Padang_Cianjur.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The columnar basalt terraces at Gunung Padang. THIS IS THE PART NOBODY DISPUTES \u2014 the surface " +
+          "megaliths, dated by excavated charcoal to around two thousand years ago. The construction argued back " +
+          "to 27,000 years is metres beneath what is visible here, and whether those layers are built at all is " +
+          "the question.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "archaeology_gunung_padang",
@@ -456,6 +492,23 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
     locationName: "Giza plateau, Egypt",
     lat: 29.9753,
     lng: 31.1376,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Giza_Plateau_-_Great_Sphinx_-_side_view.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Giza_Plateau_-_Great_Sphinx_-_side_view.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The Sphinx from the side, showing the body cut down into the bedrock and the wall of the quarried " +
+          "enclosure behind it. THE WEATHERING ARGUMENT IS ABOUT THESE SURFACES: the profile of the core body and " +
+          "the enclosure walls \u2014 not the head, and not the later casing blocks that cover much of the body today.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "hawass_mountain",
@@ -587,6 +640,24 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
     locationName: "Cerutti Mastodon site, San Diego County, California",
     lat: 32.9,
     lng: -117.15,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/AMNH_Mastodon.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/AMNH_Mastodon.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A mounted mastodon skeleton in a museum \u2014 the Warren Mastodon at the American Museum of Natural " +
+          "History. THIS IS NOT THE CERUTTI ANIMAL. It is here to show what the San Diego site produced fragments " +
+          "of: the bones under argument are broken pieces, and whether they were broken by people, by animals or " +
+          "by the earth-moving equipment that exposed them is the whole dispute.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "holen2017",
@@ -655,6 +726,23 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
     locationName: "Pyrophyllite deposits near Ottosdal, North West Province, South Africa",
     lat: -26.8167,
     lng: 26.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ottosdal2.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ottosdal2.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "One of the Ottosdal objects. It is filed on Commons among botryoidal hematite, which is the mineral " +
+          "form the geologist Paul Heinrich found when he examined them. The grooves most often called machined " +
+          "run with the layering of the sediment the object grew in \u2014 a thing concretions commonly do.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_klerksdorp",
