@@ -57,6 +57,12 @@ import {
   EARLY_AUSTRALIA_TRACK,
 } from "@/lib/timeline/early-australia-seed";
 import {
+  ANCIENT_SITES_AMERICAS_EVENTS,
+  ANCIENT_SITES_AMERICAS_LINKS,
+  ANCIENT_SITES_AMERICAS_SOURCES,
+  ANCIENT_SITES_AMERICAS_TRACK,
+} from "@/lib/timeline/ancient-sites-americas-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1794,6 +1800,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: EARLY_AUSTRALIA_LINKS,
   },
   {
+    label: "Ancient sites: the Andes and the early Americas",
+    track: ANCIENT_SITES_AMERICAS_TRACK,
+    events: ANCIENT_SITES_AMERICAS_EVENTS,
+    sources: ANCIENT_SITES_AMERICAS_SOURCES,
+    links: ANCIENT_SITES_AMERICAS_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2424,6 +2437,28 @@ export async function seedAncientSitesDataset(communitySlug: string) {
     track: ANCIENT_SITES_TRACK,
     links: ANCIENT_SITES_LINKS,
     label: "Ancient sites: where the proposed dates disagree",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Tiwanaku, the Pumapunku, and three sites where the argument is not how old
+ * the deposit is but whether the stone in it was struck by a person.
+ * See ancient-sites-americas-seed.ts.
+ */
+export async function seedAncientSitesAmericasDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_AMERICAS_EVENTS,
+    sources: ANCIENT_SITES_AMERICAS_SOURCES,
+    track: ANCIENT_SITES_AMERICAS_TRACK,
+    links: ANCIENT_SITES_AMERICAS_LINKS,
+    label: "Ancient sites: the Andes and the early Americas",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
