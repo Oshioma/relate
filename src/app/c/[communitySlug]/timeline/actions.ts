@@ -63,6 +63,12 @@ import {
   ANCIENT_SITES_AMERICAS_TRACK,
 } from "@/lib/timeline/ancient-sites-americas-seed";
 import {
+  ANCIENT_SITES_ARTEFACTS_EVENTS,
+  ANCIENT_SITES_ARTEFACTS_LINKS,
+  ANCIENT_SITES_ARTEFACTS_SOURCES,
+  ANCIENT_SITES_ARTEFACTS_TRACK,
+} from "@/lib/timeline/ancient-sites-artefacts-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1807,6 +1813,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_AMERICAS_LINKS,
   },
   {
+    label: "Anomalous artefacts: objects said to have come out of old rock",
+    track: ANCIENT_SITES_ARTEFACTS_TRACK,
+    events: ANCIENT_SITES_ARTEFACTS_EVENTS,
+    sources: ANCIENT_SITES_ARTEFACTS_SOURCES,
+    links: ANCIENT_SITES_ARTEFACTS_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2459,6 +2472,29 @@ export async function seedAncientSitesAmericasDataset(communitySlug: string) {
     track: ANCIENT_SITES_AMERICAS_TRACK,
     links: ANCIENT_SITES_AMERICAS_LINKS,
     label: "Ancient sites: the Andes and the early Americas",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The Dorchester object, the Morrisonville chain, the Macoupin notice and
+ * Whitney's Californian mortars. Every record here dates a report and dates the
+ * host rock, and nothing here dates an object by measuring it — because nobody
+ * ever has. See ancient-sites-artefacts-seed.ts.
+ */
+export async function seedAncientSitesArtefactsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_ARTEFACTS_EVENTS,
+    sources: ANCIENT_SITES_ARTEFACTS_SOURCES,
+    track: ANCIENT_SITES_ARTEFACTS_TRACK,
+    links: ANCIENT_SITES_ARTEFACTS_LINKS,
+    label: "Anomalous artefacts: objects said to have come out of old rock",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
