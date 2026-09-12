@@ -9,7 +9,13 @@ import type { TimelineDateClaim, TimelineSource, TimelineTrack } from "@/types/d
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import { EventFields, parseList, type EventFieldValues } from "./event-fields";
 import { ClaimFields } from "./claim-fields";
-import { addDateClaim, deleteDateClaim, updateDateClaim, updateTimelineEvent } from "./actions";
+import {
+  addDateClaim,
+  deleteDateClaim,
+  suggestPicturesForEvent,
+  updateDateClaim,
+  updateTimelineEvent,
+} from "./actions";
 import { emptyClaimDraft, resolveDateInput, type ClaimDraft, type EventDraft } from "@/lib/timeline/draft";
 import { claimHeadline, dateUnit, eraYearOf, yearsAgoOf } from "@/lib/timeline/time";
 
@@ -308,6 +314,13 @@ export function EditEventFlow({
               tracks={tracks}
               userId={userId}
               uploadKey={uploadKey}
+              // The record is saved, so it has a title, a place and people for
+              // the search to work from. A record being CREATED has none of
+              // those yet, which is why the add flow does not pass this.
+              suggest={{
+                eventId: event.id,
+                onSearch: (eventId) => suggestPicturesForEvent(communitySlug, eventId),
+              }}
             />
           ) : (
             <div className="space-y-4">

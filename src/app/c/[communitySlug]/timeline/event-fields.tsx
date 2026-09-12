@@ -2,6 +2,8 @@
 
 import { Plus, X } from "lucide-react";
 import { Input, Textarea, Label } from "@/components/ui/input";
+import { SuggestPicturesPanel } from "./suggest-pictures-panel";
+import type { PictureCandidate } from "@/lib/timeline/suggest-pictures";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
@@ -62,11 +64,22 @@ export function EventFields({
   userId,
   uploadKey,
   autoFocus = false,
+  suggest,
 }: {
   value: EventFieldValues;
   onChange: (next: EventFieldValues) => void;
   tracks: TimelineTrack[];
   userId: string;
+  /**
+   * Searching Commons for candidate pictures. Absent when there is nothing to
+   * search from — a record being created has no id and no saved place yet.
+   */
+  suggest?: {
+    eventId: string | null;
+    onSearch: (eventId: string) => Promise<
+      { error: string } | { candidates: PictureCandidate[]; searched: string[]; failed: string[] }
+    >;
+  };
   /** Stable per form, so a second upload replaces the first rather than orphaning it. */
   uploadKey: string;
   autoFocus?: boolean;
@@ -306,6 +319,28 @@ export function EventFields({
             </div>
           ))}
         </div>
+
+        {/* A SUGGESTION ARRIVES AS A SLOT TO FINISH, NOT AS A FINISHED PICTURE.
+            Choosing one fills in the address and the credit and leaves the
+            caption and "what does this show" empty above, which is where the
+            person has to do the part a search cannot. */}
+        {suggest && value.media.length < 12 && (
+          <div className="mt-3 rounded-xl border border-dashed border-border p-3">
+            <SuggestPicturesPanel
+              eventId={suggest.eventId}
+              onSearch={suggest.onSearch}
+              onChoose={(candidate) =>
+                onChange({
+                  ...value,
+                  media: [
+                    ...value.media,
+                    { ...emptyMedia(), url: candidate.url, credit: candidate.credit ?? "" },
+                  ],
+                })
+              }
+            />
+          </div>
+        )}
 
         {value.media.length < 12 && (
           <button

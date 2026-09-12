@@ -49,6 +49,7 @@ import {
   ANCIENT_SITES_SOURCES,
   ANCIENT_SITES_TRACK,
 } from "@/lib/timeline/ancient-sites-seed";
+import { suggestPictures, type PictureCandidate } from "@/lib/timeline/suggest-pictures";
 import {
   EARLY_AUSTRALIA_EVENTS,
   EARLY_AUSTRALIA_LINKS,
@@ -2360,6 +2361,50 @@ export async function seedFloodRegionsDataset(communitySlug: string) {
   });
   revalidatePath(timelinePath(community.slug));
   return result;
+}
+
+/**
+ * CANDIDATE PICTURES FOR A RECORD SOMEBODY WROTE THEMSELVES.
+ *
+ * Searches Wikimedia Commons from the record's own place, people and title and
+ * hands back candidates for a person to choose between. It attaches nothing:
+ * the caller gets addresses and descriptions, and a human picks.
+ *
+ * Runs on the server because Commons should be asked once per request from one
+ * place, not once per reader from a browser — and because the allowlist that
+ * decides what may be fetched lives here.
+ *
+ * See suggest-pictures.ts for why this is built the way it is.
+ */
+export async function suggestPicturesForEvent(
+  communitySlug: string,
+  eventId: string
+): Promise<{ error: string } | { candidates: PictureCandidate[]; searched: string[]; failed: string[] }> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community } = context;
+
+  const { data: event, error } = await supabase
+    .from("timeline_events")
+    .select("title, location_name, people, civilisations")
+    .eq("community_id", community.id)
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) return { error: error.message };
+  if (!event) return { error: "That record is not in this community." };
+
+  const result = await suggestPictures({
+    title: event.title,
+    locationName: event.location_name,
+    people: event.people,
+    civilisations: event.civilisations,
+  });
+
+  return {
+    candidates: result.candidates,
+    searched: result.searched.map((term) => term.value),
+    failed: result.failed.map((term) => term.value),
+  };
 }
 
 /**
