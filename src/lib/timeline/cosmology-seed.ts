@@ -454,6 +454,22 @@ const HISTORY: SeedEvent[] = [
     eventType: "historical",
     tags: ["cosmology", "steady-state", "1948"],
     people: ["Hermann Bondi", "Thomas Gold", "Fred Hoyle"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Fred_Hoyle_1967.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Fred_Hoyle_1967.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Fred Hoyle, photographed in 1967 \u2014 nineteen years after the steady-state papers. Hoyle coined the " +
+          "phrase 'big bang' for the theory he was arguing against, and it is the name that stuck.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "bondi_gold1948",
@@ -488,6 +504,23 @@ const HISTORY: SeedEvent[] = [
     eventType: "historical",
     tags: ["cosmology", "cmb", "evidence", "1965"],
     people: ["Arno Penzias", "Robert Wilson", "Robert Dicke", "James Peebles"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Horn_Antenna-in_Holmdel,_New_Jersey.jpeg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Horn_Antenna-in_Holmdel,_New_Jersey.jpeg?width=1024",
+        shows: "site",
+        caption:
+          "The horn antenna at Holmdel, New Jersey. Penzias and Wilson were not looking for the cosmic " +
+          "microwave background; they were trying to get rid of a noise they could not explain, and had cleaned " +
+          "the pigeon droppings out of this antenna in the attempt.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "penzias_wilson1965",
@@ -575,6 +608,23 @@ const HISTORY: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["cosmology", "planck", "cmb", "measurement"],
     civilisations: [],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Cosmic_Microwave_Background_(CMB).jpeg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Cosmic_Microwave_Background_(CMB).jpeg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The cosmic microwave background as mapped by Planck. WHAT THE COLOURS ARE: temperature differences " +
+          "of a few parts in a hundred thousand, stretched enormously so they can be seen at all. The sky is " +
+          "very nearly uniform, and the age of the universe is read out of the faint pattern in what is left.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "planck2018",
@@ -615,6 +665,23 @@ const HISTORY: SeedEvent[] = [
     eventType: "historical",
     tags: ["chronology", "biblical", "ussher", "1650"],
     people: ["James Ussher"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_by_Sir_Peter_Lely.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_by_Sir_Peter_Lely.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "James Ussher, Archbishop of Armagh, by Peter Lely. A working scholar of chronology using the best " +
+          "comparative material available to him in the 1650s, whose date is now quoted as though it were a " +
+          "claim of scripture rather than a calculation of his.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ussher1650",

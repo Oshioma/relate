@@ -425,6 +425,13 @@ export function EventDetail({
                   {mediaKindNeedsWarning(item.shows) && (
                     <span className="mt-1 block italic">{mediaKindHint(item.shows)}</span>
                   )}
+                  {/* WHO MADE IT, on its own line and in smaller type. It has
+                      to be visible — attribution is a licence condition — but
+                      it is not a description of the picture, and running it on
+                      the end of the caption put a URL into the alt text. */}
+                  {item.credit && (
+                    <span className="mt-1 block text-[11px] leading-snug opacity-80">{item.credit}</span>
+                  )}
                 </figcaption>
               </figure>
             ))}

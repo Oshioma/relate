@@ -2093,7 +2093,10 @@ export type TimelineEvent = {
   // picture OF, from MEDIA_KINDS: a photograph of the evidence, a map, a
   // nineteenth-century painting of the tradition. The second is the one that
   // stops a dramatic illustration being read as a record of the event.
-  media: { url: string; caption?: string; kind?: string; shows?: string }[];
+  // `credit` is who made the picture and under what terms. It is kept apart
+  // from `caption` because the caption is also the alt text, and a licence
+  // read aloud with the URL spelled out is not a description of a photograph.
+  media: { url: string; caption?: string; credit?: string; kind?: string; shows?: string }[];
   people: string[];
   civilisations: string[];
   // WHAT THE STORY CONTAINS — NARRATIVE_MOTIFS keys, for comparing traditions

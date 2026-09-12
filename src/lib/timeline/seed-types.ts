@@ -148,7 +148,22 @@ export type SeedEvent = {
    * reconstruction that does not declare itself reads as a photograph of the
    * event, which is the most persuasive kind of wrong a record can be.
    */
-  media?: { url: string; caption?: string; kind?: string; shows?: string }[];
+  media?: {
+    url: string;
+    caption?: string;
+    /** Who made it and under what terms — kept out of the caption, which is
+     *  also the alt text. Usually filled in at seed time; see creditFrom. */
+    credit?: string;
+    kind?: string;
+    shows?: string;
+    /**
+     * Set this and write the caption WITHOUT its credit — the credit is worked
+     * out at seed time from the picture's own source and appended then. A
+     * credit typed into this file is a credit typed from memory; one fetched at
+     * seed time is what the source says today.
+     */
+    creditFrom?: "source";
+  }[];
   /** Only where the place is genuinely known. A coordinate is an assertion. */
   lat?: number | null;
   lng?: number | null;

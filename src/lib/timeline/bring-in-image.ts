@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { creditFor, pictureSourceFor } from "./picture-sources";
 
 // BRINGING A PICTURE IN, RATHER THAN POINTING AT SOMEBODY ELSE'S SERVER.
 //
@@ -188,8 +189,93 @@ function hostOf(url: string): string {
 
 export type EventPictures = {
   imageUrl: string | null;
-  media: { url: string; caption?: string; kind?: string }[];
+  /**
+   * `shows` is here because it was missing: the seeds have always set it and
+   * the spread below has always carried it through, but the type said
+   * otherwise, so nothing checked that a later artwork kept declaring itself.
+   *
+   * `creditFrom` marks a caption that is written WITHOUT its credit, to be
+   * finished at seed time — see resolveCredits.
+   */
+  media: {
+    url: string;
+    caption?: string;
+    /**
+     * WHO MADE IT, KEPT APART FROM WHAT IT SHOWS.
+     *
+     * The credit used to be appended to the caption, and the caption is also
+     * the picture's alt text — so a screen reader read out "…before the floods
+     * were accepted, via Wikimedia Commons, author and licence are stated on
+     * the file page, h-t-t-p-s colon slash slash commons dot wikimedia…". The
+     * licence belongs on the page; it does not belong in the description of
+     * what the photograph is of.
+     */
+    credit?: string;
+    kind?: string;
+    shows?: string;
+    creditFrom?: "source";
+  }[];
 };
+
+/**
+ * FINISH THE CAPTIONS THAT ASKED TO BE FINISHED.
+ *
+ * A credit written into a seed file is a credit written from memory, months
+ * before anyone reads it, for a file whose licence may since have been
+ * corrected upstream. The ones already in this codebase were checked by hand,
+ * one at a time, which does not scale past a few and cannot be re-checked at
+ * all.
+ *
+ * So a seed may instead write the caption WITHOUT the credit and set
+ * `creditFrom: "source"`. At seed time — on a server, with a network — the
+ * credit is worked out from the picture's own source and appended. Commons is
+ * asked outright and usually answers with the author and licence; everything
+ * else, and Commons when it does not answer, gets a pointer to where the terms
+ * are stated.
+ *
+ * IF NOTHING CAN BE ESTABLISHED, THE PICTURE IS DROPPED rather than shown
+ * bare. That is not the general rule — a picture from a listed source is
+ * always attachable, because a listed source always has terms to point at —
+ * it is what happens when a URL is from no listed source at all, which should
+ * not survive review and is worth failing loudly rather than quietly.
+ *
+ * Runs before the bytes are copied, because afterwards the URL is ours and no
+ * longer says where the picture came from.
+ */
+export async function resolveCredits(
+  pictures: EventPictures,
+  fetchImpl: typeof fetch = fetch
+): Promise<{ media: EventPictures["media"]; dropped: string[] }> {
+  const media: EventPictures["media"] = [];
+  const dropped: string[] = [];
+  // One lookup per distinct URL: the cover image is usually the first picture
+  // in the gallery too, and asking Commons twice for one file is one request
+  // more than they agreed to serve us.
+  const seen = new Map<string, string | null>();
+
+  for (const item of pictures.media) {
+    if (item.creditFrom !== "source") {
+      media.push(item);
+      continue;
+    }
+    if (!pictureSourceFor(item.url)) {
+      dropped.push(item.url);
+      continue;
+    }
+    if (!seen.has(item.url)) {
+      const resolved = await creditFor(item.url, fetchImpl);
+      seen.set(item.url, resolved?.credit ?? null);
+    }
+    const credit = seen.get(item.url) ?? null;
+    // creditFrom is an instruction to this function, not something to store on
+    // the event, so it does not travel any further than here.
+    const rest = { ...item };
+    delete rest.creditFrom;
+    media.push(credit ? { ...rest, credit } : rest);
+  }
+
+  return { media, dropped };
+}
 
 /**
  * Bring in every picture an event carries, keeping the originals where a copy
@@ -223,12 +309,25 @@ export async function bringEventPicturesIn(
     return result.url;
   };
 
+  // The credits are finished BEFORE the bytes move, because afterwards the URL
+  // is ours and no longer says where the picture came from.
+  const { media: credited, dropped } = await resolveCredits(pictures);
+  for (const url of dropped) reason ??= `no terms of use could be established for ${hostOf(url)}, so that picture was left out`;
+
   const media: EventPictures["media"] = [];
-  for (const [index, item] of pictures.media.entries()) {
+  for (const [index, item] of credited.entries()) {
     media.push({ ...item, url: await resolve(item.url, `${slug}-${index + 1}`) });
   }
 
-  const imageUrl = pictures.imageUrl ? await resolve(pictures.imageUrl, `${slug}-cover`) : null;
+  // A COVER IS A PICTURE TOO, AND IT HAS NO CAPTION TO CARRY A CREDIT.
+  //
+  // Every seeded cover is also the first picture in the gallery, so a cover
+  // whose gallery twin was dropped for having no establishable terms would
+  // otherwise be the one copy that got through — uncredited, and the largest
+  // thing on the page. It goes with it.
+  const coverDropped = pictures.imageUrl != null && dropped.includes(pictures.imageUrl);
+  const imageUrl =
+    pictures.imageUrl && !coverDropped ? await resolve(pictures.imageUrl, `${slug}-cover`) : null;
 
   return { pictures: { imageUrl, media }, broughtIn, reason };
 }
