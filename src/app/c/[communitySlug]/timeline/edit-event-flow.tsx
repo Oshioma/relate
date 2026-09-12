@@ -128,6 +128,20 @@ export function EditEventFlow({
     civilisations: event.civilisations.join(", "),
     locationName: event.location_name ?? "",
     imageUrl: event.image_url,
+    // AN EVENT SAVED BEFORE THIS EXISTED HAS A COVER AND NO LIST. Seed the
+    // list from it so opening the editor does not silently drop the picture
+    // the record already has.
+    media:
+      (event.media ?? []).length > 0
+        ? (event.media ?? []).map((item) => ({
+            url: item.url,
+            caption: item.caption ?? "",
+            credit: item.credit ?? "",
+            shows: item.shows ?? "",
+          }))
+        : event.image_url
+          ? [{ url: event.image_url, caption: "", credit: "", shows: "" }]
+          : [],
     trackIds: event.trackIds,
   });
 
@@ -157,7 +171,15 @@ export function EditEventFlow({
       location_name: fields.locationName.trim() || null,
       lat: null,
       lng: null,
-      image_url: fields.imageUrl,
+      image_url: fields.media[0]?.url || fields.imageUrl,
+      media: fields.media
+        .filter((item) => item.url)
+        .map((item) => ({
+          url: item.url,
+          caption: item.caption || undefined,
+          credit: item.credit || undefined,
+          shows: item.shows || undefined,
+        })),
       track_ids: fields.trackIds,
     };
 

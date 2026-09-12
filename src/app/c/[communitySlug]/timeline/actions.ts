@@ -328,6 +328,16 @@ export async function createTimelineEvent(
       lat: draft.lat ?? null,
       lng: draft.lng ?? null,
       image_url: draft.image_url?.trim() || null,
+      // Stored as given. The pictures a person adds are already in this
+      // community's own storage — they came through the uploader — so there is
+      // nothing to bring in and nothing to fetch a credit for.
+      media: (draft.media ?? []).map((item) => ({
+        url: item.url,
+        ...(item.caption ? { caption: item.caption } : {}),
+        ...(item.credit ? { credit: item.credit } : {}),
+        ...(item.shows ? { shows: item.shows } : {}),
+        kind: "image",
+      })),
       status: isStaff ? "published" : "pending",
     })
     .select("id, slug")
@@ -515,6 +525,16 @@ export async function updateTimelineEvent(
       lat: draft.lat ?? null,
       lng: draft.lng ?? null,
       image_url: draft.image_url?.trim() || null,
+      // Stored as given. The pictures a person adds are already in this
+      // community's own storage — they came through the uploader — so there is
+      // nothing to bring in and nothing to fetch a credit for.
+      media: (draft.media ?? []).map((item) => ({
+        url: item.url,
+        ...(item.caption ? { caption: item.caption } : {}),
+        ...(item.credit ? { credit: item.credit } : {}),
+        ...(item.shows ? { shows: item.shows } : {}),
+        kind: "image",
+      })),
       ...(verdict.returnsToQueue ? { status: "pending" as const, reviewed_by: null, reviewed_at: null } : {}),
     })
     .eq("id", eventId);

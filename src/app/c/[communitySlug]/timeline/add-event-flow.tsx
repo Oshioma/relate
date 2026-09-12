@@ -51,6 +51,7 @@ function emptyFields(): EventFieldValues {
     civilisations: "",
     locationName: "",
     imageUrl: null,
+    media: [],
     trackIds: [],
   };
 }
@@ -143,6 +144,13 @@ export function AddEventFlow({
       title: current.title.trim() || found.title,
       summary: current.summary.trim() || found.summary || "",
       imageUrl: current.imageUrl ?? found.imageUrl,
+      // INTO THE LIST, not just into the cover. A picture the importer found
+      // needs a caption and a "what does this show" more than one somebody
+      // chose deliberately does — it came off a page nobody here has read.
+      media:
+        current.media.length === 0 && found.imageUrl
+          ? [{ url: found.imageUrl, caption: "", credit: "", shows: "" }]
+          : current.media,
     }));
 
     setClaims((current) =>
@@ -198,7 +206,18 @@ export function AddEventFlow({
       location_name: fields.locationName.trim() || null,
       lat: null,
       lng: null,
-      image_url: fields.imageUrl,
+      // THE FIRST PICTURE IS THE COVER. Deriving it rather than asking for it
+      // twice: a person who adds one picture gets a cover for free, and one
+      // who adds five does not have to nominate which is the thumbnail.
+      image_url: fields.media[0]?.url || fields.imageUrl,
+      media: fields.media
+        .filter((item) => item.url)
+        .map((item) => ({
+          url: item.url,
+          caption: item.caption || undefined,
+          credit: item.credit || undefined,
+          shows: item.shows || undefined,
+        })),
       track_ids: fields.trackIds,
       claims: claims.filter((claim) => resolveDateInput(claim.start)),
     };

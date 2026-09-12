@@ -248,7 +248,25 @@ export function TimelineCanvas({
         onKeyDown={nav.onKeyDown}
         onDoubleClick={nav.onDoubleClick}
         className={cn(
-          "relative w-full touch-none select-none overflow-hidden rounded-xl border border-border bg-card",
+        // touch-pan-y: THE BROWSER TAKES VERTICAL, THIS TAKES HORIZONTAL.
+        //
+        // Reported as "scrolling left scrolls down on the page": a swipe that
+        // is mostly sideways still has a vertical component, and with no
+        // touch-action declared the browser scrolled the page with that
+        // component WHILE these handlers panned the timeline with the other.
+        // One gesture, two things moving, which is why it felt inconsistent.
+        //
+        // pan-y makes the browser decide: a mostly-vertical swipe becomes a
+        // page scroll and never reaches here; a mostly-horizontal one comes
+        // here and the page stays still. Either or, never both.
+        //
+        // THE COST, ACCEPTED DELIBERATELY: two-finger pinch-to-zoom no longer
+        // works on this surface, because pan-y reserves only vertical panning
+        // for the browser and hands nothing else back. Zoom is still on the
+        // + and − buttons and on double-tap. Scrolling the page by swiping
+        // over the timeline is the thing people do constantly; pinching it is
+        // not, and "touch-none" made the commonest gesture do nothing at all.
+          "relative w-full touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-card",
           "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           className
         )}
