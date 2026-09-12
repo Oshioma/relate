@@ -36,6 +36,7 @@ import { FLOOD_CHINA_ANCHOR_SLUG } from "@/lib/timeline/flood-china-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
+import { seededDatasetGaps } from "./actions";
 
 export const metadata: Metadata = { title: "Timeline" };
 
@@ -113,6 +114,10 @@ export default async function TimelinePage({
     hasFloodEurasia,
     hasFloodChina,
     hannibalNeedsPictures,
+    // Which seeded datasets are only PARTLY here. A dataset's card hides as
+    // soon as its anchor exists, so a seeding run that failed halfway leaves a
+    // timeline that looks complete and is not — and nothing said so.
+    datasetGaps,
   ] = await Promise.all([
     getTimelineWindow(supabase, community.id, view.from, view.to, { includePending: Boolean(user) }),
     getTimelineTracks(supabase, community.id),
@@ -158,6 +163,7 @@ export default async function TimelinePage({
           HANNIBAL_EVENTS.filter((event) => event.imageUrl).map((event) => event.slug)
         )
       : Promise.resolve(false),
+    seededDatasetGaps(communitySlug),
   ]);
 
   // The titles at the ends of those edges. A second query because it depends on
@@ -208,6 +214,7 @@ export default async function TimelinePage({
         hasFloodEurasia={hasFloodEurasia}
         hasFloodChina={hasFloodChina}
         hannibalNeedsPictures={hannibalNeedsPictures}
+        datasetGaps={datasetGaps}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
         // anything, because there is nothing they could do about it.

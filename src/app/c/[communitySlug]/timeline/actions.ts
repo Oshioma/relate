@@ -1788,6 +1788,49 @@ async function editedByAPerson(
  * files say now. Staff only, and safe to run at any time: a community with
  * nothing out of date gets "nothing needed changing".
  */
+/**
+ * WHICH SEEDED DATASETS ARE ONLY PARTLY HERE.
+ *
+ * A dataset's offer card is hidden as soon as ONE anchor record exists, which
+ * is the right test for "have they taken this" and says nothing about whether
+ * all of it arrived. A seeding run that fails partway — a timeout, a dropped
+ * connection — inserts some records including the anchor and then stops. The
+ * card withdraws, the rest never come, and the timeline looks complete.
+ *
+ * Until now nothing anywhere said so. The repair button could fix it, but only
+ * if you already suspected there was something to fix and pressed it blind;
+ * somebody who watched a card disappear had no way to find out what they were
+ * missing, or even that they were missing anything.
+ *
+ * So: count them, and let the page say it out loud. One query for every
+ * dataset at once rather than one per dataset.
+ *
+ * A dataset with NOTHING present is not a gap — it is a dataset this community
+ * has not taken, and offering it is the dataset card's job.
+ */
+export async function seededDatasetGaps(
+  communitySlug: string
+): Promise<{ label: string; have: number; total: number }[]> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return [];
+  const { supabase, community, isStaff } = context;
+  // Only staff can act on this, so only staff are told about it.
+  if (!isStaff) return [];
+
+  const { data } = await supabase
+    .from("timeline_events")
+    .select("slug")
+    .eq("community_id", community.id)
+    .in("slug", SEEDED_DATASETS.flatMap((dataset) => dataset.events.map((event) => event.slug)));
+  const have = new Set((data ?? []).map((row) => row.slug));
+
+  return SEEDED_DATASETS.map((dataset) => ({
+    label: dataset.label,
+    have: dataset.events.filter((event) => have.has(event.slug)).length,
+    total: dataset.events.length,
+  })).filter((dataset) => dataset.have > 0 && dataset.have < dataset.total);
+}
+
 export async function refreshSeededDatasets(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
