@@ -299,6 +299,47 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%B6bekli_Tepe_Pilar_Arm_and_Fox.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "The inner face of Pillar 18, one of the two central pillars of Enclosure D: an arm running down the " +
+          "side, a hand meeting its pair at the front, and a fox below. A pillar with arms and a belt is a " +
+          "FIGURE, not a post \u2014 which is an interpretation the excavators make and state, and one the stone " +
+          "itself supports about as directly as stone ever does.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_archaeological_site_of_G%C3%B6bekli_Tepe_-_main_excavation_area.png?width=1024",
+        shows: "site",
+        caption:
+          "The main excavation area from above, with several enclosures open at once. Seeing them together is the " +
+          "point: the excavators say the Layer III enclosures are NOT contemporaneous, so this is a sequence of " +
+          "buildings caught in one frame, not a single moment.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Urfa_museum_Gobeklitepe_Temple_D_replica_sept_2019_4839.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The \u015eanl\u0131urfa museum's full-size replica of Enclosure D. IT IS A REPLICA. It shows what a complete " +
+          "enclosure would look like standing, which no photograph of the site can, and everything about it that " +
+          "goes beyond the excavated evidence \u2014 roofing, floor, the arrangement as a whole \u2014 is somebody's " +
+          "decision.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -389,6 +430,32 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
           "megaliths, dated by excavated charcoal to around two thousand years ago. The construction argued back " +
           "to 27,000 years is metres beneath what is visible here, and whether those layers are built at all is " +
           "the question.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Situs_Gunung_Padang.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The columnar basalt of the terraces at closer range. The columns are natural \u2014 they form when thick " +
+          "lava cools \u2014 so the human work here is the GATHERING AND STACKING of them, not their shape. That " +
+          "distinction runs through the whole argument about this hill.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/View_from_Gunung_Padang,_Cianjur_02.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The view out from the site. Gunung Padang is a hill with terraces on it, and the claim under dispute " +
+          "is that the hill itself is substantially built rather than natural. A photograph cannot answer that " +
+          "either way, which is why the argument is about cores, radar and resistivity instead.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
@@ -532,6 +599,20 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
           "of the Sphinx there are. Sand still stands against the body. A photograph made before the twentieth- " +
           "century clearances records a state of the monument no living person has seen \u2014 which is the thing an " +
           "old image can do that a new one cannot.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Head_of_Great_Sphinx_of_Giza_May_2015.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The head. Both its small proportion to the body and its different state of preservation are appealed " +
+          "to in the redating arguments, in opposite directions \u2014 as evidence the head was recarved later, or as " +
+          "evidence the body is far older than the head. The photograph settles neither; it shows what both sides " +
+          "are pointing at.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
@@ -686,6 +767,20 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hartley_mastodon_skull_-_Cleveland_Museum_of_Natural_History_(34800565265).jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A mastodon skull in a museum collection \u2014 again NOT the Cerutti animal. It is here for the tusks and " +
+          "the heavy limb bones: the Cerutti argument is about spiral fracture patterns in bone of this kind, " +
+          "which happen when bone is broken fresh, and about whether anything but a hominin was doing the " +
+          "breaking.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -766,6 +861,19 @@ export const ANCIENT_SITES_EVENTS: SeedEvent[] = [
           "One of the Ottosdal objects. It is filed on Commons among botryoidal hematite, which is the mineral " +
           "form the geologist Paul Heinrich found when he examined them. The grooves most often called machined " +
           "run with the layering of the sediment the object grew in \u2014 a thing concretions commonly do.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ottosdal1.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A second Ottosdal object. The variation between individual objects is itself evidence in the argument: " +
+          "manufacture tends to produce repeated forms, and concretions growing in sediment tend to produce a " +
+          "family of related but unequal ones. What the pictures show is a family of related but unequal ones.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.

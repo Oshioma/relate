@@ -585,6 +585,32 @@ const DEPOSITS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ancient_mound_at_the_city_of_Kish,_Mesopotamia,_Babil_Governorate,_Iraq.jpg?width=1024",
+        shows: "site",
+        caption:
+          "One of the mounds at Kish. A tell is a city rebuilt on its own rubble for centuries, which is why a " +
+          "flood layer at Kish is found at a DEPTH rather than at a place \u2014 and why the excavators' record of " +
+          "which depth is the whole of the evidence for its date.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pottery_fragments,_illegal_excavations_at_the_ancient_city_of_Kish,_Tell_al-Uhaymir,_Iraq.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Pottery scattered by illegal digging at Kish. It belongs on this record because context is what dates " +
+          "a deposit: a sherd pulled out of a looter's spoil heap has lost the one property that made it " +
+          "evidence, and a site dug this way cannot answer the question the flood layer was supposed to answer.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

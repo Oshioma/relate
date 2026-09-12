@@ -619,6 +619,19 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Zircon_microscope.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A zircon crystal under the microscope, about a quarter of a millimetre long. NOT ONE OF THE MAURITIUS " +
+          "GRAINS \u2014 a zircon. It is here for the scale: the claim about ancient continental crust beneath an " +
+          "island rests on grains of roughly this size, and on uranium and lead measured inside them.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -956,6 +969,19 @@ const GEOLOGY: SeedEvent[] = [
           "The Mascarene Plateau \u2014 shallow water running north from Mauritius towards the Seychelles. Mauritia is " +
           "proposed to lie beneath ground like this. The map shows depth and nothing else: no artefacts, no " +
           "habitation, and crust that was last at the surface some eighty-five million years ago.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Indian_Ocean_bathymetry_srtm.png?width=1024",
+        shows: "map",
+        caption:
+          "The Indian Ocean floor. Mauritia is proposed to lie under the shallow ground running between Mauritius " +
+          "and the Seychelles; everything else on this map is ocean crust. Bathymetry shows where continental " +
+          "material might be without showing that it is, which is what the zircons were for.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.

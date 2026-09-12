@@ -310,6 +310,32 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Blombos_Cave_-_deposit_layers.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The deposit layers at Blombos in closer view. Every claim about when ochre was used here is a claim " +
+          "about which of these bands a piece came from, so the photograph is nearer to the evidence than a " +
+          "picture of ochre would be.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lithic_Industries_at_Blombos_Cave,_Southern_Cape,_South_Africa_(c._105_%E2%80%93_90_Ka).jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Stone tools from Blombos, about 105,000 to 90,000 years old. They are on this record because ochre use " +
+          "is argued about alongside the rest of the assemblage: what people were making is part of the case for " +
+          "what the ochre was for, and neither settles the other.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -557,6 +583,31 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
           "A cast of the Qafzeh 11 skull \u2014 a child buried at the cave in Israel with deer antlers laid across the " +
           "chest. IT IS A CAST, not the specimen. The antlers are why the burial is read as deliberate, and " +
           "reading intention from grave goods is an inference rather than a measurement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh_9-Homo_sapiens.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Qafzeh 9, an adult from the same cave. Reading a burial as deliberate depends on the position of the " +
+          "body and what lies with it \u2014 so individuals matter here one at a time, and a site's burials are not a " +
+          "single piece of evidence but several that have to be argued separately.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh.JPG?width=1024",
+        shows: "site",
+        caption:
+          "Qafzeh cave itself. The burials are inside; what the photograph gives is the ordinary thing a site " +
+          "photograph gives \u2014 where, and in what kind of place \u2014 and nothing at all about intention.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.

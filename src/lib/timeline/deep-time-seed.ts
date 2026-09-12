@@ -335,6 +335,33 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Unterkiefer_von_Mauer_(Replika).JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "A cast of the Mauer mandible. Casts are how a type specimen is actually studied in most places: the " +
+          "original stays in one institution, and comparisons around the world are made against copies \u2014 so the " +
+          "thing most researchers have handled is a replica of the thing the species is named from.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Daniel_Hartmann,_der_Finder_von_homo_heidelbergensis_bei_Mauer_1907_(EZ2018-48).jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Daniel Hartmann, the sand-pit worker who found the Mauer jaw in 1907. The type specimen of a human " +
+          "species was recovered by a man digging commercial sand, which is how a great deal of early " +
+          "palaeoanthropology reached science \u2014 and is worth knowing when reading about the context a specimen " +
+          "was found in.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -706,6 +733,19 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Replica_skulls_of_a_Neanderthal_(Homo_neanderthalensis)_and_a_human_(Homo_sapiens_sapiens),_Lee_Kong_Chian_Natural_History_Museum,_Singapore_-_20150808.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "Replica skulls of a Neanderthal and a modern human in a museum case. Casts, not specimens \u2014 and a " +
+          "museum pair is chosen to show contrast, so two skulls side by side always look more different than two " +
+          "individuals picked at random from either population would.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -795,6 +835,32 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
           "single shaft. A collection that size from one place is rare enough that much of what is said about " +
           "European populations of this period rests on it \u2014 which is a strength and a limitation at the same " +
           "time.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Skull4_3quarters_Sima_de_los_Huesos.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Skull 4 from the same shaft. More than thirty individuals came out of the Sima de los Huesos, which is " +
+          "why it can support statements about a POPULATION \u2014 variation between individuals \u2014 where most sites of " +
+          "this age support statements only about an individual.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hand_Axe_Sima_de_los_Huesos.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "The single handaxe from the Sima de los Huesos, found among the human remains. One tool with thirty " +
+          "people is an unusual ratio, and what it means \u2014 a deliberate deposit, or an object that fell in with " +
+          "everything else \u2014 is argued rather than established.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
@@ -892,6 +958,19 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
           "sharing the landscape with early humans in this period. A mount is an arrangement as well as a " +
           "specimen: the pose is a museum's choice, and missing bones are normally supplied from elsewhere or " +
           "cast.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Palaeoloxodon_antiquus_size_diagram.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "A scale diagram of Palaeoloxodon antiquus against a human figure. Diagrams like this are " +
+          "reconstructions with a ruler: the outline is inferred from the skeleton, and the human silhouette is " +
+          "there to make a number legible rather than because the two were photographed together.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
@@ -1028,6 +1107,45 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
           "few small fragments of bone and tooth found here, rather than from skeletons. A named human population " +
           "whose physical remains would fit in a hand is a fair measure of how thin the evidence for this period " +
           "can be.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Denisova_cave_02.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Inside Denisova Cave. The deposits here run deep and carry Neanderthal, Denisovan and modern human " +
+          "traces in one sequence, which is why the site matters out of all proportion to the amount of bone it " +
+          "has produced.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Denisova_Cave_lithic_and_osseous_artifacts.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Stone and bone artefacts from Denisova Cave. WHICH POPULATION MADE WHICH IS THE HARD PART: the layers " +
+          "contain traces of more than one kind of human, and an artefact does not carry DNA the way a tooth " +
+          "does, so attributing a tool to a population is an inference from the layer it sat in.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Denisova_Cave_Bracelet.png?width=1024",
+        shows: "artefact",
+        caption:
+          "The chloritolite bracelet fragment from Denisova Cave. It is often reported as Denisovan work, and it " +
+          "is worth knowing that the attribution rests on which layer it came from rather than on anything in the " +
+          "object \u2014 the same inference as above, applied to the most striking find from the site.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.

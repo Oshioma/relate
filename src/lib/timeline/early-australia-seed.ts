@@ -551,6 +551,19 @@ export const EARLY_AUSTRALIA_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Sunda_and_Sahul_2.png?width=1024",
+        shows: "map",
+        caption:
+          "A second drawing of the same geography. Comparing two maps of Sunda and Sahul is worth doing: the " +
+          "shelves are modelled from bathymetry, and the exact coastlines differ between reconstructions even " +
+          "though the shape of the problem \u2014 a permanent water gap \u2014 does not.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

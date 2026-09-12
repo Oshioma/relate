@@ -393,6 +393,19 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Dryas_octopetala_seed_head.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The seed head of the same plant. What actually turns up in a sediment core is neither the flower nor " +
+          "the seed head but POLLEN \u2014 microscopic, identified under a microscope, and counted. The plant is the " +
+          "name; the pollen is the evidence.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -456,6 +469,19 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
           "Central Greenland temperature and snow accumulation from the GISP2 ice core. The step at the end of " +
           "the Younger Dryas is where the Holocene is defined to begin. It is one core from one ice sheet: the " +
           "date is sharp because the annual layers can be counted, not because the whole planet turned at once.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ngrip_deltao18_15000_0_1.svg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Oxygen-isotope values from the NGRIP ice core across the last fifteen thousand years \u2014 a SECOND " +
+          "Greenland core, independent of GISP2. Two cores showing the same step is what turns a measurement at " +
+          "one drill site into a statement about the ice sheet.",
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
