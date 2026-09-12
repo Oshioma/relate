@@ -38,6 +38,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_REGIONS_EVENTS,
+  FLOOD_REGIONS_LINKS,
+  FLOOD_REGIONS_SOURCES,
+  FLOOD_REGIONS_TRACK,
+} from "@/lib/timeline/flood-regions-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1734,6 +1740,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Ice age floods and sea level",
     track: FLOOD_PHYSICAL_TRACK, events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Flood traditions: North America, the Pacific, northern Europe",
+    track: FLOOD_REGIONS_TRACK,
+    events: FLOOD_REGIONS_EVENTS,
+    sources: FLOOD_REGIONS_SOURCES,
+    links: FLOOD_REGIONS_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2247,6 +2260,27 @@ export async function seedFloodChinaDataset(communitySlug: string) {
     track: FLOOD_CHINA_TRACK,
     links: FLOOD_CHINA_LINKS,
     label: "Flood traditions: China",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * North American, Pacific and northern European traditions, plus the record
+ * about where these traditions were collected. See flood-regions-seed.ts.
+ */
+export async function seedFloodRegionsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_REGIONS_EVENTS,
+    sources: FLOOD_REGIONS_SOURCES,
+    track: FLOOD_REGIONS_TRACK,
+    links: FLOOD_REGIONS_LINKS,
+    label: "Flood traditions: North America, the Pacific, northern Europe",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

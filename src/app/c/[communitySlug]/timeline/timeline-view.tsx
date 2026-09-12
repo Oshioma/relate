@@ -54,6 +54,7 @@ import {
   seedFloodChinaDataset,
   seedFloodSubmergedDataset,
   seedFloodAmericasDataset,
+  seedFloodRegionsDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -259,6 +260,7 @@ export function TimelineView({
   hasFloodChina,
   hasFloodSubmerged,
   hasFloodAmericas,
+  hasFloodRegions,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -311,6 +313,7 @@ export function TimelineView({
   hasFloodChina: boolean;
   hasFloodSubmerged: boolean;
   hasFloodAmericas: boolean;
+  hasFloodRegions: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1728,6 +1731,36 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasFloodRegions && (
+        <DatasetOffer
+          title="Add North America, the Pacific and northern Europe?"
+          busyLabel="Adding the records…"
+          label="Add these traditions"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodRegionsDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Six records that break the last assumptions. The Haudenosaunee Sky Woman account has NO FLOOD IN IT — the
+          world below was always water, nothing is destroyed and land is made rather than uncovered — and compendia
+          file it as a flood myth and then count it as evidence that flood stories are universal. The Anishinaabe
+          account shares its earth-diver shape and stays a separate record, because a shared shape stops being a
+          finding the moment two nations are merged to display it. In the Norse account the frost giants drown in
+          Ymir&apos;s blood and there are no people in the story at all. The Māori flood is prayed for, by people, to
+          settle an argument about doctrine. The Hawaiian one is a rising sea in the native historians and closer to
+          Genesis in a collector who drew Christian material into Hawaiian genealogy. And the last record is about the
+          evidence itself: fewer than two dozen sub-Saharan African traditions appear in the standard indexes, and
+          Frazer said there were none — which is a fact about collecting, not about Africa.
         </DatasetOffer>
       )}
 
