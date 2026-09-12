@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronDown,
+  Globe2,
   Layers,
   List,
   Maximize2,
@@ -54,6 +56,7 @@ import {
   seedFloodChinaDataset,
   seedFloodSubmergedDataset,
   seedFloodAmericasDataset,
+  seedFloodRegionsDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -259,6 +262,7 @@ export function TimelineView({
   hasFloodChina,
   hasFloodSubmerged,
   hasFloodAmericas,
+  hasFloodRegions,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -311,6 +315,7 @@ export function TimelineView({
   hasFloodChina: boolean;
   hasFloodSubmerged: boolean;
   hasFloodAmericas: boolean;
+  hasFloodRegions: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1236,6 +1241,17 @@ export function TimelineView({
           <List className="h-4 w-4" />
           {showList ? "Hide the list" : "Read as a list"}
         </button>
+
+        {/* THE LIMITS OF THE DATASET, WHERE SOMEBODY READING IT WILL SEE THEM.
+            Not tucked into staff tools: which regions are missing, and why, is
+            part of what this timeline means rather than a maintenance note. */}
+        <Link
+          href={`/c/${communitySlug}/timeline/coverage`}
+          className="hidden items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+        >
+          <Globe2 className="h-4 w-4" />
+          What this covers
+        </Link>
       </div>
 
       {/* ---- The event you clicked -----------------------------------------
@@ -1731,6 +1747,36 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodRegions && (
+        <DatasetOffer
+          title="Add North America, the Pacific and northern Europe?"
+          busyLabel="Adding the records…"
+          label="Add these traditions"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodRegionsDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Six records that break the last assumptions. The Haudenosaunee Sky Woman account has NO FLOOD IN IT — the
+          world below was always water, nothing is destroyed and land is made rather than uncovered — and compendia
+          file it as a flood myth and then count it as evidence that flood stories are universal. The Anishinaabe
+          account shares its earth-diver shape and stays a separate record, because a shared shape stops being a
+          finding the moment two nations are merged to display it. In the Norse account the frost giants drown in
+          Ymir&apos;s blood and there are no people in the story at all. The Māori flood is prayed for, by people, to
+          settle an argument about doctrine. The Hawaiian one is a rising sea in the native historians and closer to
+          Genesis in a collector who drew Christian material into Hawaiian genealogy. And the last record is about the
+          evidence itself: fewer than two dozen sub-Saharan African traditions appear in the standard indexes, and
+          Frazer said there were none — which is a fact about collecting, not about Africa.
+        </DatasetOffer>
+      )}
+
       {isStaff && !hasFloodAmericas && (
         <DatasetOffer
           title="Add the Mesoamerican and Andean traditions?"
@@ -1990,6 +2036,16 @@ export function TimelineView({
                   if (result.pictured > 0) {
                     parts.push(
                       `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"} to records that had none.`
+                    );
+                  }
+                  // SAY THAT MORE ARE COMING, or the run looks like it failed
+                  // halfway. Each press brings in a fixed number so the request
+                  // always finishes; the rest wait for the next one.
+                  if (result.picturesStillMissing > 0) {
+                    parts.push(
+                      `${result.picturesStillMissing} more ${
+                        result.picturesStillMissing === 1 ? "record is" : "records are"
+                      } still waiting for pictures — press this again to continue.`
                     );
                   }
                   if (result.updated > 0) {

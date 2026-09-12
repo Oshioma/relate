@@ -38,6 +38,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_REGIONS_EVENTS,
+  FLOOD_REGIONS_LINKS,
+  FLOOD_REGIONS_SOURCES,
+  FLOOD_REGIONS_TRACK,
+} from "@/lib/timeline/flood-regions-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1734,6 +1740,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Ice age floods and sea level",
     track: FLOOD_PHYSICAL_TRACK, events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Flood traditions: North America, the Pacific, northern Europe",
+    track: FLOOD_REGIONS_TRACK,
+    events: FLOOD_REGIONS_EVENTS,
+    sources: FLOOD_REGIONS_SOURCES,
+    links: FLOOD_REGIONS_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -1882,6 +1895,16 @@ export async function seededDatasetGaps(communitySlug: string): Promise<{
   };
 }
 
+/**
+ * How many pictures one press of the repair button will bring in.
+ *
+ * Sized so the whole run stays inside a normal serverless request even when
+ * every fetch is slow. Anything above it is reported and waits for the next
+ * press — a button that finishes and says "twelve more to go" is strictly
+ * better than one that silently exceeds its timeout.
+ */
+const PICTURE_BUDGET_PER_RUN = 12;
+
 export async function refreshSeededDatasets(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
@@ -1918,16 +1941,26 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // Pictures added to a record that had none. Counted apart from `classified`,
   // which only labels pictures that were already there.
   let pictured = 0;
+  // Left for the next press, because this run hit its budget.
+  let picturesStillMissing = 0;
+  // What the picture step wrote, so the classify step below reads the new media
+  // rather than the snapshot taken before it ran.
+  const pictureWrites = new Map<string, { url: string; caption?: string; kind?: string; shows?: string }[]>();
   const changed: string[] = [];
 
   for (const dataset of SEEDED_DATASETS) {
     // Which of this dataset's events the community actually has.
+    // ONE QUERY, NOT THREE PER EVENT. The three loops below each used to fetch
+    // the row they were about to change, one round trip at a time. Across
+    // fourteen datasets that is several hundred sequential queries before any
+    // work happens, and it is why this button could appear to hang.
     const { data: presentRows } = await supabase
       .from("timeline_events")
-      .select("id, slug")
+      .select("id, slug, image_url, media")
       .eq("community_id", community.id)
       .in("slug", dataset.events.map((event) => event.slug));
     const present = presentRows ?? [];
+    const storedBySlug = new Map(present.map((row) => [row.slug, row]));
     // Never touched this dataset at all — not a gap, just a dataset they have
     // not taken. Offering it is the per-dataset card's job, not this one's.
     if (present.length === 0) continue;
@@ -2075,15 +2108,25 @@ export async function refreshSeededDatasets(communitySlug: string) {
     // added, removed or replaced itself is left exactly as it is — the same
     // rule the dataset card's own top-up follows.
     for (const seed of dataset.events) {
+      // A BUDGET, because this is the one step that leaves the database.
+      //
+      // Bringing a picture in means fetching it from somebody else's server
+      // and uploading it to ours, and the fetch alone allows twenty seconds.
+      // A community missing forty pictures is therefore minutes of work in one
+      // request — past any serverless timeout, which from the outside is a
+      // button that hangs for ever rather than one that is busy.
+      //
+      // So each run does a fixed number and reports how many are left. Pressing
+      // again continues; nothing is lost, and the request always returns.
+      if (pictured >= PICTURE_BUDGET_PER_RUN) {
+        picturesStillMissing++;
+        continue;
+      }
       const eventId = idBySlug.get(seed.slug);
       if (!eventId) continue;
       if (!seed.imageUrl && !seed.media?.length) continue;
 
-      const { data: stored } = await supabase
-        .from("timeline_events")
-        .select("image_url, media")
-        .eq("id", eventId)
-        .maybeSingle();
+      const stored = storedBySlug.get(seed.slug);
       if (!stored) continue;
       if (stored.image_url || (stored.media ?? []).length > 0) continue;
 
@@ -2101,6 +2144,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
       // whose bytes were copied: a picture left pointing at its original
       // address because the copy failed is still a picture that appeared.
       pictured += pictures.media.length + (pictures.imageUrl ? 1 : 0);
+      pictureWrites.set(seed.slug, pictures.media);
       if (broughtIn > 0 && !changed.includes(seed.title)) changed.push(seed.title);
     }
 
@@ -2115,12 +2159,10 @@ export async function refreshSeededDatasets(communitySlug: string) {
       const eventId = idBySlug.get(seed.slug);
       if (!eventId || !seed.media || seed.media.length === 0) continue;
 
-      const { data: stored } = await supabase
-        .from("timeline_events")
-        .select("media")
-        .eq("id", eventId)
-        .maybeSingle();
-      const storedMedia = stored?.media ?? [];
+      // The row fetched once at the top of this dataset. NOTE: the picture
+      // step above may just have written to it, so re-read from the result of
+      // that write rather than from this snapshot where it applies.
+      const storedMedia = pictureWrites.get(seed.slug) ?? storedBySlug.get(seed.slug)?.media ?? [];
       if (storedMedia.length === 0) continue;
 
       const showsByUrl = new Map(seed.media.filter((item) => item.shows).map((item) => [item.url, item.shows!]));
@@ -2173,6 +2215,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
     linked,
     classified,
     pictured,
+    picturesStillMissing,
     restored,
     restoredTitles,
     changed,
@@ -2247,6 +2290,27 @@ export async function seedFloodChinaDataset(communitySlug: string) {
     track: FLOOD_CHINA_TRACK,
     links: FLOOD_CHINA_LINKS,
     label: "Flood traditions: China",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * North American, Pacific and northern European traditions, plus the record
+ * about where these traditions were collected. See flood-regions-seed.ts.
+ */
+export async function seedFloodRegionsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_REGIONS_EVENTS,
+    sources: FLOOD_REGIONS_SOURCES,
+    track: FLOOD_REGIONS_TRACK,
+    links: FLOOD_REGIONS_LINKS,
+    label: "Flood traditions: North America, the Pacific, northern Europe",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
