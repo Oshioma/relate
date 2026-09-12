@@ -37,6 +37,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_MESOPOTAMIA_EVENTS,
+  FLOOD_MESOPOTAMIA_LINKS,
+  FLOOD_MESOPOTAMIA_SOURCES,
+  FLOOD_MESOPOTAMIA_TRACK,
+} from "@/lib/timeline/flood-mesopotamia-seed";
+import {
   FLOOD_PHYSICAL_EVENTS,
   FLOOD_PHYSICAL_LINKS,
   FLOOD_PHYSICAL_SOURCES,
@@ -1672,6 +1678,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
   { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
   { label: "Ice age floods and sea level", events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
+  {
+    label: "Mesopotamian flood traditions",
+    events: FLOOD_MESOPOTAMIA_EVENTS,
+    sources: FLOOD_MESOPOTAMIA_SOURCES,
+    links: FLOOD_MESOPOTAMIA_LINKS,
+  },
 ];
 
 /**
@@ -1876,6 +1888,27 @@ export async function seedLemuriaDataset(communitySlug: string) {
     track: LEMURIA_TRACK,
     links: LEMURIA_LINKS,
     label: "Lemuria",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The Mesopotamian flood traditions, the flood deposits, and the competing
+ * Biblical chronologies. See flood-mesopotamia-seed.ts.
+ */
+export async function seedFloodMesopotamiaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the flood traditions dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_MESOPOTAMIA_EVENTS,
+    sources: FLOOD_MESOPOTAMIA_SOURCES,
+    track: FLOOD_MESOPOTAMIA_TRACK,
+    links: FLOOD_MESOPOTAMIA_LINKS,
+    label: "Mesopotamian flood traditions",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

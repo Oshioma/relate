@@ -49,6 +49,7 @@ import {
   seedLemuriaDataset,
   seedCosmologyDataset,
   seedFloodPhysicalDataset,
+  seedFloodMesopotamiaDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -248,6 +249,7 @@ export function TimelineView({
   hasLemuria,
   hasCosmology,
   hasFloodPhysical,
+  hasFloodMesopotamia,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -293,6 +295,7 @@ export function TimelineView({
   hasLemuria: boolean;
   hasCosmology: boolean;
   hasFloodPhysical: boolean;
+  hasFloodMesopotamia: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1619,6 +1622,34 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodMesopotamia && (
+        <DatasetOffer
+          title="Add the Mesopotamian flood traditions?"
+          busyLabel="Adding the records…"
+          label="Add the flood traditions dataset"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodMesopotamiaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Eight records on three clocks. None of the Mesopotamian flood texts gives a date, so none is assigned one:
+          Utnapishtim&apos;s story says only &ldquo;before&rdquo;, the tablets it survives on are seventh century BCE,
+          and the flood deposit at Shuruppak around 2900 BCE is something people have PROPOSED it remembers — three
+          different kinds of statement, kept as three. The excavations are here too, and they carry the best lesson in
+          the set: in one season in 1929, Ur and Kish each announced a flood layer and each identified it with Genesis,
+          and the two are not even contemporary with each other. And Genesis gives no year at all — Ussher&apos;s 2348
+          BCE is the Masoretic count, the Septuagint gives about 3298 BCE, and the Samaritan text is here without a
+          year because none could be verified.
+        </DatasetOffer>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1626,7 +1657,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"

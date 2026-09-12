@@ -466,7 +466,7 @@ export function formatClaimDate(claim: ClaimTimeParts): string {
   // a position about positions (there is no first moment), and those are what
   // get written.
   if (!claimIsPositioned(claim)) {
-    if (claim.duration_years != null) return formatDuration(claim.duration_years);
+    if (claim.duration_years != null) return formatDurationExactly(claim.duration_years);
     return positionlessPhrase(claim.temporal_claim_type);
   }
   const unit = dateUnit(claim.date_precision);
@@ -549,6 +549,25 @@ export function claimHeadline(claim: ClaimTimeParts): { headline: string; normal
 }
 
 /**
+ * A STATED length, written without being rounded away.
+ *
+ * formatDuration rounds to two significant figures, which is right for "how
+ * far apart are these two claims" — an answer that should never be more
+ * precise than the claims allow — and wrong for a length a source states
+ * exactly. The Samaritan Pentateuch's antediluvian total is 2,249 years, and
+ * it came out as "2,200 years": a figure arrived at by counting, rounded as
+ * though it had been estimated.
+ *
+ * Below a million, print what the source said. Above it, a unit word earns its
+ * place and formatDuration's own thresholds take over — "4.32 billion years"
+ * beats "4,320,000,000 years" for a reader every time.
+ */
+function formatDurationExactly(years: number): string {
+  if (years < 1_000_000 && Number.isInteger(years)) return `${withThousands(years)} years`;
+  return formatDuration(years);
+}
+
+/**
  * How a claim that places nothing on the axis is written.
  *
  * Deliberately flat and declarative. "No finite beginning" is what Bondi, Gold
@@ -565,6 +584,14 @@ function positionlessPhrase(type: string | null | undefined): string {
       return "Eternal — no beginning and no end";
     case "cyclic":
       return "A repeating cycle";
+    case "primordial":
+      // "Not stated" was what this rendered before, and it is the wrong shape
+      // of answer. The flood traditions do not fail to give a date; they place
+      // the flood in an originating age, which is a different kind of answer
+      // and should read like one.
+      return "In the first times";
+    case "previous_world":
+      return "In a world before this one";
     default:
       return "Not stated";
   }
