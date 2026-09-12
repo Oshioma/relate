@@ -64,8 +64,80 @@ export type TimelineFilters = {
 // the payload stays in the tens of kilobytes.
 export const TIMELINE_WINDOW_CAP = 400;
 
-const EVENT_COLUMNS =
-  "id, community_id, created_by, slug, title, summary, description, category, subcategory, event_type, event_type_note, tags, location_name, lat, lng, image_url, media, people, civilisations, status, reviewed_by, reviewed_at, created_at, updated_at";
+/**
+ * EVERY COLUMN OF AN EVENT, NAMED — and checked at compile time.
+ *
+ * This list exists because the window query cannot use `select("*")`: it
+ * fetches events through their claims, and the embedded shape needs explicit
+ * columns. That made it a list of field names maintained by hand beside a type
+ * it has to match, which is a thing that drifts.
+ *
+ * IT DRIFTED. The motifs column was added to timeline_events and to
+ * TimelineEvent and not to this string, so every event fetched for the strip
+ * came back without it. Nothing failed at build time, nothing failed on the
+ * standalone event page (which selects *), and nothing failed until somebody
+ * clicked an event on the timeline and the detail panel read
+ * `event.motifs.length` on undefined. Production broke; local testing had
+ * exercised the standalone page.
+ *
+ * So the list is now an array, and the assertion below it fails to COMPILE if
+ * a field of TimelineEvent is missing from it. Adding a column to the type
+ * without adding it here is now a red typecheck naming the field, rather than
+ * a crash in a drawer weeks later.
+ */
+const EVENT_COLUMN_LIST = [
+  "id",
+  "community_id",
+  "created_by",
+  "slug",
+  "title",
+  "summary",
+  "description",
+  "category",
+  "subcategory",
+  "event_type",
+  "event_type_note",
+  "tags",
+  "location_name",
+  "lat",
+  "lng",
+  "image_url",
+  "media",
+  "people",
+  "civilisations",
+  "motifs",
+  "status",
+  "reviewed_by",
+  "reviewed_at",
+  "created_at",
+  "updated_at",
+] as const satisfies readonly (keyof TimelineEvent)[];
+
+// If this line errors, a field of TimelineEvent is missing from the list above
+// and the compiler names it. Do not silence it — add the column.
+type UnselectedEventColumn = Exclude<keyof TimelineEvent, (typeof EVENT_COLUMN_LIST)[number]>;
+const _everyEventColumnIsSelected: UnselectedEventColumn extends never ? true : UnselectedEventColumn = true;
+void _everyEventColumnIsSelected;
+
+/**
+ * The list, joined — AS A STRING LITERAL TYPE, which is the awkward part.
+ *
+ * The Supabase client reads the select string at the type level to work out
+ * the shape of each row, so it needs a literal rather than `string`. Joining
+ * an array at runtime produces `string` and the inference collapses. This
+ * mirrors the runtime join in the type system so the array stays the single
+ * source of truth and the client still knows what comes back.
+ */
+type Join<T extends readonly string[], D extends string> = T extends readonly [
+  infer First extends string,
+  ...infer Rest extends string[],
+]
+  ? Rest extends readonly []
+    ? First
+    : `${First}${D}${Join<Rest, D>}`
+  : "";
+
+const EVENT_COLUMNS = EVENT_COLUMN_LIST.join(", ") as Join<typeof EVENT_COLUMN_LIST, ", ">;
 
 /**
  * Every event with at least one date claim landing in [from, to].

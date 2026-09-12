@@ -510,7 +510,11 @@ export function EventDetail({
           CITED SOURCE contains. An absent motif means "not found in the
           source", never "absent from the tradition", which is the difference
           between a comparison and a manufactured parallel. */}
-      {event.motifs.length > 0 && (
+      {/* Optional-chained deliberately. The compile-time guard on EVENT_COLUMNS
+          now stops a field being fetched-but-forgotten, but a detail panel is
+          the wrong place to discover that a query was incomplete: a missing
+          array should hide a section, not white-screen the timeline. */}
+      {(event.motifs?.length ?? 0) > 0 && (
         <div className="mt-8">
           <h2 className="mb-1 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             What this account contains
@@ -520,7 +524,7 @@ export function EventDetail({
             contain — an unmarked element means it was not found in the source, not that the tradition lacks it.
           </p>
           <div className="space-y-3">
-            {groupMotifs(event.motifs).map(({ group, motifs }) => (
+            {groupMotifs(event.motifs ?? []).map(({ group, motifs }) => (
               <div key={group} className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
                 <span className="w-24 shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   {group}
