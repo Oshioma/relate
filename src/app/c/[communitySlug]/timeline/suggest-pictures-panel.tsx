@@ -102,10 +102,23 @@ export function SuggestPicturesPanel({ eventId, onSearch, onChoose }: Props) {
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
-      {candidates?.length === 0 && (
+      {/* TWO DIFFERENT EMPTY RESULTS, AND TELLING A PERSON THE WRONG ONE IS
+          WORSE THAN SAYING NOTHING. "Nothing came back" blames the record; if
+          every search failed, the record was never the problem and the advice
+          to add a place name is advice about something that is already there.
+          Found by running this with Commons unreachable, which is how the
+          sandbox it was built in behaves. */}
+      {candidates?.length === 0 && searched.length === 0 && failed.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          Nothing came back. Adding a place name or a person to the record gives the search something specific to
-          work with — a title on its own is usually too general to find anything.
+          Wikimedia Commons did not answer. That is a problem reaching Commons rather than anything about this
+          record — worth trying again in a moment.
+        </p>
+      )}
+
+      {candidates?.length === 0 && searched.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Searched, and nothing came back. Adding a place name or a person to the record gives the search something
+          specific to work with — a title on its own is usually too general to find anything.
         </p>
       )}
 

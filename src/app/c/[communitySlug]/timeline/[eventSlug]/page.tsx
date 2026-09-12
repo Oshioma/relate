@@ -12,6 +12,7 @@ import {
   getSourceChains,
   getTimelineEventBySlug,
   getTimelineSourcesByIds,
+  getTimelineTracks,
 } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { EventDetail } from "../event-detail";
@@ -47,6 +48,9 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   if (!event) notFound();
 
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+  // The editor needs these. Fetched only when somebody is signed in, because a
+  // reader who cannot edit has no use for the lanes.
+  const tracks = user ? await getTimelineTracks(supabase, community.id) : [];
   const cited = await getTimelineSourcesByIds(
     supabase,
     event.claims.map((claim) => claim.source_id).filter((id): id is string => Boolean(id))
@@ -102,6 +106,12 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}
+        // WITHOUT THESE THE EDIT BUTTON DOES NOTHING. EventDetail renders the
+        // editor only when it has a userId, so this page showed an "Edit
+        // event" button that opened nothing at all — visible, enabled, inert.
+        // The drawer on the timeline passed them and this page never did.
+        userId={user?.id ?? null}
+        tracks={tracks}
       />
     </div>
   );
