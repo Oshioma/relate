@@ -12,6 +12,8 @@ import { FLOOD_EURASIA_EVENTS } from "./flood-eurasia-seed";
 import { FLOOD_SUBMERGED_EVENTS } from "./flood-submerged-seed";
 import { FLOOD_AMERICAS_EVENTS } from "./flood-americas-seed";
 import { FLOOD_REGIONS_EVENTS } from "./flood-regions-seed";
+import { ANCIENT_SITES_EVENTS } from "./ancient-sites-seed";
+import { EARLY_AUSTRALIA_EVENTS } from "./early-australia-seed";
 import { COSMOLOGY_EVENTS } from "./cosmology-seed";
 import { ATLANTIS_EVENTS } from "./atlantis-seed";
 import { LEMURIA_EVENTS } from "./lemuria-seed";
@@ -28,6 +30,8 @@ const ALL: SeedEvent[] = [
   ...FLOOD_SUBMERGED_EVENTS,
   ...FLOOD_AMERICAS_EVENTS,
   ...FLOOD_REGIONS_EVENTS,
+  ...ANCIENT_SITES_EVENTS,
+  ...EARLY_AUSTRALIA_EVENTS,
   ...COSMOLOGY_EVENTS,
   ...ATLANTIS_EVENTS,
   ...LEMURIA_EVENTS,

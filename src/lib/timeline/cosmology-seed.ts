@@ -252,6 +252,24 @@ const ANCHOR: SeedEvent = {
     "Marked disputed because the claims here genuinely differ, not because the science is unsettled about the figure it gives. The ~13.8 billion year age is a well-constrained measurement within the standard cosmological model; what is open is what that model is a model OF at its earliest moments.",
   tags: ["cosmology", "universe", "big-bang", "creation", "deep-time"],
   people: ["Hermann Bondi", "Thomas Gold", "Fred Hoyle", "James Ussher", "Paul Steinhardt", "Neil Turok", "Roger Penrose"],
+  imageUrl:
+    "https://commons.wikimedia.org/wiki/Special:FilePath/WMAP_image_of_the_CMB_anisotropy.jpg?width=1024",
+  media: [
+    {
+      url:
+        "https://commons.wikimedia.org/wiki/Special:FilePath/WMAP_image_of_the_CMB_anisotropy.jpg?width=1024",
+      shows: "scientific_figure",
+      caption:
+        "The cosmic microwave background as mapped by WMAP \u2014 the oldest light there is, released when the " +
+        "universe first became transparent. The ages on this record are fitted to data like this. IT IS NOT A " +
+        "PICTURE OF THE BEGINNING: this light is hundreds of thousands of years later than the moment the record " +
+        "is about, and whatever came before it left no light at all.",
+      kind: "image",
+      // Written WITHOUT its credit: the credit is fetched from the picture's
+      // own source at seed time and appended then. See resolveCredits.
+      creditFrom: "source",
+    },
+  ],
   claims: [
     // --- 1. Standard cosmology, twice, because the measurements differ -------
     {

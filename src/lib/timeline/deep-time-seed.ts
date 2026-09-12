@@ -765,6 +765,24 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     tags: ["europe", "lower-palaeolithic", "happisburgh", "mauer", "middle-pleistocene", "deep-time"],
     people: ["Homo heidelbergensis"],
     locationName: "Europe",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Skull5_complete_right_Sima_de_los_Huesos.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Skull5_complete_right_Sima_de_los_Huesos.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Skull 5 from the Sima de los Huesos at Atapuerca, one of more than thirty individuals recovered from a " +
+          "single shaft. A collection that size from one place is rare enough that much of what is said about " +
+          "European populations of this period rests on it \u2014 which is a strength and a limitation at the same " +
+          "time.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wagner2010",
@@ -844,6 +862,24 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
       "Association, butchery and hunting are three different claims, and this entry does not let them blur.",
     tags: ["megafauna", "elephants", "butchery", "marathousa", "middle-pleistocene", "deep-time"],
     locationName: "Europe",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Palaeoloxodon_Skeleton_(cropped).JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Palaeoloxodon_Skeleton_(cropped).JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "A mounted skeleton of Palaeoloxodon, the straight-tusked elephant, showing the scale of the animals " +
+          "sharing the landscape with early humans in this period. A mount is an arrangement as well as a " +
+          "specimen: the pose is a museum's choice, and missing bones are normally supplied from elsewhere or " +
+          "cast.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "marathousa2018",
@@ -962,6 +998,24 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     tags: ["human-evolution", "denisovan", "neanderthal", "taxonomy", "ancient-dna", "deep-time"],
     people: ["Neanderthals", "Denisovans", "Homo sapiens", "Homo heidelbergensis"],
     locationName: "Africa and Eurasia",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Denisova_cave_01.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Denisova_cave_01.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Denisova Cave in the Altai. The population named after it is known mainly from DNA recovered from a " +
+          "few small fragments of bone and tooth found here, rather than from skeletons. A named human population " +
+          "whose physical remains would fit in a hand is a fair measure of how thin the evidence for this period " +
+          "can be.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "prufer2014",

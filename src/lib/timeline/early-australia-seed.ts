@@ -381,6 +381,24 @@ export const EARLY_AUSTRALIA_EVENTS: SeedEvent[] = [
     locationName: "Madjedbebe, Arnhem Land, Northern Territory, Australia",
     lat: -12.3,
     lng: 132.9,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Arnhem_Land_tropical_savanna.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Arnhem_Land_tropical_savanna.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Arnhem Land savanna. THIS IS NOT THE SHELTER \u2014 it is the country the shelter stands in, and the " +
+          "environment is the point: a tropical sand sheet with pronounced wet and dry seasons. The published " +
+          "objection to the 65,000-year date turns on what seasons like these do to sand, and whether they can " +
+          "move small artefacts downwards through a deposit.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "clarkson2017",
@@ -517,6 +535,23 @@ export const EARLY_AUSTRALIA_EVENTS: SeedEvent[] = [
     ],
     people: ["Peter Veth", "Jim Allen", "James F. O'Connell", "Chris Clarkson"],
     locationName: "Sahul — Australia, New Guinea and Tasmania as one landmass",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sunda-sahul-wallacea.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sunda-sahul-wallacea.png?width=1024",
+        shows: "map",
+        caption:
+          "Sunda, Wallacea and Sahul at low sea level. The water in the middle is why arrival is a hard question: " +
+          "Sahul was never joined to Asia at any sea level, so reaching it always required open-water crossings \u2014 " +
+          "and the coastlines the earliest arrivals would have landed on are now underwater.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "clarkson2017",
