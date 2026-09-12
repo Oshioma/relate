@@ -1,3 +1,4 @@
+import { agoFrom } from "./time";
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
 
 // ATLANTIS — TWELVE DATES, NONE OF THEM THIS TIMELINE'S.
@@ -443,8 +444,15 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
       // --- The reported remark ---------------------------------------------
       {
         sourceKey: "gurdjieff_journal_lascaux",
-        startYear: bce(6050),
-        endYear: bce(5050),
+        // agoFrom rather than bce(): the figure is "seven or eight thousand
+        // years ago" said in 1949, and a subtraction produces an astronomical
+        // year while bce() takes a BCE one. They are off by one, because there
+        // is no year zero — the hand-computed values here were bce(6050) and
+        // bce(5050), which are 1949 minus 7,999 and 1949 minus 6,999.
+        startYear: agoFrom(1949, 8000),
+        endYear: agoFrom(1949, 7000),
+        dateConvention: "years_ago",
+        conventionReferenceYear: 1949,
         datePrecision: "century",
         isApproximate: true,
         originalDateText: "seven or eight thousand years ago (said in 1949)",

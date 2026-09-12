@@ -2092,6 +2092,12 @@ export type TimelineEvent = {
   media: { url: string; caption?: string; kind?: string }[];
   people: string[];
   civilisations: string[];
+  // WHAT THE STORY CONTAINS — NARRATIVE_MOTIFS keys, for comparing traditions
+  // that share no dates. Recorded only where the cited source contains the
+  // motif: an absent one means "not found in the source", never "absent from
+  // the tradition". A grid filled in from memory would invent the parallels it
+  // exists to test.
+  motifs: string[];
   // Members contribute as 'pending' and staff approve — the same moderation
   // pattern business claims and crop proposals use. RLS forces it; this is not
   // merely a default.
@@ -2243,6 +2249,15 @@ export type TimelineDateClaim = {
   // observable universe" and "the creation of the world" are different
   // subjects that happen to share a record. Null = it dates the record itself.
   what_is_dated: string | null;
+  // HOW THE SOURCE EXPRESSED THE DATE — a DATE_CONVENTIONS key. Storage is
+  // always an astronomical year; this keeps the frame it came out of, because
+  // "14,600 years ago" and "14,600 BCE" differ by 1,950 years and nothing else
+  // in the row records which was meant. Null = not recorded.
+  date_convention: string | null;
+  // What "ago" counts back from: 1950 for a scientific before-present figure,
+  // the year of writing for a source that means ago from itself. Null for a
+  // calendar date, which counts from nothing.
+  convention_reference_year: number | null;
   // A LENGTH OF TIME WITH NO POSITION, in years — 4,320,000 for a mahayuga.
   // Not a range: end_year is the far end of something that starts at
   // start_year, and a row may not carry both.

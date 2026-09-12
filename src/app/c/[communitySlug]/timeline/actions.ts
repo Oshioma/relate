@@ -1228,6 +1228,7 @@ async function seedDataset(
         tags: seed.tags,
         people: seed.people ?? [],
         civilisations: seed.civilisations ?? [],
+        motifs: seed.motifs ?? [],
         location_name: seed.locationName ?? null,
         lat: seed.lat ?? null,
         lng: seed.lng ?? null,
@@ -1258,6 +1259,8 @@ async function seedDataset(
       temporal_claim_type: claim.temporalClaimType ?? null,
       duration_years: claim.durationYears ?? null,
       what_is_dated: claim.whatIsDated ?? null,
+      date_convention: claim.dateConvention ?? null,
+      convention_reference_year: claim.conventionReferenceYear ?? null,
       // A stated measurement error, kept as one. See SeedClaim: a tolerance is
       // never folded into end_year, because "609 ± 40 ka" and "700–500 ka" are
       // different assertions about different things.

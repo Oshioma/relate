@@ -135,6 +135,30 @@ export function yearsAgoOf(astronomicalYear: number): number {
 }
 
 /**
+ * "N years ago, counted from year R" → the astronomical year it lands on.
+ *
+ * WHY THIS EXISTS RATHER THAN LETTING SEEDS DO THE SUBTRACTION. Two mistakes
+ * are easy and both are silent.
+ *
+ * The big one: writing bce(14_600) for a source that said "14,600 years ago".
+ * Those differ by 1,950 years — enough to move a tradition from the end of the
+ * Younger Dryas to nowhere near it, and to manufacture a correlation that is
+ * pure arithmetic.
+ *
+ * The small one: bce() takes a BCE year, and a subtraction produces an
+ * astronomical one. They are off by one, because there is no year zero — the
+ * Mu record was seeded with bce(10_074) for "1926 minus 12,000", which is
+ * 1926 minus 11,999. Immaterial at century precision and wrong all the same,
+ * and the kind of wrong that compounds when somebody later adjusts it.
+ *
+ * Pass the year the source counted from: 1950 for a scientific before-present
+ * figure, the year of writing for a source that means ago from itself.
+ */
+export function agoFrom(referenceYear: number, yearsAgo: number): number {
+  return referenceYear - yearsAgo;
+}
+
+/**
  * Fold year + optional month + optional day into the single axis position the
  * timeline draws against. MUST match the generated start_position/end_position
  * columns — the database computes this for stored rows, this computes it for

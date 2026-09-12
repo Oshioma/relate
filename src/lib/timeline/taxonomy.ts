@@ -486,6 +486,68 @@ export const TEMPORAL_CLAIM_TYPES = [
   },
   { key: "before_event", label: "Before another event", positioned: true, hint: "Known only to be earlier than something else." },
   { key: "after_event", label: "After another event", positioned: true, hint: "Known only to be later than something else." },
+  {
+    key: "explicit_date",
+    label: "A date the source states",
+    positioned: true,
+    hint: "The source names the date itself, in its own words, rather than leaving it to be worked out.",
+  },
+  {
+    key: "traditional_date",
+    label: "A date the tradition gives",
+    positioned: true,
+    hint:
+      "Carried by a tradition rather than measured or calculated — the date the tradition itself places the event at. " +
+      "How it was arrived at is usually not recoverable, and saying so is more honest than assigning a method.",
+  },
+  {
+    key: "genealogical_date",
+    label: "Counted through generations",
+    positioned: true,
+    hint:
+      "Reached by adding up a line of descent — so many generations, at so many years each. The result is only as firm as " +
+      "the genealogy and the assumed generation length, and different chronologists reach different years from the same list.",
+  },
+  {
+    key: "archaeological_date",
+    label: "From excavation",
+    positioned: true,
+    hint: "Dated from what was dug up and the layers it sat in. It dates the DEPOSIT, which is not automatically the event a story describes.",
+  },
+  {
+    key: "geological_date",
+    label: "From the rock and sediment record",
+    positioned: true,
+    hint: "Dated from physical traces — sediments, cores, landforms, shorelines. Establishes that something physical happened, not what anybody later said about it.",
+  },
+  {
+    key: "radiometric_date",
+    label: "Radiometrically dated",
+    positioned: true,
+    hint: "From the decay of isotopes in the material itself. Carries a stated laboratory uncertainty, which belongs on the claim rather than being rounded away.",
+  },
+  {
+    key: "estimated_range",
+    label: "An estimated range",
+    positioned: true,
+    hint: "A span somebody proposes as the likely window, without narrowing it further. The width is part of the claim.",
+  },
+  {
+    key: "proposed_correlation",
+    label: "A proposed correlation",
+    positioned: true,
+    hint:
+      "Somebody has suggested this record lines up with a dated event elsewhere. A PROPOSAL ABOUT A RELATIONSHIP, not a dating of the " +
+      "record itself — the correlation is the claim, and who made it is the interesting part.",
+  },
+  {
+    key: "date_of_first_known_record",
+    label: "When it was first written down",
+    positioned: true,
+    hint:
+      "The earliest surviving version, which is a fact about the manuscript rather than about the event. A story recorded in 650 CE " +
+      "may be far older; the record date is what can actually be checked.",
+  },
 
   // --- Nothing below here goes on the axis ---------------------------------
   {
@@ -509,6 +571,22 @@ export const TEMPORAL_CLAIM_TYPES = [
     hint:
       "Asserted to have no first moment. A positive claim about time — the classical Steady State model argues for it — and " +
       "not a gap in the record. It has no place on the axis because it claims none.",
+  },
+  {
+    key: "primordial",
+    label: "In the first times",
+    positioned: false,
+    hint:
+      "Placed in an originating age before ordinary reckoning — the beginning of the world, the time of the ancestors, a previous " +
+      "creation. Giving it a BCE year would answer a question the tradition does not ask.",
+  },
+  {
+    key: "previous_world",
+    label: "In a previous world or age",
+    positioned: false,
+    hint:
+      "The account places the event in an earlier world that ended, within a sequence of such worlds. Its position is relative to the " +
+      "other ages, not to a calendar.",
   },
   {
     key: "unknown",
@@ -543,6 +621,168 @@ export function temporalTypeHint(key: string | null | undefined): string {
 export function temporalTypeIsPositioned(key: string | null | undefined): boolean {
   const known = TEMPORAL_TYPE_BY_KEY.get(key ?? "");
   return known ? known.positioned : true;
+}
+
+// ---------------------------------------------------------------------------
+// HOW THE SOURCE EXPRESSED THE DATE
+//
+// Storage is always an astronomical year. This says what frame it came out of,
+// and it exists because "14,600 years ago" and "14,600 BCE" differ by 1,950
+// years — enough to move a tradition from the end of the Younger Dryas to
+// nowhere near it, and to manufacture a correlation that is pure arithmetic.
+//
+// Keeping the frame means the claim can be re-derived, and means the UI can
+// say "12,000 years ago, counted from 1926" instead of presenting our own
+// subtraction as the source's words.
+// ---------------------------------------------------------------------------
+
+export const DATE_CONVENTIONS = [
+  {
+    key: "calendar",
+    label: "A calendar year",
+    needsReference: false,
+    hint: "The source names a year — 4004 BC, 1650. It counts from nothing, so there is no reference year.",
+  },
+  {
+    key: "before_present",
+    label: "Before present (BP)",
+    needsReference: true,
+    hint:
+      "The scientific convention, where “present” is fixed at 1950 — radiocarbon's zero, held still so a published date does not " +
+      "drift as the years pass. 14,600 BP is about 12,650 BCE, not 14,600 BCE.",
+  },
+  {
+    key: "years_ago",
+    label: "“Years ago”, from the source's own time",
+    needsReference: true,
+    hint:
+      "The source says “about 12,000 years ago” and means ago from when IT was written. Churchward writing in 1926 counts from 1926. " +
+      "The reference year is part of the claim, not a detail.",
+  },
+  {
+    key: "relative",
+    label: "Counted from another event",
+    needsReference: false,
+    hint: "“Nine thousand years before Solon.” The figure is an interval, and turning it into a year requires dating the other end.",
+  },
+  { key: "unknown", label: "Not recorded", needsReference: false, hint: "The convention behind the figure is not known." },
+] as const;
+
+export type DateConventionKey = (typeof DATE_CONVENTIONS)[number]["key"];
+
+const CONVENTION_BY_KEY = new Map(DATE_CONVENTIONS.map((convention) => [convention.key as string, convention]));
+
+export function dateConventionLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return CONVENTION_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function dateConventionHint(key: string | null | undefined): string {
+  return CONVENTION_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/** Does "ago" mean anything for this convention? The database asks the same question. */
+export function conventionNeedsReferenceYear(key: string | null | undefined): boolean {
+  return CONVENTION_BY_KEY.get(key ?? "")?.needsReference ?? false;
+}
+
+// ---------------------------------------------------------------------------
+// WHAT THE STORY CONTAINS
+//
+// Most flood traditions have no date, and the ones that do got it from a later
+// chronographer. So dates are the wrong axis for comparing them — and
+// comparison is the whole educational point. What CAN be compared is
+// structure: a warning, a vessel, a mountain, birds released, a sign after.
+//
+// THE RULE, and it is the only thing that makes the comparison worth anything:
+// a motif is recorded ONLY where the cited source contains it. An unmarked
+// motif means "not found in the source", never "absent from the tradition".
+// A grid filled in from memory would invent the parallels it exists to test,
+// which is exactly how "all flood myths are the same story" gets manufactured.
+// ---------------------------------------------------------------------------
+
+export const NARRATIVE_MOTIFS = [
+  // How it begins
+  { key: "divine_warning", label: "Warned by a god or spirit", group: "Warning" },
+  { key: "human_warning", label: "Warned by a person", group: "Warning" },
+  { key: "animal_warning", label: "Warned by an animal", group: "Warning" },
+  { key: "no_warning", label: "No warning given", group: "Warning" },
+
+  // Why it happens
+  { key: "divine_punishment", label: "Sent as punishment", group: "Cause" },
+  { key: "human_behaviour", label: "Caused by how people behaved", group: "Cause" },
+  { key: "natural_catastrophe", label: "A natural catastrophe, not a judgement", group: "Cause" },
+  { key: "conflict_of_powers", label: "A struggle between powers or beings", group: "Cause" },
+  { key: "unknown_mechanism", label: "Mechanism not given", group: "Cause" },
+
+  // What the water does
+  { key: "prolonged_rain", label: "Prolonged rain", group: "Mechanism" },
+  { key: "rising_sea", label: "The sea rises", group: "Mechanism" },
+  { key: "tsunami_wave", label: "A single great wave", group: "Mechanism" },
+  { key: "river_flood", label: "A river floods", group: "Mechanism" },
+  { key: "waters_from_below", label: "Water comes up from below", group: "Mechanism" },
+  { key: "glacial_flood", label: "Ice or meltwater", group: "Mechanism" },
+  { key: "deadly_winter", label: "A killing winter rather than water", group: "Mechanism" },
+  { key: "fire_and_flood", label: "Fire as well as water", group: "Mechanism" },
+
+  // Who and what comes through
+  { key: "chosen_survivor", label: "One chosen survivor", group: "Survival" },
+  { key: "family_survives", label: "A family survives", group: "Survival" },
+  { key: "few_survive", label: "A few people survive", group: "Survival" },
+  { key: "animals_preserved", label: "Animals preserved", group: "Survival" },
+  { key: "plants_preserved", label: "Plants or seeds preserved", group: "Survival" },
+
+  // How
+  { key: "boat", label: "A boat or ark", group: "Refuge" },
+  { key: "raft", label: "A raft", group: "Refuge" },
+  { key: "container", label: "A chest, gourd or drum", group: "Refuge" },
+  { key: "mountain_refuge", label: "High ground or a mountain", group: "Refuge" },
+  { key: "underground_refuge", label: "Underground", group: "Refuge" },
+  { key: "enclosure", label: "A built enclosure", group: "Refuge" },
+  { key: "tree_refuge", label: "A tree", group: "Refuge" },
+  { key: "carried_by_animal", label: "Carried or saved by an animal", group: "Refuge" },
+
+  // Afterwards
+  { key: "birds_released", label: "Birds released to find land", group: "Afterwards" },
+  { key: "waters_recede", label: "The waters go down", group: "Afterwards" },
+  { key: "sacrifice_after", label: "A sacrifice or offering after", group: "Afterwards" },
+  { key: "sign_given", label: "A sign or promise afterwards", group: "Afterwards" },
+  { key: "repopulation", label: "The world is repeopled", group: "Afterwards" },
+  { key: "humanity_remade", label: "Humanity is made again, differently", group: "Afterwards" },
+  { key: "earth_diver", label: "Earth brought up from under the water", group: "Afterwards" },
+  { key: "land_drained", label: "Someone drains the water away", group: "Afterwards" },
+
+  // Shape of the account
+  { key: "previous_world_destroyed", label: "An earlier world ended", group: "Shape" },
+  { key: "multiple_floods", label: "More than one flood", group: "Shape" },
+] as const;
+
+export type NarrativeMotifKey = (typeof NARRATIVE_MOTIFS)[number]["key"];
+
+const MOTIF_BY_KEY = new Map(NARRATIVE_MOTIFS.map((motif) => [motif.key as string, motif]));
+
+export function motifLabel(key: string | null | undefined): string {
+  if (!key) return "";
+  return MOTIF_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function motifGroup(key: string | null | undefined): string | null {
+  return MOTIF_BY_KEY.get(key ?? "")?.group ?? null;
+}
+
+/** The motif groups in reading order, each with the motifs present in the given set. */
+export function groupMotifs(keys: string[]): { group: string; motifs: { key: string; label: string }[] }[] {
+  const order: string[] = [];
+  const byGroup = new Map<string, { key: string; label: string }[]>();
+  for (const motif of NARRATIVE_MOTIFS) {
+    if (!keys.includes(motif.key)) continue;
+    if (!byGroup.has(motif.group)) {
+      byGroup.set(motif.group, []);
+      order.push(motif.group);
+    }
+    byGroup.get(motif.group)!.push({ key: motif.key, label: motif.label });
+  }
+  return order.map((group) => ({ group, motifs: byGroup.get(group)! }));
 }
 
 // ---------------------------------------------------------------------------

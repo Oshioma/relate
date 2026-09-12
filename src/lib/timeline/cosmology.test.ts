@@ -42,7 +42,10 @@ import type { SeedClaim } from "./seed-types";
 // about editorial judgement rather than about code, and they are here because
 // they are the whole reason the record exists.
 
-const POSITIONLESS = new Set(["cyclic", "eternal", "no_beginning", "unknown"]);
+// Kept in step with the CHECK constraint in the migrations BY HAND, on purpose:
+// the test below fails the moment the two lists drift, which is the only way to
+// notice before a seed is rejected at insert time.
+const POSITIONLESS = new Set(["cyclic", "eternal", "no_beginning", "primordial", "previous_world", "unknown"]);
 const ANCHOR = COSMOLOGY_EVENTS.find((event) => event.slug === COSMOLOGY_ANCHOR_SLUG)!;
 
 /** A seed claim as the time library sees it once the seeder has written it. */
