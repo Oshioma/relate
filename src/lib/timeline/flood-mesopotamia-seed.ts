@@ -619,6 +619,25 @@ const DEPOSITS: SeedEvent[] = [
     tags: ["flood", "mesopotamia", "shuruppak", "excavation", "early-dynastic"],
     locationName: "Shuruppak (Tell Fara), southern Iraq",
     people: ["Erich Schmidt"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Instructions_of_Shurrupak,_Sumerian_proverb_collection,_c._2400_BC_-_Oriental_Institute_Museum,_University_of_Chicago_-_DSC07114.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Instructions_of_Shurrupak,_Sumerian_proverb_collection,_c._2400_BC_-_Oriental_Institute_Museum,_University_of_Chicago_-_DSC07114.JPG?width=1024",
+        shows: "manuscript",
+        caption:
+          "A tablet of the Instructions of Shuruppak, the advice a father of that city gives his son. THIS IS NOT " +
+          "THE FLOOD DEPOSIT and it does not date it \u2014 it is here because it is what the city left that can be " +
+          "photographed, and because the same Shuruppak appears in the flood traditions as the home of the man " +
+          "who survives. A city that exists in both the tablets and the excavation is the connection; the silt " +
+          "layer is a separate question.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "shuruppak_excavation",

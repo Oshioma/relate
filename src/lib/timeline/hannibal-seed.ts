@@ -613,6 +613,24 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     people: ["Hannibal Barca"],
     civilisations: ["Carthage"],
     locationName: "The Pyrenees, between Iberia and Gaul",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Col_du_Perthus_-_fronti%C3%A8re.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Col_du_Perthus_-_fronti%C3%A8re.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The Col du Perthus on the France\u2013Spain border, the lowest and most-used crossing at the eastern end of " +
+          "the Pyrenees and the traditional candidate for Hannibal's route. WHICH PASS HE USED IS NOT KNOWN: the " +
+          "ancient narratives do not name one, and the marker in the picture is a modern frontier post, not an " +
+          "ancient one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "lancel",
@@ -1260,6 +1278,24 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
     locationName: "Outside the walls of Rome",
     lat: 41.9028,
     lng: 12.4964,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Servian_Wall-Termini_Station.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Servian_Wall-Termini_Station.jpg?width=1024",
+        shows: "site",
+        caption:
+          "A surviving stretch of the Servian Wall beside Termini station in Rome. THIS IS THE WALL ROME ACTUALLY " +
+          "HAD when Hannibal appeared outside the city: built in the fourth century BCE, and the defence the " +
+          "march of 211 was measured against. The Aurelian Wall that most people picture around ancient Rome is " +
+          "four and a half centuries later than this event.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "goldsworthy",

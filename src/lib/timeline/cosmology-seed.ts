@@ -733,6 +733,24 @@ const HISTORY: SeedEvent[] = [
     subcategory: "Cosmology",
     eventType: "traditional_account",
     tags: ["hindu", "cosmology", "yuga", "chronology"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Yugas.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Yugas.png?width=1024",
+        shows: "diagram",
+        caption:
+          "The four-yuga cycle in the 4:3:2:1 proportion the Sanskrit texts give, with the Kali Yuga as the " +
+          "shortest and last. IT IS A MODERN DIAGRAM OF AN OLD SCHEME, not a manuscript: the proportions and the " +
+          "lengths come from the texts, the drawing does not. The cycle repeats, which is why a date inside it is " +
+          "a position in a round rather than a count from a beginning.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "surya_siddhanta",

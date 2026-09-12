@@ -689,6 +689,24 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     tags: ["human-evolution", "genetics", "neanderthal", "denisovan", "divergence", "deep-time"],
     people: ["Neanderthals", "Denisovans", "Homo sapiens"],
     locationName: "Africa and Eurasia",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sapiens_neanderthal_comparison.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sapiens_neanderthal_comparison.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A modern human skull beside a Neanderthal one. THE DIVERGENCE THIS RECORD DATES LEFT NO FOSSIL: it is " +
+          "the moment two lineages last shared an ancestor, worked out from genetics and from how much the later " +
+          "skeletons differ. What the picture shows is the END of that divergence \u2014 two populations already far " +
+          "apart \u2014 not the point where they separated, which nobody has a specimen of.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "prufer2014",
