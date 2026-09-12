@@ -142,6 +142,24 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
       "no_warning",
       "humanity_remade",
     ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Popol_vuh.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Popol_vuh.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening folio of the Xim\u00e9nez manuscript at the Newberry Library, K'iche' and Spanish in parallel " +
+          "columns. This is the oldest surviving text of the Popol Vuh, written about 1701 and itself a copy. " +
+          "Nothing earlier survives, so the destruction of the wooden people reaches us through a Dominican " +
+          "friar's hand.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "popol_vuh_christenson",
@@ -287,6 +305,23 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
     locationName: "San Damián de Checa, Huarochirí province, Peru",
     people: ["Francisco de Ávila"],
     civilisations: ["Viceroyalty of Peru", "Quechua"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Huarochiri_Runa_yndio_niscap_machoncuna_naupa_pacha.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Huarochiri_Runa_yndio_niscap_machoncuna_naupa_pacha.png?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening of the Huarochir\u00ed Manuscript in Quechua: \u201cRuna yndio \u00f1iscap machoncuna \u00f1aupa pacha\u201d. It " +
+          "was commissioned in order to find and destroy what it records, and it survives because the page was " +
+          "written before the campaign it was meant to serve got to the things on it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "avila_compilation",

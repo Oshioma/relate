@@ -219,6 +219,24 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["flood", "china", "yellow-river", "megaflood", "jishi"],
     locationName: "Jishi Gorge, upper Yellow River, Qinghai, China",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lajia_ruins.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lajia_ruins.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Lajia site on the Yellow River below Jishi Gorge, where collapsed dwellings were excavated with " +
+          "people still inside them. This is the site the outburst-flood argument is anchored to. Whether the " +
+          "destruction here was that flood, an earthquake, or the mudflow an earthquake caused is the thing under " +
+          "argument.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wu2016",

@@ -9,6 +9,9 @@ import { FLOOD_PHYSICAL_EVENTS } from "./flood-physical-seed";
 import { FLOOD_MESOPOTAMIA_EVENTS } from "./flood-mesopotamia-seed";
 import { FLOOD_CHINA_EVENTS } from "./flood-china-seed";
 import { FLOOD_EURASIA_EVENTS } from "./flood-eurasia-seed";
+import { FLOOD_SUBMERGED_EVENTS } from "./flood-submerged-seed";
+import { FLOOD_AMERICAS_EVENTS } from "./flood-americas-seed";
+import { FLOOD_REGIONS_EVENTS } from "./flood-regions-seed";
 import { COSMOLOGY_EVENTS } from "./cosmology-seed";
 import { ATLANTIS_EVENTS } from "./atlantis-seed";
 import { LEMURIA_EVENTS } from "./lemuria-seed";
@@ -22,6 +25,9 @@ const ALL: SeedEvent[] = [
   ...FLOOD_MESOPOTAMIA_EVENTS,
   ...FLOOD_CHINA_EVENTS,
   ...FLOOD_EURASIA_EVENTS,
+  ...FLOOD_SUBMERGED_EVENTS,
+  ...FLOOD_AMERICAS_EVENTS,
+  ...FLOOD_REGIONS_EVENTS,
   ...COSMOLOGY_EVENTS,
   ...ATLANTIS_EVENTS,
   ...LEMURIA_EVENTS,
@@ -92,6 +98,21 @@ test("a caption either carries its credit or asks for one — never neither", ()
   }
 });
 
+test("an SVG picture asks its source for a raster, because the copier will not take SVG", () => {
+  // bringImageIn chooses the stored extension from the RESPONSE content type,
+  // and image/svg+xml is deliberately not in IMAGE_TYPES — an SVG can carry
+  // script, so storing one and serving it from our own origin would be an
+  // injection route. Commons renders a PNG instead when a width is asked for,
+  // which is the only reason the map files here work at all. A seeded .svg
+  // without ?width= would be refused at seed time with "sent image/svg+xml,
+  // not an image" — visible in the repair report, but every such picture
+  // silently absent from the records, which is what this catches first.
+  for (const { slug, item } of PICTURES) {
+    if (!/\.svgz?(\?|$)/i.test(item.url)) continue;
+    assert.match(item.url, /[?&]width=\d+/, `${slug}: ${item.url} is an SVG with no width to rasterise it`);
+  }
+});
+
 test("a cover image is always also in the gallery", () => {
   // The cover has no caption of its own, so it has no way to carry a credit.
   // It only works because it is the same file as a gallery picture that does.
@@ -99,6 +120,20 @@ test("a cover image is always also in the gallery", () => {
     if (!event.imageUrl) continue;
     const urls = (event.media ?? []).map((item) => item.url);
     assert.ok(urls.includes(event.imageUrl), `${event.slug}: cover image is not among its media`);
+  }
+});
+
+test("a cover image is the FIRST picture in its gallery", () => {
+  // Everything downstream treats position one as the cover: the editor writes
+  // the cover back from media[0] on every save, and bringEventPicturesIn drops
+  // the cover when its gallery twin is dropped by matching the URL. A seed file
+  // that puts the cover second still renders correctly today and then silently
+  // swaps which picture is the cover the first time anybody edits the record —
+  // which is why "among its media" is not a strong enough rule on its own.
+  for (const event of ALL) {
+    if (!event.imageUrl) continue;
+    const first = (event.media ?? [])[0]?.url;
+    assert.equal(first, event.imageUrl, `${event.slug}: cover is not the first picture in the gallery`);
   }
 });
 

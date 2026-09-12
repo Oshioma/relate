@@ -294,6 +294,23 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
     eventTypeNote: "Evidence and interpretation are separated deliberately: the finds are firm, the meaning is argued.",
     tags: ["ochre", "pigment", "symbolic-behaviour", "blombos", "qafzeh", "deep-time"],
     locationName: "The Levant and southern Africa",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Blombos_Cave_stratigraphy.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Blombos_Cave_stratigraphy.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The excavated section at Blombos Cave in South Africa, showing the deposit layers the ochre came out " +
+          "of. THIS IS NOT THE OCHRE: it is the stratigraphy that dates it. Which layer a piece came from is the " +
+          "whole of its date, and the argument about what ochre use meant starts only after that is settled.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "henshilwood2011",
@@ -511,6 +528,23 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
     locationName: "Qafzeh and Es Skhul, Israel",
     lat: 32.6714,
     lng: 34.9656,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh_11_child_skull_cast.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh_11_child_skull_cast.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A cast of the Qafzeh 11 skull \u2014 a child buried at the cave in Israel with deer antlers laid across the " +
+          "chest. IT IS A CAST, not the specimen. The antlers are why the burial is read as deliberate, and " +
+          "reading intention from grave goods is an inference rather than a measurement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "valladas1988",

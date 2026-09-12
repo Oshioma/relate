@@ -154,6 +154,23 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "The southern North Sea, between Britain and the Netherlands",
     civilisations: ["Mesolithic northwest Europe"],
     motifs: ["rising_sea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Doggerland.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Doggerland.svg?width=1024",
+        shows: "map",
+        caption:
+          "Doggerland as it is usually drawn, with later coastlines laid over the land bridge. Every line is " +
+          "modelled from bathymetry and a sea-level curve rather than surveyed, so the shape is an inference at " +
+          "the resolution of the model \u2014 not a shoreline anyone has mapped.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "doggerland_inundation",
@@ -188,6 +205,23 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     tags: ["tsunami", "storegga", "north-sea", "norway", "shetland"],
     locationName: "The Norwegian Sea, and the coasts around the North Atlantic",
     motifs: ["tsunami_wave", "natural_catastrophe"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Storegga_tsunami_deposits,_Montrose_basin_(Maryton).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Storegga_tsunami_deposits,_Montrose_basin_(Maryton).jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A sand bed in the Montrose Basin in eastern Scotland, read as laid down by the Storegga tsunami. This " +
+          "is the kind of thing the event is known from: marine sand driven into coastal peat. It is also the " +
+          "whole difficulty, because a layer like this has to be told apart from an ordinary storm surge.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "bondevik2003",
@@ -223,6 +257,23 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     tags: ["submerged-landscape", "sundaland", "southeast-asia", "sea-level"],
     locationName: "The Sunda Shelf — the Java Sea, the Gulf of Thailand and the southern South China Sea",
     motifs: ["rising_sea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Sunda_and_Sahul.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Sunda_and_Sahul.png?width=1024",
+        shows: "map",
+        caption:
+          "Sunda and Sahul at low sea level, with present-day land shown against the exposed shelf. The two never " +
+          "joined, which is why the biogeographic break between them exists. The shelf drawn here is what the " +
+          "rising sea took, turning one landmass into the islands of Southeast Asia.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "sundaland_ref",
@@ -258,6 +309,23 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     tags: ["submerged-landscape", "persian-gulf", "arabia", "sea-level"],
     locationName: "The Persian Gulf basin",
     motifs: ["rising_sea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/PersianGulf_vue_satellite_du_golfe_persique.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/PersianGulf_vue_satellite_du_golfe_persique.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Persian Gulf from orbit. It is shallow enough that a large fall in sea level empties most of it, " +
+          "which is the physical fact the proposed basin oasis rests on. The picture shows the basin; that people " +
+          "lived in it is an inference from depth and rivers, not from anything excavated down there.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "rose2010",
@@ -312,6 +380,23 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     // rises and a crossing is lost. Marking more would be manufacturing a
     // parallel with Noah that the account does not contain.
     motifs: ["rising_sea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sealink_Kangaroo_Island_ferry_at_Cape_Jervis,_South_Australia.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sealink_Kangaroo_Island_ferry_at_Cape_Jervis,_South_Australia.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Backstairs Passage from Cape Jervis, with the Kangaroo Island ferry crossing it. The Ngurunderi " +
+          "account describes this water as country that could be walked. The strait is some fourteen kilometres " +
+          "across and shallow enough to have been dry when sea level stood lower.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ngurunderi2024",
@@ -364,6 +449,24 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     civilisations: ["Narungga"],
     locationName: "Spencer Gulf and Yorke Peninsula, South Australia",
     motifs: ["rising_sea", "land_drained"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Satellite_image_of_Spencer_Gulf_and_Gulf_St_Vincent,_South_Australia_(NASA_image).png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Satellite_image_of_Spencer_Gulf_and_Gulf_St_Vincent,_South_Australia_(NASA_image).png?width=1024",
+        shows: "site",
+        caption:
+          "Spencer Gulf and Gulf St Vincent from orbit. Both are shallow \u2014 much of Spencer Gulf sits under forty " +
+          "metres of water \u2014 so both stood dry or nearly dry at the last glacial maximum. That is the physical " +
+          "fact the Narungga account of dry country is set beside, and it is not the same as confirming the " +
+          "account.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "nunn_reid2016",
