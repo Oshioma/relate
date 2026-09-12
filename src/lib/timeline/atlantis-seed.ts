@@ -414,7 +414,7 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         isApproximate: true,
         originalDateText: "Plato's chronology, taken substantially at its word",
         datingMethod: "textual_interpretation",
-        chronology: "alternative",
+        chronology: "alternative_widespread",
         evidence:
           "WHAT THE SOURCE SAYS: Donnelly argues that Plato's Atlantis was a real prehistoric civilisation, the origin of the world's later cultures, and treats the dialogues' chronology substantially literally. EVIDENCE TYPE: an argument from comparative mythology, language and geology as understood in 1882. LIMITATION: the date is not independent evidence. It is Plato's figure, carried across.",
         notes:

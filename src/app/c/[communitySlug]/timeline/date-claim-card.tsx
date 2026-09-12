@@ -19,6 +19,9 @@ import {
 import {
   chronologyLabel,
   datingMethodHint,
+  isAlternativeViewpoint,
+  isMainstreamViewpoint,
+  isWidespreadAlternative,
   datingMethodLabel,
   sourceTierLabel,
   sourceTypeLabel,
@@ -167,8 +170,51 @@ export function DateClaimCard({
   const typeLabel = temporalTypeLabel(claim.temporal_claim_type);
   const typeHint = temporalTypeHint(claim.temporal_claim_type);
 
+  // WHERE THE WEIGHT OF CURRENT SCHOLARSHIP SITS, marked so a reader can see
+  // it at a glance rather than having to know which viewpoint label means what.
+  //
+  // The caveat is printed WITH the mark, every time, and is not optional: the
+  // mark says where scholarship currently sits, not that the claim is true,
+  // not that the others are wrong, and not permanently — the Steady State
+  // model carried this mark once.
+  const mainstream = isMainstreamViewpoint(claim.chronology);
+  // BOTH POLES ARE MARKED, not just one. A card where only the mainstream claim
+  // is boxed tells a reader that everything unboxed is lesser and unexamined.
+  // Marking the alternative as well says there are two named positions here and
+  // invites the comparison, which is the whole point of the record.
+  const alternative = isAlternativeViewpoint(claim.chronology);
+
   return (
-    <div className="rounded-xl border border-border bg-card">
+    <div
+      className={cn(
+        "rounded-xl border border-border bg-card",
+        mainstream && "border-l-4 border-l-danger",
+        alternative && "border-l-4 border-l-accent"
+      )}
+    >
+      {(mainstream || alternative) && (
+        <p className="flex flex-wrap items-baseline gap-x-2 border-b border-border px-4 pt-3 pb-2 text-xs sm:px-5">
+          <span
+            className={cn(
+              "font-semibold uppercase tracking-[0.08em]",
+              mainstream ? "text-danger" : "text-accent"
+            )}
+          >
+            {mainstream
+              ? "Mainstream academic view"
+              : isWidespreadAlternative(claim.chronology)
+                ? "Widely-held alternative view"
+                : "Alternative interpretation"}
+          </span>
+          <span className="text-muted-foreground">
+            {mainstream
+              ? "Where the weight of current scholarship sits — not a verdict that this is true or that the others are wrong, and not permanent."
+              : isWidespreadAlternative(claim.chronology)
+                ? "Outside the mainstream account and held by a great many people. That is a statement about how widely the idea is held, not about how well it is supported — being widely believed is not evidence."
+                : "Put forward outside the mainstream account. Named to say where it sits, not that it is wrong — the evidence and the reasoning are below."}
+          </span>
+        </p>
+      )}
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

@@ -15,7 +15,7 @@ import {
   datingMethodLabel,
   sourceTierLabel,
   sourceTypeLabel,
-  viewpointHint,
+  viewpointBlurb,
   viewpointOrder,
 } from "@/lib/timeline/taxonomy";
 
@@ -61,7 +61,7 @@ function groupByViewpoint(claims: TimelineDateClaim[]): Group[] {
     .map(([key, grouped]) => ({
       key,
       label: key ? chronologyLabel(key) : "Viewpoint not stated",
-      hint: key ? viewpointHint(key) : "Nobody has said which account this date comes out of.",
+      hint: key ? viewpointBlurb(key) : "Nobody has said which account this date comes out of.",
       claims: grouped,
     }))
     // Unstated last; otherwise the dropdown's own order, so this panel and the

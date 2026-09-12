@@ -246,6 +246,20 @@ export const CLAIM_VIEWPOINTS = [
     hint:
       "The generally accepted account in current scholarship — academic research, archaeology, science, textbooks, museums, universities. " +
       "This does NOT mean the claim is unquestionably true. It means this is the broadly accepted interpretation today.",
+    blurb: "Where the weight of current scholarship sits today. Not a verdict that it is true, and not permanent.",
+    mainstream: true,
+  },
+  {
+    key: "alternative_widespread",
+    label: "Widely-held alternative view",
+    hint:
+      "An alternative reading that a great many people hold, and that most readers will have met before — Atlantis as a real place, " +
+      "a young earth counted from scripture. THIS SAYS HOW WIDELY THE IDEA IS HELD AND NOTHING ELSE: a popular alternative and an " +
+      "obscure one can be equally unsupported, and being widely believed is not evidence. It is here because \"outside the mainstream\" " +
+      "covers both an idea taught in millions of homes and one proposed once in a pamphlet, and a reader deserves to know which they " +
+      "are looking at.",
+    blurb:
+      "Outside the mainstream and held by a great many people. That is about reach, not support — being widely believed is not evidence.",
   },
   {
     key: "alternative",
@@ -253,13 +267,14 @@ export const CLAIM_VIEWPOINTS = [
     hint:
       "A reading put forward outside the mainstream account. Naming it alternative says where it sits, not that it is wrong — " +
       "the evidence and the reasoning are shown so a reader can weigh it themselves.",
+    blurb: "Put forward outside the mainstream account. That says where it sits, not that it is wrong.",
   },
   { key: "disputed", label: "Disputed / contested claim", hint: "Specialists actively disagree about this one." },
   { key: "historical", label: "Historical account", hint: "As given in the written historical record." },
-  { key: "archaeological", label: "Archaeological", hint: "Worked out from physical evidence and site sequences." },
-  { key: "scientific", label: "Scientific", hint: "From measurement, dating or modelling." },
+  { key: "archaeological", label: "Archaeological", hint: "Worked out from physical evidence and site sequences.", mainstream: true },
+  { key: "scientific", label: "Scientific", hint: "From measurement, dating or modelling.", mainstream: true },
   { key: "hypothesis", label: "Scientific hypothesis", hint: "Proposed and testable, not yet established." },
-  { key: "geological", label: "Geological", hint: "From the rock record and its timescale." },
+  { key: "geological", label: "Geological", hint: "From the rock record and its timescale.", mainstream: true },
   { key: "traditional", label: "Traditional account", hint: "Carried by a tradition or a people's own telling." },
   { key: "oral_tradition", label: "Oral tradition", hint: "Passed on by telling rather than by writing." },
   { key: "indigenous", label: "Indigenous knowledge", hint: "The knowledge of a people about their own history and country." },
@@ -290,6 +305,90 @@ export function viewpointOrder(key: string | null | undefined): number {
 
 export function viewpointHint(key: string | null | undefined): string {
   return VIEWPOINT_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * The one-line version, for places that show a viewpoint as a column heading.
+ *
+ * `hint` is written for the editor's dropdown, where somebody is choosing and
+ * a full explanation is what they need. The comparison panel prints the same
+ * text as a subtitle in a narrow column, and a hint long enough to be useful
+ * in a dropdown is long enough there to bury the dates underneath it — the
+ * widely-held-alternative column ran to eleven lines of subtitle above a
+ * single claim, which reads as a warning notice rather than a label.
+ *
+ * So: `blurb` where the long form does not fit, and the long form everywhere
+ * it still does. Nothing needs a blurb it does not have.
+ */
+export function viewpointBlurb(key: string | null | undefined): string {
+  const entry = VIEWPOINT_BY_KEY.get(key ?? "");
+  if (entry && "blurb" in entry && entry.blurb) return entry.blurb;
+  return entry?.hint ?? "";
+}
+
+/**
+ * IS THIS THE CURRENT MAINSTREAM ACADEMIC POSITION?
+ *
+ * Four viewpoints are: the general mainstream reading, and the three that name
+ * the disciplines producing it — scientific, archaeological, geological. Those
+ * three are marked because on this timeline they are used for the established
+ * finding rather than for a method: a radiometric date on a flood deposit is
+ * where current scholarship sits.
+ *
+ * WHAT IT DELIBERATELY EXCLUDES, and why each:
+ *
+ *   hypothesis   — proposed and testable, not established. The cyclic
+ *                  cosmologies and the Younger Dryas impact hypothesis live
+ *                  here, and marking them mainstream would be the single most
+ *                  misleading thing this function could do.
+ *   historical   — "as given in the written record", which is a kind of source
+ *                  rather than a position. The Steady State model uses it, and
+ *                  it is emphatically not the current mainstream.
+ *   disputed     — specialists actively disagree, so there is no single
+ *                  mainstream answer to mark.
+ *
+ * AND WHAT THE MARK MEANS. Where the weight of current scholarship sits — not
+ * that the claim is true, not that the others are wrong, and not permanently.
+ * The Steady State model was mainstream once. The UI prints that caveat beside
+ * every mark rather than leaving it to be inferred.
+ */
+export function isMainstreamViewpoint(key: string | null | undefined): boolean {
+  const viewpoint = VIEWPOINT_BY_KEY.get(key ?? "");
+  return viewpoint != null && "mainstream" in viewpoint && viewpoint.mainstream === true;
+}
+
+/**
+ * IS THIS EXPLICITLY AN ALTERNATIVE TO THE MAINSTREAM ACCOUNT?
+ *
+ * The counterpart to isMainstreamViewpoint, and it exists so that marking one
+ * pole does not silently demote everything else. A page where only the
+ * mainstream claim is boxed tells a reader that everything unboxed is lesser
+ * and unexamined; a page where both poles are marked tells them there are two
+ * named positions and invites the comparison.
+ *
+ * Only "alternative" qualifies. A hypothesis is a proposal INSIDE current
+ * science rather than an alternative to it, a disputed claim has specialists
+ * on both sides, and a traditional or religious account is not competing for
+ * the same job — marking any of them as "the alternative" would flatten three
+ * different relationships into one.
+ */
+export function isAlternativeViewpoint(key: string | null | undefined): boolean {
+  return key === "alternative" || key === "alternative_widespread";
+}
+
+/**
+ * Is this an alternative that most readers will already have met?
+ *
+ * A distinction of REACH, not of merit, and the wording everywhere is chosen so
+ * it cannot be read as the second. "Outside the mainstream" currently covers
+ * both an idea taught in millions of homes and one proposed once in a pamphlet;
+ * a reader deserves to know which is in front of them, and that is a fact about
+ * how many people hold the idea rather than about how well supported it is.
+ *
+ * Being widely believed is not evidence, and the hint says so in as many words.
+ */
+export function isWidespreadAlternative(key: string | null | undefined): boolean {
+  return key === "alternative_widespread";
 }
 
 export function chronologyLabel(key: string | null | undefined): string {

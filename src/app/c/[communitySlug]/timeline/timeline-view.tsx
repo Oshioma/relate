@@ -51,6 +51,7 @@ import {
   seedFloodPhysicalDataset,
   seedFloodMesopotamiaDataset,
   seedFloodEurasiaDataset,
+  seedFloodChinaDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -253,6 +254,7 @@ export function TimelineView({
   hasFloodPhysical,
   hasFloodMesopotamia,
   hasFloodEurasia,
+  hasFloodChina,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -300,6 +302,7 @@ export function TimelineView({
   hasFloodPhysical: boolean;
   hasFloodMesopotamia: boolean;
   hasFloodEurasia: boolean;
+  hasFloodChina: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -342,6 +345,20 @@ export function TimelineView({
   // for both would put "Adding…" on the button nobody pressed.
   const [seedingHannibal, setSeedingHannibal] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
+  // THE PICTURE REPORT NEEDS ITS OWN STATE AND ITS OWN PLACE ON THE PAGE.
+  // It used to write into seedError, which is only rendered inside three of the
+  // dataset-offer blocks — so once those datasets were seeded and their offers
+  // withdrew, the report had nowhere to appear and the button looked like it
+  // did nothing at all.
+  const [pictureReport, setPictureReport] = useState<
+    | null
+    | { kind: "none" }
+    | { kind: "all-good"; checked: number }
+    | { kind: "problems"; checked: number; problems: { slug: string; title: string; where: string; detail: string }[] }
+    // The failure has to land in the same panel as the answer. Sending it to
+    // seedError instead would put it back in the three places that withdraw.
+    | { kind: "error"; message: string }
+  >(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -1682,6 +1699,32 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodChina && (
+        <DatasetOffer
+          title="Add the Chinese Great Flood?"
+          busyLabel="Adding the records…"
+          label="Add the Chinese flood records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodChinaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The sharpest case in the flood material, because the argument is in the journals. In 2016 Science published a
+          paper placing an outburst flood at Jishi Gorge around 1920 BCE and identifying it as the flood Yu controlled —
+          and Science then published a Comment arguing the events are not even contemporary. Both are here, because
+          seeding one would turn a live dispute into a finding. The tradition is also a different shape from every
+          other on this timeline: no ark, no chosen survivor, no end of humanity. Gun fails by damming the water and Yu
+          succeeds by giving it a path to the sea, and the moral is about method.
+        </DatasetOffer>
+      )}
+
       {/* ---- Are the pictures actually there? --------------------------------
           A picture is added by writing a URL into a file, and nobody can tell
           whether it resolves until somebody opens the record. A broken one is
@@ -1695,24 +1738,14 @@ export function TimelineView({
           onAdd={() =>
             new Promise<void>((resolve) => {
               startSeed(async () => {
+                setPictureReport(null);
                 const result = await checkTimelinePictures(communitySlug);
-                if (result && "error" in result) setSeedError(result.error);
+                if (result && "error" in result) setPictureReport({ kind: "error", message: result.error });
                 else if (result && "checked" in result) {
-                  if (result.checked === 0) setSeedError("No records here have pictures yet.");
+                  if (result.checked === 0) setPictureReport({ kind: "none" });
                   else if (result.problems.length === 0)
-                    setSeedError(`All ${result.checked} pictures load.`);
-                  else {
-                    // Named individually rather than counted. "3 problems" is
-                    // not actionable; a slug and a reason is.
-                    const listed = result.problems
-                      .slice(0, 8)
-                      .map((problem) => `${problem.title} — ${problem.detail}`)
-                      .join("; ");
-                    const more = result.problems.length > 8 ? ` …and ${result.problems.length - 8} more.` : "";
-                    setSeedError(
-                      `${result.problems.length} of ${result.checked} pictures did not load: ${listed}.${more}`
-                    );
-                  }
+                    setPictureReport({ kind: "all-good", checked: result.checked });
+                  else setPictureReport({ kind: "problems", checked: result.checked, problems: result.problems });
                 }
                 resolve();
               });
@@ -1726,6 +1759,96 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {/* THE ANSWER, WHERE THE QUESTION WAS ASKED. It stays until dismissed:
+          a report that vanishes on the next render is indistinguishable from a
+          button that does nothing, which is exactly how this read before. */}
+      {isStaff && pictureReport && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Picture check
+            </h3>
+            <button
+              type="button"
+              onClick={() => setPictureReport(null)}
+              aria-label="Dismiss the picture check"
+              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {pictureReport.kind === "error" && (
+            <p className="mt-2 text-sm text-danger">
+              <span className="font-medium">The check could not run.</span> {pictureReport.message}
+            </p>
+          )}
+
+          {pictureReport.kind === "none" && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">No pictures to check.</span> Nothing on this timeline has
+              an image yet — so there is nothing broken, and nothing missing that was expected.
+            </p>
+          )}
+
+          {pictureReport.kind === "all-good" && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">
+                All {pictureReport.checked} {pictureReport.checked === 1 ? "picture" : "pictures"} load.
+              </span>{" "}
+              Each was asked for from the server and answered with an image.
+            </p>
+          )}
+
+          {pictureReport.kind === "problems" && (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {pictureReport.problems.length} of {pictureReport.checked} did not load.
+                </span>{" "}
+                Nothing has been changed — this is a report.
+              </p>
+
+              {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
+                  THE PROBLEM. A server behind a proxy that refuses outbound
+                  requests answers 403 for every URL alike, and the honest
+                  report then names twelve healthy records as broken — which
+                  sends somebody editing good data to fix a network. Twelve
+                  files going bad at once in identical fashion is not what
+                  rot looks like; a blocked server is exactly what it looks
+                  like, so say so before the list rather than after it. */}
+              {pictureReport.problems.length === pictureReport.checked &&
+                pictureReport.checked > 2 &&
+                new Set(pictureReport.problems.map((problem) => problem.detail)).size === 1 && (
+                  <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Read this before editing anything.</span> Every
+                    picture failed in the same way — {pictureReport.problems[0].detail}. That is what a server which
+                    cannot reach the internet looks like, not what {pictureReport.checked} separately broken
+                    addresses look like. Check whether this server is allowed to make outbound requests before
+                    changing any record below.
+                  </p>
+                )}
+              <ul className="mt-3 space-y-2">
+                {pictureReport.problems.map((problem, index) => (
+                  <li key={`${problem.slug}-${index}`} className="text-sm">
+                    <a
+                      href={`/c/${communitySlug}/timeline/${problem.slug}`}
+                      className="font-medium text-foreground hover:text-accent hover:underline"
+                    >
+                      {problem.title}
+                    </a>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1733,7 +1856,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia || hasFloodChina) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"
