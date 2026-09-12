@@ -63,6 +63,7 @@ import {
   seedEarlyAustraliaDataset,
   seedAncientSitesAmericasDataset,
   seedAncientSitesArtefactsDataset,
+  seedAncientSitesSubmergedDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -273,6 +274,7 @@ export function TimelineView({
   hasEarlyAustralia,
   hasAncientSitesAmericas,
   hasAncientSitesArtefacts,
+  hasAncientSitesSubmerged,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -330,6 +332,7 @@ export function TimelineView({
   hasEarlyAustralia: boolean;
   hasAncientSitesAmericas: boolean;
   hasAncientSitesArtefacts: boolean;
+  hasAncientSitesSubmerged: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1830,6 +1833,39 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesSubmerged && (
+        <DatasetOffer
+          title="Add the drowned coasts?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesSubmergedDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Sea level in the early Holocene is known well — it rose some sixty metres between roughly 10,000 and 5000
+          BCE — so for any depth there is a real, checkable answer to &quot;when was this last dry land&quot;. What
+          that buys you is a FLOOR, and only if two things hold: the thing was made by people, and it is still where
+          it was made. On each of these five records a different link in that chain is the one being argued about.
+          At Yonaguni and Bimini nobody disputes the depth or the date — the question is whether anyone shaped the
+          rock, and at Bimini a core through the blocks could answer it, because the bedding runs continuously from
+          one block into the next. At the Gulf of Khambhat the radiocarbon is accepted by everyone and the material
+          was DREDGED, so nothing recovered can be tied to anything on the sonar: wood is not a city. Two of these
+          are not disputes at all, and they are why the group is worth having — a twelve-metre worked monolith at
+          forty metres depth off Pantelleria, peer-reviewed, on a bank the sea took at 9350 ± 200 BP; and Dwarka, a
+          genuinely drowned port excavated by divers under archaeological control. Submerged structures of real
+          antiquity are an ordinary finding. Also here: Kimura himself revised Yonaguni down to 2,000–3,000 years in
+          2007, and the 10,000-year figure kept circulating under his name anyway.
         </DatasetOffer>
       )}
 
