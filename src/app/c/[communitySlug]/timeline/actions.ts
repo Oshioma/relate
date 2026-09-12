@@ -69,6 +69,12 @@ import {
   ANCIENT_SITES_ARTEFACTS_TRACK,
 } from "@/lib/timeline/ancient-sites-artefacts-seed";
 import {
+  ANCIENT_SITES_SUBMERGED_EVENTS,
+  ANCIENT_SITES_SUBMERGED_LINKS,
+  ANCIENT_SITES_SUBMERGED_SOURCES,
+  ANCIENT_SITES_SUBMERGED_TRACK,
+} from "@/lib/timeline/ancient-sites-submerged-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1820,6 +1826,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_ARTEFACTS_LINKS,
   },
   {
+    label: "Under water: drowned coasts, and what submergence dates",
+    track: ANCIENT_SITES_SUBMERGED_TRACK,
+    events: ANCIENT_SITES_SUBMERGED_EVENTS,
+    sources: ANCIENT_SITES_SUBMERGED_SOURCES,
+    links: ANCIENT_SITES_SUBMERGED_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2495,6 +2508,30 @@ export async function seedAncientSitesArtefactsDataset(communitySlug: string) {
     track: ANCIENT_SITES_ARTEFACTS_TRACK,
     links: ANCIENT_SITES_ARTEFACTS_LINKS,
     label: "Anomalous artefacts: objects said to have come out of old rock",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Yonaguni, Pantelleria, Bimini, the Gulf of Khambhat and Dwarka. A sea-level
+ * date dates a drowning, and it is a floor for a structure only if the thing
+ * was made and is still where it was made — so on each record the claims show
+ * which of those links is the one being argued about.
+ * See ancient-sites-submerged-seed.ts.
+ */
+export async function seedAncientSitesSubmergedDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_SUBMERGED_EVENTS,
+    sources: ANCIENT_SITES_SUBMERGED_SOURCES,
+    track: ANCIENT_SITES_SUBMERGED_TRACK,
+    links: ANCIENT_SITES_SUBMERGED_LINKS,
+    label: "Under water: drowned coasts, and what submergence dates",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
