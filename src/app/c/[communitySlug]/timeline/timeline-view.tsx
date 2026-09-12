@@ -39,6 +39,7 @@ import { TimelineOverview } from "./timeline-overview";
 import { EventDetail } from "./event-detail";
 import { PeriodDetail } from "./period-detail";
 import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
+import { revealDetailAt } from "@/lib/timeline/reveal-detail";
 import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
@@ -384,6 +385,12 @@ export function TimelineView({
   // a string with nowhere to go.
   const setSeedError = (text: string) => setSeedReport({ tone: "error", text });
   const setSeedNote = (text: string) => setSeedReport({ tone: "note", text });
+  const seedReportRef = useRef<HTMLDivElement | null>(null);
+  // Once per report, not once per render. See the ref on the panel below.
+  useEffect(() => {
+    if (!seedReport) return;
+    seedReportRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [seedReport]);
   // THE PICTURE REPORT NEEDS ITS OWN STATE AND ITS OWN PLACE ON THE PAGE.
   // It used to write into seedError, which is only rendered inside three of the
   // dataset-offer blocks — so once those datasets were seeded and their offers
@@ -572,16 +579,34 @@ export function TimelineView({
     [view.from, view.to]
   );
 
+  // REVEAL THE RECORD WITHOUT TAKING THE STRIP WITH IT.
+  //
+  // These both used scrollIntoView({ block: "start" }), which aligns the
+  // detail to the top of the viewport and so puts the canvas entirely above
+  // the fold — you click a card to look at it and lose the instrument you
+  // were reading it on. revealDetailAt works out a position that shows the
+  // detail and keeps the strip, and returns null when the page should not
+  // move at all. See reveal-detail.ts.
+  const reveal = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    const target = revealDetailAt({
+      detailTop: node.getBoundingClientRect().top + window.scrollY,
+      scrollY: window.scrollY,
+      viewportHeight: window.innerHeight,
+    });
+    if (target !== null) window.scrollTo({ top: target, behavior: "smooth" });
+  }, []);
+
   const selectedId = selected?.id ?? null;
   useEffect(() => {
     if (!selectedId) return;
-    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [selectedId]);
+    reveal(detailRef.current);
+  }, [selectedId, reveal]);
 
   useEffect(() => {
     if (!selectedPeriodId) return;
-    periodDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [selectedPeriodId]);
+    reveal(periodDetailRef.current);
+  }, [selectedPeriodId, reveal]);
 
   const periodsById = useMemo(() => new Map(periods.map((period) => [period.id, period])), [periods]);
   const selectedPeriod = selectedPeriodId ? periodsById.get(selectedPeriodId) ?? null : null;
@@ -2150,7 +2175,12 @@ export function TimelineView({
         <div
           // A message below the fold is a message nobody reads, which is the
           // failure this panel exists to fix — so it brings itself into view.
-          ref={(node) => node?.scrollIntoView({ block: "center", behavior: "smooth" })}
+          // ONCE. This was an inline callback ref, and React calls one of
+          // those on every render, not just on mount: while a report was
+          // showing, every re-render dragged the page back down to it and the
+          // reader could not scroll away. The effect below runs on the report
+          // itself changing, which is the thing worth reacting to.
+          ref={seedReportRef}
           className={cn(
             "mt-3 rounded-xl border p-4 sm:p-5",
             seedReport.tone === "error" ? "border-danger/40 bg-danger/5" : "border-border bg-card"
