@@ -1032,3 +1032,43 @@ export async function getEventsWithMotifs(
   if (error) throw error;
   return (data ?? []).filter((event) => (event.motifs ?? []).length > 0);
 }
+
+/**
+ * Everything the map view needs to be honest about itself.
+ *
+ * A MAP OF THIS TIMELINE IS MOSTLY NOT A MAP. Nine records out of sixty-nine
+ * carry coordinates and they are all from one dataset, so a page that drew
+ * only the pins would say this community's timeline is about the western
+ * Mediterranean. It is not — it is about floods on six continents, and every
+ * one of those records has a named place and NO POINT.
+ *
+ * That is mostly deliberate. "Only where the place is genuinely known. A
+ * coordinate is an assertion" is the rule in seed-types, and it is the right
+ * rule: there is no latitude for the Great Flood of Gun and Yu, for Sky Woman,
+ * or for the Sunda Shelf, which is a region the size of India.
+ *
+ * So this returns all three groups rather than only the plottable one, and the
+ * page shows all three.
+ */
+export async function getTimelinePlaces(
+  supabase: Client,
+  communityId: string
+): Promise<{
+  pinned: Pick<TimelineEvent, "id" | "slug" | "title" | "category" | "location_name" | "lat" | "lng">[];
+  named: Pick<TimelineEvent, "id" | "slug" | "title" | "category" | "location_name">[];
+  placeless: Pick<TimelineEvent, "id" | "slug" | "title" | "category">[];
+}> {
+  const { data, error } = await supabase
+    .from("timeline_events")
+    .select("id, slug, title, category, location_name, lat, lng")
+    .eq("community_id", communityId)
+    .eq("status", "published")
+    .order("title", { ascending: true });
+  if (error) throw error;
+  const rows = data ?? [];
+  return {
+    pinned: rows.filter((row) => row.lat != null && row.lng != null),
+    named: rows.filter((row) => (row.lat == null || row.lng == null) && row.location_name),
+    placeless: rows.filter((row) => (row.lat == null || row.lng == null) && !row.location_name),
+  };
+}
