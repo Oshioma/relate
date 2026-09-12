@@ -52,6 +52,7 @@ import {
   seedFloodMesopotamiaDataset,
   seedFloodEurasiaDataset,
   seedFloodChinaDataset,
+  seedFloodSubmergedDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -255,6 +256,7 @@ export function TimelineView({
   hasFloodMesopotamia,
   hasFloodEurasia,
   hasFloodChina,
+  hasFloodSubmerged,
   datasetGaps,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
@@ -304,6 +306,7 @@ export function TimelineView({
   hasFloodMesopotamia: boolean;
   hasFloodEurasia: boolean;
   hasFloodChina: boolean;
+  hasFloodSubmerged: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** The Hannibal dataset is here, but was taken before it had pictures. */
@@ -1719,6 +1722,35 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasFloodSubmerged && (
+        <DatasetOffer
+          title="Add the drowned lands, and the coasts people remember?"
+          busyLabel="Adding the records…"
+          label="Add the drowned lands"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodSubmergedDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The same question from both ends. Doggerland, the Sunda Shelf and the floor of the Persian Gulf were land and
+          are not — measurements, dated by seismic survey and radiocarbon, and drowned over thousands of years rather
+          than in an afternoon. Against them, two South Australian accounts: the Ngarrindjeri Ngurunderi narrative, in
+          which Backstairs Passage could be walked, and the Narungga account of Spencer Gulf as marshy country with
+          freshwater lagoons. A published method reads each for the water depth that would make it literally true and
+          dates THAT — which is not the same as dating the story, and the difference is the whole record. Every account
+          carries two claims kept apart: when the water rose, which is geology, and that the telling remembers it,
+          which is a proposal most scientists doubt. The nations stay distinct; there is no &ldquo;Aboriginal flood
+          myth&rdquo; here and there will not be one.
         </DatasetOffer>
       )}
 
