@@ -51,6 +51,7 @@ import {
   seedFloodPhysicalDataset,
   seedFloodMesopotamiaDataset,
   seedFloodEurasiaDataset,
+  checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -1681,6 +1682,50 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {/* ---- Are the pictures actually there? --------------------------------
+          A picture is added by writing a URL into a file, and nobody can tell
+          whether it resolves until somebody opens the record. A broken one is
+          silent: the page renders, the layout holds, and a grey box sits where
+          a photograph should be. This asks. It changes nothing. */}
+      {isStaff && (
+        <DatasetOffer
+          title="Check the pictures?"
+          busyLabel="Asking every picture…"
+          label="Check every picture"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await checkTimelinePictures(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                else if (result && "checked" in result) {
+                  if (result.checked === 0) setSeedError("No records here have pictures yet.");
+                  else if (result.problems.length === 0)
+                    setSeedError(`All ${result.checked} pictures load.`);
+                  else {
+                    // Named individually rather than counted. "3 problems" is
+                    // not actionable; a slug and a reason is.
+                    const listed = result.problems
+                      .slice(0, 8)
+                      .map((problem) => `${problem.title} — ${problem.detail}`)
+                      .join("; ");
+                    const more = result.problems.length > 8 ? ` …and ${result.problems.length - 8} more.` : "";
+                    setSeedError(
+                      `${result.problems.length} of ${result.checked} pictures did not load: ${listed}.${more}`
+                    );
+                  }
+                }
+                resolve();
+              });
+            })
+          }
+        >
+          Every picture on every record here, fetched from the server to see whether it still answers. Nothing is
+          changed and nothing is removed — the report names the records so a broken one can be fixed or dropped
+          deliberately. A picture that answers with an error page rather than an image is reported too, because that
+          is what a renamed file looks like and a status check alone would call it healthy.
+        </DatasetOffer>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1721,6 +1766,11 @@ export function TimelineView({
                   // the kept count goes after it rather than standing alone,
                   // which read as though something had happened.
                   if (parts.length === 0) parts.push("Nothing needed changing — every seeded record here already matches.");
+                  if (result.classified > 0) {
+                    parts.push(
+                      `Classified ${result.classified} ${result.classified === 1 ? "picture" : "pictures"} by what they show.`
+                    );
+                  }
                   if (result.keptBecauseEdited > 0) {
                     parts.push(
                       result.keptBecauseEdited === 1

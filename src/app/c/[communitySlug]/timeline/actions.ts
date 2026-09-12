@@ -24,6 +24,7 @@ import {
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
 import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
+import { checkPictures, type PictureCheck } from "@/lib/timeline/check-pictures";
 import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_EVENTS, DEEP_TIME_SOURCES, DEEP_TIME_TRACK } from "@/lib/timeline/deep-time-seed";
 import {
@@ -1755,6 +1756,10 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // from corrected claims because they are a different kind of repair: nothing
   // was wrong, something was missing.
   let linked = 0;
+  // Pictures that gained a "what this shows" classification. Counted apart
+  // again: nothing was wrong with them, they simply predate the field — the
+  // same shape of gap the relationship backfill closed.
+  let classified = 0;
   const changed: string[] = [];
 
   for (const dataset of SEEDED_DATASETS) {
@@ -1866,6 +1871,52 @@ export async function refreshSeededDatasets(communitySlug: string) {
       }
     }
 
+    // THE PICTURES THAT NEVER SAID WHAT THEY SHOW.
+    //
+    // A later artwork that does not declare itself reads as a photograph of
+    // the event, and every community that took a dataset before the field
+    // existed has exactly that. Matched by URL and only ever ADDED: a picture
+    // that already carries a classification is left alone, because somebody
+    // may have corrected it.
+    for (const seed of dataset.events) {
+      const eventId = idBySlug.get(seed.slug);
+      if (!eventId || !seed.media || seed.media.length === 0) continue;
+
+      const { data: stored } = await supabase
+        .from("timeline_events")
+        .select("media")
+        .eq("id", eventId)
+        .maybeSingle();
+      const storedMedia = stored?.media ?? [];
+      if (storedMedia.length === 0) continue;
+
+      const showsByUrl = new Map(seed.media.filter((item) => item.shows).map((item) => [item.url, item.shows!]));
+      let touched = false;
+      const next = storedMedia.map((item) => {
+        if (item.shows || !item.url) return item;
+        // The seeder copies pictures into the community's own storage, so the
+        // stored URL is not the seed's. Fall back to matching on the filename,
+        // which survives the copy.
+        const direct = showsByUrl.get(item.url);
+        const byName =
+          direct ??
+          [...showsByUrl.entries()].find(([url]) => {
+            const seedName = decodeURIComponent(url.split("/").pop() ?? "").split("?")[0];
+            const storedName = decodeURIComponent(item.url.split("/").pop() ?? "").split("?")[0];
+            return seedName.length > 0 && seedName === storedName;
+          })?.[1];
+        if (!byName) return item;
+        touched = true;
+        return { ...item, shows: byName };
+      });
+
+      if (!touched) continue;
+      const { error } = await supabase.from("timeline_events").update({ media: next }).eq("id", eventId);
+      if (error) continue;
+      classified += next.filter((item, index) => item.shows && !storedMedia[index]?.shows).length;
+      if (!changed.includes(seed.title)) changed.push(seed.title);
+    }
+
     // THE EDGES THIS COMMUNITY NEVER GOT. Relationships were added to the
     // datasets after both had shipped, so a community that took Lemuria early
     // has thirteen records and no line drawn between any of them — Mu sitting
@@ -1881,7 +1932,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
   }
 
   revalidatePath(timelinePath(community.slug));
-  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, linked, changed };
+  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, linked, classified, changed };
 }
 
 /**
@@ -1903,6 +1954,37 @@ export async function seedLemuriaDataset(communitySlug: string) {
   });
   revalidatePath(timelinePath(community.slug));
   return result;
+}
+
+/**
+ * Ask every picture in this community whether it actually loads.
+ *
+ * READ-ONLY. It changes nothing, which is the point: a picture added by
+ * writing a URL into a seed file is unverifiable until somebody opens the
+ * record, and a broken one is silent — the page renders, the layout holds,
+ * and there is a grey box where a photograph should be.
+ *
+ * Staff only, because it makes the server fetch URLs that members supplied.
+ * The guard on which URLs may be fetched lives in check-pictures.ts and is the
+ * most important part of this feature; read it before changing anything here.
+ */
+export async function checkTimelinePictures(communitySlug: string): Promise<
+  { error: string } | { ok: true; checked: number; problems: PictureCheck[] }
+> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can check the pictures." };
+
+  const { data, error } = await supabase
+    .from("timeline_events")
+    .select("slug, title, image_url, media")
+    .eq("community_id", community.id);
+  if (error) return { error: error.message };
+
+  const records = (data ?? []).filter((record) => record.image_url || (record.media ?? []).length > 0);
+  const results = await checkPictures(records);
+  return { ok: true as const, checked: results.length, problems: results.filter((result) => result.outcome !== "ok") };
 }
 
 /**

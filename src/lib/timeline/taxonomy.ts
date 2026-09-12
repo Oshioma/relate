@@ -786,6 +786,106 @@ export function groupMotifs(keys: string[]): { group: string; motifs: { key: str
 }
 
 // ---------------------------------------------------------------------------
+// WHAT KIND OF PICTURE THIS IS
+//
+// A photograph of a flood deposit and a Victorian painting of Noah are both
+// images attached to a record, and they are not the same kind of thing at all.
+// One shows the evidence. The other shows how somebody imagined the story
+// eighteen centuries after anybody wrote it down.
+//
+// Pictures are the most persuasive thing on a page and the least examined. A
+// reader who scrolls past a dramatic painting of the Deluge has been given an
+// impression of certainty that no claim on the record supports, and captions
+// alone do not fix it: a caption is read as a label for the picture, not as a
+// statement about its evidential status.
+//
+// So every picture says what KIND it is, and the hint says what it is and is
+// not evidence of. This is the same move the record makes everywhere else —
+// "relevant to, without being evidence for" — applied to images.
+//
+// THE ORDER IS DELIBERATE: closest to the evidence first, furthest last.
+// ---------------------------------------------------------------------------
+
+export const MEDIA_KINDS = [
+  {
+    key: "evidence_photograph",
+    label: "Photograph of the evidence",
+    hint: "A photograph of the thing itself — the deposit, the excavation, the specimen. As close to the evidence as a picture gets.",
+  },
+  {
+    key: "manuscript",
+    label: "The text itself",
+    hint:
+      "A photograph of the manuscript, tablet or inscription. It shows what actually survives, which is usually far less and far later than the story it carries.",
+  },
+  {
+    key: "artefact",
+    label: "The object",
+    hint: "A photograph of an object held in a collection. It shows the object; what the object means is an interpretation and belongs in the text.",
+  },
+  {
+    key: "site",
+    label: "The place",
+    hint: "A photograph of the location. Places look the same whether or not the events attached to them happened.",
+  },
+  {
+    key: "scientific_figure",
+    label: "Figure from a study",
+    hint: "A chart, core, section or map published as part of the research. Read it with the paper it came from, not on its own.",
+  },
+  {
+    key: "map",
+    label: "Map",
+    hint: "A map. Worth checking what it shows as established and what it shows as proposed, because maps rarely distinguish the two.",
+  },
+  {
+    key: "diagram",
+    label: "Diagram",
+    hint: "An explanatory diagram, made to teach rather than to record.",
+  },
+  {
+    key: "portrait",
+    label: "Portrait",
+    hint: "A picture of a person who made or recorded a claim. Evidence about them, not about what they claimed.",
+  },
+  {
+    key: "reconstruction",
+    label: "Reconstruction",
+    hint:
+      "Somebody's informed reconstruction. The parts resting on evidence and the parts filled in by inference look identical once drawn, which is what makes a reconstruction persuasive well beyond its warrant.",
+  },
+  {
+    key: "later_artwork",
+    label: "Later artwork",
+    hint:
+      "Made long after the events it shows, by somebody picturing a tradition rather than witnessing anything. A record of how the story has been imagined — never evidence about what happened.",
+  },
+] as const;
+
+export type MediaKindKey = (typeof MEDIA_KINDS)[number]["key"];
+
+const MEDIA_KIND_BY_KEY = new Map(MEDIA_KINDS.map((kind) => [kind.key as string, kind]));
+
+export function mediaKindLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return MEDIA_KIND_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function mediaKindHint(key: string | null | undefined): string {
+  return MEDIA_KIND_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * Is a picture of this kind liable to be mistaken for evidence about the event?
+ *
+ * Only two kinds are, and they are the two that most often illustrate a
+ * tradition. Their hint is printed in full rather than tucked behind a tooltip.
+ */
+export function mediaKindNeedsWarning(key: string | null | undefined): boolean {
+  return key === "later_artwork" || key === "reconstruction";
+}
+
+// ---------------------------------------------------------------------------
 // What KIND of periodisation a time period is
 //
 // The most useful single fact about a named stretch of time, and the one a

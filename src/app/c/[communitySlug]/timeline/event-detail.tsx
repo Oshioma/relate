@@ -25,6 +25,9 @@ import {
   eventTypeHint,
   eventTypeLabel,
   groupMotifs,
+  mediaKindHint,
+  mediaKindLabel,
+  mediaKindNeedsWarning,
   timelineCategory,
   timelineCategoryLabel,
 } from "@/lib/timeline/taxonomy";
@@ -398,9 +401,31 @@ export function EventDetail({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.url} alt={item.caption ?? ""} loading="lazy" className="h-full w-full object-cover" />
                 </div>
-                {item.caption && (
-                  <figcaption className="mt-1.5 text-xs text-muted-foreground">{item.caption}</figcaption>
-                )}
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {/* WHAT KIND OF PICTURE, before the caption rather than after
+                      it. A dramatic painting of a flood is the most persuasive
+                      thing on the page and the least examined, and a caption is
+                      read as a label for the picture rather than as a statement
+                      about what it is evidence of. */}
+                  {mediaKindLabel(item.shows) && (
+                    <span
+                      className={cn(
+                        "mr-1.5 inline-block rounded-full px-2 py-0.5 font-medium",
+                        mediaKindNeedsWarning(item.shows)
+                          ? "bg-accent-soft text-foreground ring-1 ring-border"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {mediaKindLabel(item.shows)}
+                    </span>
+                  )}
+                  {item.caption}
+                  {/* The two kinds most often mistaken for evidence get their
+                      hint printed in full, not hidden behind a tooltip. */}
+                  {mediaKindNeedsWarning(item.shows) && (
+                    <span className="mt-1 block italic">{mediaKindHint(item.shows)}</span>
+                  )}
+                </figcaption>
               </figure>
             ))}
           </div>
