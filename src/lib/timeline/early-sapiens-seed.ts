@@ -215,6 +215,23 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
     locationName: "Qafzeh Cave, near Nazareth, Israel",
     lat: 32.6975,
     lng: 35.3092,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh_9-Homo_sapiens.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh_9-Homo_sapiens.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Qafzeh 9, one of the early Homo sapiens individuals from Qafzeh Cave in Israel. The dating is " +
+          "thermoluminescence and electron spin resonance rather than radiocarbon, which does not reach this " +
+          "far back \u2014 and the range those methods give is wide.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "valladas1988",
@@ -414,6 +431,23 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
     tags: ["neanderthal", "eurasia", "levant", "mousterian", "deep-time"],
     people: ["Neanderthals"],
     locationName: "Europe and western Asia",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Homo_neanderthalensis_skull.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Homo_neanderthalensis_skull.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A Neanderthal skull. THEY OVERLAP WITH THE PEOPLE AT QAFZEH IN BOTH TIME AND PLACE: the Levant has " +
+          "both, at different periods, in caves a few hours' walk apart \u2014 which is why this timeline holds them " +
+          "as parallel populations rather than as a sequence.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "valladas1987",

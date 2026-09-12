@@ -379,6 +379,23 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     tags: ["acheulean", "stone-tools", "lower-palaeolithic", "handaxe", "deep-time"],
     civilisations: [],
     locationName: "Africa, Europe and southern Asia",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "An Acheulean handaxe. The form is remarkably stable across more than a million years and three " +
+          "continents, which is the single most striking fact about it \u2014 and it is a tool, not a signature: the " +
+          "same shape was made by more than one kind of human.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "beyene2013",
@@ -491,6 +508,23 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
       "Three different strengths of evidence — association, butchery, hunting — shown as three different things.",
     tags: ["hunting", "butchery", "zooarchaeology", "middle-pleistocene", "deep-time"],
     locationName: "Europe and Africa",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sch\u00f6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch\u00f6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "The Sch\u00f6ningen spears, from a waterlogged lignite mine in Germany. Wood almost never survives this " +
+          "long, so these are not evidence that spears were rare \u2014 they are evidence of how little of the " +
+          "record normally survives.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "roberts1994",
@@ -547,6 +581,23 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["palaeoclimate", "ice-age", "marine-isotope-stages", "middle-pleistocene", "deep-time"],
     locationName: "Global",
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/TempAndSnowAccumulation_GISP2_Alley2000-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/TempAndSnowAccumulation_GISP2_Alley2000-en.svg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Temperature and snow accumulation read from the GISP2 Greenland ice core. THE HORIZONTAL AXIS IS " +
+          "YEARS BEFORE PRESENT, where present is 1950 \u2014 the convention this timeline records on every claim, " +
+          "because reading these figures as BCE shifts them by nearly two thousand years.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "lisiecki2005",
