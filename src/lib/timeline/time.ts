@@ -248,7 +248,14 @@ export function formatDateParts(
 
 /** The parts of a date claim this module reasons about. A row satisfies it as-is. */
 export type ClaimTimeParts = {
-  start_year: number;
+  /**
+   * NULL MEANS THE CLAIM MAKES NO ASSERTION ABOUT A POSITION, which is a claim
+   * in itself and not a missing field — the Steady State model says the
+   * universe has no finite beginning, and a kalpa is a length that starts
+   * nowhere. The database permits this only for the positionless
+   * temporal_claim_types; see the migration.
+   */
+  start_year: number | null;
   start_month: number | null;
   start_day: number | null;
   end_year: number | null;
@@ -264,7 +271,34 @@ export type ClaimTimeParts = {
   uncertainty_minus: number | null;
   /** Verbatim source wording. Never derived from the numbers above. */
   original_date_text: string;
+  /** A TEMPORAL_CLAIM_TYPES key. Null on every claim written before the column existed. */
+  temporal_claim_type?: string | null;
+  /** A LENGTH with no position — 4,320,000 years for a mahayuga. Never a range. */
+  duration_years?: number | null;
+  /** Which proposition this date is a date FOR, when the record carries more than one. */
+  what_is_dated?: string | null;
 };
+
+/** A claim that does put itself somewhere on the axis. */
+export type PositionedClaim = ClaimTimeParts & { start_year: number };
+
+/**
+ * Does this claim place itself on the timeline at all?
+ *
+ * The one question that has to be asked before any of the arithmetic below,
+ * and the reason it is a type guard: everything downstream — intervals,
+ * midpoints, envelopes, comparisons — is meaningless for a claim that asserts
+ * there is no beginning, and TypeScript should refuse to let it through rather
+ * than leaving it to be remembered.
+ */
+export function claimIsPositioned(claim: ClaimTimeParts): claim is PositionedClaim {
+  return claim.start_year != null;
+}
+
+/** The claims that can be drawn, compared or measured. Often fewer than all of them. */
+export function positionedClaims<T extends ClaimTimeParts>(claims: T[]): (T & { start_year: number })[] {
+  return claims.filter((claim): claim is T & { start_year: number } => claim.start_year != null);
+}
 
 /**
  * How wide one claim is, in years, from its precision alone.
@@ -306,7 +340,11 @@ export function claimInterval(claim: ClaimTimeParts): {
   hi: number;
   kind: IntervalKind;
   granularity: number;
-} {
+} | null {
+  // NO POSITION, NO INTERVAL. Returning null rather than a guess is what makes
+  // every caller declare what it does about "no beginning" — the alternative
+  // was a zero or a NaN travelling silently into an axis coordinate.
+  if (!claimIsPositioned(claim)) return null;
   const start = positionOf(claim.start_year, claim.start_month, claim.start_day);
   const granularity = claimGranularityYears(claim);
 
@@ -330,15 +368,15 @@ export function claimInterval(claim: ClaimTimeParts): {
 }
 
 /** Where a claim sits when it has to be one number — the middle of what it allows. */
-export function claimMidpoint(claim: ClaimTimeParts): number {
-  const { lo, hi } = claimInterval(claim);
-  return (lo + hi) / 2;
+export function claimMidpoint(claim: ClaimTimeParts): number | null {
+  const interval = claimInterval(claim);
+  return interval ? (interval.lo + interval.hi) / 2 : null;
 }
 
 /** Kept for the layout, which draws the claim's own footprint. */
-export function claimSpan(claim: ClaimTimeParts): { from: number; to: number; isRange: boolean } {
-  const { lo, hi, kind } = claimInterval(claim);
-  return { from: lo, to: hi, isRange: kind !== "point" };
+export function claimSpan(claim: ClaimTimeParts): { from: number; to: number; isRange: boolean } | null {
+  const interval = claimInterval(claim);
+  return interval ? { from: interval.lo, to: interval.hi, isRange: interval.kind !== "point" } : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -399,6 +437,14 @@ function formatCalendarPoint(claim: ClaimTimeParts, year: number, month: number 
  * underneath it is a bug with a nice font.
  */
 export function formatClaimDate(claim: ClaimTimeParts): string {
+  // NOTHING TO DERIVE A DATE FROM, because the claim does not make one. What
+  // it does assert is either a length (a kalpa is 4.32 billion years long) or
+  // a position about positions (there is no first moment), and those are what
+  // get written.
+  if (!claimIsPositioned(claim)) {
+    if (claim.duration_years != null) return formatDuration(claim.duration_years);
+    return positionlessPhrase(claim.temporal_claim_type);
+  }
   const unit = dateUnit(claim.date_precision);
   const decimals = Math.max(0, claim.precision_decimals ?? 0);
   const prefix = claim.is_approximate ? "c. " : "";
@@ -479,6 +525,28 @@ export function claimHeadline(claim: ClaimTimeParts): { headline: string; normal
 }
 
 /**
+ * How a claim that places nothing on the axis is written.
+ *
+ * Deliberately flat and declarative. "No finite beginning" is what Bondi, Gold
+ * and Hoyle assert; it is not an apology for a missing field, and it must not
+ * read like one — "unknown", "n/a" or an empty cell would all quietly tell a
+ * reader the model failed to supply something, which is the opposite of what
+ * happened.
+ */
+function positionlessPhrase(type: string | null | undefined): string {
+  switch (type) {
+    case "no_beginning":
+      return "No finite beginning";
+    case "eternal":
+      return "Eternal — no beginning and no end";
+    case "cyclic":
+      return "A repeating cycle";
+    default:
+      return "Not stated";
+  }
+}
+
+/**
  * THE DATE, FOR AN EVENT RATHER THAN FOR A CLAIM.
  *
  * Everything else here writes one claim. This writes the whole event in the
@@ -496,8 +564,17 @@ export function claimHeadline(claim: ClaimTimeParts): { headline: string; normal
  * Compact years on purpose: this goes next to a title on a strip, where
  * "2.5 mya" earns its space and "2,500,000 years ago" does not.
  */
-export function eventDateLabel(claims: ClaimTimeParts[]): string | null {
-  if (claims.length === 0) return null;
+export function eventDateLabel(allClaims: ClaimTimeParts[]): string | null {
+  if (allClaims.length === 0) return null;
+
+  // AN ENVELOPE CAN ONLY BE BUILT FROM THINGS THAT HAVE POSITIONS. An event
+  // carrying both "~13.8 billion years ago" and "no finite beginning" has a
+  // headline of 13.8 billion years ago — the span of what is actually placed —
+  // and the claim that places nothing is read on its own card rather than
+  // being folded into a range it does not belong to. An event whose claims are
+  // ALL positionless has no headline date at all, which is correct.
+  const claims = positionedClaims(allClaims);
+  if (claims.length === 0) return allClaims.length === 1 ? formatClaimDate(allClaims[0]) : null;
 
   const written = new Set(claims.map((claim) => formatClaimDate(claim)));
   if (written.size === 1) return formatClaimDate(claims[0]);
@@ -532,6 +609,15 @@ export function eventDateLabel(claims: ClaimTimeParts[]): string | null {
     if (Math.abs(older - younger) < 1) return `${formatDuration(older)} ago`;
     const youngerParts = durationParts(younger);
     const olderParts = durationParts(older);
+    // TWO ENDS THAT WRITE THE SAME ARE NOT A RANGE. Planck's two published
+    // ages differ by four million years, which is a real difference and is
+    // nowhere near the two decimal places this scale prints — so the envelope
+    // came out as "13.8 billion – 13.8 billion years ago", a range between a
+    // number and itself. The claims keep their own precision on their own
+    // cards; the headline says the one thing it can say at this resolution.
+    if (olderParts.unit === youngerParts.unit && olderParts.value === youngerParts.value) {
+      return `${formatDuration(older)} ago`;
+    }
     return olderParts.unit === youngerParts.unit
       ? `${olderParts.value} – ${youngerParts.value} ${youngerParts.unit} ago`
       : `${formatDuration(older)} – ${formatDuration(younger)} ago`;
@@ -574,6 +660,11 @@ export function formatDuration(years: number, floor = 0): string {
     if (rounded !== value) return formatDuration(rounded);
   }
 
+  // Above a billion there was nothing, so 3.1104e14 — the lifespan of Brahma in
+  // the traditional reckoning — printed as "311040 billion years". A number
+  // nobody writes that way, and hard to read besides.
+  if (value >= 1_000_000_000_000_000) return `${trimZeros((value / 1_000_000_000_000_000).toFixed(2))} quadrillion years`;
+  if (value >= 1_000_000_000_000) return `${trimZeros((value / 1_000_000_000_000).toFixed(2))} trillion years`;
   if (value >= 1_000_000_000) return `${trimZeros((value / 1_000_000_000).toFixed(2))} billion years`;
   if (value >= 1_000_000) return `${trimZeros((value / 1_000_000).toFixed(value >= 10_000_000 ? 1 : 3))} million years`;
   if (value >= 10_000) return `${withThousands(Math.round(value / 1000) * 1000)} years`;
@@ -632,10 +723,14 @@ export type ClaimComparison = {
   anyApproximate: boolean;
 };
 
-export function compareClaims(claims: ClaimTimeParts[]): ClaimComparison | null {
+export function compareClaims(allClaims: ClaimTimeParts[]): ClaimComparison | null {
+  // Only claims that place themselves can be said to agree or disagree about
+  // where. "No finite beginning" does not disagree with 13.8 billion years by
+  // a number of years, and inventing one would be worse than saying nothing.
+  const claims = positionedClaims(allClaims);
   if (claims.length === 0) return null;
 
-  const intervals = claims.map(claimInterval);
+  const intervals = claims.map(claimInterval).filter((interval) => interval != null);
   const earliest = Math.min(...intervals.map((interval) => interval.lo));
   const latest = Math.max(...intervals.map((interval) => interval.hi));
   // The number a reader is given is the distance between where the claims SIT,

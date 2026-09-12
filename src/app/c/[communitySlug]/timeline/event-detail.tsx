@@ -6,7 +6,13 @@ import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
-import type { TimelineClaimSource, TimelineEventLink, TimelineSource, TimelineTrack } from "@/types/database";
+import type {
+  TimelineClaimSource,
+  TimelineDateClaim,
+  TimelineEventLink,
+  TimelineSource,
+  TimelineTrack,
+} from "@/types/database";
 import type { TimelineEventWithClaims, TimelineLinkedRecord } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
@@ -22,6 +28,7 @@ import {
   compareClaims,
   describeComparison,
   eventDateLabel,
+  formatClaimDate,
   presentPosition,
 } from "@/lib/timeline/time";
 
@@ -30,6 +37,26 @@ import {
 // The order says what the feature is for: what happened, then WHEN DIFFERENT
 // PEOPLE SAY IT HAPPENED, each with its source. The dates are not a field in a
 // sidebar — they are the body of the page.
+
+/**
+ * The claims split by WHAT THEY DATE, in the order they first appear.
+ *
+ * A claim that does not say what it dates is grouped under no subject rather
+ * than under a made-up one — on a record where the others do say, "this one
+ * didn't specify" is the honest rendering, and inventing a heading for it
+ * would assert something nobody wrote.
+ */
+function groupBySubject(claims: TimelineDateClaim[]): Map<string, { subject: string | null; claims: TimelineDateClaim[] }> {
+  const groups = new Map<string, { subject: string | null; claims: TimelineDateClaim[] }>();
+  for (const claim of claims) {
+    const subject = claim.what_is_dated?.trim() || null;
+    const key = subject ?? "";
+    const group = groups.get(key);
+    if (group) group.claims.push(claim);
+    else groups.set(key, { subject, claims: [claim] });
+  }
+  return groups;
+}
 
 export function EventDetail({
   event,
@@ -81,15 +108,23 @@ export function EventDetail({
   // The author may edit their own; staff may edit anything.
   const canEdit = isStaff || (userId != null && event.created_by === userId);
 
-  const midpoint = event.claims.length > 0 ? claimMidpoint(event.claims[0]) : 0;
-  const isFuture = event.claims.length > 0 && Math.min(...event.claims.map(claimMidpoint)) > presentPosition();
+  // WHERE THIS EVENT SITS, for the two features that need one number: the
+  // "what else was happening then?" window, and the future-event chip. Both
+  // read only the claims that place themselves — an event carrying "no finite
+  // beginning" alongside a measured age is positioned by the measured age, and
+  // one carrying nothing but positionless claims is positioned nowhere, which
+  // turns both features off rather than sending them to year zero.
+  const placed = event.claims.map(claimMidpoint).filter((position): position is number => position != null);
+  const midpoint = placed.length > 0 ? placed[0] : null;
+  const isFuture = placed.length > 0 && Math.min(...placed) > presentPosition();
 
   function contextWindow(): { from: number; to: number } {
     // A window wide enough to show neighbours, scaled to the event's own age —
     // "at the same time" means a century for the Norman Conquest and fifty
     // million years for the dinosaurs.
-    const span = Math.max(40, Math.abs(midpoint) * 0.02);
-    return { from: midpoint - span, to: midpoint + span };
+    const at = midpoint ?? 0;
+    const span = Math.max(40, Math.abs(at) * 0.02);
+    return { from: at - span, to: at + span };
   }
 
   function review(decision: "published" | "rejected") {
@@ -117,6 +152,56 @@ export function EventDetail({
   // nothing has been dated yet, which is a real state and not an error.
   const dateLabel = eventDateLabel(event.claims);
   const disagree = claimsDisagree(event.claims);
+
+  // DO THESE CLAIMS EVEN ANSWER THE SAME QUESTION?
+  //
+  // Everywhere else on this timeline they do: five sources dating the Great
+  // Pyramid are five answers about one building. On a record like the age of
+  // the universe they do not — one claim dates the expansion of the observable
+  // universe and another dates the creation of the world, and calling that
+  // "sources disagree" would tell a reader they are rival measurements of one
+  // quantity, which is the single most misleading thing this record could say.
+  //
+  // The test is the data's own: more than one distinct what_is_dated.
+  const subjects = new Set(
+    event.claims.map((claim) => claim.what_is_dated?.trim()).filter((subject): subject is string => Boolean(subject))
+  );
+  const severalSubjects = subjects.size > 1;
+
+  // Claims that place nothing on the axis — read here or nowhere, since the
+  // strip cannot show them.
+  const positionlessCount = event.claims.filter((claim) => claim.start_year == null).length;
+
+  // ONE RANGE PER SUBJECT, rather than one range across all of them.
+  //
+  // The single headline is right when every claim answers the same question —
+  // five datings of one pyramid have one honest envelope. It is wrong here: an
+  // envelope stretched from the age of cosmic expansion to a Biblical creation
+  // date is a true span of two different topics, and at a glance it reads as
+  // one proposed range. Splitting it gives each question its own answer and
+  // costs three lines.
+  //
+  // Ordered oldest first, by the earliest thing each subject places, so the
+  // stack still reads as a chronology. Subjects that place nothing go last:
+  // they have no position to sort by, and putting them at the top would bury
+  // the dates under the claims that have none.
+  const subjectRows = severalSubjects
+    ? [...groupBySubject(event.claims).values()]
+        .map((group) => ({
+          subject: group.subject,
+          label: eventDateLabel(group.claims) ?? formatClaimDate(group.claims[0]),
+          oldest: group.claims
+            .map(claimMidpoint)
+            .filter((position): position is number => position != null)
+            .reduce<number | null>((lowest, position) => (lowest == null ? position : Math.min(lowest, position)), null),
+        }))
+        .sort((a, b) => {
+          if (a.oldest == null && b.oldest == null) return 0;
+          if (a.oldest == null) return 1;
+          if (b.oldest == null) return -1;
+          return a.oldest - b.oldest;
+        })
+    : [];
 
   return (
     <article className="pb-8">
@@ -163,7 +248,27 @@ export function EventDetail({
               which is the honest headline and also the interesting one. The
               line underneath says so, so nobody mistakes a span of disagreement
               for a span of time the event lasted. */}
-          {dateLabel && (
+          {/* ONE LINE PER QUESTION, where the record answers more than one.
+              Each row is that subject's own envelope, computed exactly the way
+              the single headline is — so "the age of cosmic expansion" gets the
+              span of the two Planck fits, and "whether there is a first moment"
+              gets the words rather than a number. */}
+          {severalSubjects && subjectRows.length > 0 && (
+            <dl className="mt-3 space-y-2.5">
+              {subjectRows.map((row) => (
+                <div key={row.subject ?? "unstated"}>
+                  <dt className="text-xl font-semibold tabular-nums tracking-tight text-foreground sm:text-2xl">
+                    {row.label}
+                  </dt>
+                  <dd className="mt-0.5 max-w-3xl text-sm text-muted-foreground">
+                    {row.subject ?? "This claim does not say what it dates."}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {dateLabel && !severalSubjects && (
             <div className="mt-2">
               <p className="text-2xl font-semibold tabular-nums tracking-tight text-foreground sm:text-3xl">
                 {dateLabel}
@@ -176,6 +281,27 @@ export function EventDetail({
                     : `${event.claims.length} sources, in agreement`}
               </p>
             </div>
+          )}
+
+          {/* SAID IN WORDS, not left to the reader to infer from a subtitle.
+              A span running from 13.8 billion years ago to 4004 BCE looks like
+              a disagreement about a number until somebody says that it isn't. */}
+          {severalSubjects && (
+            <p className="mt-2 max-w-4xl rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">These are not rival answers to one question.</span> The
+              dates above are {subjects.size} separate answers to {subjects.size} separate questions, not a
+              disagreement about one. There is no single figure for this record because none would be true of all of
+              them.
+              {positionlessCount > 0 && (
+                <>
+                  {" "}
+                  {positionlessCount === 1
+                    ? "One of them places nothing on the timeline at all, which is what it asserts"
+                    : `${positionlessCount} of them place nothing on the timeline at all, which is what they assert`}{" "}
+                  rather than something missing.
+                </>
+              )}
+            </p>
           )}
 
           {event.summary && <p className="mt-3 max-w-4xl text-[15px] text-muted-foreground">{event.summary}</p>}
@@ -291,7 +417,7 @@ export function EventDetail({
           <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             Proposed dates ({event.claims.length})
           </h2>
-          {onShowContext ? (
+          {midpoint == null ? null : onShowContext ? (
             <button
               type="button"
               onClick={() => {
@@ -316,7 +442,15 @@ export function EventDetail({
             only where there IS one. Overlapping windows are reported as
             overlapping rather than subtracted into a misleading number, and
             nothing is stated more precisely than the coarsest claim allows. */}
-        {comparison && comparison.kind !== "single" && said && (
+        {/* NOT SHOWN WHEN THE CLAIMS ARE ABOUT DIFFERENT THINGS. This banner
+            says "sources disagree about when this happened" and prints the
+            distance between the earliest and latest — which is exactly right
+            for five datings of one pyramid, and exactly wrong here: the age of
+            cosmic expansion and Ussher's creation date are not two answers
+            that can be subtracted, and "13.8 billion years separates them" is
+            a number with no meaning. The banner at the top of the record says
+            what is actually going on instead. */}
+        {comparison && comparison.kind !== "single" && said && !severalSubjects && (
           <div
             className={cn(
               "mb-4 flex gap-3 rounded-xl border p-4",

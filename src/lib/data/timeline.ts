@@ -230,11 +230,19 @@ export async function getTimelineExtent(
   supabase: Client,
   communityId: string
 ): Promise<{ from: number; to: number } | null> {
+  // POSITIONLESS CLAIMS ARE EXCLUDED AT THE QUERY, not filtered afterwards.
+  // Postgres sorts nulls first on a descending order, so the "latest" row would
+  // otherwise come back as a claim with no position at all — and a community
+  // that had added "no finite beginning" would lose its extent entirely and
+  // open on the default window. The rows are also genuinely irrelevant to the
+  // question: an eternal universe cannot widen the strip, because it is
+  // nowhere on it.
   const [earliest, latest] = await Promise.all([
     supabase
       .from("timeline_date_claims")
       .select("start_position")
       .eq("community_id", communityId)
+      .not("start_position", "is", null)
       .order("start_position", { ascending: true })
       .limit(1)
       .maybeSingle(),
@@ -242,6 +250,7 @@ export async function getTimelineExtent(
       .from("timeline_date_claims")
       .select("start_position, end_position")
       .eq("community_id", communityId)
+      .not("start_position", "is", null)
       .order("start_position", { ascending: false })
       .limit(1)
       .maybeSingle(),
@@ -252,7 +261,9 @@ export async function getTimelineExtent(
   if (!earliest.data || !latest.data) return null;
 
   const from = earliest.data.start_position;
-  const to = Math.max(latest.data.end_position ?? latest.data.start_position, from + 1);
+  const last = latest.data.end_position ?? latest.data.start_position;
+  if (from == null || last == null) return null;
+  const to = Math.max(last, from + 1);
   return { from, to };
 }
 

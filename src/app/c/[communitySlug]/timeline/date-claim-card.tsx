@@ -13,6 +13,7 @@ import {
   formatClaimDate,
   formatDateParts,
   formatDuration,
+  type IntervalKind,
 } from "@/lib/timeline/time";
 import {
   chronologyLabel,
@@ -20,6 +21,8 @@ import {
   datingMethodLabel,
   sourceTierLabel,
   sourceTypeLabel,
+  temporalTypeHint,
+  temporalTypeLabel,
   viewpointHint,
 } from "@/lib/timeline/taxonomy";
 import { SourceChainPanel } from "./source-chain-panel";
@@ -38,9 +41,13 @@ import { ClaimCitations } from "./claim-citations";
 
 function Field({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-2.5">
+    <div className="flex min-w-0 gap-2.5">
       <span className="mt-0.5 shrink-0 text-muted-foreground">{icon}</span>
-      <div className="min-w-0">
+      {/* flex-1 as well as min-w-0: min-w-0 alone lets the column shrink BELOW
+          its content, but does not stop it sizing to that content in the first
+          place, so a long reference — Ussher's runs to a full sentence — pushed
+          the row past the viewport on a phone. */}
+      <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
         <div className="text-sm text-foreground">{children}</div>
       </div>
@@ -80,7 +87,9 @@ export function SourceLine({ source, compact = false }: { source: TimelineSource
             source is any good, and the wording is chosen so it can't be read
             that way. */}
         {sourceTierLabel(source.source_type) && <span>{sourceTierLabel(source.source_type)}</span>}
-        {source.reference && <span>{source.reference}</span>}
+        {/* A reference can be a sentence rather than a page number, so it is
+            allowed to break inside a long word rather than force the row wide. */}
+        {source.reference && <span className="min-w-0 break-words">{source.reference}</span>}
         {made && <span>Source made: {made}</span>}
         {source.accessed_on && <span>Read {source.accessed_on}</span>}
         {source.url && (
@@ -150,6 +159,12 @@ export function DateClaimCard({
   const comparison = compareClaims(siblings);
   const { headline, normalised, quoted } = claimHeadline(claim);
   const interval = claimInterval(claim);
+  // A claim that places nothing on the axis. Its card is the ONLY place it can
+  // be read, since it is by definition absent from the strip, so it says what
+  // kind of claim it is rather than leaving a reader to notice an absence.
+  const positionless = interval == null;
+  const typeLabel = temporalTypeLabel(claim.temporal_claim_type);
+  const typeHint = temporalTypeHint(claim.temporal_claim_type);
 
   return (
     <div className="rounded-xl border border-border bg-card">
@@ -160,9 +175,30 @@ export function DateClaimCard({
             {/* Where that wording puts the event on the axis. Shown whenever the
                 headline is the source's own words, so the reader can always see
                 the normalisation rather than having it done silently. */}
-            {quoted && (
+            {quoted && !positionless && (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 On the timeline: <span className="font-medium text-foreground">{normalised}</span>
+              </p>
+            )}
+            {/* SAID OUT LOUD, because the alternative is that a reader wonders
+                where the date went. The strip cannot show this claim and that
+                is not a shortcoming of either the claim or the strip. */}
+            {/* WHAT THIS DATE IS A DATE FOR. Only shown when the record
+                carries claims about more than one thing, which is where the
+                confusion lives: "13.8 billion years" and "4004 BCE" on one
+                record are not two answers, and this is the line that says so
+                on each of them. */}
+            {claim.what_is_dated && (
+              <p className="mt-1 text-sm">
+                <span className="text-muted-foreground">Dates: </span>
+                <span className="font-medium text-foreground">{claim.what_is_dated}</span>
+              </p>
+            )}
+            {positionless && (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {claim.duration_years != null
+                  ? "A length of time, not a point on the timeline — so it is not drawn on the strip."
+                  : "Not a point on the timeline. This claim is about time without naming a moment, so there is nowhere on the strip to draw it."}
               </p>
             )}
           </div>
@@ -193,17 +229,31 @@ export function DateClaimCard({
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {/* WHAT KIND of claim about time this is. First, because it changes
+              how everything after it should be read: "a calculated date" and
+              "a date" are different assertions wearing the same numerals. */}
+          {typeLabel && (
+            <span
+              title={typeHint || undefined}
+              className={cn(
+                "rounded-full px-2 py-0.5 text-xs font-medium",
+                positionless ? "bg-accent-soft text-foreground ring-1 ring-border" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {typeLabel}
+            </span>
+          )}
           {claim.is_approximate && (
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
               Approximate
             </span>
           )}
-          {interval.kind === "range" && (
+          {interval?.kind === "range" && (
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
               A range, not a single date
             </span>
           )}
-          {interval.kind === "tolerance" && (
+          {interval?.kind === "tolerance" && (
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
               Measured, with a stated ±
             </span>
@@ -372,9 +422,20 @@ export function DateClaimCard({
               </dd>
             </div>
 
+            {/* WHAT KIND OF CLAIM, spelled out. The chip at the top names it;
+                this says what the name means, which is where the difference
+                between a fitted parameter and an addition performed on
+                genealogies actually lands for a reader. */}
+            {typeHint && (
+              <div>
+                <dt className="font-medium text-foreground">What kind of claim about time is this?</dt>
+                <dd className="text-muted-foreground">{typeHint}</dd>
+              </div>
+            )}
+
             <div>
               <dt className="font-medium text-foreground">Exact, or an estimate?</dt>
-              <dd className="text-muted-foreground">{precisionSentence(claim, interval.kind)}</dd>
+              <dd className="text-muted-foreground">{precisionSentence(claim, interval?.kind ?? null)}</dd>
             </div>
 
             {claim.notes && (
@@ -441,7 +502,15 @@ export function DateClaimCard({
 }
 
 /** What the claim's own precision means, said plainly and without inventing any. */
-function precisionSentence(claim: TimelineDateClaim, kind: ReturnType<typeof claimInterval>["kind"]): string {
+function precisionSentence(claim: TimelineDateClaim, kind: IntervalKind | null): string {
+  // A claim that places nothing has no precision to describe. Saying so
+  // directly is better than the nearest available half-truth ("given to the
+  // year"), which would be a statement about a date the claim never made.
+  if (kind === null) {
+    return claim.duration_years != null
+      ? "A length of time, not a date. It says how long something lasts, not when it happened."
+      : "This claim places nothing on the timeline. That is what it asserts, not something missing from it.";
+  }
   const unit = dateUnitLabel(claim.date_precision).toLowerCase();
 
   if (kind === "tolerance") {

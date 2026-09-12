@@ -2179,7 +2179,12 @@ export type TimelineDateClaim = {
   created_by: string;
   source_id: string | null;
   // Astronomical year: 1 CE = 1, 1 BCE = 0, 2 BCE = -1, Big Bang ≈ -1.38e10.
-  start_year: number;
+  //
+  // NULL MEANS THE CLAIM ASSERTS NO POSITION — the Steady State universe has no
+  // finite beginning, a kalpa is a length that starts nowhere. Not a gap in the
+  // record: a claim about time that is not a claim about a moment. The database
+  // permits it only for the positionless temporal_claim_types.
+  start_year: number | null;
   start_month: number | null;
   start_day: number | null;
   // Set for a span ("2600–2500 BCE"); null for a point claim.
@@ -2188,9 +2193,12 @@ export type TimelineDateClaim = {
   end_day: number | null;
   // Generated columns — year+month+day folded into the number the axis draws
   // against, and the era the year implies. Read-only: Postgres computes them.
-  start_position: number;
+  // Null exactly when start_year is: a claim with no position is not drawn on
+  // the axis and is not returned by the window query, which is the correct
+  // behaviour rather than a limitation.
+  start_position: number | null;
   end_position: number | null;
-  start_era: "BCE" | "CE";
+  start_era: "BCE" | "CE" | null;
   end_era: "BCE" | "CE" | null;
   // PRECISION AS THE SOURCE GAVE IT. date_precision is the UNIT it counted in
   // (a DATE_UNITS key in src/lib/timeline/time.ts) and precision_decimals is
@@ -2224,6 +2232,21 @@ export type TimelineDateClaim = {
   original_date_text: string;
   dating_method: string | null;
   chronology: string | null;
+  // WHAT KIND OF CLAIM ABOUT TIME THIS IS — a TEMPORAL_CLAIM_TYPES key in
+  // src/lib/timeline/taxonomy.ts. The difference between a date somebody
+  // measured, a date somebody calculated from genealogies, and an assertion
+  // that there is no first moment at all. Null on every claim written before
+  // the column existed, which correctly means "nobody has said".
+  temporal_claim_type: string | null;
+  // WHICH PROPOSITION this date is a date FOR. Two claims on one record are not
+  // necessarily rival answers to one question — "the expansion of the
+  // observable universe" and "the creation of the world" are different
+  // subjects that happen to share a record. Null = it dates the record itself.
+  what_is_dated: string | null;
+  // A LENGTH OF TIME WITH NO POSITION, in years — 4,320,000 for a mahayuga.
+  // Not a range: end_year is the far end of something that starts at
+  // start_year, and a row may not carry both.
+  duration_years: number | null;
   // What "Why this date?" leads with. With confidence ratings removed, this is
   // the field carrying the educational weight.
   evidence: string | null;
@@ -3003,10 +3026,13 @@ export type Database = {
         // event_id is not required here because a boundary claim carries
         // period_id instead. The database enforces that exactly one is set —
         // a check constraint, not a convention.
+        // start_year is NOT required: a claim asserting no finite beginning has
+        // none, and the database permits that for the positionless
+        // temporal_claim_types. The CHECK constraint is what enforces the rule,
+        // because it is the only place that can see both columns at once.
         Insert: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era"> & {
           community_id: string;
           created_by: string;
-          start_year: number;
         };
         Update: Omit<Partial<TimelineDateClaim>, "start_position" | "end_position" | "start_era" | "end_era">;
         Relationships: [

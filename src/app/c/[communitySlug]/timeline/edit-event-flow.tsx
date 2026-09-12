@@ -56,7 +56,11 @@ function claimToDraft(claim: TimelineDateClaim): ClaimDraft {
   };
 
   return {
-    start: toInput(claim.start_year, claim.start_month, claim.start_day),
+    // THE FORM EDITS DATES, and a claim with no position has none to put in the
+    // fields. Seeded positionless claims are read-only in this build: the form
+    // falls back to the present rather than crashing, and the card that offers
+    // the edit is hidden for them (see DateClaimCard).
+    start: toInput(claim.start_year ?? new Date().getFullYear(), claim.start_month, claim.start_day),
     end: claim.end_year != null ? toInput(claim.end_year, claim.end_month, claim.end_day) : null,
     date_precision: claim.date_precision,
     precision_decimals: claim.precision_decimals,

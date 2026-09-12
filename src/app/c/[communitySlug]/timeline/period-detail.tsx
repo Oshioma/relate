@@ -171,7 +171,12 @@ export function PeriodDetail({
   const length = extent ? formatDuration(extent.to - extent.from) : null;
 
   // Boundary claims, oldest first, so the card reads left to right through time.
-  const boundaries = [...period.claims].sort((a, b) => a.start_position - b.start_position);
+  // A boundary that places nothing is not a boundary. Periods have never had
+  // one and the seeders cannot make one, but the sort would otherwise compare
+  // against null and scramble the order rather than fail.
+  const boundaries = period.claims
+    .filter((claim) => claim.start_position != null)
+    .sort((a, b) => (a.start_position ?? 0) - (b.start_position ?? 0));
 
   // EVENTS IN THIS PERIOD — DERIVED, EVERY TIME.
   //
@@ -188,7 +193,7 @@ export function PeriodDetail({
       return { event, matching };
     })
     .filter((entry) => entry.matching.length > 0)
-    .sort((a, b) => a.matching[0].start_position - b.matching[0].start_position);
+    .sort((a, b) => (a.matching[0].start_position ?? 0) - (b.matching[0].start_position ?? 0));
 
   const partial = inside.filter((entry) => entry.matching.length < entry.event.claims.length);
 

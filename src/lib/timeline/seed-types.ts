@@ -45,8 +45,15 @@ export type SeedClaim = {
   sourceKey: string | null;
   /** Everything else worth reading on it — evidence, criticism, context. */
   citations?: SeedCitation[];
-  /** Astronomical year numbering: 1 BCE = 0, 2 BCE = −1. See time.ts. */
-  startYear: number;
+  /**
+   * Astronomical year numbering: 1 BCE = 0, 2 BCE = −1. See time.ts.
+   *
+   * OMITTED WHERE THE CLAIM PLACES NOTHING — the Steady State universe has no
+   * finite beginning, and a kalpa is a length rather than a moment. Permitted
+   * only alongside a positionless temporalClaimType; the database enforces the
+   * same rule.
+   */
+  startYear?: number;
   startMonth?: number;
   startDay?: number;
   endYear?: number;
@@ -82,6 +89,21 @@ export type SeedClaim = {
   /** "Why this date?" — what produced it and what it does and does not establish. */
   evidence: string;
   notes?: string;
+  /**
+   * A TEMPORAL_CLAIM_TYPES key — what KIND of claim about time this is. The
+   * difference between a fitted cosmological parameter, an addition performed
+   * on genealogies, and an assertion that there is no first moment at all.
+   */
+  temporalClaimType?: string;
+  /** A LENGTH with no position, in years. Never paired with endYear. */
+  durationYears?: number;
+  /**
+   * Which proposition this date is a date FOR. Set when one record carries
+   * claims about genuinely different things — the age of the observable
+   * universe and the creation of the world are not rival answers to one
+   * question, and without this they would be stacked as though they were.
+   */
+  whatIsDated?: string;
 };
 
 export type SeedEvent = {
