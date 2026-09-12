@@ -370,6 +370,18 @@ const TRADITIONS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Mr._George_Smith,_the_man_who_transliterated_and_read_the_so-called_the_Babylonian_Flood_Story_of_Tablet_XI.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "George Smith, who read Tablet XI in 1872. THE TABLET HAD BEEN IN THE BRITISH MUSEUM FOR YEARS: what " +
+          "changed was not a discovery in the ground but somebody becoming able to read what was already on the " +
+          "shelf. It is here beside the tablet because a text and the moment it became legible are two " +
+          "different dates, and this timeline keeps them apart.",
+        kind: "image",
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -446,6 +458,17 @@ const TRADITIONS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Transcription_of_the_Weld-Blundell_Prism_(first_ten_lines).jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The first ten lines of the prism, transcribed. Shown beside the object because this is where a " +
+          "reader's trust actually goes: almost nobody reads the scratched clay, everybody reads somebody's " +
+          "transcription of it, and the reign lengths this record is about come to us through that step.",
+        kind: "image",
         creditFrom: "source",
       },
     ],

@@ -300,6 +300,18 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hon._Ignatius_Donnelly,_Minn.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Ignatius Donnelly, photographed by the Mathew Brady studio. His 1882 book is the reason " +
+          "Atlantis-as-a-real-place is the alternative reading most people have already met, which is why his " +
+          "claim on this record is marked a WIDELY-HELD alternative \u2014 a statement about how far an idea " +
+          "travelled, and not about how well it is supported.",
+        kind: "image",
+        creditFrom: "source",
+      },
     ],
     claims: [
       // --- The esoteric chronologies, oldest first -------------------------

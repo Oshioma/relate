@@ -160,6 +160,17 @@ const GREEK: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Peter_Paul_Rubens_-_Deucalion_and_Pyrrha,_1636.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Rubens, 1636 \u2014 about eighty years after the Solis engraving above it. Two later artworks, neither a " +
+          "record of anything, and what changed between them is European painting rather than anything about " +
+          "Greece. That is easier to see with both than with either.",
+        kind: "image",
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

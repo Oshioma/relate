@@ -1182,6 +1182,18 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lascaux,_replica_03.JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "Lascaux II, the full-size replica near the original. THIS IS NOT THE CAVE. It is here deliberately " +
+          "beside the other picture: the original has been closed to visitors since 1963, a great many " +
+          "circulated 'Lascaux' photographs are of this rather than of it, and being able to tell which one you " +
+          "are looking at is the whole point of putting both here.",
+        kind: "image",
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1324,6 +1336,18 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bronze_and_gold_swords_buried_with_the_Nebra_Sky_Disc.png?width=1024",
+        shows: "artefact",
+        caption:
+          "The swords found with the Nebra disc. THEY ARE WHY THE DATE IS ARGUED ABOUT: the disc cannot be " +
+          "dated directly, so it is dated by the hoard it was buried in \u2014 and because the hoard was looted " +
+          "rather than excavated, the association between the disc and these swords had to be reconstructed " +
+          "after the fact rather than recorded in the ground.",
+        kind: "image",
         creditFrom: "source",
       },
     ],
