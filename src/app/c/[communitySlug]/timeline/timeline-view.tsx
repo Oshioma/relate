@@ -53,6 +53,7 @@ import {
   seedFloodEurasiaDataset,
   seedFloodChinaDataset,
   seedFloodSubmergedDataset,
+  seedFloodAmericasDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -257,6 +258,7 @@ export function TimelineView({
   hasFloodEurasia,
   hasFloodChina,
   hasFloodSubmerged,
+  hasFloodAmericas,
   datasetGaps,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
@@ -307,6 +309,7 @@ export function TimelineView({
   hasFloodEurasia: boolean;
   hasFloodChina: boolean;
   hasFloodSubmerged: boolean;
+  hasFloodAmericas: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** The Hannibal dataset is here, but was taken before it had pictures. */
@@ -1725,6 +1728,35 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodAmericas && (
+        <DatasetOffer
+          title="Add the Mesoamerican and Andean traditions?"
+          busyLabel="Adding the records…"
+          label="Add these flood traditions"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodAmericasDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Four records, and not one of them dates a flood — because not one of the sources does. The Popol Vuh&apos;s
+          wooden people are not humanity: they are a failed attempt at it, destroyed because they could not speak the
+          names of their makers, and the survivors became monkeys. The Aztec Fourth Sun ends in water, and the Leyenda
+          de los Soles gives a real elapsed count — four hundred years, two ages and seventy-six — anchored to nothing
+          that can be converted. In the Huarochirí account a llama warns its owner, the refuge is a mountain already
+          crowded with animals, nobody is chosen and there is no ark. That manuscript was compiled around 1608 by
+          indigenous assistants working for a judge in the campaign to destroy the beliefs he was having written down,
+          and its own redactor notes that Christians read it as Noah&apos;s flood &ldquo;but they believe it was Villca
+          Coto mountain that saved them&rdquo;. The circumstances are their own dated record.
+        </DatasetOffer>
+      )}
+
       {isStaff && !hasFloodSubmerged && (
         <DatasetOffer
           title="Add the drowned lands, and the coasts people remember?"
@@ -1935,6 +1967,11 @@ export function TimelineView({
                   if (result.restored > 0) {
                     parts.push(
                       `Put back ${result.restored} missing ${result.restored === 1 ? "record" : "records"}: ${result.restoredTitles.join(", ")}.`
+                    );
+                  }
+                  if (result.pictured > 0) {
+                    parts.push(
+                      `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"} to records that had none.`
                     );
                   }
                   if (result.updated > 0) {
