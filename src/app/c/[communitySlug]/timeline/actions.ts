@@ -50,6 +50,12 @@ import {
   ANCIENT_SITES_TRACK,
 } from "@/lib/timeline/ancient-sites-seed";
 import {
+  EARLY_AUSTRALIA_EVENTS,
+  EARLY_AUSTRALIA_LINKS,
+  EARLY_AUSTRALIA_SOURCES,
+  EARLY_AUSTRALIA_TRACK,
+} from "@/lib/timeline/early-australia-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1780,6 +1786,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_LINKS,
   },
   {
+    label: "Early human presence in Australia and Sahul",
+    track: EARLY_AUSTRALIA_TRACK,
+    events: EARLY_AUSTRALIA_EVENTS,
+    sources: EARLY_AUSTRALIA_SOURCES,
+    links: EARLY_AUSTRALIA_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2366,6 +2379,28 @@ export async function seedAncientSitesDataset(communitySlug: string) {
     track: ANCIENT_SITES_TRACK,
     links: ANCIENT_SITES_LINKS,
     label: "Ancient sites: where the proposed dates disagree",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Moyjil, Madjedbebe, and arrival in Sahul — kept as three records because an
+ * occupation date, a disputed interpretation and a date of arrival are three
+ * different things. See early-australia-seed.ts.
+ */
+export async function seedEarlyAustraliaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: EARLY_AUSTRALIA_EVENTS,
+    sources: EARLY_AUSTRALIA_SOURCES,
+    track: EARLY_AUSTRALIA_TRACK,
+    links: EARLY_AUSTRALIA_LINKS,
+    label: "Early human presence in Australia and Sahul",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

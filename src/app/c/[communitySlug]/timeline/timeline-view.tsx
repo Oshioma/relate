@@ -59,6 +59,7 @@ import {
   seedFloodAmericasDataset,
   seedFloodRegionsDataset,
   seedAncientSitesDataset,
+  seedEarlyAustraliaDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -266,6 +267,7 @@ export function TimelineView({
   hasFloodAmericas,
   hasFloodRegions,
   hasAncientSites,
+  hasEarlyAustralia,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -320,6 +322,7 @@ export function TimelineView({
   hasFloodAmericas: boolean;
   hasFloodRegions: boolean;
   hasAncientSites: boolean;
+  hasEarlyAustralia: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1767,6 +1770,35 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasEarlyAustralia && (
+        <DatasetOffer
+          title="Add the early Australian records?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedEarlyAustraliaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Three records, and the distinctions between them are the point. At Moyjil on the Victorian coast the
+          deposit really is about 120,000 years old and that is not disputed — what is disputed is whether people
+          made the burnt stones and gathered the shells, and the researchers put it as a question in their own
+          titles: &quot;nature or people?&quot; and &quot;is it a hearth?&quot;. Madjedbebe in Arnhem Land has an
+          assemblage nobody disputes is artefacts, interpreted as occupation by about 65,000 years ago, with a
+          published argument that a tropical sand sheet could have moved small artefacts downwards and the
+          excavators&apos; reply on the record beside it. And arrival in Sahul is its own record, because an
+          occupation date at one rock shelter is a MINIMUM for presence on a continent and never a date of arrival —
+          a question the archaeology and the 2025 genetic commentaries currently answer differently.
         </DatasetOffer>
       )}
 
