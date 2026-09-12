@@ -15,6 +15,7 @@ import {
   DATE_UNITS,
   eventDateLabel,
   formatClaimDate,
+  formatDuration,
   positionedClaims,
   yearsAgoOf,
   type ClaimTimeParts,
@@ -194,6 +195,33 @@ test("an event whose every claim is positionless is not drawn at all", () => {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   assert.deepEqual(layoutLane([event as any], window, 1000, "linear"), [], "nowhere to put it, so it is not put anywhere");
+});
+
+test("a range between a number and itself is written once", () => {
+  // Planck's two ages differ by four million years — real, and far below the
+  // two decimal places this scale prints. The envelope came out as
+  // "13.8 billion – 13.8 billion years ago", a range between a number and
+  // itself. The claims keep their own precision on their own cards.
+  const planck = anchorClaims.filter((claim) => claim.date_precision === "billion_years");
+  assert.equal(planck.length, 2);
+  assert.notEqual(planck[0].start_year, planck[1].start_year, "they really are different numbers");
+
+  const label = eventDateLabel(planck);
+  assert.ok(label);
+  assert.ok(!label.includes("–"), `an unresolvable range must not be printed as one: "${label}"`);
+  assert.match(label, /13\.8 billion years ago/);
+});
+
+test("durations above a billion years have a unit", () => {
+  // Brahma's lifespan printed as "311040 billion years" before there was a
+  // trillion branch — arithmetically right and unreadable.
+  assert.equal(formatDuration(311_040_000_000_000), "311.04 trillion years");
+  assert.equal(formatDuration(4_320_000_000), "4.32 billion years");
+  assert.equal(formatDuration(4_320_000), "4.32 million years");
+
+  const brahma = ANCHOR.claims.find((claim) => claim.durationYears === 311_040_000_000_000);
+  assert.ok(brahma);
+  assert.match(formatClaimDate(asClaim(brahma)), /trillion years/);
 });
 
 // ---------------------------------------------------------------------------

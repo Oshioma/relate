@@ -609,6 +609,15 @@ export function eventDateLabel(allClaims: ClaimTimeParts[]): string | null {
     if (Math.abs(older - younger) < 1) return `${formatDuration(older)} ago`;
     const youngerParts = durationParts(younger);
     const olderParts = durationParts(older);
+    // TWO ENDS THAT WRITE THE SAME ARE NOT A RANGE. Planck's two published
+    // ages differ by four million years, which is a real difference and is
+    // nowhere near the two decimal places this scale prints — so the envelope
+    // came out as "13.8 billion – 13.8 billion years ago", a range between a
+    // number and itself. The claims keep their own precision on their own
+    // cards; the headline says the one thing it can say at this resolution.
+    if (olderParts.unit === youngerParts.unit && olderParts.value === youngerParts.value) {
+      return `${formatDuration(older)} ago`;
+    }
     return olderParts.unit === youngerParts.unit
       ? `${olderParts.value} – ${youngerParts.value} ${youngerParts.unit} ago`
       : `${formatDuration(older)} – ${formatDuration(younger)} ago`;
@@ -651,6 +660,11 @@ export function formatDuration(years: number, floor = 0): string {
     if (rounded !== value) return formatDuration(rounded);
   }
 
+  // Above a billion there was nothing, so 3.1104e14 — the lifespan of Brahma in
+  // the traditional reckoning — printed as "311040 billion years". A number
+  // nobody writes that way, and hard to read besides.
+  if (value >= 1_000_000_000_000_000) return `${trimZeros((value / 1_000_000_000_000_000).toFixed(2))} quadrillion years`;
+  if (value >= 1_000_000_000_000) return `${trimZeros((value / 1_000_000_000_000).toFixed(2))} trillion years`;
   if (value >= 1_000_000_000) return `${trimZeros((value / 1_000_000_000).toFixed(2))} billion years`;
   if (value >= 1_000_000) return `${trimZeros((value / 1_000_000).toFixed(value >= 10_000_000 ? 1 : 3))} million years`;
   if (value >= 10_000) return `${withThousands(Math.round(value / 1000) * 1000)} years`;

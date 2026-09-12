@@ -6,7 +6,13 @@ import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
-import type { TimelineClaimSource, TimelineEventLink, TimelineSource, TimelineTrack } from "@/types/database";
+import type {
+  TimelineClaimSource,
+  TimelineDateClaim,
+  TimelineEventLink,
+  TimelineSource,
+  TimelineTrack,
+} from "@/types/database";
 import type { TimelineEventWithClaims, TimelineLinkedRecord } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
@@ -22,6 +28,7 @@ import {
   compareClaims,
   describeComparison,
   eventDateLabel,
+  formatClaimDate,
   presentPosition,
 } from "@/lib/timeline/time";
 
@@ -30,6 +37,26 @@ import {
 // The order says what the feature is for: what happened, then WHEN DIFFERENT
 // PEOPLE SAY IT HAPPENED, each with its source. The dates are not a field in a
 // sidebar — they are the body of the page.
+
+/**
+ * The claims split by WHAT THEY DATE, in the order they first appear.
+ *
+ * A claim that does not say what it dates is grouped under no subject rather
+ * than under a made-up one — on a record where the others do say, "this one
+ * didn't specify" is the honest rendering, and inventing a heading for it
+ * would assert something nobody wrote.
+ */
+function groupBySubject(claims: TimelineDateClaim[]): Map<string, { subject: string | null; claims: TimelineDateClaim[] }> {
+  const groups = new Map<string, { subject: string | null; claims: TimelineDateClaim[] }>();
+  for (const claim of claims) {
+    const subject = claim.what_is_dated?.trim() || null;
+    const key = subject ?? "";
+    const group = groups.get(key);
+    if (group) group.claims.push(claim);
+    else groups.set(key, { subject, claims: [claim] });
+  }
+  return groups;
+}
 
 export function EventDetail({
   event,
@@ -145,6 +172,37 @@ export function EventDetail({
   // strip cannot show them.
   const positionlessCount = event.claims.filter((claim) => claim.start_year == null).length;
 
+  // ONE RANGE PER SUBJECT, rather than one range across all of them.
+  //
+  // The single headline is right when every claim answers the same question —
+  // five datings of one pyramid have one honest envelope. It is wrong here: an
+  // envelope stretched from the age of cosmic expansion to a Biblical creation
+  // date is a true span of two different topics, and at a glance it reads as
+  // one proposed range. Splitting it gives each question its own answer and
+  // costs three lines.
+  //
+  // Ordered oldest first, by the earliest thing each subject places, so the
+  // stack still reads as a chronology. Subjects that place nothing go last:
+  // they have no position to sort by, and putting them at the top would bury
+  // the dates under the claims that have none.
+  const subjectRows = severalSubjects
+    ? [...groupBySubject(event.claims).values()]
+        .map((group) => ({
+          subject: group.subject,
+          label: eventDateLabel(group.claims) ?? formatClaimDate(group.claims[0]),
+          oldest: group.claims
+            .map(claimMidpoint)
+            .filter((position): position is number => position != null)
+            .reduce<number | null>((lowest, position) => (lowest == null ? position : Math.min(lowest, position)), null),
+        }))
+        .sort((a, b) => {
+          if (a.oldest == null && b.oldest == null) return 0;
+          if (a.oldest == null) return 1;
+          if (b.oldest == null) return -1;
+          return a.oldest - b.oldest;
+        })
+    : [];
+
   return (
     <article className="pb-8">
       <div className="flex items-start justify-between gap-3">
@@ -190,7 +248,27 @@ export function EventDetail({
               which is the honest headline and also the interesting one. The
               line underneath says so, so nobody mistakes a span of disagreement
               for a span of time the event lasted. */}
-          {dateLabel && (
+          {/* ONE LINE PER QUESTION, where the record answers more than one.
+              Each row is that subject's own envelope, computed exactly the way
+              the single headline is — so "the age of cosmic expansion" gets the
+              span of the two Planck fits, and "whether there is a first moment"
+              gets the words rather than a number. */}
+          {severalSubjects && subjectRows.length > 0 && (
+            <dl className="mt-3 space-y-2.5">
+              {subjectRows.map((row) => (
+                <div key={row.subject ?? "unstated"}>
+                  <dt className="text-xl font-semibold tabular-nums tracking-tight text-foreground sm:text-2xl">
+                    {row.label}
+                  </dt>
+                  <dd className="mt-0.5 max-w-3xl text-sm text-muted-foreground">
+                    {row.subject ?? "This claim does not say what it dates."}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {dateLabel && !severalSubjects && (
             <div className="mt-2">
               <p className="text-2xl font-semibold tabular-nums tracking-tight text-foreground sm:text-3xl">
                 {dateLabel}
@@ -198,11 +276,9 @@ export function EventDetail({
               <p className="mt-1 text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
                 {event.claims.length === 1
                   ? "As its one source dates it"
-                  : severalSubjects
-                    ? `Everywhere its ${event.claims.length} claims fall — and they are about ${subjects.size} different things`
-                    : disagree
-                      ? `Everywhere its ${event.claims.length} sources put it — they disagree`
-                      : `${event.claims.length} sources, in agreement`}
+                  : disagree
+                    ? `Everywhere its ${event.claims.length} sources put it — they disagree`
+                    : `${event.claims.length} sources, in agreement`}
               </p>
             </div>
           )}
@@ -213,8 +289,9 @@ export function EventDetail({
           {severalSubjects && (
             <p className="mt-2 max-w-4xl rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">These are not rival answers to one question.</span> The
-              claims below are about {subjects.size} different things — each one says which, on its own card. A span
-              covering all of them is the range of everything anybody places here, not a range anybody proposes.
+              dates above are {subjects.size} separate answers to {subjects.size} separate questions, not a
+              disagreement about one. There is no single figure for this record because none would be true of all of
+              them.
               {positionlessCount > 0 && (
                 <>
                   {" "}
