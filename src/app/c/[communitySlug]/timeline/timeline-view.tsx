@@ -8,6 +8,7 @@ import {
   Globe2,
   Layers,
   List,
+  MapPin,
   Maximize2,
   Milestone,
   Minus,
@@ -1262,6 +1263,14 @@ export function TimelineView({
         >
           <Scale className="h-4 w-4" />
           Compare the traditions
+        </Link>
+
+        <Link
+          href={`/c/${communitySlug}/timeline/map`}
+          className="hidden items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+        >
+          <MapPin className="h-4 w-4" />
+          Where these are
         </Link>
       </div>
 
