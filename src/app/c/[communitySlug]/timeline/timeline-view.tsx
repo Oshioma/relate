@@ -255,6 +255,7 @@ export function TimelineView({
   hasFloodMesopotamia,
   hasFloodEurasia,
   hasFloodChina,
+  datasetGaps,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -303,6 +304,8 @@ export function TimelineView({
   hasFloodMesopotamia: boolean;
   hasFloodEurasia: boolean;
   hasFloodChina: boolean;
+  /** Seeded datasets this community has only part of — label, how many, of how many. */
+  datasetGaps: { label: string; have: number; total: number }[];
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1939,6 +1942,23 @@ export function TimelineView({
             })
           }
         >
+          {datasetGaps.length > 0 && (
+            <span className="mb-3 block rounded-lg border-l-4 border-l-danger bg-danger/5 p-3 text-foreground">
+              <span className="block font-semibold">
+                {datasetGaps.length === 1
+                  ? "One dataset here is incomplete."
+                  : `${datasetGaps.length} datasets here are incomplete.`}
+              </span>
+              <span className="mt-1 block">
+                {datasetGaps.map((gap) => `${gap.label} (${gap.have} of ${gap.total})`).join(", ")}.
+              </span>
+              <span className="mt-1 block">
+                A dataset&apos;s own card disappears as soon as any one of its records exists, so a run that stopped
+                partway leaves a timeline that looks finished and is not. Pressing the button below adds exactly the
+                missing records and nothing else.
+              </span>
+            </span>
+          )}
           Research does not stop when a dataset ships. When a seeded date turns out to rest on something different from
           what the file first said — as Steiner&apos;s 7227 BC did, which is counted back from a boundary he gives
           rather than stated by him — the correction cannot reach a community that already took the dataset, because
