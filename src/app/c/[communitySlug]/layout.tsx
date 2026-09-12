@@ -443,7 +443,15 @@ export default async function CommunityLayout({
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-1 flex-col pb-16 md:pb-0">
+      {/* min-w-0 ALLOWS THIS COLUMN TO BE NARROWER THAN ITS CONTENTS.
+          A flex item defaults to min-width:auto, which means it cannot shrink
+          below the min-content width of what is inside it. So one wide child
+          anywhere in the app — a table, a code block, a long unbroken string —
+          stretches this column past the window and takes the header and the
+          nav sideways with it, which is not a bug in the child.
+          Found by the motif comparison table, whose own overflow-x-auto could
+          not work until this was set. */}
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-16 md:pb-0">
         <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6">
           {/* The left of the header is deliberately not part of the cluster on
               the right: everything on the right is what a community owner sees,

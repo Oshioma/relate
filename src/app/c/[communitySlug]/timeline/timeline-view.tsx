@@ -1252,6 +1252,17 @@ export function TimelineView({
           <Globe2 className="h-4 w-4" />
           What this covers
         </Link>
+
+        {/* COMPARING BY CONTENT, because most of these records have no date to
+            compare by. The link sits beside the coverage one: both are about
+            reading the dataset as a whole rather than one record in it. */}
+        <Link
+          href={`/c/${communitySlug}/timeline/comparison`}
+          className="hidden items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+        >
+          <Scale className="h-4 w-4" />
+          Compare the traditions
+        </Link>
       </div>
 
       {/* ---- The event you clicked -----------------------------------------
