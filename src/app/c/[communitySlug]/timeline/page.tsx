@@ -222,7 +222,8 @@ export default async function TimelinePage({
         hasFloodSubmerged={hasFloodSubmerged}
         hasFloodAmericas={hasFloodAmericas}
         hannibalNeedsPictures={hannibalNeedsPictures}
-        datasetGaps={datasetGaps}
+        datasetGaps={datasetGaps.datasets}
+        recordsMissingPictures={datasetGaps.recordsMissingPictures}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
         // anything, because there is nothing they could do about it.

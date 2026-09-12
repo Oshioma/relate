@@ -1834,27 +1834,52 @@ async function editedByAPerson(
  * A dataset with NOTHING present is not a gap — it is a dataset this community
  * has not taken, and offering it is the dataset card's job.
  */
-export async function seededDatasetGaps(
-  communitySlug: string
-): Promise<{ label: string; have: number; total: number }[]> {
+export async function seededDatasetGaps(communitySlug: string): Promise<{
+  datasets: { label: string; have: number; total: number }[];
+  /**
+   * Records this community HAS, whose dataset defines a picture for them, and
+   * which have no picture at all.
+   *
+   * This is the question "did the images actually come in", answered before
+   * anybody has to press anything. The pictures were added to these datasets
+   * long after most communities took them, and a record seeded before its
+   * photograph existed shows nothing and says nothing about why.
+   */
+  recordsMissingPictures: number;
+}> {
+  const empty = { datasets: [], recordsMissingPictures: 0 };
   const context = await requireTimelineWriter(communitySlug);
-  if ("error" in context) return [];
+  if ("error" in context) return empty;
   const { supabase, community, isStaff } = context;
   // Only staff can act on this, so only staff are told about it.
-  if (!isStaff) return [];
+  if (!isStaff) return empty;
 
   const { data } = await supabase
     .from("timeline_events")
-    .select("slug")
+    .select("slug, image_url, media")
     .eq("community_id", community.id)
     .in("slug", SEEDED_DATASETS.flatMap((dataset) => dataset.events.map((event) => event.slug)));
-  const have = new Set((data ?? []).map((row) => row.slug));
+  const rows = new Map((data ?? []).map((row) => [row.slug, row]));
 
-  return SEEDED_DATASETS.map((dataset) => ({
-    label: dataset.label,
-    have: dataset.events.filter((event) => have.has(event.slug)).length,
-    total: dataset.events.length,
-  })).filter((dataset) => dataset.have > 0 && dataset.have < dataset.total);
+  let recordsMissingPictures = 0;
+  for (const dataset of SEEDED_DATASETS) {
+    for (const event of dataset.events) {
+      if (!event.imageUrl && !event.media?.length) continue;
+      const row = rows.get(event.slug);
+      if (!row) continue;
+      if (row.image_url || (row.media ?? []).length > 0) continue;
+      recordsMissingPictures++;
+    }
+  }
+
+  return {
+    datasets: SEEDED_DATASETS.map((dataset) => ({
+      label: dataset.label,
+      have: dataset.events.filter((event) => rows.has(event.slug)).length,
+      total: dataset.events.length,
+    })).filter((dataset) => dataset.have > 0 && dataset.have < dataset.total),
+    recordsMissingPictures,
+  };
 }
 
 export async function refreshSeededDatasets(communitySlug: string) {

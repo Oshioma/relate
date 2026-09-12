@@ -260,6 +260,7 @@ export function TimelineView({
   hasFloodSubmerged,
   hasFloodAmericas,
   datasetGaps,
+  recordsMissingPictures,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -312,6 +313,8 @@ export function TimelineView({
   hasFloodAmericas: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
+  /** Records here whose dataset defines a picture for them and which have none. */
+  recordsMissingPictures: number;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1839,6 +1842,21 @@ export function TimelineView({
             })
           }
         >
+          {recordsMissingPictures > 0 && (
+            <span className="mb-3 block rounded-lg border-l-4 border-l-danger bg-danger/5 p-3 text-foreground">
+              <span className="block font-semibold">
+                {recordsMissingPictures === 1
+                  ? "One record here has a picture available that it never received."
+                  : `${recordsMissingPictures} records here have a picture available that they never received.`}
+              </span>
+              <span className="mt-1 block">
+                Pictures were added to these datasets after most communities had already taken them, and the card that
+                offers a dataset withdraws once you have it — so there was nowhere to press. Use{" "}
+                <span className="font-medium">Check for corrections</span>, below, which now fills them in. Checking
+                the pictures will not: it only tests the ones that are here.
+              </span>
+            </span>
+          )}
           Every picture on every record here, fetched from the server to see whether it still answers. Nothing is
           changed and nothing is removed — the report names the records so a broken one can be fixed or dropped
           deliberately. A picture that answers with an error page rather than an image is reported too, because that
