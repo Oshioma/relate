@@ -59,6 +59,8 @@ import {
   seedFloodSubmergedDataset,
   seedFloodAmericasDataset,
   seedFloodRegionsDataset,
+  seedAncientSitesDataset,
+  seedEarlyAustraliaDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -265,6 +267,8 @@ export function TimelineView({
   hasFloodSubmerged,
   hasFloodAmericas,
   hasFloodRegions,
+  hasAncientSites,
+  hasEarlyAustralia,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -318,6 +322,8 @@ export function TimelineView({
   hasFloodSubmerged: boolean;
   hasFloodAmericas: boolean;
   hasFloodRegions: boolean;
+  hasAncientSites: boolean;
+  hasEarlyAustralia: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1789,6 +1795,66 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasEarlyAustralia && (
+        <DatasetOffer
+          title="Add the early Australian records?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedEarlyAustraliaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Three records, and the distinctions between them are the point. At Moyjil on the Victorian coast the
+          deposit really is about 120,000 years old and that is not disputed — what is disputed is whether people
+          made the burnt stones and gathered the shells, and the researchers put it as a question in their own
+          titles: &quot;nature or people?&quot; and &quot;is it a hearth?&quot;. Madjedbebe in Arnhem Land has an
+          assemblage nobody disputes is artefacts, interpreted as occupation by about 65,000 years ago, with a
+          published argument that a tropical sand sheet could have moved small artefacts downwards and the
+          excavators&apos; reply on the record beside it. And arrival in Sahul is its own record, because an
+          occupation date at one rock shelter is a MINIMUM for presence on a continent and never a date of arrival —
+          a question the archaeology and the 2025 genetic commentaries currently answer differently.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSites && (
+        <DatasetOffer
+          title="Add the ancient sites whose proposed dates disagree?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Five records where a site carries more than one proposed date, and the dates are answers to different
+          questions. The Great Sphinx has three, four and a half thousand years apart: Egyptology dating a monument by
+          its place in Khafre&apos;s complex, Schoch dating the WEATHERING and reasoning back to a wetter climate, and
+          Hancock and Bauval dating the SKY of 10,500 BCE. Gunung Padang has the clearest case of the confusion the
+          whole dataset is built against — a paper proposing construction 27,000 years ago, retracted because the
+          radiocarbon came from soil that was not associated with any artefacts, so the sediment really is that old
+          and nothing follows about anybody building in it. The Ottosdal objects carry one date and it is of the rock
+          they came out of, not of them. The Cerutti mastodon is a disputed claim in Nature rather than an
+          alternative-history one, and the reply by ten specialists is on the record with it. And Göbekli Tepe is
+          here as the control: older than Schoch&apos;s Sphinx, disputed by nobody, because OLD IS NOT THE SAME AS
+          ALTERNATIVE.
         </DatasetOffer>
       )}
 
