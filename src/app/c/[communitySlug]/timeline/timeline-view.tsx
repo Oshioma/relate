@@ -53,6 +53,7 @@ import {
   seedFloodEurasiaDataset,
   seedFloodChinaDataset,
   seedFloodSubmergedDataset,
+  seedFloodAmericasDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -257,7 +258,9 @@ export function TimelineView({
   hasFloodEurasia,
   hasFloodChina,
   hasFloodSubmerged,
+  hasFloodAmericas,
   datasetGaps,
+  recordsMissingPictures,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -307,8 +310,11 @@ export function TimelineView({
   hasFloodEurasia: boolean;
   hasFloodChina: boolean;
   hasFloodSubmerged: boolean;
+  hasFloodAmericas: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
+  /** Records here whose dataset defines a picture for them and which have none. */
+  recordsMissingPictures: number;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1725,6 +1731,35 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodAmericas && (
+        <DatasetOffer
+          title="Add the Mesoamerican and Andean traditions?"
+          busyLabel="Adding the records…"
+          label="Add these flood traditions"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodAmericasDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Four records, and not one of them dates a flood — because not one of the sources does. The Popol Vuh&apos;s
+          wooden people are not humanity: they are a failed attempt at it, destroyed because they could not speak the
+          names of their makers, and the survivors became monkeys. The Aztec Fourth Sun ends in water, and the Leyenda
+          de los Soles gives a real elapsed count — four hundred years, two ages and seventy-six — anchored to nothing
+          that can be converted. In the Huarochirí account a llama warns its owner, the refuge is a mountain already
+          crowded with animals, nobody is chosen and there is no ark. That manuscript was compiled around 1608 by
+          indigenous assistants working for a judge in the campaign to destroy the beliefs he was having written down,
+          and its own redactor notes that Christians read it as Noah&apos;s flood &ldquo;but they believe it was Villca
+          Coto mountain that saved them&rdquo;. The circumstances are their own dated record.
+        </DatasetOffer>
+      )}
+
       {isStaff && !hasFloodSubmerged && (
         <DatasetOffer
           title="Add the drowned lands, and the coasts people remember?"
@@ -1807,6 +1842,21 @@ export function TimelineView({
             })
           }
         >
+          {recordsMissingPictures > 0 && (
+            <span className="mb-3 block rounded-lg border-l-4 border-l-danger bg-danger/5 p-3 text-foreground">
+              <span className="block font-semibold">
+                {recordsMissingPictures === 1
+                  ? "One record here has a picture available that it never received."
+                  : `${recordsMissingPictures} records here have a picture available that they never received.`}
+              </span>
+              <span className="mt-1 block">
+                Pictures were added to these datasets after most communities had already taken them, and the card that
+                offers a dataset withdraws once you have it — so there was nowhere to press. Use{" "}
+                <span className="font-medium">Check for corrections</span>, below, which now fills them in. Checking
+                the pictures will not: it only tests the ones that are here.
+              </span>
+            </span>
+          )}
           Every picture on every record here, fetched from the server to see whether it still answers. Nothing is
           changed and nothing is removed — the report names the records so a broken one can be fixed or dropped
           deliberately. A picture that answers with an error page rather than an image is reported too, because that
@@ -1935,6 +1985,11 @@ export function TimelineView({
                   if (result.restored > 0) {
                     parts.push(
                       `Put back ${result.restored} missing ${result.restored === 1 ? "record" : "records"}: ${result.restoredTitles.join(", ")}.`
+                    );
+                  }
+                  if (result.pictured > 0) {
+                    parts.push(
+                      `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"} to records that had none.`
                     );
                   }
                   if (result.updated > 0) {

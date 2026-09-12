@@ -34,6 +34,7 @@ import { FLOOD_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/flood-mesopotamia-
 import { FLOOD_EURASIA_ANCHOR_SLUG } from "@/lib/timeline/flood-eurasia-seed";
 import { FLOOD_CHINA_ANCHOR_SLUG } from "@/lib/timeline/flood-china-seed";
 import { FLOOD_SUBMERGED_ANCHOR_SLUG } from "@/lib/timeline/flood-submerged-seed";
+import { FLOOD_AMERICAS_ANCHOR_SLUG } from "@/lib/timeline/flood-americas-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -115,6 +116,7 @@ export default async function TimelinePage({
     hasFloodEurasia,
     hasFloodChina,
     hasFloodSubmerged,
+    hasFloodAmericas,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -157,6 +159,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_EURASIA_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_CHINA_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_SUBMERGED_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_AMERICAS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -217,8 +220,10 @@ export default async function TimelinePage({
         hasFloodEurasia={hasFloodEurasia}
         hasFloodChina={hasFloodChina}
         hasFloodSubmerged={hasFloodSubmerged}
+        hasFloodAmericas={hasFloodAmericas}
         hannibalNeedsPictures={hannibalNeedsPictures}
-        datasetGaps={datasetGaps}
+        datasetGaps={datasetGaps.datasets}
+        recordsMissingPictures={datasetGaps.recordsMissingPictures}
         // Its photographs are missing, or are links to somebody else's server
         // that do not load. Staff get offered the repair; nobody else sees
         // anything, because there is nothing they could do about it.

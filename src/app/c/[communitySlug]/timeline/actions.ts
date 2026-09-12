@@ -38,6 +38,12 @@ import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } fro
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
 import { COSMOLOGY_EVENTS, COSMOLOGY_LINKS, COSMOLOGY_SOURCES, COSMOLOGY_TRACK } from "@/lib/timeline/cosmology-seed";
 import {
+  FLOOD_AMERICAS_EVENTS,
+  FLOOD_AMERICAS_LINKS,
+  FLOOD_AMERICAS_SOURCES,
+  FLOOD_AMERICAS_TRACK,
+} from "@/lib/timeline/flood-americas-seed";
+import {
   FLOOD_SUBMERGED_EVENTS,
   FLOOD_SUBMERGED_LINKS,
   FLOOD_SUBMERGED_SOURCES,
@@ -1728,6 +1734,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Ice age floods and sea level",
     track: FLOOD_PHYSICAL_TRACK, events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
+    label: "Flood traditions: Mesoamerica and the Andes",
+    track: FLOOD_AMERICAS_TRACK,
+    events: FLOOD_AMERICAS_EVENTS,
+    sources: FLOOD_AMERICAS_SOURCES,
+    links: FLOOD_AMERICAS_LINKS,
+  },
+  {
     label: "Drowned lands, and the coasts people remember",
     track: FLOOD_SUBMERGED_TRACK,
     events: FLOOD_SUBMERGED_EVENTS,
@@ -1821,27 +1834,52 @@ async function editedByAPerson(
  * A dataset with NOTHING present is not a gap — it is a dataset this community
  * has not taken, and offering it is the dataset card's job.
  */
-export async function seededDatasetGaps(
-  communitySlug: string
-): Promise<{ label: string; have: number; total: number }[]> {
+export async function seededDatasetGaps(communitySlug: string): Promise<{
+  datasets: { label: string; have: number; total: number }[];
+  /**
+   * Records this community HAS, whose dataset defines a picture for them, and
+   * which have no picture at all.
+   *
+   * This is the question "did the images actually come in", answered before
+   * anybody has to press anything. The pictures were added to these datasets
+   * long after most communities took them, and a record seeded before its
+   * photograph existed shows nothing and says nothing about why.
+   */
+  recordsMissingPictures: number;
+}> {
+  const empty = { datasets: [], recordsMissingPictures: 0 };
   const context = await requireTimelineWriter(communitySlug);
-  if ("error" in context) return [];
+  if ("error" in context) return empty;
   const { supabase, community, isStaff } = context;
   // Only staff can act on this, so only staff are told about it.
-  if (!isStaff) return [];
+  if (!isStaff) return empty;
 
   const { data } = await supabase
     .from("timeline_events")
-    .select("slug")
+    .select("slug, image_url, media")
     .eq("community_id", community.id)
     .in("slug", SEEDED_DATASETS.flatMap((dataset) => dataset.events.map((event) => event.slug)));
-  const have = new Set((data ?? []).map((row) => row.slug));
+  const rows = new Map((data ?? []).map((row) => [row.slug, row]));
 
-  return SEEDED_DATASETS.map((dataset) => ({
-    label: dataset.label,
-    have: dataset.events.filter((event) => have.has(event.slug)).length,
-    total: dataset.events.length,
-  })).filter((dataset) => dataset.have > 0 && dataset.have < dataset.total);
+  let recordsMissingPictures = 0;
+  for (const dataset of SEEDED_DATASETS) {
+    for (const event of dataset.events) {
+      if (!event.imageUrl && !event.media?.length) continue;
+      const row = rows.get(event.slug);
+      if (!row) continue;
+      if (row.image_url || (row.media ?? []).length > 0) continue;
+      recordsMissingPictures++;
+    }
+  }
+
+  return {
+    datasets: SEEDED_DATASETS.map((dataset) => ({
+      label: dataset.label,
+      have: dataset.events.filter((event) => rows.has(event.slug)).length,
+      total: dataset.events.length,
+    })).filter((dataset) => dataset.have > 0 && dataset.have < dataset.total),
+    recordsMissingPictures,
+  };
 }
 
 export async function refreshSeededDatasets(communitySlug: string) {
@@ -1877,6 +1915,9 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // named in the result, so a deliberate deletion can be seen and repeated.
   let restored = 0;
   const restoredTitles: string[] = [];
+  // Pictures added to a record that had none. Counted apart from `classified`,
+  // which only labels pictures that were already there.
+  let pictured = 0;
   const changed: string[] = [];
 
   for (const dataset of SEEDED_DATASETS) {
@@ -2016,6 +2057,53 @@ export async function refreshSeededDatasets(communitySlug: string) {
       }
     }
 
+    // THE PICTURES THAT NEVER ARRIVED AT ALL.
+    //
+    // Pictures were added to these datasets long after most communities took
+    // them, and there was no way to get them. The dataset's own card tops up an
+    // event that has no pictures — but that card is hidden once the dataset is
+    // seeded, so the path existed and could not be reached. And the loop below
+    // only CLASSIFIES pictures that are already stored: with nothing stored it
+    // does nothing at all.
+    //
+    // So a community that took the flood dataset before the photographs existed
+    // had records with no picture, no card to press, and a repair button that
+    // reported success without changing anything. That is why a deployment can
+    // sit at seventeen pictures while the datasets define many more.
+    //
+    // ONLY AN EVENT WITH NOTHING AT ALL is filled in. Anything a community has
+    // added, removed or replaced itself is left exactly as it is — the same
+    // rule the dataset card's own top-up follows.
+    for (const seed of dataset.events) {
+      const eventId = idBySlug.get(seed.slug);
+      if (!eventId) continue;
+      if (!seed.imageUrl && !seed.media?.length) continue;
+
+      const { data: stored } = await supabase
+        .from("timeline_events")
+        .select("image_url, media")
+        .eq("id", eventId)
+        .maybeSingle();
+      if (!stored) continue;
+      if (stored.image_url || (stored.media ?? []).length > 0) continue;
+
+      const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
+        pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+        userId,
+        slug: seed.slug,
+      });
+      const { error } = await supabase
+        .from("timeline_events")
+        .update({ image_url: pictures.imageUrl, media: pictures.media })
+        .eq("id", eventId);
+      if (error) continue;
+      // Counted as the number of pictures the record now has, not the number
+      // whose bytes were copied: a picture left pointing at its original
+      // address because the copy failed is still a picture that appeared.
+      pictured += pictures.media.length + (pictures.imageUrl ? 1 : 0);
+      if (broughtIn > 0 && !changed.includes(seed.title)) changed.push(seed.title);
+    }
+
     // THE PICTURES THAT NEVER SAID WHAT THEY SHOW.
     //
     // A later artwork that does not declare itself reads as a photograph of
@@ -2084,6 +2172,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
     skippedAmbiguous,
     linked,
     classified,
+    pictured,
     restored,
     restoredTitles,
     changed,
@@ -2158,6 +2247,27 @@ export async function seedFloodChinaDataset(communitySlug: string) {
     track: FLOOD_CHINA_TRACK,
     links: FLOOD_CHINA_LINKS,
     label: "Flood traditions: China",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Mesoamerican and Andean flood traditions.
+ * See flood-americas-seed.ts.
+ */
+export async function seedFloodAmericasDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add the Mesoamerican and Andean dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: FLOOD_AMERICAS_EVENTS,
+    sources: FLOOD_AMERICAS_SOURCES,
+    track: FLOOD_AMERICAS_TRACK,
+    links: FLOOD_AMERICAS_LINKS,
+    label: "Flood traditions: Mesoamerica and the Andes",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
