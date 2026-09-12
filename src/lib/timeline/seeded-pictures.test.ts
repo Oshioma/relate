@@ -15,6 +15,7 @@ import { LEMURIA_EVENTS } from "./lemuria-seed";
 import { HANNIBAL_EVENTS } from "./hannibal-seed";
 import { DEEP_TIME_EVENTS } from "./deep-time-seed";
 import { EARLY_SAPIENS_EVENTS } from "./early-sapiens-seed";
+import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
   ...FLOOD_PHYSICAL_EVENTS,
@@ -111,6 +112,73 @@ test("no seeded caption states a licence that was not fetched", () => {
       item.caption ?? "",
       /public domain|CC BY|CC0|creative commons/i,
       `${slug}: caption states a licence it did not fetch`
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PERIOD PICTURES
+//
+// A period is the frame every event is read against, so a picture beside one
+// carries a risk an event picture does not: one object printed next to a band
+// covering thousands of years and several continents reads as a portrait of
+// the whole span. The rules below are the ones that can be checked mechanically.
+// ---------------------------------------------------------------------------
+
+const PERIOD_PICTURES = PERIODS.flatMap((period) =>
+  (period.media ?? []).map((item) => ({ slug: period.slug, item }))
+);
+
+test("period pictures follow the same source and credit rules as event pictures", () => {
+  assert.ok(PERIOD_PICTURES.length > 0, "there should be seeded period pictures");
+  for (const { slug, item } of PERIOD_PICTURES) {
+    assert.ok(pictureSourceFor(item.url), `${slug}: ${item.url} is from no listed source`);
+    assert.equal(isFetchableWebUrl(item.url).ok, true, `${slug}: ${item.url} would be refused`);
+    assert.ok(item.shows && MEDIA_KIND_KEYS.has(item.shows), `${slug}: "${item.shows}" is not a media kind`);
+    assert.equal(item.creditFrom, "source", `${slug}: picture must ask for its credit`);
+    assert.doesNotMatch(
+      item.caption ?? "",
+      /public domain|CC BY|CC0|creative commons/i,
+      `${slug}: caption states a licence it did not fetch`
+    );
+  }
+});
+
+test("a period cover is always also in its gallery", () => {
+  for (const period of PERIODS) {
+    if (!period.imageUrl) continue;
+    const urls = (period.media ?? []).map((item) => item.url);
+    assert.ok(urls.includes(period.imageUrl), `${period.slug}: cover is not among its media`);
+  }
+});
+
+test("the two periods that are conventions of one region carry no picture", () => {
+  // "Medieval" and "Modern" are historical conventions with an origin in one
+  // region's history, applied far beyond it — which these entries say in as
+  // many words. An illuminated European manuscript beside "Medieval" would not
+  // illustrate that problem, it would commit it, in the most persuasive place
+  // on the card. If somebody later adds one, this is where they are asked to
+  // think about it rather than where they are stopped.
+  for (const slug of ["medieval-period", "modern-era"]) {
+    const period = PERIODS.find((p) => p.slug === slug);
+    assert.ok(period, `${slug} should exist`);
+    assert.equal(period.imageUrl, undefined, `${slug} should carry no cover`);
+    assert.equal((period.media ?? []).length, 0, `${slug} should carry no pictures`);
+  }
+});
+
+test("no period caption lets its picture stand for the whole span", () => {
+  // Not a style rule. The failure it catches is a caption that says "the Bronze
+  // Age" and shows one object, which is the exact reading this file exists to
+  // prevent — so each caption has to carry something that pushes back: a named
+  // limit, a region, a date, or an outright statement of what it is not.
+  for (const { slug, item } of PERIOD_PICTURES) {
+    const caption = item.caption ?? "";
+    assert.ok(caption.length > 120, `${slug}: caption too short to qualify what it shows`);
+    assert.match(
+      caption,
+      /not |rather than|only|END|example|one object|one animal|one rock|is not|does not/i,
+      `${slug}: caption does not say what the picture is NOT`
     );
   }
 });

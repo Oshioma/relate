@@ -1476,6 +1476,16 @@ export async function seedTimePeriods(communitySlug: string) {
       continue;
     }
 
+    // Copied into the community's own storage, and the credits resolved from
+    // each picture's own source, before the period is written — the same call
+    // an event makes, so a period picture cannot end up on a different footing
+    // from an event one.
+    const { pictures } = await bringEventPicturesIn(supabase, {
+      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+      userId,
+      slug: seed.slug,
+    });
+
     const { data: period, error: periodError } = await supabase
       .from("timeline_periods")
       .insert({
@@ -1493,6 +1503,8 @@ export async function seedTimePeriods(communitySlug: string) {
         interpretation: seed.interpretation ?? null,
         region: seed.region ?? null,
         display_priority: seed.displayPriority ?? 0,
+        image_url: pictures.imageUrl,
+        media: pictures.media,
         status: "published",
       })
       .select("id, slug")
@@ -1679,32 +1691,53 @@ export async function seedAtlantisDataset(communitySlug: string) {
 //   also match on the source's own wording, or it is skipped and counted.
 // ---------------------------------------------------------------------------
 
-type SeedDatasetSpec = { label: string; events: SeedEvent[]; sources: SeedSource[]; links?: SeedEventLink[] };
+type SeedDatasetSpec = {
+  label: string;
+  events: SeedEvent[];
+  sources: SeedSource[];
+  links?: SeedEventLink[];
+  /**
+   * The lane these records live in. Needed because this registry is no longer
+   * only walked to CORRECT records — it is also walked to put back ones that
+   * have gone missing, and a restored record has to land in the same lane the
+   * dedicated seeder would have put it in.
+   *
+   * The worked example has none: it is a single record that belongs to no lane.
+   */
+  track?: SeedTrack;
+};
 
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
-  { label: "Hannibal", events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
-  { label: "Deep time", events: DEEP_TIME_EVENTS, sources: DEEP_TIME_SOURCES },
-  { label: "Early Homo sapiens", events: EARLY_SAPIENS_EVENTS, sources: EARLY_SAPIENS_SOURCES },
-  { label: "Atlantis", events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES, links: ATLANTIS_LINKS },
-  { label: "Lemuria", events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
-  { label: "Beginning of the universe", events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
-  { label: "Ice age floods and sea level", events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
+  { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
+  { label: "Deep time",
+    track: DEEP_TIME_TRACK, events: DEEP_TIME_EVENTS, sources: DEEP_TIME_SOURCES },
+  { label: "Early Homo sapiens", track: EARLY_SAPIENS_TRACK, events: EARLY_SAPIENS_EVENTS, sources: EARLY_SAPIENS_SOURCES },
+  { label: "Atlantis", track: ATLANTIS_TRACK, events: ATLANTIS_EVENTS, sources: ATLANTIS_SOURCES, links: ATLANTIS_LINKS },
+  { label: "Lemuria",
+    track: LEMURIA_TRACK, events: LEMURIA_EVENTS, sources: LEMURIA_SOURCES, links: LEMURIA_LINKS },
+  { label: "Beginning of the universe",
+    track: COSMOLOGY_TRACK, events: COSMOLOGY_EVENTS, sources: COSMOLOGY_SOURCES, links: COSMOLOGY_LINKS },
+  { label: "Ice age floods and sea level",
+    track: FLOOD_PHYSICAL_TRACK, events: FLOOD_PHYSICAL_EVENTS, sources: FLOOD_PHYSICAL_SOURCES, links: FLOOD_PHYSICAL_LINKS },
   {
     label: "Flood traditions: China",
+    track: FLOOD_CHINA_TRACK,
     events: FLOOD_CHINA_EVENTS,
     sources: FLOOD_CHINA_SOURCES,
     links: FLOOD_CHINA_LINKS,
   },
   {
     label: "Flood traditions: Greece, India, Iran",
+    track: FLOOD_EURASIA_TRACK,
     events: FLOOD_EURASIA_EVENTS,
     sources: FLOOD_EURASIA_SOURCES,
     links: FLOOD_EURASIA_LINKS,
   },
   {
     label: "Mesopotamian flood traditions",
+    track: FLOOD_MESOPOTAMIA_TRACK,
     events: FLOOD_MESOPOTAMIA_EVENTS,
     sources: FLOOD_MESOPOTAMIA_SOURCES,
     links: FLOOD_MESOPOTAMIA_LINKS,
@@ -1772,6 +1805,22 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // again: nothing was wrong with them, they simply predate the field — the
   // same shape of gap the relationship backfill closed.
   let classified = 0;
+  // RECORDS THIS COMMUNITY ONCE HAD AND NO LONGER DOES.
+  //
+  // The per-dataset offers ("Add the Chinese flood records") are gated on ONE
+  // anchor slug being present, which is the right test for "have they taken
+  // this dataset" and the wrong one for "do they still have all of it". Delete
+  // any record that is not the anchor and the offer stays hidden — so there was
+  // no route anywhere in the app to get that record back. Not a hard one, not a
+  // slow one: none.
+  //
+  // This is that route. It is deliberately on the repair button rather than
+  // running by itself, because a community may have removed a record ON
+  // PURPOSE and putting it back unasked would be overriding them. Pressing a
+  // button called "Check for corrections" is asking; and what came back is
+  // named in the result, so a deliberate deletion can be seen and repeated.
+  let restored = 0;
+  const restoredTitles: string[] = [];
   const changed: string[] = [];
 
   for (const dataset of SEEDED_DATASETS) {
@@ -1782,7 +1831,35 @@ export async function refreshSeededDatasets(communitySlug: string) {
       .eq("community_id", community.id)
       .in("slug", dataset.events.map((event) => event.slug));
     const present = presentRows ?? [];
+    // Never touched this dataset at all — not a gap, just a dataset they have
+    // not taken. Offering it is the per-dataset card's job, not this one's.
     if (present.length === 0) continue;
+
+    // Anything of this dataset's that is missing is put back, with its claims,
+    // its sources and its pictures, by the same path that seeded it in the
+    // first place — so a restored record is identical to a freshly seeded one
+    // rather than a thinner copy of it.
+    const presentSlugs = new Set(present.map((row) => row.slug));
+    const missing = dataset.events.filter((event) => !presentSlugs.has(event.slug));
+    // seedDataset is the same function the dedicated offers call, and it skips
+    // what is already there — so handing it the WHOLE dataset restores exactly
+    // the gap and touches nothing else. Reusing it rather than writing a
+    // restore-shaped copy is the point: a restored record gets its claims, its
+    // sources, its citations, its links and its pictures by the identical path
+    // a freshly seeded one does, so the two cannot drift apart.
+    if (missing.length > 0 && dataset.track) {
+      const result = await seedDataset(supabase, community, userId, {
+        events: dataset.events,
+        sources: dataset.sources,
+        track: dataset.track,
+        label: dataset.label,
+        links: dataset.links,
+      });
+      if ("ok" in result) {
+        restored += result.added;
+        for (const event of missing) restoredTitles.push(event.title);
+      }
+    }
 
     // Sources first: a corrected claim often cites something the community has
     // never had — the two Steiner lectures did not exist in the dataset when it
@@ -1944,7 +2021,17 @@ export async function refreshSeededDatasets(communitySlug: string) {
   }
 
   revalidatePath(timelinePath(community.slug));
-  return { ok: true as const, updated, keptBecauseEdited, skippedAmbiguous, linked, classified, changed };
+  return {
+    ok: true as const,
+    updated,
+    keptBecauseEdited,
+    skippedAmbiguous,
+    linked,
+    classified,
+    restored,
+    restoredTitles,
+    changed,
+  };
 }
 
 /**

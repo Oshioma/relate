@@ -100,6 +100,8 @@ function period(slug: string, claims: TimelineDateClaim[], extra: Partial<Period
     interpretation: null,
     region: null,
     display_priority: 0,
+    image_url: null,
+    media: [],
     status: "published",
     reviewed_by: null,
     reviewed_at: null,

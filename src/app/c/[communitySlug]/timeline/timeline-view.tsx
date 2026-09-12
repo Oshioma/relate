@@ -1858,7 +1858,7 @@ export function TimelineView({
           changes nothing. */}
       {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia || hasFloodChina) && (
         <DatasetOffer
-          title="Bring the seeded datasets up to date?"
+          title="Bring the seeded datasets back up to date?"
           busyLabel="Checking the records…"
           label="Check for corrections"
           onAdd={() =>
@@ -1873,6 +1873,15 @@ export function TimelineView({
                   // would tell a reader their dates had changed when nothing of
                   // the sort had happened.
                   const parts: string[] = [];
+                  // RESTORED RECORDS COME FIRST AND ARE NAMED. A number alone
+                  // would tell somebody their timeline had changed without
+                  // telling them how — and if they removed one of these on
+                  // purpose, seeing its name is how they find out it is back.
+                  if (result.restored > 0) {
+                    parts.push(
+                      `Put back ${result.restored} missing ${result.restored === 1 ? "record" : "records"}: ${result.restoredTitles.join(", ")}.`
+                    );
+                  }
                   if (result.updated > 0) {
                     parts.push(
                       `Updated ${result.updated} ${result.updated === 1 ? "date" : "dates"}${
@@ -1918,6 +1927,13 @@ export function TimelineView({
           untouched anything anybody here has edited. It also adds any CONNECTIONS BETWEEN RECORDS the dataset has
           gained since — who said Mu and Lemuria were the same place, and which tradition puts which continent first —
           because those arrived after both datasets had already shipped.
+          {" "}
+          <strong className="font-semibold text-foreground">
+            It also puts back any record from a dataset you have that has since gone missing.
+          </strong>{" "}
+          The card that offers a dataset withdraws once you have taken it, so until now a record deleted afterwards
+          could not be added again from anywhere in the app. Anything restored is named in the result, so if you
+          removed one on purpose you can see it is back and remove it again.
         </DatasetOffer>
       )}
 

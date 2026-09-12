@@ -377,6 +377,31 @@ export const PERIOD_SOURCES: SeedSource[] = [
 // The periods
 // ---------------------------------------------------------------------------
 
+// WHY THIRTEEN OF THE FIFTEEN HAVE A PICTURE AND TWO DO NOT.
+//
+// A period picture is the easiest one on this timeline to get wrong. A period
+// is the frame every event is read against, so one object printed beside a band
+// covering thousands of years and several continents reads as a portrait of the
+// whole span. Every caption below therefore says what its picture is an example
+// OF, and several say outright what the picture is not: Tyrannosaurus lived at
+// the very END of the Mesozoic, the Nebra disc was looted rather than
+// excavated, the Levallois technique is not a species marker, and a great many
+// circulated Lascaux photographs are of the replica.
+//
+// "MEDIEVAL" AND "MODERN" GET NOTHING, AND THAT IS THE POINT.
+//
+// Both are historical conventions with an origin in one region's history,
+// applied far beyond it — which this file says in as many words in the entries
+// themselves. An illuminated European manuscript beside "Medieval" would not
+// illustrate that problem; it would commit it, and commit it in the most
+// persuasive place on the card, where a reader takes a picture as a label
+// rather than as a claim.
+//
+// There is no single object that can stand for "the medieval world" without
+// choosing a region and calling it the centre, and picking a deliberately
+// non-European object to make the opposite point would be this file asserting
+// something too. So the two entries carry no picture, and this comment is where
+// the omission is recorded rather than left looking like an oversight.
 export const PERIODS: SeedPeriod[] = [
   // -------------------------------------------------------------------------
   // 1
@@ -397,6 +422,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "That the microwave background is relic radiation from a hot, dense early universe — and that fitting a six-parameter model to it yields an age — is the mainstream cosmological reading of those measurements. The number is model-dependent. It is the age implied by Lambda-CDM, not a duration anybody has counted, and it has moved as the data and the model have improved.",
     displayPriority: 90,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hubble_ultra_deep_field.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hubble_ultra_deep_field.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The Hubble Ultra Deep Field. Nearly every point of light is a galaxy, and looking further away is " +
+          "looking further back \u2014 so this is a photograph OF the past rather than an illustration of it. It is " +
+          "not a picture of the early universe itself: the earliest state this period names is far beyond " +
+          "anything any telescope can image.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "planck2020",
@@ -452,6 +495,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Whether a layered structure in a 3.7-billion-year-old rock is a stromatolite built by microbes, or a shape produced by deformation and metamorphism, is an argument between specialists working on the same outcrops — and it is published as an argument. The dating is not the contested part; the biology is.",
     displayPriority: 85,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Acasta_gneiss.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Acasta_gneiss.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Acasta gneiss from northwest Canada, among the oldest intact rock known at about 4.03 billion years. " +
+          "ONE ROCK IS NOT AN ERA: this is a surviving fragment from near the start of this span, and almost " +
+          "nothing else from the period survives at all, which is why its boundaries are measurements rather " +
+          "than observations.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "patterson1956",
@@ -539,6 +600,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "The reading that this record represents a biosphere dominated by single-celled organisms for most of Earth's history is mainstream geology and palaeontology. It rests on an absence as much as on a presence — larger organisms are not found — and absences in a record this old are read with care.",
     displayPriority: 80,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Stromatolites_in_Sharkbay.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Stromatolites_in_Sharkbay.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Living stromatolites at Shark Bay, Western Australia \u2014 mounds built by microbial mats, being made " +
+          "today. They are here because the fossil ones can be read against something observable; they are a " +
+          "modern comparison, not a photograph of early life.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "djokic2017",
@@ -591,6 +669,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "That this record documents a diversification of animal life and a colonisation of land is the mainstream palaeontological reading. What is recovered is fossils in layers; the sequence of life those fossils are taken to describe is an interpretation, and a very well supported one.",
     displayPriority: 70,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian;_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian;_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Elrathia kingii, a Middle Cambrian trilobite from Utah. One animal from one formation near the START " +
+          "of an era lasting close to three hundred million years \u2014 not a portrait of the whole of it. What " +
+          "survives is the hard exoskeleton; the animal inside almost never does.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ics_chart",
@@ -660,6 +755,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "The reconstruction of dinosaur groups, their relationships, their ecological roles, and the timing of their diversification and disappearance is mainstream palaeontology's reading of that physical evidence. It is not a report of observation — nobody observed it — and it changes: the relationship between dinosaurs and birds, and the appearance of feathers, have both been substantially revised within living memory.",
     displayPriority: 70,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/FMNH_Tyrannosaurus_rex_Sue.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/FMNH_Tyrannosaurus_rex_Sue.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The mounted skeleton known as Sue, at the Field Museum. A MOUNT IS AN INTERPRETATION: the bones are " +
+          "real, but the pose, the missing elements and the articulation are decisions made by whoever " +
+          "assembled it. Tyrannosaurus also lived at the very END of this era \u2014 nearer in time to us than to " +
+          "the era's beginning.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ics_chart",
@@ -724,6 +837,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "The reading that mammal diversification followed and was enabled by the end-Cretaceous extinction is mainstream palaeontology. It is an inference about cause from a sequence in the rocks, and the details — how much of the diversification preceded the boundary — are actively worked on.",
     displayPriority: 70,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Smithsonian_woolly_mammoth.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Smithsonian_woolly_mammoth.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "A mounted woolly mammoth skeleton at the Smithsonian. Mammoths belong to the last flicker of this " +
+          "era rather than its span, and the mount is an assembled interpretation as every mount is. It is an " +
+          "example from inside the period, not a summary of sixty-six million years.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ics_chart",
@@ -775,6 +905,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Which specimens are hominin, how they are related, and whether a given one is ancestral to anything living are interpretations of anatomy — and the most argued-over part of the subject. The seven-million-year-old skull that opens this period has been read as an early hominin, as an early gorilla relative, and as neither.",
     displayPriority: 60,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Olduvai_stone_chopping_tool.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Olduvai_stone_chopping_tool.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "An Oldowan chopping tool from Olduvai Gorge. The earliest known stone tools are older still and come " +
+          "from Lomekwi in Kenya \u2014 a date that has moved before and may move again, which is why this record " +
+          "gives a range rather than a first.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "smithsonian",
@@ -828,6 +975,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Grouping assemblages into named industries, and reading a change of industry as a change of period, is an archaeological convention applied to physical objects. It is useful and it is a convention: the objects do not come labelled, and the boundaries are drawn by people who study them.",
     displayPriority: 50,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "An Acheulean handaxe. The form is remarkably stable across more than a million years and three " +
+          "continents, which is the most striking fact about it \u2014 and it is a tool, not a signature: more than " +
+          "one kind of human made this shape.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "harmand2015",
@@ -916,6 +1080,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Which populations made which assemblages, and what the ochre and the shells meant, are interpretations of archaeological evidence. They are held with differing degrees of agreement, and the disagreements are published.",
     displayPriority: 45,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pointe_levallois_Beuzeville_MHNT_PRE.2009.0.203.2.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pointe_levallois_Beuzeville_MHNT_PRE.2009.0.203.2.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A Levallois point. The technique shapes the core first so the flake comes off in a predetermined " +
+          "form \u2014 which is what the label of this period is actually about. IT IS NOT A SPECIES MARKER: " +
+          "Neanderthals and Homo sapiens both used it, in overlapping regions.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "deino2018",
@@ -984,6 +1165,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "That the density of surviving imagery and ornament indicates a change in social life, rather than a change in preservation or in where people lived, is an interpretation and is argued about.",
     displayPriority: 45,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lascaux_painting.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lascaux_painting.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Painted animals at Lascaux. WORTH KNOWING BEFORE YOU TRUST ANY LASCAUX PHOTOGRAPH: the original cave " +
+          "has been closed to visitors since 1963, and a great many circulated images are of the full-size " +
+          "replica built nearby \u2014 the file page is where to check which this is. Cave art of this age is also " +
+          "known from Indonesia and elsewhere, so it is not a European period marker.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_upper_palaeolithic",
@@ -1038,6 +1237,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Reading a change in seed morphology as domestication, or a change in a bone assemblage as herding, is an interpretation of physical remains — and one that has been revised repeatedly as sampling improves. That the regional transitions were independent rather than diffused is also an interpretation, resting on different wild ancestors in each region.",
     displayPriority: 40,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/G\u00f6bekli_Tepe_Pillar.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/G\u00f6bekli_Tepe_Pillar.JPG?width=1024",
+        shows: "site",
+        caption:
+          "A carved T-shaped pillar at G\u00f6bekli Tepe, built by people who had not yet taken up farming. THAT IS " +
+          "WHY IT IS HERE: the monument comes BEFORE agriculture in this place, so the tidy sequence of " +
+          "farming-then-settling-then-building does not hold, and this period's name carries an assumption its " +
+          "own evidence complicates.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_ppna",
@@ -1092,6 +1309,24 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "Periodising by metal is a nineteenth-century scheme that has been kept because it is useful for ordering material, not because societies organised themselves by it. Reading the arrival of bronze as the start of an age is a convention of archaeologists.",
     displayPriority: 35,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f\u00fcr_Vorgeschichte_in_Halle.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f\u00fcr_Vorgeschichte_in_Halle.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "The Nebra sky disc, in the State Museum of Prehistory at Halle. Its date and its interpretation have " +
+          "both been argued over \u2014 it was LOOTED RATHER THAN EXCAVATED, so its context had to be reconstructed " +
+          "afterwards, which is a weaker footing than a recorded find. One object from one region of a period " +
+          "that begins at different times in different places.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "met_mesopotamia",
@@ -1161,6 +1396,23 @@ export const PERIODS: SeedPeriod[] = [
     interpretation:
       "That a scatter of iron objects means iron production, or that iron production means an Iron Age, are both judgements. So is the reading of any regional sequence as independent rather than derived — an argument made from the absence of contact as much as from the finds.",
     displayPriority: 35,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Early_La_Tene_Sword_from_Hallstatt_Grave_994.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Early_La_Tene_Sword_from_Hallstatt_Grave_994.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "An early La T\u00e8ne sword from grave 994 at Hallstatt. THE IRON AGE IS NOT ONE DATE: iron working " +
+          "begins around 1200 BCE in the Near East, around 800 BCE in Britain, and the West African sequence is " +
+          "derived from neither. This is central European, and it stands for central Europe.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is fetched from the picture's
+        // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "britannica_iron",
