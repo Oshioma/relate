@@ -50,6 +50,7 @@ import {
   seedCosmologyDataset,
   seedFloodPhysicalDataset,
   seedFloodMesopotamiaDataset,
+  seedFloodEurasiaDataset,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -250,6 +251,7 @@ export function TimelineView({
   hasCosmology,
   hasFloodPhysical,
   hasFloodMesopotamia,
+  hasFloodEurasia,
   hannibalNeedsPictures,
   showcaseNeedsPictures,
   citations,
@@ -296,6 +298,7 @@ export function TimelineView({
   hasCosmology: boolean;
   hasFloodPhysical: boolean;
   hasFloodMesopotamia: boolean;
+  hasFloodEurasia: boolean;
   /** The Hannibal dataset is here, but was taken before it had pictures. */
   hannibalNeedsPictures: boolean;
   /** Its pictures are missing, or point at somebody else's server and don't load. */
@@ -1650,6 +1653,34 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+      {isStaff && !hasFloodEurasia && (
+        <DatasetOffer
+          title="Add the Greek, Indian and Iranian traditions?"
+          busyLabel="Adding the records…"
+          label="Add these flood traditions"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedFloodEurasiaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Six records, each breaking a different assumption. GREECE has a precise ancient date for Deucalion&apos;s
+          flood — 1528/27 BCE — assigned by an unknown compiler on a marble slab twelve centuries later, and Plato has
+          an Egyptian priest telling Solon the Greeks remember one deluge when there were many. INDIA shows a tradition
+          changing: in the oldest surviving version the fish that saves Manu is just a fish, and its identification
+          with Viṣṇu is a later development with a record of its own. IRAN is the stress case — Yima is warned, builds
+          an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
+          flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
+          standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
       {/* ---- Bringing a dataset that is already here up to date --------------
           The seeders skip an event that already exists, which is what makes
           running one twice harmless — and also means a correction to a seed
@@ -1657,7 +1688,7 @@ export function TimelineView({
           the way back. Offered to staff whenever this community has any seeded
           records at all; pressing it on an up-to-date community says so and
           changes nothing. */}
-      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia) && (
+      {isStaff && (hasShowcase || hasHannibal || hasDeepTime || hasEarlySapiens || hasAtlantis || hasLemuria || hasCosmology || hasFloodPhysical || hasFloodMesopotamia || hasFloodEurasia) && (
         <DatasetOffer
           title="Bring the seeded datasets up to date?"
           busyLabel="Checking the records…"
