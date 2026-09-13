@@ -652,6 +652,20 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Leaf_from_a_Manichaean_Book_(MIK_III_4979).jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A leaf from a Manichaean book found at Turfan in Central Asia. The Book of Giants had a second life in " +
+          "Manichaean literature and travelled the length of Asia in it — THIS LEAF IS NOT THAT TEXT, but it is the " +
+          "kind of book, in the kind of script, that carried a Qumran composition four thousand kilometres east.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -429,6 +429,21 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Blombos_Cave_-_deposit_layers.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The deposit layers at Blombos Cave. The perforated shells come out of layers like these, and the ladder " +
+          "of inference on this record — present, selected, pierced, worn, pigmented — is a set of observations " +
+          "made on objects lifted from a section. The section is not evidence of ornament; it is where the evidence " +
+          "was.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

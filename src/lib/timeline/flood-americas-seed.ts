@@ -238,6 +238,21 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Codex_Borgia_page_25.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A page of the Codex Borgia, a Mesoamerican divinatory manuscript. IT IS NOT A PICTURE OF THE FOURTH SUN. " +
+          "It is here because it is one of the very few books that survive from before the conquest, and nearly " +
+          "everything known about the sequence of suns comes from texts written down afterwards, by or for the " +
+          "people who had burned the earlier ones.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -369,6 +384,20 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Distritos_de_Huarochiri.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The districts of Huarochirí province. THE MANUSCRIPT IS A LOCAL DOCUMENT, not a national one: it was " +
+          "compiled community by community in this one stretch of the Andes, as part of a campaign to find and root " +
+          "out what people there still believed, and its scope is the ground on this map.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

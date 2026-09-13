@@ -419,6 +419,25 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "Pantelleria Vecchia Bank, Sicilian Channel",
     lat: 36.7,
     lng: 12.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pantelleria_map.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pantelleria_map.png?width=1024",
+        shows: "map",
+        caption:
+          "Pantelleria in the Sicilian Channel. THE MONOLITH IS NOT ON THE ISLAND — it lies on a submerged bank " +
+          "several kilometres away, at forty metres depth, on ground that was above water until the sea took it. " +
+          "The map is here for the geography the argument depends on, since nothing of the object itself is " +
+          "photographed on Commons.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "lodolo_benavraham2015",
@@ -507,6 +526,20 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
           "and no photograph of the formation itself appears to be freely available. The island is here because the " +
           "setting matters to the argument: this is a limestone coast, and beachrock cracking into blocks along a " +
           "shoreline is the mechanism the geological account proposes.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bimini-N_S.JPG?width=1024",
+        shows: "map",
+        caption:
+          "North and South Bimini. The feature is off the north-western shore in shallow water, and it is not " +
+          "marked here because a map cannot settle what it is: the argument is over whether a line of blocks on the " +
+          "sea bed is beachrock that cracked in place or stones somebody laid.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

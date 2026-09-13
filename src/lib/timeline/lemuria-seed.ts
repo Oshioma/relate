@@ -917,6 +917,21 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Golden-age-mu-map.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Churchward's Mu at its supposed height, from his own books. The same map appears on the record for the " +
+          "book's publication; here it is beside the destruction dates, which are the ones he gives as \"years ago\" " +
+          "and which this timeline converts by subtracting from 1926 — a map of a place whose end date is " +
+          "arithmetic on a publication year.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
