@@ -27,6 +27,43 @@ const CLUSTER_MIN = 4;
 /** The gap between a marker and its own caption. */
 const LABEL_GAP_PX = 6;
 
+/**
+ * HOW FAR AN EVENT MAY REACH BEYOND THE STRIP BEFORE IT IS CUT OFF.
+ *
+ * An event is drawn from its earliest claim to its latest. At a narrow window
+ * that span can start a very long way off screen: "the age of the universe" in
+ * a six-thousand-year window begins about 2.9 BILLION pixels to the left, and
+ * a record whose first claim is 13.8 billion years ago is not unusual on this
+ * timeline.
+ *
+ * Left unclamped that number does two bad things. The browser gets a div three
+ * billion pixels wide and clips it, which is wasteful but invisible. The row
+ * packer gets a footprint three billion pixels wide and CANNOT clip it: it
+ * reserves the row from −2,900,000,000 to wherever the event ends, and because
+ * events are packed in order of xFrom nothing can ever precede it there. One
+ * deep-time record therefore consumes a whole row on its own, and six of them
+ * consume six — which is what pushed everything else into the overflow row.
+ *
+ * So a footprint is clamped to the strip plus this margin. The margin is small
+ * and deliberate: a bar that stops exactly at the edge looks like a bar that
+ * ends there, and one that runs a little past it reads as continuing.
+ */
+const OFF_STRIP_MARGIN_PX = 24;
+
+/**
+ * Clamp one event's drawn extent to the strip.
+ *
+ * Only the FOOTPRINT is clamped. Each claim keeps its own true x — the claim
+ * markers are drawn from those, and a claim that is genuinely off screen should
+ * stay off screen rather than being dragged to the edge.
+ */
+function clampToStrip(xFrom: number, xTo: number, width: number): { xFrom: number; xTo: number } {
+  return {
+    xFrom: Math.max(-OFF_STRIP_MARGIN_PX, xFrom),
+    xTo: Math.min(width + OFF_STRIP_MARGIN_PX, xTo),
+  };
+}
+
 /** Breathing room between one event's label and the next event's marker. */
 const ROW_GAP_PX = 14;
 
@@ -334,8 +371,13 @@ export function layoutTimeline(
       const claims = event.claims.filter(claimIsPositioned).map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const dateLabel = eventDateLabel(event.claims);
-      const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
-      const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
+      const span = clampToStrip(
+        Math.min(...claims.map((c) => Math.min(c.x, c.x2))),
+        Math.max(...claims.map((c) => Math.max(c.x, c.x2))),
+        width
+      );
+      const xFrom = span.xFrom;
+      const xTo = span.xTo;
       // "Disputed" means the sources land in different places — two sources
       // that agree on 1066 are corroboration, and calling that a dispute would
       // make the whole signal meaningless.
@@ -490,10 +532,51 @@ export function layoutTimeline(
   }
 
   if (rowsThatFit < rowLines.length) {
+    // THE ROWS THAT DID NOT FIT ARE GIVEN UP — BUT THEIR EVENTS ARE OFFERED THE
+    // ROWS THAT DID, FIRST.
+    //
+    // The packer is optimistic: it assumes every row ends up one line tall and
+    // creates as many as that allows. Once the real heights are known, rows with
+    // wrapped captions are more than twice as tall and several of the rows it
+    // created have to go. Their events used to be dumped straight into overflow,
+    // where they became "+N" chips — even when a surviving row had room for them
+    // at that x. That is what put ten events into count chips while a row above
+    // was two-thirds empty.
+    //
+    // So they are re-offered here, by the same rule as the first pass: a row
+    // whose label reservation clears this event's start, or failing that one
+    // whose marker does. Only what still does not fit overflows.
+    const survivingLabelEnds = labelEnds.slice(0, rowsThatFit).map(() => -Infinity);
+    const survivingMarkerEnds = survivingLabelEnds.slice();
     const kept: PlacedEvent[] = [];
+    const homeless: PlacedEvent[] = [];
     for (const item of placedRows) {
-      if (item.row < rowsThatFit) kept.push(item);
-      else overflow.push(item);
+      if (item.row < rowsThatFit) {
+        kept.push(item);
+        survivingMarkerEnds[item.row] = Math.max(survivingMarkerEnds[item.row], item.xTo + ROW_GAP_PX);
+        survivingLabelEnds[item.row] = Math.max(
+          survivingLabelEnds[item.row],
+          item.xTo + item.labelWidth + ROW_GAP_PX
+        );
+      } else {
+        homeless.push(item);
+      }
+    }
+    // In x order, so a row fills left to right exactly as it does in the first
+    // pass and the reservations stay monotonic.
+    homeless.sort((a, b) => a.xFrom - b.xFrom);
+    for (const item of homeless) {
+      const start = item.xFrom - 6;
+      let row = survivingLabelEnds.findIndex((rowEnd) => rowEnd <= start);
+      if (row === -1) row = survivingMarkerEnds.findIndex((rowEnd) => rowEnd <= start);
+      if (row === -1) {
+        overflow.push(item);
+        continue;
+      }
+      item.row = row;
+      survivingMarkerEnds[row] = item.xTo + ROW_GAP_PX;
+      survivingLabelEnds[row] = item.xTo + item.labelWidth + ROW_GAP_PX;
+      kept.push(item);
     }
     placedRows = kept;
     rowLines = rowLines.slice(0, rowsThatFit);
@@ -571,8 +654,15 @@ export function layoutTimeline(
   }
   for (const item of placedRows) item.top = rowTops[item.row] ?? 0;
 
-  // Whatever still doesn't fit becomes "+N" markers, bucketed by position, in
-  // the last row. Nothing is silently dropped.
+  // Whatever still doesn't fit becomes "+N" markers, bucketed by position.
+  // Nothing is silently dropped.
+  //
+  // THEY USED TO ALL GO ON THE LAST ROW, and that is what a crowded timeline
+  // looked like from the outside: a bottom line of count chips, sitting on top
+  // of whatever events that row already held, while rows above had gaps. The
+  // chips are now packed by the same rule as every other cluster — a row where
+  // nothing already reaches this far — which is done in the loop below, so they
+  // are created here WITHOUT a row and placed there with the rest.
   if (overflow.length > 0) {
     const bucketPx = 36;
     const buckets = new Map<number, PlacedEvent[]>();
@@ -582,14 +672,14 @@ export function layoutTimeline(
       if (list) list.push(item);
       else buckets.set(bucket, [item]);
     }
-    const row = Math.max(0, finalLines.length - 1);
+    const lastRow = Math.max(0, finalLines.length - 1);
     for (const [bucket, items] of buckets) {
       // A "+1" chip reads as a bug rather than as a crowd. One leftover event
       // goes back on the strip as a bare marker — it may sit under a neighbour's
       // label, which is a smaller cost than a badge that says nothing.
       if (items.length === 1) {
-        items[0].row = row;
-        items[0].top = rowTops[row] ?? 0;
+        items[0].row = lastRow;
+        items[0].top = rowTops[lastRow] ?? 0;
         items[0].showLabel = false;
         placedRows.push(items[0]);
         continue;
@@ -597,8 +687,9 @@ export function layoutTimeline(
       const x = items.reduce((sum, item) => sum + item.xFrom, 0) / items.length;
       clusters.push({
         key: `overflow-${bucket}`,
-        row,
-        top: rowTops[row] ?? 0,
+        // Row decided below, with every other cluster.
+        row: 0,
+        top: 0,
         x,
         count: items.length,
         from: window.from + (x - bucketPx) * yearsPerPixel,
@@ -617,16 +708,26 @@ export function layoutTimeline(
   // takes a place on a row where nothing already reaches that far, which is the
   // same rule the events themselves are packed by.
   const clusterRowEnds: number[] = labelEnds.slice(0, finalLines.length);
-  for (const cluster of clusters.filter((c) => !c.key.startsWith("overflow-"))) {
+  for (const cluster of clusters) {
     const start = cluster.x - 14;
     const end = cluster.x + 46;
     let row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1) {
-      row = Math.max(0, finalLines.length - 1);
-      clusterRowEnds[row] = end;
-    } else {
-      clusterRowEnds[row] = end;
+      // NOWHERE IS FREE, SO TAKE THE LEAST CROWDED ROW RATHER THAN THE LAST.
+      //
+      // This used to be `finalLines.length - 1` unconditionally, and that one
+      // line is what produced the bottom line of count chips on a busy
+      // timeline: every cluster that could not find a gap was stacked onto the
+      // last row, on top of whatever events that row already held, while rows
+      // above kept their gaps. Falling back to the row whose reservation ends
+      // earliest spreads them instead, and still guarantees a place for every
+      // one — nothing is dropped either way.
+      row = clusterRowEnds.reduce(
+        (best, rowEnd, index) => (rowEnd < clusterRowEnds[best] ? index : best),
+        0
+      );
     }
+    clusterRowEnds[row] = Math.max(clusterRowEnds[row], end);
     cluster.row = row;
     cluster.top = rowTops[row] ?? 0;
   }
@@ -665,8 +766,13 @@ export function layoutLane(
       const claims = event.claims.filter(claimIsPositioned).map((claim) => placeClaim(claim, window, width, scale));
       if (claims.length === 0) return null;
       const dateLabel = eventDateLabel(event.claims);
-      const xFrom = Math.min(...claims.map((c) => Math.min(c.x, c.x2)));
-      const xTo = Math.max(...claims.map((c) => Math.max(c.x, c.x2)));
+      const span = clampToStrip(
+        Math.min(...claims.map((c) => Math.min(c.x, c.x2))),
+        Math.max(...claims.map((c) => Math.max(c.x, c.x2))),
+        width
+      );
+      const xFrom = span.xFrom;
+      const xTo = span.xTo;
       const disputed = claims.length > 1 && claims.some((c) => Math.abs(c.x - claims[0].x) > 0.5);
       const label = measureLabel(event.title, dateLabel, {
         disputed,
