@@ -120,13 +120,20 @@ export function TimelineOverview({
   // written here and the line down the middle of the strip mark the same date,
   // which is the whole point of drawing both.
   //
-  // It is then placed at where that date actually falls on THIS bar, which
-  // spans all of time on a log scale. On the linear strip that lands exactly
-  // halfway across the box, as it should; if the two scales ever disagree the
-  // mark stays honest about where the date is rather than sitting prettily in
-  // the middle of the box.
+  // WHERE IT IS DRAWN: the middle of the bar, always. Not where that date falls
+  // on this bar, which is what it did first and which looked wrong for a good
+  // reason. This bar spans all of time on a log scale while the strip spans the
+  // window, so at a wide zoom the view's centre date lands far over to the left
+  // of the bar — a line and a label pinned near the left edge, claiming to mark
+  // the middle of what you are looking at.
+  //
+  // So the mark is a FIXED PLAYHEAD. The bar's centre is the reading position,
+  // the date beside it is the date at the middle of the strip above, and the
+  // events slide under it as you drag. It is a label rather than a pointer: it
+  // says WHAT the centre date is, and does not claim to show where that date
+  // sits among the marks on this bar.
+  const CENTRE_FRACTION = 0.5;
   const centreYear = positionAt(view, 0.5, scale);
-  const centreFraction = toFraction(centreYear);
   const centreLabel = formatYear(centreYear, { compact: true });
 
   // WHAT IS ACTUALLY ON SCREEN, which is not always what the maths says.
@@ -317,13 +324,12 @@ export function TimelineOverview({
 
         {/* THE CENTRE DATE, WRITTEN. White, at the height the bar allows, sitting
             BESIDE its line rather than on it — both are white, and a white rule
-            through white letters is unreadable. It flips to the left of the
-            line near the right-hand end, where writing to the right would run
-            off the bar; the same move the strip's captions make.
+            through white letters is unreadable. No flip is needed now that the
+            line is fixed at the middle: there is always half a bar to write in.
 
-            Deliberately NOT clipped to the window box: zoomed in that box is a
-            few pixels wide, and a date that vanishes exactly when you are
-            looking most closely is worse than one that overflows it.
+            Deliberately NOT clipped to the window box, which may not even
+            contain the bar's centre at a tight zoom. The date belongs to the
+            strip above, not to the box.
 
             Not interactive and not announced: the same date is on the strip's
             ruler, and a screen reader being told the midpoint of the view on
@@ -331,11 +337,7 @@ export function TimelineOverview({
         <span
           aria-hidden
           className="pointer-events-none absolute inset-y-0 z-10 flex items-center"
-          style={
-            centreFraction > 0.8
-              ? { right: `${(1 - centreFraction) * 100}%`, paddingRight: 8, justifyContent: "flex-end" }
-              : { left: `${centreFraction * 100}%`, paddingLeft: 8 }
-          }
+          style={{ left: `${CENTRE_FRACTION * 100}%`, paddingLeft: 8 }}
         >
           {/* ON A DARK CHIP, BECAUSE PLAIN WHITE IS NOT READABLE HERE. The bar
               is pale and the window box paler still; white letters on it came
@@ -353,7 +355,7 @@ export function TimelineOverview({
           aria-hidden
           className="pointer-events-none absolute inset-y-0 z-10"
           style={{
-            left: `${centreFraction * 100}%`,
+            left: `${CENTRE_FRACTION * 100}%`,
             width: 3,
             marginLeft: -1.5,
             background: "rgba(255,255,255,0.95)",
