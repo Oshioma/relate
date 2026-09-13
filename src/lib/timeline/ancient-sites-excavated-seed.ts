@@ -232,6 +232,36 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Karahan Tepe, Şanlıurfa Province, Türkiye",
     lat: 37.0731,
     lng: 39.2917,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Karahantepe2.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Karahantepe2.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Karahan Tepe under excavation. Pillared structures of the same tradition as Göbekli Tepe, dug and dated " +
+          "by ordinary archaeology — an extraordinary age arrived at by unextraordinary means.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Karahan_Tepe_man_1100.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A carved human head from the site, in the Şanlıurfa museum. Objects like this come out of dated " +
+          "deposits, which is what separates this record from the claimed sites elsewhere in the group.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_karahan",
@@ -376,6 +406,24 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Nabta Playa, Nubian Desert, southern Egypt",
     lat: 22.5,
     lng: 30.72,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_Aswan_Nubia_museum.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_Aswan_Nubia_museum.JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The Nabta Playa stone circle AS RE-ERECTED IN THE NUBIA MUSEUM AT ASWAN — not in place in the desert. A " +
+          "relocated monument is a reconstruction of an arrangement, and anything measured from these stones today " +
+          "is measured from the museum's placing of them.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_nabta",
@@ -450,6 +498,24 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Visočica hill, Visoko, Bosnia and Herzegovina",
     lat: 43.9889,
     lng: 18.1778,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bosnian_Pyramid.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bosnian_Pyramid.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Visočica hill, near Visoko. The claim is that this is a colossal artificial pyramid; geological survey " +
+          "identifies it as a flatiron, a natural landform produced by tilted rock layers. The photograph is of a " +
+          "hill, and which of those it is cannot be settled by looking at it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_osmanagic",

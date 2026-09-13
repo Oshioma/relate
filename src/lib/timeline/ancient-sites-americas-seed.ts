@@ -225,6 +225,37 @@ export const ANCIENT_SITES_AMERICAS_EVENTS: SeedEvent[] = [
     locationName: "Tiwanaku, La Paz Department, Bolivia",
     lat: -16.5547,
     lng: -68.6733,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Templo_de_Kalasasaya,_Tiwanaku.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Templo_de_Kalasasaya,_Tiwanaku.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Kalasasaya at Tiwanaku. This is the structure whose alignment Posnansky measured to argue for a date " +
+          "around 15,000 BCE — the same stones that excavated radiocarbon places in the middle of the first " +
+          "millennium CE. A photograph settles neither; it shows you what is being argued about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Monolito_Ponce_en_Tiwanaku_-_Bolivia.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "The Ponce monolith, standing inside the Kalasasaya. Carved stone of this quality is the observation both " +
+          "accounts start from; where they part is on when it was carved and by whom.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "janusek_chronology",
@@ -311,6 +342,37 @@ export const ANCIENT_SITES_AMERICAS_EVENTS: SeedEvent[] = [
     locationName: "Pumapunku, Tiwanaku, La Paz Department, Bolivia",
     lat: -16.5614,
     lng: -68.6803,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Puma_Punku_H_profile_wall.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Puma_Punku_H_profile_wall.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "One of the H-shaped blocks at the Pumapunku. The regularity of these — repeated to the same profile — is " +
+          "what people mean when they call the stonework machine-like. It is the observation, not the conclusion.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Puma_Punku_foundation_plate_joint.JPG?width=1024",
+        shows: "site",
+        caption:
+          "A joint between foundation plates at the Pumapunku. The complex is a separate record from the Tiwanaku " +
+          "core because it has its own dates, from material inside the mound it stands on — a complex is not one " +
+          "building.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "yaeger_vranich2013",

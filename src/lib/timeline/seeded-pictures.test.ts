@@ -23,6 +23,12 @@ import { EARLY_SAPIENS_EVENTS } from "./early-sapiens-seed";
 import { GIANTS_HEBREW_EVENTS } from "./giants-hebrew-seed";
 import { GIANTS_GREEK_EVENTS } from "./giants-greek-seed";
 import { GIANTS_MESOPOTAMIA_EVENTS } from "./giants-mesopotamia-seed";
+import { ANCIENT_SITES_AMERICAS_EVENTS } from "./ancient-sites-americas-seed";
+import { ANCIENT_SITES_ARTEFACTS_EVENTS } from "./ancient-sites-artefacts-seed";
+import { ANCIENT_SITES_SUBMERGED_EVENTS } from "./ancient-sites-submerged-seed";
+import { ANCIENT_SITES_WORKED_STONE_EVENTS } from "./ancient-sites-worked-stone-seed";
+import { ANCIENT_SITES_ACCEPTED_EVENTS } from "./ancient-sites-accepted-surprise-seed";
+import { ANCIENT_SITES_EXCAVATED_EVENTS } from "./ancient-sites-excavated-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -48,6 +54,12 @@ const ALL: SeedEvent[] = [
   ...GIANTS_HEBREW_EVENTS,
   ...GIANTS_GREEK_EVENTS,
   ...GIANTS_MESOPOTAMIA_EVENTS,
+  ...ANCIENT_SITES_AMERICAS_EVENTS,
+  ...ANCIENT_SITES_ARTEFACTS_EVENTS,
+  ...ANCIENT_SITES_SUBMERGED_EVENTS,
+  ...ANCIENT_SITES_WORKED_STONE_EVENTS,
+  ...ANCIENT_SITES_ACCEPTED_EVENTS,
+  ...ANCIENT_SITES_EXCAVATED_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>
@@ -255,8 +267,8 @@ test("every seeded dataset carrying pictures is in the list this file checks", a
   const missing: string[] = [];
 
   for (const file of seedFiles) {
-    const module: Record<string, unknown> = await import(`./${file}`);
-    for (const [name, value] of Object.entries(module)) {
+    const seedModule: Record<string, unknown> = await import(`./${file}`);
+    for (const [name, value] of Object.entries(seedModule)) {
       if (!name.endsWith("_EVENTS") || !Array.isArray(value)) continue;
       for (const event of value as SeedEvent[]) {
         const hasPictures = Boolean(event.imageUrl) || (event.media ?? []).length > 0;
