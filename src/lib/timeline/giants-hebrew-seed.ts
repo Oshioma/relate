@@ -589,6 +589,24 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
     locationName: "Qumran, Judaean Desert",
     lat: 31.7417,
     lng: 35.4589,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Qumran_Caves.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qumran_Caves.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The caves at Qumran. This is where the manuscripts of the Book of Giants come from — the physical " +
+          "evidence for the text is fragments of parchment out of holes in this cliff, and the date that can be " +
+          "measured is the date of the writing on them.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "book_of_giants_qumran",
@@ -666,6 +684,24 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
     locationName: "The Valley of Elah, Levant",
     lat: 31.69,
     lng: 34.96,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/David_and_Goliath_by_Caravaggio.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/David_and_Goliath_by_Caravaggio.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Caravaggio, about 1600 — some two and a half thousand years after the text, and painted in Italy. It " +
+          "tells you what a seventeenth-century painter pictured, and nothing whatever about a height. The " +
+          "manuscripts disagree by nearly a metre and no painting can settle that.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "4qsama",
