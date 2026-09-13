@@ -233,6 +233,37 @@ const GREEK: SeedEvent[] = [
     people: ["Ogyges"],
     civilisations: ["Ancient Greece"],
     motifs: ["multiple_floods", "rising_sea"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Boeotia_ancient-en.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boeotia_ancient-en.svg?width=1024",
+        shows: "map",
+        caption:
+          "Ancient Boeotia. The later Greek tradition places Ogyges here and in neighbouring Attica, and this is a " +
+          "modern map of the ancient places — it marks no flood, because no ancient source marks one on the ground.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lake_Copais.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Copais basin in Boeotia. The lake that filled it was drained in the nineteenth century; ancient " +
+          "writers knew it as water that could rise over the plain, which is the landscape the Ogyges tradition " +
+          "belongs to. It is not evidence that the flood happened.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "parian_marble",
@@ -283,6 +314,21 @@ const GREEK: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Timaios_beginning._Codex_Parisinus_graecus_1807.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening of the Timaeus in Codex Parisinus graecus 1807, a ninth-century Greek manuscript. Everything " +
+          "Plato is quoted as saying about many destructions reaches us through copies like this one, more than a " +
+          "thousand years after he wrote — which is the ordinary condition of every classical text on this " +
+          "timeline.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -348,6 +394,19 @@ const INDIAN: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/India,_Calcutta,_Kalighat_painting,_19th_century_-_Matsya,_Fish_Avatara_of_Vishnu_-_2003.102_-_Cleveland_Museum_of_Art.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Matsya as the fish avatāra of Viṣṇu, painted at Kālīghāṭ in nineteenth-century Calcutta. The title the " +
+          "picture carries is the later identification: in the Śatapatha Brāhmaṇa the fish is only a fish.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -419,6 +478,20 @@ const INDIAN: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/1801_sketch_of_Vishnu_avatars_Matsya_and_Kurma_in_Meenakshi_Shaivism_Temple_at_Madurai_Tamil_Nadu_03.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Matsya and Kūrma, the first two descents of Viṣṇu, in an 1801 sketch of carvings at the Mīnākṣī temple " +
+          "in Madurai. The fish here is not a fish that helped a man out of a flood: it is number one in a list, " +
+          "which is the development this record dates.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -470,6 +543,25 @@ const IRANIAN: SeedEvent[] = [
       "plants_preserved",
       "few_survive",
       "repopulation",
+    ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Persepolis_-_carved_Faravahar.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Persepolis_-_carved_Faravahar.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "The Faravahar carved at Persepolis. IT IS NOT AN ILLUSTRATION OF YIMA and it is later than the Avestan " +
+          "text: it is the tradition's own emblem, cut in stone by the Achaemenids, and it is here because the " +
+          "catastrophe in this record is a Zoroastrian one and the account belongs inside that religion rather than " +
+          "inside the flood stories it superficially resembles.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

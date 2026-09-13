@@ -439,6 +439,21 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/WMAP_image_of_the_CMB_anisotropy.jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The cosmic microwave background across the whole sky. It is not a photograph of the early universe: it " +
+          "is the oldest light there is, released some hundreds of thousands of years after the beginning of this " +
+          "band, and everything earlier in the band left no light at all and is known only from theory and from " +
+          "what this pattern constrains.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -510,6 +525,21 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Zircon_microscope.jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "A zircon crystal under the microscope. Zircons are how the oldest ages on Earth are obtained — they hold " +
+          "uranium and survive almost everything — and it is worth seeing that the dates on this band come off " +
+          "grains like this rather than off landscapes. THIS PARTICULAR GRAIN IS NOT ONE OF THE ANCIENT ONES; it is " +
+          "an example of the mineral.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -616,6 +646,21 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Banded_iron_formation_(Temagami_Iron-Formation,_Neoarchean,_~2.736_Ga%3B_Temagami_North_roadcut,_Temagami,_Ontario,_Canada)_61_(33921375478).jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Banded iron formation from Ontario, about 2.7 billion years old. It is not a fossil and contains no " +
+          "creature: it is rust, laid down in alternating bands, and it is read as the chemical trace of oxygen " +
+          "entering the sea. Most of the evidence for life in this band is of this kind — a change in the rocks " +
+          "rather than a body in them.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -683,6 +728,21 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gondwana_420_Ma.png?width=1024",
+        shows: "map",
+        caption:
+          "The world at about 420 million years ago, in the middle of this era. It is a reconstruction from " +
+          "palaeomagnetism and matching rock sequences, not a survey — and it makes one point that a fossil cannot: " +
+          "the continents were not where they are now, so \"where\" a Palaeozoic animal lived is not a place you can " +
+          "visit today.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -772,6 +832,21 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pangaea_to_present.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "Pangaea breaking up, animated. This is what the Mesozoic did to the map, and it matters more to the era " +
+          "than any single animal does: oceans opened, continents separated, and the populations on them went their " +
+          "own ways. It is a model rather than an observation, assembled from magnetic stripes and fitted " +
+          "coastlines.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -853,6 +928,20 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Five_Myr_Climate_Change.svg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The stacked deep-sea oxygen-isotope record of the last five million years — the END of this era only, " +
+          "and about a tenth of it. It shows the swing into repeated glaciations that the last part of the Cenozoic " +
+          "is made of, and it is a compilation of dozens of sediment cores rather than a single measured series.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -919,6 +1008,34 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Laetoli_footprints_replica.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "A replica of the Laetoli footprints. THE ORIGINAL IS BURIED AGAIN for its own protection, so what is on " +
+          "display is a copy — and even the original is one short trackway made by a few individuals on one " +
+          "morning, not a portrait of several million years of ancestry.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Australopithecus_afarensis_(Lucy)_cast_-_Naturmuseum_Senckenberg_-_DSC02089.JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "A cast of the Lucy skeleton. It is a cast and not the bones, and the bones themselves are about forty " +
+          "per cent of one individual: the completeness a museum mount suggests is the mount's, and the famous name " +
+          "attached to it stands in for a whole band of time that contained a great many populations.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -989,6 +1106,20 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Wooden artefacts from Schöningen. THE STONE IS A SURVIVAL BIAS, not a description of the toolkit: wood " +
+          "rots, and it is only at a handful of waterlogged sites that anything like this is left. A period named " +
+          "after stone is named after what lasted.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1094,6 +1225,20 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Blombos_Cave_stratigraphy.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The layered deposits at Blombos Cave, South Africa. A period is not an object but a set of layers with " +
+          "things in them, and this is what one actually looks like — the Middle Stone Age here is a stack of " +
+          "occupations, each thinner than the label the whole band carries.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1266,6 +1411,21 @@ export const PERIODS: SeedPeriod[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Facade_Hagar_Qim.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Ħaġar Qim in Malta, built thousands of years AFTER farming began elsewhere. It is here to break the " +
+          "word: the Neolithic is not one event at one date, it starts at different times in different places, and " +
+          "a monument at the late end of the band in one small island is not a picture of the transition that opens " +
+          "it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1434,6 +1594,21 @@ export const PERIODS: SeedPeriod[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hallstatt_LaTene.png?width=1024",
+        shows: "map",
+        caption:
+          "The Hallstatt and La Tène zones in Europe. THE LABEL IS REGIONAL: \"Iron Age\" as a period name comes out " +
+          "of European archaeology and its dates are European dates, and iron working begins and ends at quite " +
+          "different times in Anatolia, in Africa and in South Asia. The map is a reminder that a band on this " +
+          "timeline is a convention with an address.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

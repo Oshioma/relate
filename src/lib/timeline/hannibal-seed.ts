@@ -360,6 +360,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Antiochus_III_coin.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "A coin of Antiochus III. This is the man the oath story was told TO: Polybius has it from Hannibal " +
+          "himself, an exile in his fifties at this king's court, needing to be believed about his own reliability. " +
+          "The coin is here because the audience is the part of the evidence usually left out.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -686,6 +700,19 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pyrenees_topographic_map-fr.svg?width=1024",
+        shows: "map",
+        caption:
+          "The Pyrenees in relief. No ancient source names the pass Hannibal used, and no route on this map is his: " +
+          "the map is here to show the scale of the barrier the running totals in Polybius are being spent on.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -845,6 +872,34 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traversant_les_Alpes_%C3%A0_dos_d%27%C3%A9l%C3%A9phant_-_Nicolas_Poussin.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Poussin, seventeenth century. Put beside Turner's storm and Leutemann's parade it makes the useful " +
+          "point: three painters, three completely different crossings, none of them a witness. What changes " +
+          "between them is the century doing the imagining, not the evidence.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Leutemann,_Heinrich_-_Hannibal%27s_crossing_of_the_Alps.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Heinrich Leutemann, nineteenth century — an orderly column with elephants, drawn for a reading public " +
+          "that wanted the crossing to look like an achievement. Compare the Turner on this record, where the army " +
+          "is nearly swallowed by the weather.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -961,6 +1016,21 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
           "Heinrich Leutemann, 'Hannibals Übergang über die Alpen', woodcut, 1866. This is where the popular image of elephants in the snow comes from — a 19th-century illustration, not a record. Public domain, via Wikimedia Commons.",
         kind: "image",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_Barca_Coin.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A coin struck in Etruria in 208–207 BCE: an African head on one side, an elephant on the other. TWO " +
+          "CAUTIONS THE COIN ITSELF DEMANDS — the head is identified as Hannibal only as a possibility, and the " +
+          "elephant depicted is an Indian one. It is contemporary metal, which is more than the paintings offer, " +
+          "and it still settles neither question.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1046,6 +1116,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ticino_River,_Pavia,_Italy.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Ticino at Pavia. The cavalry action was fought somewhere west of here, and nobody knows where: there " +
+          "is no battlefield to visit and nothing has ever been excavated. This is the river, which is the most " +
+          "that can honestly be shown.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1109,6 +1193,34 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Fiume_Trebbia_(Piacenza)_-_panoramio_(1).jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Trebbia near Piacenza. The ancient accounts turn on Roman soldiers crossing this water in December " +
+          "before they had eaten — which is a claim about a river, and the river is still here. Where on it the " +
+          "army crossed is not known.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Il_fiume_Trebbia_va_nel_Po_-_Piacenza.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Trebbia running into the Po. The plain between the two is where the battle is placed; the " +
+          "watercourse Mago is said to have hidden his force in is somewhere in a landscape of this kind, and has " +
+          "never been identified.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1406,6 +1518,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Amphitheater_santa_maria_capua_vetere.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Ancient Capua, at Santa Maria Capua Vetere. THE AMPHITHEATRE IS TWO CENTURIES TOO LATE — it is Imperial, " +
+          "and the march happened in 211 BCE. It is the city the manoeuvre was about: Hannibal went to Rome to pull " +
+          "the Roman armies off Capua, and Capua fell anyway.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1473,6 +1599,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Manuscript_of_Cicero_-_BL_Kings_MS_21_f._2.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A manuscript of Cicero from the British Library's King's collection. THE PROVERB SURVIVES BY COPYING: " +
+          "what Cicero said in 44 BCE reaches us because scribes went on recopying his speeches for well over a " +
+          "thousand years, and the phrase is attested in that chain and not in any Carthaginian one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1632,6 +1772,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         caption:
           "Silver quarter shekel struck under Carthaginian rule in Iberia, c. 237–209 BCE: a male head with a club at the shoulder — usually identified as Melqart — and an elephant. Photograph by Classical Numismatic Group, CC BY-SA 2.5, via Wikimedia Commons.",
         kind: "image",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Crotone,_parco_archeologico_di_capo_colonna,_mura_del_santuario_01.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The sanctuary walls at Capo Colonna, near Crotone — the Lacinian promontory. THE TABLET IS NOT HERE. " +
+          "This is the place Polybius says he read a Carthaginian bronze recording Hannibal's own numbers; the " +
+          "bronze is lost, and what survives of the sanctuary is stone.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
       },
     ],
     claims: [

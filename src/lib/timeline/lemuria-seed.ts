@@ -333,6 +333,20 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Secret_Doctrine.gif?width=1024",
+        shows: "manuscript",
+        caption:
+          "The Secret Doctrine, 1888 — the book in which the Lemurian root race is set out. The Lemuria in it is " +
+          "not Sclater's: Sclater proposed a land bridge to explain lemurs, and what this book does with the name " +
+          "is a different undertaking that borrowed it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -383,6 +397,20 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Map_of_Atlantis.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Scott-Elliot's map of Atlantis, from his companion volume. THE SAME AUTHOR MAPPED TWO LOST CONTINENTS, " +
+          "in the same manner and to the same standard of evidence, and seeing the second one is the quickest way " +
+          "to understand what kind of document the Lemuria maps are.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -429,6 +457,20 @@ const IDEA_HISTORY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Rudolf Steiner about 1905, around the time he was lecturing on the Lemurian epoch. The dates on this " +
+          "record come from a named person with a published body of work, which is why they can be quoted precisely " +
+          "and attributed exactly.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -479,6 +521,20 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_churchward.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "James Churchward. The tablets he says he was shown in an Indian temple, and taught to read, have never " +
+          "been produced or seen by anyone else — so the entire evidential basis of the book rests on this man's " +
+          "account of his own past.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -514,6 +570,38 @@ const IDEA_HISTORY: SeedEvent[] = [
     eventType: "historical",
     eventTypeNote: "A gradual development across many authors, given a broad range rather than a year, because no single event produced it.",
     tags: ["lemuria", "mu", "history-of-an-idea", "popular-culture"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Lemuria_map.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Lemuria_map.jpg?width=1024",
+        shows: "map",
+        caption:
+          "A map titled Lemuria, filed on Commons with Churchward's material. Churchward wrote about Mu, in the " +
+          "Pacific; Lemuria was an Indian Ocean hypothesis about lemurs. The two names sliding onto one object is " +
+          "the event this record is about, and here it is in a file name.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_churchward.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "James Churchward, who did not merge the two himself — he insisted Mu was his own Pacific continent. The " +
+          "merging was done by later writers and readers, which is why this record is dated to the twentieth " +
+          "century generally rather than to any book.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_mu",
@@ -565,6 +653,21 @@ const IDEA_HISTORY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Oceanic.Stripe.Magnetic.Anomalies.Scheme.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "Magnetic striping on the ocean floor: bands of rock recording the Earth's field flipping as new crust " +
+          "spread from a ridge. THIS IS WHAT REMOVED THE NEED FOR LEMURIA. Sunken land bridges were a reasonable " +
+          "answer to why the same fossils appear on separated continents; sea-floor spreading is a better one, and " +
+          "it is measurable.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -691,6 +794,20 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/ARE_Cayce.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Edgar Cayce, whose readings supply the youngest of the four figures on this record. Thirty-four million " +
+          "years separate his date from the Theosophical one, and both are on this record because both were said — " +
+          "the spread is the finding, and averaging it away would destroy it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -800,6 +917,21 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Golden-age-mu-map.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Churchward's Mu at its supposed height, from his own books. The same map appears on the record for the " +
+          "book's publication; here it is beside the destruction dates, which are the ones he gives as \"years ago\" " +
+          "and which this timeline converts by subtracting from 1926 — a map of a place whose end date is " +
+          "arithmetic on a publication year.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -876,6 +1008,20 @@ const GEOLOGY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pangaea_to_present.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "The continents from Pangaea to now. Gondwana's break-up is the real mechanism behind the puzzle Lemuria " +
+          "was invented to solve — the land did move, just not by sinking, and on a timescale of a hundred million " +
+          "years rather than the tens of thousands the esoteric accounts use.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -922,6 +1068,20 @@ const GEOLOGY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Satellite_image_of_Madagascar_in_September_2003.jpg?width=1024",
+        shows: "map",
+        caption:
+          "Madagascar from orbit. India was against this coast until about 88 million years ago and is now four " +
+          "thousand kilometres away; the shared ancestry of the animals on both is real, and it is 88 million years " +
+          "old, which is the objection to every use of it as evidence for a human civilisation.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

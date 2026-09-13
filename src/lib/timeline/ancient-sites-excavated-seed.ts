@@ -423,6 +423,34 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_Aswan_Nubia_museum.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "Nabta Playa megaliths in the Nubia Museum at Aswan. THE STONES HAVE BEEN MOVED: they were lifted from " +
+          "the desert and re-erected indoors, so their arrangement here is a museum's, and any alignment argument " +
+          "has to be made from the survey of the site and not from this.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Calendar_aswan.JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The Nabta Playa \"calendar circle\", reassembled in the Nubia Museum. It is a reconstruction of a " +
+          "arrangement recorded in the field, and the astronomical readings proposed for it are proposals about the " +
+          "original ground, not about these stones as they now stand.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -509,6 +537,20 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
           "Visočica hill, near Visoko. The claim is that this is a colossal artificial pyramid; geological survey " +
           "identifies it as a flatiron, a natural landform produced by tilted rock layers. The photograph is of a " +
           "hill, and which of those it is cannot be settled by looking at it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bosnian_Pyramids_tunnels.JPG?width=1024",
+        shows: "site",
+        caption:
+          "Tunnels at Visoko, presented as part of a prehistoric network linking the claimed pyramids. Their age is " +
+          "the disputed thing, not their existence — and the cores taken from the hill itself found the ordinary " +
+          "conglomerate, clay and sandstone of every hill in the valley.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -623,6 +665,38 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Mount Kuylyum, Gornaya Shoria, southern Siberia",
     lat: 52.9,
     lng: 88.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%9C%D0%B5%D0%B3%D0%B0%D0%BB%D0%B8%D1%82%D1%8B_%D0%93%D0%BE%D1%80%D0%BD%D0%BE%D0%B9_%D0%A8%D0%BE%D1%80%D0%B8%D0%B8_05.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%9C%D0%B5%D0%B3%D0%B0%D0%BB%D0%B8%D1%82%D1%8B_%D0%93%D0%BE%D1%80%D0%BD%D0%BE%D0%B9_%D0%A8%D0%BE%D1%80%D0%B8%D0%B8_05.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The Gornaya Shoria blocks. This is what the argument is over, and both readings are looking at the same " +
+          "photograph: rectangular faces and straight joints, which is what a wall looks like and also what jointed " +
+          "granite looks like when erosion has taken the weaker rock away.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%9C%D0%B5%D0%B3%D0%B0%D0%BB%D0%B8%D1%82%D1%8B_%D0%93%D0%BE%D1%80%D0%BD%D0%BE%D0%B9_%D0%A8%D0%BE%D1%80%D0%B8%D0%B8_06.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The same ridge again. TWO PICTURES RATHER THAN ONE ON PURPOSE: a single well-chosen angle is how a tor " +
+          "is made to look like masonry, and the corners rounded by weathering are easier to see across more than " +
+          "one view than in the photograph somebody selected.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_gornaya_shoria",

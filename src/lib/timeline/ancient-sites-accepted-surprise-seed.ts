@@ -358,6 +358,20 @@ export const ANCIENT_SITES_ACCEPTED_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nan_Madol_megalithic_site,_Pohnpei_(Federated_States_of_Micronesia)_5.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Nan Madol, built of columnar basalt laid up in courses. The basalt is naturally columnar — it comes out " +
+          "of the ground in prisms — which answers the question of how the pieces were shaped without answering how " +
+          "they were moved, and the second question is the one the site is famous for.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -451,6 +465,20 @@ export const ANCIENT_SITES_ACCEPTED_EVENTS: SeedEvent[] = [
           "Moai at Ahu Tongariki. The settlement date on this record is one where SCIENCE CHANGED ITS MIND: the " +
           "earlier estimate of the first millennium CE has been pulled several centuries later by re-dated " +
           "material.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Rano_Raraku_quarry.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The quarry at Rano Raraku, with moai left unfinished in the rock face. The statues are the reason the " +
+          "settlement date matters to people arguing about the island — and the quarry shows the work as a process " +
+          "with stages, which is what an argument about how long it took has to fit.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

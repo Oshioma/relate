@@ -636,6 +636,34 @@ export const ANCIENT_SITES_AMERICAS_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boqueir%C3%A3o_da_Pedra_Furada_-_Serra_da_Capivara.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The rock shelter at Boqueirão da Pedra Furada. THE CLIFF ABOVE IS THE OBJECTION: quartzite cobbles fall " +
+          "from it, and a stone that has fallen a long way can break like a struck one. Thirty years of argument " +
+          "turn on whether the flakes in this shelter needed a hand.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Serra_da_Capivara_-_Painting_7.JPG?width=1024",
+        shows: "site",
+        caption:
+          "Rock art in the Serra da Capivara. NOBODY DISPUTES THIS — the later occupation of the region is accepted " +
+          "and abundant. The argument on this record is about layers far below it, and the undisputed richness of " +
+          "the site is not evidence for the disputed part of it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

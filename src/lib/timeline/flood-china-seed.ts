@@ -145,6 +145,20 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nine_Provinces_of_China.png?width=1024",
+        shows: "map",
+        caption:
+          "The Nine Provinces into which Yu is said to have divided the land once the water had somewhere to go. " +
+          "The scheme comes from the Yu Gong chapter of the Book of Documents; this is a modern map drawn from that " +
+          "text, and it shows what the tradition says Yu accomplished rather than a surveyed geography of the Xia.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -234,6 +248,21 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Guide_banner_Yellow_River.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The upper Yellow River in Guide County, Qinghai — the same reach of river as the gorge this record is " +
+          "about. THE GORGE IS NOT IN THIS PICTURE. It is here to show the kind of country a landslide dam and its " +
+          "failure would have happened in, which is steep and narrow and a long way from the plains the tradition " +
+          "puts Yu to work on.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
