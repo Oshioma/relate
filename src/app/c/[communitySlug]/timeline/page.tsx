@@ -46,6 +46,7 @@ import { ANCIENT_SITES_ACCEPTED_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites
 import { ANCIENT_SITES_EXCAVATED_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites-excavated-seed";
 import { GIANTS_HEBREW_ANCHOR_SLUG } from "@/lib/timeline/giants-hebrew-seed";
 import { GIANTS_GREEK_ANCHOR_SLUG } from "@/lib/timeline/giants-greek-seed";
+import { GIANTS_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/giants-mesopotamia-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -139,6 +140,7 @@ export default async function TimelinePage({
     hasAncientSitesExcavated,
     hasGiantsHebrew,
     hasGiantsGreek,
+    hasGiantsMesopotamia,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -193,6 +195,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, ANCIENT_SITES_EXCAVATED_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_HEBREW_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_GREEK_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_MESOPOTAMIA_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -265,6 +268,7 @@ export default async function TimelinePage({
         hasAncientSitesExcavated={hasAncientSitesExcavated}
         hasGiantsHebrew={hasGiantsHebrew}
         hasGiantsGreek={hasGiantsGreek}
+        hasGiantsMesopotamia={hasGiantsMesopotamia}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}

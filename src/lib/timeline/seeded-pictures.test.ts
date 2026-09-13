@@ -20,6 +20,15 @@ import { LEMURIA_EVENTS } from "./lemuria-seed";
 import { HANNIBAL_EVENTS } from "./hannibal-seed";
 import { DEEP_TIME_EVENTS } from "./deep-time-seed";
 import { EARLY_SAPIENS_EVENTS } from "./early-sapiens-seed";
+import { GIANTS_HEBREW_EVENTS } from "./giants-hebrew-seed";
+import { GIANTS_GREEK_EVENTS } from "./giants-greek-seed";
+import { GIANTS_MESOPOTAMIA_EVENTS } from "./giants-mesopotamia-seed";
+import { ANCIENT_SITES_AMERICAS_EVENTS } from "./ancient-sites-americas-seed";
+import { ANCIENT_SITES_ARTEFACTS_EVENTS } from "./ancient-sites-artefacts-seed";
+import { ANCIENT_SITES_SUBMERGED_EVENTS } from "./ancient-sites-submerged-seed";
+import { ANCIENT_SITES_WORKED_STONE_EVENTS } from "./ancient-sites-worked-stone-seed";
+import { ANCIENT_SITES_ACCEPTED_EVENTS } from "./ancient-sites-accepted-surprise-seed";
+import { ANCIENT_SITES_EXCAVATED_EVENTS } from "./ancient-sites-excavated-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -38,6 +47,19 @@ const ALL: SeedEvent[] = [
   ...HANNIBAL_EVENTS,
   ...DEEP_TIME_EVENTS,
   ...EARLY_SAPIENS_EVENTS,
+  // EVERY DATASET THAT CARRIES PICTURES HAS TO BE IN THIS LIST, and nothing
+  // enforces that but remembering. A dataset left out is not a failing test,
+  // it is a set of pictures no rule here ever looks at — which is the quietest
+  // way for a wrong caption or an unattributed image to ship.
+  ...GIANTS_HEBREW_EVENTS,
+  ...GIANTS_GREEK_EVENTS,
+  ...GIANTS_MESOPOTAMIA_EVENTS,
+  ...ANCIENT_SITES_AMERICAS_EVENTS,
+  ...ANCIENT_SITES_ARTEFACTS_EVENTS,
+  ...ANCIENT_SITES_SUBMERGED_EVENTS,
+  ...ANCIENT_SITES_WORKED_STONE_EVENTS,
+  ...ANCIENT_SITES_ACCEPTED_EVENTS,
+  ...ANCIENT_SITES_EXCAVATED_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>
@@ -220,4 +242,44 @@ test("no period caption lets its picture stand for the whole span", () => {
       `${slug}: caption does not say what the picture is NOT`
     );
   }
+});
+
+// ---------------------------------------------------------------------------
+// AND THE HOLE IN ALL OF THE ABOVE
+//
+// Every rule in this file runs over ALL, and ALL is a hand-written list of
+// imports. A dataset left out of it does not fail anything — its pictures are
+// simply never examined, which is the quietest way for a wrong caption or an
+// unattributed image to ship. Three datasets carrying no pictures at all were
+// absent from this list for exactly that reason, and nobody noticed because
+// there was nothing to notice.
+//
+// So the list is checked against the directory rather than against memory.
+// ---------------------------------------------------------------------------
+
+test("every seeded dataset carrying pictures is in the list this file checks", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const dir = path.dirname(new URL(import.meta.url).pathname);
+  const seedFiles = fs.readdirSync(dir).filter((name) => name.endsWith("-seed.ts"));
+
+  const covered = new Set(ALL.map((event) => event.slug));
+  const missing: string[] = [];
+
+  for (const file of seedFiles) {
+    const seedModule: Record<string, unknown> = await import(`./${file}`);
+    for (const [name, value] of Object.entries(seedModule)) {
+      if (!name.endsWith("_EVENTS") || !Array.isArray(value)) continue;
+      for (const event of value as SeedEvent[]) {
+        const hasPictures = Boolean(event.imageUrl) || (event.media ?? []).length > 0;
+        if (hasPictures && !covered.has(event.slug)) missing.push(`${file}: ${event.slug}`);
+      }
+    }
+  }
+
+  assert.deepEqual(
+    missing,
+    [],
+    `these events carry pictures that no rule in this file has ever looked at:\n  ${missing.join("\n  ")}`
+  );
 });

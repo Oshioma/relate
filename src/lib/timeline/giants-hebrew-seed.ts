@@ -229,6 +229,38 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
     locationName: "Southern China",
     lat: 23.5,
     lng: 108.5,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gigantopithecus_blacki_mandible_010112.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gigantopithecus_blacki_mandible_010112.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A mandible of Gigantopithecus blacki. THIS IS THE EVIDENCE, very nearly all of it: about two thousand " +
+          "isolated teeth and four partial jaws, and not one bone from below the jaw. Every figure for the animal's " +
+          "height was calculated from material like this.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gigantopithecus_blacki_restoration.jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "A restoration of the living animal. It is an artist's work built from teeth and jaws, because there are " +
+          "no limb, spine or pelvis bones to build it from — the posture, the proportions and the height are " +
+          "inferred, not measured. Worth looking at twice before comparing it with anything.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "zhang_nature2024",
@@ -466,6 +498,24 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
     locationName: "Judaea and the Levant",
     lat: 31.7,
     lng: 35.4,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Dead_Sea_Scroll_fragment_with_Hebrew_text,_Wadi_Qumran,_Cave_IV,_50_BC_to_50_AD,_parchment_and_ink_-_Oriental_Institute_Museum,_University_of_Chicago_-_DSC07748.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Dead_Sea_Scroll_fragment_with_Hebrew_text,_Wadi_Qumran,_Cave_IV,_50_BC_to_50_AD,_parchment_and_ink_-_Oriental_Institute_Museum,_University_of_Chicago_-_DSC07748.JPG?width=1024",
+        shows: "manuscript",
+        caption:
+          "A parchment fragment from Qumran Cave 4 — the cave the Enochic manuscripts came from. NOT A PICTURE OF " +
+          "THE BOOK OF THE WATCHERS: it is another text from the same cave, shown because this is what the physical " +
+          "evidence for these writings actually looks like, and what palaeographers date.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "1enoch_watchers",

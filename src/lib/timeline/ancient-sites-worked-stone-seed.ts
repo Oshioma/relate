@@ -215,6 +215,37 @@ export const ANCIENT_SITES_WORKED_STONE_EVENTS: SeedEvent[] = [
     civilisations: ["Roman Empire"],
     lat: 34.0069,
     lng: 36.2039,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Trilithon_of_Baalbek_3.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Trilithon_of_Baalbek_3.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The trilithon in the podium wall at Baalbek: three blocks, each around 800 tonnes, laid in a Roman " +
+          "temple platform. The size is not in question by anybody; who laid them, and when, is what the record is " +
+          "about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_in_Baalbek_quarry_10024.jpg?width=1024",
+        shows: "site",
+        caption:
+          "A block still lying in the quarry below the site, never moved. AN UNFINISHED STONE IS EVIDENCE ABOUT " +
+          "METHOD: it shows where the stone came from and how far it got, which a finished wall cannot.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_baalbek_stones",
@@ -286,6 +317,24 @@ export const ANCIENT_SITES_WORKED_STONE_EVENTS: SeedEvent[] = [
     locationName: "Abydos, Egypt",
     lat: 26.1847,
     lng: 31.9194,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Osireion_at_Abydos.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Osireion_at_Abydos.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Osireion at Abydos, built at a lower level than the temple of Seti I beside it. That difference in " +
+          "level is the observation behind the claim that it is far older; the excavated evidence attributes it to " +
+          "Seti's reign. Both readings are looking at this.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_osireion",
@@ -387,6 +436,24 @@ export const ANCIENT_SITES_WORKED_STONE_EVENTS: SeedEvent[] = [
     locationName: "Giza, Egypt",
     lat: 29.9792,
     lng: 31.1342,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Great Pyramid. The dating on this record does not come from the pyramid's shape or its alignment but " +
+          "from organic material in its mortar and from the workers' settlement beside it — things that can be " +
+          "carbon-dated.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "spence2000",
