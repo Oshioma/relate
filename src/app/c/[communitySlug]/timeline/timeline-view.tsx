@@ -67,6 +67,7 @@ import {
   seedAncientSitesWorkedStoneDataset,
   seedAncientSitesAcceptedDataset,
   seedAncientSitesExcavatedDataset,
+  seedGiantsHebrewDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -281,6 +282,7 @@ export function TimelineView({
   hasAncientSitesWorkedStone,
   hasAncientSitesAccepted,
   hasAncientSitesExcavated,
+  hasGiantsHebrew,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -342,6 +344,7 @@ export function TimelineView({
   hasAncientSitesWorkedStone: boolean;
   hasAncientSitesAccepted: boolean;
   hasAncientSitesExcavated: boolean;
+  hasGiantsHebrew: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1842,6 +1845,39 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasGiantsHebrew && (
+        <DatasetOffer
+          title="Add the giants records — fossils, texts and manuscripts?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedGiantsHebrewDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Ask &quot;when were there giants?&quot; and the question hides FOUR different questions wearing one coat:
+          when the story says it happened, when the text was composed, when the surviving copy was written, and —
+          if anything physical is involved — when the creature actually lived. Collapsing those into one number is
+          the mistake this group exists to avoid, so every claim says which of the four it answers. Gigantopithecus
+          leads because it is the only record here with bones: about two thousand teeth and four jawbones, extinct
+          295,000–215,000 years ago on 157 radiometric ages — and NOT a giant human, but an ape related to
+          orangutans. Every &quot;three metres tall&quot; figure is extrapolated from teeth, because there is not a
+          single postcranial bone. Then four texts. The Nephilim carry a claim with NO DATE AT ALL, because
+          &quot;before the Flood&quot; is a position in a story, not a year — alongside Ussher&apos;s calculated
+          4004 BCE and the text&apos;s own composition date. The Watchers show the lesson twice over: the story is
+          argued to the third century BCE, while the parchment it survives on is measured at 200–150 BCE. And at
+          Goliath the manuscripts disagree about a MEASUREMENT — the oldest Hebrew witness says about 2.06 m, the
+          later authoritative tradition says 2.97 m, and both readings are here.
         </DatasetOffer>
       )}
 

@@ -93,6 +93,12 @@ import {
   ANCIENT_SITES_EXCAVATED_TRACK,
 } from "@/lib/timeline/ancient-sites-excavated-seed";
 import {
+  GIANTS_HEBREW_EVENTS,
+  GIANTS_HEBREW_LINKS,
+  GIANTS_HEBREW_SOURCES,
+  GIANTS_HEBREW_TRACK,
+} from "@/lib/timeline/giants-hebrew-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1872,6 +1878,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_EXCAVATED_LINKS,
   },
   {
+    label: "Giants: the claim, the claimant, and the kind of record",
+    track: GIANTS_HEBREW_TRACK,
+    events: GIANTS_HEBREW_EVENTS,
+    sources: GIANTS_HEBREW_SOURCES,
+    links: GIANTS_HEBREW_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2643,6 +2656,31 @@ export async function seedAncientSitesExcavatedDataset(communitySlug: string) {
     track: ANCIENT_SITES_EXCAVATED_TRACK,
     links: ANCIENT_SITES_EXCAVATED_LINKS,
     label: "Excavated, or not: two kinds of extraordinary claim",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Giants, first tranche: Gigantopithecus, the Nephilim, the Watchers, the Book
+ * of Giants and Goliath. One fossil with physical remains, and four texts —
+ * which is the comparison the group is built on. Every claim says which of the
+ * four questions it answers: where the story sits, when the text was composed,
+ * when the surviving copy was written, or when an animal actually lived.
+ * See giants-hebrew-seed.ts.
+ */
+export async function seedGiantsHebrewDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: GIANTS_HEBREW_EVENTS,
+    sources: GIANTS_HEBREW_SOURCES,
+    track: GIANTS_HEBREW_TRACK,
+    links: GIANTS_HEBREW_LINKS,
+    label: "Giants: the claim, the claimant, and the kind of record",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
