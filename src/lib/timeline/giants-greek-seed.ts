@@ -292,6 +292,38 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Greece",
     lat: 39.0,
     lng: 22.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pergamonaltarathena.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pergamonaltarathena.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Athena against the Giant Alkyoneus on the Pergamon Altar frieze, second century BCE. Note the legs: by " +
+          "this date the Giants are serpent-limbed. In Archaic and Classical art, three centuries earlier, they are " +
+          "drawn as man-sized hoplites.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pergamon_Altar_Gigantomachy_frieze_section_1.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "A stretch of the same frieze, which runs about 113 metres. A dated monument showing the war in stone — " +
+          "evidence that the story was current and worth enormous public expense, and no evidence at all about " +
+          "giants.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "hesiod_theogony",
@@ -428,6 +460,37 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Sicily and the Greek world",
     lat: 37.1,
     lng: 14.9,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Odysseus_and_Polyphemus,_Proto-Attic_neck_amphora,_ca_650_BC,_AM_Eleusis,_081141.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Odysseus_and_Polyphemus,_Proto-Attic_neck_amphora,_ca_650_BC,_AM_Eleusis,_081141.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Odysseus and his men driving the stake into Polyphemus' eye, on a proto-Attic amphora of about 650 BCE. " +
+          "One of the earliest surviving images of the story — and, like Homer, it gives no measurement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Skull_and_mandibula_of_Elephas_Falconeri,_Sicily,_AM_Syracuse,_121262.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The skull and jaw of the Sicilian dwarf elephant. The large central opening is the nasal cavity, where " +
+          "the trunk attached — it is not an eye socket. This is the object Abel's 1914 proposal rests on; the " +
+          "animal stood about a metre at the shoulder.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "homer_odyssey",
@@ -784,6 +847,23 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Tingis (Tangier)",
     lat: 35.78,
     lng: -5.81,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Herakles_Antaios_Louvre_G103.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Herakles_Antaios_Louvre_G103.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Heracles wrestling Antaeus, on a krater by Euphronios, Louvre G 103. A Greek painter's image of the " +
+          "story centuries before Sertorius opened a mound at Tingis and was told whose bones they were.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "plutarch_sertorius",
@@ -875,6 +955,38 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Pikermi, Samos, and the Mediterranean islands",
     lat: 38.01,
     lng: 23.93,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Deinotherium_skull.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Deinotherium_skull.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "The skull of a deinothere, with its downward-curving tusks. Animals like this are in the fossil beds of " +
+          "Attica and Samos — and died about seven million years before Herodotus. A single bone of one is larger " +
+          "than any human bone.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Palaeoloxodon_falconeri_Size_Comparison.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "The Sicilian dwarf elephant beside a human figure, to scale. The same sea holds both this animal and the " +
+          "huge deinotheres of the Greek mainland — which is why 'an elephant fossil in the Mediterranean' is not " +
+          "one thing.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "proboscidea_greece",
