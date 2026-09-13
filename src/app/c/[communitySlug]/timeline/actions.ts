@@ -23,7 +23,21 @@ import {
   SHOWCASE_SOURCES,
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
-import { bringEventPicturesIn, picturesMissingFrom } from "@/lib/timeline/bring-in-image";
+import { bringEventPicturesIn, pictureTopUp } from "@/lib/timeline/bring-in-image";
+
+/**
+ * A picture as it comes back out of `timeline_events.media`, which is a jsonb
+ * column and so arrives untyped. Written once because both top-up paths need
+ * it and one of them having a narrower idea of the shape is how they drifted
+ * apart in the first place.
+ */
+type StoredPicture = {
+  url: string;
+  caption?: string;
+  credit?: string;
+  kind?: string;
+  shows?: string;
+};
 import { checkPictures, type PictureCheck } from "@/lib/timeline/check-pictures";
 import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_EVENTS, DEEP_TIME_SOURCES, DEEP_TIME_TRACK } from "@/lib/timeline/deep-time-seed";
@@ -1329,16 +1343,12 @@ async function seedDataset(
           .eq("slug", seed.slug)
           .maybeSingle();
         if (existing) {
-          const have = (existing.media ?? []) as {
-            url: string;
-            caption?: string;
-            credit?: string;
-            kind?: string;
-            shows?: string;
-          }[];
-          const missing = picturesMissingFrom(have, seed.media ?? []) as NonNullable<typeof seed.media>;
-          const needsCover = !existing.image_url && Boolean(seed.imageUrl);
-          if (missing.length > 0 || needsCover) {
+          const have = (existing.media ?? []) as StoredPicture[];
+          const { missing, needsCover, count } = pictureTopUp(
+            { image_url: existing.image_url, media: have },
+            { imageUrl: seed.imageUrl, media: seed.media }
+          );
+          if (count > 0) {
             const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
               pictures: { imageUrl: needsCover ? seed.imageUrl ?? null : null, media: [...missing] },
               userId,
@@ -2038,13 +2048,16 @@ async function editedByAPerson(
 export async function seededDatasetGaps(communitySlug: string): Promise<{
   datasets: { label: string; have: number; total: number }[];
   /**
-   * Records this community HAS, whose dataset defines a picture for them, and
-   * which have no picture at all.
+   * PICTURES this community's records are short of — not records with none.
+   *
+   * It used to count records with no picture at all, which reported zero while
+   * a hundred and thirty records sat at one picture each and the datasets
+   * defined two or three for them. A count that only notices the empty case
+   * cannot report the case that was actually happening, so the banner said
+   * everything was fine and the timeline showed one picture a record.
    *
    * This is the question "did the images actually come in", answered before
-   * anybody has to press anything. The pictures were added to these datasets
-   * long after most communities took them, and a record seeded before its
-   * photograph existed shows nothing and says nothing about why.
+   * anybody has to press anything.
    */
   recordsMissingPictures: number;
 }> {
@@ -2068,8 +2081,13 @@ export async function seededDatasetGaps(communitySlug: string): Promise<{
       if (!event.imageUrl && !event.media?.length) continue;
       const row = rows.get(event.slug);
       if (!row) continue;
-      if (row.image_url || (row.media ?? []).length > 0) continue;
-      recordsMissingPictures++;
+      // The same question both top-up paths ask, so the number on the banner is
+      // the number the button will act on rather than a different count that
+      // happens to be near it.
+      recordsMissingPictures += pictureTopUp(
+        { image_url: row.image_url, media: (row.media ?? []) as StoredPicture[] },
+        { imageUrl: event.imageUrl, media: event.media }
+      ).count;
     }
   }
 
@@ -2084,14 +2102,20 @@ export async function seededDatasetGaps(communitySlug: string): Promise<{
 }
 
 /**
- * How many pictures one press of the repair button will bring in.
+ * HOW MUCH PICTURE WORK ONE PRESS DOES.
  *
- * Sized so the whole run stays inside a normal serverless request even when
- * every fetch is slow. Anything above it is reported and waits for the next
- * press — a button that finishes and says "twelve more to go" is strictly
- * better than one that silently exceeds its timeout.
+ * A fixed count of twelve was the wrong shape of limit. Twelve pictures is
+ * either two seconds or four minutes depending on how Wikimedia is feeling,
+ * so the count guaranteed neither that the request would finish nor that it
+ * would get much done — and with a community two hundred pictures short it
+ * meant seventeen presses.
+ *
+ * A DEADLINE fits both ends: a fast run gets through a lot, a slow one stops
+ * before the request does, and either way the button returns and says how many
+ * are left. The count stays as a ceiling so one press cannot run away.
  */
-const PICTURE_BUDGET_PER_RUN = 12;
+const PICTURE_BUDGET_MS = 45_000;
+const PICTURE_BUDGET_PER_RUN = 60;
 
 export async function refreshSeededDatasets(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
@@ -2131,6 +2155,8 @@ export async function refreshSeededDatasets(communitySlug: string) {
   let pictured = 0;
   // Left for the next press, because this run hit its budget.
   let picturesStillMissing = 0;
+  // Set once, at the top, so it bounds the whole run rather than each dataset.
+  const pictureDeadline = Date.now() + PICTURE_BUDGET_MS;
   // What the picture step wrote, so the classify step below reads the new media
   // rather than the snapshot taken before it ran.
   const pictureWrites = new Map<string, { url: string; caption?: string; kind?: string; shows?: string }[]>();
@@ -2278,61 +2304,75 @@ export async function refreshSeededDatasets(communitySlug: string) {
       }
     }
 
-    // THE PICTURES THAT NEVER ARRIVED AT ALL.
+    // THE PICTURES THAT NEVER ARRIVED.
     //
     // Pictures were added to these datasets long after most communities took
-    // them, and there was no way to get them. The dataset's own card tops up an
-    // event that has no pictures — but that card is hidden once the dataset is
-    // seeded, so the path existed and could not be reached. And the loop below
-    // only CLASSIFIES pictures that are already stored: with nothing stored it
-    // does nothing at all.
+    // them, and there was no way to get them. The dataset's own card tops up a
+    // record — but that card is hidden once the dataset is seeded, so the path
+    // existed and could not be reached.
     //
-    // So a community that took the flood dataset before the photographs existed
-    // had records with no picture, no card to press, and a repair button that
-    // reported success without changing anything. That is why a deployment can
-    // sit at seventeen pictures while the datasets define many more.
+    // AND THEN THIS LOOP ASKED THE WRONG QUESTION. It skipped any record that
+    // already had a picture, so it only ever helped records with none. A record
+    // that arrived carrying one stayed at one for ever, however many the
+    // dataset gained afterwards — which is most of them, because the datasets
+    // went from a hundred and ten pictures to over three hundred. The report
+    // said nothing was missing, and the timeline showed one picture a record.
     //
-    // ONLY AN EVENT WITH NOTHING AT ALL is filled in. Anything a community has
-    // added, removed or replaced itself is left exactly as it is — the same
-    // rule the dataset card's own top-up follows.
+    // Now it asks pictureTopUp, the same question the card asks. Missing
+    // pictures are APPENDED and nothing is ever removed or reordered, so
+    // anything a community added, replaced or deleted itself is untouched.
     for (const seed of dataset.events) {
-      // A BUDGET, because this is the one step that leaves the database.
-      //
-      // Bringing a picture in means fetching it from somebody else's server
-      // and uploading it to ours, and the fetch alone allows twenty seconds.
-      // A community missing forty pictures is therefore minutes of work in one
-      // request — past any serverless timeout, which from the outside is a
-      // button that hangs for ever rather than one that is busy.
-      //
-      // So each run does a fixed number and reports how many are left. Pressing
-      // again continues; nothing is lost, and the request always returns.
-      if (pictured >= PICTURE_BUDGET_PER_RUN) {
-        picturesStillMissing++;
-        continue;
-      }
       const eventId = idBySlug.get(seed.slug);
       if (!eventId) continue;
       if (!seed.imageUrl && !seed.media?.length) continue;
 
       const stored = storedBySlug.get(seed.slug);
       if (!stored) continue;
-      if (stored.image_url || (stored.media ?? []).length > 0) continue;
+
+      const have = (stored.media ?? []) as StoredPicture[];
+      const { missing, needsCover, count } = pictureTopUp(
+        { image_url: stored.image_url, media: have },
+        { imageUrl: seed.imageUrl, media: seed.media }
+      );
+      if (count === 0) continue;
+
+      // A BUDGET, because this is the one step that leaves the database.
+      //
+      // Bringing a picture in means fetching it from somebody else's server
+      // and uploading it to ours, and the fetch alone allows twenty seconds.
+      // A community short of two hundred pictures is therefore an hour of work
+      // in one request — past any serverless timeout, which from the outside is
+      // a button that hangs for ever rather than one that is busy.
+      //
+      // So each run does a fixed number of PICTURES — not records, which is
+      // what it used to count and why "3 more records are waiting" could mean
+      // forty photographs. The rest are reported and wait for the next press.
+      const room = PICTURE_BUDGET_PER_RUN - pictured;
+      if (room <= 0 || Date.now() >= pictureDeadline) {
+        picturesStillMissing += count;
+        continue;
+      }
+      const take = missing.slice(0, room);
+      // What this run will not get to. The cover, when one is wanted, is
+      // normally the first gallery picture and so is inside `take`.
+      picturesStillMissing += missing.length - take.length;
 
       const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
-        pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
+        pictures: { imageUrl: needsCover ? seed.imageUrl ?? null : null, media: [...take] },
         userId,
         slug: seed.slug,
       });
+      const next = [...have, ...pictures.media];
       const { error } = await supabase
         .from("timeline_events")
-        .update({ image_url: pictures.imageUrl, media: pictures.media })
+        .update({ image_url: stored.image_url ?? pictures.imageUrl, media: next })
         .eq("id", eventId);
       if (error) continue;
-      // Counted as the number of pictures the record now has, not the number
+      // Counted as the number of pictures the record gained, not the number
       // whose bytes were copied: a picture left pointing at its original
       // address because the copy failed is still a picture that appeared.
-      pictured += pictures.media.length + (pictures.imageUrl ? 1 : 0);
-      pictureWrites.set(seed.slug, pictures.media);
+      pictured += pictures.media.length + (!stored.image_url && pictures.imageUrl ? 1 : 0);
+      pictureWrites.set(seed.slug, next);
       if (broughtIn > 0 && !changed.includes(seed.title)) changed.push(seed.title);
     }
 
