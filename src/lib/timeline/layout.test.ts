@@ -218,3 +218,153 @@ test("an event with no positioned claim is not placed at the left edge", () => {
   assert.equal(layout.events.length, 0, "a positionless record was drawn at the window's start");
   assert.equal(accountedFor(layout), 0);
 });
+
+// ---------------------------------------------------------------------------
+// "I CAN'T SEE ANY EVENTS, SHOW ME THEM"
+//
+// Three separate things were hiding them, and each has its own test below.
+// The user-visible property they add up to is the first one: on a crowded
+// strip, most of the events should be ON it.
+// ---------------------------------------------------------------------------
+
+/** A realistically shaped crowd: a few long spans, then a dense run. */
+const crowdedTimeline = () => [
+  eventAt(-3800, { endYear: -1200, title: "A long span with a reasonably long caption" }),
+  eventAt(-3500, { endYear: 900, title: "A record whose sources disagree enormously" }),
+  ...Array.from({ length: 30 }, (_, index) =>
+    eventAt(-2500 + index * 120, { title: `Event ${index} with a caption of ordinary length` })
+  ),
+  // A tight knot: eight events inside a few pixels.
+  ...Array.from({ length: 8 }, (_, index) =>
+    eventAt(400 + index, { title: `Knot event ${index} with a caption of ordinary length` })
+  ),
+  ...Array.from({ length: 25 }, (_, index) =>
+    eventAt(1500 + index * 55, { title: `Late event ${index} with a caption of ordinary length` })
+  ),
+];
+
+test("on a crowded strip most events are drawn rather than collapsed into chips", () => {
+  // THE PROPERTY THE WHOLE CHANGE EXISTS FOR. On a real community's data at
+  // 1800px this used to be 27 drawn against 41 hidden, and the strip read as
+  // "there is nothing here, zoom in".
+  const events = crowdedTimeline();
+  for (const height of [400, 600]) {
+    const layout = layoutTimeline(events, WINDOW, WIDTH, height, "linear");
+    const hidden = layout.clusters.reduce((sum, cluster) => sum + cluster.count, 0);
+    assert.equal(layout.events.length + hidden, events.length, "an event went missing");
+    assert.ok(
+      layout.events.length > hidden,
+      `height ${height}: ${layout.events.length} drawn against ${hidden} hidden in chips`
+    );
+  }
+});
+
+test("a crowd small enough to stack across the rows is not collapsed", () => {
+  // Rows exist to separate things that share an x. Clustering ran BEFORE the
+  // rows were packed, so a knot of six became a "6" chip while rows sat empty.
+  const knot = Array.from({ length: 6 }, (_, index) => eventAt(1000 + index));
+  const layout = layoutTimeline(knot, WINDOW, WIDTH, 600, "linear");
+  assert.equal(layout.clusters.length, 0, "a crowd the rows could hold was collapsed anyway");
+  assert.equal(layout.events.length, 6, "not every event in the crowd was drawn");
+  assert.ok(layout.rows >= 6, "the crowd was drawn without being stacked, so they are on top of each other");
+});
+
+test("a crowd too big for the rows is still collapsed", () => {
+  // The original reason for clustering, which must survive: at "all of time" a
+  // thousand events land on one pixel and no number of rows can tell them apart.
+  const crowd = Array.from({ length: 40 }, (_, index) => eventAt(1000 + (index % 3)));
+  const layout = layoutTimeline(crowd, WINDOW, WIDTH, 200, "linear");
+  assert.ok(layout.clusters.length > 0, "forty events on one pixel were not collapsed");
+  const hidden = layout.clusters.reduce((sum, cluster) => sum + cluster.count, 0);
+  assert.equal(layout.events.length + hidden, crowd.length, "an event went missing");
+});
+
+test("a record whose dates are wider than the view does not take a row to itself", () => {
+  // Tiwanaku: radiocarbon says the sixth century CE, Posnansky said 15,000 BCE.
+  // Its footprint covered 1,639px of an 1,800px strip, so once it was placed
+  // nothing could follow it on that row — four such records took four of the
+  // five rows a reader had.
+  const wide = eventAt(-3800, { endYear: 2900, title: "Sources fifteen thousand years apart" });
+  const later = eventAt(2000, { title: "Something at the right-hand end" });
+  const layout = layoutTimeline([wide, later], WINDOW, WIDTH, 400, "linear");
+  assert.equal(layout.events.length, 2, "an event went missing");
+  assert.equal(layout.rows, 1, "an over-wide record still blocked its whole row");
+});
+
+test("an over-wide footprint is marked so it can be drawn as background", () => {
+  const wide = eventAt(-3800, { endYear: 2900 });
+  const narrow = eventAt(0, { endYear: 40 });
+  const layout = layoutTimeline([wide, narrow], WINDOW, WIDTH, 400, "linear");
+  const marked = layout.events.find((placed) => placed.overWide);
+  assert.ok(marked, "a footprint covering most of the strip is not marked over-wide");
+  assert.ok(
+    layout.events.some((placed) => !placed.overWide),
+    "a footprint of forty years has been marked over-wide too"
+  );
+});
+
+test("chips still spread when every row is drawn right across the strip", () => {
+  // The half of the bottom-row bug that survived its first fix. Once no row has
+  // a gap, the fallback picks the least-crowded row — but it recorded that
+  // choice with Math.max against a reservation already past the chip, so the
+  // array never changed and every chip made the same choice.
+  const events = [
+    ...Array.from({ length: 40 }, (_, index) =>
+      eventAt(-2500 + index * 90, { title: `Event at ${index} with a reasonably long title here` })
+    ),
+    ...Array.from({ length: 50 }, (_, index) =>
+      eventAt(1500 + index * 28, { title: `Later event ${index} with a reasonably long title here` })
+    ),
+  ];
+  for (const height of [280, 360]) {
+    const layout = layoutTimeline(events, WINDOW, WIDTH, height, "linear");
+    const chips = layout.clusters;
+    if (chips.length < 2) continue;
+    const rows = new Set(chips.map((chip) => chip.row));
+    assert.ok(
+      rows.size > 1,
+      `height ${height}: all ${chips.length} chips landed on row ${[...rows][0]}`
+    );
+  }
+});
+
+test("the height a strip is given is not spent on captions it then declines to draw", () => {
+  // The estimate that threw rows away: every event arrives claiming a caption,
+  // so rows were costed at three lines each, six of eleven rows were given up as
+  // unaffordable — and then the captions were dropped anyway and the strip
+  // finished 255px tall inside a 400px box.
+  const events = crowdedTimeline();
+  const height = 400;
+  const layout = layoutTimeline(events, WINDOW, WIDTH, height, "linear");
+  const hidden = layout.clusters.reduce((sum, cluster) => sum + cluster.count, 0);
+  if (hidden > 0) {
+    assert.ok(
+      layout.height > height * 0.75,
+      `${hidden} events are in chips while the strip uses only ${Math.round(layout.height)}px of ${height}`
+    );
+  }
+});
+
+test("a strip with events still hidden has spent the height it was given", () => {
+  // THE CAPTION-ORDER DEFECT, stated as the property it breaks. Every event
+  // arrives claiming a caption, so rows were costed at three lines each, half
+  // of them were given up as unaffordable, and the captions were then dropped
+  // anyway — leaving a strip two-thirds full with events in chips.
+  //
+  // The assertion is a fraction of the budget rather than "there is no room for
+  // another row", because the next row may be taller than a bare one: at 400px
+  // this strip legitimately stops at 357. At the tight heights below the gap is
+  // unambiguous — 91% and 96% of the budget used with the fix, 72% and 79%
+  // without it.
+  const events = crowdedTimeline();
+  for (const height of [260, 300]) {
+    const layout = layoutTimeline(events, WINDOW, WIDTH, height, "linear");
+    const hidden = layout.clusters.reduce((sum, cluster) => sum + cluster.count, 0);
+    assert.equal(layout.events.length + hidden, events.length, "an event went missing");
+    if (hidden === 0) continue;
+    assert.ok(
+      layout.height > height * 0.88,
+      `height ${height}: ${hidden} events are in chips while the strip uses only ${Math.round(layout.height)}px`
+    );
+  }
+});

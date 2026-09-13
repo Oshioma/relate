@@ -422,13 +422,40 @@ export function TimelineCanvas({
               {/* The disagreement itself: a rail spanning every date any source
                   proposes, so "the sources are 220 years apart" is something you
                   SEE before you read it. */}
-              {placed.disputed && (
-                <div
-                  aria-hidden
-                  className="absolute top-[11px] h-[3px] rounded-full bg-danger/25"
-                  style={{ left: placed.xFrom, width: Math.max(2, placed.xTo - placed.xFrom) }}
-                />
-              )}
+              {placed.disputed &&
+                (placed.overWide ? (
+                  // WIDER THAN THE VIEW, SO IT IS NO LONGER A MEASURE OF ANYTHING.
+                  //
+                  // A solid rail says "the sources are this far apart" and you
+                  // read the distance. When the sources are further apart than
+                  // the whole window, the same drawing is just a line across the
+                  // page — and with several of them the strip reads as ruled
+                  // paper with events caught between the lines.
+                  //
+                  // So it is dashed, fainter, and faded out at both ends: the
+                  // record is still visibly disputed, and it now reads as "this
+                  // one's dates run off both sides of what you are looking at".
+                  // Zoom in far enough and it becomes a solid rail you can
+                  // actually measure by.
+                  <div
+                    aria-hidden
+                    className="absolute top-[11px] h-[3px]"
+                    style={{
+                      left: placed.xFrom,
+                      width: Math.max(2, placed.xTo - placed.xFrom),
+                      backgroundImage:
+                        "repeating-linear-gradient(to right, color-mix(in srgb, var(--danger) 30%, transparent) 0 7px, transparent 7px 15px)",
+                      maskImage: "linear-gradient(to right, transparent, #000 10%, #000 90%, transparent)",
+                      WebkitMaskImage: "linear-gradient(to right, transparent, #000 10%, #000 90%, transparent)",
+                    }}
+                  />
+                ) : (
+                  <div
+                    aria-hidden
+                    className="absolute top-[11px] h-[3px] rounded-full bg-danger/25"
+                    style={{ left: placed.xFrom, width: Math.max(2, placed.xTo - placed.xFrom) }}
+                  />
+                ))}
 
               {placed.claims.map((claim, index) => {
                 const barWidth = claim.x2 - claim.x;
