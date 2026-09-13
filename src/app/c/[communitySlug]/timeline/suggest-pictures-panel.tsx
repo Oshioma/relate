@@ -33,8 +33,10 @@ import type { PictureCandidate } from "@/lib/timeline/suggest-pictures";
 
 type Props = {
   /** Null while the record is still unsaved — there is nothing to search from yet. */
-  eventId: string | null;
-  onSearch: (eventId: string) => Promise<
+  /** Whether there is enough to search on yet, and what to say when there is not. */
+  canSearch: boolean;
+  notYet: string;
+  onSearch: () => Promise<
     { error: string } | { candidates: PictureCandidate[]; searched: string[]; failed: string[] }
   >;
   /** Adds a picture slot carrying this address and credit, and nothing else. */
@@ -48,7 +50,7 @@ const WHY: Record<PictureCandidate["matchedOn"]["kind"], string> = {
   title: "Found by words from the title — the weakest kind of match",
 };
 
-export function SuggestPicturesPanel({ eventId, onSearch, onChoose }: Props) {
+export function SuggestPicturesPanel({ canSearch, notYet, onSearch, onChoose }: Props) {
   const [candidates, setCandidates] = useState<PictureCandidate[] | null>(null);
   const [searched, setSearched] = useState<string[]>([]);
   const [failed, setFailed] = useState<string[]>([]);
@@ -56,12 +58,8 @@ export function SuggestPicturesPanel({ eventId, onSearch, onChoose }: Props) {
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [pending, startSearch] = useTransition();
 
-  if (!eventId) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        Save the record first and the search will have a title and a place to work from.
-      </p>
-    );
+  if (!canSearch) {
+    return <p className="text-xs text-muted-foreground">{notYet}</p>;
   }
 
   return (
@@ -75,7 +73,7 @@ export function SuggestPicturesPanel({ eventId, onSearch, onChoose }: Props) {
           onClick={() =>
             startSearch(async () => {
               setError(null);
-              const result = await onSearch(eventId);
+              const result = await onSearch();
               if ("error" in result) {
                 setError(result.error);
                 setCandidates(null);

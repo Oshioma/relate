@@ -2517,6 +2517,42 @@ export async function seedFloodRegionsDataset(communitySlug: string) {
  *
  * See suggest-pictures.ts for why this is built the way it is.
  */
+/**
+ * THE SAME SEARCH, FOR A RECORD THAT IS NOT SAVED YET.
+ *
+ * Suggestions were only available once a record existed, because the search
+ * terms were read out of the database row. So the moment somebody is most
+ * likely to want a picture — while they are writing the record — was the one
+ * moment they could not ask for one, and the panel told them to save first and
+ * come back. Adding a record and then editing it to do the part you were
+ * already doing is not a workflow.
+ *
+ * The terms only ever become a query STRING on Commons' own API endpoint (see
+ * commonsSearchUrl), never a host or a path, so taking them from an unsaved
+ * form is no more dangerous than taking them from a row. The writer check is
+ * the same one.
+ */
+export async function suggestPicturesForDraft(
+  communitySlug: string,
+  draft: { title: string; locationName?: string | null; people?: string[]; civilisations?: string[] }
+): Promise<{ error: string } | { candidates: PictureCandidate[]; searched: string[]; failed: string[] }> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+
+  const result = await suggestPictures({
+    title: draft.title,
+    locationName: draft.locationName ?? null,
+    people: draft.people ?? [],
+    civilisations: draft.civilisations ?? [],
+  });
+
+  return {
+    candidates: result.candidates,
+    searched: result.searched.map((term) => term.value),
+    failed: result.failed.map((term) => term.value),
+  };
+}
+
 export async function suggestPicturesForEvent(
   communitySlug: string,
   eventId: string

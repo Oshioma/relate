@@ -634,6 +634,24 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Tegea, Arcadia",
     lat: 37.46,
     lng: 22.42,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Archaeological_site_of_the_Temple_of_Athena_Alea_at_Tegea_(2017,_image_1).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Archaeological_site_of_the_Temple_of_Athena_Alea_at_Tegea_(2017,_image_1).jpg?width=1024",
+        shows: "site",
+        caption:
+          "Tegea, where the coffin was reportedly dug up. These are the foundations of the temple of Athena Alea, " +
+          "the town's sanctuary — NOT the blacksmith's courtyard, which nobody has identified. The place is real " +
+          "and the find is a report.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "herodotus_orestes",
@@ -745,6 +763,24 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
     locationName: "Skyros",
     lat: 38.9,
     lng: 24.56,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Theseus_Minotaur_BM_Vase_E84.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Theseus_Minotaur_BM_Vase_E84.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Theseus and the Minotaur on an Attic vase. A DIFFERENT EPISODE ENTIRELY, shown because it is what " +
+          "survives: there is no ancient image of Cimon opening the grave on Skyros, and a picture of the hero is " +
+          "not evidence about the bones.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "plutarch_theseus",

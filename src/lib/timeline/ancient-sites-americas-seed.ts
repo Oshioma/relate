@@ -619,6 +619,24 @@ export const ANCIENT_SITES_AMERICAS_EVENTS: SeedEvent[] = [
     locationName: "Pedra Furada, Serra da Capivara, Piauí, Brazil",
     lat: -8.8358,
     lng: -42.5464,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Pedra_Furada_-_Serra_da_Capivara_I.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pedra_Furada_-_Serra_da_Capivara_I.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The rock shelter at Boqueirao da Pedra Furada. The question on this record is whether the stones found " +
+          "in the deposits here were struck by people or fell from the cliff above — so the cliff itself, which is " +
+          "the proposed natural source, is in the picture.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "guidon_reply",

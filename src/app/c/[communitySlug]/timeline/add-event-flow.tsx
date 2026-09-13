@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type { TimelineTrack } from "@/types/database";
 import { EventFields, parseList, type EventFieldValues } from "./event-fields";
 import { ClaimFields } from "./claim-fields";
-import { createTimelineEvent } from "./actions";
+import { createTimelineEvent, suggestPicturesForDraft } from "./actions";
 import { LinkFillBox } from "./link-fill-box";
 import type { LinkedSource } from "@/lib/timeline/source-link";
 import {
@@ -280,7 +280,32 @@ export function AddEventFlow({
                 onFilled={fillFromLink}
               />
 
-              <EventFields value={fields} onChange={setFields} tracks={tracks} userId={userId} uploadKey={uploadKey} autoFocus />
+              <EventFields
+                value={fields}
+                onChange={setFields}
+                tracks={tracks}
+                userId={userId}
+                uploadKey={uploadKey}
+                autoFocus
+                // SUGGESTIONS WHILE THE RECORD IS BEING WRITTEN, not only after
+                // it is saved. The search needs a title, a place and people —
+                // and those are in this form long before they are in the
+                // database, so there was never a reason to make somebody save,
+                // reopen and edit to get help finding a picture.
+                suggest={{
+                  canSearch: fields.title.trim().length > 0,
+                  notYet: "Give the record a title and the search will have something to work from.",
+                  onSearch: () =>
+                    suggestPicturesForDraft(communitySlug, {
+                      title: fields.title,
+                      locationName: fields.locationName,
+                      // The form keeps these as one typed line each; the same
+                      // parse the save path uses turns them into names.
+                      people: parseList(fields.people),
+                      civilisations: parseList(fields.civilisations),
+                    }),
+                }}
+              />
             </div>
           )}
 

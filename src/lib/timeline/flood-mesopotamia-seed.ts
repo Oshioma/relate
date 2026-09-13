@@ -221,6 +221,20 @@ const TRADITIONS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ziggurat_at_Eridu_(30809118442).jpg?width=1024",
+        shows: "site",
+        caption:
+          "Eridu, the city the Sumerian flood story names as the first. The mound and the ziggurat platform are " +
+          "real and excavated; the story that gives the city its place in the flood tradition is a text, and the " +
+          "two are separate claims.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -528,6 +542,34 @@ const DEPOSITS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ziggurat_of_Ur_Iraq.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The ziggurat at Ur as it stands. Woolley's flood pit was sunk beside this, into the ground under the " +
+          "cemetery — the clay he found is metres BELOW what you can see here, and that is why a photograph of the " +
+          "site cannot show you the thing the record is about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ur_excavations_(1900)_(14744430356).jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "A plate from the published Ur excavation reports. The claim rests on a section drawing and a photograph " +
+          "of a trench wall — a layer of clean water-laid clay between occupation levels — rather than on any " +
+          "object, which is what makes it an interpretation of a deposit.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -733,6 +775,34 @@ const BIBLICAL: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_by_Sir_Peter_Lely.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "James Ussher, whose 1650 Annales dated the creation to 4004 BC by adding the genealogies. A portrait is " +
+          "not evidence about a date — it is here so that a calculation has a person attached to it, which is the " +
+          "whole point of the record.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "Ussher's Annales Veteris Testamenti. The chronology in this record is checkable arithmetic performed on " +
+          "a stated text, and this is the book it was performed in — printed, paginated and available to be argued " +
+          "with.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

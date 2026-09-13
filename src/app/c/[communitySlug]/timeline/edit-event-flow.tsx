@@ -314,12 +314,11 @@ export function EditEventFlow({
               tracks={tracks}
               userId={userId}
               uploadKey={uploadKey}
-              // The record is saved, so it has a title, a place and people for
-              // the search to work from. A record being CREATED has none of
-              // those yet, which is why the add flow does not pass this.
+              // Saved, so the search reads the row.
               suggest={{
-                eventId: event.id,
-                onSearch: (eventId) => suggestPicturesForEvent(communitySlug, eventId),
+                canSearch: true,
+                notYet: "",
+                onSearch: () => suggestPicturesForEvent(communitySlug, event.id),
               }}
             />
           ) : (
