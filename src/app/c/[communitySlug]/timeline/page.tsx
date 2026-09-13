@@ -38,6 +38,7 @@ import { FLOOD_AMERICAS_ANCHOR_SLUG } from "@/lib/timeline/flood-americas-seed";
 import { FLOOD_REGIONS_ANCHOR_SLUG } from "@/lib/timeline/flood-regions-seed";
 import { ANCIENT_SITES_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites-seed";
 import { EARLY_AUSTRALIA_ANCHOR_SLUG } from "@/lib/timeline/early-australia-seed";
+import { ANCIENT_SITES_AMERICAS_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites-americas-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -123,6 +124,7 @@ export default async function TimelinePage({
     hasFloodRegions,
     hasAncientSites,
     hasEarlyAustralia,
+    hasAncientSitesAmericas,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -169,6 +171,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, FLOOD_REGIONS_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, ANCIENT_SITES_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, EARLY_AUSTRALIA_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, ANCIENT_SITES_AMERICAS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -233,6 +236,7 @@ export default async function TimelinePage({
         hasFloodRegions={hasFloodRegions}
         hasAncientSites={hasAncientSites}
         hasEarlyAustralia={hasEarlyAustralia}
+        hasAncientSitesAmericas={hasAncientSitesAmericas}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}

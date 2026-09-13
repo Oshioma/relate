@@ -203,6 +203,13 @@ export const DATING_METHODS = [
       "rate that depends on temperature, so it dates well against a local reference and poorly on its own.",
   },
   {
+    key: "fission_track",
+    label: "Fission-track dating",
+    hint:
+      "Counting the damage trails left in a crystal by uranium decaying inside it. Useful on volcanic ash, and it " +
+      "carries wide errors — a fission-track age is often quoted with a tolerance as large as half the age itself.",
+  },
+  {
     key: "luminescence",
     label: "Luminescence (OSL / TL)",
     hint: "How long since a grain of sediment last saw daylight, or a burnt stone was last heated.",

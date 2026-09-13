@@ -61,6 +61,7 @@ import {
   seedFloodRegionsDataset,
   seedAncientSitesDataset,
   seedEarlyAustraliaDataset,
+  seedAncientSitesAmericasDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -269,6 +270,7 @@ export function TimelineView({
   hasFloodRegions,
   hasAncientSites,
   hasEarlyAustralia,
+  hasAncientSitesAmericas,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -324,6 +326,7 @@ export function TimelineView({
   hasFloodRegions: boolean;
   hasAncientSites: boolean;
   hasEarlyAustralia: boolean;
+  hasAncientSitesAmericas: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1795,6 +1798,35 @@ export function TimelineView({
           an enclosure and preserves the best of every living kind, which is the whole shape of a flood story with no
           flood in it. The catastrophe is a killing winter, and this timeline will not call it a deluge even though the
           standard English translation&apos;s own chapter heading does.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesAmericas && (
+        <DatasetOffer
+          title="Add the Andes and the early Americas?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesAmericasDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Five records asking two different questions. At Tiwanaku the question is WHEN something was built:
+          excavated radiocarbon says the middle of the first millennium CE, and Arthur Posnansky said about 15,000
+          BCE — by an astronomical calculation whose error can be pointed at, because it runs a solstice alignment
+          backwards at the rate a STAR&apos;s would move. The Pumapunku is its own record with its own date, from
+          material inside the mound it stands on, because a complex is not one building. At Calico, Hueyatlaco and
+          Pedra Furada the question is different and harder: not how old the deposit is, but whether the stone in it
+          was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
+          These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
+          accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
         </DatasetOffer>
       )}
 
