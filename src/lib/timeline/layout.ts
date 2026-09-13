@@ -67,6 +67,40 @@ function clampToStrip(xFrom: number, xTo: number, width: number): { xFrom: numbe
 /** Breathing room between one event's label and the next event's marker. */
 const ROW_GAP_PX = 14;
 
+/**
+ * HOW MUCH OF THE STRIP A RECORD'S SPAN MAY COVER BEFORE IT STOPS RESERVING ITS ROW.
+ *
+ * An event is drawn from its earliest claim to its latest, and a row is
+ * reserved for the whole of that footprint so two events never draw on top of
+ * one another. That is right for a record whose sources are two centuries
+ * apart. It is wrong for one whose sources are fifteen thousand years apart:
+ * Tiwanaku's radiocarbon date and Posnansky's astronomical one put its
+ * footprint across 1,639 pixels of an 1,800-pixel strip, so once it landed on
+ * a row NOTHING COULD EVER FOLLOW IT THERE. Four such records took four of the
+ * five available rows, and forty-one events went into "+N" chips.
+ *
+ * Beyond this fraction the span stops being a bar anyone can read and becomes
+ * background: it is drawn faded and dashed, and it reserves only its marker and
+ * its caption, like a point event. Other events then sit along it, which is
+ * exactly what a reader wants — the disagreement is still visible, and it is no
+ * longer hiding the rest of the timeline behind it.
+ */
+const OVER_WIDE_FRACTION = 0.6;
+
+/** True when a footprint is too wide to read as a span at this zoom. */
+function isOverWide(xFrom: number, xTo: number, width: number): boolean {
+  return xTo - xFrom > width * OVER_WIDE_FRACTION;
+}
+
+/**
+ * How far along a row this event actually speaks for.
+ *
+ * Its own marker for an over-wide record, its whole footprint otherwise.
+ */
+function reserveEnd(item: PlacedEvent): number {
+  return item.overWide ? item.xFrom : item.xTo;
+}
+
 // HOW WIDE A CAPTION MAY GET BEFORE IT WRAPS, AND HOW TALL IT MAY THEN GROW.
 //
 // Captions used to be one line, truncated with an ellipsis at a fixed width.
@@ -132,6 +166,14 @@ export type PlacedEvent = {
   labelSide: "right" | "left";
   /** The event's date, written for a caption. Null when no claim supplies one. */
   dateLabel: string | null;
+  /**
+   * This record's sources disagree by more than the whole visible window.
+   *
+   * The rail between them is then no longer a readable measure of anything —
+   * it is a line across the page — so it is drawn faded and dashed, and it
+   * does not reserve the row it lies on. See OVER_WIDE_FRACTION.
+   */
+  overWide: boolean;
 };
 
 export type PlacedCluster = {
@@ -405,6 +447,7 @@ export function layoutTimeline(
         xTo,
         claims,
         disputed,
+        overWide: isOverWide(xFrom, xTo, width),
         showLabel: true,
         labelWidth: label.width,
         labelLines: lines,
@@ -433,6 +476,12 @@ export function layoutTimeline(
     .sort((a, b) => a.xFrom - b.xFrom);
 
   // --- Cluster the indistinguishable ------------------------------------------------
+  //
+  // HOW MANY ROWS THERE ARE TO STACK A CROWD ACROSS, which is what decides
+  // whether a crowd needs collapsing at all. Optimistic, like the packing
+  // below: it assumes one-line rows, and the height budget is applied properly
+  // once the real heights are known.
+  const maxRows = Math.max(1, Math.floor(availableHeight / ROW_BASE_PX));
   const clusters: PlacedCluster[] = [];
   const survivors: PlacedEvent[] = [];
   const yearsPerPixel = (window.to - window.from) / width;
@@ -450,7 +499,21 @@ export function layoutTimeline(
       j++;
     }
     const run = placed.slice(i, j);
-    if (run.length >= CLUSTER_MIN) {
+    // A CROWD IS ONLY COLLAPSED WHEN THE ROWS CANNOT HOLD IT.
+    //
+    // Rows exist precisely to separate things that share an x, and this ran
+    // before the rows were packed — so six events a few pixels apart became a
+    // "6" chip while nine rows sat empty underneath it. On a real timeline that
+    // hid thirty events behind three chips while only two were genuinely out of
+    // room, and the whole strip read as "no events here, zoom in".
+    //
+    // The crowd is now handed to the packer whenever the rows could stack it,
+    // and the packer's own overflow is the backstop for what will not fit. The
+    // original reason for clustering is untouched: at "all of time" a thousand
+    // events land on one pixel, no number of rows can show them apart, and one
+    // marker with a count is the honest drawing of that.
+    const tooManyToStack = run.length >= Math.max(CLUSTER_MIN, maxRows + 1);
+    if (tooManyToStack) {
       const x = run.reduce((sum, item) => sum + item.xFrom, 0) / run.length;
       const from = window.from + (Math.min(...run.map((r) => r.xFrom)) - CLUSTER_PX) * yearsPerPixel;
       const to = window.from + (Math.max(...run.map((r) => r.xTo)) + CLUSTER_PX) * yearsPerPixel;
@@ -473,7 +536,7 @@ export function layoutTimeline(
   // The row limit here is optimistic: it assumes every row ends up one line
   // tall, and the height budget is applied properly further down, once each
   // row's contents — and therefore its real height — are known.
-  const maxRows = Math.max(1, Math.floor(availableHeight / ROW_BASE_PX));
+  // (maxRows is worked out before the clustering above, which needs it.)
   const labelEnds: number[] = [];
   const markerEnds: number[] = [];
   let placedRows: PlacedEvent[] = [];
@@ -495,10 +558,86 @@ export function layoutTimeline(
     }
 
     item.row = row;
-    markerEnds[row] = item.xTo + ROW_GAP_PX;
-    labelEnds[row] = item.xTo + item.labelWidth + ROW_GAP_PX;
+    const reserved = reserveEnd(item);
+    markerEnds[row] = reserved + ROW_GAP_PX;
+    labelEnds[row] = reserved + item.labelWidth + ROW_GAP_PX;
     placedRows.push(item);
   }
+
+  // CAPTIONS ARE DECIDED BEFORE THE HEIGHT BUDGET IS SPENT, NOT AFTER.
+  //
+  // This used to run further down, and that order was quietly throwing rows
+  // away. A row is as tall as its tallest caption, and every event arrives
+  // claiming it will show one — so the budget was spent against captions three
+  // lines deep that this pass then decided not to draw at all. On a real
+  // community's timeline that meant eleven rows were packed, six were given up
+  // as unaffordable, sixteen events were pushed into "+N" chips, and the strip
+  // finished 255 pixels tall inside a 400-pixel box. The room was there the
+  // whole time; the estimate was wrong.
+  //
+  // Deciding captions first makes the heights real before anything is given up.
+  const decideCaptions = (rows: PlacedEvent[]) => {
+    // Then decide captions, per row, now that the row's contents are known: a
+    // label shows when the next thing in its own row starts far enough to the
+    // right of it. survivors is sorted by xFrom, so each row is already in order.
+    const rowContents = new Map<number, PlacedEvent[]>();
+    for (const item of rows) {
+      const list = rowContents.get(item.row);
+      if (list) list.push(item);
+      else rowContents.set(item.row, [item]);
+    }
+    // CAPTIONS, AND WHICH SIDE THEY GO ON.
+    //
+    // A label normally sits to the right of its event. Near the right-hand edge
+    // that runs it off the strip: with events bunched in the last fifth of a
+    // 22,000-year window, five of ten captions were drawing past the edge and
+    // being clipped, so events that WERE on screen looked as though they were
+    // missing. Nothing was lost — the words were just cut in half by the canvas.
+    //
+    // So a caption that will not fit on the right flips to the left of its own
+    // marker, where there is usually nothing but empty axis. It flips only if
+    // that space is genuinely free: the previous event in the same row has to
+    // end before it starts, or the label is dropped as it always was. Better no
+    // caption than two captions on top of each other.
+    for (const list of rowContents.values()) {
+      // How far along this row anything has been drawn — markers AND the labels
+      // already given a side. Checking the previous MARKER is not enough: a
+      // caption that flips left lands in the space the previous event's caption
+      // is using, and the two draw on top of each other. This is the only
+      // quantity that knows about both.
+      let occupiedUntil = -Infinity;
+
+      for (let index = 0; index < list.length; index++) {
+        const item = list[index];
+        const next = list[index + 1];
+
+        const rightEnd = item.xTo + LABEL_GAP_PX + item.labelWidth;
+        const clearOfNext = !next || next.xFrom > rightEnd + ROW_GAP_PX;
+        if (clearOfNext && rightEnd <= width) {
+          item.showLabel = true;
+          item.labelSide = "right";
+          occupiedUntil = rightEnd;
+          continue;
+        }
+
+        // No room to the right — try the empty axis to the left of the marker.
+        const leftStart = item.xFrom - LABEL_GAP_PX - item.labelWidth;
+        if (leftStart >= 0 && leftStart >= occupiedUntil + ROW_GAP_PX) {
+          item.showLabel = true;
+          item.labelSide = "left";
+          occupiedUntil = Math.max(occupiedUntil, item.xTo);
+          continue;
+        }
+
+        // Neither side is free. Better no caption than two on top of each other.
+        item.showLabel = false;
+        item.labelSide = "right";
+        occupiedUntil = Math.max(occupiedUntil, item.xTo);
+      }
+    }
+  };
+
+  decideCaptions(placedRows);
 
   // --- Spend the height budget, now that the rows have contents ----------------------
   //
@@ -553,10 +692,10 @@ export function layoutTimeline(
     for (const item of placedRows) {
       if (item.row < rowsThatFit) {
         kept.push(item);
-        survivingMarkerEnds[item.row] = Math.max(survivingMarkerEnds[item.row], item.xTo + ROW_GAP_PX);
+        survivingMarkerEnds[item.row] = Math.max(survivingMarkerEnds[item.row], reserveEnd(item) + ROW_GAP_PX);
         survivingLabelEnds[item.row] = Math.max(
           survivingLabelEnds[item.row],
-          item.xTo + item.labelWidth + ROW_GAP_PX
+          reserveEnd(item) + item.labelWidth + ROW_GAP_PX
         );
       } else {
         homeless.push(item);
@@ -574,72 +713,17 @@ export function layoutTimeline(
         continue;
       }
       item.row = row;
-      survivingMarkerEnds[row] = item.xTo + ROW_GAP_PX;
-      survivingLabelEnds[row] = item.xTo + item.labelWidth + ROW_GAP_PX;
+      const reserved = reserveEnd(item);
+      survivingMarkerEnds[row] = reserved + ROW_GAP_PX;
+      survivingLabelEnds[row] = reserved + item.labelWidth + ROW_GAP_PX;
       kept.push(item);
     }
     placedRows = kept;
     rowLines = rowLines.slice(0, rowsThatFit);
     rowTops = rowTops.slice(0, rowsThatFit);
-  }
-
-  // Then decide captions, per row, now that the row's contents are known: a
-  // label shows when the next thing in its own row starts far enough to the
-  // right of it. survivors is sorted by xFrom, so each row is already in order.
-  const rowContents = new Map<number, PlacedEvent[]>();
-  for (const item of placedRows) {
-    const list = rowContents.get(item.row);
-    if (list) list.push(item);
-    else rowContents.set(item.row, [item]);
-  }
-  // CAPTIONS, AND WHICH SIDE THEY GO ON.
-  //
-  // A label normally sits to the right of its event. Near the right-hand edge
-  // that runs it off the strip: with events bunched in the last fifth of a
-  // 22,000-year window, five of ten captions were drawing past the edge and
-  // being clipped, so events that WERE on screen looked as though they were
-  // missing. Nothing was lost — the words were just cut in half by the canvas.
-  //
-  // So a caption that will not fit on the right flips to the left of its own
-  // marker, where there is usually nothing but empty axis. It flips only if
-  // that space is genuinely free: the previous event in the same row has to
-  // end before it starts, or the label is dropped as it always was. Better no
-  // caption than two captions on top of each other.
-  for (const list of rowContents.values()) {
-    // How far along this row anything has been drawn — markers AND the labels
-    // already given a side. Checking the previous MARKER is not enough: a
-    // caption that flips left lands in the space the previous event's caption
-    // is using, and the two draw on top of each other. This is the only
-    // quantity that knows about both.
-    let occupiedUntil = -Infinity;
-
-    for (let index = 0; index < list.length; index++) {
-      const item = list[index];
-      const next = list[index + 1];
-
-      const rightEnd = item.xTo + LABEL_GAP_PX + item.labelWidth;
-      const clearOfNext = !next || next.xFrom > rightEnd + ROW_GAP_PX;
-      if (clearOfNext && rightEnd <= width) {
-        item.showLabel = true;
-        item.labelSide = "right";
-        occupiedUntil = rightEnd;
-        continue;
-      }
-
-      // No room to the right — try the empty axis to the left of the marker.
-      const leftStart = item.xFrom - LABEL_GAP_PX - item.labelWidth;
-      if (leftStart >= 0 && leftStart >= occupiedUntil + ROW_GAP_PX) {
-        item.showLabel = true;
-        item.labelSide = "left";
-        occupiedUntil = Math.max(occupiedUntil, item.xTo);
-        continue;
-      }
-
-      // Neither side is free. Better no caption than two on top of each other.
-      item.showLabel = false;
-      item.labelSide = "right";
-      occupiedUntil = Math.max(occupiedUntil, item.xTo);
-    }
+    // The surviving rows hold different events now, so the caption decision is
+    // no longer the one that was made for them.
+    decideCaptions(placedRows);
   }
 
   // A row whose captions were all dropped doesn't need the height they asked
@@ -707,7 +791,17 @@ export function layoutTimeline(
   // neither readable. Seeding the row ends from labelEnds means a cluster only
   // takes a place on a row where nothing already reaches that far, which is the
   // same rule the events themselves are packed by.
+  //
+  // (labelEnds is the FIRST pass's reservations, which are stale for any row
+  // whose contents changed when rows were given up. Seeding from what is
+  // actually drawn instead is arguably more correct — but it changed no
+  // placement on real data or on any fixture, so it is deliberately NOT done
+  // here rather than carried as an unprovable change.)
   const clusterRowEnds: number[] = labelEnds.slice(0, finalLines.length);
+  // How many chips each row has taken. On a strip where every row is drawn all
+  // the way across, no row is "free" and the fallback below has to choose one
+  // anyway — and it has to choose a DIFFERENT one each time.
+  const chipsOnRow: number[] = new Array(Math.max(1, finalLines.length)).fill(0);
   for (const cluster of clusters) {
     const start = cluster.x - 14;
     const end = cluster.x + 46;
@@ -722,11 +816,23 @@ export function layoutTimeline(
       // above kept their gaps. Falling back to the row whose reservation ends
       // earliest spreads them instead, and still guarantees a place for every
       // one — nothing is dropped either way.
-      row = clusterRowEnds.reduce(
-        (best, rowEnd, index) => (rowEnd < clusterRowEnds[best] ? index : best),
-        0
-      );
+      //
+      // BY FEWEST CHIPS FIRST, then by the earliest reservation. Taking the
+      // earliest reservation alone was not enough, and this is the half of the
+      // bottom-row bug that survived its first fix: the row a chip lands on is
+      // recorded with Math.max against a reservation that is already past the
+      // chip, so the array does not change, and every following chip makes the
+      // same choice. Four chips, one row — which is the bottom line of counts
+      // all over again, just harder to see because it only happens once every
+      // row is drawn right across the strip.
+      let best = 0;
+      for (let r = 1; r < chipsOnRow.length; r++) {
+        if (chipsOnRow[r] < chipsOnRow[best]) best = r;
+        else if (chipsOnRow[r] === chipsOnRow[best] && clusterRowEnds[r] < clusterRowEnds[best]) best = r;
+      }
+      row = best;
     }
+    chipsOnRow[row] = (chipsOnRow[row] ?? 0) + 1;
     clusterRowEnds[row] = Math.max(clusterRowEnds[row], end);
     cluster.row = row;
     cluster.top = rowTops[row] ?? 0;
@@ -788,6 +894,7 @@ export function layoutLane(
         xTo,
         claims,
         disputed,
+        overWide: isOverWide(xFrom, xTo, width),
         showLabel: true,
         labelWidth: label.width,
         labelLines: label.lines,
