@@ -463,6 +463,40 @@ export const ANCIENT_SITES_ARTEFACTS_EVENTS: SeedEvent[] = [
     locationName: "Table Mountain, Tuolumne County, California",
     lat: 37.9628,
     lng: -120.4547,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hydraulic_mining_in_Dutch_Flat,_California,_between_1857_and_1870.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hydraulic_mining_in_Dutch_Flat,_California,_between_1857_and_1870.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Hydraulic mining in California in the 1860s. THIS IS NOT TABLE MOUNTAIN — it is the industry, and the " +
+          "industry is the whole difficulty: the objects were reported by miners moving enormous volumes of gravel " +
+          "for gold, nobody recorded a findspot the way an excavator would, and the deposits they came out of no " +
+          "longer exist to be checked.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gold_mining_in_California_-_Currier_%26_Ives_c.1871.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "A Currier & Ives print of California gold mining, about 1871 — contemporary with the reports, and a " +
+          "picture of how the work was imagined rather than a record of any tunnel. It is included as an honest " +
+          "label for what the visual record of these finds consists of: no photographs of the objects in place, " +
+          "because nobody took any.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "whitney1880",

@@ -316,6 +316,21 @@ const GREEK: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Timaios_beginning._Codex_Parisinus_graecus_1807.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening of the Timaeus in Codex Parisinus graecus 1807, a ninth-century Greek manuscript. Everything " +
+          "Plato is quoted as saying about many destructions reaches us through copies like this one, more than a " +
+          "thousand years after he wrote — which is the ordinary condition of every classical text on this " +
+          "timeline.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -528,6 +543,25 @@ const IRANIAN: SeedEvent[] = [
       "plants_preserved",
       "few_survive",
       "repopulation",
+    ],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Persepolis_-_carved_Faravahar.JPG?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Persepolis_-_carved_Faravahar.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "The Faravahar carved at Persepolis. IT IS NOT AN ILLUSTRATION OF YIMA and it is later than the Avestan " +
+          "text: it is the tradition's own emblem, cut in stone by the Achaemenids, and it is here because the " +
+          "catastrophe in this record is a Zoroastrian one and the account belongs inside that religion rather than " +
+          "inside the flood stories it superficially resembles.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

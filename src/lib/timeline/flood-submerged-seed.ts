@@ -460,6 +460,20 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Australia_kangaroo_island_cape_willoughby.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Cape Willoughby, at the eastern end of Kangaroo Island, looking across the water the tradition is about. " +
+          "The strait here was dry ground when sea level was low enough, and the sea coming through it is the " +
+          "physical event the account has been proposed to remember — proposed, not shown.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

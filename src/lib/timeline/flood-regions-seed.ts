@@ -360,6 +360,20 @@ export const FLOOD_REGIONS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Treated_NKS_gylfi.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "An illustration from an eighteenth-century Icelandic manuscript of the Prose Edda. THE GAP IS THE POINT: " +
+          "the Norse material reaches us through Christian-era Icelandic writing, centuries after the belief it " +
+          "records, and what a picture in one of those manuscripts shows is how the story was imagined then.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

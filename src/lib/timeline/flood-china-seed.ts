@@ -250,6 +250,21 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Guide_banner_Yellow_River.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The upper Yellow River in Guide County, Qinghai — the same reach of river as the gorge this record is " +
+          "about. THE GORGE IS NOT IN THIS PICTURE. It is here to show the kind of country a landslide dam and its " +
+          "failure would have happened in, which is steep and narrow and a long way from the plains the tradition " +
+          "puts Yu to work on.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

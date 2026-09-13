@@ -297,6 +297,21 @@ const TRADITIONS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/British_Museum_Flood_Tablet_1.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "THIS IS NOT ATRAHASIS. It is Tablet XI of Gilgamesh, the famous one, and it is here because it is the " +
+          "picture that gets printed whenever a Mesopotamian flood is mentioned. Atrahasis is an older and separate " +
+          "poem with its own tablets; treating the two as one text is the commonest mistake made about this " +
+          "material, and it usually starts with this photograph.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -703,6 +718,20 @@ const DEPOSITS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/List_of_titles_of_different_occupations,_clay_tablet_from_Shuruppak,_Southern_Mesopotamia,_Iraq,_on_display_in_the_Pergamon_Museum.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A list of occupations on a tablet from Shuruppak. This is the sort of thing the city actually produced — " +
+          "administration — and it is worth setting beside the flood layer, because a place known to tradition as " +
+          "the home of the flood hero was, in its own documents, a working town keeping records.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
