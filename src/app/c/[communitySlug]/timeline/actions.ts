@@ -99,6 +99,12 @@ import {
   GIANTS_HEBREW_TRACK,
 } from "@/lib/timeline/giants-hebrew-seed";
 import {
+  GIANTS_GREEK_EVENTS,
+  GIANTS_GREEK_LINKS,
+  GIANTS_GREEK_SOURCES,
+  GIANTS_GREEK_TRACK,
+} from "@/lib/timeline/giants-greek-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1885,6 +1891,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: GIANTS_HEBREW_LINKS,
   },
   {
+    label: "Giants: where the bones were actually dug up",
+    track: GIANTS_GREEK_TRACK,
+    events: GIANTS_GREEK_EVENTS,
+    sources: GIANTS_GREEK_SOURCES,
+    links: GIANTS_GREEK_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2681,6 +2694,31 @@ export async function seedGiantsHebrewDataset(communitySlug: string) {
     track: GIANTS_HEBREW_TRACK,
     links: GIANTS_HEBREW_LINKS,
     label: "Giants: the claim, the claimant, and the kind of record",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Giants, second tranche: the Gigantes, the Cyclopes, and the three occasions
+ * when somebody in the ancient world dug up enormous bones and wrote down what
+ * they found — Orestes at Tegea, Theseus on Skyros, Antaeus at Tingis — with
+ * the Greek fossil beds as the record that makes them measurable. The fossil
+ * explanation is deliberately NOT applied to Skyros, where the coffin came with
+ * a bronze spear. See giants-greek-seed.ts.
+ */
+export async function seedGiantsGreekDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: GIANTS_GREEK_EVENTS,
+    sources: GIANTS_GREEK_SOURCES,
+    track: GIANTS_GREEK_TRACK,
+    links: GIANTS_GREEK_LINKS,
+    label: "Giants: where the bones were actually dug up",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

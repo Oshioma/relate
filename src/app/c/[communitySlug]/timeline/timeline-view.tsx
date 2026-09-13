@@ -68,6 +68,7 @@ import {
   seedAncientSitesAcceptedDataset,
   seedAncientSitesExcavatedDataset,
   seedGiantsHebrewDataset,
+  seedGiantsGreekDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -283,6 +284,7 @@ export function TimelineView({
   hasAncientSitesAccepted,
   hasAncientSitesExcavated,
   hasGiantsHebrew,
+  hasGiantsGreek,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -345,6 +347,7 @@ export function TimelineView({
   hasAncientSitesAccepted: boolean;
   hasAncientSitesExcavated: boolean;
   hasGiantsHebrew: boolean;
+  hasGiantsGreek: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1878,6 +1881,42 @@ export function TimelineView({
           argued to the third century BCE, while the parchment it survives on is measured at 200–150 BCE. And at
           Goliath the manuscripts disagree about a MEASUREMENT — the oldest Hebrew witness says about 2.06 m, the
           later authoritative tradition says 2.97 m, and both readings are here.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasGiantsGreek && (
+        <DatasetOffer
+          title="Add the Greek and Roman giant-bone finds?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedGiantsGreekDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The second giants group, and the most useful part of the whole subject, because here ancient people
+          actually DUG SOMETHING UP. Three times — at Tegea, on Skyros and at Tingis — a writer records enormous
+          bones being found, and twice the finder did exactly what this timeline asks of a reader. A Tegean
+          blacksmith struck a coffin seven cubits long while digging a well, said he did not believe men had ever
+          been taller, and so OPENED IT AND MEASURED THE BODY. Sertorius refused to believe the Libyans about
+          Antaeus and had the mound dug open — and the sixty cubits he reported is about 27 metres, which the record
+          shows you is impossible for anything shaped like a person, with the arithmetic, while being careful to say
+          that this is physics and not a finding about what was in the mound. Plutarch, on Skyros, gives NO
+          measurement at all, and the record keeps that gap open rather than filling it. Alongside them: the
+          Gigantes, whose name our word &quot;giant&quot; comes from and who are man-sized soldiers in early Greek
+          art; Polyphemus, where two different traditions share one word and a 1914 proposal about dwarf elephant
+          skulls is argued about to this day — proposed by Othenio Abel, defended by Adrienne Mayor, and resting on
+          a famous detail about Empedocles that has no ancient source at all. And the fossil beds themselves:
+          Pikermi and Samos, full of animals far larger than any human, SEVEN MILLION YEARS older than anybody who
+          found their bones. Every reported body is lost, so the explanation cannot be checked against any of them —
+          which is an honest place to stand, and the group says so.
         </DatasetOffer>
       )}
 
