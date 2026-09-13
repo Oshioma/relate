@@ -282,6 +282,69 @@ export async function resolveCredits(
  * could not be made. `slug` names the files so a re-run overwrites its own
  * copies rather than accumulating new ones.
  */
+/**
+ * A SHORT, STABLE FINGERPRINT OF A PICTURE'S SOURCE ADDRESS.
+ *
+ * The stored path used to be `<slug>-<position in the list>`, and storage
+ * upserts, so the path was only unique as long as the list never changed. Top
+ * up an event with the two pictures it is missing and they are positions 1 and
+ * 2 of THAT list — overwriting the objects the event's existing pictures point
+ * at, which turns them into different photographs without touching the row.
+ *
+ * Naming by the source address instead makes the path a function of the
+ * picture: the same picture always lands in the same place however it was
+ * reached, two different pictures can never collide, and bringing one in twice
+ * costs one download rather than two objects.
+ *
+ * FNV-1a, because this needs to be stable and short, not unguessable.
+ */
+export function pictureName(slug: string, url: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < url.length; index++) {
+    hash ^= url.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return `${slug}-${hash.toString(16).padStart(8, "0")}`;
+}
+
+/**
+ * WHICH OF A SEED'S PICTURES AN EVENT HAS NOT GOT YET.
+ *
+ * Seeding skips an event that already exists, which is right — a community may
+ * have edited it. But it meant that an event seeded when the dataset offered
+ * one picture stayed at one for ever, however many were added to the seed
+ * afterwards. Göbekli Tepe carries four and communities were showing one.
+ *
+ * MATCHED BY CAPTION, for two reasons. The stored URL is no use: pictures are
+ * copied into the community's own storage, so the address on the event is not
+ * the address in the seed. And a caption is stored exactly as the seed wrote it
+ * — only the credit is added, into its own field — so it identifies a seeded
+ * picture reliably. Every seeded picture is required to have a caption of some
+ * length by the rules in seeded-pictures.test.ts, which is what makes this safe
+ * rather than clever.
+ *
+ * ANYTHING THE COMMUNITY ADDED ITSELF IS INVISIBLE TO THIS. Its caption is not
+ * one any seed claims, so it never matches, is never counted as covering a
+ * seeded picture, and is never touched. The caller appends what comes back and
+ * removes nothing.
+ */
+export function picturesMissingFrom(
+  existing: { caption?: string | null }[],
+  seeded: { caption?: string }[]
+): { caption?: string }[] {
+  const have = new Set(
+    existing.map((item) => (item.caption ?? "").trim()).filter((caption) => caption.length > 0)
+  );
+  // A seeded picture with no caption cannot be told apart from another one, so
+  // it is left alone rather than added again on every seeding run. The caption
+  // rule in the tests means this should never happen; being wrong about that
+  // should cost nothing rather than duplicate pictures for ever.
+  return seeded.filter((item) => {
+    const caption = (item.caption ?? "").trim();
+    return caption.length > 0 && !have.has(caption);
+  });
+}
+
 export async function bringEventPicturesIn(
   supabase: SupabaseClient<Database>,
   { pictures, userId, slug }: { pictures: EventPictures; userId: string; slug: string }
@@ -315,8 +378,8 @@ export async function bringEventPicturesIn(
   for (const url of dropped) reason ??= `no terms of use could be established for ${hostOf(url)}, so that picture was left out`;
 
   const media: EventPictures["media"] = [];
-  for (const [index, item] of credited.entries()) {
-    media.push({ ...item, url: await resolve(item.url, `${slug}-${index + 1}`) });
+  for (const item of credited) {
+    media.push({ ...item, url: await resolve(item.url, pictureName(slug, item.url)) });
   }
 
   // A COVER IS A PICTURE TOO, AND IT HAS NO CAPTION TO CARRY A CREDIT.
@@ -327,7 +390,9 @@ export async function bringEventPicturesIn(
   // thing on the page. It goes with it.
   const coverDropped = pictures.imageUrl != null && dropped.includes(pictures.imageUrl);
   const imageUrl =
-    pictures.imageUrl && !coverDropped ? await resolve(pictures.imageUrl, `${slug}-cover`) : null;
+    pictures.imageUrl && !coverDropped
+      ? await resolve(pictures.imageUrl, pictureName(slug, pictures.imageUrl))
+      : null;
 
   return { pictures: { imageUrl, media }, broughtIn, reason };
 }

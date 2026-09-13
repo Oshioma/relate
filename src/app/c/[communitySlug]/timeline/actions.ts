@@ -23,7 +23,7 @@ import {
   SHOWCASE_SOURCES,
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
-import { bringEventPicturesIn } from "@/lib/timeline/bring-in-image";
+import { bringEventPicturesIn, picturesMissingFrom } from "@/lib/timeline/bring-in-image";
 import { checkPictures, type PictureCheck } from "@/lib/timeline/check-pictures";
 import { HANNIBAL_EVENTS, HANNIBAL_SOURCES, HANNIBAL_TRACK } from "@/lib/timeline/hannibal-seed";
 import { DEEP_TIME_EVENTS, DEEP_TIME_SOURCES, DEEP_TIME_TRACK } from "@/lib/timeline/deep-time-seed";
@@ -1306,11 +1306,21 @@ async function seedDataset(
   for (const seed of seedEvents) {
     if (present.has(seed.slug)) {
       skipped.push(seed.slug);
-      // ALREADY HERE — BUT PERHAPS WITHOUT ITS PICTURES. A community that took
-      // this dataset before the pictures were part of it has events that were
-      // never offered any, and skipping the event skips them for ever. Only an
-      // event with NO pictures at all is topped up; anything a community added
-      // itself is left alone.
+      // ALREADY HERE — BUT PERHAPS WITHOUT ALL OF ITS PICTURES.
+      //
+      // A community that took this dataset before the pictures were part of it
+      // has events that were never offered any, and skipping the event skips
+      // them for ever. This used to top up only an event with NO pictures at
+      // all — which left a worse case untouched: an event seeded when the
+      // dataset offered ONE picture stayed at one for ever, however many were
+      // added afterwards. Göbekli Tepe carries four and was showing one.
+      //
+      // So what is missing is worked out picture by picture, BY CAPTION. A
+      // caption is stored exactly as the seed wrote it (only the credit is
+      // added, and that goes in its own field), so it identifies a seeded
+      // picture reliably — and anything a community added itself has a caption
+      // no seed claims, so it is never matched, never replaced, and never
+      // reordered. Missing pictures are appended; nothing is ever removed.
       if (seed.imageUrl || seed.media?.length) {
         const { data: existing } = await supabase
           .from("timeline_events")
@@ -1318,17 +1328,31 @@ async function seedDataset(
           .eq("community_id", community.id)
           .eq("slug", seed.slug)
           .maybeSingle();
-        if (existing && !existing.image_url && (existing.media ?? []).length === 0) {
-          const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
-            pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
-            userId,
-            slug: seed.slug,
-          });
-          await supabase
-            .from("timeline_events")
-            .update({ image_url: pictures.imageUrl, media: pictures.media })
-            .eq("id", existing.id);
-          if (broughtIn > 0) repaired++;
+        if (existing) {
+          const have = (existing.media ?? []) as {
+            url: string;
+            caption?: string;
+            credit?: string;
+            kind?: string;
+            shows?: string;
+          }[];
+          const missing = picturesMissingFrom(have, seed.media ?? []) as NonNullable<typeof seed.media>;
+          const needsCover = !existing.image_url && Boolean(seed.imageUrl);
+          if (missing.length > 0 || needsCover) {
+            const { pictures, broughtIn } = await bringEventPicturesIn(supabase, {
+              pictures: { imageUrl: needsCover ? seed.imageUrl ?? null : null, media: [...missing] },
+              userId,
+              slug: seed.slug,
+            });
+            await supabase
+              .from("timeline_events")
+              .update({
+                image_url: existing.image_url ?? pictures.imageUrl,
+                media: [...have, ...pictures.media],
+              })
+              .eq("id", existing.id);
+            if (broughtIn > 0) repaired++;
+          }
         }
       }
       continue;
