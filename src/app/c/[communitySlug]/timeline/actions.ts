@@ -105,6 +105,12 @@ import {
   GIANTS_GREEK_TRACK,
 } from "@/lib/timeline/giants-greek-seed";
 import {
+  GIANTS_MESOPOTAMIA_EVENTS,
+  GIANTS_MESOPOTAMIA_LINKS,
+  GIANTS_MESOPOTAMIA_SOURCES,
+  GIANTS_MESOPOTAMIA_TRACK,
+} from "@/lib/timeline/giants-mesopotamia-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1898,6 +1904,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: GIANTS_GREEK_LINKS,
   },
   {
+    label: "Giants: measured heroes, and a word that grew in translation",
+    track: GIANTS_MESOPOTAMIA_TRACK,
+    events: GIANTS_MESOPOTAMIA_EVENTS,
+    sources: GIANTS_MESOPOTAMIA_SOURCES,
+    links: GIANTS_MESOPOTAMIA_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2719,6 +2732,31 @@ export async function seedGiantsGreekDataset(communitySlug: string) {
     track: GIANTS_GREEK_TRACK,
     links: GIANTS_GREEK_LINKS,
     label: "Giants: where the bones were actually dug up",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Giants, third tranche: Mesopotamia and Anatolia. Four records answering one
+ * question — when a source calls something a giant, which of these is
+ * happening? The text gives a measurement (Gilgamesh), the text describes
+ * something enormous (Ullikummi), the text describes a monster and never
+ * mentions size (Humbaba), or a translator supplied the word (Nimrod).
+ * See giants-mesopotamia-seed.ts.
+ */
+export async function seedGiantsMesopotamiaDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: GIANTS_MESOPOTAMIA_EVENTS,
+    sources: GIANTS_MESOPOTAMIA_SOURCES,
+    track: GIANTS_MESOPOTAMIA_TRACK,
+    links: GIANTS_MESOPOTAMIA_LINKS,
+    label: "Giants: measured heroes, and a word that grew in translation",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

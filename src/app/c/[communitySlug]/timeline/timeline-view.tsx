@@ -69,6 +69,7 @@ import {
   seedAncientSitesExcavatedDataset,
   seedGiantsHebrewDataset,
   seedGiantsGreekDataset,
+  seedGiantsMesopotamiaDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -285,6 +286,7 @@ export function TimelineView({
   hasAncientSitesExcavated,
   hasGiantsHebrew,
   hasGiantsGreek,
+  hasGiantsMesopotamia,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -348,6 +350,7 @@ export function TimelineView({
   hasAncientSitesExcavated: boolean;
   hasGiantsHebrew: boolean;
   hasGiantsGreek: boolean;
+  hasGiantsMesopotamia: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1884,6 +1887,37 @@ export function TimelineView({
           argued to the third century BCE, while the parchment it survives on is measured at 200–150 BCE. And at
           Goliath the manuscripts disagree about a MEASUREMENT — the oldest Hebrew witness says about 2.06 m, the
           later authoritative tradition says 2.97 m, and both readings are here.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasGiantsMesopotamia && (
+        <DatasetOffer
+          title="Add the Mesopotamian and Anatolian giants \u2014 and the word itself?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedGiantsMesopotamiaDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          Four records answering the question the first two groups could not: when a source calls something a
+          giant, WHICH of these is actually happening? THE TEXT GIVES A MEASUREMENT — Gilgamesh is eleven cubits
+          tall, about five and a half metres, and the figure everyone quotes comes from a tablet found in Syria and
+          only published in 2007, which changed what the opening of the most famous poem in the world was thought
+          to say. THE TEXT DESCRIBES SOMETHING ENORMOUS — Ullikummi is a child made of stone, set on a giant&apos;s
+          shoulder in the sea, growing until the water reaches his waist and his head touches the sky. THE TEXT
+          DESCRIBES A MONSTER AND NEVER MENTIONS SIZE — Humbaba has a lion&apos;s face, seven supernatural auras
+          and a voice like the flood, and no height anywhere; &quot;giant&quot; is a word retellings add. AND THE
+          TEXT SAYS NONE OF IT, AND A TRANSLATOR SUPPLIED THE WORD — Nimrod is a gibbor in Hebrew, which means
+          mighty, a champion, a warrior; the Greek translators wrote gigas, and an English Bible has had a giant in
+          it ever since. A reader who can tell those four apart can read almost any giant story.
         </DatasetOffer>
       )}
 
