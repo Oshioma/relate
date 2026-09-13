@@ -431,6 +431,20 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Rudolf Steiner about 1905, around the time he was lecturing on the Lemurian epoch. The dates on this " +
+          "record come from a named person with a published body of work, which is why they can be quoted precisely " +
+          "and attributed exactly.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -565,6 +579,21 @@ const IDEA_HISTORY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Oceanic.Stripe.Magnetic.Anomalies.Scheme.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "Magnetic striping on the ocean floor: bands of rock recording the Earth's field flipping as new crust " +
+          "spread from a ridge. THIS IS WHAT REMOVED THE NEED FOR LEMURIA. Sunken land bridges were a reasonable " +
+          "answer to why the same fossils appear on separated continents; sea-floor spreading is a better one, and " +
+          "it is measurable.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -874,6 +903,20 @@ const GEOLOGY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Pangaea_to_present.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "The continents from Pangaea to now. Gondwana's break-up is the real mechanism behind the puzzle Lemuria " +
+          "was invented to solve — the land did move, just not by sinking, and on a timescale of a hundred million " +
+          "years rather than the tens of thousands the esoteric accounts use.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

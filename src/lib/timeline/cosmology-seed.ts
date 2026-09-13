@@ -487,6 +487,21 @@ const HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Institute_of_Astronomy,_Statue_of_Sir_Fred_Hoyle.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "A statue of Fred Hoyle outside the Institute of Astronomy in Cambridge, put up long after the argument " +
+          "was over. He proposed the steady state with Bondi and Gold and lost — and it is worth seeing a monument " +
+          "to somebody whose best-known idea turned out to be wrong, because that is what losing an argument in " +
+          "science looks like from a distance.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -642,6 +657,20 @@ const HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/PIA16874-CobeWmapPlanckComparison-20130321.jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The same patch of sky measured by COBE, WMAP and Planck. The improvement from blur to detail is the " +
+          "reason the age of the universe has a tighter figure now than it did in 1992 — not a new idea, but a " +
+          "better instrument pointed at the same thing.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -697,6 +726,32 @@ const HISTORY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_by_Sir_Peter_Lely.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "James Ussher, painted by Peter Lely. The 4004 BC date is arithmetic somebody performed on a text, and " +
+          "the somebody had a job, a library and a method — which is more useful to know than the number.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The Annales Veteris Testamenti itself. Ussher's chronology is checkable: the genealogies are added, the " +
+          "result is anchored to a secular date, and every step is printed here to be argued with.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
