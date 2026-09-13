@@ -820,20 +820,6 @@ const BIBLICAL: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
-        shows: "manuscript",
-        caption:
-          "Ussher's Annales Veteris Testamenti. The chronology in this record is checkable arithmetic performed on " +
-          "a stated text, and this is the book it was performed in — printed, paginated and available to be argued " +
-          "with.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {

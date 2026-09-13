@@ -439,20 +439,6 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
-        shows: "artefact",
-        caption:
-          "An Acheulean handaxe. The same shape, made the same way, turns up across Africa, Europe and Asia for " +
-          "more than a million years — which is the fact the record is about: not one invention at one moment, but " +
-          "a technique that stayed recognisably itself for longer than our species has existed.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {
@@ -610,20 +596,6 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
-        shows: "artefact",
-        caption:
-          "Wooden artefacts from Schöningen. These are the reason hunting is a strong inference at this one site " +
-          "and a weak one almost everywhere else: wood survives here, so the weapons survive, and a spear among " +
-          "butchered horses says something that cut marks alone cannot.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
       {
@@ -1118,20 +1090,6 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Geomagnetic_polarity_late_Cenozoic.svg?width=1024",
-        shows: "diagram",
-        caption:
-          "Geomagnetic polarity through the late Cenozoic: black is normal, white reversed. The Brunhes–Matuyama " +
-          "boundary is the last of the wide switches, and it is the line half the dates in this dataset are " +
-          "measured against. The diagram is a compiled timescale, not a single measurement.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

@@ -159,20 +159,6 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Popol_vuh.jpg?width=1024",
-        shows: "manuscript",
-        caption:
-          "The Ximenez manuscript of the Popol Vuh, at the Newberry Library. THE OLDEST COPY IS EIGHTEENTH CENTURY, " +
-          "written out by a Spanish friar in parallel columns of K'iche' and Spanish. The tradition is far older " +
-          "than the object that carries it to us, and those are two different dates.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {

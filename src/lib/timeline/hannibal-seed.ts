@@ -439,20 +439,6 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
           "Silver quarter shekel struck under Carthaginian rule in Iberia, c. 237–209 BCE: a male head with a club at the shoulder — usually identified as Melqart — and an elephant. Photograph by Classical Numismatic Group, CC BY-SA 2.5, via Wikimedia Commons.",
         kind: "image",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Carthage,_quarter_shekel,_237-209_BC,_SNG_BM_Spain_102.jpg?width=1024",
-        shows: "artefact",
-        caption:
-          "A Carthaginian quarter shekel struck between 237 and 209 BCE, from Spain. Coinage is the one kind of " +
-          "evidence for the Barcid command in Iberia that the Carthaginians produced themselves — everything " +
-          "written about these years comes from Roman and Greek authors.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {
@@ -776,20 +762,6 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traverse_le_Rh%C3%B4ne_Henri_Motte_1878.jpg?width=1024",
-        shows: "later_artwork",
-        caption:
-          "Henri Motte, 1878 — more than two thousand years after the event, and painted for a Paris Salon. The " +
-          "rafts and the elephants are Polybius' account as a nineteenth-century French painter imagined them, not " +
-          "a record of what anyone saw.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {
@@ -857,20 +829,6 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         caption:
           "J. M. W. Turner, 'Snow Storm: Hannibal and his Army Crossing the Alps', 1812, Tate. A Romantic painting of a storm, made two thousand years after the event and evidence for nothing about the route. Public domain, via Wikimedia Commons.",
         kind: "image",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Joseph_Mallord_William_Turner_-_Snow_Storm,_Hannibal_and_his_Army_Crossing_the_Alps_-_WGA23167.jpg?width=1024",
-        shows: "later_artwork",
-        caption:
-          "Turner, 1812. The army is almost invisible in it, which is the painting's point and not a fault: it is " +
-          "about a storm swallowing an army, painted during the Napoleonic wars. As evidence for the crossing it is " +
-          "worth nothing, and as a picture of how Europe came to imagine the crossing it is worth a great deal.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
       },
       {
         url:
@@ -1383,20 +1341,6 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         caption:
           "The double envelopment at Cannae, from a teaching map by the Department of History, United States Military Academy. A modern reconstruction of the manoeuvre, drawn from the ancient narratives. Public domain, via Wikimedia Commons.",
         kind: "image",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_cannae_destruction.png?width=1024",
-        shows: "diagram",
-        caption:
-          "The encirclement at Cannae, drawn as a diagram. Every arrow on it is an interpretation of Polybius and " +
-          "Livy — the battlefield has produced no line of dead to map, and the plans in books are reconstructions " +
-          "from two written accounts.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
       },
     ],
     claims: [

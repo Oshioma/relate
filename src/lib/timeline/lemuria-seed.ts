@@ -459,20 +459,6 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
-        shows: "portrait",
-        caption:
-          "Rudolf Steiner about 1905, around the time he was lecturing on the Lemurian epoch. The dates on this " +
-          "record come from a named person with a published body of work, which is why they can be quoted precisely " +
-          "and attributed exactly.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
     ],
     claims: [
       {

@@ -823,19 +823,6 @@ const HISTORY: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_by_Sir_Peter_Lely.jpg?width=1024",
-        shows: "portrait",
-        caption:
-          "James Ussher, painted by Peter Lely. The 4004 BC date is arithmetic somebody performed on a text, and " +
-          "the somebody had a job, a library and a method — which is more useful to know than the number.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
-      {
-        url:
           "https://commons.wikimedia.org/wiki/Special:FilePath/James_Ussher_-_Annales.jpg?width=1024",
         shows: "manuscript",
         caption:

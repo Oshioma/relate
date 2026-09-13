@@ -139,6 +139,38 @@ test("an SVG picture asks its source for a raster, because the copier will not t
   }
 });
 
+test("no record shows the reader the same picture twice", () => {
+  // ELEVEN RECORDS DID. Popol Vuh printed the Ximénez manuscript twice side by
+  // side, Cannae printed its one diagram twice, and Hannibal's command in
+  // Iberia printed one coin twice because the two entries spelled the same file
+  // name differently — "Carthage%2C_quarter_shekel" and
+  // "Carthage,_quarter_shekel" — so nothing matched them up.
+  //
+  // It got in because the top-up matches seeded pictures BY CAPTION, which is
+  // right for its own job and blind to this one: a second entry pointing at the
+  // same file with a freshly written caption looks like a picture the record
+  // has not got. The caption tells you whether a record is missing a seeded
+  // picture; only the file name tells you whether two entries are the same
+  // photograph.
+  //
+  // Compared percent-DECODED, because that is the pair that got through.
+  for (const event of ALL) {
+    const names = (event.media ?? []).map((item) => {
+      const file = item.url.split("/").pop()?.split("?")[0] ?? item.url;
+      try {
+        return decodeURIComponent(file);
+      } catch {
+        return file;
+      }
+    });
+    const seen = new Set<string>();
+    for (const name of names) {
+      assert.ok(!seen.has(name), `${event.slug}: ${name} is in the gallery twice`);
+      seen.add(name);
+    }
+  }
+});
+
 test("a cover image is always also in the gallery", () => {
   // The cover has no caption of its own, so it has no way to carry a credit.
   // It only works because it is the same file as a gallery picture that does.
