@@ -269,6 +269,20 @@ const ANCHOR: SeedEvent = {
       // own source at seed time and appended then. See resolveCredits.
       creditFrom: "source",
     },
+    {
+      url:
+        "https://commons.wikimedia.org/wiki/Special:FilePath/PIA16874-CobeWmapPlanckComparison-20130321.jpg?width=1024",
+      shows: "scientific_figure",
+      caption:
+        "The same patch of sky as seen by COBE, WMAP and Planck. The universe did not change between these three " +
+        "pictures; the instruments did. The age figures on this record are fitted to the sharpest of them, and " +
+        "they moved as the pictures sharpened.",
+      kind: "image",
+      // Written WITHOUT its credit: the credit is worked out from the
+      // picture's own source at seed time, so it says what the source says
+      // today rather than what was typed here from memory.
+      creditFrom: "source",
+    },
   ],
   claims: [
     // --- 1. Standard cosmology, twice, because the measurements differ -------
@@ -496,20 +510,6 @@ const HISTORY: SeedEvent[] = [
           "was over. He proposed the steady state with Bondi and Gold and lost — and it is worth seeing a monument " +
           "to somebody whose best-known idea turned out to be wrong, because that is what losing an argument in " +
           "science looks like from a distance.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/PIA16874-CobeWmapPlanckComparison-20130321.jpg?width=1024",
-        shows: "scientific_figure",
-        caption:
-          "The same patch of sky as seen by COBE, WMAP and Planck. The universe did not change between these three " +
-          "pictures; the instruments did. The age figures on this record are fitted to the sharpest of them, and " +
-          "they moved as the pictures sharpened.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
