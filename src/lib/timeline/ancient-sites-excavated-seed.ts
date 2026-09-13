@@ -335,6 +335,25 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Tell Qaramel, Aleppo Governorate, Syria",
     lat: 36.4,
     lng: 37.1,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Tell_Qaramel_vue_a%C3%A9rienne.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Tell_Qaramel_vue_a%C3%A9rienne.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Tell Qaramel from the air. The five towers here are older than the tower at Jericho, which is a large " +
+          "claim — and the reason it is accepted is entirely ordinary: fifty-seven charcoal samples, dated in a " +
+          "laboratory, published with their stratigraphy. An aerial photograph shows none of that and settles none " +
+          "of it; it shows where the work was done.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "mazurowski_radiocarbon2009",

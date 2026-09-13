@@ -633,6 +633,21 @@ const HISTORY: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Neil_Turok_AIMS.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "Neil Turok, who proposed this model with Paul Steinhardt in 2002. A PORTRAIT IS NOT EVIDENCE FOR A " +
+          "COSMOLOGY, and it is here for the reason this record exists at all: the proposal has authors, a date and " +
+          "a paper, and reading it as a specific claim by specific people is different from reading it as \"science " +
+          "says the universe is cyclic\".",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

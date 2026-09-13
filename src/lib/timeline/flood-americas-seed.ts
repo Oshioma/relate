@@ -322,6 +322,20 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/View_from_the_Summit_Yuraccochas_I_-_Ticlio,_Huarochiri,_Lima,_Peru.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The high country of Huarochirí. The account has people and animals climbing to the summit of Villca Coto " +
+          "as the sea rises, and the peaks it is told about are these — WHICH IS NOT THE SAME as saying the flood " +
+          "happened here. A story set in real country is still a story, and the mountains are only where it is set.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -562,6 +562,20 @@ const IRANIAN: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Zoroastrian_Fire_Temple,_Yazd_01.jpg?width=1024",
+        shows: "site",
+        caption:
+          "A Zoroastrian fire temple at Yazd. THE TRADITION IS STILL PRACTISED, which is the thing most easily lost " +
+          "when an ancient text is read as a curiosity: the winter Yima is warned of belongs to a living religion, " +
+          "not to a dead one, and this is a building people use.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
