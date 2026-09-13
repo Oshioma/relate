@@ -78,23 +78,45 @@ export async function bringImageIn(
   return { reason: firstReason ?? "that picture could not be brought in" };
 }
 
-/** One attempt at one address: fetch it, check it, store it. */
+/** One attempt at one address for the timeline: fetch it, check it, store it. */
 async function fetchAndStore(
   supabase: SupabaseClient<Database>,
   { url, userId, name }: { url: string; userId: string; name: string }
 ): Promise<BringInResult> {
+  return storeExternalImage(supabase, { url, userId, folder: "timeline", key: name });
+}
+
+/**
+ * Copy one external image into the community's own storage, under
+ * `<userId>/<folder>/<key>.<ext>` in the `uploads` bucket — the same per-user
+ * path scheme every other upload uses, so the storage policies that already
+ * exist are the ones that apply here too. Returns the stored public URL, or a
+ * one-line reason it couldn't be brought in (see bringImageIn's note on why the
+ * reason matters). The timeline seeds this from Wikimedia; the directory and
+ * accommodation importers seed it from a business's own scraped photos.
+ */
+export async function storeExternalImage(
+  supabase: SupabaseClient<Database>,
+  {
+    url,
+    userId,
+    folder,
+    key,
+    timeoutMs = FETCH_TIMEOUT_MS,
+  }: { url: string; userId: string; folder: string; key: string; timeoutMs?: number }
+): Promise<BringInResult> {
   let response: Response;
   try {
     response = await fetch(url, {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
       // NO CACHING. Next patches global fetch and will try to store what comes
       // back; an image is not what that cache is for, and a cache write that
       // fails on a large body would take the whole copy down with it.
       cache: "no-store",
-      // Wikimedia asks for a User-Agent that says who is calling and offers a
-      // way to get in touch. Sending one is their published condition for
-      // automated requests, so it is sent.
-      headers: { "User-Agent": "Relate/1.0 (community timeline; +https://github.com/Oshioma/relate)" },
+      // A User-Agent that says who is calling and offers a way to get in touch —
+      // Wikimedia's published condition for automated requests, and good manners
+      // for scraping anyone else's photo too.
+      headers: { "User-Agent": "Relate/1.0 (community platform; +https://github.com/Oshioma/relate)" },
     });
   } catch (error) {
     // Refused, blocked, timed out, DNS — the request never completed.
@@ -103,7 +125,7 @@ async function fetchAndStore(
   }
 
   if (!response.ok) {
-    // Wikimedia's error pages say what was wrong with the request in one line,
+    // An error page usually says what was wrong with the request in one line,
     // and that line is worth far more than the bare status code.
     const detail = await response
       .text()
@@ -127,9 +149,7 @@ async function fetchAndStore(
     return { reason: `that picture is ${Math.round(bytes.byteLength / 1024 / 1024)}MB, over the 8MB limit` };
   }
 
-  // The same per-user path scheme every other upload uses, so the storage
-  // policies that already exist are the ones that apply here too.
-  const path = `${userId}/timeline/${name}.${extension}`;
+  const path = `${userId}/${folder}/${key}.${extension}`;
   const { error } = await supabase.storage
     .from("uploads")
     .upload(path, bytes, { upsert: true, contentType });

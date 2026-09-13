@@ -40,6 +40,10 @@ export function AccommodationCard({
       : "";
   const [saved, setSaved] = useState(listing.saved);
   const [isPending, startTransition] = useTransition();
+  // A scraped/external cover can 404 or hotlink-block once loaded in a browser;
+  // fall back to the placeholder rather than showing a broken-image glyph.
+  const [coverBroken, setCoverBroken] = useState(false);
+  const showCover = photos.length > 0 && !coverBroken;
 
   function handleSaveToggle(e: React.MouseEvent) {
     // The card is a Link — keep the click from navigating.
@@ -60,12 +64,13 @@ export function AccommodationCard({
       className="group block overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        {photos.length > 0 ? (
+        {showCover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photos[0]}
             alt={listing.name}
             className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${isUnavailable ? "grayscale" : ""}`}
+            onError={() => setCoverBroken(true)}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent-soft to-muted">
