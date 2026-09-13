@@ -53,13 +53,13 @@ export function BuiltinNavRow({
 
   return (
     <div className={`rounded-lg border ${isDragging ? "border-accent" : "border-border"} bg-muted/40`} {...dragHandlers}>
-      <div className="flex items-center gap-3 p-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
         <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-48">
           <p className="truncate text-sm font-medium text-foreground">{label}</p>
           <p className="text-xs text-muted-foreground">Built-in link</p>
         </div>
-        <label className="flex items-center gap-2 text-sm text-foreground">
+        <label className="flex shrink-0 items-center gap-2 text-sm text-foreground">
           <input
             type="checkbox"
             checked={checked}
