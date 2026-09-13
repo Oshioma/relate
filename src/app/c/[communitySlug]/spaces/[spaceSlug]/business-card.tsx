@@ -47,6 +47,10 @@ export function BusinessCard({
   const CategoryIcon = BUSINESS_CATEGORY_ICONS[business.category] ?? DEFAULT_CATEGORY_ICON;
   const [saved, setSaved] = useState(data.saved);
   const [isPending, startTransition] = useTransition();
+  // A scraped/external cover can 404 or hotlink-block once loaded in a browser;
+  // fall back to the category icon rather than showing a broken-image glyph.
+  const [imageBroken, setImageBroken] = useState(false);
+  const showImage = Boolean(business.image_url) && !imageBroken;
 
   function handleSaveToggle(e: React.MouseEvent) {
     // The card is a Link — keep the click from navigating.
@@ -68,13 +72,14 @@ export function BusinessCard({
     <Link href={`/c/${communitySlug}/spaces/${spaceSlug}/businesses/${business.slug ?? business.id}`} className="block">
       <Card className="h-full overflow-hidden transition-shadow hover:shadow-sm">
         <div className="relative h-44 w-full bg-muted">
-          {business.image_url ? (
+          {showImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={business.image_url}
+              src={business.image_url!}
               alt={business.name}
               className="h-full w-full object-cover"
               style={{ objectPosition: photoObjectPosition(business.image_position) }}
+              onError={() => setImageBroken(true)}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">

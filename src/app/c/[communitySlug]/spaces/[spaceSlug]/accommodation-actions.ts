@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES } from "@/lib/accommodation-types";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
+import { rehostListingImages } from "@/lib/listing-images";
 import { createPlaceForListing, syncPlaceIdentity } from "@/lib/data/places";
 import type { AccommodationType, AccommodationStatus, AccommodationPriceUnit, BusinessCategory } from "@/types/database";
 
@@ -179,6 +180,11 @@ export async function createAccommodationListing(_prevState: AccommodationFormSt
     return { error: "You need to be signed in." };
   }
 
+  // Imported/scraped photos point at the source site; copy them into our own
+  // storage so they don't break when that site drops them (best-effort — an
+  // unreachable one keeps its original URL).
+  parsed.values.photo_urls = await rehostListingImages(supabase, { urls: parsed.values.photo_urls, userId: user.id });
+
   const { error } = await supabase.from("accommodation_listings").insert({
     space_id: spaceId,
     community_id: communityId,
@@ -232,6 +238,10 @@ export async function updateAccommodationListing(_prevState: AccommodationFormSt
   if (!user) {
     return { error: "You need to be signed in." };
   }
+
+  // Any photo just added by URL is copied into our storage so it doesn't break
+  // later; ones already ours are left as-is.
+  parsed.values.photo_urls = await rehostListingImages(supabase, { urls: parsed.values.photo_urls, userId: user.id });
 
   // The lister-or-staff RLS policy on accommodation_listings decides whether
   // this update is allowed; we don't re-check ownership here.
@@ -321,8 +331,12 @@ export async function createStayFromBusiness(
   // Carry the business's gallery over as the stay's photos, falling back to its
   // single cover image.
   const { data: images } = await supabase.from("business_images").select("url").eq("business_id", businessId).order("sort_order", { ascending: true });
-  const photoUrls = (images ?? []).map((i) => i.url);
-  if (photoUrls.length === 0 && business.image_url) photoUrls.push(business.image_url);
+  const rawPhotoUrls = (images ?? []).map((i) => i.url);
+  if (rawPhotoUrls.length === 0 && business.image_url) rawPhotoUrls.push(business.image_url);
+  // A legacy business may still carry externally-hosted photos; bring them into
+  // our storage as the stay is created so the copy doesn't inherit a link that
+  // can break (ones already ours are skipped).
+  const photoUrls = await rehostListingImages(supabase, { urls: rawPhotoUrls, userId: user.id });
 
   const { data: created, error: insertError } = await supabase
     .from("accommodation_listings")
@@ -489,6 +503,11 @@ export async function createBusinessFromStay(
     if (custom) resolved = category;
   }
 
+  // A legacy stay may still carry externally-hosted photos; bring them into our
+  // storage so the directory copy doesn't inherit a link that can break (ones
+  // already ours are skipped).
+  const photoUrls = await rehostListingImages(supabase, { urls: listing.photo_urls, userId: user.id });
+
   const { data: created, error: insertError } = await supabase
     .from("businesses")
     .insert({
@@ -508,7 +527,7 @@ export async function createBusinessFromStay(
       phone: listing.phone,
       lat: listing.lat,
       lng: listing.lng,
-      image_url: listing.photo_urls[0] ?? null,
+      image_url: photoUrls[0] ?? null,
     })
     .select("id")
     .single();
@@ -517,9 +536,9 @@ export async function createBusinessFromStay(
   }
 
   // Carry the stay's gallery over so the directory card isn't blank.
-  if (listing.photo_urls.length > 0) {
+  if (photoUrls.length > 0) {
     await supabase.from("business_images").insert(
-      listing.photo_urls.slice(0, 12).map((url, index) => ({
+      photoUrls.slice(0, 12).map((url, index) => ({
         business_id: created.id,
         url,
         position: null,

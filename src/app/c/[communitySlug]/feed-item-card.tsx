@@ -4,7 +4,7 @@ import { Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { photoObjectPosition } from "@/lib/photo-position";
+import { FeedItemImage } from "./feed-item-image";
 import { FeedItemActions, type FeedItemActionsProps } from "./feed-item-actions";
 import type { FeedRefType } from "@/lib/data/feed-interactions";
 
@@ -57,17 +57,7 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
             footer outside the anchor — a button nested in a link is invalid
             markup, and tapping one would navigate away mid-interaction. */}
         <Link href={item.href} className="block">
-          {item.imageUrl && (
-            <div className="h-40 w-full bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="h-full w-full object-cover"
-                style={{ objectPosition: photoObjectPosition(item.imagePosition) }}
-              />
-            </div>
-          )}
+          {item.imageUrl && <FeedItemImage src={item.imageUrl} alt={item.title} position={item.imagePosition} />}
           <CardContent className="pt-5">
             <div className="flex items-start gap-3">
               {item.authorName !== null ? (

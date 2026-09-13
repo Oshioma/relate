@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { BUSINESS_CATEGORIES, slugifyBusinessCategory, isBuiltInBusinessCategory, isReservedStaySlug } from "@/lib/business-categories";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
+import { rehostListingImages } from "@/lib/listing-images";
 import { createPlaceForListing, syncPlaceIdentity } from "@/lib/data/places";
 import { scheduleToText } from "@/lib/opening-hours";
 import type { Database, BusinessCategory, BusinessHoursSchedule } from "@/types/database";
@@ -211,6 +212,11 @@ export async function createBusiness(_prevState: BusinessFormState, formData: Fo
     const scraped = (await scrapeWebsiteImages(f.website))[0] ?? null;
     if (scraped) images = [{ url: scraped, position: null }];
   }
+  // Imported/scraped photos point at the source site; copy them into our own
+  // storage so they survive that site dropping them (best-effort — an
+  // unreachable one keeps its original URL).
+  const rehosted = await rehostListingImages(supabase, { urls: images.map((i) => i.url), userId: user.id });
+  images = images.map((image, i) => ({ ...image, url: rehosted[i] ?? image.url }));
   const cover = images[0] ?? null;
   const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
@@ -288,7 +294,11 @@ export async function updateBusiness(_prevState: BusinessFormState, formData: Fo
   }
 
   const category = await resolveCategory(supabase, spaceId, formData.get("category"));
-  const images = parseImages(formData.get("images"));
+  const parsedImages = parseImages(formData.get("images"));
+  // Any photo just added by URL (e.g. from the website importer) is copied into
+  // our storage so it doesn't break later; ones already ours are left as-is.
+  const rehosted = await rehostListingImages(supabase, { urls: parsedImages.map((i) => i.url), userId: user.id });
+  const images = parsedImages.map((image, i) => ({ ...image, url: rehosted[i] ?? image.url }));
   const cover = images[0] ?? null;
   const { schedule: hoursSchedule, text: hoursText } = parseSchedule(formData.get("opening_hours_structured"));
 
