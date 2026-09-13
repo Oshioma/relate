@@ -74,29 +74,33 @@ test("scrolling left reads earlier and scrolling right reads later", () => {
   }
 });
 
-test("the mark lands inside the box the overview draws", () => {
-  // The overview places the line at the centre date's position on a bar
-  // spanning all of time, rather than halfway across the box. Those agree on
-  // the linear scale — and where they would not, the honest answer is where the
-  // date actually falls. Either way it must be INSIDE the box, or the line is
-  // pointing outside the stretch it claims to be the middle of.
+test("the date's own position on the overview bar is NOT where the line is drawn", () => {
+  // WHY THE LINE IS FIXED AT THE MIDDLE OF THE BAR, kept as a test because it
+  // looks like a thing somebody would later "fix".
+  //
+  // The bar spans all of time on a log scale; the strip spans the window. So
+  // the view's centre date does not generally fall at the middle of the bar,
+  // and the first version drew the line where the date lands — which at a wide
+  // zoom put a line and a label near the LEFT EDGE, claiming to mark the middle
+  // of what you were looking at.
+  //
+  // The mark is now a fixed playhead: the bar's centre is the reading position,
+  // and the date beside it is a label rather than a pointer. If these two ever
+  // did coincide, positioning by the date would be harmless — this test says
+  // how far from harmless it currently is.
+  // MEASURED, not guessed. On the linear strip at full zoom-out the centre date
+  // is 6.95 billion years ago, and that date sits at 0.023 of a bar which is
+  // itself logarithmic — two per cent from the left edge. That is the picture
+  // that prompted the change. (On the log scale the two happen to coincide at
+  // 0.500, which is why the fault was invisible until someone looked at a
+  // linear strip zoomed all the way out.)
   const full = timelineExtentWindow();
-  const windows: TimeWindow[] = [
-    { from: -4000, to: 2000 },
-    { from: -13_800_000_000, to: 2000 },
-    { from: 1900, to: 2000 },
-  ];
-  for (const window of windows) {
-    for (const scale of ["linear", "log"] as const) {
-      const boxFrom = fractionOf(full, window.from, "log");
-      const boxTo = fractionOf(full, window.to, "log");
-      const mark = fractionOf(full, centreOf(window, scale), "log");
-      assert.ok(
-        mark > boxFrom && mark < boxTo,
-        `${scale} ${window.from}..${window.to}: mark at ${mark} is outside the box ${boxFrom}..${boxTo}`
-      );
-    }
-  }
+  const whereTheDateFalls = fractionOf(full, centreOf(full, "linear"), "log");
+  assert.ok(
+    whereTheDateFalls < 0.1,
+    `the date lands at ${whereTheDateFalls.toFixed(3)} of the bar; if that is near the middle, ` +
+      "drawing the line at the date would no longer be the bug this test records"
+  );
 });
 
 test("the centre date has something to say at either end of time", () => {
