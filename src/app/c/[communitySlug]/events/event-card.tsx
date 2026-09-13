@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Link as LinkIcon, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { Avatar } from "@/components/ui/avatar";
 import { Linkify } from "@/components/ui/linkify";
 import { cn, formatDateTime } from "@/lib/utils";
@@ -44,6 +45,16 @@ export function EventCard({
   // browser even though the server-side scrape found them — fall back to
   // the placeholder instead of showing a broken-image icon.
   const showImage = Boolean(event.image_url) && !imageBroken;
+  // Events have no page of their own, so share a deep link to this card in the
+  // community's events list (the anchor id below). On the community's host the
+  // path is already clean (the proxy strips /c/<slug>); on the platform host
+  // keep the /c/<slug> prefix the route needs.
+  const eventPath = `/events#event-${event.id}`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? window.location.origin +
+        (window.location.pathname.startsWith("/c/") ? `/c/${communitySlug}${eventPath}` : eventPath)
+      : "";
 
   if (isEditing) {
     return (
@@ -61,7 +72,7 @@ export function EventCard({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card id={`event-${event.id}`} className="scroll-mt-24 overflow-hidden">
       <div className={cn("relative w-full bg-muted", featured ? "h-56 sm:h-72" : "h-40")}>
         {showImage ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -87,14 +98,24 @@ export function EventCard({
           </div>
         )}
         {canManage && (
-          <>
-            <EventImageQuickActions
-              eventId={event.id}
-              communitySlug={communitySlug}
-              hasImage={showImage}
-              className="absolute left-2 top-2"
-            />
-            <div className="absolute right-2 top-2 flex items-center gap-1.5">
+          <EventImageQuickActions
+            eventId={event.id}
+            communitySlug={communitySlug}
+            hasImage={showImage}
+            className="absolute left-2 top-2"
+          />
+        )}
+        {/* Share is offered to every viewer; edit/delete only to managers. */}
+        <div className="absolute right-2 top-2 flex items-center gap-1.5">
+          <ShareMenu
+            url={shareUrl}
+            title={event.title}
+            text={event.description ?? undefined}
+            menuAlign="right"
+            triggerClassName="rounded-full bg-black/60 p-1 text-white transition hover:bg-black/80"
+          />
+          {canManage && (
+            <>
               <button
                 type="button"
                 title="Edit event"
@@ -109,9 +130,9 @@ export function EventCard({
                 communitySlug={communitySlug}
                 className="rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
               />
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
       <CardContent className={featured ? "p-5 sm:p-6" : "pt-5"}>
         <div className="flex items-start justify-between gap-3">
