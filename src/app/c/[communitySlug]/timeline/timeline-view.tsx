@@ -66,6 +66,7 @@ import {
   seedAncientSitesSubmergedDataset,
   seedAncientSitesWorkedStoneDataset,
   seedAncientSitesAcceptedDataset,
+  seedAncientSitesExcavatedDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -279,6 +280,7 @@ export function TimelineView({
   hasAncientSitesSubmerged,
   hasAncientSitesWorkedStone,
   hasAncientSitesAccepted,
+  hasAncientSitesExcavated,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -339,6 +341,7 @@ export function TimelineView({
   hasAncientSitesSubmerged: boolean;
   hasAncientSitesWorkedStone: boolean;
   hasAncientSitesAccepted: boolean;
+  hasAncientSitesExcavated: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1839,6 +1842,38 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesExcavated && (
+        <DatasetOffer
+          title="Add the last five sites — excavated, or not?"
+          busyLabel="Adding the records…"
+          label="Add these sites"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesExcavatedDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          The tranche that answers the question all the others raise. Some claims on this timeline sounded impossible
+          and are now the accepted account; others are not. WHAT SEPARATES THEM IS NOT HOW STRANGE THE CLAIM WAS.
+          Tell Qaramel&apos;s five stone towers are older than the famous one at Jericho — which had itself been the
+          oldest known — and that is accepted because FIFTY-SEVEN charcoal samples were dated and published with the
+          stratigraphy. Karahan Tepe is monumental architecture built by people who had not yet taken up farming,
+          accepted because it has been dug since 2019 under a named director. Nabta Playa&apos;s radiocarbon is
+          solid and its astronomical reading is argued about — and its own authors said certainty was hard, because
+          sand moves and the stones are damaged. Then Visočica at Visoko, cored by geologists who found the same
+          conglomerate, clay and sandstone as every neighbouring hill, its triangular profile a FLATIRON; and
+          Gornaya Shoria, granite TORS where orthogonal joints split the rock into rectangular blocks and weathering
+          rounds their corners. Third and last time this dataset makes the point, so plainly: ROCK FRACTURES IN
+          STRAIGHT LINES. A right angle is not a signature.
         </DatasetOffer>
       )}
 

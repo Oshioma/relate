@@ -87,6 +87,12 @@ import {
   ANCIENT_SITES_ACCEPTED_TRACK,
 } from "@/lib/timeline/ancient-sites-accepted-surprise-seed";
 import {
+  ANCIENT_SITES_EXCAVATED_EVENTS,
+  ANCIENT_SITES_EXCAVATED_LINKS,
+  ANCIENT_SITES_EXCAVATED_SOURCES,
+  ANCIENT_SITES_EXCAVATED_TRACK,
+} from "@/lib/timeline/ancient-sites-excavated-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1859,6 +1865,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_ACCEPTED_LINKS,
   },
   {
+    label: "Excavated, or not: two kinds of extraordinary claim",
+    track: ANCIENT_SITES_EXCAVATED_TRACK,
+    events: ANCIENT_SITES_EXCAVATED_EVENTS,
+    sources: ANCIENT_SITES_EXCAVATED_SOURCES,
+    links: ANCIENT_SITES_EXCAVATED_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2606,6 +2619,30 @@ export async function seedAncientSitesAcceptedDataset(communitySlug: string) {
     track: ANCIENT_SITES_ACCEPTED_TRACK,
     links: ANCIENT_SITES_ACCEPTED_LINKS,
     label: "When the accepted date is the surprising one",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Karahan Tepe, Tell Qaramel, Nabta Playa, Visočica and Gornaya Shoria. The
+ * tranche that answers the question the rest of the dataset raises: what
+ * separates an extraordinary claim that became accepted from one that did not is
+ * whether anybody dug, measured and published — not how strange it sounded.
+ * See ancient-sites-excavated-seed.ts.
+ */
+export async function seedAncientSitesExcavatedDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_EXCAVATED_EVENTS,
+    sources: ANCIENT_SITES_EXCAVATED_SOURCES,
+    track: ANCIENT_SITES_EXCAVATED_TRACK,
+    links: ANCIENT_SITES_EXCAVATED_LINKS,
+    label: "Excavated, or not: two kinds of extraordinary claim",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
