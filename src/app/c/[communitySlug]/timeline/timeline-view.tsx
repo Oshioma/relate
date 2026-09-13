@@ -62,6 +62,7 @@ import {
   seedAncientSitesDataset,
   seedEarlyAustraliaDataset,
   seedAncientSitesAmericasDataset,
+  seedAncientSitesArtefactsDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -271,6 +272,7 @@ export function TimelineView({
   hasAncientSites,
   hasEarlyAustralia,
   hasAncientSitesAmericas,
+  hasAncientSitesArtefacts,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -327,6 +329,7 @@ export function TimelineView({
   hasAncientSites: boolean;
   hasEarlyAustralia: boolean;
   hasAncientSitesAmericas: boolean;
+  hasAncientSitesArtefacts: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1827,6 +1830,39 @@ export function TimelineView({
           was struck by a person or by the place — an alluvial fan in the Mojave, a cliff above a Brazilian shelter.
           These are also where this dataset&apos;s most useful lesson lives: some pre-Clovis claims became the
           accepted account and some did not, and &quot;science changes its mind&quot; is the wrong half of it.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasAncientSitesArtefacts && (
+        <DatasetOffer
+          title="Add the objects said to have come out of old rock?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedAncientSitesArtefactsDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          A metal vessel in blasting rubble at Dorchester in 1852. A gold chain in a lump of coal at Morrisonville in
+          1891. Eight lines in an 1862 journal about bones on a coal bed in Macoupin County. Stone mortars under a
+          lava cap in California, argued in print by two of the most senior scientists in America. These records all
+          have the SAME SHAPE, and it is the shape that teaches: a date for the REPORT, which is certain; a date for
+          the HOST ROCK, which is also certain and is nobody&apos;s point of disagreement; and, for four of the five,
+          no date for the OBJECT at all — because no object here has ever been dated. &quot;Found associated with
+          coal&quot; is not &quot;scientifically dated to 300 million years&quot;, and you can watch that
+          substitution happen by reading the two claims next to each other. What is actually in dispute is
+          PROVENANCE: who saw what, when, and whether anyone independent ever did. At Morrisonville the finder&apos;s
+          husband owned the newspaper that reported it and was the town jeweller — which is not an accusation, and is
+          recorded because it is how much verification exists. Michael Cremo appears throughout and discovered none
+          of it: his 1993 compilation is its own record, making its own and quite different claim about how evidence
+          gets set aside.
         </DatasetOffer>
       )}
 
