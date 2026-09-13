@@ -45,6 +45,7 @@ import { ANCIENT_SITES_WORKED_STONE_ANCHOR_SLUG } from "@/lib/timeline/ancient-s
 import { ANCIENT_SITES_ACCEPTED_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites-accepted-surprise-seed";
 import { ANCIENT_SITES_EXCAVATED_ANCHOR_SLUG } from "@/lib/timeline/ancient-sites-excavated-seed";
 import { GIANTS_HEBREW_ANCHOR_SLUG } from "@/lib/timeline/giants-hebrew-seed";
+import { GIANTS_GREEK_ANCHOR_SLUG } from "@/lib/timeline/giants-greek-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -137,6 +138,7 @@ export default async function TimelinePage({
     hasAncientSitesAccepted,
     hasAncientSitesExcavated,
     hasGiantsHebrew,
+    hasGiantsGreek,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -190,6 +192,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, ANCIENT_SITES_ACCEPTED_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, ANCIENT_SITES_EXCAVATED_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_HEBREW_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_GREEK_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -261,6 +264,7 @@ export default async function TimelinePage({
         hasAncientSitesAccepted={hasAncientSitesAccepted}
         hasAncientSitesExcavated={hasAncientSitesExcavated}
         hasGiantsHebrew={hasGiantsHebrew}
+        hasGiantsGreek={hasGiantsGreek}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}
