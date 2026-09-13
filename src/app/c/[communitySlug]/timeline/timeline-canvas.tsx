@@ -310,6 +310,36 @@ export function TimelineCanvas({
 
         <div className="pointer-events-none absolute inset-x-0 border-b border-border" style={{ top: RULER_HEIGHT }} />
 
+        {/* ---- THE CENTRE DATE -------------------------------------------
+            A line down the middle of the strip, marking one specific date: the
+            one exactly halfway across what you are looking at. Scroll left and
+            it reads earlier, scroll right and it reads later, so there is
+            always a definite answer to "where am I?" rather than a range.
+
+            White, because it has to read against whatever it crosses — pale
+            empty axis in one place, a dark span bar in another. A plain white
+            line disappears on this background, so it carries a faint dark edge
+            and a soft shadow: white over the bars, still visible over the
+            paper. The same date is marked on the overview strip below, where
+            it is also written out.
+
+            Drawn above the ruler and the bands but below the events, so it
+            never covers a caption a reader is trying to read. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-10"
+          style={{
+            left: width / 2,
+            top: RULER_HEIGHT,
+            bottom: 0,
+            width: 3,
+            marginLeft: -1.5,
+            background: "rgba(255,255,255,0.95)",
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.12), 0 0 6px rgba(0,0,0,0.10)",
+          }}
+        />
+
+
         {/* ---- Period context bands ---------------------------------------
             Understated by design. A period is what the events are read
             against, not a thing on the timeline in its own right, so these are

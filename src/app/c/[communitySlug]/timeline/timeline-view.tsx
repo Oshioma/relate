@@ -1201,6 +1201,9 @@ export function TimelineView({
         markers={markers}
         window={view}
         onWindowChange={setView}
+        // The centre date it writes has to be the date the strip's own centre
+        // line marks, and that depends on how the strip spaces its years.
+        scale={scale}
         className="mt-3"
       />
 
