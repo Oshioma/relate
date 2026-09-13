@@ -75,6 +75,12 @@ import {
   ANCIENT_SITES_SUBMERGED_TRACK,
 } from "@/lib/timeline/ancient-sites-submerged-seed";
 import {
+  ANCIENT_SITES_WORKED_STONE_EVENTS,
+  ANCIENT_SITES_WORKED_STONE_LINKS,
+  ANCIENT_SITES_WORKED_STONE_SOURCES,
+  ANCIENT_SITES_WORKED_STONE_TRACK,
+} from "@/lib/timeline/ancient-sites-worked-stone-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1833,6 +1839,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: ANCIENT_SITES_SUBMERGED_LINKS,
   },
   {
+    label: "Worked stone: who cut it, and how anybody knows",
+    track: ANCIENT_SITES_WORKED_STONE_TRACK,
+    events: ANCIENT_SITES_WORKED_STONE_EVENTS,
+    sources: ANCIENT_SITES_WORKED_STONE_SOURCES,
+    links: ANCIENT_SITES_WORKED_STONE_LINKS,
+  },
+  {
     label: "Flood traditions: Mesoamerica and the Andes",
     track: FLOOD_AMERICAS_TRACK,
     events: FLOOD_AMERICAS_EVENTS,
@@ -2532,6 +2545,30 @@ export async function seedAncientSitesSubmergedDataset(communitySlug: string) {
     track: ANCIENT_SITES_SUBMERGED_TRACK,
     links: ANCIENT_SITES_SUBMERGED_LINKS,
     label: "Under water: drowned coasts, and what submergence dates",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Baalbek, the Osireion and Giza. Three sites where nobody doubts the stone was
+ * cut by people, so the argument is about attribution — and each record is a
+ * study in where a date for worked stone can actually come from: a quarry, an
+ * inscription, charcoal in mortar, or an alignment.
+ * See ancient-sites-worked-stone-seed.ts.
+ */
+export async function seedAncientSitesWorkedStoneDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: ANCIENT_SITES_WORKED_STONE_EVENTS,
+    sources: ANCIENT_SITES_WORKED_STONE_SOURCES,
+    track: ANCIENT_SITES_WORKED_STONE_TRACK,
+    links: ANCIENT_SITES_WORKED_STONE_LINKS,
+    label: "Worked stone: who cut it, and how anybody knows",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
