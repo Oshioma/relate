@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { MapPin, Building2, Images, BedDouble, Heart } from "lucide-react";
 import { accommodationTypeLabel, accommodationPhotos, formatAccommodationPrice, accommodationFactsSummary } from "@/lib/accommodation-types";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { StarRatingDisplay } from "./star-rating";
 import { toggleSaveAccommodation } from "./accommodation-actions";
 import type { AccommodationListingWithStats } from "@/lib/data/accommodation";
@@ -27,6 +28,16 @@ export function AccommodationCard({
   const price = formatAccommodationPrice(listing);
   const photos = accommodationPhotos(listing);
   const facts = accommodationFactsSummary(listing);
+  // The stay's own shareable URL — the slug form the detail route canonicalizes
+  // to, so a shared link lands without a redirect. On the community's host the
+  // current path is already clean (the proxy strips /c/<slug>); on the platform
+  // host keep the /c/<slug> prefix the route needs.
+  const listingPath = `/spaces/${spaceSlug}/stays/${listing.slug ?? listing.id}`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? window.location.origin +
+        (window.location.pathname.startsWith("/c/") ? `/c/${communitySlug}${listingPath}` : listingPath)
+      : "";
   const [saved, setSaved] = useState(listing.saved);
   const [isPending, startTransition] = useTransition();
   // A scraped/external cover can 404 or hotlink-block once loaded in a browser;
@@ -76,18 +87,29 @@ export function AccommodationCard({
           <span className="absolute right-2 top-2 rounded-full bg-card/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm backdrop-blur">{price}</span>
         )}
 
-        {canSave && (
-          <button
-            type="button"
-            onClick={handleSaveToggle}
-            disabled={isPending}
-            title={saved ? "Remove from saved" : "Save"}
-            aria-pressed={saved}
-            className={`absolute p-1.5 text-white transition disabled:opacity-60 ${price ? "right-2 top-10" : "right-2 top-2"} rounded-full bg-black/45 hover:bg-black/65`}
-          >
-            <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
-          </button>
-        )}
+        {/* Share and save sit together; they drop below the price pill when one
+            is shown so they never overlap it. */}
+        <div className={`absolute right-2 flex items-center gap-1.5 ${price ? "top-10" : "top-2"}`}>
+          <ShareMenu
+            url={shareUrl}
+            title={listing.name}
+            text={listing.description ?? undefined}
+            menuAlign="right"
+            triggerClassName="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65"
+          />
+          {canSave && (
+            <button
+              type="button"
+              onClick={handleSaveToggle}
+              disabled={isPending}
+              title={saved ? "Remove from saved" : "Save"}
+              aria-pressed={saved}
+              className="rounded-full bg-black/45 p-1.5 text-white transition hover:bg-black/65 disabled:opacity-60"
+            >
+              <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+            </button>
+          )}
+        </div>
 
         {photos.length > 1 && (
           <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">

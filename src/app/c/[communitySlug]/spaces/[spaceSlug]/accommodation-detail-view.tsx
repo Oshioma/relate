@@ -16,6 +16,7 @@ import { AccommodationReviewItem } from "./accommodation-review-item";
 import { ReviewsEmptyState } from "./reviews-empty-state";
 import { deleteAccommodationListing, setAccommodationStatus, toggleSaveAccommodation } from "./accommodation-actions";
 import { StayBusinessBridge } from "./stay-business-bridge";
+import { ShareMenu } from "@/components/ui/share-menu";
 import { AccommodationClaimSection } from "./accommodation-claim-section";
 import type { AccommodationDetail, BusinessLinkOption } from "@/lib/data/accommodation";
 import type { BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
@@ -160,6 +161,7 @@ export function AccommodationDetailView({
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
+              <ShareMenu title={listing.name} text={listing.description ?? undefined} variant="icon" />
               {canSave && (
                 <button
                   type="button"
