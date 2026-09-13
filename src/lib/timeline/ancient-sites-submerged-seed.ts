@@ -254,6 +254,37 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "Off Yonaguni, Ryukyu Islands, Japan",
     lat: 24.4,
     lng: 123.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Yonaguni_Monument_Main_Terrace.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Yonaguni_Monument_Main_Terrace.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The main terrace of the Yonaguni formation. Whether the flat faces and right angles are cut or are the " +
+          "natural bedding and jointing of this sandstone is exactly the disagreement — and this is the surface " +
+          "both sides are describing.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Yonaguni_Ruins_Scuba.jpg?width=1024",
+        shows: "site",
+        caption:
+          "A diver at the formation, which gives it a scale. Photographs of it are the main evidence most people " +
+          "ever see, and a photograph cannot show whether a surface was worked.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "holocene_sea_level",

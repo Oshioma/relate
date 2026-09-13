@@ -168,6 +168,24 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
     locationName: "Uruk, southern Mesopotamia",
     lat: 31.32,
     lng: 45.64,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Hero_lion_Dur-Sharrukin_Louvre_AO19862.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hero_lion_Dur-Sharrukin_Louvre_AO19862.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A hero mastering a lion, from the palace of Sargon II at Khorsabad, about 713–706 BCE. WIDELY CAPTIONED " +
+          "AS GILGAMESH, AND THE IDENTIFICATION IS NOT CERTAIN — the Louvre calls it a hero. A good reminder that a " +
+          "name under a picture is itself a claim.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "george_2007",
@@ -257,6 +275,23 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
     locationName: "Hattusa (Boğazköy), Anatolia",
     lat: 40.02,
     lng: 34.62,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Yazilikaya_B_12erGruppe.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Yazilikaya_B_12erGruppe.jpg?width=1024",
+        shows: "site",
+        caption:
+          "NOT A PICTURE OF ULLIKUMMI — no ancient image of him is known. This is the rock sanctuary at Yazılıkaya " +
+          "outside Hattusa, where the tablets carrying his story were written and kept, carved in the same century.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "hoffner_hittite_myths",
@@ -344,6 +379,38 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
     locationName: "The Cedar Forest, in the Epic of Gilgamesh",
     lat: 34.25,
     lng: 36.05,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Humbaba_mask-AO_12460-IMG_0652-white.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Humbaba_mask-AO_12460-IMG_0652-white.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A clay mask of Humbaba, Louvre AO 12460. The face is drawn as one coiling line, like the entrails a " +
+          "diviner read omens from. It is a face — the object tells you nothing about how big he was supposed to " +
+          "be, and neither do the texts.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Terracotta_mask_of_Humbaba,_from_southern_Iraq._Old-Babylonian_period,_1st_half_the_2nd_millennium_BCE._Ancient_Orient_Museum,_Istanbul.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A second terracotta mask of Humbaba, from southern Iraq, Old Babylonian period. Masks like these are " +
+          "common finds, which tells you the figure mattered to ordinary households — and still tells you no " +
+          "measurement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "sb_gilgamesh_tablet1",
@@ -409,6 +476,24 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
     locationName: "Alexandria, where the Septuagint was made",
     lat: 31.2,
     lng: 29.92,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/The_Tower_of_Babel_(Bruegel).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Tower_of_Babel_(Bruegel).jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Pieter Bruegel the Elder, 1563. Nimrod is often shown as the builder of Babel — a tradition that is not " +
+          "in Genesis 10, painted three thousand years after the text and in a Flemish landscape. It is a picture " +
+          "of what later people made of him, which is exactly what this record is about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "genesis10",

@@ -186,6 +186,37 @@ export const ANCIENT_SITES_ACCEPTED_EVENTS: SeedEvent[] = [
     locationName: "Malta and Gozo",
     lat: 35.9,
     lng: 14.4,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Facade_Hagar_Qim.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Facade_Hagar_Qim.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The facade of Ħaġar Qim, Malta. These are among the oldest free-standing stone buildings anywhere, and " +
+          "the date is the ACCEPTED one — this record is here because the surprising answer is the mainstream " +
+          "answer.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hagar_qim_temples_2.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Inside the same complex. Nothing about the age of these buildings is a fringe claim: it is the " +
+          "excavated, radiocarbon-dated account, and it is older than the pyramids.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_malta_temples",
@@ -310,6 +341,24 @@ export const ANCIENT_SITES_ACCEPTED_EVENTS: SeedEvent[] = [
     locationName: "Nan Madol, Pohnpei, Federated States of Micronesia",
     lat: 6.8417,
     lng: 158.3339,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Nan_madol.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nan_madol.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Walls at Nan Madol, built from columnar basalt laid like logs. Around a hundred artificial islets on a " +
+          "reef off Pohnpei — an enormous undertaking that is not disputed and is simply less famous than it should " +
+          "be.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "mccoy2016",
@@ -391,6 +440,24 @@ export const ANCIENT_SITES_ACCEPTED_EVENTS: SeedEvent[] = [
     locationName: "Rapa Nui (Easter Island)",
     lat: -27.1127,
     lng: -109.3497,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ahu_Tongariki.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ahu_Tongariki.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Moai at Ahu Tongariki. The settlement date on this record is one where SCIENCE CHANGED ITS MIND: the " +
+          "earlier estimate of the first millennium CE has been pulled several centuries later by re-dated " +
+          "material.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "hunt_lipo2006",
