@@ -345,6 +345,39 @@ export function picturesMissingFrom(
   });
 }
 
+/**
+ * WHAT ONE RECORD IS SHORT OF, AS ONE ANSWER BOTH CALLERS USE.
+ *
+ * There are two ways a seeded record can be topped up: the dataset's own offer
+ * card, and the "Check for corrections" button. They asked the question
+ * differently, and that difference is the whole of the bug this exists to
+ * prevent.
+ *
+ * The card asked `picturesMissingFrom`, so it topped up a record that had SOME
+ * of its pictures. The button asked "does this record have any picture at
+ * all?" and skipped it if it did — and the card is HIDDEN once a community has
+ * the dataset, so the button was the only path left. A record that arrived
+ * with one picture could therefore never get a second, however many the
+ * dataset gained afterwards, and nothing anywhere said so.
+ *
+ * One function, both callers, so the two answers cannot drift apart again.
+ */
+export function pictureTopUp<T extends { url: string; caption?: string }>(
+  stored: { image_url?: string | null; media?: { url?: string; caption?: string | null }[] | null },
+  seed: { imageUrl?: string | null; media?: T[] }
+): { missing: T[]; needsCover: boolean; count: number } {
+  const missing = picturesMissingFrom(stored.media ?? [], seed.media ?? []) as T[];
+  // A cover is wanted only when the record has none. Replacing one a community
+  // chose would be taking their decision away, and the cover is the largest
+  // thing on the card.
+  const needsCover = !stored.image_url && Boolean(seed.imageUrl);
+  // Every seeded cover is also a gallery picture, so when it is among the ones
+  // being brought in it is one photograph and not two. Counting it twice would
+  // spend the budget on work that is not happening.
+  const coverAlreadyCounted = missing.some((item) => item.url === seed.imageUrl);
+  return { missing, needsCover, count: missing.length + (needsCover && !coverAlreadyCounted ? 1 : 0) };
+}
+
 export async function bringEventPicturesIn(
   supabase: SupabaseClient<Database>,
   { pictures, userId, slug }: { pictures: EventPictures; userId: string; slug: string }

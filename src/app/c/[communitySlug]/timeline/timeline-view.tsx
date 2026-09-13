@@ -2326,14 +2326,16 @@ export function TimelineView({
             <span className="mb-3 block rounded-lg border-l-4 border-l-danger bg-danger/5 p-3 text-foreground">
               <span className="block font-semibold">
                 {recordsMissingPictures === 1
-                  ? "One record here has a picture available that it never received."
-                  : `${recordsMissingPictures} records here have a picture available that they never received.`}
+                  ? "One picture is available to a record here that never received it."
+                  : `${recordsMissingPictures} pictures are available to records here that never received them.`}
               </span>
               <span className="mt-1 block">
                 Pictures were added to these datasets after most communities had already taken them, and the card that
-                offers a dataset withdraws once you have it — so there was nowhere to press. Use{" "}
-                <span className="font-medium">Check for corrections</span>, below, which now fills them in. Checking
-                the pictures will not: it only tests the ones that are here.
+                offers a dataset withdraws once you have it — so there was nowhere to press. This counts PICTURES and
+                not records: a record that arrived with one picture and is now offered three is two short, and is
+                counted as two. Use <span className="font-medium">Check for corrections</span>, below, which fills
+                them in a batch at a time — press it until this number reaches zero. Checking the pictures will not:
+                it only tests the ones that are already here.
               </span>
             </span>
           )}
@@ -2469,7 +2471,7 @@ export function TimelineView({
                   }
                   if (result.pictured > 0) {
                     parts.push(
-                      `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"} to records that had none.`
+                      `Added ${result.pictured} ${result.pictured === 1 ? "picture" : "pictures"}.`
                     );
                   }
                   // SAY THAT MORE ARE COMING, or the run looks like it failed
@@ -2478,8 +2480,8 @@ export function TimelineView({
                   if (result.picturesStillMissing > 0) {
                     parts.push(
                       `${result.picturesStillMissing} more ${
-                        result.picturesStillMissing === 1 ? "record is" : "records are"
-                      } still waiting for pictures — press this again to continue.`
+                        result.picturesStillMissing === 1 ? "picture is" : "pictures are"
+                      } still waiting — press this again to continue.`
                     );
                   }
                   if (result.updated > 0) {
