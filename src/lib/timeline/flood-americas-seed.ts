@@ -159,6 +159,20 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Chichicastenango-004.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Chichicastenango in the Guatemalan highlands, where Ximénez was parish priest and where he was shown the " +
+          "K'iche' text he copied. The manuscript that carries this account to us exists because of a particular " +
+          "friar in a particular town — and the people whose book it was are still there.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

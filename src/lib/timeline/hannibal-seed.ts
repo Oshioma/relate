@@ -439,6 +439,33 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
           "Silver quarter shekel struck under Carthaginian rule in Iberia, c. 237–209 BCE: a male head with a club at the shoulder — usually identified as Melqart — and an elephant. Photograph by Classical Numismatic Group, CC BY-SA 2.5, via Wikimedia Commons.",
         kind: "image",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Carthaginian_wall_of_Cartagena.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Carthaginian walling at Cartagena — Qart Hadasht, New Carthage, the base Hannibal took command of. This " +
+          "is one of the very few things on this timeline that is PUNIC MASONRY rather than a Roman account of " +
+          "Punic affairs, and almost everything else known about the command comes from writers on the other side.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nova_Carthago_-_Qart_Hadasht.png?width=1024",
+        shows: "map",
+        caption:
+          "New Carthage and its harbour. The city is why Iberia was worth commanding: silver, a fleet anchorage and " +
+          "a population, none of which Carthage still had in Africa on that scale after the first war.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -760,6 +787,20 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/France_Petit_Rhone_Arles.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The Rhône near Arles. WHERE THE ARMY CROSSED IS NOT KNOWN — the ancient accounts give a distance " +
+          "upstream from the sea and no landmark that has survived, and every proposed site is an argument from " +
+          "that distance. The river is the one part of the story that can still be photographed.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1341,6 +1382,34 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         caption:
           "The double envelopment at Cannae, from a teaching map by the Department of History, United States Military Academy. A modern reconstruction of the manoeuvre, drawn from the ancient narratives. Public domain, via Wikimedia Commons.",
         kind: "image",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_of_Cannae_-_216_BC_-_Initial_Roman_attack_-_nl.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "The opening position at Cannae, before the envelopment. It is worth seeing beside the diagram of the " +
+          "destruction: the Roman line began by pushing the Carthaginian centre back, and the thing that killed the " +
+          "army was winning in the middle.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Death_of_Paulus_Aemilius_at_the_Battle_of_Cannae.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "John Trumbull painted the death of the consul Paullus in 1773, nearly two thousand years after it. IT IS " +
+          "A PICTURE OF AN IDEA ABOUT CANNAE — heroic, individual, legible — and the ancient accounts describe " +
+          "something closer to a crowd unable to move its arms.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
       },
     ],
     claims: [

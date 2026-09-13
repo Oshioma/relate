@@ -307,14 +307,14 @@ test("across every seeded dataset, a record holding only its first picture is re
     shortRecords++;
     shortPictures += plan.count;
   }
-  // MEASURED, not guessed: the seeds carry 122 records with more than one
-  // picture and 144 pictures beyond each record's first. It was 123 and 150
-  // until twelve galleries that listed the SAME file twice were de-duplicated;
-  // the floor moved down because the count was inflated, not because anything
-  // was lost.
+  // MEASURED, not guessed: the seeds carry 130 records with more than one
+  // picture and 154 pictures beyond each record's first. Both numbers dipped
+  // when twelve galleries that listed the SAME file twice were de-duplicated —
+  // the earlier count was inflated by duplicates rather than made smaller by
+  // the fix — and rose past it again as real second pictures were added.
   // Asserted as a floor so the datasets can grow, because the failure this
   // guards against is the count collapsing towards zero — which is precisely
   // what the banner was reporting while the timeline showed one picture each.
-  assert.ok(shortRecords >= 122, `only ${shortRecords} records carry more than one picture`);
-  assert.ok(shortPictures >= 144, `only ${shortPictures} pictures would be topped up`);
+  assert.ok(shortRecords >= 130, `only ${shortRecords} records carry more than one picture`);
+  assert.ok(shortPictures >= 154, `only ${shortPictures} pictures would be topped up`);
 });

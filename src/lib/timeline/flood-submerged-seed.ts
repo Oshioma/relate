@@ -610,6 +610,20 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Australia_high_resolution_topography_and_bathymetry.png?width=1024",
+        shows: "map",
+        caption:
+          "Australia with its sea floor drawn in. THE PALE SHELF IS THE METHOD'S SUBJECT: it was dry land when sea " +
+          "level was low, and how deep a stretch of it lies is what turns an account of country now under water " +
+          "into a date. The map gives the depths; it says nothing about whether anybody remembered.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -459,6 +459,21 @@ const IDEA_HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Goetheanum_Dornach.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Goetheanum at Dornach, which Steiner designed and which is still the centre of the movement he " +
+          "founded. It is here because the Lemurian epoch on this record is not a loose speculation somebody once " +
+          "published: it belongs to an organised body of teaching that built itself a headquarters and still has " +
+          "one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

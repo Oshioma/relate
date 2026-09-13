@@ -439,6 +439,20 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boxgrove_handaxe.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A second handaxe, from Boxgrove in England. TWO OBJECTS RATHER THAN ONE because the fact this record is " +
+          "about is a resemblance: the same form, made the same way, across three continents and more than a " +
+          "million years. One handaxe cannot show that and two barely can.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -1090,6 +1104,21 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Chibanian_GSSP_Golden-spike.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The golden spike at the Chiba section in Japan, driven into the outcrop that defines the base of the " +
+          "Middle Pleistocene. THE DEFINITION IS THE ROCK AND THE NUMBER IS A MEASUREMENT OF IT: the boundary was " +
+          "ratified here in 2020, and the age of about 774,000 years is what that layer dated to, not what the " +
+          "boundary was set at.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
