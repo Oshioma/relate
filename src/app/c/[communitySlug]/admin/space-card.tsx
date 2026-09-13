@@ -324,12 +324,17 @@ export function SpaceCard({
 
   return (
     <div className={`rounded-lg border ${isDragging ? "border-accent" : "border-border"} bg-card`} {...dragHandlers}>
-      <div className="flex items-center gap-3 p-3">
+      {/* WRAPS RATHER THAN CRUSHES. Everything on this row used to sit on one
+          line that could not wrap, so a narrow window squeezed the name away
+          to nothing and pushed the type badge over the checkbox beside it. The
+          name keeps a basis wide enough to read, and the controls move to a
+          second line when there is no room for them on the first. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
         <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
           <Icon className="h-4 w-4" />
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-48">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
             <Badge>{meta.label}</Badge>
