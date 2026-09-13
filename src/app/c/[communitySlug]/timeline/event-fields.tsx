@@ -75,8 +75,9 @@ export function EventFields({
    * search from — a record being created has no id and no saved place yet.
    */
   suggest?: {
-    eventId: string | null;
-    onSearch: (eventId: string) => Promise<
+    canSearch: boolean;
+    notYet: string;
+    onSearch: () => Promise<
       { error: string } | { candidates: PictureCandidate[]; searched: string[]; failed: string[] }
     >;
   };
@@ -327,7 +328,8 @@ export function EventFields({
         {suggest && value.media.length < 12 && (
           <div className="mt-3 rounded-xl border border-dashed border-border p-3">
             <SuggestPicturesPanel
-              eventId={suggest.eventId}
+              canSearch={suggest.canSearch}
+              notYet={suggest.notYet}
               onSearch={suggest.onSearch}
               onChoose={(candidate) =>
                 onChange({
