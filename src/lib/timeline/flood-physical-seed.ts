@@ -217,6 +217,35 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Beringia-Map_Bathymetry_web72_final.png?width=1024",
+        shows: "map",
+        caption:
+          "Beringia at its greatest extent, drawn over the sea-floor bathymetry that makes the reconstruction " +
+          "possible: the land bridge is the part of the shelf that stands above a sea 120 metres lower. It is one " +
+          "of the drowned landscapes this record is about, and its outline is a calculation from depth soundings " +
+          "rather than a surveyed coast.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Last_Glacial_Maximum_Vegetation_Map.svg?width=1024",
+        shows: "map",
+        caption:
+          "Vegetation of the world at the Last Glacial Maximum, reconstructed from pollen and plant remains. It " +
+          "draws the continental shelves as dry land and puts something on them — steppe, tundra, forest — which is " +
+          "the point of this record: those were places, not blanks.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -269,6 +298,20 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Postglacial_Sea_level_Rise_Curve_and_Meltwater_Pulses_(MWP).jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The postglacial rise again, this time with the proposed meltwater pulses marked on it. The labels are " +
+          "interpretations laid over the curve rather than measurements in it — and one of them, Meltwater Pulse " +
+          "1B, is disputed and has its own record on this timeline.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -318,6 +361,20 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Postglacial_Sea_level_Rise_Curve_and_Meltwater_Pulses_(MWP).jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Meltwater Pulse 1A labelled on a compiled sea-level curve. The label sits where the compilers put it; " +
+          "the two studies held on this record disagree by about three centuries about where it belongs, which is " +
+          "finer than the width of the drawn line.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -523,6 +580,37 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
     eventTypeNote:
       "Disputed in the ordinary scientific sense: competent researchers reading different records reach different conclusions, and the question is open.",
     tags: ["sea-level", "meltwater-pulse", "disputed", "coral"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Postglacial_Sea_level_Rise_Curve_and_Meltwater_Pulses_(MWP).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Postglacial_Sea_level_Rise_Curve_and_Meltwater_Pulses_(MWP).jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Meltwater Pulse 1B marked on a compiled sea-level curve. A LABEL IS NOT A MEASUREMENT: the far-field " +
+          "coral records disagree about whether there is a step here at all, and this compilation draws one because " +
+          "the Barbados corals show one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Holocene_Sea_Level.png?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Sea level through the Holocene, compiled from published data. The interval this record is about sits at " +
+          "the far left-hand edge, and whether the curve steepens there is the entire disagreement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "bard2010",

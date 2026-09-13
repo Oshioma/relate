@@ -495,6 +495,25 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "Off North Bimini, Bahamas",
     lat: 25.7617,
     lng: -79.2958,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Bimini_island.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bimini_island.jpg?width=1024",
+        shows: "site",
+        caption:
+          "North Bimini from the air. THE BLOCKS ARE NOT IN THIS PICTURE — they lie in shallow water off the coast, " +
+          "and no photograph of the formation itself appears to be freely available. The island is here because the " +
+          "setting matters to the argument: this is a limestone coast, and beachrock cracking into blocks along a " +
+          "shoreline is the mechanism the geological account proposes.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_bimini",

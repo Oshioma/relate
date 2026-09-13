@@ -575,6 +575,20 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bust_of_Plato,_Vatican_Museum,_Rome.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A Roman copy of a Greek portrait bust of Plato. Even the face is a copy made centuries later — which is " +
+          "a fair emblem of the record itself, where the story of Atlantis reaches us through one writer reporting " +
+          "what Solon was told in Egypt, at several removes.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -633,6 +647,20 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Bust_of_the_Philosopher_Plato.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Plato again, because the journey itself left nothing. Everything on this record comes through his " +
+          "dialogues: there is no Egyptian text, no inscription and no object attesting Solon's visit, and the " +
+          "chain of telling is the thing to keep in view.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

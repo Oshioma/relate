@@ -490,6 +490,20 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Palaeoloxodon_falconeri_(Sicilian_dwarf_elephant).jpg?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The Sicilian dwarf elephant as a living animal, reconstructed. Worth seeing next to its skull on this " +
+          "record: the skull is strange enough to start a story, and the animal is about a metre tall and looks " +
+          "like nothing anybody would call a Cyclops. Both facts belong to the same proposal.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

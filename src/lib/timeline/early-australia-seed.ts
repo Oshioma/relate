@@ -249,6 +249,24 @@ export const EARLY_AUSTRALIA_EVENTS: SeedEvent[] = [
     locationName: "Moyjil (Point Ritchie), Warrnambool, Victoria, Australia",
     lat: -38.3958,
     lng: 142.5033,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Warrnambool.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Warrnambool.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Warrnambool, at the mouth of the Hopkins River. MOYJIL IS NOT VISIBLE IN THIS PICTURE: the site is a " +
+          "cliffed headland here, and this is a general view of the locality, included so a reader knows where in " +
+          "the world the argument is happening rather than what the deposit looks like.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "moyjil_chronology",

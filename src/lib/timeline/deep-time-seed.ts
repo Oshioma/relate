@@ -439,6 +439,20 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "An Acheulean handaxe. The same shape, made the same way, turns up across Africa, Europe and Asia for " +
+          "more than a million years — which is the fact the record is about: not one invention at one moment, but " +
+          "a technique that stayed recognisably itself for longer than our species has existed.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -598,6 +612,33 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "Wooden artefacts from Schöningen. These are the reason hunting is a strong inference at this one site " +
+          "and a weak one almost everywhere else: wood survives here, so the weapons survive, and a spear among " +
+          "butchered horses says something that cut marks alone cannot.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boxgrove_handaxe.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "A handaxe from Boxgrove. A tool in the same layer as a butchered animal establishes butchery at best — " +
+          "which is the distinction this record is built on. It is not a picture of a hunt.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -669,6 +710,36 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Five_Myr_Climate_Change.svg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The stacked benthic oxygen-isotope record of the last five million years. The Marine Isotope Stages this " +
+          "record dates its sites by are the numbered peaks and troughs of this curve — Boxgrove to Stage 13, " +
+          "Schöningen to Stage 9 — and the curve is a compilation of dozens of sea-floor cores aligned to each " +
+          "other.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ice_Age_Temperature.png?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "Temperature across the last several glacial cycles, from ice cores. It shows the roughly hundred- " +
+          "thousand-year beat this record is about; it is a different proxy from the isotope stack above, and the " +
+          "two are shown together because agreeing measurements taken different ways are worth more than either " +
+          "alone.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
@@ -1047,6 +1118,20 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Geomagnetic_polarity_late_Cenozoic.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "Geomagnetic polarity through the late Cenozoic: black is normal, white reversed. The Brunhes–Matuyama " +
+          "boundary is the last of the wide switches, and it is the line half the dates in this dataset are " +
+          "measured against. The diagram is a compiled timescale, not a single measurement.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

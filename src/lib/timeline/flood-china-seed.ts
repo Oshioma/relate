@@ -145,6 +145,20 @@ export const FLOOD_CHINA_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nine_Provinces_of_China.png?width=1024",
+        shows: "map",
+        caption:
+          "The Nine Provinces into which Yu is said to have divided the land once the water had somewhere to go. " +
+          "The scheme comes from the Yu Gong chapter of the Book of Documents; this is a modern map drawn from that " +
+          "text, and it shows what the tradition says Yu accomplished rather than a surveyed geography of the Xia.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -159,6 +159,20 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Popol_vuh.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The Ximenez manuscript of the Popol Vuh, at the Newberry Library. THE OLDEST COPY IS EIGHTEENTH CENTURY, " +
+          "written out by a Spanish friar in parallel columns of K'iche' and Spanish. The tradition is far older " +
+          "than the object that carries it to us, and those are two different dates.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -207,6 +221,24 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
     locationName: "Central Mexico",
     civilisations: ["Nahua", "Aztec"],
     motifs: ["previous_world_destroyed", "multiple_floods", "natural_catastrophe"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Aztec_Sun_Stone_or_Calendar_Stone.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Aztec_Sun_Stone_or_Calendar_Stone.jpg?width=1024",
+        shows: "artefact",
+        caption:
+          "The Aztec Sun Stone. The four square panels around the central face are the four previous suns, and one " +
+          "of them is 4-Water, the age that ended in flood. It is a monument to the scheme, carved by people who " +
+          "held it, and it dates nothing: there is no year on it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "leyenda_de_los_soles",
@@ -258,6 +290,24 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
     // An animal warns; the refuge is a mountain; animals are already on it; a
     // few survive. No ark, no divine punishment, no covenant, no repopulation.
     motifs: ["animal_warning", "rising_sea", "mountain_refuge", "animals_preserved", "few_survive", "waters_recede"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Huarochiri_Runa_yndio_niscap_machoncuna_naupa_pacha.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Huarochiri_Runa_yndio_niscap_machoncuna_naupa_pacha.png?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening of the Huarochirí Manuscript, the only source for this account. The Villca Coto story is a " +
+          "chapter of this text and exists nowhere earlier: what is being read is a Quechua manuscript written down " +
+          "around 1600, not a record made at the time of the events it tells.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "huarochiri_salomon",

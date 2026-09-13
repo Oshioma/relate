@@ -231,6 +231,20 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Qafzeh.JPG?width=1024",
+        shows: "site",
+        caption:
+          "Qafzeh Cave, near Nazareth. The two dates this record holds come from two different materials taken out " +
+          "of this one hillside — burnt flint and animal teeth — and the disagreement between them is a " +
+          "disagreement about physics, not about where anybody dug.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -506,6 +520,20 @@ export const EARLY_SAPIENS_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Replica_skulls_of_a_Neanderthal_(Homo_neanderthalensis)_and_a_human_(Homo_sapiens_sapiens),_Lee_Kong_Chian_Natural_History_Museum,_Singapore_-_20150808.jpg?width=1024",
+        shows: "evidence_photograph",
+        caption:
+          "Replica skulls of a Neanderthal and a modern human, side by side in a museum case. REPLICAS, not the " +
+          "fossils — casts are what most museums display and what most people have actually seen. The comparison is " +
+          "the point: the differences are real, visible, and smaller than the word 'caveman' suggests.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],

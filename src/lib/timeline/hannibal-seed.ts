@@ -845,6 +845,34 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traversant_les_Alpes_%C3%A0_dos_d%27%C3%A9l%C3%A9phant_-_Nicolas_Poussin.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Poussin, seventeenth century. Put beside Turner's storm and Leutemann's parade it makes the useful " +
+          "point: three painters, three completely different crossings, none of them a witness. What changes " +
+          "between them is the century doing the imagining, not the evidence.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Leutemann,_Heinrich_-_Hannibal%27s_crossing_of_the_Alps.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "Heinrich Leutemann, nineteenth century — an orderly column with elephants, drawn for a reading public " +
+          "that wanted the crossing to look like an achievement. Compare the Turner on this record, where the army " +
+          "is nearly swallowed by the weather.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

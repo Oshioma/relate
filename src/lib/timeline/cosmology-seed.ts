@@ -502,6 +502,20 @@ const HISTORY: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/PIA16874-CobeWmapPlanckComparison-20130321.jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The same patch of sky as seen by COBE, WMAP and Planck. The universe did not change between these three " +
+          "pictures; the instruments did. The age figures on this record are fitted to the sharpest of them, and " +
+          "they moved as the pictures sharpened.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -553,6 +567,20 @@ const HISTORY: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/WMAP_image_of_the_CMB_anisotropy.jpg?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "What the unexplained noise at Holmdel turned out to be, mapped across the whole sky by WMAP nearly forty " +
+          "years later. Penzias and Wilson measured one number and would not say what it meant; this is the same " +
+          "radiation once other people had said.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -588,6 +616,24 @@ const HISTORY: SeedEvent[] = [
     eventType: "hypothesised",
     tags: ["cosmology", "cyclic", "ekpyrotic", "2002"],
     people: ["Paul Steinhardt", "Neil Turok"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "An animation of a contraction running into an expansion. It illustrates the shape these proposals share " +
+          "and NOT the ekpyrotic model in particular — there is no picture of that model, because it is a set of " +
+          "equations about branes and nobody has photographed one.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "steinhardt_turok2002",
@@ -615,6 +661,38 @@ const HISTORY: SeedEvent[] = [
     eventType: "hypothesised",
     tags: ["cosmology", "quantum-gravity", "bounce", "2006"],
     people: ["Abhay Ashtekar", "Tomasz Pawlowski", "Parampreet Singh"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Spin_network.svg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Spin_network.svg?width=1024",
+        shows: "diagram",
+        caption:
+          "A spin network, the kind of object loop quantum gravity uses to describe space itself. This is a picture " +
+          "of the framework the 2006 result was obtained in, not of the result: the bounce is a feature of the " +
+          "equations' solutions, and has no appearance.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
+        shows: "diagram",
+        caption:
+          "A contraction running into an expansion. The same generic illustration as on the ekpyrotic record, and " +
+          "it is here to make the point that these are different theories reaching a similar-looking conclusion — " +
+          "the picture cannot tell them apart, and neither can a summary.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "ashtekar2006",
@@ -803,6 +881,20 @@ const HISTORY: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/1st_verse_of_the_1st_chapter_of_the_Surya_Siddhanta_Hindu_astronomy,_1847_Sanskrit_manuscript_edition.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "The opening verse of the Surya Siddhanta in an 1847 Sanskrit manuscript edition. The 3102 BCE epoch is " +
+          "the day this text counts from; the manuscript is nineteenth-century, and the text it carries is very " +
+          "much older than the paper it is written on.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
     ],
