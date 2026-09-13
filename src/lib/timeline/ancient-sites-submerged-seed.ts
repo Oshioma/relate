@@ -645,6 +645,24 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "Gulf of Khambhat, Gujarat, India",
     lat: 21.5,
     lng: 72.3,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_of_Khambhat_(MODIS).jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_of_Khambhat_(MODIS).jpg?width=1024",
+        shows: "map",
+        caption:
+          "The Gulf of Khambhat from orbit. NOTHING IN THIS PICTURE IS THE FINDING: the reported arrangement is on " +
+          "the sea floor, under water made opaque by some of the strongest tides in the world — which is a large " +
+          "part of why the survey's readings were contested in the first place.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "wikipedia_khambhat",
@@ -746,6 +764,24 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
     locationName: "Dwarka and Bet Dwarka, Gujarat, India",
     lat: 22.2394,
     lng: 68.9678,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Gujarat_Gulfs.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Gujarat_Gulfs.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The Gujarat coast and its two gulfs. Dwarka sits at the mouth of the northern one, and this record's " +
+          "drowned port is offshore from it. The map is here because two separate underwater claims on this " +
+          "timeline are on this one coastline, and they are not the same claim.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "rao_dwarka1987",

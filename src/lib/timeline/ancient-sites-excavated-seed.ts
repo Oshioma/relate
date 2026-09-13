@@ -423,6 +423,34 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_Aswan_Nubia_museum.JPG?width=1024",
+        shows: "artefact",
+        caption:
+          "Nabta Playa megaliths in the Nubia Museum at Aswan. THE STONES HAVE BEEN MOVED: they were lifted from " +
+          "the desert and re-erected indoors, so their arrangement here is a museum's, and any alignment argument " +
+          "has to be made from the survey of the site and not from this.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Calendar_aswan.JPG?width=1024",
+        shows: "reconstruction",
+        caption:
+          "The Nabta Playa \"calendar circle\", reassembled in the Nubia Museum. It is a reconstruction of a " +
+          "arrangement recorded in the field, and the astronomical readings proposed for it are proposals about the " +
+          "original ground, not about these stones as they now stand.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -185,6 +185,21 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Clay_tablet,_Epic_of_Gilgamesh,_from_Hattusa,_Turkey._13th_century_BCE._Neues_Museum,_Germany.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A tablet of the Gilgamesh epic found at Hattusa in Anatolia, not in Mesopotamia — the poem travelled, " +
+          "and was copied in other languages by other people. THE ELEVEN-CUBITS LINE IS NOT ON THIS TABLET: the " +
+          "measurement comes from a particular manuscript of the standard version, and which copy a reader has " +
+          "decides what Gilgamesh's height is.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -285,6 +300,20 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
         caption:
           "NOT A PICTURE OF ULLIKUMMI — no ancient image of him is known. This is the rock sanctuary at Yazılıkaya " +
           "outside Hattusa, where the tablets carrying his story were written and kept, carved in the same century.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Clay_tablet,_Epic_of_Gilgamesh,_from_Hattusa,_Turkey._13th_century_BCE._Neues_Museum,_Germany.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A tablet from the Hattusa archives — a different text, from the same collection that preserved the Song " +
+          "of Ullikummi. The Hurrian poem survives because Hittite scribes kept copies in this library, which is " +
+          "the whole reason a Hurrian giant is knowable at all.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -487,6 +516,20 @@ export const GIANTS_MESOPOTAMIA_EVENTS: SeedEvent[] = [
           "Pieter Bruegel the Elder, 1563. Nimrod is often shown as the builder of Babel — a tradition that is not " +
           "in Genesis 10, painted three thousand years after the text and in a Flemish landscape. It is a picture " +
           "of what later people made of him, which is exactly what this record is about.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Codex_Sinaiticus-small.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A page of Codex Sinaiticus, a fourth-century Greek Bible. THIS IS NOT THE NIMROD VERSE — it is the kind " +
+          "of book in which the Hebrew gibbor, a mighty man, is rendered gigas, a giant. One translator's choice, " +
+          "made in a manuscript like this one, is the whole of what this record is about.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

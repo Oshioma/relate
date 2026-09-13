@@ -665,6 +665,21 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Temple_of_Athena_Alea,_the_visible_foundations_belong_to_a_4th_c._BCE_temple_designed_by_the_architect_Scopas,_Tegea,_Greece_(8208720184).jpg?width=1024",
+        shows: "site",
+        caption:
+          "The foundations at Tegea are those of a fourth-century temple — LATER THAN THE STORY. Herodotus wrote " +
+          "about the finding of Orestes' bones in the fifth century, and what a visitor sees at Tegea today was " +
+          "built after he wrote. The ground is right and the stones are not contemporary with anything on this " +
+          "record.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -794,6 +809,20 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Skyros,_Greece.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Skyros. Cimon is said to have found an outsized coffin here and carried the bones to Athens in 476 BCE. " +
+          "Nothing on the island has ever been excavated as that grave, and the bones themselves went to Athens and " +
+          "are gone — so what survives is the story of a find, not the find.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -907,6 +936,20 @@ export const GIANTS_GREEK_EVENTS: SeedEvent[] = [
         caption:
           "Heracles wrestling Antaeus, on a krater by Euphronios, Louvre G 103. A Greek painter's image of the " +
           "story centuries before Sertorius opened a mound at Tingis and was told whose bones they were.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_caves_of_Hercules,_Morocco.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The caves near Tangier that carry Herakles' name. THIS IS NOT THE MOUND: Sertorius is said to have " +
+          "opened a tumulus at Tingis and found a skeleton sixty cubits long, and no such mound has ever been " +
+          "identified. The caves are what the region has kept of the association.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

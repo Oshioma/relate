@@ -334,6 +334,20 @@ export const ANCIENT_SITES_WORKED_STONE_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Osireion_at_Abydos_(I).jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Osireion from another angle. The massive plain granite here is what the early-date arguments are " +
+          "built on — the claim being that stonework this austere cannot belong with the decorated temple beside " +
+          "it. The counter-argument is that plainness is a choice, and the picture cannot settle which is right.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -447,6 +461,20 @@ export const ANCIENT_SITES_WORKED_STONE_EVENTS: SeedEvent[] = [
           "The Great Pyramid. The dating on this record does not come from the pyramid's shape or its alignment but " +
           "from organic material in its mortar and from the workers' settlement beside it — things that can be " +
           "carbon-dated.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Great_Sphinx_of_Giza_May_2015.JPG?width=1024",
+        shows: "site",
+        caption:
+          "The Great Sphinx, on the same plateau. It carries its own dating argument — about weathering in the " +
+          "enclosure walls — which is a DIFFERENT argument from the one on this record, and the two are constantly " +
+          "run together. What dates the pyramids does not date the Sphinx, and the reverse.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

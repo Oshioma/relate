@@ -388,6 +388,38 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
     locationName: "The Levant",
     lat: 31.5,
     lng: 35.0,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/LeningradCodex_text.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/LeningradCodex_text.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A page of the Leningrad Codex, the oldest complete manuscript of the Hebrew Bible. THIS IS NOT THE " +
+          "NEPHILIM PASSAGE — it is what the text this record reads looks like as a physical object, and every " +
+          "argument about what the word means is an argument about marks like these.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Ethiopic_genesis_(ch._29,_v._11-16),_15th_century_(The_S.S._Teacher%27s_Edition-The_Holy_Bible_-_Plate_XII,_1).jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "Genesis in Ge'ez, fifteenth century — chapter 29, not chapter 6. It is here because the Nephilim verse " +
+          "exists in more than one textual tradition and in more than one language, and which tradition a reader " +
+          "has in front of them changes what the sentence can be made to say.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "genesis6",
@@ -509,6 +541,20 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
           "A parchment fragment from Qumran Cave 4 — the cave the Enochic manuscripts came from. NOT A PICTURE OF " +
           "THE BOOK OF THE WATCHERS: it is another text from the same cave, shown because this is what the physical " +
           "evidence for these writings actually looks like, and what palaeographers date.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Geez_bible.jpg?width=1024",
+        shows: "manuscript",
+        caption:
+          "A Ge'ez Bible. The Book of the Watchers survives complete only in Ethiopic, inside the canon of the " +
+          "Ethiopian church — which is why the fullest text of a Second Temple Jewish book is in this language. " +
+          "THIS PARTICULAR MANUSCRIPT IS NOT ENOCH: it is the tradition that kept Enoch when everyone else lost it.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -695,6 +741,20 @@ export const GIANTS_HEBREW_EVENTS: SeedEvent[] = [
           "Caravaggio, about 1600 — some two and a half thousand years after the text, and painted in Italy. It " +
           "tells you what a seventeenth-century painter pictured, and nothing whatever about a height. The " +
           "manuscripts disagree by nearly a metre and no painting can settle that.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Philistines_pentapolis.jpg?width=1024",
+        shows: "map",
+        caption:
+          "The five Philistine cities, Gath among them. Gath is Tell es-Safi, and it has been excavated for " +
+          "decades: there is a city, there are Philistines, and there is nothing whatever naming Goliath. A place " +
+          "existing is not a person existing.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
