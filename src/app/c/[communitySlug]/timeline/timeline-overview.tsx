@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { fractionOf, positionAt, timelineExtentWindow, type TimeWindow } from "@/lib/timeline/time";
+import {
+  formatYear,
+  fractionOf,
+  positionAt,
+  timelineExtentWindow,
+  type TimeScale,
+  type TimeWindow,
+} from "@/lib/timeline/time";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -50,12 +57,15 @@ export function TimelineOverview({
   markers,
   window: view,
   onWindowChange,
+  scale = "linear",
   className,
 }: {
   /** One mark per date claim across the whole timeline — positions only. */
   markers: { position: number; category: string }[];
   window: TimeWindow;
   onWindowChange: (next: TimeWindow) => void;
+  /** How the STRIP spaces its years, so the centre date here is the one its centre line marks. */
+  scale?: TimeScale;
   className?: string;
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
@@ -97,6 +107,27 @@ export function TimelineOverview({
 
   const boxFrom = toFraction(view.from);
   const boxTo = toFraction(view.to);
+
+  // ---- THE CENTRE DATE ------------------------------------------------------
+  //
+  // ONE SPECIFIC DATE, rather than a range: the date exactly halfway across
+  // what the strip is showing. Drag left and it reads earlier, drag right and
+  // it reads later, so there is always a definite answer to "when am I?".
+  //
+  // Taken from the STRIP's own midpoint — positionAt(view, 0.5, scale) — and
+  // not from the arithmetic mean of the window's ends, because on the
+  // spaced-by-magnitude scale those are different years. This way the line
+  // written here and the line down the middle of the strip mark the same date,
+  // which is the whole point of drawing both.
+  //
+  // It is then placed at where that date actually falls on THIS bar, which
+  // spans all of time on a log scale. On the linear strip that lands exactly
+  // halfway across the box, as it should; if the two scales ever disagree the
+  // mark stays honest about where the date is rather than sitting prettily in
+  // the middle of the box.
+  const centreYear = positionAt(view, 0.5, scale);
+  const centreFraction = toFraction(centreYear);
+  const centreLabel = formatYear(centreYear, { compact: true });
 
   // WHAT IS ACTUALLY ON SCREEN, which is not always what the maths says.
   //
@@ -283,6 +314,52 @@ export function TimelineOverview({
           <span className="absolute inset-y-1 left-0 w-1 rounded-full bg-accent" />
           <span className="absolute inset-y-1 right-0 w-1 rounded-full bg-accent" />
         </span>
+
+        {/* THE CENTRE DATE, WRITTEN. White, at the height the bar allows, sitting
+            BESIDE its line rather than on it — both are white, and a white rule
+            through white letters is unreadable. It flips to the left of the
+            line near the right-hand end, where writing to the right would run
+            off the bar; the same move the strip's captions make.
+
+            Deliberately NOT clipped to the window box: zoomed in that box is a
+            few pixels wide, and a date that vanishes exactly when you are
+            looking most closely is worse than one that overflows it.
+
+            Not interactive and not announced: the same date is on the strip's
+            ruler, and a screen reader being told the midpoint of the view on
+            every drag is noise. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-10 flex items-center"
+          style={
+            centreFraction > 0.8
+              ? { right: `${(1 - centreFraction) * 100}%`, paddingRight: 8, justifyContent: "flex-end" }
+              : { left: `${centreFraction * 100}%`, paddingLeft: 8 }
+          }
+        >
+          {/* ON A DARK CHIP, BECAUSE PLAIN WHITE IS NOT READABLE HERE. The bar
+              is pale and the window box paler still; white letters on it came
+              out as a grey blur, shadow or no shadow — checked by rendering it
+              rather than by eye. The chip fills the bar's height, so the date
+              is still written in white inside the scroll bar, and it can now
+              actually be read. */}
+          <span
+            className="whitespace-nowrap rounded-[5px] bg-accent px-2 py-1 text-[13px] font-semibold leading-none tracking-tight text-white tabular-nums shadow-sm"
+          >
+            {centreLabel}
+          </span>
+        </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-10"
+          style={{
+            left: `${centreFraction * 100}%`,
+            width: 3,
+            marginLeft: -1.5,
+            background: "rgba(255,255,255,0.95)",
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.18), 0 0 5px rgba(0,0,0,0.18)",
+          }}
+        />
 
         {/* The grips as real controls: focusable, keyboard-operable, and
             announced. The pointer drag above is handled on the rail so it
