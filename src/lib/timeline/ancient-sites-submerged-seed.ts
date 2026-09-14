@@ -814,6 +814,21 @@ export const ANCIENT_SITES_SUBMERGED_EVENTS: SeedEvent[] = [
         // today rather than what was typed here from memory.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/View_of_Dwarka_Gujarat.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Dwarka today. The drowned town on this record is offshore from here and under water, and this is the " +
+          "living city above it — worth seeing because the two get run together: a real submerged port surveyed " +
+          "under archaeological control is a different claim from the Dwarka of the Mahabharata, and only the first " +
+          "is on this record.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

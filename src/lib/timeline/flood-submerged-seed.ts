@@ -544,6 +544,20 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Weavers_Lagoon,_Yorke_Peninsula(GN00818).jpg?width=1024",
+        shows: "site",
+        caption:
+          "A lagoon on Yorke Peninsula, Narungga country. The account is of low swampy land with freshwater lagoons " +
+          "where the gulf is now — so this is the kind of country it describes, on the land that was left, and not " +
+          "a picture of the drowned part. What went under is fifty metres down and offshore.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {
@@ -578,6 +592,39 @@ export const FLOOD_SUBMERGED_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["method", "oral-tradition", "sea-level", "australia", "dating-conventions"],
     people: ["Patrick D. Nunn", "Nicholas J. Reid"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Post-Glacial_Sea_Level.png?width=1024",
+        shows: "scientific_figure",
+        caption:
+          "The post-glacial sea-level curve. THIS IS THE HALF OF THE METHOD THAT IS ORDINARY SCIENCE: read off how " +
+          "much water an account would need taken away, find that depth on this curve, and you have a date for the " +
+          "landscape. The contested half — that a story has carried since then — is nowhere in this graph and " +
+          "cannot be got out of it.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Australia_high_resolution_topography_and_bathymetry.png?width=1024",
+        shows: "map",
+        caption:
+          "Australia with its sea floor drawn in. THE PALE SHELF IS THE METHOD'S SUBJECT: it was dry land when sea " +
+          "level was low, and how deep a stretch of it lies is what turns an account of country now under water " +
+          "into a date. The map gives the depths; it says nothing about whether anybody remembered.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "nunn_reid2016",

@@ -461,12 +461,13 @@ const IDEA_HISTORY: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Steiner_um_1905.jpg?width=1024",
-        shows: "portrait",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Goetheanum_Dornach.jpg?width=1024",
+        shows: "site",
         caption:
-          "Rudolf Steiner about 1905, around the time he was lecturing on the Lemurian epoch. The dates on this " +
-          "record come from a named person with a published body of work, which is why they can be quoted precisely " +
-          "and attributed exactly.",
+          "The Goetheanum at Dornach, which Steiner designed and which is still the centre of the movement he " +
+          "founded. It is here because the Lemurian epoch on this record is not a loose speculation somebody once " +
+          "published: it belongs to an organised body of teaching that built itself a headquarters and still has " +
+          "one.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

@@ -441,12 +441,12 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Acheulean_hand_axe_(FindID_73844).jpg?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Boxgrove_handaxe.jpg?width=1024",
         shows: "artefact",
         caption:
-          "An Acheulean handaxe. The same shape, made the same way, turns up across Africa, Europe and Asia for " +
-          "more than a million years — which is the fact the record is about: not one invention at one moment, but " +
-          "a technique that stayed recognisably itself for longer than our species has existed.",
+          "A second handaxe, from Boxgrove in England. TWO OBJECTS RATHER THAN ONE because the fact this record is " +
+          "about is a resemblance: the same form, made the same way, across three continents and more than a " +
+          "million years. One handaxe cannot show that and two barely can.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -610,20 +610,6 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
         kind: "image",
         // Written WITHOUT its credit: the credit is fetched from the picture's
         // own source at seed time and appended then. See resolveCredits.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
-        shows: "artefact",
-        caption:
-          "Wooden artefacts from Schöningen. These are the reason hunting is a strong inference at this one site " +
-          "and a weak one almost everywhere else: wood survives here, so the weapons survive, and a spear among " +
-          "butchered horses says something that cut marks alone cannot.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
         creditFrom: "source",
       },
       {
@@ -1122,12 +1108,13 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Geomagnetic_polarity_late_Cenozoic.svg?width=1024",
-        shows: "diagram",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Chibanian_GSSP_Golden-spike.jpg?width=1024",
+        shows: "site",
         caption:
-          "Geomagnetic polarity through the late Cenozoic: black is normal, white reversed. The Brunhes–Matuyama " +
-          "boundary is the last of the wide switches, and it is the line half the dates in this dataset are " +
-          "measured against. The diagram is a compiled timescale, not a single measurement.",
+          "The golden spike at the Chiba section in Japan, driven into the outcrop that defines the base of the " +
+          "Middle Pleistocene. THE DEFINITION IS THE ROCK AND THE NUMBER IS A MEASUREMENT OF IT: the boundary was " +
+          "ratified here in 2020, and the age of about 774,000 years is what that layer dated to, not what the " +
+          "boundary was set at.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

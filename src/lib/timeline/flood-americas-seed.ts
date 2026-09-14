@@ -161,12 +161,12 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Popol_vuh.jpg?width=1024",
-        shows: "manuscript",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Chichicastenango-004.jpg?width=1024",
+        shows: "site",
         caption:
-          "The Ximenez manuscript of the Popol Vuh, at the Newberry Library. THE OLDEST COPY IS EIGHTEENTH CENTURY, " +
-          "written out by a Spanish friar in parallel columns of K'iche' and Spanish. The tradition is far older " +
-          "than the object that carries it to us, and those are two different dates.",
+          "Chichicastenango in the Guatemalan highlands, where Ximénez was parish priest and where he was shown the " +
+          "K'iche' text he copied. The manuscript that carries this account to us exists because of a particular " +
+          "friar in a particular town — and the people whose book it was are still there.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -316,6 +316,20 @@ export const FLOOD_AMERICAS_EVENTS: SeedEvent[] = [
           "The opening of the Huarochirí Manuscript, the only source for this account. The Villca Coto story is a " +
           "chapter of this text and exists nowhere earlier: what is being read is a Quechua manuscript written down " +
           "around 1600, not a record made at the time of the events it tells.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/View_from_the_Summit_Yuraccochas_I_-_Ticlio,_Huarochiri,_Lima,_Peru.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The high country of Huarochirí. The account has people and animals climbing to the summit of Villca Coto " +
+          "as the sea rises, and the peaks it is told about are these — WHICH IS NOT THE SAME as saying the flood " +
+          "happened here. A story set in real country is still a story, and the mountains are only where it is set.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

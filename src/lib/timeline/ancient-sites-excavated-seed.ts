@@ -335,6 +335,25 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
     locationName: "Tell Qaramel, Aleppo Governorate, Syria",
     lat: 36.4,
     lng: 37.1,
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Tell_Qaramel_vue_a%C3%A9rienne.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Tell_Qaramel_vue_a%C3%A9rienne.jpg?width=1024",
+        shows: "site",
+        caption:
+          "Tell Qaramel from the air. The five towers here are older than the tower at Jericho, which is a large " +
+          "claim — and the reason it is accepted is entirely ordinary: fifty-seven charcoal samples, dated in a " +
+          "laboratory, published with their stratigraphy. An aerial photograph shows none of that and settles none " +
+          "of it; it shows where the work was done.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "mazurowski_radiocarbon2009",
@@ -417,20 +436,6 @@ export const ANCIENT_SITES_EXCAVATED_EVENTS: SeedEvent[] = [
           "The Nabta Playa stone circle AS RE-ERECTED IN THE NUBIA MUSEUM AT ASWAN — not in place in the desert. A " +
           "relocated monument is a reconstruction of an arrangement, and anything measured from these stones today " +
           "is measured from the museum's placing of them.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Megaliths_Aswan_Nubia_museum.JPG?width=1024",
-        shows: "artefact",
-        caption:
-          "Nabta Playa megaliths in the Nubia Museum at Aswan. THE STONES HAVE BEEN MOVED: they were lifted from " +
-          "the desert and re-erected indoors, so their arrangement here is a museum's, and any alignment argument " +
-          "has to be made from the survey of the site and not from this.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

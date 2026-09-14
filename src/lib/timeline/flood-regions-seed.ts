@@ -420,6 +420,25 @@ export const FLOOD_REGIONS_EVENTS: SeedEvent[] = [
     eventType: "scientific_model",
     tags: ["method", "historiography", "africa", "australia", "collection-bias"],
     people: ["James George Frazer"],
+    imageUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/JamesGeorgeFrazer.jpg?width=1024",
+    media: [
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/JamesGeorgeFrazer.jpg?width=1024",
+        shows: "portrait",
+        caption:
+          "J. G. Frazer, who wrote that sub-Saharan Africa had no flood traditions. He was wrong, and his " +
+          "compendium is still one of the standard indexes — so the gap he reported has been copied forward for a " +
+          "century by people counting entries rather than going and asking. THIS IS A PICTURE OF THE BIAS, not of a " +
+          "tradition.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+    ],
     claims: [
       {
         sourceKey: "witzel_pangaean",

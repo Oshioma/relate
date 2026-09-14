@@ -731,6 +731,21 @@ export const FLOOD_PHYSICAL_EVENTS: SeedEvent[] = [
         // own source at seed time and appended then. See resolveCredits.
         creditFrom: "source",
       },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/SNAKE_RIVER_CANYON,_IDADHO_VIEW_FROM_ABOVE_SHOSHONE_FALLS_-_NARA_-_524325.jpg?width=1024",
+        shows: "site",
+        caption:
+          "The Snake River canyon in Idaho, which the flood ran down. THIS IS THE EVIDENCE, unlike the map beside " +
+          "it: the scoured canyon and the boulder bars along it are what a discharge near one sverdrup leaves " +
+          "behind, and they are why the event is not in doubt even though its date was quoted in the wrong units " +
+          "for decades.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
     ],
     claims: [
       {

@@ -441,12 +441,25 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Carthage,_quarter_shekel,_237-209_BC,_SNG_BM_Spain_102.jpg?width=1024",
-        shows: "artefact",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Carthaginian_wall_of_Cartagena.jpg?width=1024",
+        shows: "site",
         caption:
-          "A Carthaginian quarter shekel struck between 237 and 209 BCE, from Spain. Coinage is the one kind of " +
-          "evidence for the Barcid command in Iberia that the Carthaginians produced themselves — everything " +
-          "written about these years comes from Roman and Greek authors.",
+          "Carthaginian walling at Cartagena — Qart Hadasht, New Carthage, the base Hannibal took command of. This " +
+          "is one of the very few things on this timeline that is PUNIC MASONRY rather than a Roman account of " +
+          "Punic affairs, and almost everything else known about the command comes from writers on the other side.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Nova_Carthago_-_Qart_Hadasht.png?width=1024",
+        shows: "map",
+        caption:
+          "New Carthage and its harbour. The city is why Iberia was worth commanding: silver, a fleet anchorage and " +
+          "a population, none of which Carthage still had in Africa on that scale after the first war.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -778,12 +791,12 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Hannibal_traverse_le_Rh%C3%B4ne_Henri_Motte_1878.jpg?width=1024",
-        shows: "later_artwork",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/France_Petit_Rhone_Arles.JPG?width=1024",
+        shows: "site",
         caption:
-          "Henri Motte, 1878 — more than two thousand years after the event, and painted for a Paris Salon. The " +
-          "rafts and the elephants are Polybius' account as a nineteenth-century French painter imagined them, not " +
-          "a record of what anyone saw.",
+          "The Rhône near Arles. WHERE THE ARMY CROSSED IS NOT KNOWN — the ancient accounts give a distance " +
+          "upstream from the sea and no landmark that has survived, and every proposed site is an argument from " +
+          "that distance. The river is the one part of the story that can still be photographed.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
@@ -857,20 +870,6 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
         caption:
           "J. M. W. Turner, 'Snow Storm: Hannibal and his Army Crossing the Alps', 1812, Tate. A Romantic painting of a storm, made two thousand years after the event and evidence for nothing about the route. Public domain, via Wikimedia Commons.",
         kind: "image",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Joseph_Mallord_William_Turner_-_Snow_Storm,_Hannibal_and_his_Army_Crossing_the_Alps_-_WGA23167.jpg?width=1024",
-        shows: "later_artwork",
-        caption:
-          "Turner, 1812. The army is almost invisible in it, which is the painting's point and not a fault: it is " +
-          "about a storm swallowing an army, painted during the Napoleonic wars. As evidence for the crossing it is " +
-          "worth nothing, and as a picture of how Europe came to imagine the crossing it is worth a great deal.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
       },
       {
         url:
@@ -1386,12 +1385,26 @@ export const HANNIBAL_EVENTS: SeedEvent[] = [
       },
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_cannae_destruction.png?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Battle_of_Cannae_-_216_BC_-_Initial_Roman_attack_-_nl.svg?width=1024",
         shows: "diagram",
         caption:
-          "The encirclement at Cannae, drawn as a diagram. Every arrow on it is an interpretation of Polybius and " +
-          "Livy — the battlefield has produced no line of dead to map, and the plans in books are reconstructions " +
-          "from two written accounts.",
+          "The opening position at Cannae, before the envelopment. It is worth seeing beside the diagram of the " +
+          "destruction: the Roman line began by pushing the Carthaginian centre back, and the thing that killed the " +
+          "army was winning in the middle.",
+        kind: "image",
+        // Written WITHOUT its credit: the credit is worked out from the
+        // picture's own source at seed time, so it says what the source says
+        // today rather than what was typed here from memory.
+        creditFrom: "source",
+      },
+      {
+        url:
+          "https://commons.wikimedia.org/wiki/Special:FilePath/The_Death_of_Paulus_Aemilius_at_the_Battle_of_Cannae.jpg?width=1024",
+        shows: "later_artwork",
+        caption:
+          "John Trumbull painted the death of the consul Paullus in 1773, nearly two thousand years after it. IT IS " +
+          "A PICTURE OF AN IDEA ABOUT CANNAE — heroic, individual, legible — and the ancient accounts describe " +
+          "something closer to a crowd unable to move its arms.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says
