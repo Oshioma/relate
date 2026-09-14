@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { resizeBox } from "@/lib/timeline/overview-rail";
 import { cn } from "@/lib/utils";
 import {
   formatYear,
@@ -179,27 +178,29 @@ export function TimelineOverview({
   );
 
   /**
-   * DRAG AN EDGE, AND THE WINDOW STRETCHES AT BOTH ENDS.
+   * DRAG AN EDGE, AND THE WINDOW STRETCHES.
    *
    * The other half of what this bar is for. Sliding the box moves you through
    * time at a fixed zoom; pulling its edges changes how much time you are
-   * looking at.
+   * looking at — drag the left grip to the far left and the whole early
+   * timeline comes into view, drag the right grip out and the late end does.
+   * It is the same gesture as widening a window, which is what this is.
    *
-   * The arithmetic lives in resizeBox, where it can be measured — it used to be
-   * here, where it could not, and it was wrong. Each grip moved alone with the
-   * opposite edge pinned, so widening the box eightfold from the left left the
-   * distance to the right-hand end unchanged at 195 pixels, every time. See the
-   * table in overview-rail.ts.
+   * Each edge moves alone. The opposite edge stays exactly where it is, so
+   * stretching never shifts the end you were using as your reference.
    */
   const resizeTo = useCallback(
     (edge: "from" | "to", fraction: number) => {
-      const next = resizeBox({ from: boxFrom, to: boxTo }, edge, fraction, minFraction());
-      onWindowChange({
-        from: positionAt(full, next.from, "log"),
-        to: positionAt(full, next.to, "log"),
-      });
+      const gap = minFraction();
+      if (edge === "from") {
+        const next = Math.max(0, Math.min(fraction, boxTo - gap));
+        onWindowChange({ from: positionAt(full, next, "log"), to: view.to });
+      } else {
+        const next = Math.min(1, Math.max(fraction, boxFrom + gap));
+        onWindowChange({ from: view.from, to: positionAt(full, next, "log") });
+      }
     },
-    [boxFrom, boxTo, full, minFraction, onWindowChange]
+    [boxFrom, boxTo, full, minFraction, onWindowChange, view.from, view.to]
   );
 
   /**
@@ -390,8 +391,7 @@ export function TimelineOverview({
 
       <p className="mt-1 text-xs text-muted-foreground">
         Everything on this timeline. Drag the box itself to travel through time — left towards the beginning, right
-        towards now — or pull either end to widen what you are looking at. Widening opens the window at both ends, so
-        the further you pull, the shorter the journey to either end afterwards.
+        towards now — or pull either end to widen what you are looking at.
       </p>
     </div>
   );
