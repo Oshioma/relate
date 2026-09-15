@@ -517,6 +517,28 @@ the strongest objection; what evidence would settle it.
   philology of *koti*, where the available sources are devotional rather than
   lexical.
 
+- **BUILT: Brutus, tranche 1** — `brutus-albion-seed.ts`. Eight records: the
+  anchor, the documentary gap as its own record, the Historia Brittonum, the
+  Historia Regum Britanniae, the Giants of Albion, Corineus and Gogmagog, the
+  Welsh-giants dating dispute, and Trinovantum / New Troy. The finding the
+  tranche is built around is the GROWTH: the 829 text has Brutus and the Trojan
+  descent and none of the giants, the wrestling or New Troy, all of which arrive
+  with Geoffrey three centuries later.
+
+  **What a reader with the books open should check first:** (1) whether 1115 BC
+  is Geoffrey's own figure or later chronographers' arithmetic on his
+  synchronisms; (2) the Historia Brittonum's Brutus chapters in full, because
+  the claim that the giants are ABSENT from it is a claim about what a text
+  lacks and those are the easiest to get wrong at second hand; (3) the full
+  citation for Rodway's 2005 redating of Culhwch, which decides whether Welsh
+  giants predate Geoffrey; (4) the Chartres Codex — shelfmark, date, and what
+  was transcribed from it before it was destroyed in 1944.
+
+  **Still owed in later tranches:** the Bronze Age and tin context, the ancient
+  DNA, the 33 daughters and the Watchers comparison, Prydein, the Silures and
+  Tacitus, Memnon and the Trojan genealogy, Ireland, and the whole London civic
+  timeline from 1415 to the phoenix.
+
 ## Suggested order when sources are available
 
 1. Schema: A–G transmission classes, esoteric/occult viewpoints, and a home for

@@ -131,6 +131,12 @@ import {
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
 import {
+  BRUTUS_ALBION_EVENTS,
+  BRUTUS_ALBION_LINKS,
+  BRUTUS_ALBION_SOURCES,
+  BRUTUS_ALBION_TRACK,
+} from "@/lib/timeline/brutus-albion-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1992,6 +1998,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     sources: THIRTY_THREE_VEDIC_SOURCES,
     links: THIRTY_THREE_VEDIC_LINKS,
   },
+  {
+    label: "Brutus, Albion and the giants: the textual spine",
+    track: BRUTUS_ALBION_TRACK,
+    events: BRUTUS_ALBION_EVENTS,
+    sources: BRUTUS_ALBION_SOURCES,
+    links: BRUTUS_ALBION_LINKS,
+  },
 ];
 
 /**
@@ -2903,6 +2916,41 @@ export async function seedThirtyThreeVedicDataset(communitySlug: string) {
     track: THIRTY_THREE_TRACK,
     links: THIRTY_THREE_VEDIC_LINKS,
     label: "The number 33: the oldest chain",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Brutus of Troy, first tranche: the textual spine. What the texts say, when
+ * they first say it, and what changed between versions.
+ *
+ * THE FINDING THE TRANCHE IS BUILT AROUND is the growth. The Historia Brittonum
+ * of about 829 has Brutus and the Trojan descent and NOT the giants, the
+ * wrestling or New Troy — all of which first appear in Geoffrey, three hundred
+ * years later. And between the traditional landing date and that earliest text
+ * lies a documentary gap of roughly nineteen centuries, which has its own
+ * record so it cannot be read as a footnote.
+ *
+ * "MYTH" IS NOT A TERMINAL LABEL HERE, and neither is "history". Tests enforce
+ * both halves: the anchor may not assert that Brutus was real, and may not
+ * assert that the story is worthless.
+ *
+ * BUILT WITHOUT THE PRIMARY TEXTS OPEN, like the 33 tranche, and flagged the
+ * same way. See brutus-albion-seed.ts and docs/timeline-research-briefs.md.
+ */
+export async function seedBrutusAlbionDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BRUTUS_ALBION_EVENTS,
+    sources: BRUTUS_ALBION_SOURCES,
+    track: BRUTUS_ALBION_TRACK,
+    links: BRUTUS_ALBION_LINKS,
+    label: "Brutus, Albion and the giants: the textual spine",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

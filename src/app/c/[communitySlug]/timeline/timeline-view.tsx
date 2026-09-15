@@ -71,6 +71,7 @@ import {
   seedGiantsGreekDataset,
   seedGiantsMesopotamiaDataset,
   seedThirtyThreeVedicDataset,
+  seedBrutusAlbionDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -289,6 +290,7 @@ export function TimelineView({
   hasGiantsGreek,
   hasGiantsMesopotamia,
   hasThirtyThreeVedic,
+  hasBrutusAlbion,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -354,6 +356,7 @@ export function TimelineView({
   hasGiantsGreek: boolean;
   hasGiantsMesopotamia: boolean;
   hasThirtyThreeVedic: boolean;
+  hasBrutusAlbion: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1921,6 +1924,52 @@ export function TimelineView({
           TEXT SAYS NONE OF IT, AND A TRANSLATOR SUPPLIED THE WORD — Nimrod is a gibbor in Hebrew, which means
           mighty, a champion, a warrior; the Greek translators wrote gigas, and an English Bible has had a giant in
           it ever since. A reader who can tell those four apart can read almost any giant story.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBrutusAlbion && (
+        <DatasetOffer
+          title="Add Brutus, Albion and the giants?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBrutusAlbionDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">
+              Written without the primary texts open, and every record says so.
+            </span>
+            <span className="mt-1 block">
+              Manuscript dates, translated wording and scholarly positions here come from search results quoting
+              those pages rather than from reading them. Claims that need a book opened carry{" "}
+              <span className="font-medium">NEEDS SOURCE VERIFICATION</span> naming what to check.
+            </span>
+          </span>
+          Eight records on the founding legend of Britain — and the rule they are built on is that
+          &quot;myth&quot; is not a terminal label and neither is &quot;history&quot;. A legendary tradition can
+          hold invented genealogy, political argument, remembered geography, real places and etymological
+          guesswork all at once. THE STORY: a great-grandson of Aeneas is exiled for killing his father, an oracle
+          of Diana sends him west, he lands at Totnes, finds Albion held by &quot;none but a few giants&quot;,
+          drives them into the mountain caves, and his companion Corineus wrestles their champion Gogmagog —
+          twelve cubits tall, able to uproot oaks like hazel wands — off a cliff. THE FINDING: almost none of
+          that is in the earliest version. The Historia Brittonum of about 829 has Brutus and the Trojan descent
+          and NO giants, NO wrestling, NO New Troy. All of it arrives with Geoffrey of Monmouth in the 1130s, and
+          watching the story grow across those three centuries is the most useful thing a reader can do here. AND
+          THE GAP GETS ITS OWN RECORD: roughly nineteen centuries separate the traditional landing date from the
+          first surviving text that mentions Brutus, with nothing in between — no inscription, no classical
+          mention, no archaeology. That is not a footnote on somebody else&apos;s record. Also here: whether Welsh
+          tradition had giants before Geoffrey (it depends on a contested redating of Culhwch ac Olwen), and
+          whether London was really founded as New Troy — with the linguistic objection that the real Iron Age
+          Trinovantes came first and the legend was built backwards from their name.
         </DatasetOffer>
       )}
 
