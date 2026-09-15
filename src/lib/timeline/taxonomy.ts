@@ -1009,6 +1009,58 @@ export const MEDIA_KINDS = [
     hint:
       "Made long after the events it shows, by somebody picturing a tradition rather than witnessing anything. A record of how the story has been imagined — never evidence about what happened.",
   },
+  // -------------------------------------------------------------------------
+  // HUMAN REMAINS AND THE THINGS MISTAKEN FOR THEM.
+  //
+  // Added for the tallest-humans dataset, where the single most important
+  // question a reader can ask of a picture is "is that a person, a body, or
+  // somebody's idea of one?" A photograph of a living man, a photograph of his
+  // articulated skeleton, an 1842 drawing of the museum that held it and a
+  // bronze statue outside a shop in Alton are four different kinds of evidence
+  // and they are routinely reproduced as though they were one.
+  // -------------------------------------------------------------------------
+  {
+    key: "human_remains",
+    label: "Photograph of human remains",
+    hint:
+      "A photograph of an actual body, skeleton or bone. The strongest evidence this kind of record can carry, and the kind most often faked — check that the identification of WHOSE remains they are rests on something other than the caption.",
+  },
+  {
+    key: "museum_specimen",
+    label: "Museum specimen",
+    hint:
+      "A photograph of remains or an object as held in a collection, ideally with an accession number. The number is what makes the claim checkable by somebody who was not there.",
+  },
+  {
+    key: "excavation_context",
+    label: "Excavation photograph",
+    hint:
+      "Remains photographed where they were found. Shows the context that a specimen on a museum shelf has already lost — and is also where scale is most easily misrepresented.",
+  },
+  {
+    key: "personal_artefact",
+    label: "Something that belonged to them",
+    hint:
+      "A shoe, a ring, a chair, a walking stick. Evidence about a body without being the body, and often the only physical trace left when remains do not survive. A shoe is evidence of a foot, not of a height.",
+  },
+  {
+    key: "replica",
+    label: "Replica or memorial",
+    hint:
+      "A cast, model, waxwork or statue. It may be accurate and it is still not the thing — a life-size bronze is a sculptor's reading of measurements, and photographs of it circulate as photographs of the person.",
+  },
+  {
+    key: "unverified_image",
+    label: "Unverified image",
+    hint:
+      "Circulates with a claim attached that nobody here has been able to trace to a source. Kept so the claim can be examined rather than quietly dropped, and marked so it is never mistaken for evidence.",
+  },
+  {
+    key: "known_manipulation",
+    label: "Known manipulation",
+    hint:
+      "Demonstrably altered, composited, miscaptioned or generated, and shown ONLY as an example of the alteration. Where the untouched original is known it belongs beside this one, because the pair teaches more than either alone.",
+  },
 ] as const;
 
 export type MediaKindKey = (typeof MEDIA_KINDS)[number]["key"];
@@ -1031,7 +1083,18 @@ export function mediaKindHint(key: string | null | undefined): string {
  * tradition. Their hint is printed in full rather than tucked behind a tooltip.
  */
 export function mediaKindNeedsWarning(key: string | null | undefined): boolean {
-  return key === "later_artwork" || key === "reconstruction";
+  // Anything that is not a record of the thing itself has to say so on its
+  // face. "Replica" joins the original two because a photograph of a statue of
+  // a man is the most persuasive kind of wrong this dataset can be; the last
+  // two because an image with no provenance, and an image known to be altered,
+  // must never be able to sit silently in a gallery next to evidence.
+  return (
+    key === "later_artwork" ||
+    key === "reconstruction" ||
+    key === "replica" ||
+    key === "unverified_image" ||
+    key === "known_manipulation"
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1118,4 +1181,210 @@ export const TRACK_PALETTE = ["#4d6a52", "#b4603a", "#3f6fa8", "#8a6b2f", "#7a52
 
 export function trackColor(color: string | null | undefined, index: number): string {
   return color ?? TRACK_PALETTE[index % TRACK_PALETTE.length];
+}
+
+// ---------------------------------------------------------------------------
+// HOW GOOD IS THE EVIDENCE THAT THESE REMAINS EXISTED AND MEASURED WHAT IS
+// CLAIMED?
+//
+// This is deliberately NOT a scale from good to bad, and it is not a score.
+// Each key names a DIFFERENT SITUATION a reader can reason about. "Historical
+// report, remains lost" is not a polite way of saying "probably false" — an
+// 1885 newspaper is genuine evidence that a claim was made, and sometimes that
+// a digging happened, and no evidence at all about what a bone measured. The
+// point of the vocabulary is to let somebody see which situation they are in.
+//
+// The ordering below runs from what can be checked today to what cannot, and
+// two keys at the end are about the claim rather than the bones.
+// ---------------------------------------------------------------------------
+
+export const EVIDENCE_STATUSES = [
+  {
+    key: "verified_physical_remains",
+    label: "Verified physical remains",
+    hint:
+      "The remains exist, are held somewhere nameable, and have been examined. An accession number and a modern measurement is as strong as this dataset gets.",
+  },
+  {
+    key: "strongly_documented",
+    label: "Strongly documented",
+    hint:
+      "No remains to examine, but contemporary documentation is abundant and independent — medical records, official measurements, photographs with scale, multiple witnesses who did not copy each other.",
+  },
+  {
+    key: "historical_report_remains_lost",
+    label: "Historical report — remains lost",
+    hint:
+      "A report survives and the bones do not. The report is real evidence that a claim was made, and tells you nothing reliable about what was measured. Most nineteenth-century finds are here.",
+  },
+  {
+    key: "disputed",
+    label: "Disputed",
+    hint: "Specialists disagree, in print, on grounds a reader can follow. The disagreement is the finding.",
+  },
+  {
+    key: "misidentified",
+    label: "Misidentified",
+    hint:
+      "Something was genuinely found and it was not what was claimed — animal bone, a disturbed multiple burial, a cast. The discovery is real; the identification failed.",
+  },
+  {
+    key: "known_hoax",
+    label: "Known hoax",
+    hint:
+      "Demonstrated fabrication, with the demonstration cited. Kept on the record, because deleting hoaxes is how they get rediscovered.",
+  },
+  {
+    key: "unresolved",
+    label: "Unresolved",
+    hint:
+      "Nobody has established what this was, including this dataset. Distinct from disputed: there is no argument in progress, only an unanswered question.",
+  },
+] as const;
+
+export type EvidenceStatusKey = (typeof EVIDENCE_STATUSES)[number]["key"];
+
+const EVIDENCE_STATUS_BY_KEY = new Map(EVIDENCE_STATUSES.map((s) => [s.key as string, s]));
+
+export function evidenceStatusLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return EVIDENCE_STATUS_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function evidenceStatusHint(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return EVIDENCE_STATUS_BY_KEY.get(key)?.hint ?? null;
+}
+
+/** Statuses where no examinable remains underlie the figure. */
+export function evidenceStatusLacksRemains(key: string | null | undefined): boolean {
+  return (
+    key === "historical_report_remains_lost" ||
+    key === "disputed" ||
+    key === "misidentified" ||
+    key === "known_hoax" ||
+    key === "unresolved"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WHAT QUANTITY IS BEING REPORTED?
+//
+// The distinction this dataset turns on. John Carroll's measured standing
+// height and his height with the spinal curvature corrected for differ by
+// roughly a foot, and both get printed as "his height". Jane Bunford's mounted
+// skeleton is about 223 cm and she was substantially taller alive. Charles
+// Byrne's skeleton is shorter than Charles Byrne was. These are not competing
+// estimates of one number; they are different numbers.
+// ---------------------------------------------------------------------------
+
+export const MEASUREMENT_KINDS = [
+  {
+    key: "standing_height_living",
+    label: "Standing height, measured alive",
+    hint: "What a rule against the living body gave. The plainest figure, and only as good as the occasion it was taken on.",
+  },
+  {
+    key: "corrected_living_height",
+    label: "Height corrected for curvature",
+    hint:
+      "An estimate of what the person would have measured standing straight, where a spinal condition meant they could not. A reconstruction, and always larger than the measured figure.",
+  },
+  {
+    key: "skeletal_height",
+    label: "Height of the mounted skeleton",
+    hint:
+      "What the articulated bones measure. Systematically SHORTER than the living person: cartilage, discs and soft tissue are gone, and how the mount was assembled changes the answer.",
+  },
+  {
+    key: "estimated_from_bone",
+    label: "Estimated from a long bone",
+    hint:
+      "Stature calculated from a femur or tibia by regression formula. A real method with real error bars, and the formula used should be named, because different formulae disagree.",
+  },
+  {
+    key: "advertised_height",
+    label: "Advertised height",
+    hint:
+      "What a poster, playbill or manager claimed. Evidence about the show business of the period. Routinely inflated by several inches and occasionally by a foot.",
+  },
+  {
+    key: "posthumous_report",
+    label: "Reported at or after death",
+    hint: "A figure from an obituary, coffin, grave marker or exhumation account, where the body is no longer available to check.",
+  },
+  {
+    key: "reported_unspecified",
+    label: "Reported, method unstated",
+    hint:
+      "A number in circulation whose origin nobody records. Extremely common, and the reason so many famous heights cannot be checked at all.",
+  },
+] as const;
+
+export type MeasurementKindKey = (typeof MEASUREMENT_KINDS)[number]["key"];
+
+const MEASUREMENT_KIND_BY_KEY = new Map(MEASUREMENT_KINDS.map((k) => [k.key as string, k]));
+
+export function measurementKindLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return MEASUREMENT_KIND_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function measurementKindHint(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return MEASUREMENT_KIND_BY_KEY.get(key)?.hint ?? null;
+}
+
+/** Kinds that are inferences rather than readings off a body or a bone. */
+export function measurementKindIsEstimate(key: string | null | undefined): boolean {
+  return key === "corrected_living_height" || key === "estimated_from_bone";
+}
+
+// ---------------------------------------------------------------------------
+// HOW WAS THE FIGURE ARRIVED AT?
+//
+// Kept separate from the KIND, because the same quantity can be obtained well
+// or badly. A standing height can come from a physician with a stadiometer or
+// from a promoter with an interest in the answer.
+// ---------------------------------------------------------------------------
+
+export const MEASUREMENT_METHODS = [
+  { key: "medical_examination", label: "Medical examination", hint: "Measured by clinicians, usually with the record surviving." },
+  { key: "official_records_body", label: "Official measurement", hint: "Taken by a records body or similar authority under a stated procedure." },
+  { key: "osteological", label: "Osteological measurement", hint: "Bones measured directly, normally on an osteometric board." },
+  { key: "regression_from_bone", label: "Regression from bone length", hint: "Calculated from a long bone by a published formula, which should be named." },
+  { key: "mounted_skeleton", label: "Measured on the mount", hint: "The articulated skeleton measured as it stands, assembly and all." },
+  { key: "coffin_or_grave", label: "Coffin or grave evidence", hint: "Inferred from a coffin, plate or grave. An upper bound on a body, not a height." },
+  { key: "photographic_comparison", label: "Compared in a photograph", hint: "Estimated against a person or object of known size. Weak, and sensitive to where the camera stood." },
+  { key: "promotional", label: "Promotional claim", hint: "Asserted by a show, manager or poster." },
+  { key: "press_report", label: "Press report", hint: "Printed in a newspaper, source of the figure unstated." },
+  { key: "unstated", label: "Method not stated", hint: "The figure survives and how it was obtained does not." },
+] as const;
+
+export type MeasurementMethodKey = (typeof MEASUREMENT_METHODS)[number]["key"];
+
+const MEASUREMENT_METHOD_BY_KEY = new Map(MEASUREMENT_METHODS.map((m) => [m.key as string, m]));
+
+export function measurementMethodLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return MEASUREMENT_METHOD_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function measurementMethodHint(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return MEASUREMENT_METHOD_BY_KEY.get(key)?.hint ?? null;
+}
+
+/** cm → feet and inches, for display beside the metric figure. */
+export function cmToFeetInches(cm: number): string {
+  const totalInches = cm / 2.54;
+  let feet = Math.floor(totalInches / 12);
+  let inches = totalInches - feet * 12;
+  // Round to one decimal, and carry if rounding pushes inches to 12.
+  inches = Math.round(inches * 10) / 10;
+  if (inches >= 12) {
+    feet += 1;
+    inches -= 12;
+  }
+  return `${feet} ft ${inches % 1 === 0 ? inches.toFixed(0) : inches.toFixed(1)} in`;
 }

@@ -40,6 +40,59 @@ export type SeedCitation = {
   note: string;
 };
 
+/**
+ * A MEASUREMENT CLAIM.
+ *
+ * The same idea as SeedClaim, applied to a quantity instead of a moment. An
+ * event has no date and a person has no height: both live on claims, because
+ * different sources give different figures, obtained different ways, of
+ * different things.
+ *
+ * This is not a parallel data model. It reuses sourceKey, citations, evidence
+ * and notes exactly as a date claim does, and it exists because flattening
+ * Charles Byrne into one number would be the mistake this timeline was built
+ * to avoid, committed in a new place.
+ */
+export type SeedMeasurement = {
+  /** The source that ASSERTS this figure. Null where nothing in particular does. */
+  sourceKey: string | null;
+  citations?: SeedCitation[];
+  /**
+   * WHAT was measured, in plain words — "standing height, measured at the
+   * Hunterian", "the articulated skeleton as mounted". Groups measurements in
+   * the detail view the way whatIsDated groups date claims.
+   */
+  whatIsMeasured: string;
+  /** Centimetres. OMITTED where a report survives with no figure in it. */
+  valueCm?: number;
+  /** Required when valueCm is absent: why there is no number. */
+  valueAbsentReason?: string;
+  /** A range where the source gives one. */
+  valueLowCm?: number;
+  valueHighCm?: number;
+  /** What the source actually said, before anyone converted it. */
+  originalValueText: string;
+  /** A MEASUREMENT_KINDS key. */
+  measurementKind: string;
+  /** A MEASUREMENT_METHODS key. */
+  measurementMethod: string;
+  /** An EVIDENCE_STATUSES key. */
+  evidenceStatus: string;
+  /**
+   * Was the body or the remains actually put against a rule by somebody whose
+   * account we have? This one boolean separates most of the real evidence here
+   * from most of the noise, and defaults to false.
+   */
+  directlyMeasured?: boolean;
+  /** ISO date, where the occasion of measurement is known. */
+  measuredOn?: string;
+  /** Who took it. */
+  measuredBy?: string;
+  /** Why this figure is what it is, and what it does and does not establish. */
+  evidence: string;
+  notes?: string;
+};
+
 export type SeedClaim = {
   /** The source that ASSERTS this date. Null where nothing in particular does. */
   sourceKey: string | null;
@@ -157,6 +210,44 @@ export type SeedEvent = {
     kind?: string;
     shows?: string;
     /**
+     * PROVENANCE. The file URL alone is not provenance: it is a place a JPEG
+     * lives. These fields are what lets a reader go back to the holding
+     * institution and check that the picture is of what the caption says.
+     *
+     * sourcePageUrl is the FILE PAGE — the Commons description page, the
+     * museum catalogue record, the archive item — never the image file. That
+     * page is where the licence and the creator live, and it is the thing that
+     * survives when a file gets renamed.
+     */
+    sourcePageUrl?: string;
+    /** The museum, archive or library that holds the original. */
+    institution?: string;
+    /** Photographer, engraver, draughtsman. Named where the source names them. */
+    creator?: string;
+    /** When the picture was MADE — not when the subject lived. */
+    imageDate?: string;
+    /** The licence as the source states it, verbatim where possible. */
+    licence?: string;
+    /** Catalogue, accession or digital ID at the holding institution. */
+    accessionNumber?: string;
+    /**
+     * THE TWO BOOLEANS THAT DO THE REAL WORK.
+     *
+     * depictsActualRemains: is this a photograph of a body, or of a cast, a
+     * statue, a drawing, or a living person? A bronze of Robert Wadlow outside
+     * a shop in Alton is not Robert Wadlow and is not his remains.
+     *
+     * verifiedIdentity: does anything OTHER than the caption establish that
+     * these are the remains of the named person? Byrne's skeleton has an
+     * accession number and an unbroken institutional history. Most "giant
+     * skeleton" photographs have a caption and nothing else.
+     *
+     * Both default to false where unset, which is the safe direction: a
+     * picture has to earn these, and silence never grants them.
+     */
+    depictsActualRemains?: boolean;
+    verifiedIdentity?: boolean;
+    /**
      * Set this and write the caption WITHOUT its credit — the credit is worked
      * out at seed time from the picture's own source and appended then. A
      * credit typed into this file is a credit typed from memory; one fetched at
@@ -176,6 +267,25 @@ export type SeedEvent = {
    */
   motifs?: string[];
   claims: SeedClaim[];
+  /**
+   * Measurements of the subject, where the record is about something that was
+   * measured. Optional, and absent from every dataset that came before this
+   * one — a record with no measurements behaves exactly as it always did.
+   */
+  measurements?: SeedMeasurement[];
+  /**
+   * An EVIDENCE_STATUSES key for the RECORD AS A WHOLE, where one applies.
+   *
+   * Deliberately separate from the individual measurement statuses: a person
+   * can be strongly documented in life while the whereabouts of their remains
+   * is unresolved, and a reader filtering for "physical remains survive"
+   * should not be handed the first because of the second.
+   */
+  evidenceStatus?: string;
+  /** Where the remains are now, in plain words, when they survive. */
+  remainsLocation?: string;
+  /** Catalogue/accession number of the remains, where they have one. */
+  accessionNumber?: string;
 };
 
 export type SeedTrack = {

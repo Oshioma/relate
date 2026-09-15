@@ -181,18 +181,46 @@ test("every picture kind has a label and a hint that says what it is evidence of
   }
 });
 
-test("the two kinds mistaken for evidence are the two that get warned about", () => {
-  // A later artwork and a reconstruction are the ones that illustrate a
-  // tradition and read as a photograph of it.
-  assert.equal(mediaKindNeedsWarning("later_artwork"), true);
-  assert.equal(mediaKindNeedsWarning("reconstruction"), true);
+test("the kinds mistaken for evidence are exactly the kinds that get warned about", () => {
+  // Originally two: a later artwork and a reconstruction, the ones that
+  // illustrate a tradition and read as a photograph of it. Three more joined
+  // them with the tallest-humans dataset, and each earns it the same way.
+  //
+  //   replica            - a photograph of a bronze statue of a man is the
+  //                        most persuasive kind of wrong a record about that
+  //                        man can be.
+  //   unverified_image   - kept so a claim can be examined, and never able to
+  //                        sit silently in a gallery beside evidence.
+  //   known_manipulation - shown only as an example of the manipulation.
+  //
+  // The exhaustive loop is the point: a new kind added without deciding which
+  // side of this line it falls on will fail here rather than ship unmarked.
+  const WARNS = new Set(["later_artwork", "reconstruction", "replica", "unverified_image", "known_manipulation"]);
+  for (const key of WARNS) {
+    assert.equal(mediaKindNeedsWarning(key), true, `${key} should warn`);
+  }
   for (const kind of MEDIA_KINDS) {
-    if (kind.key === "later_artwork" || kind.key === "reconstruction") continue;
+    if (WARNS.has(kind.key)) continue;
     assert.equal(mediaKindNeedsWarning(kind.key), false, `${kind.key} should not warn`);
   }
   // And their hints say so in as many words.
   assert.match(mediaKindHint("later_artwork"), /never evidence/i);
   assert.match(mediaKindHint("reconstruction"), /inference/i);
+  assert.match(mediaKindHint("replica"), /not the thing/i);
+  assert.match(mediaKindHint("known_manipulation"), /only as an example/i);
+});
+
+test("the kinds that ARE evidence of a body say what they are evidence of", () => {
+  // The distinction the whole dataset rests on: a living person, their
+  // remains, the remains in a collection, the ground they came out of, and an
+  // object that belonged to them are five different claims about one body.
+  assert.equal(mediaKindNeedsWarning("human_remains"), false);
+  assert.equal(mediaKindNeedsWarning("museum_specimen"), false);
+  assert.equal(mediaKindNeedsWarning("excavation_context"), false);
+  assert.equal(mediaKindNeedsWarning("personal_artefact"), false);
+  assert.match(mediaKindHint("human_remains"), /identification/i, "it no longer warns about whose remains");
+  assert.match(mediaKindHint("museum_specimen"), /accession/i, "the accession number is the checkable part");
+  assert.match(mediaKindHint("personal_artefact"), /not of a height/i, "a shoe is not a height");
 });
 
 test("every seeded picture says what it is a picture of", () => {
