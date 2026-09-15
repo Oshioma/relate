@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { TallestHumansScale } from "./tallest-humans-scale";
+import { tallestHumansScalePeople } from "@/lib/timeline/tallest-humans-seed";
 import type {
   TimelineClaimSource,
   TimelineEventLink,
@@ -72,6 +74,7 @@ import {
   seedGiantsMesopotamiaDataset,
   seedThirtyThreeVedicDataset,
   seedBrutusAlbionDataset,
+  seedTallestHumansDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -291,6 +294,7 @@ export function TimelineView({
   hasGiantsMesopotamia,
   hasThirtyThreeVedic,
   hasBrutusAlbion,
+  hasTallestHumans,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -357,6 +361,7 @@ export function TimelineView({
   hasGiantsMesopotamia: boolean;
   hasThirtyThreeVedic: boolean;
   hasBrutusAlbion: boolean;
+  hasTallestHumans: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1924,6 +1929,48 @@ export function TimelineView({
           TEXT SAYS NONE OF IT, AND A TRANSLATOR SUPPLIED THE WORD — Nimrod is a gibbor in Hebrew, which means
           mighty, a champion, a warrior; the Greek translators wrote gigas, and an English Bible has had a giant in
           it ever since. A reader who can tell those four apart can read almost any giant story.
+        </DatasetOffer>
+      )}
+
+      {hasTallestHumans && (
+        <div className="mb-6 rounded-xl border border-border bg-background p-4">
+          <TallestHumansScale people={tallestHumansScalePeople()} />
+        </div>
+      )}
+
+      {isStaff && !hasTallestHumans && (
+        <DatasetOffer
+          title="Add the tallest humans in the evidence record?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedTallestHumansDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">Heights are stored as claims, not as facts.</span>
+            <span className="mt-1 block">
+              Charles Byrne was advertised at eight feet four; his skeleton measures about seven feet seven. Both
+              statements are real. Every figure here says what was measured, by what method, and on whose
+              authority — and several say plainly that no figure could be traced, rather than guessing one.
+            </span>
+          </span>
+          Not a list of giants. A worked demonstration that &quot;how tall was he?&quot; is four or five
+          different questions wearing one coat. A standing height, a height corrected for spinal curvature, a
+          mounted skeleton and a poster are different quantities, and lists that mix them are not ordered by
+          anything. Robert Wadlow anchors it as the case where the medical documentation is strong enough that
+          the figure is not really in dispute; John Carroll is here because his two heights differ by about a
+          foot and only one of them was ever measured; Charles Byrne because his remains survive with an
+          accession number, which is a different category of evidence from a caption. Pictures declare whether
+          they show a living person, actual remains, a museum specimen or a bronze statue.
         </DatasetOffer>
       )}
 

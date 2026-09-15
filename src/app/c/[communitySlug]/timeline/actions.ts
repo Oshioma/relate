@@ -130,6 +130,7 @@ import {
   THIRTY_THREE_VEDIC_SOURCES,
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
+import { TALLEST_HUMANS_EVENTS, TALLEST_HUMANS_SOURCES, TALLEST_HUMANS_TRACK } from "@/lib/timeline/tallest-humans-seed";
 import {
   BRUTUS_ALBION_EVENTS,
   BRUTUS_ALBION_LINKS,
@@ -1462,6 +1463,37 @@ async function seedDataset(
       continue;
     }
 
+    // MEASUREMENTS. Optional, and absent from every dataset before the
+    // tallest-humans one, so a seed with none behaves exactly as it always did.
+    //
+    // Deliberately NOT fatal. A missing date leaves an event that cannot be
+    // drawn, so the event is taken back out above; a missing measurement leaves
+    // a record that is merely less complete, and deleting a person because one
+    // height failed to insert would be the wrong trade.
+    if (seed.measurements?.length) {
+      const measurementRows = seed.measurements.map((m) => ({
+        event_id: event.id,
+        source_id: m.sourceKey ? sourceIds.get(m.sourceKey) ?? null : null,
+        what_is_measured: m.whatIsMeasured,
+        // Undefined becomes null: a claim with no figure, which the database
+        // accepts only alongside a stated reason for having none.
+        value_cm: m.valueCm ?? null,
+        value_absent_reason: m.valueAbsentReason ?? null,
+        original_value_text: m.originalValueText,
+        value_low_cm: m.valueLowCm ?? null,
+        value_high_cm: m.valueHighCm ?? null,
+        measurement_kind: m.measurementKind,
+        measurement_method: m.measurementMethod,
+        evidence_status: m.evidenceStatus,
+        directly_measured: m.directlyMeasured ?? false,
+        measured_on: m.measuredOn ?? null,
+        measured_by: m.measuredBy ?? null,
+        evidence: m.evidence,
+        notes: m.notes ?? null,
+      }));
+      await supabase.from("timeline_measurement_claims").insert(measurementRows);
+    }
+
     // Citations, matched back to their claim by its date text — unique within
     // each event for exactly this reason.
     const claimIdByText = new Map<string, string>(
@@ -2004,6 +2036,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     events: BRUTUS_ALBION_EVENTS,
     sources: BRUTUS_ALBION_SOURCES,
     links: BRUTUS_ALBION_LINKS,
+  },
+  {
+    label: "Tallest humans: what the evidence actually is",
+    track: TALLEST_HUMANS_TRACK,
+    events: TALLEST_HUMANS_EVENTS,
+    sources: TALLEST_HUMANS_SOURCES,
   },
 ];
 
@@ -2951,6 +2989,27 @@ export async function seedBrutusAlbionDataset(communitySlug: string) {
     track: BRUTUS_ALBION_TRACK,
     links: BRUTUS_ALBION_LINKS,
     label: "Brutus, Albion and the giants: the textual spine",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The tallest humans in the evidence record — Wadlow, Byrne, Carroll and the
+ * rest. Seeds measurement claims as well as date claims: a person has no
+ * height, exactly as an event has no date. See tallest-humans-seed.ts.
+ */
+export async function seedTallestHumansDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: TALLEST_HUMANS_EVENTS,
+    sources: TALLEST_HUMANS_SOURCES,
+    track: TALLEST_HUMANS_TRACK,
+    label: "Tallest humans: what the evidence actually is",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
