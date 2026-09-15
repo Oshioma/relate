@@ -498,6 +498,25 @@ the strongest objection; what evidence would settle it.
 - The claim/viewpoint/relationship machinery, the picture rules, and the
   multiple-claims-per-event model are all in place and fit both briefs.
 
+## Progress
+
+- **BUILT: 33, tranche 1** — `thirty-three-vedic-seed.ts`. Seven records: the
+  Rgveda's thirty-three, the Brahmana classification, the Yajnavalkya dialogue,
+  the Buddhist Heaven of the Thirty-Three, the unresolved Avestan question, the
+  Proto-Indo-Iranian hypothesis (carrying no date, deliberately), and the
+  330-million koti reading. Built from search results with the primary texts
+  unreachable; most claims carry NEEDS SOURCE VERIFICATION naming what to check,
+  and a test fails if those flags are edited away.
+
+  **What a reader with the books open should check first**, in order of how much
+  turns on it: (1) whether any Avestan passage names thirty-three divine beings
+  — the whole Proto-Indo-Iranian question rests on it; (2) the Satapatha
+  passage, and whether the Indra/Prajapati and Dyaus/Prthivi enumerations are
+  different passages or different recensions; (3) the earliest canonical Pali
+  reference to Tavatimsa, which is the weakest date in the tranche; (4) the
+  philology of *koti*, where the available sources are devotional rather than
+  lexical.
+
 ## Suggested order when sources are available
 
 1. Schema: A–G transmission classes, esoteric/occult viewpoints, and a home for

@@ -125,6 +125,12 @@ import {
   GIANTS_MESOPOTAMIA_TRACK,
 } from "@/lib/timeline/giants-mesopotamia-seed";
 import {
+  THIRTY_THREE_VEDIC_EVENTS,
+  THIRTY_THREE_VEDIC_LINKS,
+  THIRTY_THREE_VEDIC_SOURCES,
+  THIRTY_THREE_TRACK,
+} from "@/lib/timeline/thirty-three-vedic-seed";
+import {
   FLOOD_AMERICAS_EVENTS,
   FLOOD_AMERICAS_LINKS,
   FLOOD_AMERICAS_SOURCES,
@@ -1979,6 +1985,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     sources: FLOOD_MESOPOTAMIA_SOURCES,
     links: FLOOD_MESOPOTAMIA_LINKS,
   },
+  {
+    label: "The number 33: the oldest chain",
+    track: THIRTY_THREE_TRACK,
+    events: THIRTY_THREE_VEDIC_EVENTS,
+    sources: THIRTY_THREE_VEDIC_SOURCES,
+    links: THIRTY_THREE_VEDIC_LINKS,
+  },
 ];
 
 /**
@@ -2857,6 +2870,39 @@ export async function seedGiantsMesopotamiaDataset(communitySlug: string) {
     track: GIANTS_MESOPOTAMIA_TRACK,
     links: GIANTS_MESOPOTAMIA_LINKS,
     label: "Giants: measured heroes, and a word that grew in translation",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The number 33, first tranche: the Vedic hymns that address thirty-three gods,
+ * the later sorting of them into classes, the Upanisadic dialogue that counts
+ * past thirty-three to one, and the Buddhist Heaven of the Thirty-Three that
+ * inherits the name.
+ *
+ * AND TWO NEGATIVE RECORDS, which are the reason the tranche is worth having:
+ * the Avestan thirty-three that is asserted everywhere and could not be found,
+ * and the 330 million gods that are very probably one mistranslated word.
+ *
+ * BUILT WITHOUT ACCESS TO THE PRIMARY TEXTS — the network policy blocked every
+ * host they live on — so most of its claims carry NEEDS SOURCE VERIFICATION
+ * naming exactly what somebody with the books open should check. That is
+ * visible to anyone who opens a record, deliberately.
+ * See thirty-three-vedic-seed.ts and docs/timeline-research-briefs.md.
+ */
+export async function seedThirtyThreeVedicDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: THIRTY_THREE_VEDIC_EVENTS,
+    sources: THIRTY_THREE_VEDIC_SOURCES,
+    track: THIRTY_THREE_TRACK,
+    links: THIRTY_THREE_VEDIC_LINKS,
+    label: "The number 33: the oldest chain",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
