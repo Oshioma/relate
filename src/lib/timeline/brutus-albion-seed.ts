@@ -181,16 +181,18 @@ export const BRUTUS_ALBION_SOURCES: SeedSource[] = [
   },
   {
     key: "rodway2005",
-    title: "The date of Culhwch ac Olwen (linguistic redating)",
+    title: "The Date and Authorship of Culhwch and Olwen",
     author: "Simon Rodway",
-    reference: "2005",
+    workTitle: "Cambrian Medieval Celtic Studies",
+    reference: "Volume 49 (2005), pages 21–44",
     sourceType: "academic_paper",
     publishedYear: 2005,
     notes:
       "The redating that moves the tale from about 1100 to the latter half of the twelfth century on linguistic " +
       "grounds. Cited because the whole 'Welsh giants before Geoffrey' argument turns on which date is right. " +
-      "NEEDS SOURCE VERIFICATION for the full citation — journal, volume and pages could not be obtained, and " +
-      "this source should not be quoted until somebody supplies them.",
+      "NEEDS SOURCE VERIFICATION of a narrower kind than before: the citation is now had, but the ARGUMENT has " +
+      "not been read. Which linguistic features carry the redating, and how specialists have answered it, are " +
+      "the things somebody with the article should put here.",
   },
 ];
 
@@ -623,9 +625,9 @@ export const BRUTUS_ALBION_EVENTS: SeedEvent[] = [
           "POSITION: it is a specialist linguistic redating, and it is why this record is filed as disputed " +
           "rather than settled.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the full citation of Rodway's work — journal, volume and pages could not " +
-          "be obtained, and the argument itself has not been read. It should not be quoted until somebody has " +
-          "both.",
+          "NEEDS SOURCE VERIFICATION for the argument rather than the citation, which is now had: Cambrian " +
+          "Medieval Celtic Studies 49 (2005), 21–44. Which features carry the redating, and what the replies to " +
+          "it have been, still need somebody with the article open.",
       },
       {
         sourceKey: "culhwch_olwen",

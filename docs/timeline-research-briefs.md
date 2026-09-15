@@ -529,8 +529,9 @@ the strongest objection; what evidence would settle it.
   is Geoffrey's own figure or later chronographers' arithmetic on his
   synchronisms; (2) the Historia Brittonum's Brutus chapters in full, because
   the claim that the giants are ABSENT from it is a claim about what a text
-  lacks and those are the easiest to get wrong at second hand; (3) the full
-  citation for Rodway's 2005 redating of Culhwch, which decides whether Welsh
+  lacks and those are the easiest to get wrong at second hand; (3) Rodway's 2005 redating
+  of Culhwch — the citation is now had (Cambrian Medieval Celtic Studies 49,
+  21–44) but the argument has not been read, and it decides whether Welsh
   giants predate Geoffrey; (4) the Chartres Codex — shelfmark, date, and what
   was transcribed from it before it was destroyed in 1944.
 
