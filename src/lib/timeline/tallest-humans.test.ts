@@ -195,3 +195,61 @@ test("centimetres convert to feet and inches without drifting", () => {
   assert.equal(cmToFeetInches(182.88), "6 ft 0 in");
   assert.doesNotMatch(cmToFeetInches(182.87), /12 in/);
 });
+
+// ---------------------------------------------------------------------------
+// ADVERTISED AGAINST MEASURED, AND THE GAP THAT MUST NOT BE GUESSED
+// ---------------------------------------------------------------------------
+
+test("Ella Ewing keeps the poster and refuses to invent the real figure", () => {
+  // The interesting quantity is the SIZE OF THE GAP between what was
+  // advertised and what was true. A guessed second number produces a guessed
+  // gap, which is worse than no gap at all, so the second measurement is
+  // deliberately valueless.
+  const ella = person("ella-ewing");
+  const advertised = ella.measurements!.find((m) => m.measurementKind === "advertised_height");
+  const actual = ella.measurements!.find((m) => m.measurementKind === "standing_height_living");
+  assert.ok(advertised && actual, "one of the two figures has gone");
+  assert.equal(typeof advertised!.valueCm, "number", "the advertised figure has been deleted");
+  assert.equal(actual!.valueCm, undefined, "a non-promotional height has been invented");
+  assert.match(actual!.valueAbsentReason ?? "", /not been traced|not obtained/i);
+  assert.match(actual!.evidence, /SIZE OF THE GAP/i);
+});
+
+test("the poster and the newspaper chart are not filed as photographs", () => {
+  // A playbill is evidence about the show business of the period. A comparison
+  // chart is evidence of what was being claimed in 1900. Neither is evidence
+  // of a height, and neither may sit in a gallery as though it were a
+  // photograph of the person.
+  const ella = person("ella-ewing");
+  const poster = ella.media!.find((m) => m.url.includes("Poster"));
+  const chart = ella.media!.find((m) => m.url.includes("comparison_chart"));
+  assert.ok(poster && chart, "the poster or the chart has gone");
+  for (const item of [poster!, chart!]) {
+    assert.notEqual(item.shows, "evidence_photograph", "an advertisement filed as a photograph");
+    assert.notEqual(item.depictsActualRemains, true);
+    assert.equal(item.verifiedIdentity, false, "an advertisement should not assert a verified identity");
+  }
+  assert.match(chart!.caption!, /[Nn]ot evidence that any figure in it is correct/);
+});
+
+test("Beaupré records that the evidence was destroyed, and when", () => {
+  // The parallel to Byrne, run to the opposite conclusion: his body was
+  // returned and cremated in 1990, so there is nothing left to measure. The
+  // record must date the loss rather than quietly reporting a height.
+  const eb = person("edouard-beaupre");
+  assert.equal(eb.evidenceStatus, "historical_report_remains_lost");
+  const cremation = eb.claims.find((c) => c.startYear === 1990);
+  assert.ok(cremation, "the date the remains ceased to exist has gone");
+  assert.match(cremation!.evidence, /nothing left to measure/i);
+  assert.match(eb.description, /Byrne/, "the comparison with the case that ended differently has gone");
+});
+
+test("no record copies a height out of an image description", () => {
+  // A file description is a good record of a picture and is not an authority
+  // for a measurement. The Bates record exists partly to say so.
+  const bates = person("anna-and-martin-bates");
+  assert.match(bates.description, /file description is a good record of a picture and is not an authority/i);
+  for (const m of bates.measurements!) {
+    assert.match(m.notes ?? "", /NEEDS SOURCE VERIFICATION/);
+  }
+});

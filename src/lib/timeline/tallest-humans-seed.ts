@@ -27,9 +27,16 @@
 // original, the licence and the creator all live. Nothing is lost; it is one
 // click further away, and the click is recorded.
 
-import type { SeedEvent, SeedSource } from "./seed-types";
+import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
 
-export const TALLEST_HUMANS_ANCHOR_SLUG = "tallest-humans-evidence-record";
+export const TALLEST_HUMANS_ANCHOR_SLUG = "robert-wadlow";
+
+export const TALLEST_HUMANS_TRACK: SeedTrack = {
+  name: "Tallest humans: what the evidence actually is",
+  slug: "tallest-humans",
+  kind: "theme",
+  color: "#6b5b95",
+};
 
 const commons = (file: string, width = 1024) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
@@ -712,4 +719,375 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
       },
     ],
   },
+
+  {
+    slug: "edouard-beaupre",
+    title: "Édouard Beaupré, and what happened to his body",
+    summary:
+      "1881-1904. Saskatchewan. About 251 cm. His body was embalmed and exhibited for most of a century before it was cremated in 1990 and returned home.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person, and a second story about custody of remains that runs parallel to " +
+      "Charles Byrne's and ends differently.\n\n" +
+      "THE LIFE. Born at Willow Bunch in what is now Saskatchewan, he worked as a strongman and was exhibited; " +
+      "he died at twenty-three, of tuberculosis, in St Louis.\n\n" +
+      "WHAT HAPPENED AFTERWARDS, WHICH IS WHY HE IS HERE. His body was not buried. It was embalmed and displayed " +
+      "for decades, and eventually held at the Université de Montréal. In 1990 it was cremated and the ashes " +
+      "returned to Willow Bunch. That sequence — exhibited, retained by an institution, released after a family " +
+      "campaign — is the same argument as Byrne's, run to a conclusion. Byrne's skeleton is still held. " +
+      "Beaupré's body is not. A reader who wants to think about what institutions owe the dead has two cases " +
+      "here and can compare them.\n\n" +
+      "WHAT THIS DOES TO THE EVIDENCE. It removes it. There is no longer a body to measure, so every figure for " +
+      "Beaupré now rests on records made before 1990. That is the trade: the remains were returned, and the " +
+      "physical evidence went with them. This record does not treat that as a loss to be regretted — it records " +
+      "it as the outcome of a decision, and notes what it costs to know.\n\n" +
+      "THE PHOTOGRAPHS. Two are seeded, both from about 1900-1901. One has a second adult man standing beside " +
+      "him, which is what makes it useful.\n\n" +
+      "THINGS TO ASK: If remains are returned and the measurements were never taken, what is lost? Is that a " +
+      "reason to keep them? Who should decide?",
+    category: "biography",
+    subcategory: "Remains no longer available",
+    eventType: "historical",
+    evidenceStatus: "historical_report_remains_lost",
+    remainsLocation: "Cremated 1990; ashes at Willow Bunch, Saskatchewan",
+    tags: ["tallest-humans", "gigantism", "canada", "remains-returned", "consent", "photographed"],
+    people: ["Édouard Beaupré"],
+    locationName: "Willow Bunch, Saskatchewan, Canada",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1881,
+        endYear: 1904,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        whatIsDated: "His life",
+        originalDateText: "1881 - 1904",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth at Willow Bunch and death at St Louis, aged twenty-three.",
+        notes: "NEEDS SOURCE VERIFICATION against Canadian civil records.",
+      },
+      {
+        sourceKey: null,
+        startYear: 1990,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "When his remains were cremated and returned",
+        originalDateText: "Cremated in 1990; ashes returned to Willow Bunch",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the end of an eighty-six-year period in which his body was held and displayed rather " +
+          "than buried. WHY IT IS ON THE TIMELINE: the custody of remains is datable, and in this dataset it is " +
+          "one of the things most worth dating. WHAT IT MEANS FOR THE EVIDENCE: after this date there is nothing " +
+          "left to measure.",
+        notes: "NEEDS SOURCE VERIFICATION for the date and the circumstances of the return.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Standing height as usually reported",
+        valueCm: 251,
+        originalValueText: "About 8 ft 3 in",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 251 cm. WHAT SUPPORTS IT: figures recorded during his exhibition years and " +
+          "during the long period the body was held. WHAT CANNOT NOW BE DONE: checking any of them, because the " +
+          "body was cremated in 1990. THE EVIDENCE STATUS IS NOT A JUDGEMENT ON THE FIGURE. It records that the " +
+          "object which could settle it no longer exists.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. Measurements taken at the Université de Montréal before 1990, if they were " +
+          "published, would be the best surviving evidence and have not been consulted here.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Edouard_Beaupre.JPG"),
+        sourcePageUrl: commonsPage("Edouard_Beaupre.JPG"),
+        caption:
+          "Édouard Beaupré standing beside another adult man, about 1900. The second figure is the point: a lone portrait of a very tall person tells a viewer almost nothing about scale.",
+        kind: "image",
+        shows: "evidence_photograph",
+        imageDate: "circa 1900",
+        depictsActualRemains: false,
+        verifiedIdentity: true,
+        creditFrom: "source",
+      },
+      {
+        url: commons("Montr%C3%A9al_d%C3%A9but_XX%C3%A8_si%C3%A8cle._Le_g%C3%A9ant_Beaupr%C3%A9.jpg"),
+        sourcePageUrl: commonsPage("Montr%C3%A9al_d%C3%A9but_XX%C3%A8_si%C3%A8cle._Le_g%C3%A9ant_Beaupr%C3%A9.jpg"),
+        caption:
+          "Édouard Beaupré photographed in Montreal, about 1901, during the years he was being exhibited. Associated with the Archives de Montréal; the original file is approximately 1200 x 1664 pixels.",
+        kind: "image",
+        shows: "evidence_photograph",
+        institution: "Archives de Montréal",
+        imageDate: "circa 1901",
+        depictsActualRemains: false,
+        verifiedIdentity: true,
+        creditFrom: "source",
+      },
+    ],
+  },
+
+  {
+    slug: "ella-ewing",
+    title: "Ella Ewing, and the gap between the poster and the woman",
+    summary:
+      "1872-1913. Missouri. Advertised at over eight feet; the figure supported by non-promotional evidence is substantially lower.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? The dataset's clearest worked example of ADVERTISED HEIGHT as a category of " +
+      "its own.\n\n" +
+      "THE TWO NUMBERS. She was exhibited, and the bills claimed heights above eight feet. Accounts resting on " +
+      "measurement rather than on admission money put her considerably lower — in the region of seven feet four " +
+      "to seven feet six. This dataset does not have a measurement it can cite for her, and says so below rather " +
+      "than picking one.\n\n" +
+      "WHY THE POSTER IS EVIDENCE ANYWAY. Not of her height. Of the industry. A playbill is a primary source " +
+      "about what nineteenth-century audiences were sold and what the trade thought would sell, and it is worth " +
+      "keeping for exactly that. The mistake is not printing the poster; the mistake is reading it as a " +
+      "measurement.\n\n" +
+      "THE NEWSPAPER COMPARISON CHART. A chart printed in the Morning World-Herald in May 1900 ranked famous " +
+      "tall people against one another. It is an extraordinary document and it is NOT evidence that any figure " +
+      "in it was accurate: it is evidence of what was being claimed, by whom, in 1900, and of the fact that the " +
+      "comparison was already a public entertainment. Seeded as an illustration, never as a measurement.\n\n" +
+      "THINGS TO ASK: If every performer's height was inflated by roughly the same amount, would the rankings " +
+      "still be right? What would you need to check that?",
+    category: "biography",
+    subcategory: "Advertised against measured",
+    eventType: "disputed",
+    evidenceStatus: "disputed",
+    tags: ["tallest-humans", "advertised-height", "missouri", "sideshow", "photographed"],
+    people: ["Ella Ewing"],
+    locationName: "Gorin, Missouri, United States",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1872,
+        endYear: 1913,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "Her life",
+        originalDateText: "1872 - 1913",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth and death, from secondary accounts.",
+        notes: "NEEDS SOURCE VERIFICATION against Missouri civil records; the birth year is given variously.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: "commons_provenance",
+        whatIsMeasured: "Height as advertised in her exhibition years",
+        valueCm: 249,
+        originalValueText: "Advertised at over 8 ft; figures around 8 ft 4 in appeared on bills",
+        measurementKind: "advertised_height",
+        measurementMethod: "promotional",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: over eight feet. WHO CLAIMED IT: the shows exhibiting her. WHAT IT IS GOOD EVIDENCE " +
+          "OF: the advertising practice of American exhibition in the 1890s and 1900s. WHAT IT IS NOT EVIDENCE " +
+          "OF: her height. KEPT ON THE RECORD because deleting advertised heights would remove the only way a " +
+          "reader can see how large the inflation typically was.",
+        notes:
+          "NEEDS SOURCE VERIFICATION against the surviving bills themselves. The value is a representative " +
+          "figure for claims in circulation, not a reading of one document.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height on non-promotional evidence",
+        valueAbsentReason:
+          "This dataset has not obtained a measurement of Ella Ewing from a source independent of the shows that " +
+          "exhibited her. Accounts in the region of 7 ft 4 in to 7 ft 6 in circulate; none has been traced here " +
+          "to a measuring occasion, so no figure is entered.",
+        originalValueText: "Reported substantially lower than the advertised figure; not established here",
+        measurementKind: "standing_height_living",
+        measurementMethod: "unstated",
+        evidenceStatus: "unresolved",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS KNOWN: that the advertised figure was inflated, which is the ordinary finding for exhibited " +
+          "performers and is not a slur on her. WHAT IS NOT KNOWN HERE: by how much. ENTERING A GUESS WOULD " +
+          "DESTROY THE COMPARISON this record exists to make, because the interesting quantity is the SIZE OF " +
+          "THE GAP and a guessed second number produces a guessed gap.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. A physician's note, a census or draft record, or a coffin measurement " +
+          "would each be better than anything currently here.",
+      },
+    ],
+    media: [
+      {
+        url: commons("EllaEwing1.jpg"),
+        sourcePageUrl: commonsPage("EllaEwing1.jpg"),
+        caption:
+          "Ella Ewing, photographed during her exhibition years. A studio portrait made to be sold to audiences, which is a fact about the picture worth knowing before reading anything off it.",
+        kind: "image",
+        shows: "evidence_photograph",
+        depictsActualRemains: false,
+        verifiedIdentity: true,
+        creditFrom: "source",
+      },
+      {
+        url: commons("EllaEwingPoster.jpg"),
+        sourcePageUrl: commonsPage("EllaEwingPoster.jpg"),
+        caption:
+          "An advertising poster for Ella Ewing's exhibition. A primary source about the show business of the period; the height printed on a bill is a selling point and was never a measurement.",
+        kind: "image",
+        shows: "later_artwork",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        creditFrom: "source",
+      },
+      {
+        url: commons("Giant_comparison_chart_Morning_World_Herald_Sun_May_13_1900.png"),
+        sourcePageUrl: commonsPage("Giant_comparison_chart_Morning_World_Herald_Sun_May_13_1900.png"),
+        caption:
+          "A comparison chart of famous tall people printed in the Morning World-Herald, Sunday 13 May 1900. Evidence of what was being claimed in 1900, and of the fact that ranking them was already a public entertainment. Not evidence that any figure in it is correct.",
+        kind: "image",
+        shows: "later_artwork",
+        imageDate: "1900-05-13",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        creditFrom: "source",
+      },
+    ],
+  },
+
+  {
+    slug: "anna-and-martin-bates",
+    title: "Anna Haining Bates and Martin Van Buren Bates",
+    summary:
+      "Married 1871. Both exceptionally tall, both exhibited, and both carrying advertised figures that later accounts reduce.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? Two people in one record, because the surviving evidence is largely of them " +
+      "together and because the photograph that matters shows them together.\n\n" +
+      "ANNA HAINING SWAN, of Nova Scotia, and MARTIN VAN BUREN BATES, of Kentucky, married in 1871 and were " +
+      "exhibited as a couple. Both were genuinely very tall. Both were also advertised, and the advertised " +
+      "figures for both are higher than the figures in accounts that are not selling tickets — the same pattern " +
+      "as Ella Ewing, in a case where it can be watched happening to two people at once.\n\n" +
+      "A WARNING ATTACHED TO THE PHOTOGRAPH. The Commons description of the image seeded here repeats heights " +
+      "for them. Those heights have NOT been copied into this record. A file description is a good record of a " +
+      "picture and is not an authority for a measurement, and the distinction is exactly what this dataset is " +
+      "for. The figures below are recorded as reported, flagged, and awaiting a document.\n\n" +
+      "THINGS TO ASK: Why would a married couple both be advertised taller than they were? What would it take " +
+      "to establish either figure now?",
+    category: "biography",
+    subcategory: "Advertised against measured",
+    eventType: "historical",
+    evidenceStatus: "historical_report_remains_lost",
+    tags: ["tallest-humans", "advertised-height", "nova-scotia", "kentucky", "photographed"],
+    people: ["Anna Haining Bates", "Martin Van Buren Bates"],
+    locationName: "Seville, Ohio, United States",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1871,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "Their marriage",
+        originalDateText: "Married in 1871",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the marriage, which is also roughly the date of the photograph seeded here and the " +
+          "beginning of their joint exhibition.",
+        notes: "NEEDS SOURCE VERIFICATION against the marriage record.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Anna Haining Bates, height as reported",
+        valueCm: 241,
+        originalValueText: "About 7 ft 11 in in non-promotional accounts; advertised at 8 ft",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 241 cm. HOW IT DIFFERS FROM THE ADVERTISEMENT: the round eight feet used on " +
+          "bills is higher. WHY THE LOWER FIGURE IS RECORDED AS THE REPORTED ONE: because it is the figure that " +
+          "appears where nothing is being sold. WHAT IS MISSING: the measuring occasion.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. Nova Scotia Archives holds material on her and has not been consulted. Do " +
+          "NOT take the figure from an image description.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "Martin Van Buren Bates, height as reported",
+        valueCm: 236,
+        originalValueText: "About 7 ft 9 in in non-promotional accounts; advertised higher",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 236 cm. SAME PATTERN AS HIS WIFE: the advertised figure is higher than the " +
+          "reported one. WHAT IS MISSING: a measuring occasion, and any document taken for a purpose other than " +
+          "exhibition.",
+        notes: "NEEDS SOURCE VERIFICATION. Kentucky archives and his military service records are the places to look.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Martin_Van_Buren_Bates_and_Anna_Haining_Bates.png"),
+        sourcePageUrl: commonsPage("Martin_Van_Buren_Bates_and_Anna_Haining_Bates.png"),
+        caption:
+          "Martin Van Buren Bates and Anna Haining Bates, about 1871. Two exceptionally tall people photographed together, which makes the image striking and makes it useless for establishing either height, since neither provides a known scale for the other.",
+        kind: "image",
+        shows: "evidence_photograph",
+        imageDate: "circa 1871",
+        depictsActualRemains: false,
+        verifiedIdentity: true,
+        creditFrom: "source",
+      },
+    ],
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// THE SHAPE THE SCALE CHART READS.
+//
+// Built from the seed rather than from the database on purpose. The chart is a
+// view of THIS DATASET — a fixed set of people whose measurements are the
+// argument the dataset makes — and not of whatever a community has since
+// edited. The database copy exists so the records can be read, linked and
+// corrected like any other; the chart is the dataset's own illustration of
+// itself, and it should not silently change shape because somebody added a
+// record to their timeline.
+// ---------------------------------------------------------------------------
+
+export function tallestHumansScalePeople() {
+  return TALLEST_HUMANS_EVENTS.map((event) => ({
+    slug: event.slug,
+    title: event.title,
+    summary: event.summary,
+    evidenceStatus: event.evidenceStatus,
+    remainsLocation: event.remainsLocation,
+    accessionNumber: event.accessionNumber,
+    hasPhotograph: (event.media ?? []).some((m) => m.shows === "evidence_photograph"),
+    hasRemainsPhotograph: (event.media ?? []).some((m) => m.depictsActualRemains === true),
+    measurements: (event.measurements ?? []).map((m) => ({
+      whatIsMeasured: m.whatIsMeasured,
+      valueCm: m.valueCm,
+      valueAbsentReason: m.valueAbsentReason,
+      valueLowCm: m.valueLowCm,
+      valueHighCm: m.valueHighCm,
+      originalValueText: m.originalValueText,
+      measurementKind: m.measurementKind,
+      measurementMethod: m.measurementMethod,
+      evidenceStatus: m.evidenceStatus,
+      directlyMeasured: m.directlyMeasured,
+      measuredOn: m.measuredOn,
+      measuredBy: m.measuredBy,
+      evidence: m.evidence,
+      notes: m.notes,
+    })),
+  }));
+}

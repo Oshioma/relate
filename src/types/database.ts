@@ -2317,6 +2317,37 @@ export type TimelineRevision = {
 // writers said, and an unattributed edge would state it as though it were
 // settled. Stored once, from → to; the UI inverts the wording when showing it
 // on the other record.
+export type TimelineMeasurementClaim = {
+  id: string;
+  event_id: string;
+  source_id: string | null;
+  /** What quantity this row reports. Standing height, mounted skeleton and a
+   *  curvature-corrected estimate are different things, not rival estimates. */
+  what_is_measured: string;
+  /** Null where a report survives with no figure in it — legitimate, and then
+   *  value_absent_reason must say why. The database enforces the pair. */
+  value_cm: number | null;
+  value_absent_reason: string | null;
+  /** What the source said, before anyone converted it. */
+  original_value_text: string;
+  value_low_cm: number | null;
+  value_high_cm: number | null;
+  /** A MEASUREMENT_KINDS key in src/lib/timeline/taxonomy.ts. */
+  measurement_kind: string;
+  /** A MEASUREMENT_METHODS key. */
+  measurement_method: string;
+  /** An EVIDENCE_STATUSES key. */
+  evidence_status: string;
+  /** Was the body or the remains actually put against a rule by somebody whose
+   *  account we have? Separates most of the evidence here from most of the noise. */
+  directly_measured: boolean;
+  measured_on: string | null;
+  measured_by: string | null;
+  evidence: string;
+  notes: string | null;
+  created_at: string;
+};
+
 export type TimelineEventLink = {
   id: string;
   community_id: string;
@@ -3113,6 +3144,20 @@ export type Database = {
           FKey<"to_event_id", "timeline_events">,
           FKey<"source_id", "timeline_sources">,
         ];
+      };
+      timeline_measurement_claims: {
+        Row: TimelineMeasurementClaim;
+        Insert: Partial<TimelineMeasurementClaim> & {
+          event_id: string;
+          what_is_measured: string;
+          original_value_text: string;
+          measurement_kind: string;
+          measurement_method: string;
+          evidence_status: string;
+          evidence: string;
+        };
+        Update: Partial<TimelineMeasurementClaim>;
+        Relationships: [FKey<"event_id", "timeline_events">, FKey<"source_id", "timeline_sources">];
       };
       timeline_event_tracks: {
         Row: TimelineEventTrack;
