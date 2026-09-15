@@ -1319,6 +1319,12 @@ export const MEASUREMENT_KINDS = [
     hint:
       "A number in circulation whose origin nobody records. Extremely common, and the reason so many famous heights cannot be checked at all.",
   },
+  {
+    key: "fabricated_object",
+    label: "Dimensions of an object, not a body",
+    hint:
+      "The measurement of a carving, cast or composite that was presented as a human being. Often precise, often taken carefully, and not a statement about any person who ever lived. Kept as its own kind so the category error is impossible to make silently.",
+  },
 ] as const;
 
 export type MeasurementKindKey = (typeof MEASUREMENT_KINDS)[number]["key"];
@@ -1338,6 +1344,18 @@ export function measurementKindHint(key: string | null | undefined): string | nu
 /** Kinds that are inferences rather than readings off a body or a bone. */
 export function measurementKindIsEstimate(key: string | null | undefined): boolean {
   return key === "corrected_living_height" || key === "estimated_from_bone";
+}
+
+/**
+ * Does this figure describe a human body at all?
+ *
+ * The Cardiff Giant is ten feet long and has been measured carefully by people
+ * with no reason to lie. It is a block of carved gypsum. A chart that plots it
+ * beside Robert Wadlow is not showing two tall men, and this is the predicate
+ * that stops it happening.
+ */
+export function measurementKindIsOfABody(key: string | null | undefined): boolean {
+  return key !== "fabricated_object";
 }
 
 // ---------------------------------------------------------------------------

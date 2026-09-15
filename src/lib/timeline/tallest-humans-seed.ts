@@ -1049,6 +1049,582 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
       },
     ],
   },
+
+  {
+    slug: "john-rogan",
+    title: "John William \"Bud\" Rogan",
+    summary:
+      "1868-1905. Tennessee. About 267 cm — second only to Wadlow — and his family took deliberate steps to make sure nobody would ever dig him up.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person, and a case where the absence of physical evidence is the " +
+      "result of a decision rather than of neglect.\n\n" +
+      "THE LIFE. Born near Gallatin, Tennessee. Ankylosis fused his joints from adolescence, so that for " +
+      "most of his life he could not stand or walk; he moved in a cart he had built, drawn by goats. He is " +
+      "reported to have weighed very little for his length — a detail that says more about his condition " +
+      "than any height does.\n\n" +
+      "WHY HE IS HERE. On reported figures he is the second tallest person in this dataset. He is also, " +
+      "unlike Wadlow, almost entirely undocumented medically, which makes the comparison between them the " +
+      "useful thing: two men of nearly the same reported stature, one with a clinical record and one " +
+      "without.\n\n" +
+      "THE REMAINS, AND WHY THERE ARE NO PHOTOGRAPHS OF THEM. Body-snatching from Black cemeteries for " +
+      "anatomical sale was a real and well-documented practice in the nineteenth-century American South, " +
+      "and his family are reported to have buried him in a way intended to defeat it — in concrete, at the " +
+      "family home. That is the reason no skeleton exists to photograph, and it belongs in the record as an " +
+      "act of protection rather than as a gap in the evidence. Compare Charles Byrne, who asked for the " +
+      "same protection and did not get it.\n\n" +
+      "ON THE PHOTOGRAPHS. The surviving pictures show him seated in his cart. Searching archives for them " +
+      "may require the racial terminology of the period, which appears in catalogue records and in " +
+      "contemporary captions. That terminology belongs in search strings and in source metadata; it does " +
+      "not belong in this dataset's own descriptive language.\n\n" +
+      "THINGS TO ASK: If two men are the same height and only one was examined by doctors, are the two " +
+      "figures the same kind of fact? What does it mean that protecting a body from anatomists also " +
+      "removes it from the evidence record?",
+    category: "biography",
+    subcategory: "Remains deliberately protected",
+    eventType: "historical",
+    evidenceStatus: "historical_report_remains_lost",
+    remainsLocation: "Buried at the family home near Gallatin, Tennessee; reported to have been interred in concrete against grave robbing",
+    tags: ["tallest-humans", "gigantism", "tennessee", "remains-protected", "consent"],
+    people: ["John William Rogan"],
+    locationName: "Gallatin, Tennessee, United States",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1868,
+        endYear: 1905,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "His life",
+        originalDateText: "About 1868 - 1905",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: birth and death. WHY APPROXIMATE: birth records for Black Tennesseans of this " +
+          "period are frequently incomplete, and his birth year is given variously.",
+        notes: "NEEDS SOURCE VERIFICATION against Tennessee records; the birth year in particular.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height as reported, lying rather than standing",
+        valueCm: 267,
+        originalValueText: "About 8 ft 9 in",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 267 cm. AN IMPORTANT COMPLICATION: he could not stand. Any figure for him " +
+          "is therefore a length measured on a body that was never upright, which is not the same quantity " +
+          "as a standing height and is not obviously convertible into one. WHAT IS MISSING: who measured " +
+          "him, when, and how. NO REMAINS EXIST to settle it, by his family's deliberate choice.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. This figure is widely repeated and this dataset has not traced it to " +
+          "a measuring occasion. Note also that the standing/recumbent distinction is rarely made when it " +
+          "is quoted, including in lists that rank him against men who were measured standing.",
+      },
+    ],
+  },
+
+  {
+    slug: "patrick-cotter-obrien",
+    title: "Patrick Cotter O'Brien, and two exhumations",
+    summary:
+      "1760-1806. The Bristol Giant. Advertised at eight feet seven; buried deep against body snatchers; dug up twice in the twentieth century.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person whose remains were examined twice, long after death, which " +
+      "makes him one of very few historical cases where a physical check on an advertised height was " +
+      "actually attempted.\n\n" +
+      "THE LIFE. Born in Ireland, exhibited in England, died at Clifton in Bristol in 1806. He was among " +
+      "the best-known exhibited giants of his generation and was advertised at eight feet seven or " +
+      "thereabouts.\n\n" +
+      "THE BURIAL, WHICH WAS DEFENSIVE. He is reported to have been buried unusually deep and with " +
+      "precautions, for the same reason Charles Byrne asked to be buried at sea twenty-three years " +
+      "earlier: the anatomists. Byrne's precautions failed within weeks. Cotter's held for a century.\n\n" +
+      "TWO EXHUMATIONS. His remains are reported to have been examined in 1906 and again in 1972, and the " +
+      "figures that came out of those examinations are substantially lower than the advertised height — in " +
+      "the region of seven feet ten to eight feet one, depending on which account is read. THIS IS THE " +
+      "IMPORTANT PART OF THE RECORD and it is exactly the part this dataset cannot yet cite properly.\n\n" +
+      "WHAT IS DELIBERATELY NOT ENTERED. No value is given below for either exhumation. This dataset has " +
+      "not read the 1906 or 1972 reports, does not know what was measured, whether the skeleton was " +
+      "articulated, or what allowance if any was made for soft tissue. Entering a number would create the " +
+      "appearance of a physical measurement where there is only a recollection of one — which, in a record " +
+      "whose entire purpose is to distinguish those two things, would be self-defeating.\n\n" +
+      "WHY HE MAY BE THE MOST VALUABLE UNFINISHED RECORD HERE. A lifetime advertisement, a coffin, and two " +
+      "separate physical examinations sixty-six years apart is a better evidential chain than almost any " +
+      "other historical giant has. Somebody with access to the Bristol archives and the relevant journals " +
+      "could turn this record into the best one in the dataset in an afternoon.\n\n" +
+      "THINGS TO ASK: If two exhumations sixty-six years apart gave different figures, what would explain " +
+      "that? What can a skeleton tell you about the height of the living person, and what can it not?",
+    category: "biography",
+    subcategory: "Surviving physical remains",
+    eventType: "historical",
+    evidenceStatus: "disputed",
+    remainsLocation: "Bristol, England; exhumed and reinterred",
+    tags: ["tallest-humans", "bristol", "exhumation", "advertised-height", "physical-remains", "consent"],
+    people: ["Patrick Cotter O'Brien"],
+    locationName: "Bristol, England",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1760,
+        endYear: 1806,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "His life",
+        originalDateText: "About 1760 - 1806",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth in Ireland and death at Clifton, Bristol.",
+        notes: "NEEDS SOURCE VERIFICATION for both, and particularly the birth year.",
+      },
+      {
+        sourceKey: null,
+        startYear: 1906,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "The first exhumation and examination",
+        originalDateText: "Examined on exhumation, reported as 1906",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: an occasion on which his remains were physically examined, a century after " +
+          "burial. WHY IT IS ON THE TIMELINE SEPARATELY FROM THE SECOND: because two examinations are two " +
+          "pieces of evidence, and collapsing them would hide whether they agreed.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, urgently. Neither the date nor the findings have been read here. " +
+          "Bristol Archives and contemporary medical journals are the places to look.",
+      },
+      {
+        sourceKey: null,
+        startYear: 1972,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "The second exhumation and examination",
+        originalDateText: "Examined again on exhumation, reported as 1972",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: a second physical examination, sixty-six years after the first. WHY BOTH MATTER: " +
+          "a twentieth-century examination is likely to have been better recorded than an Edwardian one, " +
+          "and whether the two agreed is a question this record exists to make askable.",
+        notes: "NEEDS SOURCE VERIFICATION for the date, the examiners and the findings.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height as advertised during his exhibition",
+        valueCm: 262,
+        originalValueText: "Advertised at about 8 ft 7 in",
+        measurementKind: "advertised_height",
+        measurementMethod: "promotional",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 262 cm. WHO CLAIMED IT: the exhibition. WHAT IT IS EVIDENCE OF: the " +
+          "advertising of exhibited giants around 1800, and of what was thought plausible enough to print. " +
+          "KEPT, as Byrne's and Ella Ewing's are kept, because the gap between the bill and the bones is " +
+          "the finding.",
+        notes:
+          "NEEDS SOURCE VERIFICATION against surviving handbills. The figure is the one usually quoted and " +
+          "has not been read off a document here.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height indicated by the examinations of his remains",
+        valueAbsentReason:
+          "This dataset has not read the 1906 or 1972 reports. Figures in the region of 7 ft 10 in to 8 ft " +
+          "1 in are associated with them, but what was measured, whether the skeleton was articulated, and " +
+          "what allowance was made for soft tissue are all unknown here. Entering a number would " +
+          "manufacture the appearance of a physical measurement out of a recollection of one.",
+        originalValueText: "Reported lower than the advertised figure; the reports have not been read here",
+        measurementKind: "skeletal_height",
+        measurementMethod: "osteological",
+        evidenceStatus: "unresolved",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS KNOWN: that his remains were examined twice and that the resulting figures are lower " +
+          "than the advertisement. WHAT IS NOT KNOWN HERE: the figures, the method, or whether the two " +
+          "examinations agreed with each other. WHY THE CLAIM EXISTS WITH NO VALUE: because the " +
+          "measurement was genuinely taken, twice, by people whose reports survive somewhere — the gap is " +
+          "in this dataset, not in the historical record, and saying so is what tells a researcher where " +
+          "to go.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. This is the most valuable unread source in the dataset: a physical " +
+          "check on an advertised giant's height, performed twice, with reports that exist.",
+      },
+    ],
+  },
+
+  {
+    slug: "jane-bunford",
+    title: "Jane Bunford, and why her skeleton is shorter than she was",
+    summary:
+      "1895-1922. Birmingham. Severe scoliosis meant her mounted skeleton measures well under her living stature — a textbook case of two figures for one woman.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person whose record makes the same point as John Carroll's, from the " +
+      "other direction: here the skeleton survives, and the skeleton is the SHORTER figure.\n\n" +
+      "THE LIFE. Born at Bartley Green near Birmingham. A head injury in adolescence is reported to have " +
+      "triggered pituitary overgrowth; she developed severe spinal curvature and died at twenty-six.\n\n" +
+      "THE TWO FIGURES, AND WHY BOTH ARE RIGHT. Her living stature is usually given at around 241 cm. Her " +
+      "mounted skeleton, preserved for decades at the University of Birmingham, is reported at around " +
+      "223.5 cm. The difference is not an error and not a dispute. It is the ordinary consequence of two " +
+      "things at once: a mounted skeleton lacks cartilage, discs and soft tissue, AND her spine was " +
+      "severely curved, so a standing measurement taken in life was itself shorter than her skeletal length " +
+      "would suggest if straightened. Three quantities, not one — living standing height, mounted skeletal " +
+      "height, and a hypothetical straightened height that nobody has cause to state.\n\n" +
+      "THE PROVENANCE QUESTION. Her remains were held by a university anatomy collection for a long period, " +
+      "and there has been subsequent controversy about their handling and whereabouts. This record notes " +
+      "that neutrally and does not adjudicate it. What it does do is refuse to state a present location it " +
+      "cannot verify, because asserting where a named woman's remains are today is not something to do " +
+      "from memory.\n\n" +
+      "THINGS TO ASK: If a skeleton is shorter than the person AND the person was bent, which figure " +
+      "belongs in a list of the tallest people? Is there a right answer, or only a stated one?",
+    category: "biography",
+    subcategory: "Surviving physical remains",
+    eventType: "historical",
+    evidenceStatus: "disputed",
+    tags: ["tallest-humans", "gigantism", "scoliosis", "birmingham", "physical-remains", "provenance"],
+    people: ["Jane Bunford"],
+    locationName: "Bartley Green, Birmingham, England",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1895,
+        endYear: 1922,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        whatIsDated: "Her life",
+        originalDateText: "1895 - 1922",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth and death. She died at twenty-six.",
+        notes: "NEEDS SOURCE VERIFICATION against English civil records.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Living stature as usually reported",
+        valueCm: 241,
+        originalValueText: "About 7 ft 11 in",
+        measurementKind: "standing_height_living",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 241 cm in life. HOW IT RELATES TO THE SKELETON BELOW: it is the LARGER " +
+          "figure, which is the normal relationship and the opposite of what people expect when they hear " +
+          "that a skeleton survives. WHAT IS MISSING: the measuring occasion.",
+        notes: "NEEDS SOURCE VERIFICATION for who measured her and when.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "The mounted skeleton, as preserved at Birmingham",
+        valueCm: 223.5,
+        originalValueText: "About 7 ft 4 in as mounted",
+        measurementKind: "skeletal_height",
+        measurementMethod: "mounted_skeleton",
+        evidenceStatus: "strongly_documented",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS MEASURED: articulated bones, as assembled and held in a university anatomy collection. " +
+          "WHY IT IS SHORTER THAN SHE WAS: cartilage, intervertebral discs and soft tissue are gone, and " +
+          "how a mount is assembled changes the result. THE FIGURE IS NOT A CORRECTION OF THE ONE ABOVE. " +
+          "It is a different quantity, and a list that swapped one for the other would move her several " +
+          "places without anybody noticing.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the figure and for the present whereabouts of the skeleton, which " +
+          "this record deliberately does not assert. University of Birmingham collections and the Cadbury " +
+          "Research Library are where to ask.",
+      },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// DISPUTED AND FABRICATED REMAINS
+//
+// A separate section, and separate for a reason. These records are NOT weaker
+// versions of the ones above. They are records about a different thing: what
+// was claimed, who claimed it, and what can be established now.
+//
+// The rule the brief set and this file keeps: do not automatically reject
+// them, and do not present them as fact. An 1869 newspaper is real evidence
+// that a claim was made. It is not evidence that a body measured anything. A
+// demonstrated hoax stays on the record with its demonstration attached,
+// because deleting hoaxes is how they get rediscovered.
+// ---------------------------------------------------------------------------
+
+export const TALLEST_HUMANS_DISPUTED: SeedEvent[] = [
+  {
+    slug: "cardiff-giant",
+    title: "The Cardiff Giant",
+    summary:
+      "Unearthed in New York in 1869 and exhibited as a petrified ten-foot man. Carved from gypsum the year before, on purpose, by a man who had lost an argument about Genesis.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A known hoax, with the object still in a museum — which makes it the best " +
+      "possible teaching case, because everything about it can be checked.\n\n" +
+      "WHAT HAPPENED. In October 1869 workers digging a well behind William Newell's barn at Cardiff, in " +
+      "central New York, uncovered a human figure about ten feet long. It was exhibited for money almost " +
+      "immediately and drew large paying crowds. Within weeks it was being argued about in print as a " +
+      "petrified antediluvian man — which is to say, as physical proof of the giants of Genesis 6:4.\n\n" +
+      "WHAT IT ACTUALLY WAS. A carving. George Hull, a New York tobacconist, had it cut from a block of " +
+      "gypsum quarried at Fort Dodge, Iowa, worked by a stonecutter in Chicago, shipped east and buried " +
+      "behind the barn in November 1868 to be dug up nearly a year later. Hull is reported to have " +
+      "conceived it after an argument with a preacher about whether the giants of Genesis were literal. He " +
+      "confessed before the end of 1869.\n\n" +
+      "WHY IT IS FILED AS A KNOWN HOAX AND NOT AS A DISPUTE. Because there is nothing left to dispute: the " +
+      "maker named himself, the quarry is known, the stonecutter is known, and the object survives and can " +
+      "be examined. This is the strongest evidential position any record in this dataset occupies, and it " +
+      "happens to belong to a fake.\n\n" +
+      "THE DETAIL WORTH KEEPING. Scientists who looked at it said so at once — the Yale palaeontologist " +
+      "Othniel Marsh is reported to have called it a decided humbug — and it went on selling tickets " +
+      "anyway. P. T. Barnum, unable to buy it, had a copy made and exhibited that. So the record also " +
+      "documents something true about evidence: expert dismissal, promptly given, did not slow it down.\n\n" +
+      "THE MEASUREMENT BELOW IS NOT A HEIGHT. It is the length of a piece of carved stone. It is recorded " +
+      "with a measurement kind that says so, and the scale chart will not draw it beside a person.\n\n" +
+      "THINGS TO ASK: If the experts were right immediately and it made money anyway, what was the " +
+      "audience actually buying? Why is a confessed hoax better documented than most real remains?",
+    category: "archaeology",
+    subcategory: "Fabricated remains",
+    eventType: "disputed",
+    evidenceStatus: "known_hoax",
+    remainsLocation: "The Farmers' Museum, Cooperstown, New York",
+    tags: ["tallest-humans", "disputed", "hoax", "cardiff-giant", "new-york", "genesis"],
+    people: ["George Hull"],
+    locationName: "Cardiff, New York, United States",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1869,
+        startMonth: 10,
+        datePrecision: "month",
+        isApproximate: false,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "When it was dug up and exhibited",
+        originalDateText: "Unearthed 16 October 1869 at Cardiff, New York",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the discovery, which was staged. WHY THE DATE IS SECURE: the exhibition, the " +
+          "newspaper coverage and the subsequent legal and journalistic wrangling are all contemporary and " +
+          "abundant. A hoax that draws crowds documents itself.",
+        notes: "NEEDS SOURCE VERIFICATION for the exact day against contemporary newspapers.",
+      },
+      {
+        sourceKey: null,
+        startYear: 1868,
+        startMonth: 11,
+        datePrecision: "month",
+        isApproximate: true,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "When it was carved and buried",
+        originalDateText: "Buried behind the barn about November 1868, eleven months before discovery",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the manufacture. THIS IS THE CLAIM THAT SETTLES IT — a burial date preceding the " +
+          "discovery by under a year, established from Hull's own account and from the quarry and " +
+          "stonecutting trail. TWO DATES ON ONE OBJECT, eleven months apart, is what a fabrication looks " +
+          "like in a timeline.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the burial month and for the names of the quarry and the " +
+          "stonecutter, which are given here from general knowledge.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Length of the carved figure",
+        valueCm: 305,
+        originalValueText: "About ten feet long",
+        measurementKind: "fabricated_object",
+        measurementMethod: "unstated",
+        evidenceStatus: "known_hoax",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS MEASURED: a block of carved gypsum, which exists, is held at a museum and can be " +
+          "measured again by anybody who asks. WHAT IS NOT MEASURED: a person. There was never a body. " +
+          "THIS IS WHY THE MEASUREMENT KIND MATTERS: the figure is real, careful and checkable, and it is " +
+          "not a statement about human stature. A chart that plots it beside Robert Wadlow would be showing " +
+          "a man and a rock.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the museum's own dimensions. The value here is the commonly " +
+          "reported figure and should be replaced with the catalogue measurement.",
+      },
+    ],
+  },
+
+  {
+    slug: "viral-giant-skeleton-images",
+    title: "The viral giant skeleton photographs",
+    summary:
+      "The most widely circulated 'giant skeleton' pictures come from a photo-manipulation contest. At least one was built on a real excavation photograph, which is why it works.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A record about images rather than about remains — and the brief asked " +
+      "for it specifically, because these pictures are how most people encounter this subject.\n\n" +
+      "WHERE THEY COME FROM. A set of enormously circulated images showing archaeologists crouched beside " +
+      "gigantic human skeletons in open trenches originate in photo-manipulation contests run by the site " +
+      "Worth1000 in the early 2000s, on themes such as archaeological anomalies. They were made as digital " +
+      "artwork, entered into a competition, and credited. They were never presented by their makers as " +
+      "photographs of anything.\n\n" +
+      "WHY THEY ARE SO CONVINCING, WHICH IS THE POINT. Because at least one of the best-known entries was " +
+      "composited onto a REAL excavation photograph — a mastodon dig — so the trench, the soil, the light " +
+      "and the posture of the people in it are all genuine. The only false element is the skeleton. That " +
+      "is a far more effective deception than a picture drawn from nothing, and it is the reason these " +
+      "images survive every debunking: everything a viewer checks looks right, because most of it is.\n\n" +
+      "HOW THEY TRAVEL. The same image reappears captioned to India, Saudi Arabia, Greece and half a dozen " +
+      "other places, with a new discovery date each time. A picture that is claimed for four countries in " +
+      "five years is telling you something about its provenance before you examine a single pixel.\n\n" +
+      "WHY THIS RECORD KEEPS THEM RATHER THAN DELETING THEM. Because a reader who has seen these images — " +
+      "and most have — is not helped by their absence. They are helped by seeing the original beside the " +
+      "altered version, with the alteration named. Deleting the image leaves the claim in circulation and " +
+      "removes the answer to it.\n\n" +
+      "IMAGES NOT YET ATTACHED. This dataset has not been able to reach the web to retrieve either the " +
+      "contest entries or the underlying excavation photograph, and it will not guess at URLs. The record " +
+      "exists so the pair can be attached when somebody can fetch them, and the media slots below are " +
+      "deliberately empty rather than filled with something plausible.\n\n" +
+      "THINGS TO ASK: Which parts of one of these pictures are real? If most of an image is authentic, " +
+      "what exactly is the forgery? What would you check first?",
+    category: "archaeology",
+    subcategory: "Fabricated remains",
+    eventType: "disputed",
+    evidenceStatus: "known_hoax",
+    tags: ["tallest-humans", "disputed", "manipulated-image", "viral", "photo-forensics"],
+    locationName: "Internet",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 2002,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        endYear: 2008,
+        whatIsDated: "When the images were made and began circulating",
+        originalDateText: "Made for photo-manipulation contests in the early 2000s; circulating as news ever since",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the manufacture of the images and the beginning of their second life as purported " +
+          "news photographs. WHY A RANGE: the contests ran over several years and the images have no single " +
+          "release date. WHAT THIS ESTABLISHES: that every 'newly discovered giant skeleton' photograph " +
+          "matching these compositions postdates its own supposed discovery.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the contest names, dates and the handle of the artist behind the " +
+          "most-circulated entry, all given here from general knowledge. This record should not name an " +
+          "individual until that is checked.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Length of the skeleton as depicted",
+        valueAbsentReason:
+          "There is no object to measure. The skeleton exists only as pixels, and any figure derived from " +
+          "the image would be a measurement of a composition decision. Captions accompanying these pictures " +
+          "have claimed anything from eight to eighty feet, which is itself evidence that no measurement " +
+          "underlies them.",
+        originalValueText: "Claimed figures vary wildly between captions of the same image",
+        measurementKind: "fabricated_object",
+        measurementMethod: "unstated",
+        evidenceStatus: "known_hoax",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: a range of enormous heights, differing between versions of the SAME PICTURE. " +
+          "WHY THAT IS THE most useful fact here: when one image carries several incompatible measurements, " +
+          "the measurements are not observations of anything. They are captions. NO VALUE IS ENTERED, " +
+          "because entering one would imply something was measured.",
+        notes: "Nothing to verify. There is no object.",
+      },
+    ],
+  },
+
+  {
+    slug: "smithsonian-giant-skeletons-claim",
+    title: "The claim that the Smithsonian destroyed giant skeletons",
+    summary:
+      "A widely shared story about a court ordering the release of suppressed giant skeletons. There was no case, and the story began on a site that publishes invented news.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A claim about a cover-up, recorded because it is repeated constantly " +
+      "and because the honest answer to it is more interesting than a flat denial.\n\n" +
+      "THE STORY. That the Smithsonian Institution destroyed thousands of oversized human skeletons in the " +
+      "early twentieth century to protect orthodox chronology, and that a court case forced this into the " +
+      "open. It circulates with dates, figures and the appearance of legal detail.\n\n" +
+      "WHERE IT CAME FROM. The best-known version originated on a website that publishes fabricated news " +
+      "stories as entertainment. There was no such case. The detail that makes it persuasive — a court, a " +
+      "ruling, a compelled disclosure — is the part that was invented, because it is the part that sounds " +
+      "checkable.\n\n" +
+      "THE PART THAT IS NOT NONSENSE, AND MUST NOT BE THROWN OUT WITH IT. Nineteenth-century American " +
+      "antiquarian and newspaper literature genuinely does contain many reports of very large skeletons " +
+      "found in mounds, and some were genuinely sent to institutions, and a great many of those remains " +
+      "genuinely cannot now be located. That is real, and it has real explanations — poor cataloguing, " +
+      "casual collecting, loss, reburial, and the fact that a bone reported as enormous by a farmer in 1885 " +
+      "may never have been measured by anybody. A reader who is told only 'the cover-up story is fake' has " +
+      "been given a true statement and no understanding.\n\n" +
+      "SO THE RECORD SPLITS THE CLAIM. The court case: fabricated. The suppression: unevidenced. The " +
+      "missing remains: partly real, and explained by ordinary institutional history rather than by " +
+      "conspiracy. Those are three different findings and they get three different answers.\n\n" +
+      "THINGS TO ASK: Why does an invented legal detail make a story more believable? What would a real " +
+      "record of a nineteenth-century mound excavation look like, and where would you look for one?",
+    category: "archaeology",
+    subcategory: "Disputed reports",
+    eventType: "disputed",
+    evidenceStatus: "known_hoax",
+    tags: ["tallest-humans", "disputed", "smithsonian", "mound-builders", "fabricated-news"],
+    locationName: "United States",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 2014,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "date_of_first_known_record",
+        whatIsDated: "When the court-case version of the story appeared",
+        originalDateText: "Circulated from about 2014 as a news story; no case exists",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: the appearance of the fabricated article, not any event it describes. WHY THAT IS " +
+          "the right thing to date: the story has a real origin and a real date, and they belong to the " +
+          "twenty-first century rather than the twentieth. WHAT IT ESTABLISHES: that the legal detail " +
+          "postdates every version of the giant-skeleton literature it claims to vindicate.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the publication date and the site, given here from general " +
+          "knowledge. The finding — that no such case exists — should be checkable against court records " +
+          "by anybody with access to them.",
+      },
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether large skeletal remains reported in the nineteenth century are unaccounted for",
+        originalDateText: "Many nineteenth-century reported finds cannot now be located; this is undated and real",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS CLAIMED: that a substantial number of remains reported from American mound excavations " +
+          "in the nineteenth century cannot now be traced. WHY THIS CLAIM IS SEPARATED FROM THE ONE ABOVE: " +
+          "because it is probably TRUE, and lumping it in with the fabricated court case would let a real " +
+          "problem be dismissed along with an invented one. WHAT EXPLAINS IT WITHOUT CONSPIRACY: casual " +
+          "collecting, poor or absent cataloguing, loss, sale, reburial, and reports that never rested on a " +
+          "measurement in the first place. WHY IT CARRIES NO DATE: it is a statement about a condition of " +
+          "the record, not about an event.",
+        notes:
+          "NEEDS SOURCE VERIFICATION throughout, and this is the half of the record worth someone's time. " +
+          "Work on the history of American mound archaeology and its collecting practices would replace " +
+          "this general statement with something specific.",
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1064,7 +1640,11 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 // ---------------------------------------------------------------------------
 
 export function tallestHumansScalePeople() {
-  return TALLEST_HUMANS_EVENTS.map((event) => ({
+  // Disputed and fabricated records are included on purpose. They carry no
+  // plottable body measurement, so they appear in the filters and in the
+  // detail panel without ever getting a bar — which is the honest rendering:
+  // present in the evidence record, absent from the chart of human stature.
+  return [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED].map((event) => ({
     slug: event.slug,
     title: event.title,
     summary: event.summary,

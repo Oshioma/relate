@@ -1,10 +1,29 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TALLEST_HUMANS_EVENTS, TALLEST_HUMANS_SOURCES } from "./tallest-humans-seed";
-import { cmToFeetInches, EVIDENCE_STATUSES, MEASUREMENT_KINDS, MEASUREMENT_METHODS, MEDIA_KINDS } from "./taxonomy";
+import { TALLEST_HUMANS_DISPUTED, TALLEST_HUMANS_EVENTS, TALLEST_HUMANS_SOURCES } from "./tallest-humans-seed";
+import {
+  cmToFeetInches,
+  EVIDENCE_STATUSES,
+  MEASUREMENT_KINDS,
+  MEASUREMENT_METHODS,
+  measurementKindIsOfABody,
+  MEDIA_KINDS,
+} from "./taxonomy";
+import { personMatchesFilter, plottedMeasurement } from "./tallest-humans-scale-logic";
+
+/** The seed shape, as the chart receives it. */
+const scaleShape = (e: (typeof ALL_TALLEST)[number]) => ({
+  slug: e.slug,
+  title: e.title,
+  summary: e.summary,
+  evidenceStatus: e.evidenceStatus,
+  measurements: (e.measurements ?? []).map((m) => ({ ...m })),
+});
+
+const ALL_TALLEST = [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED];
 
 const person = (slug: string) => {
-  const found = TALLEST_HUMANS_EVENTS.find((e) => e.slug === slug);
+  const found = ALL_TALLEST.find((e) => e.slug === slug);
   assert.ok(found, `no record ${slug}`);
   return found!;
 };
@@ -251,5 +270,130 @@ test("no record copies a height out of an image description", () => {
   assert.match(bates.description, /file description is a good record of a picture and is not an authority/i);
   for (const m of bates.measurements!) {
     assert.match(m.notes ?? "", /NEEDS SOURCE VERIFICATION/);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// THE DISPUTED SECTION, AND THE LINE BETWEEN IT AND THE REST
+// ---------------------------------------------------------------------------
+
+test("the disputed records are a separate export and stay separate", () => {
+  // Kept apart so nothing can treat a fabrication as a person by iterating one
+  // array. They seed into the same lane, deliberately — a claims section filed
+  // somewhere else is a claims section nobody reads — but the code has to keep
+  // being able to tell them apart.
+  const verifiedSlugs = new Set(TALLEST_HUMANS_EVENTS.map((e) => e.slug));
+  for (const d of TALLEST_HUMANS_DISPUTED) {
+    assert.ok(!verifiedSlugs.has(d.slug), `${d.slug} is in both arrays`);
+    assert.ok(
+      ["known_hoax", "disputed", "misidentified", "unresolved", "historical_report_remains_lost"].includes(
+        d.evidenceStatus ?? ""
+      ),
+      `${d.slug}: a disputed record with status ${d.evidenceStatus}`
+    );
+  }
+});
+
+test("a carved object is never recorded as a body measurement", () => {
+  // The Cardiff Giant is ten feet long, was measured carefully by people with
+  // no reason to lie, and is a block of gypsum. This is the assertion that
+  // stops a rock reaching the top of a list of the tallest humans.
+  const cardiff = person("cardiff-giant");
+  const m = cardiff.measurements![0];
+  assert.equal(m.measurementKind, "fabricated_object");
+  assert.equal(measurementKindIsOfABody(m.measurementKind), false);
+  assert.match(m.evidence, /There was never a body/i);
+  // And the chart's own selector must agree, not just the taxonomy.
+  assert.equal(plottedMeasurement(scaleShape(cardiff)), null, "the Cardiff Giant would be drawn as a person");
+});
+
+test("every disputed record separates the claim from what can be established", () => {
+  for (const d of TALLEST_HUMANS_DISPUTED) {
+    assert.match(d.description, /THINGS TO ASK/i, `${d.slug}: no questions for the reader`);
+    // A hoax record that does not say how the hoax was demonstrated is just an
+    // assertion with the opposite sign.
+    if (d.evidenceStatus === "known_hoax") {
+      assert.match(
+        d.description,
+        /confessed|originated on a website|photo-manipulation|contest/i,
+        `${d.slug}: says it is a hoax without saying how that is known`
+      );
+    }
+  }
+});
+
+test("the Smithsonian record does not throw the real problem out with the fake one", () => {
+  // The court case is invented. The missing nineteenth-century remains are
+  // largely real. Collapsing those into one answer would let a genuine gap in
+  // the archaeological record be dismissed along with a fabricated news story.
+  const sm = person("smithsonian-giant-skeletons-claim");
+  assert.equal(sm.claims.length, 2, "the two halves of the claim have been merged");
+  const fabricated = sm.claims.find((c) => c.startYear === 2014);
+  const real = sm.claims.find((c) => c.temporalClaimType === "unknown");
+  assert.ok(fabricated && real, "one half has gone");
+  assert.match(real!.evidence, /probably\s+TRUE/i, "the real half no longer says it is probably true");
+  assert.match(real!.evidence, /without conspiracy|casual collecting/i, "the ordinary explanations have gone");
+});
+
+// ---------------------------------------------------------------------------
+// THE REMAINS CASES
+// ---------------------------------------------------------------------------
+
+test("Cotter O'Brien records two exhumations and refuses to invent their figures", () => {
+  // A lifetime advertisement plus two physical examinations is a better
+  // evidential chain than almost any other historical giant has. The figures
+  // are not in this dataset, and putting a plausible number in would
+  // manufacture the appearance of a measurement out of a recollection of one.
+  const pc = person("patrick-cotter-obrien");
+  const exhumations = pc.claims.filter((c) => /exhumation/i.test(c.whatIsDated ?? ""));
+  assert.equal(exhumations.length, 2, "one of the two exhumations has gone");
+  const skeletal = pc.measurements!.find((m) => m.measurementKind === "skeletal_height");
+  assert.equal(skeletal!.valueCm, undefined, "an exhumation figure has been invented");
+  assert.match(skeletal!.valueAbsentReason ?? "", /has not read the 1906 or 1972 reports/i);
+});
+
+test("Bunford's skeleton is the shorter figure, and the record says why", () => {
+  // The opposite direction from Carroll: here the bones survive and they are
+  // SHORTER than the woman was. A list that swapped one for the other would
+  // move her several places without anybody noticing.
+  const jb = person("jane-bunford");
+  const living = jb.measurements!.find((m) => m.measurementKind === "standing_height_living");
+  const skeletal = jb.measurements!.find((m) => m.measurementKind === "skeletal_height");
+  assert.ok(living && skeletal, "one of the two figures has gone");
+  assert.ok((skeletal!.valueCm ?? 0) < (living!.valueCm ?? 0), "the skeleton should be shorter than the living woman");
+  assert.match(skeletal!.evidence, /not a correction of the one above/i);
+  // Her present whereabouts must not be asserted from memory.
+  assert.equal(jb.remainsLocation, undefined, "a location has been asserted for remains nobody here has traced");
+});
+
+test("Rogan's record treats protected remains as a decision, not a gap", () => {
+  const jr = person("john-rogan");
+  assert.match(jr.remainsLocation ?? "", /concrete|grave robbing/i);
+  assert.match(jr.description, /Byrne/, "the comparison with the man who asked for the same protection has gone");
+  // He could not stand; a length is not a standing height.
+  const m = jr.measurements![0];
+  assert.match(m.evidence, /could not stand/i, "the recumbent/standing distinction has gone");
+});
+
+test("the disputed filter finds the hoaxes, and they still get no bar", () => {
+  // Both halves matter. A fabrication that is filtered out of view has been
+  // hidden rather than explained; a fabrication that gets plotted has been
+  // endorsed. It should be findable and unplottable at once.
+  const shapes = ALL_TALLEST.map(scaleShape);
+  const disputed = shapes.filter((p) => personMatchesFilter(p, "disputed"));
+  for (const slug of ["cardiff-giant", "viral-giant-skeleton-images", "smithsonian-giant-skeletons-claim"]) {
+    assert.ok(disputed.some((p) => p.slug === slug), `${slug} is not reachable under the disputed filter`);
+    assert.equal(plottedMeasurement(shapes.find((p) => p.slug === slug)!), null, `${slug} would be drawn`);
+  }
+  // And Wadlow, who is not disputed, must not be swept in with them.
+  assert.ok(!disputed.some((p) => p.slug === "robert-wadlow"), "Wadlow has been filed as disputed");
+});
+
+test("every person with a plottable figure is plotted from a body measurement", () => {
+  for (const p of ALL_TALLEST.map(scaleShape)) {
+    const m = plottedMeasurement(p);
+    if (!m) continue;
+    assert.equal(measurementKindIsOfABody(m.measurementKind), true, `${p.slug}: plotted from a non-body figure`);
+    assert.equal(typeof m.valueCm, "number", `${p.slug}: plotted with no value`);
   }
 });
