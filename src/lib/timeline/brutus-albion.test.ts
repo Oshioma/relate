@@ -64,7 +64,15 @@ test("the giants are recorded as absent from the earliest text", () => {
   const claim = record("giants-of-albion").claims.find((c) => /Historia Brittonum/i.test(c.originalDateText));
   assert.ok(claim, "the absence-from-the-earliest-text claim has gone");
   assert.match(claim!.evidence, /does NOT have the giant conquest narrative/i);
-  assert.match(claim!.notes ?? "", /NEEDS SOURCE VERIFICATION/, "a claim about what a text lacks must be flagged");
+  // This assertion used to require a NEEDS SOURCE VERIFICATION flag, because the
+  // claim was made at second hand and a claim about what a text LACKS is the
+  // kind most easily got wrong. The text has since been read in full. The flag
+  // is gone because the work was done, so what the test now guards is the
+  // evidence of the work — and the caveat that survives it, since this was
+  // checked in a Victorian translation and not in the Latin recensions.
+  assert.match(claim!.notes ?? "", /VERIFIED/, "the absence claim no longer records that it was checked");
+  assert.match(claim!.notes ?? "", /Gogmagog/i, "it no longer says what was looked for");
+  assert.match(claim!.notes ?? "", /translation|Latin/i, "the remaining caveat has been dropped");
 });
 
 test("every element first attested in Geoffrey says so", () => {
@@ -104,13 +112,27 @@ test("the Culhwch dating is held open, with both datings and their consequences"
   assert.match(disputed.description, /genuinely open/i);
 });
 
-test("the Trinovantum record carries both etymologies, with the mainstream one marked", () => {
+test("the Trinovantum record carries both etymologies and the attestation between them", () => {
   const claims = record("trinovantum-new-troy").claims;
-  assert.equal(claims.length, 2, "one of the two etymologies has gone");
+  assert.equal(claims.length, 3, "one of the three claims has gone");
   assert.ok(claims.some((c) => c.chronology === "traditional"), "the traditional etymology has gone");
-  const mainstream = claims.find((c) => c.chronology === "conventional");
+  const mainstream = claims.find((c) => c.evidence.includes("Trinovantes"));
   assert.ok(mainstream, "the linguistic objection has gone");
   assert.match(mainstream!.evidence, /does not do|NOT DO/i, "the objection no longer says what it does not establish");
+});
+
+test("Trinovantum is dated in the Historia Brittonum, without its etymology", () => {
+  // The correction that decides the record. The NAME is ninth-century; the
+  // Trojan explanation is twelfth. Separating them is what turns the mainstream
+  // objection from an inference into an attested sequence, so the claim has to
+  // keep saying that the earlier attestation carries no Troy in it.
+  const claim = record("trinovantum-new-troy").claims.find((c) => c.sourceKey === "historia_brittonum");
+  assert.ok(claim, "the Historia Brittonum attestation has gone");
+  assert.equal(claim!.temporalClaimType, "date_of_first_known_record");
+  assert.match(claim!.evidence, /bare toponym|WHAT IS NOT THERE/i);
+  assert.match(claim!.evidence, /chapter 20/i, "the chapter is no longer cited");
+  // Giles glosses "(London)" at this point. The text does not say it.
+  assert.match(claim!.notes ?? "", /TRANSLATOR'S/i, "the warning about the translator's gloss has gone");
 });
 
 // ---------------------------------------------------------------------------
