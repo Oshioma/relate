@@ -70,6 +70,7 @@ import {
   seedGiantsHebrewDataset,
   seedGiantsGreekDataset,
   seedGiantsMesopotamiaDataset,
+  seedThirtyThreeVedicDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -287,6 +288,7 @@ export function TimelineView({
   hasGiantsHebrew,
   hasGiantsGreek,
   hasGiantsMesopotamia,
+  hasThirtyThreeVedic,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -351,6 +353,7 @@ export function TimelineView({
   hasGiantsHebrew: boolean;
   hasGiantsGreek: boolean;
   hasGiantsMesopotamia: boolean;
+  hasThirtyThreeVedic: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1918,6 +1921,55 @@ export function TimelineView({
           TEXT SAYS NONE OF IT, AND A TRANSLATOR SUPPLIED THE WORD — Nimrod is a gibbor in Hebrew, which means
           mighty, a champion, a warrior; the Greek translators wrote gigas, and an English Bible has had a giant in
           it ever since. A reader who can tell those four apart can read almost any giant story.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasThirtyThreeVedic && (
+        <DatasetOffer
+          title="Add the oldest chain of the number 33?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedThirtyThreeVedicDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">
+              These records were written without the primary texts open, and every one of them says so.
+            </span>
+            <span className="mt-1 block">
+              The network policy where they were assembled blocked every host the Vedic, Buddhist and Avestan
+              texts live on. Search worked; opening the page did not. So most claims carry{" "}
+              <span className="font-medium">NEEDS SOURCE VERIFICATION</span> naming exactly what somebody with the
+              books should check. Take them as a well-organised starting point, not as checked work.
+            </span>
+          </span>
+          Seven records asking why 33 keeps appearing in religion — and whether the appearances are connected
+          or merely all equal to 33. THE OLDEST SECURE USE is the Rgveda, which addresses thirty-three gods and
+          names far more than thirty-three gods, so the number is a formula and not a census. Its record holds
+          FOUR DIFFERENT DATES that are usually collapsed into one: when the hymns were composed, when they were
+          fixed into a collection, when the oldest surviving copy was written — the eleventh century CE, two
+          and a half thousand years later — and the tradition&apos;s own position that the text has no
+          beginning at all, which sits on the record with no year, because it is not an early date but a different
+          kind of answer. THEN THE CHAIN: the Brahmanas sort the thirty-three into eight Vasus, eleven Rudras,
+          twelve Adityas and two more that are not the same two in every telling — the total is stable and the
+          last two float, which is what an inherited number looks like. Yajnavalkya is asked how many gods there
+          are and answers 3306, then 33, then six, three, two, one and a half, and one, without withdrawing any of
+          them. And the Buddhist Heaven of the Thirty-Three takes the name, holds far more than thirty-three
+          beings, and is ruled by Indra under another name. AND TWO NEGATIVE RECORDS, which are the point: the
+          Avestan thirty-three that is asserted everywhere and could not be found — what exists is a
+          present-day Zoroastrian usage counted off a thirty-day calendar, which cannot be the second ancient
+          witness a Proto-Indo-Iranian reconstruction needs — and the famous 330 million gods, which are very
+          probably one Sanskrit word read in the wrong sense. The reconstruction record carries no date at all,
+          deliberately.
         </DatasetOffer>
       )}
 
