@@ -397,3 +397,61 @@ test("every person with a plottable figure is plotted from a body measurement", 
     assert.equal(typeof m.valueCm, "number", `${p.slug}: plotted with no value`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// TRANCHE THREE: TRAJECTORIES, IMPOSSIBLE PHOTOGRAPHS, AND WIDE DISAGREEMENT
+// ---------------------------------------------------------------------------
+
+test("Trijntje Keever fixes the rule that some photographs cannot exist", () => {
+  // She died in 1633. Photography arrives two centuries later. Any image
+  // presented as a photograph of her is something else, with certainty and
+  // without needing to be examined. That is arithmetic, not a judgement, and
+  // it gives the dataset one case where the media question has a hard answer.
+  const tk = person("trijntje-keever");
+  const life = tk.claims[0];
+  assert.ok((life.endYear ?? 9999) < 1800, "her death date no longer predates photography");
+  assert.match(tk.description, /NO PHOTOGRAPH OF\s+TRIJNTJE KEEVER EXISTS OR CAN EXIST/i);
+  // And no picture may ever be attached to her as a photograph of the person.
+  for (const m of tk.media ?? []) {
+    assert.notEqual(m.shows, "evidence_photograph", "a photograph has been attached to somebody who died in 1633");
+  }
+});
+
+test("Adam Rainer is recorded as a trajectory, not a height", () => {
+  // He has no height. He has a direction. A list that ranks him by his final
+  // figure ranks a man who spent most of his life far shorter than that.
+  const ar = person("adam-rainer");
+  assert.equal(ar.measurements!.length, 2, "one end of the trajectory has gone");
+  const early = ar.measurements!.find((m) => /military/i.test(m.whatIsMeasured));
+  const late = ar.measurements!.find((m) => /end of his life/i.test(m.whatIsMeasured));
+  assert.ok(early && late, "one of the two measurements has gone");
+  // The military figure is the better evidence and is deliberately not invented.
+  assert.equal(early!.valueCm, undefined, "a conscription figure has been invented");
+  assert.match(early!.evidence, /no interest in the answer/i, "why a disinterested measurement is better has gone");
+  assert.match(late!.evidence, /cannot sensibly be ranked/i, "why he cannot be ranked has gone");
+  assert.match(ar.description, /He has no height\. He has a trajectory\./);
+});
+
+test("Makhnov keeps both ends of the disagreement rather than a midpoint", () => {
+  // Thirty centimetres of disagreement about one man means the reporting is
+  // unreliable at both ends. A reader shown only the average would be shown a
+  // number nobody actually claims.
+  const fm = person("fyodor-makhnov");
+  const values = fm.measurements!.map((m) => m.valueCm!).sort((a, b) => a - b);
+  assert.equal(values.length, 2, "the range has been collapsed");
+  assert.ok(values[1] - values[0] > 25, "the spread that is the whole point has been narrowed");
+  const advertised = fm.measurements!.find((m) => m.measurementKind === "advertised_height");
+  assert.ok(advertised, "the promotional figure has been promoted out of its category");
+  assert.match(advertised!.evidence, /does not compete with a well-documented one/i);
+});
+
+test("Zeng Jinlian's figure is not silently called a standing height", () => {
+  // She could not stand erect, so whatever was done it was not a stadiometer
+  // reading. The figure is not in doubt; the method is, and saying "standing
+  // height" would assert something this dataset does not know.
+  const zj = person("zeng-jinlian");
+  const m = zj.measurements![0];
+  assert.equal(m.measurementKind, "reported_unspecified");
+  assert.notEqual(m.measurementKind, "standing_height_living");
+  assert.match(m.evidence, /THE FIGURE IS NOT IN DOUBT\. The method is\./);
+});

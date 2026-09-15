@@ -1347,6 +1347,336 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
       },
     ],
   },
+
+  {
+    slug: "adam-rainer",
+    title: "Adam Rainer, the only person recorded as both",
+    summary:
+      "1899-1950. Austria. Rejected from military service for being too short, then grew past two metres. The one case where the same man appears in the medical literature as a dwarf and as a giant.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person, and the strongest medical case in the dataset after Wadlow — " +
+      "for a different reason. Wadlow was measured well. Rainer was measured for a reason that had nothing " +
+      "to do with his height being interesting.\n\n" +
+      "WHAT HAPPENED. As a young man he was unusually short. He presented for military service during the " +
+      "First World War and was rejected as too small — twice, on separate occasions, which is why there are " +
+      "two independent measurements of him taken by people with no interest in the answer. In his " +
+      "twenties a pituitary tumour began producing excess growth hormone and he grew, substantially and " +
+      "for the rest of his life, ending well over two metres.\n\n" +
+      "WHY THE MILITARY RECORDS MATTER MORE THAN THE FAMOUS FIGURES. A conscription board measuring a " +
+      "recruit is doing paperwork. It has no stake in whether he is remarkable, it applies a stated " +
+      "procedure, and it writes the number down for an unrelated purpose. That is a better class of " +
+      "evidence than almost anything else in this dataset, and it exists here only by accident.\n\n" +
+      "WHY HE IS A HARD CASE FOR A LIST. He has no height. He has a trajectory. Any single figure for Adam " +
+      "Rainer is a figure for a particular year, and a list that ranks him by his final measurement is " +
+      "ranking a man who spent most of his life far shorter than that — while a list that ranks him by his " +
+      "military measurement is ranking a man who later towered over it. Both are him.\n\n" +
+      "ON THE SPECIFIC NUMBERS BELOW. The pattern is well established and the figures are not, in this " +
+      "dataset. They are recorded as reported and flagged, because the medical literature that would fix " +
+      "them has not been read here.\n\n" +
+      "THINGS TO ASK: If a measurement was taken for a reason unconnected to the thing being measured, why " +
+      "is that better evidence? What would you put in a list, for a man whose height changed by most of a " +
+      "metre?",
+    category: "biography",
+    subcategory: "Documented stature",
+    eventType: "historical",
+    evidenceStatus: "strongly_documented",
+    tags: ["tallest-humans", "acromegaly", "austria", "medical-record", "growth-trajectory"],
+    people: ["Adam Rainer"],
+    locationName: "Graz, Austria",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1899,
+        endYear: 1950,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "His life",
+        originalDateText: "About 1899 - 1950",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth and death, from secondary accounts.",
+        notes: "NEEDS SOURCE VERIFICATION against Austrian civil records.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Standing height at military examination, as a young man",
+        valueAbsentReason:
+          "This dataset has not read the conscription records or the medical literature reporting them. " +
+          "Figures well under 1.5 m circulate for his examinations around 1917-1918. No value is entered, " +
+          "because the whole point of this measurement is that it was taken carefully by a disinterested " +
+          "party, and a number taken from general knowledge would have exactly the property the record is " +
+          "praising the original for lacking.",
+        originalValueText: "Rejected as too short at military examination; figure not obtained here",
+        measurementKind: "standing_height_living",
+        measurementMethod: "official_records_body",
+        evidenceStatus: "unresolved",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS KNOWN: that he was measured at least twice by a conscription board and rejected as too " +
+          "small. WHY THAT IS THE BEST EVIDENCE ABOUT HIM: the board had no interest in the answer and " +
+          "wrote it down for an unrelated purpose. WHAT IS NOT KNOWN HERE: the figures.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. Austrian military records and the case reports in the endocrinology " +
+          "literature would close this, and it is worth closing: a disinterested measurement of a person " +
+          "later famous for their height is a rare thing.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "Standing height at or near the end of his life",
+        valueCm: 234,
+        originalValueText: "Reported at about 2.34 m at death",
+        measurementKind: "standing_height_living",
+        measurementMethod: "medical_examination",
+        evidenceStatus: "strongly_documented",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS CLAIMED: about 234 cm. THE IMPORTANT THING IS NOT THE NUMBER BUT THE DIFFERENCE between " +
+          "it and the figure above: he grew by something in the order of a metre after the age at which " +
+          "growth normally stops. WHY HE CANNOT SENSIBLY BE RANKED: this figure describes the last years of " +
+          "a life spent mostly at a very different height.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the figure and for who took it. Reported values for his final " +
+          "height vary between accounts.",
+      },
+    ],
+  },
+
+  {
+    slug: "trijntje-keever",
+    title: "Trijntje Keever, who died two centuries before photography",
+    summary:
+      "1616-1633. Edam. Reported at about 2.54 m at seventeen. No photograph of her can exist, which makes her the record that fixes a rule for the whole dataset.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person, and a hard logical boundary that the rest of the dataset can " +
+      "be checked against.\n\n" +
+      "SHE DIED IN 1633. Photography was not invented for another two centuries. Therefore NO PHOTOGRAPH OF " +
+      "TRIJNTJE KEEVER EXISTS OR CAN EXIST. Any image presented as one is, with certainty and without " +
+      "needing to be examined, something else: a painting, an engraving, a later illustration, or a " +
+      "fabrication. That is not a judgement about any particular picture. It is arithmetic.\n\n" +
+      "WHY THAT IS WORTH A RECORD OF ITS OWN. Because it gives the dataset one case where the media " +
+      "question has a certain answer, and a rule that generalises: for anybody who died before roughly the " +
+      "1840s, a photograph is impossible, and for anybody who died in the decades after, it is a claim " +
+      "requiring evidence rather than an assumption. A collection that cannot apply that test to its own " +
+      "pictures is not an evidence archive.\n\n" +
+      "WHAT DOES SURVIVE. She was known as de Groote Meid, the Big Girl, was exhibited in her lifetime, and " +
+      "died at seventeen. A painted portrait is associated with her, and objects connected to her are " +
+      "reported. Those are real categories of evidence with real limitations — a painter works to a " +
+      "commission and to a convention, and a portrait that flatters a subject's size is doing its job.\n\n" +
+      "THE HEIGHT. About 2.54 m is the figure usually given, which would make her the tallest woman in this " +
+      "dataset by a considerable margin. It rests on seventeenth-century report and on nothing this dataset " +
+      "has been able to check. That is not a reason to leave her out; it is a reason to say so.\n\n" +
+      "THINGS TO ASK: What could establish the height of somebody who died in 1633? If a painting is the " +
+      "only image, what is it evidence of?",
+    category: "biography",
+    subcategory: "Before photography",
+    eventType: "historical",
+    evidenceStatus: "historical_report_remains_lost",
+    tags: ["tallest-humans", "netherlands", "pre-photographic", "portrait", "advertised-height"],
+    people: ["Trijntje Keever"],
+    locationName: "Edam, Netherlands",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1616,
+        endYear: 1633,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "Her life",
+        originalDateText: "About 1616 - 1633; she died at seventeen",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS DATED: birth and death. WHY IT MATTERS BEYOND HER: the death date is what makes a " +
+          "photograph of her impossible, which is the rule this record exists to fix.",
+        notes: "NEEDS SOURCE VERIFICATION against Dutch parish records, which for Edam may well survive.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height as reported in her lifetime",
+        valueCm: 254,
+        originalValueText: "About 2.54 m, reported at seventeen",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "press_report",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 254 cm. WHAT SUPPORTS IT: seventeenth-century report, in a context where " +
+          "she was being exhibited. WHAT DOES NOT SUPPORT IT: any surviving measurement, any remains, and " +
+          "any document this dataset has read. IF TRUE she would be the tallest woman recorded anywhere — " +
+          "which is exactly the kind of claim that should be held to a higher standard than it usually is, " +
+          "and is not being held to one here for want of sources.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. Dutch local archives at Edam are the place to look. Treat the figure " +
+          "as a seventeenth-century assertion, not as a measurement.",
+      },
+    ],
+  },
+
+  {
+    slug: "zeng-jinlian",
+    title: "Zeng Jinlian",
+    summary:
+      "1964-1982. Hunan. 246.3 cm — the tallest woman reliably recorded — and, like John Carroll, she could not stand straight to be measured.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person, and a reminder that the measurement problem this dataset is " +
+      "built around is not confined to the nineteenth century.\n\n" +
+      "THE FIGURE. 246.3 cm, which is the tallest reliably recorded for any woman. It belongs to the modern " +
+      "era of documented measurement rather than to the era of the playbill, and it is not seriously " +
+      "disputed.\n\n" +
+      "THE COMPLICATION, WHICH IS THE SAME ONE AS CARROLL'S. She had severe spinal curvature and could not " +
+      "stand erect. A figure for somebody who cannot stand is not a standing height — it is a length, " +
+      "obtained some other way, and the method matters enormously to what the number means. This dataset " +
+      "does not know how hers was obtained and says so below rather than implying a stadiometer.\n\n" +
+      "WHY SHE IS NOT FILED THE WAY CARROLL IS. Carroll's famous figure is explicitly a CORRECTION — a " +
+      "reconstruction of a height he never stood at. Hers is presented as a measurement of her. Those are " +
+      "different claims even when the underlying difficulty is the same, and flattening them would be its " +
+      "own error.\n\n" +
+      "SHE DIED AT SEVENTEEN, of illness, having begun growing in infancy. Like Wadlow and like Bunford, " +
+      "she is a record of a life cut short by the same condition that made it remarkable, and the dataset " +
+      "should not lose that behind the number.\n\n" +
+      "THINGS TO ASK: How would you measure somebody who cannot stand? Does the answer change what the " +
+      "figure can be compared with?",
+    category: "biography",
+    subcategory: "Documented stature",
+    eventType: "historical",
+    evidenceStatus: "strongly_documented",
+    tags: ["tallest-humans", "gigantism", "china", "scoliosis", "tallest-woman"],
+    people: ["Zeng Jinlian"],
+    locationName: "Yujiang village, Hunan, China",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1964,
+        endYear: 1982,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        whatIsDated: "Her life",
+        originalDateText: "1964 - 1982",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth and death. She died at seventeen.",
+        notes: "NEEDS SOURCE VERIFICATION against Chinese records.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height as recorded, by a method this dataset has not established",
+        valueCm: 246.3,
+        originalValueText: "246.3 cm (8 ft 1 in)",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "strongly_documented",
+        directlyMeasured: true,
+        evidence:
+          "WHAT IS CLAIMED: 246.3 cm, the tallest reliably recorded figure for a woman. WHY IT IS FILED AS " +
+          "METHOD-UNSTATED RATHER THAN AS A STANDING HEIGHT: because she could not stand erect, so whatever " +
+          "was done, it was not a stadiometer reading, and calling it one would assert something this " +
+          "dataset does not know. THE FIGURE IS NOT IN DOUBT. The method is.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for how and when the measurement was taken. The precision of the " +
+          "figure — a tenth of a centimetre — implies a careful procedure, which is a further reason to " +
+          "want the procedure named rather than assumed.",
+      },
+    ],
+  },
+
+  {
+    slug: "fyodor-makhnov",
+    title: "Fyodor Makhnov, and a thirty-centimetre disagreement",
+    summary:
+      "1878-1912. Reported anywhere between about 239 cm and 285 cm. The spread between the claims is larger than the difference between most people in this dataset.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A person whose record is mostly a record of how badly heights can be " +
+      "reported.\n\n" +
+      "THE PROBLEM. Figures given for Makhnov range from the high two-thirties to around 285 cm. That " +
+      "spread — something like thirty centimetres — is bigger than the gap between Robert Wadlow and John " +
+      "Carroll. Whatever else is true, most of the numbers in circulation for him are wrong, and there is " +
+      "no basis in this dataset for choosing among them.\n\n" +
+      "WHY THE HIGH FIGURE SHOULD BE TREATED WITH PARTICULAR CARE. 285 cm would make him by a wide margin " +
+      "the tallest human ever recorded, comfortably beyond Wadlow, whose 272 cm rests on years of " +
+      "physicians' measurements. An extraordinary figure resting on publicity material is not a rival to a " +
+      "well-documented one; it is a different kind of statement, and the dataset records it as such rather " +
+      "than either printing it or deleting it.\n\n" +
+      "WHAT WOULD SETTLE IT. Original Russian and Belarusian material: press of the period, any medical " +
+      "examination, and the circumstances of his burial. His name appears in several transliterations, " +
+      "which is itself part of why the record is a mess — the same man is searched for under half a dozen " +
+      "spellings and the results do not meet.\n\n" +
+      "WHY HE IS IN THE DATASET AT ALL. Because leaving out the badly-evidenced cases would make the " +
+      "collection look far tidier than the subject is. A reader should be able to see that some famous " +
+      "heights are supported and some are not, and the way to show that is to include both and say which " +
+      "is which.\n\n" +
+      "THINGS TO ASK: When several figures for one person differ by a foot, what does that tell you about " +
+      "all of them? Which would you believe, and what would change your mind?",
+    category: "biography",
+    subcategory: "Contested figures",
+    eventType: "disputed",
+    evidenceStatus: "disputed",
+    tags: ["tallest-humans", "belarus", "contested", "advertised-height", "transliteration"],
+    people: ["Fyodor Makhnov"],
+    locationName: "Vitebsk region, present-day Belarus",
+    claims: [
+      {
+        sourceKey: null,
+        startYear: 1878,
+        endYear: 1912,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "His life",
+        originalDateText: "About 1878 - 1912",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence: "WHAT IS DATED: birth and death, from secondary accounts.",
+        notes:
+          "NEEDS SOURCE VERIFICATION. His name is transliterated variously — Makhnov, Machnow, Makhnow — " +
+          "which fragments the record and is worth noting for anybody searching.",
+      },
+    ],
+    measurements: [
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height as claimed in publicity material",
+        valueCm: 285,
+        originalValueText: "About 285 cm, in promotional and popular accounts",
+        measurementKind: "advertised_height",
+        measurementMethod: "promotional",
+        evidenceStatus: "disputed",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 285 cm. WHAT THAT WOULD MEAN: comfortably the tallest human ever " +
+          "recorded, well beyond Wadlow's medically documented 272 cm. WHO CLAIMED IT: publicity. WHY IT IS " +
+          "RECORDED AND NOT PRINTED AS HIS HEIGHT: an extraordinary figure resting on promotional material " +
+          "does not compete with a well-documented one — it belongs in a different column, and this is that " +
+          "column.",
+        notes:
+          "NEEDS SOURCE VERIFICATION against period Russian and Belarusian sources. Do not promote this " +
+          "figure out of the advertised category without a measuring occasion.",
+      },
+      {
+        sourceKey: null,
+        whatIsMeasured: "Height in the lower accounts",
+        valueCm: 239,
+        originalValueText: "About 239 cm in more conservative accounts",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "disputed",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: about 239 cm. WHY BOTH ENDS ARE RECORDED: the SPREAD is the finding. Thirty " +
+          "centimetres of disagreement about one man means the reporting is unreliable at both ends, and a " +
+          "reader shown only the midpoint would be shown a number nobody actually claims.",
+        notes: "NEEDS SOURCE VERIFICATION. Neither end of the range has been traced to a document here.",
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
