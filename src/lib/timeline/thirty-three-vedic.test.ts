@@ -42,8 +42,28 @@ test("every claim that needs a text opened says so, by name", () => {
 test("the sources that could not be opened say which they are", () => {
   // Naming the unreadable sources in the source list matters as much as naming
   // them on the claims: somebody auditing this will start from the bibliography.
+  // The threshold was 5 and is now 4, MEASURED, not guessed. It fell because
+  // two sources were read, not because flags were removed: the Yasna and the
+  // Iranica article both came off the list when their texts were opened and
+  // the findings resting on them were corrected. If this number falls again,
+  // the reason should be the same one, and the test below is what checks it.
   const unopened = THIRTY_THREE_VEDIC_SOURCES.filter((s) => /NEEDS SOURCE VERIFICATION/.test(s.notes));
-  assert.ok(unopened.length >= 5, `only ${unopened.length} sources admit they were not opened`);
+  assert.ok(unopened.length >= 4, `only ${unopened.length} sources admit they were not opened`);
+});
+
+test("the two sources that were read say what reading them changed", () => {
+  // A flag removed silently is indistinguishable from a flag removed because
+  // somebody did the work. These two must carry the evidence of the work.
+  const byKey = (k: string) => THIRTY_THREE_VEDIC_SOURCES.find((s) => s.key === k)!;
+  const yasna = byKey("avesta_yasna");
+  assert.doesNotMatch(yasna.notes, /NEEDS SOURCE VERIFICATION/);
+  assert.match(yasna.notes, /thrayasca thrisasca/i, "the Yasna note no longer quotes what was found");
+  assert.match(yasna.reference ?? "", /Geldner/i, "the edition actually consulted is no longer named");
+  const iranica = byKey("iranica_amesa_spenta");
+  assert.doesNotMatch(iranica.notes, /NEEDS SOURCE VERIFICATION/);
+  assert.match(iranica.notes, /Boyce writes no such thing/i, "the correction has been smoothed away");
+  assert.match(iranica.reference ?? "", /933-936/, "the full citation has gone");
+  assert.match(iranica.reference ?? "", /10\.1163/, "the DOI has gone");
 });
 
 test("no claim anywhere carries a confidence score", () => {
@@ -125,26 +145,49 @@ test("the Vedic-to-Buddhist edge is source_of and says it is class B, not A", ()
 // THE NEGATIVE FINDING, WHICH IS THE POINT OF THE TRANCHE
 // ---------------------------------------------------------------------------
 
-test("the Avestan record is unresolved, not refuted", () => {
-  // A failed search is not a demonstration. The record has to keep saying so,
-  // because the temptation to harden it into "there is no Avestan 33" is
-  // exactly the mistake this dataset exists to avoid making in the other
-  // direction.
+test("the Avestan record cites the passage, and shows that it once denied it", () => {
+  // This test used to assert the opposite. The record said no Avestan passage
+  // naming thirty-three could be found; the Yasna has the formula eight times.
+  // A failed search had been written up as though it were a fact about a text.
+  // What this test now guards is BOTH halves: that the attestation is cited
+  // precisely enough to check, and that the record still admits it was wrong,
+  // because a correction that erases its own history teaches nobody anything.
   const record = event("avestan-thirty-three-unresolved");
-  assert.equal(record.eventType, "disputed");
-  assert.match(record.description, /Absence found by searching is not absence/i);
-  assert.match(record.eventTypeNote ?? "", /unresolved rather than as refuted/i);
+  assert.notEqual(record.eventType, "disputed", "the attestation is not in dispute; it is in the text");
+  assert.match(record.description, /thrayasca thrisasca/i, "the Avestan phrase has gone");
+  for (const loc of ["1.10", "2.10", "3.12", "4.15", "6.9", "7.12", "17.9", "22.12"]) {
+    assert.ok(record.description.includes(loc), `Yasna ${loc} is no longer cited`);
+  }
+  assert.match(record.description, /overturned|correction/i, "the record no longer admits it was corrected");
+  // And the finding it replaced must not creep back in.
+  assert.doesNotMatch(record.description, /no such passage found/i);
 });
 
-test("the Zoroastrian thirty-three is recorded as modern and calendrical", () => {
-  // The distinction the whole Proto-Indo-Iranian question turns on. If this
-  // claim ever reads as an ancient attestation, the hypothesis record silently
-  // becomes supportable.
+test("the Vedic and Avestan thirty-threes are not quietly equated", () => {
+  // The formula is shared; the referents are not. The Vedic thirty-three
+  // counts gods, the Avestan thirty-three counts ratus of ritual time. Losing
+  // that distinction would turn a real and interesting finding into an
+  // overclaim, which is the failure mode on this side of the correction.
+  const record = event("avestan-thirty-three-unresolved");
+  assert.match(record.description, /ritual TIME|ritual time/, "the record no longer says what the ratus are");
+  assert.match(record.description, /not a census of gods|divergent referent|different things/i);
+});
+
+test("Boyce is quoted for what she wrote, and not for the number she did not give", () => {
+  // This dataset once attributed to her a sentence about "the thirty-three
+  // divinities" with day-names or Yashts. She wrote no such sentence. The
+  // fabricated version was doing work in an argument. This test guards the
+  // real quotation and, just as importantly, guards the admission that the
+  // arithmetic of thirty-plus-three is the reader's and not hers.
   const claim = event("avestan-thirty-three-unresolved").claims.find((c) => c.sourceKey === "iranica_amesa_spenta");
   assert.ok(claim, "the Iranica claim has gone");
   assert.match(claim!.originalDateText, /present-day|modern/i);
-  assert.match(claim!.evidence, /calendar/i, "the claim no longer says where the number comes from");
+  assert.match(claim!.evidence, /calendrical/i, "Boyce's actual wording has gone");
+  assert.match(claim!.evidence, /Burz Yazad/, "the three extra dedications she names have gone");
+  assert.match(claim!.evidence, /BOYCE DOES NOT GIVE THE NUMBER/);
   assert.ok(claim!.startYear! > 1800, "a modern usage has been given an ancient date");
+  // The invented paraphrase must not return.
+  assert.doesNotMatch(claim!.evidence, /Yasht/i, "the Yasht detail was never in the article");
 });
 
 test("the Proto-Indo-Iranian hypothesis carries no date at all", () => {
@@ -160,10 +203,18 @@ test("the Proto-Indo-Iranian hypothesis carries no date at all", () => {
   assert.match(record.description, /must not be given a date/i);
 });
 
-test("the hypothesis says plainly that it has one branch and needs two", () => {
+test("the hypothesis now has both branches, and still has no date", () => {
+  // It previously said the argument failed for want of a second branch. The
+  // second branch was there all along. The claim must now say so, must say
+  // what is still missing, and must go on refusing a date: two attestations
+  // argue for inheritance and say nothing whatever about when.
   const claim = event("proto-indo-iranian-thirty-three-hypothesis").claims[0];
-  assert.match(claim.evidence, /attestation in both branches/i);
-  assert.match(claim.evidence, /attestation in one/i);
+  assert.match(claim.evidence, /attestation in both/i);
+  assert.match(claim.evidence, /cognate/i, "the reason the parallel is strong has gone");
+  assert.match(claim.evidence, /STILL MISSING/i, "the claim no longer says what it lacks");
+  assert.doesNotMatch(claim.evidence, /attestation in one\./i, "the superseded finding is back");
+  assert.match(claim.notes ?? "", /CORRECTED/);
+  assert.equal(claim.startYear, undefined);
 });
 
 // ---------------------------------------------------------------------------
