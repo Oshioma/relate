@@ -71,9 +71,15 @@ export const BRUTUS_ALBION_SOURCES: SeedSource[] = [
     notes:
       "THE EARLIEST SURVIVING TEXT THAT HAS BRUTUS. A Latin compilation, traditionally attributed to Nennius on " +
       "the strength of a preface that a number of specialists regard as a later forgery — so it is most safely " +
-      "described as anonymous. Cited for the Trojan origin genealogy, and for the compiler's own statement that " +
-      "he had met more than one account of how Britain came to be settled. Linked here in the J. A. Giles " +
-      "translation, which is the one usually quoted in English and is Victorian.",
+      "described as anonymous. READ, in the J. A. Giles translation (Project Gutenberg EBook 1972), and the " +
+      "readings this dataset rests on were checked in it directly. WHAT IT CONTAINS: Brutus at chapters 7-18, " +
+      "the Eli/Ark synchronism at 11 verbatim, and the compiler flagging his sources TWICE — 'I have seen two " +
+      "distinct relations' (10) and 'I have learned another account of this Brutus from the ancient books of our " +
+      "ancestors' (17). WHAT IT DOES NOT CONTAIN, checked by reading the whole text: no giants, no Gogmagog, no " +
+      "Corineus, no wrestling, no Albion, no Troia Nova. CAUTION ON ITS DATE: Giles's printed text says in its " +
+      "own preface (1) that it was compiled 'in the 858th year of our Lord's incarnation', not 829; the " +
+      "recensions differ and Giles conflates them. Victorian translation, so its wording is not evidence for the " +
+      "Latin.",
   },
   {
     key: "chartres_codex",
@@ -156,16 +162,22 @@ export const BRUTUS_ALBION_SOURCES: SeedSource[] = [
     key: "clark_totnes",
     title: "Trojans at Totnes and Giants on the Hoe: Geoffrey of Monmouth, Historical Fiction and Geographical Reality",
     author: "J. Clark",
-    workTitle: "Transactions of the Devonshire Association",
-    reference: "2016",
+    workTitle: "Report and Transactions of the Devonshire Association for the Advancement of Science",
+    reference: "Volume 148 (June 2016), pages 89-130",
     url: "https://devonassoc.org.uk/wp-content/uploads/2019/01/Trojans-at-Totnes-Clark-TDA-2016.pdf",
     sourceType: "academic_paper",
     publishedYear: 2016,
     notes:
       "On Geoffrey's use of real West Country geography for a fictional landing — Totnes, and the Hoe at " +
       "Plymouth where the wrestling is placed. Cited because it addresses the exact question a reader asks here: " +
-      "what does it mean that an invented story is set in findable places? NEEDS SOURCE VERIFICATION for its " +
-      "specific conclusions; the PDF could not be opened.",
+      "what does it mean that an invented story is set in findable places? NOW READ. John Clark, Curator " +
+      "Emeritus of the Museum of London. THE FINDING THAT MATTERS MOST HERE: Geoffrey never writes 'Totnes' as a " +
+      "place at all — only the adjective Totonesius, 'Totnesian', in 'Totonesium litus' (the Totnesian coast) " +
+      "and 'Totonesius portus'. Translators who write 'landed at Totnes' have added something he did not say. " +
+      "SECOND FINDING, A WARNING ABOUT TEXTS: the Celtic form 'Lamgoemagot' that commentators built arguments on " +
+      "is NOT Geoffrey's. It is a later gloss, probably by Ivo Cavellatus in the first printed edition of 1508, " +
+      "and it stood in every printed edition until 1929. Four centuries of scholarship chasing a word the author " +
+      "never wrote.",
   },
   {
     key: "culhwch_olwen",
@@ -358,6 +370,24 @@ export const BRUTUS_ALBION_EVENTS: SeedEvent[] = [
       "WHAT IT PROVES, WHICH IS NARROW AND REAL. That the Brutus tradition existed three centuries before Geoffrey of Monmouth. Anybody who says Geoffrey made Brutus up is wrong, and this is the document that shows it.\n\n" +
       "WHAT IT DOES NOT PROVE. That Brutus existed in the twelfth century BCE. A ninth-century text is a ninth-century text.\n\n" +
       "THE COMPILER'S OWN SENTENCE, which is the best thing in the record and is usually left out. In the Giles translation: 'Respecting the period when this island became inhabited subsequently to the flood, I have seen two distinct relations.' He is not reporting a settled tradition. He is telling the reader that he has found competing accounts and is giving them what he has. That is a ninth-century compiler behaving better than most of the people who have since quoted him.\n\n" +
+      "IT IS NOT TWO RELATIONS. IT IS AT LEAST THREE, AND THEY ARE DIFFERENT MEN. Reading the whole text " +
+      "rather than the famous sentence: chapter 10 gives Brutus as a Roman consul who conquered Spain and " +
+      "subdued Britain, and ALSO Brutus the great-grandson of Aeneas who killed his father with an arrow, was " +
+      "exiled, founded Tours and then came to the island. Chapter 15 has 'Brutus, who first exercised the " +
+      "consular office' over the Romans — that is Lucius Junius Brutus, of 509 BCE, a third man entirely. " +
+      "Chapters 17-18 then give a wholly separate descent, flagged with 'I have learned another account of this " +
+      "Brutus from the ancient books of our ancestors': Brutus son of Hisicion son of Alanus, brother of " +
+      "Francus, Romanus and Alamanus, traced back through Japheth to Noah. That last is the Frankish Table of " +
+      "Nations, not a Trojan story at all.\n\n" +
+      "WHY THAT MATTERS MORE THAN THE SINGLE SENTENCE. The earliest Brutus text does not preserve a tradition. " +
+      "It preserves a PROBLEM — several incompatible explanations of the same name, set side by side by a " +
+      "compiler who marks each one as something he has been told rather than something he knows. The tidy " +
+      "Trojan Brutus that later writers inherit is one option out of several that were live in the ninth " +
+      "century.\n\n" +
+      "WHAT IT DOES CONFIRM. Chapter 11 carries the Eli synchronism word for word: Brutus 'governed Britain at " +
+      "the time Eli the high-priest judged Israel, and when the ark of the covenant was taken by a foreign " +
+      "people'. The anchor record's claim that the text fixes its date by synchronism rather than by year is " +
+      "checked and correct.\n\n" +
       "THE MANUSCRIPTS, AND A LOSS. At least five manuscripts preserve the work and they do not all agree. The most complete is the Harleian. The OLDEST known copy was the Chartres Codex, of about 900 — and it was destroyed when the library at Chartres was bombed in May 1944. So the oldest witness to the earliest Brutus text is now itself known only at second hand, which is a fact about this cluster's evidence that no summary should drop.\n\n" +
       "THINGS TO ASK: What is the difference between 'the tradition is ninth-century' and 'the events are twelfth-century BCE'? Why would a compiler say he had found two accounts rather than picking one? What was in the Chartres manuscript that the surviving copies might not have?",
     category: "history",
@@ -504,9 +534,12 @@ export const BRUTUS_ALBION_EVENTS: SeedEvent[] = [
           "they belong to. WHAT IT DOES NOT SETTLE: whether Geoffrey invented them or drew on Welsh material " +
           "that happens not to survive — the next record is about exactly that.",
         notes:
-          "NEEDS SOURCE VERIFICATION by somebody reading the Historia Brittonum's Brutus chapters in full. This " +
-          "is a claim about what a text does NOT contain, and that is the kind of claim most easily got wrong at " +
-          "second hand.",
+          "VERIFIED. This was flagged as the riskiest claim in the tranche — a claim about what a text does NOT " +
+          "contain, which is the kind most easily got wrong at second hand. The Historia Brittonum has now been " +
+          "read in full in the Giles translation. There are no giants in it: no Gogmagog, no Corineus, no " +
+          "wrestling match, no Albion, no Troia Nova. The absence is real. REMAINING CAVEAT, and it is not " +
+          "nothing: this was checked in a Victorian English translation, not in the Latin recensions, and a " +
+          "reading of the Harleian text is still the thing that would close it properly.",
       },
     ],
   },
@@ -658,6 +691,13 @@ export const BRUTUS_ALBION_EVENTS: SeedEvent[] = [
       "THE TRADITIONAL CLAIM. Brutus founded a city on the Thames and called it Troia Nova, New Troy. The name was gradually corrupted to Trinovantum, and the city later became London. In the tradition this is the origin of London and the reason the Britons could claim Trojan descent as a civic fact and not only a royal one.\n\n" +
       "THE MAINSTREAM OBJECTION, WHICH IS ABOUT DIRECTION. There was a real Iron Age people in south-eastern Britain called the Trinovantes, named in Caesar. The linguistic reading of their name has nothing to do with Troy — it is generally taken as Celtic, with the intensive prefix tri- and an element meaning new, giving something like 'the very vigorous' or 'the newcomers'. On this account the tribal name is the older thing, the city name Trinovantum was inferred from it by early medieval writers reading ambiguous Latin in Caesar and Orosius, and Geoffrey then explained Trinovantum by inventing Troia Nova. The causality in the legend runs backwards.\n\n" +
       "WHAT THIS RECORD DOES WITH THAT. It records both, with their reasoning, and does not merge them. The mainstream account is the mainstream account and is marked as such. It is also worth seeing how it works: it is not a flat denial but a specific alternative history of a word, which is a much more interesting thing to put in front of a reader.\n\n" +
+      "A CORRECTION THIS RECORD NEEDED, AND IT CUTS TOWARDS THE OBJECTION. This dataset implied the name " +
+      "Trinovantum enters the story with Geoffrey. It does not. The Historia Brittonum, three centuries earlier, " +
+      "already has it: at chapter 20 the Romans under Julius defeat the Britons 'near a place called " +
+      "Trinovantum'. But it appears there as a BARE PLACE NAME — no Brutus, no foundation, no Troy, no " +
+      "etymology. So the sequence is: the name is in circulation by the ninth century as somewhere a battle " +
+      "happened; Geoffrey in the 1130s supplies Troia Nova to explain it. That is precisely the direction the " +
+      "mainstream objection describes, and it is now attested rather than inferred.\n\n" +
       "THE SAME PATTERN RUNS THROUGH THE WHOLE TRADITION. Brutus explains Britain. Corineus explains Cornwall. Locrinus, Kamber and Albanactus explain Loegria, Cambria and Albany. Troia Nova explains Trinovantum. These are etymological legends — stories generated to account for names that already existed — and recognising the pattern is more useful than arguing about any single one of them.\n\n" +
       "THINGS TO ASK: Which is more likely, that a name wore down from Troia Nova to Trinovantum, or that somebody who knew the name Trinovantum built a story to explain it? What would settle it? Does the pattern across all the names strengthen the objection or weaken it?",
     category: "history",
@@ -684,6 +724,31 @@ export const BRUTUS_ALBION_EVENTS: SeedEvent[] = [
           "POSITION ON THE STRIP: the founding would belong to the traditional Brutus chronology, and giving it " +
           "its own year would be spending the landing's computed date twice. This is a claim about a name's " +
           "history, and it is recorded as one.",
+      },
+      {
+        sourceKey: "historia_brittonum",
+        startYear: 830,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "date_of_first_known_record",
+        whatIsDated: "When the name Trinovantum is first attested, without any Trojan etymology",
+        originalDateText: "'a place called Trinovantum' — Historia Brittonum 20, about 829-830",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS ESTABLISHED, BY READING THE TEXT: the Historia Brittonum uses the name three centuries before " +
+          "Geoffrey. At chapter 20 the Romans under Julius defeat the Britons 'near a place called Trinovantum', " +
+          "forty-seven years before Christ. WHAT IS NOT THERE: any connection to Brutus, to a foundation, or to " +
+          "Troy. It is a bare toponym in a battle notice. WHY THAT IS EVIDENCE AND NOT TRIVIA: it separates the " +
+          "NAME from the ETYMOLOGY and dates them apart. The name is in circulation by the ninth century; the " +
+          "Troia Nova explanation arrives with Geoffrey in the 1130s. An explanation that postdates the thing it " +
+          "explains by three hundred years is the signature of an etymological legend. WHAT IT STILL DOES NOT " +
+          "SETTLE: where the ninth-century compiler got the name, which is the next question and is open.",
+        notes:
+          "Read in the Giles translation. CAUTION: '(London)' in Giles at this point is the TRANSLATOR'S " +
+          "parenthetical gloss, not the text's — the Historia does not there identify Trinovantum with London. " +
+          "Mistaking a Victorian editor's helpfulness for a ninth-century statement is exactly the error this " +
+          "claim is designed to prevent.",
       },
       {
         sourceKey: "wikipedia_trinovantum",
