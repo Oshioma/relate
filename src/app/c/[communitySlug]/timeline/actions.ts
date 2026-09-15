@@ -130,7 +130,12 @@ import {
   THIRTY_THREE_VEDIC_SOURCES,
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
-import { TALLEST_HUMANS_EVENTS, TALLEST_HUMANS_SOURCES, TALLEST_HUMANS_TRACK } from "@/lib/timeline/tallest-humans-seed";
+import {
+  TALLEST_HUMANS_DISPUTED,
+  TALLEST_HUMANS_EVENTS,
+  TALLEST_HUMANS_SOURCES,
+  TALLEST_HUMANS_TRACK,
+} from "@/lib/timeline/tallest-humans-seed";
 import {
   BRUTUS_ALBION_EVENTS,
   BRUTUS_ALBION_LINKS,
@@ -2040,7 +2045,11 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   {
     label: "Tallest humans: what the evidence actually is",
     track: TALLEST_HUMANS_TRACK,
-    events: TALLEST_HUMANS_EVENTS,
+    // The disputed records seed alongside the verified ones, in the same lane.
+    // They are a separate EXPORT so nothing can treat them as equivalent, and
+    // the same dataset so a reader meets them together — a claims section
+    // filed somewhere else is a claims section nobody reads.
+    events: [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED],
     sources: TALLEST_HUMANS_SOURCES,
   },
 ];
@@ -3006,7 +3015,7 @@ export async function seedTallestHumansDataset(communitySlug: string) {
   if (!isStaff) return { error: "Only staff can add this dataset." };
 
   const result = await seedDataset(supabase, community, userId, {
-    events: TALLEST_HUMANS_EVENTS,
+    events: [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED],
     sources: TALLEST_HUMANS_SOURCES,
     track: TALLEST_HUMANS_TRACK,
     label: "Tallest humans: what the evidence actually is",

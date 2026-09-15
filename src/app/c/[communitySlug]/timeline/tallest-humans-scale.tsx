@@ -10,6 +10,19 @@ import {
   measurementKindLabel,
   measurementMethodLabel,
 } from "@/lib/timeline/taxonomy";
+import {
+  personMatchesFilter,
+  plottedMeasurement,
+  SCALE_FILTERS,
+  type ScaleFilterKey,
+  type ScalePerson,
+} from "@/lib/timeline/tallest-humans-scale-logic";
+
+/** An ordinary adult man, for scale. Stated, not assumed. */
+const REFERENCE_CM = 175;
+const REFERENCE_LABEL = "Average adult man, 175 cm";
+const FILTERS = SCALE_FILTERS;
+type FilterKey = ScaleFilterKey;
 
 // TALLEST HUMANS IN THE EVIDENCE RECORD.
 //
@@ -32,90 +45,6 @@ import {
 // of an argument, and a reader should be able to open it: what was measured,
 // by what method, on what authority, and what else has been claimed. Every
 // figure here answers "why this height?".
-
-export type ScaleMeasurement = {
-  whatIsMeasured: string;
-  valueCm?: number;
-  valueAbsentReason?: string;
-  valueLowCm?: number;
-  valueHighCm?: number;
-  originalValueText: string;
-  measurementKind: string;
-  measurementMethod: string;
-  evidenceStatus: string;
-  directlyMeasured?: boolean;
-  measuredOn?: string;
-  measuredBy?: string;
-  evidence: string;
-  notes?: string;
-};
-
-export type ScalePerson = {
-  slug: string;
-  title: string;
-  summary: string;
-  evidenceStatus?: string;
-  remainsLocation?: string;
-  accessionNumber?: string;
-  hasPhotograph?: boolean;
-  hasRemainsPhotograph?: boolean;
-  measurements: ScaleMeasurement[];
-};
-
-/** An ordinary adult man, for scale. Stated, not assumed. */
-const REFERENCE_CM = 175;
-const REFERENCE_LABEL = "Average adult man, 175 cm";
-
-const FILTERS = [
-  { key: "all", label: "All" },
-  { key: "photographed", label: "Photographed" },
-  { key: "physical_remains", label: "Physical remains" },
-  { key: "medically_verified", label: "Medically verified" },
-  { key: "historical_claims", label: "Historical claims" },
-  { key: "disputed", label: "Disputed" },
-] as const;
-
-type FilterKey = (typeof FILTERS)[number]["key"];
-
-/**
- * The figure a person is PLOTTED at.
- *
- * Deliberately prefers a directly measured height over a reconstruction, so the
- * chart is a chart of one quantity wherever it can be. Where only an estimate
- * exists the row is plotted from it and marked, because dropping the person
- * entirely would be a quieter kind of dishonesty than plotting them with a note.
- */
-export function plottedMeasurement(person: ScalePerson): ScaleMeasurement | null {
-  const usable = person.measurements.filter((m) => typeof m.valueCm === "number");
-  if (usable.length === 0) return null;
-  const measured = usable.filter((m) => m.directlyMeasured);
-  const pool = measured.length > 0 ? measured : usable;
-  // The largest DIRECTLY MEASURED figure, else the largest available.
-  return pool.reduce((a, b) => ((b.valueCm ?? 0) > (a.valueCm ?? 0) ? b : a));
-}
-
-export function personMatchesFilter(person: ScalePerson, filter: FilterKey): boolean {
-  if (filter === "all") return true;
-  if (filter === "photographed") return Boolean(person.hasPhotograph);
-  if (filter === "physical_remains") return person.evidenceStatus === "verified_physical_remains";
-  if (filter === "medically_verified") {
-    return person.measurements.some(
-      (m) => m.measurementMethod === "medical_examination" || m.measurementMethod === "official_records_body"
-    );
-  }
-  if (filter === "historical_claims") {
-    return person.measurements.some(
-      (m) => m.measurementKind === "advertised_height" || m.measurementKind === "reported_unspecified"
-    );
-  }
-  if (filter === "disputed") {
-    return (
-      person.evidenceStatus === "disputed" ||
-      person.measurements.some((m) => m.evidenceStatus === "disputed" || m.evidenceStatus === "unresolved")
-    );
-  }
-  return true;
-}
 
 export function TallestHumansScale({ people }: { people: ScalePerson[] }) {
   const [filter, setFilter] = useState<FilterKey>("all");
