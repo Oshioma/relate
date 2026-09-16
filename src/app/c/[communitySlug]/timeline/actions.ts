@@ -131,12 +131,6 @@ import {
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
 import {
-  TALLEST_HUMANS_DISPUTED,
-  TALLEST_HUMANS_EVENTS,
-  TALLEST_HUMANS_SOURCES,
-  TALLEST_HUMANS_TRACK,
-} from "@/lib/timeline/tallest-humans-seed";
-import {
   SET_SUTEKH_EVENTS,
   SET_SUTEKH_SOURCES,
   SET_SUTEKH_TRACK,
@@ -2048,16 +2042,6 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     links: BRUTUS_ALBION_LINKS,
   },
   {
-    label: "Tallest humans: what the evidence actually is",
-    track: TALLEST_HUMANS_TRACK,
-    // The disputed records seed alongside the verified ones, in the same lane.
-    // They are a separate EXPORT so nothing can treat them as equivalent, and
-    // the same dataset so a reader meets them together — a claims section
-    // filed somewhere else is a claims section nobody reads.
-    events: [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED],
-    sources: TALLEST_HUMANS_SOURCES,
-  },
-  {
     label: "Set, Seth, Sutekh: how one god changed",
     track: SET_SUTEKH_TRACK,
     events: SET_SUTEKH_EVENTS,
@@ -3009,27 +2993,6 @@ export async function seedBrutusAlbionDataset(communitySlug: string) {
     track: BRUTUS_ALBION_TRACK,
     links: BRUTUS_ALBION_LINKS,
     label: "Brutus, Albion and the giants: the textual spine",
-  });
-  revalidatePath(timelinePath(community.slug));
-  return result;
-}
-
-/**
- * The tallest humans in the evidence record — Wadlow, Byrne, Carroll and the
- * rest. Seeds measurement claims as well as date claims: a person has no
- * height, exactly as an event has no date. See tallest-humans-seed.ts.
- */
-export async function seedTallestHumansDataset(communitySlug: string) {
-  const context = await requireTimelineWriter(communitySlug);
-  if ("error" in context) return context;
-  const { supabase, community, userId, isStaff } = context;
-  if (!isStaff) return { error: "Only staff can add this dataset." };
-
-  const result = await seedDataset(supabase, community, userId, {
-    events: [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED],
-    sources: TALLEST_HUMANS_SOURCES,
-    track: TALLEST_HUMANS_TRACK,
-    label: "Tallest humans: what the evidence actually is",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
