@@ -1645,3 +1645,208 @@ export function provenanceStatusHint(key: string | null | undefined): string {
 export function provenanceNeedsWarning(key: string | null | undefined): boolean {
   return key === "unverified" || key === "contested";
 }
+
+// ---------------------------------------------------------------------------
+// HOW FAR FROM THE SURVIVING EVIDENCE IS THIS SENTENCE?
+//
+// Between a roll of papyrus and a sentence on a timeline there are six or
+// seven separate human acts. Somebody photographed the object. Somebody read
+// the hieratic and wrote it out in hieroglyphs. Somebody rendered the
+// consonants in Latin letters. Somebody translated it, and somebody else
+// translated it differently. Somebody summarised the translation. Somebody
+// said what it means.
+//
+// Every one of those acts can be disagreed with, and a page that prints the
+// last of them in the same voice as the first has taught a reader that the
+// papyrus said it. It did not: a scholar did, in 1976, and another scholar
+// reading the same lines said something else.
+//
+// So the chain is stored in pieces, one row per act, each pointing at whoever
+// performed it — see timeline_text_layers. This vocabulary names the pieces.
+//
+// THE ORDER IS DELIBERATE and it runs from the object outwards, exactly as
+// MEDIA_KINDS runs from the evidence outwards. It is READING ORDER, not a
+// ranking: a transliteration is not "better" than an interpretation. They are
+// answers to different questions, and the order is the order in which one was
+// derived from another. There are no numbers here and there is no score.
+//
+// WHAT IS DELIBERATELY NOT IN THIS LIST:
+//
+//   alternative_interpretation
+//     Not a layer. A competing reading is a SECOND ROW at `interpretation`,
+//     with its own source and its own viewpoint. Giving it a layer of its own
+//     would mean one reading is the interpretation and the other is the
+//     alternative, which is a ranking dressed as a schema — and it would cap
+//     the count at two when the Year 400 question alone has three.
+//
+//   date_claim, source, image, location, evidence_status
+//     All real requirements, and all of them already have somewhere better to
+//     live: timeline_date_claims, timeline_sources, SeedPicture, the event's
+//     locationName, EVIDENCE_STATUSES. Duplicating them here would give each
+//     one two homes that could disagree.
+// ---------------------------------------------------------------------------
+
+export const EVIDENCE_LAYERS = [
+  {
+    key: "primary_object",
+    label: "The object itself",
+    short: "Object",
+    hint:
+      "The physical thing that survives — the papyrus roll, the stela, the temple wall. Everything below is somebody's reading of it, and this is the only line in the chain that is not.",
+  },
+  {
+    key: "primary_text",
+    label: "The text as it stands on the object",
+    short: "Original",
+    hint:
+      "What is actually written there, in the script it is written in — hieratic on a papyrus, hieroglyphs cut into stone. Usually damaged, usually incomplete, and the thing every later line is accountable to.",
+  },
+  {
+    key: "transcription",
+    label: "Modern transcription",
+    short: "Transcription",
+    hint:
+      "A scholar's rendering of the original script into a regularised printed form — Gardiner setting a hieratic papyrus in hieroglyphic type. Already an act of reading: where the original is broken or ambiguous, the transcription has decided something.",
+  },
+  {
+    key: "transliteration",
+    label: "Transliteration",
+    short: "Transliteration",
+    hint:
+      "The sounds or consonants written in another alphabet, with its own conventions and diacritics. It is not a translation and carries no meaning — it is what lets a reader who does not know the script follow the argument about what the words are.",
+  },
+  {
+    key: "translation",
+    label: "Translation",
+    short: "Translation",
+    hint:
+      "Into a modern language, by a named translator, in a named year. EXPECT MORE THAN ONE. Where translations differ that difference is the most instructive thing on the page, and each belongs in its own row rather than being resolved into a house version.",
+  },
+  {
+    key: "modern_summary",
+    label: "Summary in modern words",
+    short: "Summary",
+    hint:
+      "A close paraphrase of what the passage says, written to be readable. Still reporting the text rather than explaining it — the moment it starts saying why the text says this, it has become an interpretation and belongs in the next row down.",
+  },
+  {
+    key: "interpretation",
+    label: "What it is taken to mean",
+    short: "Meaning",
+    hint:
+      "Somebody's account of the significance of the passage. This is where scholarship argues, and where competing readings sit side by side as separate rows with their sources attached. Never the ancient text's own voice, however old the reading is.",
+  },
+] as const;
+
+export type EvidenceLayerKey = (typeof EVIDENCE_LAYERS)[number]["key"];
+export type EvidenceLayer = EvidenceLayerKey | (string & {});
+
+const EVIDENCE_LAYER_BY_KEY = new Map(EVIDENCE_LAYERS.map((layer) => [layer.key as string, layer]));
+
+export function evidenceLayerLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return EVIDENCE_LAYER_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+/** The short form, for a toggle or a column heading where the full label will not fit. */
+export function evidenceLayerShortLabel(key: string | null | undefined): string | null {
+  const known = EVIDENCE_LAYER_BY_KEY.get(key ?? "");
+  if (known) return known.short;
+  return evidenceLayerLabel(key);
+}
+
+export function evidenceLayerHint(key: string | null | undefined): string {
+  return EVIDENCE_LAYER_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * Position in the chain, counted from the object.
+ *
+ * READING ORDER, NOT A RANKING — the same thing viewpointOrder() is for. It
+ * exists so that layers render in the order they were derived in rather than
+ * in whatever order they were entered, and so a reader moving back towards the
+ * evidence is moving in a consistent direction.
+ *
+ * An unknown key sorts to the end rather than to the front: a vocabulary word
+ * a community invented should not be able to insert itself between the object
+ * and the text on it.
+ */
+export function evidenceLayerOrder(key: string | null | undefined): number {
+  const index = EVIDENCE_LAYERS.findIndex((layer) => layer.key === key);
+  return index === -1 ? EVIDENCE_LAYERS.length : index;
+}
+
+/**
+ * IS THIS THE SOURCE'S VOICE, OR OURS?
+ *
+ * The single most important question a reader can ask of any sentence on the
+ * page, and the one a collapsed `description` column makes unaskable.
+ *
+ * Everything from the object down to the translation is a report of what
+ * survives: damaged, contested, rendered by a named scholar, and still
+ * answerable to the thing itself. A summary and an interpretation are not.
+ * They are written by whoever wrote them, and no amount of care makes them
+ * testimony.
+ *
+ * The line falls after `translation` on purpose. A translation is an act of
+ * judgement and translations disagree — but a translator is still constrained
+ * word by word by a text that is there, and can be shown to have got a word
+ * wrong. Nobody can be shown to have got a meaning wrong in that way.
+ */
+export function evidenceLayerIsWitness(key: string | null | undefined): boolean {
+  return (
+    key === "primary_object" ||
+    key === "primary_text" ||
+    key === "transcription" ||
+    key === "transliteration" ||
+    key === "translation"
+  );
+}
+
+/**
+ * The counterpart: written by us or by a modern commentator, about the text.
+ *
+ * Deliberately NOT simply `!evidenceLayerIsWitness()`. An unrecognised key —
+ * a layer a community invented — is neither, and claiming it as our own voice
+ * would be as wrong as claiming it as the papyrus's. Both predicates answer
+ * false for it, and the interface says it does not know.
+ */
+export function evidenceLayerIsOurVoice(key: string | null | undefined): boolean {
+  return key === "modern_summary" || key === "interpretation";
+}
+
+/**
+ * Is this a layer where more than one row is the NORMAL case?
+ *
+ * Translations differ and interpretations differ, and on both the interface
+ * must show the rows side by side rather than picking one. A passage with one
+ * translation is not finished; it is a passage with one translation, and the
+ * UI is entitled to say so.
+ *
+ * Transcription is not here, though transcriptions do occasionally differ.
+ * Where they do, the second row is a genuine finding about a damaged text and
+ * should be presented as the exception it is — not as the expected furniture
+ * of every passage.
+ */
+export function evidenceLayerExpectsMultiple(key: string | null | undefined): boolean {
+  return key === "translation" || key === "interpretation";
+}
+
+/**
+ * The layers present in a set, in chain order, with duplicates preserved.
+ *
+ * What a reader's toggle bar is built from: it must offer exactly the layers
+ * this passage actually has, in the order they were derived, and it must not
+ * offer a toggle for a layer nobody has written. An empty result means there
+ * is nothing to show, which is a truthful thing for a passage to say.
+ */
+export function orderEvidenceLayers<T extends { layer: string }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const byLayer = evidenceLayerOrder(a.layer) - evidenceLayerOrder(b.layer);
+    if (byLayer !== 0) return byLayer;
+    // Within a layer the order is whatever the caller gave, which for three
+    // translations is the order they were entered. Stable, so Gardiner does
+    // not swap places with Lichtheim between renders.
+    return 0;
+  });
+}
