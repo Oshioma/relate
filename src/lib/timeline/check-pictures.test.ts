@@ -193,9 +193,30 @@ test("the kinds mistaken for evidence are exactly the kinds that get warned abou
   //                        sit silently in a gallery beside evidence.
   //   known_manipulation - shown only as an example of the manipulation.
   //
+  // Three more joined with the image-provenance work, and these are the
+  // subtlest of the lot because all three are genuine records of real things:
+  //
+  //   hoax_object        - a real photograph of a real object that was made to
+  //                        be taken for a body. Everything about it reads as
+  //                        evidence except what it is evidence OF.
+  //   historical_document- a show bill or a newspaper page. Evidence of what
+  //                        was CLAIMED, which is not evidence of what was true,
+  //                        and a poster's figure is a selling point first.
+  //   comparison_chart   - inherits every error of the numbers it was drawn
+  //                        from and adds the authority of a picture.
+  //
   // The exhaustive loop is the point: a new kind added without deciding which
   // side of this line it falls on will fail here rather than ship unmarked.
-  const WARNS = new Set(["later_artwork", "reconstruction", "replica", "unverified_image", "known_manipulation"]);
+  const WARNS = new Set([
+    "later_artwork",
+    "reconstruction",
+    "replica",
+    "unverified_image",
+    "known_manipulation",
+    "hoax_object",
+    "historical_document",
+    "comparison_chart",
+  ]);
   for (const key of WARNS) {
     assert.equal(mediaKindNeedsWarning(key), true, `${key} should warn`);
   }

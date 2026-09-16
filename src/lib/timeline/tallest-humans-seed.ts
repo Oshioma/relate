@@ -42,6 +42,47 @@ const commons = (file: string, width = 1024) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
 const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 
+// THE SECOND SET OF COMMONS HELPERS, AND WHY THERE ARE TWO.
+//
+// The pair above interpolate a file name straight into a URL and add a width.
+// That is fine for the names they were written for and wrong for the names
+// below, which contain spaces, quotation marks, apostrophes and commas — a
+// name interpolated raw makes a URL that mostly works and occasionally does
+// not, and "occasionally" is the worst possible failure rate for a link.
+//
+// These encode the name the way Commons itself does, and `commonsOriginal`
+// omits the width parameter on purpose: a width makes a RENDERING of the file,
+// and the brief for these images asked for the original. Both are kept, in
+// separate fields, because having the picture and having it at the resolution
+// it exists in are two different claims.
+const commonsName = (file: string) => encodeURIComponent(file).replace(/%20/g, "_");
+const commonsOriginal = (file: string) => `https://commons.wikimedia.org/wiki/Special:FilePath/${commonsName(file)}`;
+const commonsSized = (file: string, width: number) => `${commonsOriginal(file)}?width=${width}`;
+const commonsFilePage = (file: string) => `https://commons.wikimedia.org/wiki/File:${commonsName(file)}`;
+
+/**
+ * ONE PLACE THAT BUILDS EVERY FIELD A COMMONS PICTURE SHARES.
+ *
+ * Five things always travel together and always in the same relationship: the
+ * display URL, the original, the file page, the exact name, and the fact that
+ * the licence has NOT been read here. Writing them out per picture invites the
+ * one typo where the file page points at a different file from the image —
+ * which is the single hardest provenance error to notice, because everything
+ * on screen looks right.
+ *
+ * WHAT IT DELIBERATELY DOES NOT SET: `licence` and `credit`. Those come from
+ * the file's own page at seed time via `creditFrom: "source"`, which reads the
+ * per-file licence rather than assuming the category's. A licence typed into
+ * this file would be a licence typed from memory.
+ */
+const fromCommons = (file: string, width = 1024) => ({
+  fileName: file,
+  url: commonsSized(file, width),
+  originalFileUrl: commonsOriginal(file),
+  sourcePageUrl: commonsFilePage(file),
+  creditFrom: "source" as const,
+});
+
 export const TALLEST_HUMANS_SOURCES: SeedSource[] = [
   {
     key: "rcs_surgicat_byrne",
@@ -99,6 +140,45 @@ export const TALLEST_HUMANS_SOURCES: SeedSource[] = [
       "A dated, located, institutionally held photograph of a living person. Cited for the photograph. NEEDS " +
       "SOURCE VERIFICATION for the Library's own catalogue record, which should replace this entry as the " +
       "primary institutional source once read.",
+  },
+  {
+    key: "bm_surprizing_irish_giant",
+    title: "The surprizing Irish giant of St James's Street",
+    reference: "British Museum 1868,0808.5425; the sheet is dated 1785",
+    sourceType: "historical_document",
+    notes:
+      "A PRINTED ADVERTISEMENT, CITED AS ONE. Exhibition material for Cotter's London appearances, carrying " +
+      "the claim that the giant measured about eight feet five inches. WHAT IT ESTABLISHES: that the figure " +
+      "was in print in 1785, which is a real and datable fact about what was being claimed. WHAT IT DOES " +
+      "NOT ESTABLISH: anything about his height. A showman's bill is a selling document, and the number on " +
+      "it had a job to do. NEEDS SOURCE VERIFICATION for the sheet's own wording, which has not been read " +
+      "here — the British Museum's collection record is the place to read it, and the environment this was " +
+      "written in cannot reach it.",
+  },
+  {
+    key: "morning_world_herald_1900_chart",
+    title: "Giant comparison chart",
+    workTitle: "Morning World-Herald",
+    reference: "Sunday 13 May 1900",
+    sourceType: "newspaper",
+    notes:
+      "A NEWSPAPER GRAPHIC PUTTING SEVERAL EXHIBITED GIANTS SIDE BY SIDE, each drawn at the height his or " +
+      "her own publicity claimed. Cited as evidence of what was believed and printed in 1900, and cited for " +
+      "nothing else: drawing advertised figures to scale does not measure them, it only makes them look " +
+      "measured. No measurement claim in this dataset uses it.",
+  },
+  {
+    key: "jstor_cardiff_controversy",
+    title: "December Meeting. The \"Cardiff Giant\" Controversy",
+    reference: "Scanned as an Internet Archive copy of JSTOR item 25079407; in the Commons Cardiff Giant category as a PDF",
+    sourceType: "academic_paper",
+    notes:
+      "FILED AS A SOURCE RATHER THAN AS A PICTURE, which is the only correct place for it: it is a PDF of a " +
+      "learned society's proceedings and the importer handles images. WHY IT MATTERS MORE THAN ANY " +
+      "PHOTOGRAPH IN THE SET: it is a contemporary record of the argument itself — scholars meeting to " +
+      "discuss whether the object was genuine — which is the part of the Cardiff Giant story that has " +
+      "anything to teach. NEEDS SOURCE VERIFICATION: not read here, and the society, the date and the " +
+      "author are all unknown to this record.",
   },
   {
     key: "commons_provenance",
@@ -1159,6 +1239,97 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 
   {
     slug: "john-rogan",
+    // THE HERO IS THE 1899 PHOTOGRAPH WITH DR LACKEY, because it is the only
+    // one of the four that puts Rogan beside a known adult of ordinary height.
+    // A photograph of a tall man alone shows a man; a photograph of him beside
+    // someone shows a comparison, and a comparison is the whole subject here.
+    imageUrl: commonsSized("John \"Bud\" Rogan 1899.jpg", 1024),
+    media: [
+      {
+        ...fromCommons("John \"Bud\" Rogan 1899.jpg", 1024),
+        caption:
+          "John William \"Bud\" Rogan photographed in 1899 with the physician William Lackey. The presence of a second person of ordinary height is what makes this the most useful image of Rogan that survives: it turns a picture into a comparison.",
+        kind: "image",
+        shows: "evidence_photograph",
+        subject: "John William Rogan with Dr William Lackey",
+        photographDate: "1899",
+        pixelWidth: 598,
+        pixelHeight: 1023,
+        licence: "Public domain (Public Domain Mark)",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "LICENCE AND DATE AS SUPPLIED BY A READER WHO OPENED THE FILE PAGE; this codebase has not opened " +
+          "it. WHAT WOULD MAKE THIS THE BEST EVIDENCE IN THE RECORD and currently does not: Lackey's own " +
+          "height. A comparison photograph with one unknown quantity is a comparison with nothing. If " +
+          "Lackey's height is recorded anywhere — a medical register, a census, his own papers — this " +
+          "picture becomes a measurement rather than an impression.",
+      },
+      {
+        ...fromCommons("John Rogan.jpg", 1600),
+        caption:
+          "John Rogan on the goat cart he used to move around Gallatin, Tennessee. The largest version of this photograph in the set.",
+        kind: "image",
+        shows: "evidence_photograph",
+        subject: "John William Rogan on his goat cart",
+        pixelWidth: 2048,
+        pixelHeight: 1649,
+        licence: "CC BY-SA 2.5",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "contested",
+        provenanceNotes:
+          "THE IMMEDIATE SOURCE ON COMMONS IS REPORTED TO BE A REDDIT REPOST, AND THAT IS NOT A SOURCE. A " +
+          "repost is a place a copy was found; it says nothing about who took the photograph, when, or under " +
+          "what terms — and a CC BY-SA licence applied by a re-uploader to somebody else's historical " +
+          "photograph may not be theirs to apply. WHAT TO TRACE: the Gallatin, Tennessee municipal and " +
+          "historical collections, Sumner County records, and the Tennessee State Library and Archives. " +
+          "UNTIL THEN this file is kept, shown with its problem attached, and never described as though " +
+          "Reddit were the photographer.",
+      },
+      {
+        ...fromCommons("John Rogan.png", 1024),
+        caption:
+          "John Rogan on his goat cart. The same photograph as the file above, at lower resolution and under a different licence statement.",
+        kind: "image",
+        shows: "evidence_photograph",
+        subject: "John William Rogan on his goat cart",
+        pixelWidth: 847,
+        pixelHeight: 1200,
+        licence: "CC BY-SA 4.0",
+        duplicateOf: "John Rogan.jpg",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "TWO FILES, TWO LICENCES, ONE PHOTOGRAPH — and the licences cannot both be right about the same " +
+          "historical image, which is itself a reason to distrust both. This one is attributed to Gallatin, " +
+          "Tennessee municipal material, which is the more promising lead of the two and the one to follow. " +
+          "MARKED AS A DUPLICATE ON THE STRENGTH OF THE DESCRIPTIONS, not by comparing the images, because " +
+          "the images cannot be fetched from here. If they turn out to be different exposures from the same " +
+          "sitting, that is two photographs and this field is wrong.",
+      },
+      {
+        ...fromCommons("John-Rogan.jpg", 512),
+        caption: "John Rogan. A small copy, photographed before 1905; which of the surviving photographs it is taken from is not established.",
+        kind: "image",
+        shows: "evidence_photograph",
+        subject: "John William Rogan",
+        pixelWidth: 244,
+        pixelHeight: 281,
+        licence: "Public domain in the United States",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "244 x 281 IS A THUMBNAIL, NOT A PHOTOGRAPH. Almost certainly a crop or a reduction of one of the " +
+          "images above, but WHICH ONE IS NOT ESTABLISHED, so duplicateOf is deliberately left unset rather " +
+          "than guessed: a wrong duplicate link would quietly delete a real photograph from the count. " +
+          "RIGHTS CAVEAT AS SUPPLIED: public domain in the United States; the file page warns that the " +
+          "status elsewhere may differ, which matters for any reader outside the US.",
+      },
+    ],
     title: "John William \"Bud\" Rogan",
     summary:
       "1868-1905. Tennessee. About 267 cm — second only to Wadlow — and his family took deliberate steps to make sure nobody would ever dig him up.",
@@ -1237,6 +1408,177 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 
   {
     slug: "patrick-cotter-obrien",
+    // THE HERO IS KAY'S 1803 ETCHING, and every word of that sentence is a
+    // classification. It is an ETCHING, made from life, three years before
+    // Cotter died — so it is contemporary testimony rather than a photograph,
+    // and it is the largest scan in the set at 2640 x 3318. There are no
+    // photographs of Patrick Cotter O'Brien and there cannot be: he died in
+    // 1806, three decades before photography.
+    imageUrl: commonsSized("Patrick O'Brien, a giant. Etching by J. Kay, 1803. Wellcome V0007208.jpg", 1600),
+    media: [
+      {
+        ...fromCommons("Patrick O'Brien, a giant. Etching by J. Kay, 1803. Wellcome V0007208.jpg", 1600),
+        caption:
+          "Patrick Cotter O'Brien, etching by John Kay, 1803. Made three years before his death, from a living subject — and drawn by a hand with a view about how a giant should look.",
+        kind: "image",
+        shows: "engraving",
+        subject: "Patrick Cotter O'Brien",
+        creator: "John Kay",
+        objectDate: "1803",
+        institution: "Wellcome Collection",
+        accessionNumber: "V0007208",
+        licence: "CC BY 4.0",
+        pixelWidth: 2640,
+        pixelHeight: 3318,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "AN ETCHING IS NOT A PHOTOGRAPH, and for this man there is no alternative: he died in 1806 and the " +
+          "earliest photographs are of the 1820s at the outside, in practice the 1840s. So every image in " +
+          "this record is an artist's rendering, and the proportions in it are an artist's decision. Kay was " +
+          "a caricaturist. THAT IS NOT A REASON TO EXCLUDE THE PRINT — it is the best contemporary depiction " +
+          "there is — but it is a reason never to measure anything off it.",
+      },
+      {
+        ...fromCommons("Patrick O'Brien, a giant. Etching by A. van Assen, 1804, aft Wellcome V0007209EL.jpg", 1600),
+        caption:
+          "Patrick Cotter O'Brien, etching by A. van Assen, 1804, after J. Parry. A print of a print: van Assen worked from Parry's image rather than from Cotter.",
+        kind: "image",
+        shows: "engraving",
+        subject: "Patrick Cotter O'Brien",
+        creator: "A. van Assen, after J. Parry",
+        objectDate: "1804",
+        institution: "Wellcome Collection",
+        accessionNumber: "V0007209EL",
+        licence: "CC BY 4.0",
+        pixelWidth: 1304,
+        pixelHeight: 2120,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "\"AFTER J. PARRY\" IS THE WHOLE PROVENANCE PROBLEM IN TWO WORDS. This is one artist's version of " +
+          "another artist's version of a man. Each copying adds a little, and eighteenth-century printmakers " +
+          "copying a famous giant had every commercial reason to add height rather than take it away. Not " +
+          "independent evidence of Cotter's appearance; evidence of how his image circulated.",
+      },
+      {
+        ...fromCommons("Patrick O'Brien, a giant. Engraving, 1804. Wellcome V0007209ER.jpg", 1600),
+        caption: "Patrick Cotter O'Brien, engraving, 1804. Wellcome V0007209ER — one of a group sharing the V0007209 number.",
+        kind: "image",
+        shows: "engraving",
+        subject: "Patrick Cotter O'Brien",
+        objectDate: "1804",
+        institution: "Wellcome Collection",
+        accessionNumber: "V0007209ER",
+        licence: "CC BY 4.0",
+        pixelWidth: 1435,
+        pixelHeight: 2458,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "THREE FILES SHARE THE BASE NUMBER V0007209, with the suffixes ER, EL and none. In Wellcome's " +
+          "iconographic numbering that pattern normally means one sheet photographed in parts or in states, " +
+          "not three separate works. WHETHER THESE ARE THREE IMAGES OR ONE is unresolved here and is exactly " +
+          "the sort of question a catalogue lookup answers in a minute. Until it is answered they are not " +
+          "counted as three independent depictions.",
+      },
+      {
+        ...fromCommons("Patrick O'Brien, a giant. Engraving, Wellcome V0007209.jpg", 1600),
+        caption: "Patrick Cotter O'Brien, engraving. Wellcome V0007209, the base number of the group above.",
+        kind: "image",
+        shows: "engraving",
+        subject: "Patrick Cotter O'Brien",
+        institution: "Wellcome Collection",
+        accessionNumber: "V0007209",
+        licence: "CC BY 4.0",
+        pixelWidth: 1499,
+        pixelHeight: 1274,
+        duplicateOf: "Patrick O'Brien, a giant. Engraving, 1804. Wellcome V0007209ER.jpg",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "LINKED TO THE ER FILE ON THE SHARED ACCESSION NUMBER ALONE — a reasonable inference and not a " +
+          "verified one. A shared Wellcome number is far stronger evidence of a shared original than a " +
+          "shared subject would be, which is why this link is drawn and the Rogan thumbnail's is not.",
+      },
+      {
+        ...fromCommons("The surprizing Irish giant of St, James's Street. (BM 1868,0808.5425).jpg", 1600),
+        caption:
+          "\"The surprizing Irish giant of St James's Street\", 1785. A printed advertisement for the exhibition, carrying the claim that the giant measured about eight feet five inches — which is a selling point, not a measurement.",
+        kind: "image",
+        shows: "historical_document",
+        subject: "Patrick Cotter O'Brien, as advertised in London",
+        objectDate: "1785",
+        institution: "British Museum",
+        accessionNumber: "1868,0808.5425",
+        licence: "Public domain / Public Domain Mark (Commons statement, for the scan)",
+        rightsNotes:
+          "TWO RIGHTS STATEMENTS, BOTH PRESERVED, AND THEY DISAGREE. Commons marks the scan public domain. " +
+          "The British Museum's own metadata asserts \u00a9 Trustees of the British Museum, CC BY-NC-SA 4.0. " +
+          "This dataset does not adjudicate between them: it records both and the application takes the " +
+          "MORE CONSERVATIVE position, which means treating reuse as non-commercial and share-alike.",
+        pixelWidth: 1600,
+        pixelHeight: 1147,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "THE EIGHT-FOOT-FIVE FIGURE ON THIS SHEET IS RECORDED AS A MEASUREMENT CLAIM OF ITS OWN, filed as " +
+          "advertised rather than measured. A showman's bill is evidence that the number was printed in " +
+          "1785, which is a real and datable fact, and it is not evidence that anybody held a rule against " +
+          "him. The dataset keeps the claim and refuses the promotion.",
+      },
+      {
+        ...fromCommons("Giant comparison chart Morning World Herald Sun May 13 1900.png", 1600),
+        caption:
+          "A newspaper comparison chart, Morning World-Herald, 13 May 1900. Figures of famous giants drawn side by side — each one at whatever height its own publicity had claimed.",
+        kind: "image",
+        shows: "comparison_chart",
+        subject: "Several exhibited giants, compared graphically",
+        objectDate: "1900-05-13",
+        licence: "Public domain (published in the United States before 1931)",
+        pixelWidth: 1391,
+        pixelHeight: 1956,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "A CHART INHERITS EVERY ERROR OF THE NUMBERS IT WAS DRAWN FROM AND ADDS THE AUTHORITY OF A PICTURE. " +
+          "This one is a century-old graphic built from advertised heights, and drawing them to scale makes " +
+          "them look measured. It is in the dataset as evidence of what was believed and published in 1900, " +
+          "and no measurement claim anywhere cites it.",
+      },
+      {
+        ...fromCommons("Show Bill. Attractions at the Middlesex Music Hall Wellcome M0015550.jpg", 1600),
+        caption:
+          "A show bill for the Middlesex Music Hall, 1886 — eighty years after Patrick Cotter O'Brien died. It advertises a performer billed as \"Pat O'Brien\", who cannot be him.",
+        kind: "image",
+        shows: "historical_document",
+        subject: "NOT Patrick Cotter O'Brien. A later performer billed under a similar name",
+        objectDate: "1886",
+        institution: "Wellcome Collection",
+        accessionNumber: "M0015550",
+        licence: "CC BY 4.0",
+        pixelWidth: 1890,
+        pixelHeight: 5662,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "contested",
+        provenanceNotes:
+          "POSSIBLE MISCATEGORISATION — REQUIRES REVIEW, and the clearest case in this whole import of why a " +
+          "Commons category is not a provenance. The bill is dated 1886. Patrick Cotter O'Brien died in 1806. " +
+          "NO PART OF THIS DOCUMENT CAN BE ABOUT HIM. It is kept in the record because it is genuinely " +
+          "interesting — a stage name outliving its owner by eighty years is how these reputations worked, " +
+          "and \"Irish giant\" was a billing rather than a person — but it is attached with its subject " +
+          "field saying NOT Patrick Cotter O'Brien, so nothing can read it as a lifetime document. WHAT TO " +
+          "ESTABLISH: which performer the 1886 bill advertises, and whether the Commons categorisation " +
+          "should be corrected upstream.",
+      },
+    ],
     title: "Patrick Cotter O'Brien, and two exhumations",
     summary:
       "1760-1806. The Bristol Giant. Advertised at eight feet seven; buried deep against body snatchers; dug up twice in the twentieth century.",
@@ -1325,6 +1667,29 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
     ],
     measurements: [
       {
+        sourceKey: "bm_surprizing_irish_giant",
+        whatIsMeasured: "Height as advertised on a dated London exhibition sheet",
+        valueCm: 256.5,
+        originalValueText: "About 8 ft 5 in, on a sheet of 1785",
+        measurementKind: "advertised_height",
+        measurementMethod: "unstated",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHY THIS IS A SEPARATE CLAIM FROM THE 8 FT 7 IN ONE BELOW, and not a correction of it: they are " +
+          "two different advertised figures, and having both is the point. The one here comes with a DATE " +
+          "and a DOCUMENT — a 1785 sheet held by the British Museum with an accession number — where the " +
+          "taller figure is the one that circulates without either. WHAT THAT PATTERN SUGGESTS AND DOES NOT " +
+          "PROVE: that the advertised height grew during his career, which is what one would expect of a " +
+          "figure whose job was to sell tickets. Two data points are not a trend, and the second is undated, " +
+          "so this is recorded as something to test rather than something found.\n\n" +
+          "WHAT IS ESTABLISHED: that eight feet five inches was in print in 1785. WHAT IS NOT: that anyone " +
+          "measured him.",
+        notes:
+          "NEEDS SOURCE VERIFICATION against the British Museum's own record of 1868,0808.5425, which would " +
+          "give the sheet's exact wording and its printer. The conversion is from the stated feet and inches.",
+      },
+      {
         sourceKey: null,
         whatIsMeasured: "Height as advertised during his exhibition",
         valueCm: 262,
@@ -1371,6 +1736,41 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 
   {
     slug: "jane-bunford",
+    // NO HERO IMAGE, AND THE ABSENCE IS THE FINDING.
+    //
+    // The brief for this import asked for an authenticated historical
+    // photograph. The one file that exists is not authenticated — its Commons
+    // author field reads as an own-work claim for a photograph of a woman who
+    // died in 1922 — so promoting it to the cover of this record would assert
+    // exactly the thing that has not been established. It is recorded below,
+    // with the problem attached, and it is not the hero.
+    media: [
+      {
+        ...fromCommons("Jane Bunford.jpg", 1024),
+        caption:
+          "Stated to be Jane Bunford, dated 1 April 1922 on its file page. What the image actually is — an original photograph, a reproduction of one, or something else — has not been established.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "Stated to be Jane Bunford; not confirmed here",
+        photographDate: "Stated as 1 April 1922; unverified",
+        licence: "CC0 1.0 Universal (Public Domain Dedication)",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "contested",
+        provenanceNotes:
+          "THE PROBLEM IS THE AUTHOR FIELD, AND IT IS NOT A TECHNICALITY. Commons records an uploader name " +
+          "against a date of 1 April 1922. Jane Bunford died in 1922. Nobody uploading to Commons " +
+          "photographed her, so an own-work claim here cannot mean what it normally means — it usually " +
+          "indicates a scan, a reproduction, or a field filled in carelessly.\n\n" +
+          "WHY IT IS NOT DELETED. A CC0 dedication on somebody else's historical photograph is void, but the " +
+          "photograph may still be out of copyright on its own merits, and a 1922 British photograph very " +
+          "likely is. The file is probably fine to use and its paperwork is certainly wrong, and those are " +
+          "different statements.\n\n" +
+          "WHAT WOULD SETTLE IT: the University of Birmingham anatomical collection, which holds material " +
+          "relating to her; Bagnall and Birmingham local newspaper archives for 1922; and the Guinness " +
+          "archive. Any one of those would turn this from a file into a document.",
+      },
+    ],
     title: "Jane Bunford, and why her skeleton is shorter than she was",
     summary:
       "1895-1922. Birmingham. Severe scoliosis meant her mounted skeleton measures well under her living stature — a textbook case of two figures for one woman.",
@@ -1457,6 +1857,61 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 
   {
     slug: "adam-rainer",
+    // THE HERO IS THE c.1930 PHOTOGRAPH, because it is the only image that
+    // does the one thing this record needs: it puts him beside somebody of
+    // ordinary height, in the years after the growth. It is also 300 x 194,
+    // which is a postage stamp, and finding a better original is the single
+    // most valuable outstanding job on this record.
+    imageUrl: commonsSized("Adam Rainer (1899-1950) circa 1930.webp", 600),
+    media: [
+      {
+        ...fromCommons("Adam Rainer (1899-1950) circa 1930.webp", 600),
+        caption:
+          "Adam Rainer beside a man of ordinary height, about 1930 — after the growth that took him from being rejected by a conscription board as too short to over two metres.",
+        kind: "image",
+        shows: "evidence_photograph",
+        subject: "Adam Rainer with an unidentified man of ordinary height",
+        photographDate: "circa 1930",
+        creator: "Unknown / anonymous",
+        pixelWidth: 300,
+        pixelHeight: 194,
+        licence: "Public domain (Commons rationale for anonymous EU works)",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "LOW RESOLUTION, HIGH VALUE, AND IT IS WORTH SAYING WHY. Rainer is the only person in this dataset " +
+          "whose record is a trajectory rather than a height, and a photograph taken after the change, with " +
+          "a second person in frame, is the only surviving thing that shows it. At 300 x 194 it is barely " +
+          "large enough to look at. WHERE A BETTER ONE MIGHT BE: the Austrian medical literature of the " +
+          "1930s, in which his case was reported; Landesarchiv and hospital collections; and the original " +
+          "publication the anonymous photograph came from. THE PUBLIC-DOMAIN RATIONALE DEPENDS ON THE " +
+          "AUTHOR GENUINELY BEING UNKNOWN, so identifying the photographer could change the licence — which " +
+          "is an odd incentive and not a reason to stop looking.",
+      },
+      {
+        ...fromCommons("Tamaños-rainer.jpg", 1024),
+        caption:
+          "A modern graphic comparing Adam Rainer's height before and after his growth. Explanatory artwork, not a medical record — the figures in it are as good as their unstated sources and no better.",
+        kind: "image",
+        shows: "comparison_chart",
+        subject: "A size-comparison diagram of Adam Rainer",
+        licence: "Public domain (released by the copyright holder)",
+        pixelWidth: 600,
+        pixelHeight: 623,
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "as_supplied",
+        provenanceNotes:
+          "THE DANGER HERE IS SPECIFIC AND WORTH NAMING. This record deliberately holds NO figure for " +
+          "Rainer's conscription measurements, because the best evidence about him — a military board " +
+          "measuring a recruit for reasons unconnected to any claim about his height — has not been read " +
+          "from the primary record, and a number from general knowledge would lack exactly the property " +
+          "that makes the original valuable. A diagram drawn from those same unsourced numbers would " +
+          "reintroduce them as a picture, which is harder to argue with than a figure. So this is filed as " +
+          "explanatory imagery, it carries no measurement claim, and nothing in the record cites it.",
+      },
+    ],
     title: "Adam Rainer, the only person recorded as both",
     summary:
       "1899-1950. Austria. Rejected from military service for being too short, then grew past two metres. The one case where the same man appears in the medical literature as a dwarf and as a giant.",
@@ -1803,6 +2258,232 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
 export const TALLEST_HUMANS_DISPUTED: SeedEvent[] = [
   {
     slug: "cardiff-giant",
+    // THE HERO IS THE EXHUMATION, and the choice is an argument.
+    //
+    // The strongest historical image of this case is the one of the thing
+    // coming out of the ground, because that is the moment the claim was made:
+    // a figure in a pit, being uncovered, in front of witnesses. Everything
+    // about it is real except what it was taken to mean.
+    imageUrl: commonsSized("Cardiff giant exhumed 1869.jpg", 1600),
+    media: [
+      {
+        ...fromCommons("Cardiff giant exhumed 1869.jpg", 1600),
+        caption:
+          "The Cardiff Giant being uncovered at Cardiff, New York, in 1869. A genuine photograph of a genuine object, taken at the moment it was being presented as a petrified man. The object is carved gypsum: it was cut in Chicago from a block quarried at Fort Dodge and buried behind the barn in November 1868.",
+        kind: "image",
+        shows: "hoax_object",
+        subject: "The carved gypsum figure known as the Cardiff Giant",
+        objectDate: "1868 (carved)",
+        photographDate: "1869",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes:
+          "FILE NAME AND CATEGORY MEMBERSHIP ARE ALL THAT IS ESTABLISHED HERE. The Commons file page has not " +
+          "been opened from this environment, so the photographer, the licence, the exact date and the " +
+          "original publication are unread. The licence is fetched from the file's own page at seed time " +
+          "rather than guessed; everything else on this line needs a person to open the page.",
+      },
+      {
+        ...fromCommons("Cardiff Giant LCCN2014693762.jpg", 1600),
+        caption:
+          "The Cardiff Giant, from the Library of Congress. Catalogued material with an LCCN, which makes it the most traceable image of the object in this set.",
+        kind: "image",
+        shows: "hoax_object",
+        subject: "The carved gypsum figure known as the Cardiff Giant",
+        institution: "Library of Congress",
+        accessionNumber: "LCCN 2014693762",
+        originalSourceUrl: "https://www.loc.gov/item/2014693762/",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes:
+          "THE LIBRARY OF CONGRESS URL ABOVE WAS DERIVED FROM THE LCCN IN THE FILE NAME, not read from the " +
+          "catalogue. That derivation is a reliable convention and it is still a derivation, so it is flagged " +
+          "rather than presented as checked. WHAT THE LoC RECORD WOULD SETTLE and nothing else can: the " +
+          "photographer, the date, the format (print, stereograph, negative) and the rights statement. " +
+          "Reported to be available at high resolution — up to about 6858 x 5166 — which is larger than the " +
+          "importer's eight-megabyte ceiling is likely to accept at full size.",
+      },
+      {
+        ...fromCommons("The Onondaga giant LCCN2003666806.jpg", 1600),
+        caption:
+          "\"The Onondaga giant\" — a contemporary name for the same object, after the county in which it was dug up. Library of Congress material.",
+        kind: "image",
+        shows: "hoax_object",
+        subject: "The Cardiff Giant, under its contemporary alternative name",
+        institution: "Library of Congress",
+        accessionNumber: "LCCN 2003666806",
+        originalSourceUrl: "https://www.loc.gov/item/2003666806/",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes:
+          "THE NAME IS THE INTERESTING PART and it is why this file is not a duplicate of the one above: " +
+          "\"the Onondaga giant\" is what the object was called in the period, and a reader searching " +
+          "nineteenth-century sources for \"Cardiff Giant\" will miss material filed under it. LoC URL " +
+          "derived from the LCCN in the file name, not read. Whether this is a photograph, a print or a " +
+          "lithograph is UNKNOWN here and changes what it is evidence of.",
+      },
+      {
+        ...fromCommons("Cardiff Giant 2.jpg", 1600),
+        caption: "The Cardiff Giant. Content and date not established here.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "Stated to be the Cardiff Giant; not confirmed here",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes:
+          "NOTHING IS KNOWN ABOUT THIS FILE BEYOND ITS NAME. It is filed as unverified rather than as a " +
+          "photograph of the object, because \"Cardiff Giant 2.jpg\" establishes that somebody thought it " +
+          "was of the Cardiff Giant and nothing more. It is kept so it can be checked, not so it can be shown.",
+      },
+      {
+        ...fromCommons("Cardiff Giant.gif", 1024),
+        caption: "The Cardiff Giant. Format suggests a scanned illustration rather than a photograph; not established here.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "Stated to be the Cardiff Giant; not confirmed here",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes:
+          "A GIF, which in this kind of category usually means a scan of a printed illustration rather than " +
+          "a photograph — but 'usually' is not a provenance. Unverified until the file page is read.",
+      },
+      {
+        ...fromCommons("Cardiff Giant.png", 1024),
+        caption: "The Cardiff Giant. Content and date not established here.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "Stated to be the Cardiff Giant; not confirmed here",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceStatus: "unverified",
+        provenanceNotes: "File name only. Not opened, not classified, not shown as evidence.",
+      },
+      {
+        ...fromCommons("The Cardiff Giant - History of Iowa.jpg", 1600),
+        caption:
+          "The Cardiff Giant as printed in a History of Iowa. An illustration reproduced from a book, which is a picture of how the object was depicted rather than a record of the object.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "The Cardiff Giant, as reproduced in a printed history",
+        provenanceStatus: "unverified",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "THE IOWA CONNECTION IS REAL AND WORTH FOLLOWING: the gypsum was quarried at Fort Dodge, which is " +
+          "why an Iowa county history carries the story at all. Which volume, which page and which engraver " +
+          "are unread here. Whether this is an engraving, a halftone or a photograph decides its kind, and " +
+          "that is exactly what has not been checked.",
+      },
+      {
+        ...fromCommons("The Cardiff Giant (8923364469).jpg", 1600),
+        caption:
+          "The Cardiff Giant. The numeric suffix is the identifier of the photo-sharing account the file was imported from, which makes this most likely a modern photograph rather than a historical one.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "The Cardiff Giant object, probably as displayed today",
+        provenanceStatus: "unverified",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "A MODERN PHOTOGRAPH OF A HISTORICAL OBJECT IS NOT A HISTORICAL PHOTOGRAPH, and this set contains " +
+          "both. The nine-digit suffix is the shape of a photo-sharing site's own ID, which is how the file " +
+          "reached Commons; it is not an accession number and not a provenance. The photographer and date " +
+          "are unread.",
+      },
+      {
+        ...fromCommons("Cardiff Giant, Cooperstown, NY (8906282793).jpg", 1600),
+        caption:
+          "The Cardiff Giant at Cooperstown, New York, where the object is on display. A modern museum photograph of a nineteenth-century hoax — the most recent link in the chain, not a record of the events of 1869.",
+        kind: "image",
+        shows: "artefact",
+        subject: "The Cardiff Giant object on museum display at Cooperstown",
+        institution: "Cooperstown, New York (museum not named on the file)",
+        provenanceStatus: "unverified",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "CLASSIFIED AS A MODERN MUSEUM PHOTOGRAPH on the strength of the place name in the file name, " +
+          "which is weaker evidence than it looks: Cooperstown is where the object went, so a picture taken " +
+          "there is a picture of the surviving object rather than of the 1869 exhibition. The photographer, " +
+          "the date and the holding museum's own name are unread.",
+      },
+      {
+        ...fromCommons("Cardiff1869 Street Art Installation In Pasadena, California, 2011.jpg", 1600),
+        caption:
+          "A street-art installation in Pasadena, California, made in 2011 and referencing the Cardiff Giant. It is not the object and it is not from 1869 — it is a modern artwork about the hoax.",
+        kind: "image",
+        shows: "later_artwork",
+        subject: "A 2011 street-art installation referring to the Cardiff Giant",
+        photographDate: "2011 or later",
+        objectDate: "2011",
+        provenanceStatus: "as_supplied",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "THIS IS THE TRAP THE CATEGORY SETS. The file name opens with \"Cardiff1869\" and the picture is " +
+          "of something made in 2011. Anything that scraped the category and read the leading digits as a " +
+          "date would file a piece of twenty-first-century street art as a contemporary record of the hoax. " +
+          "The date is in the file name itself, which is the only reason this one could be caught from here.",
+      },
+      {
+        ...fromCommons("Irish fossilized giant.jpg", 1024),
+        caption: "Filed in the Cardiff Giant category under a title that does not name the Cardiff Giant. What it depicts is not established here.",
+        kind: "image",
+        shows: "unverified_image",
+        subject: "Unestablished. The title refers to an Irish fossilised giant, which is not this object's usual name",
+        provenanceStatus: "contested",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "POSSIBLE MISCATEGORISATION, FLAGGED RATHER THAN RESOLVED. The Cardiff Giant was exhibited under " +
+          "several names, so an \"Irish fossilized giant\" could be it — or could be one of the several " +
+          "OTHER nineteenth-century petrified-man exhibits, which is precisely the kind of conflation this " +
+          "dataset exists to prevent. Not attached to the Cardiff Giant as a depiction until somebody reads " +
+          "the file page.",
+      },
+      {
+        ...fromCommons("View in Cardiff Glen, near Fort Dodge, Iowa (NYPL b11707469-G90F191 001F).tiff", 1600),
+        caption:
+          "View in Cardiff Glen, near Fort Dodge, Iowa. The New York Public Library's stereograph of the locality the gypsum came from — a picture of the quarry country, not of the giant.",
+        kind: "image",
+        shows: "site",
+        subject: "Landscape near Fort Dodge, Iowa, the source of the gypsum block",
+        institution: "The New York Public Library",
+        accessionNumber: "b11707469-G90F191 001F",
+        provenanceStatus: "unverified",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "TWO PROBLEMS, BOTH WORTH KNOWING. First, this is a TIFF: the importer accepts JPEG, PNG, WebP and " +
+          "GIF, so it cannot be brought in as it stands and needs a derivative from the NYPL's own digital " +
+          "collections. Second, the 001F and 001B pair are the two faces of one stereograph card, which " +
+          "makes them one item rather than two views. The place name is suggestive rather than decisive: " +
+          "'Cardiff Glen' near Fort Dodge is Iowa, and the hoax was buried in Cardiff, New York.",
+      },
+      {
+        ...fromCommons("View in Cardiff Glen, near Fort Dodge, Iowa (NYPL b11707469-G90F191 001B).tiff", 1600),
+        caption:
+          "The reverse of the same New York Public Library stereograph card. Card backs usually carry the publisher, the series and the caption, which is often where a date comes from.",
+        kind: "image",
+        shows: "historical_document",
+        subject: "The reverse of the stereograph card above",
+        institution: "The New York Public Library",
+        accessionNumber: "b11707469-G90F191 001B",
+        duplicateOf: "View in Cardiff Glen, near Fort Dodge, Iowa (NYPL b11707469-G90F191 001F).tiff",
+        provenanceStatus: "unverified",
+        depictsActualRemains: false,
+        verifiedIdentity: false,
+        provenanceNotes:
+          "MARKED AS THE SAME ITEM AS THE FILE ABOVE, not as a second view. 001F and 001B are front and back " +
+          "of one card. Counting them as two images would inflate the evidence by one, which is small and is " +
+          "exactly the kind of small that accumulates. Also a TIFF, so also not importable as it stands.",
+      },
+    ],
     title: "The Cardiff Giant",
     summary:
       "Unearthed in New York in 1869 and exhibited as a petrified ten-foot man. Carved from gypsum the year before, on purpose, by a man who had lost an argument about Genesis.",

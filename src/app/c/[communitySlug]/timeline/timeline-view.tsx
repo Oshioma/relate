@@ -22,8 +22,6 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { TallestHumansScale } from "./tallest-humans-scale";
-import { tallestHumansScalePeople } from "@/lib/timeline/tallest-humans-seed";
 import type {
   TimelineClaimSource,
   TimelineEventLink,
@@ -1930,12 +1928,6 @@ export function TimelineView({
           mighty, a champion, a warrior; the Greek translators wrote gigas, and an English Bible has had a giant in
           it ever since. A reader who can tell those four apart can read almost any giant story.
         </DatasetOffer>
-      )}
-
-      {hasTallestHumans && (
-        <div className="mb-6 rounded-xl border border-border bg-background p-4">
-          <TallestHumansScale people={tallestHumansScalePeople()} />
-        </div>
       )}
 
       {isStaff && !hasTallestHumans && (

@@ -248,6 +248,83 @@ export type SeedEvent = {
     depictsActualRemains?: boolean;
     verifiedIdentity?: boolean;
     /**
+     * THE EXACT FILE NAME AT THE HOLDING SITE, written out rather than left to
+     * be parsed back out of the URL.
+     *
+     * A URL is built from a name and can be built wrong — a stray encoding, a
+     * guessed underscore, a plausible-looking variant. Storing the name the
+     * file actually has lets a test assert the URL was DERIVED from it rather
+     * than typed alongside it, which is the difference between a filename and
+     * a filename that works.
+     */
+    fileName?: string;
+    /**
+     * The full-size file, with no width parameter on it.
+     *
+     * `url` may point at a sized rendering for display. This is the original,
+     * and they are recorded separately because "we have the picture" and "we
+     * have it at the resolution it exists in" are different claims.
+     */
+    originalFileUrl?: string;
+    /**
+     * The HOLDING INSTITUTION'S OWN record, which is not the Commons file page.
+     *
+     * Commons is a re-publisher. For a Library of Congress photograph or a
+     * Wellcome engraving, the institution's catalogue entry is where the real
+     * provenance lives — and where a rights statement that differs from the
+     * Commons one will be found.
+     */
+    originalSourceUrl?: string;
+    /**
+     * THREE DATES, NEVER ONE.
+     *
+     *   objectDate      when the thing depicted was made, or existed
+     *   photographDate  when the photograph or scan was taken
+     *   uploadDate      when the file reached the host
+     *
+     * An 1804 etching, scanned this century, uploaded later still, has all
+     * three and they are two hundred years apart. Collapsing them is how a
+     * modern scan of a Georgian print becomes a Georgian photograph — and an
+     * upload date is never, in any circumstance, the date of the image.
+     */
+    objectDate?: string;
+    photographDate?: string;
+    uploadDate?: string;
+    /**
+     * WHERE TWO RIGHTS STATEMENTS DISAGREE, BOTH ARE KEPT.
+     *
+     * The British Museum etching of Cotter is the case: Commons marks the scan
+     * public domain, while the Museum's own metadata asserts CC BY-NC-SA. This
+     * codebase is not the right place to decide which prevails, so it records
+     * both and the application takes the more conservative position.
+     */
+    rightsNotes?: string;
+    /**
+     * WHO OR WHAT THE PICTURE IS ACTUALLY OF — which is not always who it is
+     * filed under.
+     *
+     * A music-hall bill from 1886 sits in the Commons category of a man who
+     * died in 1806. The category is a filing decision; this field is a claim
+     * about the image, and they are allowed to differ.
+     */
+    subject?: string;
+    /** Pixel dimensions, so "this one needs replacing" is a fact and not an impression. */
+    pixelWidth?: number;
+    pixelHeight?: number;
+    /**
+     * This file is the same photograph as another one here — a crop, a rescan,
+     * a lower-resolution copy. Names the file it duplicates.
+     *
+     * FOUR FILES OF A MAN ARE NOT FOUR PHOTOGRAPHS OF HIM. Without this, a
+     * gallery of crops reads as an accumulation of independent evidence, which
+     * is the most flattering possible error about a thinly documented person.
+     */
+    duplicateOf?: string;
+    /** A PROVENANCE_STATUSES key: how much of the above anyone has actually checked. */
+    provenanceStatus?: string;
+    /** What is known, what is assumed, and what a reader should go and check. */
+    provenanceNotes?: string;
+    /**
      * Set this and write the caption WITHOUT its credit — the credit is worked
      * out at seed time from the picture's own source and appended then. A
      * credit typed into this file is a credit typed from memory; one fetched at

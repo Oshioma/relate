@@ -1061,6 +1061,30 @@ export const MEDIA_KINDS = [
     hint:
       "Demonstrably altered, composited, miscaptioned or generated, and shown ONLY as an example of the alteration. Where the untouched original is known it belongs beside this one, because the pair teaches more than either alone.",
   },
+  {
+    key: "hoax_object",
+    label: "Photograph of a manufactured object",
+    hint:
+      "A real photograph of a real object that was made to be taken for something it is not — the Cardiff Giant being the case this exists for. The photograph is genuine evidence; what it is evidence OF is a carving, not a body. The distinction is the whole point and it is never left to the caption.",
+  },
+  {
+    key: "historical_document",
+    label: "Historical document",
+    hint:
+      "A show bill, advertisement, newspaper page, broadside or catalogue entry, photographed or scanned. Evidence of what was CLAIMED at the time, which is a different thing from evidence of what was true — and a poster's figure is a selling point before it is a measurement.",
+  },
+  {
+    key: "comparison_chart",
+    label: "Height or size comparison graphic",
+    hint:
+      "A figure drawn to put bodies side by side, whether in an 1890s newspaper or a modern infographic. It inherits every error of the numbers it was drawn from and adds the authority of a picture. Never a source for a measurement.",
+  },
+  {
+    key: "engraving",
+    label: "Engraving, etching or print from life",
+    hint:
+      "A print made from observation while the subject was alive. Not a photograph and not a later artwork: it is contemporary testimony passed through an engraver's hand, and the hand is part of what you are looking at.",
+  },
 ] as const;
 
 export type MediaKindKey = (typeof MEDIA_KINDS)[number]["key"];
@@ -1093,8 +1117,61 @@ export function mediaKindNeedsWarning(key: string | null | undefined): boolean {
     key === "reconstruction" ||
     key === "replica" ||
     key === "unverified_image" ||
-    key === "known_manipulation"
+    key === "known_manipulation" ||
+    // A photograph of the Cardiff Giant is a real photograph of a real thing,
+    // which is exactly why it needs the warning: everything about it reads as
+    // evidence except what it is evidence of.
+    key === "hoax_object" ||
+    // Both of these are pictures of CLAIMS. A show bill and a comparison chart
+    // look like documentation and are advertising and arithmetic respectively.
+    key === "historical_document" ||
+    key === "comparison_chart"
   );
+}
+
+/**
+ * IS THIS A PHOTOGRAPH?
+ *
+ * A predicate rather than a stored boolean, because a stored `is_photograph`
+ * can disagree with `shows`, and then there are two answers to one question.
+ * An engraving of a person is not a photograph of them; the whole Patrick
+ * Cotter set turns on that sentence.
+ */
+export function mediaKindIsPhotograph(key: string | null | undefined): boolean {
+  return (
+    key === "evidence_photograph" ||
+    key === "human_remains" ||
+    key === "museum_specimen" ||
+    key === "excavation_context" ||
+    key === "hoax_object" ||
+    key === "artefact" ||
+    key === "site" ||
+    key === "personal_artefact"
+  );
+}
+
+/** Drawn, engraved, printed or diagrammed rather than exposed to light. */
+export function mediaKindIsIllustration(key: string | null | undefined): boolean {
+  return (
+    key === "engraving" ||
+    key === "later_artwork" ||
+    key === "reconstruction" ||
+    key === "diagram" ||
+    key === "comparison_chart" ||
+    key === "map"
+  );
+}
+
+/**
+ * Does this picture show something manufactured to be mistaken for a body?
+ *
+ * Separate from mediaKindIsPhotograph, and deliberately so: the Cardiff Giant
+ * photographs are BOTH. It is a real photograph AND the thing photographed is
+ * a carving. A schema that forced a choice between those two would lose the
+ * fact that makes the case interesting.
+ */
+export function mediaKindIsFabricatedSubject(key: string | null | undefined): boolean {
+  return key === "hoax_object";
 }
 
 // ---------------------------------------------------------------------------
@@ -1405,4 +1482,80 @@ export function cmToFeetInches(cm: number): string {
     inches -= 12;
   }
   return `${feet} ft ${inches % 1 === 0 ? inches.toFixed(0) : inches.toFixed(1)} in`;
+}
+
+// ---------------------------------------------------------------------------
+// HOW MUCH OF A PICTURE'S PROVENANCE HAS ACTUALLY BEEN CHECKED
+//
+// Every other field on a picture says what its provenance IS. This one says
+// who says so, which turns out to be the field that matters most.
+//
+// It exists because of a specific and ordinary situation: a dataset can be
+// handed a precise, accurate list of filenames, licences and dimensions by
+// somebody who read the file pages, and be unable to open those pages itself.
+// Recording that metadata as though it had been verified here would be a lie
+// of exactly one word. Discarding it would throw away good information.
+//
+// So the metadata is kept AND the checking is recorded separately, and the
+// interface can show the difference. This is the same move the whole timeline
+// makes with dates: the claim and who makes it are two fields.
+//
+// THERE IS NO SCORE HERE. "as_supplied" is not 70% verified. It means a named
+// human read the file page and this codebase did not.
+// ---------------------------------------------------------------------------
+
+export const PROVENANCE_STATUSES = [
+  {
+    key: "verified",
+    label: "Checked against the source",
+    hint: "The holding institution's own record was opened and the fields below match it.",
+  },
+  {
+    key: "as_supplied",
+    label: "As supplied, not independently checked",
+    hint:
+      "Someone read the file page and passed on what it said; this codebase has not opened it. Usually accurate, and not the same as verified.",
+  },
+  {
+    key: "resolved_at_seed",
+    label: "Fetched from the file page when seeded",
+    hint:
+      "Left blank on purpose so the licence and attribution are read from the file's OWN page at the moment it is imported, rather than typed from memory months earlier. The most trustworthy option available, and the one to prefer.",
+  },
+  {
+    key: "unverified",
+    label: "Not checked by anyone",
+    hint: "A filename and nothing more. It must not be displayed as though its provenance were known.",
+  },
+  {
+    key: "contested",
+    label: "Something about it does not add up",
+    hint:
+      "The stated provenance contains a problem a reader should be told about — a date that cannot be right, an 'own work' claim for a photograph nobody living could have taken, a file filed under a person it cannot depict.",
+  },
+] as const;
+
+export type ProvenanceStatusKey = (typeof PROVENANCE_STATUSES)[number]["key"];
+
+const PROVENANCE_STATUS_BY_KEY = new Map(PROVENANCE_STATUSES.map((s) => [s.key as string, s]));
+
+export function provenanceStatusLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return PROVENANCE_STATUS_BY_KEY.get(key)?.label ?? null;
+}
+
+export function provenanceStatusHint(key: string | null | undefined): string {
+  return PROVENANCE_STATUS_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * Should the interface warn about this picture's provenance?
+ *
+ * Note what is NOT in here: "as_supplied" and "resolved_at_seed". Neither is a
+ * problem. The first is ordinary good information with its origin recorded;
+ * the second is better than anything typed by hand. Warning about them would
+ * train readers to ignore the warning.
+ */
+export function provenanceNeedsWarning(key: string | null | undefined): boolean {
+  return key === "unverified" || key === "contested";
 }
