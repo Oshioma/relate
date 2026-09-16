@@ -49,6 +49,7 @@ import { GIANTS_GREEK_ANCHOR_SLUG } from "@/lib/timeline/giants-greek-seed";
 import { GIANTS_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/giants-mesopotamia-seed";
 import { THIRTY_THREE_VEDIC_ANCHOR_SLUG } from "@/lib/timeline/thirty-three-vedic-seed";
 import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
+import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
 import { TALLEST_HUMANS_ANCHOR_SLUG } from "@/lib/timeline/tallest-humans-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
@@ -146,6 +147,7 @@ export default async function TimelinePage({
     hasGiantsMesopotamia,
     hasThirtyThreeVedic,
     hasBrutusAlbion,
+    hasSetSutekh,
     hasTallestHumans,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
@@ -204,6 +206,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, GIANTS_MESOPOTAMIA_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, THIRTY_THREE_VEDIC_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BRUTUS_ALBION_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, SET_SUTEKH_ANCHOR_SLUG) : Promise.resolve(true),
     // NOT gated on isStaff, unlike the offer-card flags above it. Those resolve
     // to `true` for non-staff so the "add this dataset" card stays hidden from
     // people who could not act on it — which makes them useless for deciding
@@ -286,6 +289,7 @@ export default async function TimelinePage({
         hasGiantsMesopotamia={hasGiantsMesopotamia}
         hasThirtyThreeVedic={hasThirtyThreeVedic}
         hasBrutusAlbion={hasBrutusAlbion}
+        hasSetSutekh={hasSetSutekh}
         hasTallestHumans={hasTallestHumans}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}

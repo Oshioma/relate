@@ -74,6 +74,7 @@ import {
   seedGiantsMesopotamiaDataset,
   seedThirtyThreeVedicDataset,
   seedBrutusAlbionDataset,
+  seedSetSutekhDataset,
   seedTallestHumansDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
@@ -294,6 +295,7 @@ export function TimelineView({
   hasGiantsMesopotamia,
   hasThirtyThreeVedic,
   hasBrutusAlbion,
+  hasSetSutekh,
   hasTallestHumans,
   datasetGaps,
   recordsMissingPictures,
@@ -361,6 +363,7 @@ export function TimelineView({
   hasGiantsMesopotamia: boolean;
   hasThirtyThreeVedic: boolean;
   hasBrutusAlbion: boolean;
+  hasSetSutekh: boolean;
   hasTallestHumans: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
@@ -1971,6 +1974,47 @@ export function TimelineView({
           foot and only one of them was ever measured; Charles Byrne because his remains survive with an
           accession number, which is a different category of evidence from a caption. Pictures declare whether
           they show a living person, actual remains, a museum specimen or a bronze statue.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasSetSutekh && (
+        <DatasetOffer
+          title="Add Set, Seth, Sutekh: five thousand years of a changing god?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedSetSutekhDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">Two questions, never merged.</span>
+            <span className="mt-1 block">
+              WHEN is this from, and WHY do we think it is Set? A Naqada potsherd can be securely dated,
+              securely provenanced and held in a named museum, and still be only{" "}
+              <span className="font-medium">possibly</span> a Set animal. Every record answers both questions
+              separately, and the second one has its own degrees of doubt.
+            </span>
+          </span>
+          Twenty-nine records from Predynastic Egypt to the present. THE FINDING THAT SURPRISES PEOPLE: for most
+          of Egyptian history Set is not a devil. He stands in the prow of the sun boat and spears Apep, the
+          serpent that would end the world; he holds up the kingship jointly with Horus; a Second Dynasty king
+          puts him where the Horus falcon belongs, over his own name; Nineteenth Dynasty pharaohs are NAMED for
+          him; he witnesses the earliest surviving peace treaty between two empires. The demonised Set arrives
+          late, unevenly, and mostly through Greek eyes — Plutarch calls him Typhon around 100 CE, some three
+          thousand years after the earliest object here, and the film version descends from Plutarch rather than
+          from Egypt. WHAT THE DATASET REFUSES TO DO: give a date for when Set &quot;became evil&quot;, because
+          there is not one; read Plutarch backwards into the Old Kingdom; or close the long documented gap
+          between the end of the ancient cult and the modern revivals, which has a record of its own so it
+          cannot be quietly filled in. Nobody knows what animal the Set animal is, and that has its own record
+          too, because it governs how much weight every identification-by-resemblance here can carry.
         </DatasetOffer>
       )}
 

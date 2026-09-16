@@ -30,6 +30,7 @@ import { ANCIENT_SITES_WORKED_STONE_EVENTS } from "./ancient-sites-worked-stone-
 import { ANCIENT_SITES_ACCEPTED_EVENTS } from "./ancient-sites-accepted-surprise-seed";
 import { ANCIENT_SITES_EXCAVATED_EVENTS } from "./ancient-sites-excavated-seed";
 import { TALLEST_HUMANS_DISPUTED, TALLEST_HUMANS_EVENTS } from "./tallest-humans-seed";
+import { SET_SUTEKH_EVENTS } from "./set-sutekh-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -63,6 +64,7 @@ const ALL: SeedEvent[] = [
   ...ANCIENT_SITES_EXCAVATED_EVENTS,
   ...TALLEST_HUMANS_EVENTS,
   ...TALLEST_HUMANS_DISPUTED,
+  ...SET_SUTEKH_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>
