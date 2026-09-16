@@ -56,7 +56,26 @@ export type SeedCitation = {
 export type SeedMeasurement = {
   /** The source that ASSERTS this figure. Null where nothing in particular does. */
   sourceKey: string | null;
-  citations?: SeedCitation[];
+  //
+  // THERE IS NO `citations` HERE, AND THERE USED TO BE.
+  //
+  // It was declared, every dataset was free to write it, and the seeder never
+  // read it: citations are written from seed.claims alone, so anything attached
+  // to a measurement was silently dropped at import. Nothing had noticed
+  // because no surviving dataset uses measurements at all.
+  //
+  // It cannot be honoured as things stand. timeline_claim_sources.claim_id is a
+  // NOT NULL foreign key onto timeline_date_claims, so a measurement's citation
+  // has nowhere to go without a table of its own — and a table with no rows in
+  // it, written for no dataset, is not the fix.
+  //
+  // So the promise is withdrawn rather than left standing. The day a dataset
+  // genuinely needs a disputing source on a height, the migration to write is
+  // timeline_measurement_claim_sources, mirroring timeline_claim_sources; until
+  // then a type that offers the field is a type that lies to whoever fills it
+  // in. sourceKey — the work that asserts the figure — is unaffected and is
+  // written exactly as it always was.
+  //
   /**
    * WHAT was measured, in plain words — "standing height, measured at the
    * Hunterian", "the articulated skeleton as mounted". Groups measurements in
@@ -329,6 +348,83 @@ export type SeedPicture = {
   creditFrom?: "source";
 };
 
+/**
+ * ONE ACT OF RENDERING, BY ONE NAMED PARTY.
+ *
+ * A layer is to a text what a claim is to a date. Gardiner's 1931 translation
+ * and Lichtheim's 1976 translation of the same lines are two rows, not one row
+ * somebody had to choose between — and the choosing is exactly what this
+ * timeline exists not to do on a reader's behalf.
+ *
+ * `sourceKey` is WHO DID THIS RENDERING, which is a different question from
+ * which edition the passage is published in. The translator is on the
+ * translation; the papyrus is on the passage.
+ */
+export type SeedTextLayer = {
+  /** An EVIDENCE_LAYERS key: how far from the object this line stands. */
+  layer: string;
+  /** The source that made THIS rendering. Null where nothing in particular did. */
+  sourceKey: string | null;
+  /**
+   * The text itself.
+   *
+   * OMITTED where it cannot be reproduced — a modern translation still in
+   * copyright is recorded as a citation with a page range and no text, which
+   * is a real row: it says the translation exists, who made it, and where to
+   * read it. Required alongside contentAbsentReason, and the database enforces
+   * the same rule.
+   */
+  content?: string;
+  /** Required when content is absent: why there is no text here. */
+  contentAbsentReason?: string;
+  /**
+   * TWO FIELDS, BECAUSE "EGYPTIAN" DOES NOT SAY WHICH LINE OF THE CHAIN.
+   *
+   * Hieratic on a papyrus, Gardiner's hieroglyphic transcription of it, and
+   * the consonants in Latin letters are all "Egyptian" and are three different
+   * layers. The script is what tells them apart.
+   */
+  language?: string;
+  script?: string;
+  /** A CLAIM_VIEWPOINTS key. Set on an interpretation; left unset on a transliteration. */
+  viewpoint?: string;
+  /** Why this rendering reads as it does, and what it does and does not establish. */
+  evidence: string;
+  notes?: string;
+};
+
+/**
+ * A LOCATED PIECE OF SURVIVING EVIDENCE, AND THE CHAIN THAT LEADS AWAY FROM IT.
+ *
+ * The addressable unit is the passage, not the event. The Contendings of Horus
+ * and Seth is one event and about fifteen episodes, each at its own page and
+ * line of Papyrus Chester Beatty I; one set of layers per event would flatten
+ * fifteen legal arguments into a block of prose, which is the collapse this
+ * whole structure exists to prevent, committed one level up.
+ *
+ * `reference` is what makes the passage checkable — the page and line, the
+ * utterance number, the line of the stela. Without it the layers below are a
+ * quotation floating free of the thing it came out of.
+ */
+export type SeedPassage = {
+  /** Unique within its event. What a reader is offered as a heading. */
+  label: string;
+  /** WHERE IT IS: "Chester Beatty I, recto 3,1–4,3", "Pyramid Texts, utterance 356". */
+  reference?: string;
+  /** The edition or publication this passage is located in. */
+  sourceKey?: string | null;
+  /**
+   * THE PHYSICAL THING, kept apart from the book about it. The commonest way
+   * to lose a provenance is to let the edition stand in for the artefact.
+   */
+  objectName?: string;
+  holdingInstitution?: string;
+  accessionNumber?: string;
+  notes?: string;
+  /** The chain, from the object outwards. More than one translation is the normal case. */
+  layers: SeedTextLayer[];
+};
+
 export type SeedEvent = {
   slug: string;
   title: string;
@@ -374,6 +470,19 @@ export type SeedEvent = {
    * one — a record with no measurements behaves exactly as it always did.
    */
   measurements?: SeedMeasurement[];
+  /**
+   * THE EVIDENCE THE RECORD RESTS ON, IN THE READER'S REACH.
+   *
+   * Optional, and absent from every dataset written before this one — a record
+   * with no passages behaves exactly as it always did. Where they are present
+   * they are the answer to "how do we know that?", and a reader can walk back
+   * from any sentence here to the papyrus it came off.
+   *
+   * A record whose description asserts what a text says and which carries no
+   * passage is not wrong, but it is reporting at second hand and the interface
+   * is entitled to show that it is.
+   */
+  passages?: SeedPassage[];
   /**
    * An EVIDENCE_STATUSES key for the RECORD AS A WHOLE, where one applies.
    *

@@ -1498,6 +1498,75 @@ async function seedDataset(
       await supabase.from("timeline_measurement_claims").insert(measurementRows);
     }
 
+    // THE INTERPRETIVE CHAIN. Optional, and absent from every dataset written
+    // before this one, so a seed with no passages behaves exactly as it did.
+    //
+    // Two inserts rather than one, because a layer hangs off a passage and
+    // needs its id. Passages go in together so the ids come back in one round
+    // trip, then every layer in the event is written in a second.
+    //
+    // Deliberately NOT fatal, for the same reason measurements are not: a
+    // missing date leaves an event that cannot be drawn and is taken back out
+    // above, while a missing passage leaves a record that is merely less
+    // complete. Deleting a record of the Contendings because one transliteration
+    // failed to insert would be the wrong trade.
+    if (seed.passages?.length) {
+      const passageRows = seed.passages.map((passage, index) => ({
+        event_id: event.id,
+        community_id: community.id,
+        created_by: userId,
+        source_id: passage.sourceKey ? sourceIds.get(passage.sourceKey) ?? null : null,
+        label: passage.label,
+        reference: passage.reference ?? null,
+        object_name: passage.objectName ?? null,
+        holding_institution: passage.holdingInstitution ?? null,
+        accession_number: passage.accessionNumber ?? null,
+        notes: passage.notes ?? null,
+        sort_order: index,
+      }));
+
+      const { data: insertedPassages, error: passageError } = await supabase
+        .from("timeline_text_passages")
+        .insert(passageRows)
+        .select("id, label");
+
+      if (passageError) {
+        console.error(`${label} passages failed:`, JSON.stringify(passageError));
+      } else {
+        // Matched back by label — unique within an event for exactly this
+        // reason, the same contract original_date_text carries for claims.
+        const passageIdByLabel = new Map<string, string>(
+          (insertedPassages ?? []).map((row) => [row.label, row.id])
+        );
+        const layerRows = seed.passages.flatMap((passage) => {
+          const passageId = passageIdByLabel.get(passage.label);
+          if (!passageId) return [];
+          return passage.layers.map((textLayer, index) => ({
+            passage_id: passageId,
+            community_id: community.id,
+            created_by: userId,
+            source_id: textLayer.sourceKey ? sourceIds.get(textLayer.sourceKey) ?? null : null,
+            layer: textLayer.layer,
+            // Undefined becomes null: a layer with no text, which the database
+            // accepts only alongside a stated reason for having none — the
+            // copyrighted-translation case.
+            content: textLayer.content ?? null,
+            content_absent_reason: textLayer.contentAbsentReason ?? null,
+            language: textLayer.language ?? null,
+            script: textLayer.script ?? null,
+            viewpoint: textLayer.viewpoint ?? null,
+            evidence: textLayer.evidence,
+            notes: textLayer.notes ?? null,
+            sort_order: index,
+          }));
+        });
+        if (layerRows.length > 0) {
+          const { error: layerError } = await supabase.from("timeline_text_layers").insert(layerRows);
+          if (layerError) console.error(`${label} text layers failed:`, JSON.stringify(layerError));
+        }
+      }
+    }
+
     // Citations, matched back to their claim by its date text — unique within
     // each event for exactly this reason.
     const claimIdByText = new Map<string, string>(

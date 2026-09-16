@@ -2317,6 +2317,60 @@ export type TimelineRevision = {
 // writers said, and an unattributed edge would state it as though it were
 // settled. Stored once, from → to; the UI inverts the wording when showing it
 // on the other record.
+/**
+ * A located piece of surviving evidence. The addressable unit of the
+ * interpretive chain — see the migration header and SeedPassage.
+ */
+export type TimelineTextPassage = {
+  id: string;
+  event_id: string;
+  community_id: string;
+  created_by: string;
+  /** The edition this passage is located in, which is not the object itself. */
+  source_id: string | null;
+  /** A heading for a reader. Never a summary — the content lives in the layers. */
+  label: string;
+  /** Page and line, utterance number, register. What makes the passage checkable. */
+  reference: string | null;
+  /** The physical thing, kept apart from the book about it. */
+  object_name: string | null;
+  holding_institution: string | null;
+  accession_number: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+/**
+ * One act of rendering, by one named party. Three translations of a passage
+ * are three rows, because the difference between them is the finding.
+ */
+export type TimelineTextLayer = {
+  id: string;
+  passage_id: string;
+  community_id: string;
+  created_by: string;
+  /** WHO MADE THIS RENDERING — not which edition the passage is published in. */
+  source_id: string | null;
+  /** An EVIDENCE_LAYERS key in src/lib/timeline/taxonomy.ts. */
+  layer: string;
+  /** Null where the text cannot be reproduced — a translation still in
+   *  copyright is a citation with no text, and then content_absent_reason
+   *  must say so. The database enforces the pair. */
+  content: string | null;
+  content_absent_reason: string | null;
+  /** Two fields: "Egyptian" does not say whether this is hieratic, a
+   *  hieroglyphic transcription of it, or consonants in Latin letters. */
+  language: string | null;
+  script: string | null;
+  /** A CLAIM_VIEWPOINTS key. Set on an interpretation, unset on a transliteration. */
+  viewpoint: string | null;
+  evidence: string;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type TimelineMeasurementClaim = {
   id: string;
   event_id: string;
@@ -3144,6 +3198,29 @@ export type Database = {
           FKey<"to_event_id", "timeline_events">,
           FKey<"source_id", "timeline_sources">,
         ];
+      };
+      timeline_text_passages: {
+        Row: TimelineTextPassage;
+        Insert: Partial<TimelineTextPassage> & {
+          event_id: string;
+          community_id: string;
+          created_by: string;
+          label: string;
+        };
+        Update: Partial<TimelineTextPassage>;
+        Relationships: [FKey<"event_id", "timeline_events">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_text_layers: {
+        Row: TimelineTextLayer;
+        Insert: Partial<TimelineTextLayer> & {
+          passage_id: string;
+          community_id: string;
+          created_by: string;
+          layer: string;
+          evidence: string;
+        };
+        Update: Partial<TimelineTextLayer>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"source_id", "timeline_sources">];
       };
       timeline_measurement_claims: {
         Row: TimelineMeasurementClaim;
