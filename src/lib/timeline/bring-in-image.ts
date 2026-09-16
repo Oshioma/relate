@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { creditFor, pictureSourceFor } from "./picture-sources";
+import type { SeedPicture } from "./seed-types";
 
 // BRINGING A PICTURE IN, RATHER THAN POINTING AT SOMEBODY ELSE'S SERVER.
 //
@@ -210,31 +211,19 @@ function hostOf(url: string): string {
 export type EventPictures = {
   imageUrl: string | null;
   /**
-   * `shows` is here because it was missing: the seeds have always set it and
-   * the spread below has always carried it through, but the type said
-   * otherwise, so nothing checked that a later artwork kept declaring itself.
+   * THE SAME TYPE THE SEEDS WRITE, not a second description of it.
    *
-   * `creditFrom` marks a caption that is written WITHOUT its credit, to be
-   * finished at seed time — see resolveCredits.
+   * These were two shapes and they drifted. `shows` was set by every seed and
+   * carried through by the spread in bringEventPicturesIn for months, while
+   * this type said it did not exist — so nothing checked that a later artwork
+   * kept declaring itself. The provenance fields would have repeated it
+   * exactly: a spread carries whatever it is handed, and a field the type does
+   * not know about is a field no test can defend and no reader is ever shown.
+   *
+   * One type means the seed file, the copy into storage and the jsonb column
+   * cannot disagree about what a picture is. See SeedPicture for the fields.
    */
-  media: {
-    url: string;
-    caption?: string;
-    /**
-     * WHO MADE IT, KEPT APART FROM WHAT IT SHOWS.
-     *
-     * The credit used to be appended to the caption, and the caption is also
-     * the picture's alt text — so a screen reader read out "…before the floods
-     * were accepted, via Wikimedia Commons, author and licence are stated on
-     * the file page, h-t-t-p-s colon slash slash commons dot wikimedia…". The
-     * licence belongs on the page; it does not belong in the description of
-     * what the photograph is of.
-     */
-    credit?: string;
-    kind?: string;
-    shows?: string;
-    creditFrom?: "source";
-  }[];
+  media: SeedPicture[];
 };
 
 /**
