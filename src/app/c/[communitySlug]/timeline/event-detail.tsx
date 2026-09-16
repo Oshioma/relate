@@ -13,13 +13,14 @@ import type {
   TimelineSource,
   TimelineTrack,
 } from "@/types/database";
-import type { TimelineEventWithClaims, TimelineLinkedRecord } from "@/lib/data/timeline";
+import type { TimelineEventWithClaims, TimelineLinkedRecord, TimelinePassageWithLayers } from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
 import { EditEventFlow } from "./edit-event-flow";
 import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
+import { EvidenceChainPanel } from "./evidence-chain-panel";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
 import {
   eventTypeHint,
@@ -73,6 +74,7 @@ export function EventDetail({
   citations = [],
   links = [],
   linkedRecords = [],
+  passages = [],
   tracks = [],
   userId = null,
   communitySlug,
@@ -90,6 +92,21 @@ export function EventDetail({
   links?: TimelineEventLink[];
   /** The records at the far ends of those edges — usually outside the visible window. */
   linkedRecords?: TimelineLinkedRecord[];
+  /**
+   * The evidence under this record: passages, each with its interpretive chain.
+   *
+   * SUPPLIED BY THE STANDALONE PAGE AND NOT BY THE TIMELINE DRAWER, and that
+   * is a deliberate limit rather than an oversight. The drawer's event comes
+   * down with the windowed query, so showing the chain there would mean
+   * fetching per selection — a second code path with its own way to be slow,
+   * to answer a question the full record answers better. The drawer stays the
+   * fast way to read an event; the record page is where you go back to the
+   * papyrus.
+   *
+   * Defaults to empty, and the panel draws nothing at all when it is — which
+   * is also the normal state of every record written before passages existed.
+   */
+  passages?: TimelinePassageWithLayers[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -583,6 +600,13 @@ export function EventDetail({
           </div>
         </div>
       )}
+
+      {/* ---- How do we know that? ----------------------------------------
+          The surviving evidence, and every step between it and what this page
+          says. Placed after the dates and before the relationships: the dates
+          are what the page is FOR, and this is the answer to the question a
+          reader asks next. Draws nothing when the record has no passages. */}
+      <EvidenceChainPanel passages={passages} sourcesById={sourcesById} />
 
       {/* ---- What else this is tied to ------------------------------------
           After the dates, deliberately. The dates are what the page is FOR;

@@ -8,6 +8,7 @@ import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff 
 import {
   getClaimCitations,
   getEventLinks,
+  getEventPassages,
   getLinkedRecords,
   getSourceChains,
   getTimelineEventBySlug,
@@ -86,6 +87,20 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   const linkSources = links.map((link) => link.source_id).filter((id): id is string => Boolean(id) && !byId.has(id!));
   for (const source of await getTimelineSourcesByIds(supabase, linkSources)) byId.set(source.id, source);
 
+  // THE EVIDENCE UNDER THE RECORD, and the sources that made each rendering.
+  //
+  // A layer's source is usually not one this event's DATES cite: Gardiner is
+  // cited for a translation and not for a date, so without this the panel would
+  // print three translations above three blanks where the translators belong —
+  // and an unattributed translation is the precise thing this panel exists to
+  // make impossible.
+  const passages = await getEventPassages(supabase, event.id);
+  const chainSourceIds = [
+    ...passages.map((passage) => passage.source_id),
+    ...passages.flatMap((passage) => passage.layers.map((layer) => layer.source_id)),
+  ].filter((id): id is string => Boolean(id) && !byId.has(id!));
+  for (const source of await getTimelineSourcesByIds(supabase, chainSourceIds)) byId.set(source.id, source);
+
   const sources = [...byId.values()];
 
   return (
@@ -103,6 +118,7 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
         citations={citations}
         links={links}
         linkedRecords={linkedRecords}
+        passages={passages}
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}
