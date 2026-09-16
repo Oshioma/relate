@@ -10,6 +10,8 @@ import type {
   TimelinePeriod,
   TimelinePeriodLink,
   TimelineEventLink,
+  TimelineTextPassage,
+  TimelineTextLayer,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
@@ -889,6 +891,56 @@ export async function getEventLinks(
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
+}
+
+/**
+ * A passage with the chain that leads away from it, ready to render.
+ *
+ * The layers come back in CHAIN ORDER — object, text, transcription,
+ * transliteration, translation, summary, meaning — and within a layer in the
+ * order the dataset wrote them, because three translations must not swap
+ * places between renders when comparing them is the whole point.
+ */
+export type TimelinePassageWithLayers = TimelineTextPassage & { layers: TimelineTextLayer[] };
+
+/**
+ * The evidence under one record: every passage, with its layers attached.
+ *
+ * TWO QUERIES, NOT ONE PER PASSAGE. A record like the Contendings carries
+ * fifteen passages, and a page that fetched each one's layers separately would
+ * make sixteen round trips to draw one panel. Layers are fetched for all of
+ * this event's passages at once and grouped in memory.
+ *
+ * Ordering is done in SQL by sort_order — the position the dataset put them
+ * in — and the chain order is applied at render time by orderEvidenceLayers,
+ * so a row entered out of order still draws in the order it was derived in.
+ */
+export async function getEventPassages(
+  supabase: Client,
+  eventId: string
+): Promise<TimelinePassageWithLayers[]> {
+  const { data: passages, error: passageError } = await supabase
+    .from("timeline_text_passages")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("sort_order", { ascending: true });
+  if (passageError) throw passageError;
+  if (!passages?.length) return [];
+
+  const { data: layers, error: layerError } = await supabase
+    .from("timeline_text_layers")
+    .select("*")
+    .in("passage_id", passages.map((passage) => passage.id))
+    .order("sort_order", { ascending: true });
+  if (layerError) throw layerError;
+
+  const byPassage = new Map<string, TimelineTextLayer[]>();
+  for (const layer of layers ?? []) {
+    const existing = byPassage.get(layer.passage_id);
+    if (existing) existing.push(layer);
+    else byPassage.set(layer.passage_id, [layer]);
+  }
+  return passages.map((passage) => ({ ...passage, layers: byPassage.get(passage.id) ?? [] }));
 }
 
 /** The far end of an edge, in the few fields a link needs to name and reach it. */
