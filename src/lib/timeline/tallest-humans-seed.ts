@@ -51,10 +51,16 @@ export const TALLEST_HUMANS_SOURCES: SeedSource[] = [
     url: "https://surgicat.rcseng.ac.uk/Details/collect/4123",
     sourceType: "museum_record",
     notes:
-      "THE STRONGEST SINGLE PIECE OF EVIDENCE IN THIS DATASET. A catalogue record with an accession number, which " +
-      "is what makes a claim about remains checkable by somebody who was not there. Cited for the existence, " +
-      "identity and custody of the skeleton — NOT for Byrne's height in life, which the bones cannot give. " +
-      "NEEDS SOURCE VERIFICATION for the catalogue's own measurement figure, which has not been read here.",
+      "THE STRONGEST SINGLE PIECE OF EVIDENCE IN THIS DATASET, AND NOW READ. A catalogue record with an " +
+      "accession number, which is what makes a claim about remains checkable by somebody who was not there. " +
+      "WHAT READING IT PRODUCED, and it was not what was expected: the record does not give ONE measurement. " +
+      "It preserves the College's own catalogues disagreeing with each other. Owen's catalogue of 1853 " +
+      "records the skeleton at EIGHT FEET; Flower's of 1879 records it at 2310 mm, seven feet seven, and " +
+      "says in terms that the earlier advertised heights 'are evidently exaggerations'; the modern online " +
+      "description gives 2.35 m while also printing 7'7\", which are not the same number. Three figures for " +
+      "one object from one institution across 170 years. Also cited for Flower's individual bone " +
+      "measurements, for the display history (1813-2017), for the Trustees' 2020 decision, and for the " +
+      "note that a boot and slipper he wore are preserved with the skeleton.",
   },
   {
     key: "rcs_byrne_statement",
@@ -204,23 +210,41 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
     description:
       "WHAT KIND OF RECORD IS THIS? The best physical evidence in this dataset, and the sharpest example of why " +
       "one number will not do.\n\n" +
-      "WHY THE FIGURES DIFFER, AND NEITHER IS A LIE. Byrne was exhibited in London in the 1780s with advertised " +
-      "heights running to eight feet and beyond. His skeleton, articulated and held by the Royal College of " +
-      "Surgeons as RCSHC/Osteo. 223, measures a good deal less. Three things account for most of the gap and " +
-      "only one of them is dishonesty. A mounted skeleton is SHORTER THAN THE LIVING BODY by several " +
-      "centimetres, because cartilage, intervertebral discs and soft tissue are gone. How a mount is assembled " +
-      "changes the answer again. And showmen inflated heights, routinely, by inches and sometimes by a foot. A " +
-      "reader who knows only the skeleton figure will conclude he was never as tall as claimed; a reader who " +
-      "knows only the advertisement will conclude the museum is hiding something. Both are wrong in the same way.\n\n" +
+      "FIVE FIGURES, AND THE INSTITUTION HOLDING THE BONES SUPPLIES FOUR OF THEM. The catalogue record has now " +
+      "been read, and it does not settle his height. It preserves the disagreement. A Morning Herald " +
+      "advertisement of 24 April 1782 sells him at eight feet two. The Annual Register, reporting his death, " +
+      "gives a sequence ending at eight feet four AFTER he died — a corpse taller than the man, which should " +
+      "stop any reader. Owen's College catalogue of 1853 measures the mounted skeleton at eight feet. Flower's " +
+      "College catalogue of 1879 measures the same object at 2310 mm, seven feet seven, publishes every bone " +
+      "length behind it, and says the earlier figures 'are evidently exaggerations'. The College's modern " +
+      "description gives 2.35 m while printing 7'7\" in the same breath, which are not the same number.\n\n" +
+      "SO THE INTERESTING GAP IS NOT BETWEEN THE POSTER AND THE BONES. It is between two catalogues of the " +
+      "same institution, twenty-six years apart, differing by five inches on an object neither of them could " +
+      "have lost. An accession number guarantees that a thing can be re-measured. It does not guarantee that " +
+      "the measurements agree, and this dataset was built on a slightly rosier assumption than that.\n\n" +
+      "A CORRECTION THIS RECORD OWES THE READER. It previously explained the gap by saying a mounted skeleton " +
+      "is necessarily shorter than the living body, cartilage and discs being gone. Flower says his mount is " +
+      "one 'in which due allowance appears to be given for the intervertebral substance'. The general rule is " +
+      "sound; it does not apply here in the simple form this record asserted.\n\n" +
       "WHAT THE ACCESSION NUMBER BUYS. It is the difference between this record and almost every 'giant " +
       "skeleton' on the internet. The remains exist, are held somewhere nameable, have an unbroken " +
       "institutional history, and can be re-examined. That is not a stronger opinion; it is a different " +
       "category of evidence.\n\n" +
       "THE PART THAT IS NOT ABOUT MEASUREMENT. Byrne is reported to have asked to be buried at sea, " +
-      "specifically to keep his body from the anatomists, and John Hunter obtained it anyway. The College " +
-      "announced in 2023 that the skeleton is retained but no longer publicly displayed. Whether it should be " +
-      "held at all is a live argument with serious people on both sides, and this record does not settle it. " +
-      "It records that the argument exists and that it is about consent, not about centimetres.\n\n" +
+      "specifically to keep his body from the anatomists, and John Hunter obtained it anyway. The catalogue " +
+      "says so itself, and adds that Hunter 'did not leave any direct record or description of Byrne's " +
+      "skeleton'. It was displayed from 1813 until 2017; in 2020 the Trustees agreed it would not be shown " +
+      "again but would be retained for research. The College's own record closes with the sentence " +
+      "'Opinions differ as to whether Byrne's skeleton should now be buried', which is a more honest ending " +
+      "than most institutions manage, and this dataset does not improve on it.\n\n" +
+      "WHAT THE RETENTION HAS PRODUCED, which belongs in the argument on both sides. In 1891 Daniel " +
+      "Cunningham proposed acromegaly. In 1909 Harvey Cushing persuaded Arthur Keith to examine the inside of " +
+      "the skull, and the pituitary fossa was found enlarged. In 2009 a team led by Márta Korbonits took DNA " +
+      "from two of his teeth and identified an AIP mutation — familial isolated pituitary adenoma — shared " +
+      "with living families in Northern Ireland, traced to a common ancestor the researchers place very " +
+      "roughly fifteen hundred years ago, with a range they give as about 400 to 3700 years. That work led to " +
+      "a screening programme. None of this settles whether the skeleton should be kept. All of it is what a " +
+      "reader needs in order to have the argument properly.\n\n" +
       "THINGS TO ASK: If a skeleton is always shorter than the person, how would you work back? What would you " +
       "need to know? Does an accession number tell you a measurement is right, or only that it can be checked?",
     category: "biography",
@@ -251,68 +275,151 @@ export const TALLEST_HUMANS_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for both dates against parish or press records.",
       },
       {
-        sourceKey: "rcs_byrne_statement",
-        startYear: 2023,
+        sourceKey: "rcs_surgicat_byrne",
+        startYear: 1813,
+        endYear: 2017,
         datePrecision: "year",
         isApproximate: false,
-        temporalClaimType: "absolute_date",
-        whatIsDated: "When the skeleton ceased to be publicly displayed",
-        originalDateText: "Retained but withdrawn from display, announced around the 2023 museum reopening",
+        temporalClaimType: "date_range",
+        whatIsDated: "How long the skeleton was on public display",
+        originalDateText: "Displayed in the College's museum from 1813 until 2017",
         datingMethod: "source_assertion",
         chronology: "conventional",
         evidence:
-          "WHAT IS CLAIMED: that the College retains the skeleton and no longer displays it publicly. WHY IT IS " +
-          "ON THE TIMELINE: because the custody of evidence is itself datable, and because a reader who goes " +
-          "looking for the exhibit should know what they will find. WHAT IT IS NOT: a judgement on whether " +
-          "retention is right.",
-        notes:
-          "NEEDS SOURCE VERIFICATION for the precise wording and date of the statement, which has not been read " +
-          "here.",
+          "WHAT IS DATED: two hundred and four years of public display, which is a fact about an institution " +
+          "and about what generations of visitors were shown. WHY IT IS ON THE TIMELINE: the custody and " +
+          "visibility of evidence is itself datable, and it is one of the few things in this dataset that can " +
+          "be dated precisely.",
+        notes: "From the SurgiCat catalogue record, read directly.",
+      },
+      {
+        sourceKey: "rcs_surgicat_byrne",
+        startYear: 2020,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "absolute_date",
+        whatIsDated: "When the Trustees decided against further display",
+        originalDateText: "In 2020 the Trustees of the Hunterian Collection agreed the skeleton would no longer be displayed",
+        datingMethod: "source_assertion",
+        chronology: "conventional",
+        evidence:
+          "WHAT IS CLAIMED: that in 2020 the Hunterian Collection Trustees agreed the skeleton would not be " +
+          "displayed again, but would be retained for further research into pituitary gigantism. CORRECTED: " +
+          "this dataset previously dated the decision to 2023 and tied it to a museum reopening. The catalogue " +
+          "gives 2020 for the decision and 2017 for the end of display, which are two different events and " +
+          "neither is 2023. WHAT IT IS NOT: a judgement on whether retention is right. The College's own record " +
+          "says plainly that 'opinions differ as to whether Byrne's skeleton should now be buried', and this " +
+          "dataset does not settle that either.",
+        notes: "From the SurgiCat catalogue record, read directly. Replaces a date given here from memory.",
       },
     ],
     measurements: [
       {
-        sourceKey: null,
-        whatIsMeasured: "Height as advertised during his exhibition in London",
-        valueLowCm: 244,
-        valueHighCm: 254,
-        valueCm: 254,
-        originalValueText: "Advertised at eight feet and upwards; figures to about 8 ft 4 in circulated",
+        sourceKey: "rcs_surgicat_byrne",
+        valueCm: 248.9,
+        whatIsMeasured: "Height advertised in the Morning Herald, 24 April 1782",
+        originalValueText: "\"his height is eight feet two inches\" — Morning Herald advertisement, 24 April 1782",
         measurementKind: "advertised_height",
         measurementMethod: "promotional",
-        evidenceStatus: "historical_report_remains_lost",
+        evidenceStatus: "strongly_documented",
         directlyMeasured: false,
+        measuredOn: "1782-04-24",
         evidence:
-          "WHAT IS CLAIMED: eight feet and more. WHO CLAIMED IT: the exhibition that was charging admission to " +
-          "see him. WHAT IT IS EVIDENCE OF: what was advertised in London in the 1780s, which is a real " +
-          "historical fact about the period and about him. WHAT IT IS NOT EVIDENCE OF: what he measured. THIS " +
-          "CLAIM IS KEPT DELIBERATELY. Deleting it because the skeleton is shorter would hide the most " +
-          "interesting thing in the record, which is the size and the shape of the gap.",
+          "WHAT IS CLAIMED: eight feet two inches. WHO CLAIMED IT: the exhibition, in a newspaper " +
+          "advertisement quoted verbatim in the College's catalogue — 'Mr. Byrne, the surprising Irish Giant, " +
+          "who is allowed to be the tallest man in the world, his height is eight feet two inches, and in full " +
+          "proportion accordingly, only 21 years of age.' WHY THIS IS BETTER THAN AN ADVERTISED HEIGHT USUALLY " +
+          "IS: it is dated to the day and quoted from the paper, so a reader can see the exact words that were " +
+          "sold. WHAT IT IS EVIDENCE OF: what was advertised in London in April 1782. Nothing else.",
         notes:
-          "NEEDS SOURCE VERIFICATION against the surviving handbills and press advertisements, which exist and " +
-          "have not been consulted here. The range given is indicative of figures in circulation, not a " +
-          "reading of any one bill.",
+          "Read from the SurgiCat catalogue record, which quotes the advertisement. The catalogue itself marks " +
+          "the figure '[sic]'.",
       },
       {
         sourceKey: "rcs_surgicat_byrne",
-        whatIsMeasured: "The articulated skeleton, as mounted",
-        valueCm: 231,
-        originalValueText: "About 7 ft 7 in as catalogued",
+        valueCm: 254,
+        whatIsMeasured: "Height reported after death in the Annual Register, June 1783",
+        originalValueText: "\"in August 1780, measured eight feet; that in 1782 he had gained two inches; and after he was dead he measured eight feet four inches\"",
+        measurementKind: "posthumous_report",
+        measurementMethod: "press_report",
+        evidenceStatus: "historical_report_remains_lost",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: a sequence — eight feet in August 1780, two inches more by 1782, eight feet four " +
+          "inches after death. WHY A GROWING CORPSE SHOULD GIVE A READER PAUSE: the last figure exceeds the " +
+          "last living one, which does not happen. WHOSE CLAIM IT IS: an 'ingenious correspondent' of the " +
+          "Annual Register, as quoted in the College's catalogue. THE VALUE HERE IS THE FINAL FIGURE; the " +
+          "earlier two are in the quoted text so the whole sequence can be seen.",
+        notes:
+          "Read from the SurgiCat record, which reproduces the Annual Register Chronicle, June 1783, vol. xxvi, " +
+          "p. 209.",
+      },
+      {
+        sourceKey: "rcs_surgicat_byrne",
+        valueCm: 244,
+        whatIsMeasured: "The skeleton, as catalogued by Owen in 1853",
+        originalValueText: "\"It measures eight feet, in a straight line from the vertex to the sole\" — Owen 1853",
         measurementKind: "skeletal_height",
         measurementMethod: "mounted_skeleton",
+        evidenceStatus: "disputed",
+        directlyMeasured: true,
+        measuredOn: "1853-01-01",
+        evidence:
+          "WHAT IS MEASURED: the mounted skeleton, by the College, in the mid-nineteenth century. THE FIGURE IS " +
+          "EIGHT FEET. THIS IS THE FINDING THAT MAKES THIS RECORD WORTH READING: twenty-six years later the " +
+          "same institution catalogued the same object at seven feet seven, and called the eight-foot class of " +
+          "figures 'evidently exaggerations'. An accession number guarantees that an object can be re-measured. " +
+          "It does not guarantee that the measurements will agree.",
+        notes:
+          "Read from the SurgiCat record, quoting Owen 1853 vol. 2, no. 5905. What changed between 1853 and " +
+          "1879 — the mount, the method, or the care — is not stated and is worth somebody establishing.",
+      },
+      {
+        sourceKey: "rcs_surgicat_byrne",
+        valueCm: 231,
+        whatIsMeasured: "The skeleton, as measured by Flower in 1879",
+        originalValueText: "\"Height 2310 [mm] = 7 feet 7 inches\" — Flower 1879, pp. 24-25",
+        measurementKind: "skeletal_height",
+        measurementMethod: "osteological",
         evidenceStatus: "verified_physical_remains",
         directlyMeasured: true,
+        measuredOn: "1879-01-01",
+        measuredBy: "William Henry Flower",
         evidence:
-          "WHAT IS MEASURED: the bones, articulated and standing, in a collection, under accession number " +
-          "RCSHC/Osteo. 223. WHY IT IS LOWER THAN THE LIVING MAN NECESSARILY WAS: a mounted skeleton lacks " +
-          "cartilage, intervertebral discs and soft tissue, and the assembly itself introduces variation. THE " +
-          "FIGURE IS THEREFORE A FLOOR, not an estimate of his stature. WHAT IT ESTABLISHES BEYOND THE NUMBER: " +
-          "that the remains exist and can be re-measured, which separates this record from every undocumented " +
-          "giant-skeleton claim in the disputed section.",
+          "WHAT IS MEASURED: 2310 mm, on the mounted skeleton, published with a full set of individual bone " +
+          "measurements — femur r. 625 l. 642, tibia r. 541 l. 537, humerus r. 450 l. 430, and so on — which is " +
+          "what makes it checkable rather than merely stated. WHY IT IS THE BEST FIGURE HERE: it is the only one " +
+          "accompanied by its own workings. FLOWER'S OWN JUDGEMENT ON THE ADVERTISEMENTS: 'The above-named " +
+          "heights are evidently exaggerations, as the actual height of the skeleton... is only seven feet " +
+          "seven inches.' AND A DETAIL THAT CORRECTS THIS DATASET: he says the mount is one 'in which due " +
+          "allowance appears to be given for the intervertebral substance' — so this is NOT simply a " +
+          "bones-only figure needing soft tissue added back, and the general rule that a mounted skeleton " +
+          "understates the living person does not apply here in the simple way this record previously implied.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the catalogue's own figure and for when it was last taken. The value " +
-          "here is given from general knowledge of the specimen and MUST be replaced with the catalogue " +
-          "measurement; it is the single most important unverified number in this dataset.",
+          "Read from the SurgiCat record. Flower also notes the corresponding limb bones of opposite sides " +
+          "'present great differences in dimensions', which is a real observation about asymmetry in his " +
+          "skeleton and not a measurement problem.",
+      },
+      {
+        sourceKey: "rcs_surgicat_byrne",
+        valueCm: 235,
+        whatIsMeasured: "Byrne's stature in life, as the College's modern description gives it",
+        originalValueText: "\"he... grew to be 2.35m (7'7\") tall\" — RCS online description",
+        measurementKind: "reported_unspecified",
+        measurementMethod: "unstated",
+        evidenceStatus: "disputed",
+        directlyMeasured: false,
+        evidence:
+          "WHAT IS CLAIMED: 2.35 m for the living man. A PROBLEM INSIDE ONE SENTENCE: 2.35 m is about seven " +
+          "feet eight and a half inches, not seven feet seven, and the description prints both. Seven feet " +
+          "seven is Flower's SKELETON figure, 2310 mm. Somewhere between the 1879 catalogue and the modern web " +
+          "page, a measurement of the bones has been restated as a measurement of the man and picked up an " +
+          "extra four centimetres. WHY THIS IS RECORDED RATHER THAN QUIETLY CORRECTED: it is the single " +
+          "clearest illustration in this dataset of how a figure drifts — not through dishonesty, but through " +
+          "being copied across a category boundary by people with no reason to check.",
+        notes:
+          "Read from the SurgiCat record. NEEDS SOURCE VERIFICATION for where 2.35 m entered the College's " +
+          "literature, which is a question about modern museum documentation rather than about Byrne.",
       },
     ],
     media: [

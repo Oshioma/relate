@@ -86,22 +86,48 @@ test("no measurement anywhere carries a confidence score", () => {
 // THE THREE DISTINCTIONS THE DATASET IS ACTUALLY ABOUT
 // ---------------------------------------------------------------------------
 
-test("Byrne keeps both the advertisement and the bones, and neither is deleted", () => {
-  // The whole point. Eight feet was advertised; the skeleton is shorter; both
-  // statements are real. Dropping the advertisement would hide the gap, and
-  // the gap is the finding.
+test("Byrne preserves the College disagreeing with itself", () => {
+  // This test used to assert the simple story: eight feet advertised, less on
+  // the bones, gap explained by soft tissue. Reading the catalogue broke it.
+  // The institution holding the skeleton supplies TWO measurements of it,
+  // twenty-six years apart, five inches apart — Owen 1853 at eight feet,
+  // Flower 1879 at 2310 mm. An accession number guarantees a thing can be
+  // re-measured. It does not guarantee the measurements agree, and that is
+  // now the finding this record carries.
   const byrne = person("charles-byrne-skeleton");
-  const advertised = byrne.measurements!.find((m) => m.measurementKind === "advertised_height");
-  const skeletal = byrne.measurements!.find((m) => m.measurementKind === "skeletal_height");
-  assert.ok(advertised, "the advertised height has been deleted");
-  assert.ok(skeletal, "the skeletal measurement has gone");
-  assert.equal(advertised!.directlyMeasured, false);
-  assert.equal(skeletal!.directlyMeasured, true);
-  assert.ok((skeletal!.valueCm ?? 0) < (advertised!.valueCm ?? 0), "the skeleton should be shorter than the advertisement");
-  // And the record must explain WHY a skeleton is shorter, or the reader will
-  // conclude the advertisement was simply a lie.
-  assert.match(byrne.description, /cartilage|intervertebral|soft tissue/i, "the record no longer says why bones measure less");
-  assert.match(skeletal!.evidence, /floor/i, "the skeletal figure is no longer marked as a floor");
+  const skeletal = byrne.measurements!.filter((m) => m.measurementKind === "skeletal_height");
+  assert.equal(skeletal.length, 2, "one of the two College catalogue measurements has gone");
+  const [low, high] = skeletal.map((m) => m.valueCm!).sort((a, b) => a - b);
+  assert.ok(high - low > 10, "the disagreement between the two catalogues has been smoothed away");
+  for (const m of skeletal) assert.equal(m.directlyMeasured, true);
+  // The advertised and posthumous figures stay, because the gap is the point.
+  assert.ok(byrne.measurements!.some((m) => m.measurementKind === "advertised_height"));
+  assert.ok(byrne.measurements!.some((m) => m.measurementKind === "posthumous_report"));
+  assert.match(byrne.description, /does not guarantee that\s+the measurements agree/i);
+});
+
+test("the corpse that grew after death is left visible", () => {
+  // The Annual Register gives eight feet in 1780, two inches more by 1782, and
+  // eight feet four AFTER he died. The last figure exceeds the last living
+  // one, which does not happen. Quietly dropping it would remove the clearest
+  // internal evidence that these numbers were not measurements.
+  const posthumous = person("charles-byrne-skeleton").measurements!.find(
+    (m) => m.measurementKind === "posthumous_report"
+  );
+  assert.ok(posthumous, "the posthumous report has gone");
+  assert.match(posthumous!.originalValueText, /after he was dead he measured eight feet four inches/i);
+  assert.match(posthumous!.evidence, /does not happen/i, "the record no longer points out the impossibility");
+});
+
+test("the record admits the soft-tissue explanation did not apply here", () => {
+  // It previously explained the whole gap by saying a mounted skeleton is
+  // necessarily shorter than the living body. Flower says his mount is one "in
+  // which due allowance appears to be given for the intervertebral substance".
+  // The general rule is sound; it did not apply in the simple form asserted.
+  const byrne = person("charles-byrne-skeleton");
+  assert.match(byrne.description, /does not apply here in the simple form this record asserted/i);
+  const flower = byrne.measurements!.find((m) => /Flower/.test(m.whatIsMeasured));
+  assert.match(flower!.evidence, /due allowance appears to be given/i);
 });
 
 test("Byrne's remains are located by an accession number, not by a caption", () => {
@@ -187,12 +213,23 @@ test("figures this dataset has not traced to a document say so", () => {
   assert.ok(flagged.length >= 5, `only ${flagged.length} measurements carry a verification flag`);
 });
 
-test("the Byrne catalogue measurement is flagged as the one that matters most", () => {
-  // It is the strongest number in the dataset and it is currently given from
-  // general knowledge. That combination is exactly what a flag is for.
-  const skeletal = person("charles-byrne-skeleton").measurements!.find((m) => m.measurementKind === "skeletal_height");
-  assert.match(skeletal!.notes ?? "", /NEEDS SOURCE VERIFICATION/);
-  assert.match(skeletal!.notes ?? "", /most important unverified number/i);
+test("the Byrne figures now come from the catalogue, not from memory", () => {
+  // This test used to require a NEEDS SOURCE VERIFICATION flag naming the
+  // skeletal figure as the most important unverified number in the dataset.
+  // The catalogue has been read, so the flag is gone — and what the test now
+  // guards is the evidence of the reading: every Byrne measurement cites the
+  // catalogue record, and the figures are attributed to the people who took
+  // them rather than floating free.
+  const byrne = person("charles-byrne-skeleton");
+  for (const m of byrne.measurements!) {
+    assert.equal(m.sourceKey, "rcs_surgicat_byrne", `"${m.whatIsMeasured}" no longer cites the catalogue`);
+  }
+  const flower = byrne.measurements!.find((m) => /Flower/.test(m.whatIsMeasured));
+  assert.equal(flower!.measuredBy, "William Henry Flower", "the measurer is no longer named");
+  assert.match(flower!.evidence, /femur r\. 625/, "the published bone measurements have gone");
+  // And the modern description's own internal inconsistency must stay on the record.
+  const modern = byrne.measurements!.find((m) => /modern description/i.test(m.whatIsMeasured));
+  assert.match(modern!.evidence, /2\.35 m is about seven\s+feet eight and a half inches, not seven feet seven/i);
 });
 
 test("every source says what it is cited FOR", () => {
