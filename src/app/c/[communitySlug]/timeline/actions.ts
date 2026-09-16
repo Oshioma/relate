@@ -137,6 +137,11 @@ import {
   TALLEST_HUMANS_TRACK,
 } from "@/lib/timeline/tallest-humans-seed";
 import {
+  SET_SUTEKH_EVENTS,
+  SET_SUTEKH_SOURCES,
+  SET_SUTEKH_TRACK,
+} from "@/lib/timeline/set-sutekh-seed";
+import {
   BRUTUS_ALBION_EVENTS,
   BRUTUS_ALBION_LINKS,
   BRUTUS_ALBION_SOURCES,
@@ -2052,6 +2057,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     events: [...TALLEST_HUMANS_EVENTS, ...TALLEST_HUMANS_DISPUTED],
     sources: TALLEST_HUMANS_SOURCES,
   },
+  {
+    label: "Set, Seth, Sutekh: how one god changed",
+    track: SET_SUTEKH_TRACK,
+    events: SET_SUTEKH_EVENTS,
+    sources: SET_SUTEKH_SOURCES,
+  },
 ];
 
 /**
@@ -3019,6 +3030,28 @@ export async function seedTallestHumansDataset(communitySlug: string) {
     sources: TALLEST_HUMANS_SOURCES,
     track: TALLEST_HUMANS_TRACK,
     label: "Tallest humans: what the evidence actually is",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Set, Seth, Sutekh, from Predynastic Egypt to the present. Every record keeps
+ * two questions apart that popular writing merges: WHEN is this from, and WHY
+ * do we think it is Set? A sherd can be securely dated and only possibly Set,
+ * which is why events carry identificationStatus as well as claims.
+ */
+export async function seedSetSutekhDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: SET_SUTEKH_EVENTS,
+    sources: SET_SUTEKH_SOURCES,
+    track: SET_SUTEKH_TRACK,
+    label: "Set, Seth, Sutekh: how one god changed",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

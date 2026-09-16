@@ -1406,3 +1406,86 @@ export function cmToFeetInches(cm: number): string {
   }
   return `${feet} ft ${inches % 1 === 0 ? inches.toFixed(0) : inches.toFixed(1)} in`;
 }
+
+// ---------------------------------------------------------------------------
+// IS THAT ACTUALLY THE THING IT IS SAID TO BE?
+//
+// Built for the Set/Sutekh dataset, where the central question is not "when is
+// this from" but "why do we think this animal is Set?" — and where the honest
+// answer changes completely between a Naqada I potsherd and a Second Dynasty
+// serekh with the creature standing over a king's name.
+//
+// This is NOT a confidence scale and carries no numbers. Each key names a
+// DIFFERENT EVIDENTIAL SITUATION. "Possible" is not 40% and "probable" is not
+// 75%: possible means the reading is available and nothing compels it, while
+// probable means specific features point that way and a specialist would
+// defend it. A reader should be able to see which situation they are in and
+// why, which is what the accompanying reasoning field is for.
+//
+// The last key is the one that stops a modern occult emblem being filed beside
+// a Predynastic sherd as though they were the same kind of claim.
+// ---------------------------------------------------------------------------
+
+export const IDENTIFICATION_STATUSES = [
+  {
+    key: "secure",
+    label: "Secure identification",
+    hint:
+      "Named in an accompanying inscription, or in a context that admits no other reading — a creature standing over a royal serekh where the falcon belongs. The identification does not depend on how the animal looks.",
+  },
+  {
+    key: "probable",
+    label: "Probable",
+    hint:
+      "Specific diagnostic features are present and a specialist would defend the reading, but nothing names it. The argument is from form and context rather than from a caption.",
+  },
+  {
+    key: "possible",
+    label: "Possible",
+    hint:
+      "The reading is available and nothing compels it. Often a strange quadruped that could be the Set animal, could be another creature, and could be a convention nobody has decoded. Not a weak version of probable — a different situation.",
+  },
+  {
+    key: "disputed",
+    label: "Disputed",
+    hint: "Specialists have argued about this object in print, on grounds a reader can follow. The disagreement is the finding and belongs in front of the reader rather than resolved for them.",
+  },
+  {
+    key: "rejected",
+    label: "Rejected or misidentified",
+    hint:
+      "Was identified as Set and is now generally thought not to be. Kept, because the history of an identification is evidence about how the subject has been studied.",
+  },
+  {
+    key: "modern_interpretation",
+    label: "Modern interpretation",
+    hint:
+      "A modern reading, emblem or reconstruction. It may be careful, scholarly and interesting, and it is not ancient evidence. Anything made after roughly 1800 belongs here unless it is a photograph of something older.",
+  },
+] as const;
+
+export type IdentificationStatusKey = (typeof IDENTIFICATION_STATUSES)[number]["key"];
+
+const IDENTIFICATION_STATUS_BY_KEY = new Map(IDENTIFICATION_STATUSES.map((s) => [s.key as string, s]));
+
+export function identificationStatusLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return IDENTIFICATION_STATUS_BY_KEY.get(key)?.label ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+}
+
+export function identificationStatusHint(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return IDENTIFICATION_STATUS_BY_KEY.get(key)?.hint ?? null;
+}
+
+/**
+ * Should a reader be warned before treating this as evidence about antiquity?
+ *
+ * True for anything that is not an ancient object securely or probably
+ * identified — which includes the honest maybes as well as the moderns. A
+ * Naqada I sherd that MIGHT show a Set animal is not evidence that Set existed
+ * in Naqada I, and the interface must not let it quietly become so.
+ */
+export function identificationNeedsCaution(key: string | null | undefined): boolean {
+  return key === "possible" || key === "disputed" || key === "rejected" || key === "modern_interpretation";
+}

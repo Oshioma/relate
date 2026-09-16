@@ -247,6 +247,8 @@ export type SeedEvent = {
      */
     depictsActualRemains?: boolean;
     verifiedIdentity?: boolean;
+    /** An IDENTIFICATION_STATUSES key, for what the picture is said to SHOW. */
+    identificationStatus?: string;
     /**
      * Set this and write the caption WITHOUT its credit — the credit is worked
      * out at seed time from the picture's own source and appended then. A
@@ -282,6 +284,17 @@ export type SeedEvent = {
    * should not be handed the first because of the second.
    */
   evidenceStatus?: string;
+  /**
+   * An IDENTIFICATION_STATUSES key: is the thing this record is about actually
+   * the thing it is said to be?
+   *
+   * Separate from evidenceStatus, which is about whether the object exists and
+   * can be examined. A Naqada I sherd can be securely dated, securely
+   * provenanced and held in a named museum — and it is still only POSSIBLY a
+   * Set animal. Those are two different questions and a record that answers
+   * only the first has answered the easier one.
+   */
+  identificationStatus?: string;
   /** Where the remains are now, in plain words, when they survive. */
   remainsLocation?: string;
   /** Catalogue/accession number of the remains, where they have one. */
