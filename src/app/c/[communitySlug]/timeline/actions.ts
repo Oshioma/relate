@@ -160,6 +160,12 @@ import {
   BENIN_ATLANTIC_TRACK,
 } from "@/lib/timeline/benin-atlantic-seed";
 import {
+  OKOMILO_EVENTS,
+  OKOMILO_LINKS,
+  OKOMILO_SOURCES,
+  OKOMILO_TRACK,
+} from "@/lib/timeline/okomilo-lineage-seed";
+import {
   BRUTUS_ALBION_EVENTS,
   BRUTUS_ALBION_LINKS,
   BRUTUS_ALBION_SOURCES,
@@ -2168,6 +2174,13 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     sources: BENIN_ATLANTIC_SOURCES,
     links: BENIN_ATLANTIC_LINKS,
   },
+  {
+    label: "Okomilo: a family, a kindred, a clan, and where the evidence stops",
+    track: OKOMILO_TRACK,
+    events: OKOMILO_EVENTS,
+    sources: OKOMILO_SOURCES,
+    links: OKOMILO_LINKS,
+  },
 ];
 
 /**
@@ -3223,6 +3236,37 @@ export async function seedBeninAtlanticDataset(communitySlug: string) {
     track: BENIN_ATLANTIC_TRACK,
     links: BENIN_ATLANTIC_LINKS,
     label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * ONE FAMILY, TRACED AS FAR AS THE EVIDENCE GOES AND NO FURTHER.
+ *
+ * The Okomilo dataset is a genealogy whose most important record is a GAP. It
+ * reaches two documented twentieth-century people, an unnamed father, and a
+ * family name on a community list — and then stops, because between the family
+ * and the founding tradition of Ogbona there is nothing at all. The break is
+ * recorded rather than bridged.
+ *
+ * KEEP IT AWAY FROM THE B\u00c9NIN DATASETS. This is the KINGDOM OF BENIN, in
+ * Nigeria. The other four tracks are the Republic of B\u00e9nin, formerly
+ * Dahomey. Different country; the collision of names is the commonest error in
+ * the subject and has a record of its own in each dataset.
+ */
+export async function seedOkomiloDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: OKOMILO_EVENTS,
+    sources: OKOMILO_SOURCES,
+    track: OKOMILO_TRACK,
+    links: OKOMILO_LINKS,
+    label: "Okomilo: a family, a kindred, a clan, and where the evidence stops",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

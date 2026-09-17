@@ -54,6 +54,7 @@ import { BENIN_DEEP_PAST_ANCHOR_SLUG } from "@/lib/timeline/benin-deep-past-seed
 import { BENIN_DAHOMEY_ANCHOR_SLUG } from "@/lib/timeline/benin-dahomey-seed";
 import { BENIN_VODUN_ANCHOR_SLUG } from "@/lib/timeline/benin-vodun-seed";
 import { BENIN_ATLANTIC_ANCHOR_SLUG } from "@/lib/timeline/benin-atlantic-seed";
+import { OKOMILO_ANCHOR_SLUG } from "@/lib/timeline/okomilo-lineage-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -155,6 +156,7 @@ export default async function TimelinePage({
     hasBeninDahomey,
     hasBeninVodun,
     hasBeninAtlantic,
+    hasOkomilo,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -217,6 +219,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DAHOMEY_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_VODUN_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_ATLANTIC_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, OKOMILO_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -297,6 +300,7 @@ export default async function TimelinePage({
         hasBeninDahomey={hasBeninDahomey}
         hasBeninVodun={hasBeninVodun}
         hasBeninAtlantic={hasBeninAtlantic}
+        hasOkomilo={hasOkomilo}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}

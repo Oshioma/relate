@@ -34,6 +34,7 @@ import { BENIN_DEEP_PAST_EVENTS } from "./benin-deep-past-seed";
 import { BENIN_DAHOMEY_EVENTS } from "./benin-dahomey-seed";
 import { BENIN_VODUN_EVENTS } from "./benin-vodun-seed";
 import { BENIN_ATLANTIC_EVENTS } from "./benin-atlantic-seed";
+import { OKOMILO_EVENTS } from "./okomilo-lineage-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -70,6 +71,7 @@ const ALL: SeedEvent[] = [
   ...BENIN_DAHOMEY_EVENTS,
   ...BENIN_VODUN_EVENTS,
   ...BENIN_ATLANTIC_EVENTS,
+  ...OKOMILO_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>

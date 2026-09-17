@@ -77,6 +77,7 @@ import {
   seedBeninDahomeyDataset,
   seedBeninVodunDataset,
   seedBeninAtlanticDataset,
+  seedOkomiloDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -301,6 +302,7 @@ export function TimelineView({
   hasBeninDahomey,
   hasBeninVodun,
   hasBeninAtlantic,
+  hasOkomilo,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -372,6 +374,7 @@ export function TimelineView({
   hasBeninDahomey: boolean;
   hasBeninVodun: boolean;
   hasBeninAtlantic: boolean;
+  hasOkomilo: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -2148,6 +2151,48 @@ export function TimelineView({
           a Marxist-Leninist state that attacked traditional religion for the opposite reasons the colonial
           one had, the National Conference of 1990 that was copied across francophone Africa — and the
           twenty-six royal treasures that went home in 2021, with the argument about the rest left open.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasOkomilo && (
+        <DatasetOffer
+          title="Add Okomilo: one family, traced as far as the evidence goes?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedOkomiloDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">The most important record in this dataset is a gap.</span>
+            <span className="mt-1 block">
+              KNOWN → UNKNOWN → ORAL TRADITION RESUMES. Between the Okomilo family and the founding
+              genealogy of Ogbona there is nothing at all &mdash; perhaps ten generations, named nowhere. The
+              gap is recorded rather than filled, because a tree with no gaps in it would be fiction.
+            </span>
+          </span>
+          Thirty-six records following one family from Innih, in Etsako Central, Edo State, NIGERIA &mdash; the
+          KINGDOM of Benin, not the Republic, and that has a record of its own. WHAT IS DOCUMENTED: two
+          named Okomilo individuals, and a father known only as &ldquo;the father&rdquo;, who served with British West
+          African forces and whose survival is why his son carries the name Ikhenemho. THE SURPRISE: the
+          MATERNAL line is the better documented one, reaching a named grandfather while the surname&rsquo;s own
+          line stops a generation sooner. WHAT IS STRUCTURE RATHER THAN DESCENT: Okomilo → Innih → Ivhitse →
+          Ivhiochie → Ogbona, four documented steps, none of them a father-to-son link &mdash; except that
+          Ivhiochie turns out to mean &ldquo;the children of Ochie&rdquo;, so the map of the town is a family tree.
+          WHAT THE TRADITION SAYS ABOVE THAT: Anwu and Alokoko out of Benin, in the reign of Ewuare or of
+          Ozolua depending which page you read &mdash; two dates from one publisher, which is one source, not
+          two. AND THE PYTHON: Avhianwu do not eat it, because it is Alokoko, their ancestral mother. Set
+          beside Benin&rsquo;s palace pythons, which are the emblem of a water deity on a king&rsquo;s roof, the two
+          traditions share the animal and almost nothing else &mdash; and the dataset lists five possible
+          conclusions and picks none of them.
         </DatasetOffer>
       )}
 
