@@ -435,3 +435,167 @@ test("the sources that were actually read no longer claim they were not", () => 
     assert.ok(source.url, `${key}: a source that was read has a URL somebody else can open`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// DAKHLEH: THE OASIS RECORDS
+//
+// This group exists because reading the excavation reports moved the dataset
+// in BOTH directions at once, and both movements are easy to lose.
+//
+// It confirmed the load-bearing claim: the Dakhleh evidence really does
+// overlap in date with hostility to Seth elsewhere, so "Egypt turned against
+// Set" is the wrong shape.
+//
+// And it destroyed the comfortable version of that claim: Mut el-Kharab was
+// NOT a refuge. Seth's name was overwritten there too. The old title of the
+// record — "Set outlasts his own disgrace in the western oases" — was a story,
+// and the tests below keep it from creeping back.
+// ---------------------------------------------------------------------------
+
+test("the oasis record no longer says Dakhleh was untouched", () => {
+  const oases = record("set-survives-in-the-oases");
+  const answer = oases.claims.find((c) => /escaped the hostility/i.test(c.whatIsDated ?? ""));
+  assert.ok(answer, "the question has an answer now and it belongs on the record as a claim");
+  assert.match(answer.originalDateText, /^No\./, "the answer is no, and it should read as one");
+  assert.match(answer.evidence, /overwritten/);
+  // And the regional finding has to survive the correction, or the record has
+  // simply swung to the opposite oversimplification.
+  assert.match(answer.evidence, /DIFFERENT TRAJECTORY|different trajectory/);
+});
+
+test("the excavators' conclusion is quoted rather than paraphrased", () => {
+  const oases = record("set-survives-in-the-oases");
+  const systematic = oases.claims.find((c) => /systematic/i.test(c.whatIsDated ?? ""));
+  assert.ok(systematic);
+  assert.match(systematic.originalDateText, /cannot be considered systematic or complete/);
+  assert.match(systematic.originalDateText, /281/, "a quotation without its page is not checkable");
+  // The sentence licenses site-by-site recording. It does not license "nothing
+  // happened", and the record has to say which.
+  assert.match(systematic.evidence, /WHAT IT DOES NOT LICENSE/);
+});
+
+test("no regional ban-date map is manufactured from a paper that declined to draw one", () => {
+  const oases = record("set-survives-in-the-oases");
+  const text = JSON.stringify(oases) + JSON.stringify(record("late-period-persecution-of-set"));
+  assert.match(text, /contextual rather than cartographic/);
+  assert.match(text, /do NOT supply ban dates by region|deliberately do NOT supply/);
+});
+
+test("the span at Mut is the outer bound of the evidence, not a continuous sequence", () => {
+  const oases = record("set-survives-in-the-oases");
+  const span = oases.claims.find((c) => /span of evidenced Seth cult/i.test(c.whatIsDated ?? ""));
+  assert.ok(span, "the positionless claim became a real span once objects existed at both ends");
+  assert.ok(span.startYear !== undefined && span.endYear !== undefined);
+  // The publications say "continuously". The object record is clusters. A
+  // reader must not take the range as an attestation of every century in it.
+  assert.match(span.evidence, /clusters/i);
+  assert.match(span.evidence, /not a continuous sequence|NOT: a continuous sequence/i);
+});
+
+test("Mut and Ismant el-Kharab are kept as two different sites", () => {
+  // The latest Seth at Mut is late Ptolemaic and Roman evidence there is
+  // "scant". Seth appears in Roman paintings at Ismant el-Kharab into the
+  // early fourth century. Merging them would silently extend Mut by centuries.
+  const oases = record("set-survives-in-the-oases");
+  assert.match(oases.description, /Ismant el-Kharab/);
+  assert.match(oases.description, /TWO DIFFERENT SITES|two different sites/);
+  assert.match(oases.description, /scant/i);
+});
+
+test("occupation is never allowed to stand in for cult", () => {
+  const oases = record("set-survives-in-the-oases");
+  assert.match(oases.description, /Occupation is not cult/i);
+  // Mut was a bishop's seat with pottery running to the 6th-7th century. That
+  // dates Christian use of the site, not the end of Seth's cult.
+  assert.match(oases.description, /Christian occupation, not the last act/i);
+});
+
+test("the Ramesside stela records how little of it can be read", () => {
+  const stela = record("mut-el-kharab-ramesside-seth-stela");
+  assert.match(stela.description, /Only the first two form substantially readable text/);
+  const passage = stela.passages?.find((p) => /hymn to Seth/i.test(p.label));
+  assert.ok(passage);
+  const translit = passage.layers.find((l) => l.layer === "transliteration");
+  assert.ok(translit?.content);
+  // The brackets ARE the text. A transliteration of this stela with few gaps
+  // in it would be a different and much better-preserved object.
+  assert.ok((translit.content.match(/…|\[/g) ?? []).length > 10, "the lacunae must survive into the record");
+});
+
+test("the earliest evidence found is not dated as the beginning of the cult", () => {
+  const stela = record("mut-el-kharab-ramesside-seth-stela");
+  const beginning = stela.claims.find((c) => /had already existed/i.test(c.whatIsDated ?? ""));
+  assert.ok(beginning, "'earliest evidence' and 'when it began' are two claims");
+  assert.equal(beginning.startYear, undefined);
+  assert.match(beginning.evidence, /history of digging|excavation/i);
+});
+
+test("Seth and Nephthys stay a reconstruction, because the heads are lost", () => {
+  const stela = record("mut-el-kharab-ramesside-seth-stela");
+  const scene = stela.passages?.find((p) => /Amun, Seth and Nephthys/i.test(p.label));
+  assert.ok(scene, "the scene is a separate passage so the inference cannot merge into the description");
+  const reading = scene.layers.find((l) => l.layer === "interpretation");
+  assert.ok(reading, "the identification is an interpretation layer, not an object description");
+  const object = scene.layers.find((l) => l.layer === "primary_object");
+  assert.match(object?.content ?? "", /heads and the top of the scene are lost/i);
+});
+
+test("the overwritten determinative is recorded as a respelling, not an erasure", () => {
+  const block = record("mut-el-kharab-seth-determinative-overwritten");
+  // The god was kept and rewritten. Filing that under "persecution" alongside
+  // a hacked-out figure would flatten two different acts.
+  assert.match(block.description, /He was RESPELLED|respelled/i);
+  assert.match(block.description, /not the same act as chiselling/i);
+  assert.match(block.description, /must not be written here|MUST NOT BE WRITTEN HERE/i);
+  assert.match(block.description, /demonisation/i, "the record names the word it refuses");
+
+  const claim = block.claims[0];
+  assert.equal(claim.temporalClaimType, "after_event", "a terminus, not a moment");
+  assert.match(claim.notes ?? "", /AT SECOND HAND|second hand/i);
+});
+
+test("the determinative comparison is recorded as not made", () => {
+  // Comparing how the Greater and Smaller Dakhleh Stelae write Seth's name is
+  // what would show whether the Mut respelling is a pattern. The facsimiles
+  // were not accessible. An answer here would be invention.
+  const greater = record("greater-dakhleh-stela-oracle-of-seth");
+  const written = greater.claims.find((c) => /how Seth's name is written/i.test(c.whatIsDated ?? ""));
+  assert.ok(written);
+  assert.match(written.originalDateText, /Not established/i);
+  assert.match(written.evidence, /NOTHING IS ENTERED HERE/);
+  assert.match(written.evidence, /Griffith-2-9/);
+});
+
+test("the Greater Stela is not dated to Shoshenq I on an unread redating study", () => {
+  const greater = record("greater-dakhleh-stela-oracle-of-seth");
+  const date = greater.claims.find((c) => /when the stela was made/i.test(c.whatIsDated ?? ""));
+  assert.ok(date);
+  // Leahy 2010 is specifically about that attribution and was not opened, so
+  // entering it would assert the thing under examination.
+  assert.match(date.evidence, /under examination|redating study/i);
+  assert.ok((date.endYear ?? 0) - (date.startYear ?? 0) > 100, "a whole-period range, not a reign");
+});
+
+test("a shared priesthood is not upgraded into a shared temple", () => {
+  const smaller = record("smaller-dakhleh-stela-piye");
+  const building = smaller.claims.find((c) => /shared a temple building/i.test(c.whatIsDated ?? ""));
+  assert.ok(building);
+  assert.match(building.originalDateText, /remains to be established/i);
+  assert.equal(temporalTypeIsPositioned(building.temporalClaimType), false);
+  assert.match(smaller.description, /Whether the two gods physically shared the same temple building/);
+});
+
+test("the sources read at Dakhleh say so, and the ones taken at second hand say that", () => {
+  const read = ["hope_kaper_2010", "hope_warfe_2017", "monash_mut_el_kharab", "mut_2013_season"];
+  for (const key of read) {
+    const source = SET_SUTEKH_SOURCES.find((s) => s.key === key);
+    assert.ok(source, `missing source: ${key}`);
+    assert.match(source.notes, /^READ/, `${key}: opened sources should open by saying so`);
+    assert.ok(source.url, `${key}: a source that was read has a URL`);
+  }
+  for (const key of ["leahy_greater_dakhleh_2010", "janssen_smaller_dakhleh_1968"]) {
+    const source = SET_SUTEKH_SOURCES.find((s) => s.key === key);
+    assert.ok(source, `missing source: ${key}`);
+    assert.match(source.notes, /NOT OPENED|not opened|second hand/i, `${key}: say that it was not read`);
+  }
+});
