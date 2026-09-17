@@ -50,6 +50,10 @@ import { GIANTS_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/giants-mesopotami
 import { THIRTY_THREE_VEDIC_ANCHOR_SLUG } from "@/lib/timeline/thirty-three-vedic-seed";
 import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
+import { BENIN_DEEP_PAST_ANCHOR_SLUG } from "@/lib/timeline/benin-deep-past-seed";
+import { BENIN_DAHOMEY_ANCHOR_SLUG } from "@/lib/timeline/benin-dahomey-seed";
+import { BENIN_VODUN_ANCHOR_SLUG } from "@/lib/timeline/benin-vodun-seed";
+import { BENIN_ATLANTIC_ANCHOR_SLUG } from "@/lib/timeline/benin-atlantic-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
 import { TimelineView } from "./timeline-view";
@@ -147,6 +151,10 @@ export default async function TimelinePage({
     hasThirtyThreeVedic,
     hasBrutusAlbion,
     hasSetSutekh,
+    hasBeninDeepPast,
+    hasBeninDahomey,
+    hasBeninVodun,
+    hasBeninAtlantic,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -205,6 +213,10 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, THIRTY_THREE_VEDIC_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BRUTUS_ALBION_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SET_SUTEKH_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DEEP_PAST_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DAHOMEY_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_VODUN_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_ATLANTIC_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -281,6 +293,10 @@ export default async function TimelinePage({
         hasThirtyThreeVedic={hasThirtyThreeVedic}
         hasBrutusAlbion={hasBrutusAlbion}
         hasSetSutekh={hasSetSutekh}
+        hasBeninDeepPast={hasBeninDeepPast}
+        hasBeninDahomey={hasBeninDahomey}
+        hasBeninVodun={hasBeninVodun}
+        hasBeninAtlantic={hasBeninAtlantic}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}

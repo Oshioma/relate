@@ -73,6 +73,10 @@ import {
   seedThirtyThreeVedicDataset,
   seedBrutusAlbionDataset,
   seedSetSutekhDataset,
+  seedBeninDeepPastDataset,
+  seedBeninDahomeyDataset,
+  seedBeninVodunDataset,
+  seedBeninAtlanticDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -293,6 +297,10 @@ export function TimelineView({
   hasThirtyThreeVedic,
   hasBrutusAlbion,
   hasSetSutekh,
+  hasBeninDeepPast,
+  hasBeninDahomey,
+  hasBeninVodun,
+  hasBeninAtlantic,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -360,6 +368,10 @@ export function TimelineView({
   hasThirtyThreeVedic: boolean;
   hasBrutusAlbion: boolean;
   hasSetSutekh: boolean;
+  hasBeninDeepPast: boolean;
+  hasBeninDahomey: boolean;
+  hasBeninVodun: boolean;
+  hasBeninAtlantic: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1969,6 +1981,173 @@ export function TimelineView({
           between the end of the ancient cult and the modern revivals, which has a record of its own so it
           cannot be quietly filled in. Nobody knows what animal the Set animal is, and that has its own record
           too, because it governs how much weight every identification-by-resemblance here can carry.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninDeepPast && (
+        <DatasetOffer
+          title="Add Bénin before the kingdoms?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninDeepPastDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">The history of this ground does not begin with Dahomey.</span>
+            <span className="mt-1 block">
+              A settlement of some five hundred hectares stood on the Abomey plateau, working iron, more
+              than two thousand years before anybody built a palace there — and had been abandoned for two
+              millennia before the kingdom arrived.
+            </span>
+          </span>
+          Thirty-two records on the territory of modern Bénin before the kingdoms. THE ENVIRONMENT FIRST:
+          pollen from a lake in the south shows southern Bénin under rainforest until about four and a half
+          thousand years ago — the savanna corridor that now reaches the sea did not exist, and the
+          landscape every later event happens in was made by a climate change nobody recorded. THEN THE
+          ARCHAEOLOGY: Acheulean and Middle Stone Age tools along the Mékrou, mostly undated because most of
+          it was picked up off the ground rather than dug out of a layer — which is the honest headline and
+          has a record of its own. An iron spearhead from Sodohémé reported as the oldest directly dated
+          iron object in Africa, recorded as the large claim it is, next to the argument it belongs in.
+          THEN THE PEOPLES: Tado, the migrations, the three brothers, Nikki and the Kisra legend, Hogbonu,
+          Ganvié — with every traditional date marked as traditional and the method that produced it shown,
+          because multiplying a remembered number of generations by a guessed number of years is how most
+          pre-1500 dates in this region are made. AND ONE RECORD THAT SAVES A LOT OF CONFUSION: the Republic
+          of Bénin is not the Kingdom of Benin, which was in Nigeria.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninDahomey && (
+        <DatasetOffer
+          title="Add Dahomey: the rulers, Abomey, the Agojie and the wars?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninDahomeyDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">
+              &ldquo;A British report alleged that two thousand might be sacrificed&rdquo; and &ldquo;two thousand
+              people were sacrificed&rdquo; are different claims.
+            </span>
+            <span className="mt-1 block">
+              This dataset keeps six kinds of evidence apart — documented practice, eyewitness count,
+              second-hand report, diplomatic allegation, colonial propaganda, modern estimate — and never
+              lets one stand in for another.
+            </span>
+          </span>
+          Forty records. EVERY RULER from Gangnihessou to Agoli-Agbo, with competing reign dates where they
+          exist and with the method that produced each one visible: the early ones are back-counted through
+          a king list and say so. THE FOUNDATION STORY — &ldquo;in Dan&rsquo;s belly&rdquo; — recorded in full as an
+          oral tradition and a contested etymology, not as history. QUEEN HANGBE, whose reign lasted three
+          months or three years depending on the account, with the argument about whether she ruled at all
+          set out and not settled. THE AGOJIE: three competing origin traditions, the corps Ghezo built, the
+          European eyewitnesses who are almost the only description there is, the posters advertising them
+          as an attraction in Frankfurt in 1891, and the 2022 film. ABOMEY: three centuries of palace
+          building, walls that carry history in relief, and a system of royal emblems that stores a claim
+          about each reign in image, object, proverb and ceremony at once. AND THE WARS that ended it, dated
+          from the archive of the army that won them.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninVodun && (
+        <DatasetOffer
+          title="Add Vodun: a religion older than its first written word?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninVodunDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">How old is Vodun? Nobody knows, and this dataset says so.</span>
+            <span className="mt-1 block">
+              The earliest written use of the word <span className="font-medium">vodu</span> found here is 1658,
+              in a Christian catechism made for a mission to Allada. That proves the vocabulary existed then.
+              It proves nothing whatever about when the traditions began — and the figures of several
+              thousand years that circulate have no evidential basis at all.
+            </span>
+          </span>
+          Thirty-five records. THE HERO RECORD is that 1658 catechism, which preserves the earliest trace of
+          a religious vocabulary in a document written to replace it. THE POWERS get individual records —
+          Mawu and Lisa, Legba at the threshold, Dan, Sakpata and the smallpox that ended in 1980 while the
+          cult did not, Heviosso and the Stone Age axes taken for his thunderbolts, Gu and the iron — each
+          with the origin of the DESCRIPTION recorded beside the description, because most of the tidy
+          pantheons in circulation descend from one 1930s ethnography. FA gets its 256 signs, its bokonon and
+          its corpus, plus a record describing it as an oral information-retrieval system that is explicitly
+          labelled A MODERN ANALYTICAL READING rather than anything a practitioner would say. POSSESSION is
+          recorded in three separate layers: what is observed, what practitioners say is happening, and the
+          fact that supernatural causation is not empirically established — all three, none replacing the
+          others. AND THE SERPENT AT OUIDAH, where a Dutch trader described an established python cult two
+          decades before the tradition that explains the temple&rsquo;s founding. WHAT IT REFUSES: any Egyptian
+          derivation, any prehistoric date, the word &ldquo;voodoo&rdquo;, and the very common claim that Vodun
+          is UNESCO-listed. Gèlèdé is. Vodun is not — a nomination was being prepared in 2025–26.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninAtlantic && (
+        <DatasetOffer
+          title="Add Ouidah, the Atlantic, colonial rule and modern Bénin?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninAtlanticDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">A European fort is not evidence of European control.</span>
+            <span className="mt-1 block">
+              The three forts at Ouidah were about a hundred metres square, built of mud by African labour,
+              on land granted by African kings, garrisoned by a few dozen men inside a kingdom that taxed
+              them. That arrangement lasted two centuries. It ended in the 1890s, in four years.
+            </span>
+          </span>
+          Twenty records. OUIDAH as one landscape holding a serpent shrine, a royal administration, three
+          European forts, a Catholic mission and the busiest slaving beach on the coast at the same time —
+          usually written as five separate histories, which is what makes each of them wrong. THE PORTUGUESE
+          FORT was still Portuguese in 1961, when independent Dahomey took it and the occupants are said to
+          have burned it behind them: two hundred and forty years, bracketed at both ends by an African
+          decision. THE NUMBERS for the trade come from a database of documented voyages, and this dataset
+          quotes none from memory, because the difference between a documented figure and a modelled
+          estimate is the thing that always gets lost. THE MEMORIALS on the slave route date from 1992 and
+          the captions say so, because the most photographed object in Ouidah is younger than most people
+          reading about it. THEN the colony, the conscription, independence in 1960, six coups in nine years,
+          a Marxist-Leninist state that attacked traditional religion for the opposite reasons the colonial
+          one had, the National Conference of 1990 that was copied across francophone Africa — and the
+          twenty-six royal treasures that went home in 2021, with the argument about the rest left open.
         </DatasetOffer>
       )}
 

@@ -136,6 +136,30 @@ import {
   SET_SUTEKH_TRACK,
 } from "@/lib/timeline/set-sutekh-seed";
 import {
+  BENIN_DEEP_PAST_EVENTS,
+  BENIN_DEEP_PAST_LINKS,
+  BENIN_DEEP_PAST_SOURCES,
+  BENIN_DEEP_PAST_TRACK,
+} from "@/lib/timeline/benin-deep-past-seed";
+import {
+  BENIN_DAHOMEY_EVENTS,
+  BENIN_DAHOMEY_LINKS,
+  BENIN_DAHOMEY_SOURCES,
+  BENIN_DAHOMEY_TRACK,
+} from "@/lib/timeline/benin-dahomey-seed";
+import {
+  BENIN_VODUN_EVENTS,
+  BENIN_VODUN_LINKS,
+  BENIN_VODUN_SOURCES,
+  BENIN_VODUN_TRACK,
+} from "@/lib/timeline/benin-vodun-seed";
+import {
+  BENIN_ATLANTIC_EVENTS,
+  BENIN_ATLANTIC_LINKS,
+  BENIN_ATLANTIC_SOURCES,
+  BENIN_ATLANTIC_TRACK,
+} from "@/lib/timeline/benin-atlantic-seed";
+import {
   BRUTUS_ALBION_EVENTS,
   BRUTUS_ALBION_LINKS,
   BRUTUS_ALBION_SOURCES,
@@ -2116,6 +2140,34 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     events: SET_SUTEKH_EVENTS,
     sources: SET_SUTEKH_SOURCES,
   },
+  {
+    label: "B\u00e9nin before the kingdoms: archaeology, environment, peoples",
+    track: BENIN_DEEP_PAST_TRACK,
+    events: BENIN_DEEP_PAST_EVENTS,
+    sources: BENIN_DEEP_PAST_SOURCES,
+    links: BENIN_DEEP_PAST_LINKS,
+  },
+  {
+    label: "Dahomey: rulers, Abomey, the Agojie and the wars",
+    track: BENIN_DAHOMEY_TRACK,
+    events: BENIN_DAHOMEY_EVENTS,
+    sources: BENIN_DAHOMEY_SOURCES,
+    links: BENIN_DAHOMEY_LINKS,
+  },
+  {
+    label: "Vodun: cosmology, ritual, Fa, and the Atlantic",
+    track: BENIN_VODUN_TRACK,
+    events: BENIN_VODUN_EVENTS,
+    sources: BENIN_VODUN_SOURCES,
+    links: BENIN_VODUN_LINKS,
+  },
+  {
+    label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin",
+    track: BENIN_ATLANTIC_TRACK,
+    events: BENIN_ATLANTIC_EVENTS,
+    sources: BENIN_ATLANTIC_SOURCES,
+    links: BENIN_ATLANTIC_LINKS,
+  },
 ];
 
 /**
@@ -3084,6 +3136,93 @@ export async function seedSetSutekhDataset(communitySlug: string) {
     sources: SET_SUTEKH_SOURCES,
     track: SET_SUTEKH_TRACK,
     label: "Set, Seth, Sutekh: how one god changed",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * THE FOUR B\u00c9NIN DATASETS, and why they are four rather than one.
+ *
+ * They are separate tracks because they are separate ARGUMENTS, and a reader
+ * should be able to take one without the others:
+ *
+ *   benin-deep-past  the territory before the kingdoms \u2014 lithics, a rainforest
+ *                    that is no longer there, an iron-producing settlement two
+ *                    thousand years before Abomey, and the peoples' own accounts
+ *                    of where they came from
+ *   benin-dahomey    the kingdom, its rulers, its army and its memory
+ *   benin-vodun      a religion whose first written word is 1658 and whose
+ *                    beginning has no date at all
+ *   benin-atlantic   Ouidah, the trade, the colony, the republic, the returns
+ *
+ * Taking all four gives the sequence the whole thing exists to show: that the
+ * history of this ground did not begin with Dahomey and did not begin with
+ * European contact.
+ */
+export async function seedBeninDeepPastDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_DEEP_PAST_EVENTS,
+    sources: BENIN_DEEP_PAST_SOURCES,
+    track: BENIN_DEEP_PAST_TRACK,
+    links: BENIN_DEEP_PAST_LINKS,
+    label: "B\u00e9nin before the kingdoms: archaeology, environment, peoples",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninDahomeyDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_DAHOMEY_EVENTS,
+    sources: BENIN_DAHOMEY_SOURCES,
+    track: BENIN_DAHOMEY_TRACK,
+    links: BENIN_DAHOMEY_LINKS,
+    label: "Dahomey: rulers, Abomey, the Agojie and the wars",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninVodunDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_VODUN_EVENTS,
+    sources: BENIN_VODUN_SOURCES,
+    track: BENIN_VODUN_TRACK,
+    links: BENIN_VODUN_LINKS,
+    label: "Vodun: cosmology, ritual, Fa, and the Atlantic",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninAtlanticDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_ATLANTIC_EVENTS,
+    sources: BENIN_ATLANTIC_SOURCES,
+    track: BENIN_ATLANTIC_TRACK,
+    links: BENIN_ATLANTIC_LINKS,
+    label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

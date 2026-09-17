@@ -30,6 +30,10 @@ import { ANCIENT_SITES_WORKED_STONE_EVENTS } from "./ancient-sites-worked-stone-
 import { ANCIENT_SITES_ACCEPTED_EVENTS } from "./ancient-sites-accepted-surprise-seed";
 import { ANCIENT_SITES_EXCAVATED_EVENTS } from "./ancient-sites-excavated-seed";
 import { SET_SUTEKH_EVENTS } from "./set-sutekh-seed";
+import { BENIN_DEEP_PAST_EVENTS } from "./benin-deep-past-seed";
+import { BENIN_DAHOMEY_EVENTS } from "./benin-dahomey-seed";
+import { BENIN_VODUN_EVENTS } from "./benin-vodun-seed";
+import { BENIN_ATLANTIC_EVENTS } from "./benin-atlantic-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -62,6 +66,10 @@ const ALL: SeedEvent[] = [
   ...ANCIENT_SITES_ACCEPTED_EVENTS,
   ...ANCIENT_SITES_EXCAVATED_EVENTS,
   ...SET_SUTEKH_EVENTS,
+  ...BENIN_DEEP_PAST_EVENTS,
+  ...BENIN_DAHOMEY_EVENTS,
+  ...BENIN_VODUN_EVENTS,
+  ...BENIN_ATLANTIC_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>
