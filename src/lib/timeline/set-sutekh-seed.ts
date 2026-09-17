@@ -110,6 +110,67 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
       "scholarly literature on what the four hundred years are counted from.",
   },
   {
+    key: "tla_four_hundred_year_stela",
+    title: "Stele mit dem Datum des Jahres 400 (Kairo JdE 60539)",
+    workTitle: "Thesaurus Linguae Aegyptiae",
+    publisher: "Berlin-Brandenburgische Akademie der Wissenschaften",
+    reference: "Object HZGV3J42Y5FEDLP6WDSGQDU4PY; text after KRI II, 287-288, collated with a photograph",
+    url: "https://tla.digital/object/HZGV3J42Y5FEDLP6WDSGQDU4PY",
+    sourceType: "website",
+    notes:
+      "READ. The current scholarly transliteration of the stela, and the source of every transliteration on " +
+      "this record. Its own header states that the text follows Kitchen, Ramesside Inscriptions II, 287-288, " +
+      "COLLATED WITH A PHOTOGRAPH, and cites RITA II, 116-117 and RITANC II, 168-172. That matters: it means " +
+      "the readings here descend from Kitchen even though Kitchen's own volumes were not opened.\n\n" +
+      "WHERE IT DIFFERS FROM BREASTED, AND WHY BOTH ARE KEPT: the TLA parses the royal-style names in the " +
+      "dating formula as SETH HIMSELF — Stẖ-ꜥꜣ-pḥ.tj, 'Seth great of strength', and Nbw.tj, 'the Ombite'. " +
+      "Breasted in 1906 read them as the names of an otherwise unknown Hyksos king. The TLA reading is " +
+      "current; Breasted's is superseded and is recorded as historiography rather than deleted.\n\n" +
+      "ONE LIMITATION, STATED: the TLA gives German. The English on this record is rendered from that German " +
+      "by this dataset and is marked as not a published English translation wherever it appears.",
+  },
+  {
+    key: "breasted_records_iii",
+    title: "Ancient Records of Egypt, Volume III: The Nineteenth Dynasty",
+    author: "James Henry Breasted",
+    reference: "Sections 538-542, pages 226-228; University of Chicago Press, 1906",
+    url: "https://etana.library.vanderbilt.edu/sites/default/files/coretexts/14898.pdf",
+    sourceType: "historical_document",
+    publishedYear: 1906,
+    notes:
+      "READ. The oldest full English translation of the stela that is freely available, and the one most of " +
+      "the popular literature ultimately descends from. Cited HERE FOR TWO DIFFERENT THINGS, which must not " +
+      "be confused.\n\n" +
+      "AS A TRANSLATION it is still usable and is quoted verbatim on this record: Seti's titulary and the " +
+      "prayer to Seth are given in full and agree in substance with the modern reading.\n\n" +
+      "AS AN INTERPRETATION IT IS SUPERSEDED. Breasted takes the royal titulary in the dating formula to " +
+      "name a Hyksos ruler — 'Opehtiset' and 'Nubti' — and reads the date as the four-hundredth year of that " +
+      "king's era. Current scholarship parses those as epithets of Seth. Breasted's own note records the " +
+      "alternative. THIS DATASET DOES NOT REVIVE HIS READING and does not delete it either: it is where a " +
+      "great deal of later writing came from, and a reader meeting that writing should be able to find out " +
+      "where it started.\n\n" +
+      "ONE MORE LIMITATION: at section 540 Breasted does not print the opening royal titulary at all. He " +
+      "writes 'Full fivefold titulary' and moves on. So he cannot supply it, and the transliteration on this " +
+      "record comes from the TLA instead.",
+  },
+  {
+    key: "oeai_tell_el_daba",
+    title: "Tell el-Dabʿa",
+    workTitle: "Austrian Archaeological Institute, Cairo Branch",
+    publisher: "Österreichische Akademie der Wissenschaften",
+    url: "https://www.oeaw.ac.at/en/oeai/institute/branches/cairo/excavations-projects/tell-el-daba",
+    sourceType: "website",
+    notes:
+      "READ. Cited for three things and NOT for a fourth.\n\n" +
+      "CITED FOR: the secure identification of Tell el-Dabʿa as Avaris; the Hyksos capital dating of roughly " +
+      "1640-1530 BCE; and the transport of monuments from Pi-Ramesses to Tanis after the abandonment of " +
+      "Pi-Ramesses around 1100 BCE — which is why a stela set up near Avaris is found at Tanis.\n\n" +
+      "NOT CITED FOR, and this is the important one: a securely dated temple of Seth in the Second " +
+      "Intermediate Period stratum. That specific claim is the one an argument about the four-hundred-year " +
+      "era most wants, and no excavation report establishing it was opened. General Avaris archaeology must " +
+      "not be quietly upgraded into it.",
+  },
+  {
     key: "plutarch_isis_osiris",
     title: "On Isis and Osiris",
     author: "Plutarch",
@@ -641,14 +702,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         datingMethod: "textual_interpretation",
         chronology: "religious",
         evidence:
-          "WHAT IS ESTABLISHED: that Set defending the solar barque against Apep is a standard motif of " +
-          "Egyptian religious art and text over a long span. WHY THE CLAIM CARRIES NO DATE: it is not an event. " +
-          "It is a role, held for centuries, and pinning it to a year would misrepresent what kind of thing it " +
-          "is. WHAT WOULD IMPROVE THIS RECORD: the earliest and latest securely dated examples, which would " +
-          "turn a role into a span.",
+          "WHAT IS ESTABLISHED: that Set defending the solar barque is a standard motif of Egyptian " +
+          "religious art and text over a long span. WHY THE CLAIM CARRIES NO DATE: it is not an event. It is " +
+          "a role, held for centuries, and pinning it to a year would misrepresent what kind of thing it " +
+          "is.\n\n" +
+          "ONE FIXED POINT NOW EXISTS, AND IT IS TEXTUAL. The 400-Year Stela — a dated royal monument of " +
+          "Ramesses II — hails Seth as 'great in strength in the barque of millions of years, overthrowing " +
+          "enemies in front of the barque of Re' (Breasted 1906, section 542). That is this role asserted on " +
+          "a king's stela in the thirteenth century BCE, not inferred from a vignette. See the " +
+          "four-hundred-year-stela record, where the passage is given in transliteration and in two " +
+          "translations.\n\n" +
+          "WHAT THAT PASSAGE DOES NOT DO, AND THE DISTINCTION IS THE POINT: it does not name Apep. It says " +
+          "'enemies'. So it evidences SET IN THE PROW DEFENDING RE; it does not evidence the Apep combat " +
+          "specifically, and this record must not borrow the stela's authority for the serpent's name.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the chronological range of the motif, which is the most useful thing " +
-          "this record currently lacks.",
+          "STILL NEEDS SOURCE VERIFICATION for the chronological range of the motif — the earliest and " +
+          "latest securely dated examples, which would turn a role into a span. The stela supplies one dated " +
+          "attestation in the middle of it, which is a beginning and not the answer.",
       },
     ],
     media: [
@@ -1465,8 +1535,18 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "than before it — see the Nineteenth Dynasty record and the 400-Year Stela. WHAT THIS DATASET " +
           "CONCLUDES: nothing. It holds the proposal and the counter-evidence together and leaves them there.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the scholarly literature on both sides, which exists and has not " +
-          "been consulted here.",
+          "PARTLY VERIFIED SINCE THIS RECORD WAS WRITTEN. The Austrian Archaeological Institute securely " +
+          "identifies Tell el-Dabʿa as Avaris and dates the Hyksos capital to roughly 1640-1530 BCE, which " +
+          "supports the episode itself.\n\n" +
+          "WHAT WAS LOOKED FOR AND NOT FOUND, which matters more: an excavation report establishing a " +
+          "securely dated TEMPLE OF SETH in the relevant Second Intermediate Period stratum. That is the " +
+          "specific claim an argument about the four-hundred-year era most wants, and general Avaris " +
+          "archaeology must not be quietly upgraded into it.\n\n" +
+          "ALSO CORRECTED: an older literature treated Tanis as Avaris, and several early reconstructions " +
+          "rested on that. It is no longer tenable. Monuments were carried from Pi-Ramesses to Tanis after " +
+          "Pi-Ramesses was abandoned around 1100 BCE, which is why Ramesside material turns up there.\n\n" +
+          "STILL NEEDS SOURCE VERIFICATION for the scholarly literature on both sides of the demonisation " +
+          "question, which exists and has not been consulted.",
       },
     ],
   },
@@ -1544,37 +1624,415 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     summary:
       "Erected under Ramesses II, commemorating four hundred years of Set. The date it was made and the date it points back to are different claims about different things.",
     description:
-      "WHAT KIND OF RECORD IS THIS? The clearest example in the dataset of why an object needs more than one " +
-      "date claim, and it is here partly to make that architectural point visible.\n\n" +
-      "WHAT THE OBJECT IS. A royal stela, found at Tanis, set up in the reign of Ramesses II. It commemorates " +
-      "a four-hundredth year of Set — the god named in the Egyptian text as Sutekh, shown in a form with " +
-      "Levantine features.\n\n" +
+      "WHAT KIND OF RECORD IS THIS? The first record in this dataset built from the inscription rather than " +
+      "from writing about the inscription, and the clearest example of why an object needs more than one " +
+      "date claim.\n\n" +
+      "WHAT THE OBJECT IS, NOW VERIFIED. A round-topped rose granite stela, 220 by 134 by 50 centimetres, " +
+      "with its lower part missing. Egyptian Museum, Cairo, JdE 60539. Found in the eastern part of the Amun " +
+      "temple at Tanis, and generally held to have come originally from Pi-Ramesses or Qantir — the Austrian " +
+      "Archaeological Institute records that monuments were carried from Pi-Ramesses to Tanis after " +
+      "Pi-Ramesses was abandoned around 1100 BCE. The lunette shows Ramesses II offering wine to Seth.\n\n" +
+      "A CORRECTION THIS RECORD USED TO NEED. An older literature treated Tanis AS Avaris. That premise is " +
+      "no longer tenable, and several early reconstructions of what this stela commemorates rested on it.\n\n" +
       "THE TWO DATES, AND WHY THEY ARE NOT ONE DATE.\n" +
-      "  1. WHEN IT WAS MADE. Ramesside, in the thirteenth century BCE. This is an ordinary object date and " +
-      "     the better-founded of the two.\n" +
-      "  2. WHAT IT COUNTS BACK TO. Four hundred years earlier — which lands in the Second Intermediate " +
-      "     Period, in the neighbourhood of Hyksos rule at Avaris. This is not an observation. It is an " +
-      "     ANCIENT CALCULATION, made by the people who set the stone up, from a starting point they do not " +
-      "     explain to us.\n" +
+      "  1. WHEN IT WAS MADE. Ramesside, in the reign of Ramesses II. An ordinary object date, and the " +
+      "     better-founded of the two.\n" +
+      "  2. WHAT IT COUNTS BACK TO. Four hundred years earlier. This is not an observation. It is an " +
+      "     ANCIENT ERA RECKONING, made by the people who set the stone up, from a starting point THE " +
+      "     SURVIVING INSCRIPTION NEVER NAMES.\n" +
       "A timeline that flattened these into one entry would be asserting that the four hundred years are " +
       "real, which is precisely the disputed part.\n\n" +
-      "WHAT IS ACTUALLY ARGUED ABOUT. What era the four hundred years counts from; whether it marks the " +
-      "founding of a cult of Set at Avaris; whether the number is exact, approximate, or symbolic; and what " +
-      "the Ramesside dynasty, with its own roots in that region, was claiming by erecting it. There is a " +
-      "substantial literature and this record does not settle any of it.\n\n" +
-      "WHY IT MATTERS TO THE ARGUMENT OF THIS DATASET. It is direct evidence against the simple story that " +
-      "the Hyksos ruined Set's reputation. Centuries after the expulsion, a king is publicly and " +
-      "monumentally celebrating a Set era. Whatever happened to Set later had not happened yet.\n\n" +
-      "THINGS TO ASK: When an ancient monument does arithmetic, what is it doing? Who benefits from the " +
-      "number being four hundred?",
+      "WHOSE REIGN THE YEARS BELONG TO, AND THE LONG-LIVED ERROR ABOUT IT. Line 7 dates the stela to " +
+      "'Year 400, month 4 of Shemu, day 4' of a king titled nswt-bj.tj Stẖ-ꜥꜣ-pḥ.tj, sꜣ-Rꜥw Nbw.tj. Current " +
+      "scholarship parses those as SETH HIMSELF — Seth great of strength, and the Ombite — given the " +
+      "titulary of a reigning king. Breasted in 1906 read them as the personal names of an otherwise unknown " +
+      "Hyksos ruler, 'Opehtiset' and 'Nubti', and a great deal of later popular writing follows him. Both " +
+      "readings are on this record, the superseded one marked as superseded, because deleting an obsolete " +
+      "reading does not remove it from the world — it only removes the explanation.\n\n" +
+      "THE FIND THAT CHANGES ANOTHER RECORD. The prayer, in Breasted's own words, hails Seth as 'son of Nut, " +
+      "great in strength in the barque of millions of years, overthrowing enemies in front of the barque of " +
+      "Re'. This dataset previously had Set's protective solar role only in PICTURES. Here it is in TEXT, on " +
+      "a king's monument, in the thirteenth century BCE. BUT THE SURVIVING PRAYER DOES NOT NAME APEP — it " +
+      "says 'enemies' — and the lunette is a wine offering, not a combat scene. The passage supports the " +
+      "tradition and does not show this stela depicting that battle.\n\n" +
+      "SETI IS HIGH PRIEST OF SETH, ḥm-nṯr-tp.j-n-Stẖ, and the two editions agree on it completely. The " +
+      "office sits in an unbroken run of civil, military and frontier commands — vizier, commandant of the " +
+      "fortress of Tharu, master of horse, royal scribe — held by the man whose family became the Nineteenth " +
+      "Dynasty, and his father held a nearly identical set. That is institutional, not a king's private " +
+      "devotion, and it is hard to reconcile with Seth being under any official shadow at this date.\n\n" +
+      "WHAT IS STILL NOT KNOWN. The event the four hundred years count FROM is not stated anywhere on the " +
+      "surviving stone. Proposals exist — the founding or institutionalisation of Seth's cult at Avaris " +
+      "among them — and no publication directly making that argument was opened for this record, so they " +
+      "are recorded as proposals with that gap admitted.\n\n" +
+      "THINGS TO ASK: When an ancient monument does arithmetic, what is it doing? If the era belongs to a " +
+      "god given a king's titles, what kind of claim is that?",
     category: "archaeology",
     subcategory: "New Kingdom",
     eventType: "historical",
     identificationStatus: "secure",
     tags: ["set", "sutekh", "400-year-stela", "ramesses-ii", "tanis", "avaris", "era"],
     civilisations: ["Ancient Egypt"],
-    locationName: "Tanis, Egypt",
-    people: ["Ramesses II"],
+    locationName: "Tanis, Egypt (findspot); probably originally Pi-Ramesses / Qantir",
+    people: ["Ramesses II", "Seti", "Paramessu"],
+    passages: [
+      {
+        label: "The opening royal titulary, and the order to make the stela",
+        reference: "Lines 1-6",
+        sourceKey: "tla_four_hundred_year_stela",
+        objectName: "Round-topped rose granite stela, lower part missing; 220 x 134 x 50 cm",
+        holdingInstitution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539 (often written JE 60539)",
+        notes:
+          "THE FIRST PLACE THE TWO EDITIONS PART COMPANY, and it is not over a word of theology. Breasted " +
+          "does not print this titulary at all: at section 540 he writes 'Full fivefold titulary' and moves " +
+          "on. So the oldest freely available English translation of this stela cannot supply the opening of " +
+          "it, and the transliteration below had to come from elsewhere.",
+        layers: [
+          {
+            layer: "primary_object",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "Round-topped rose granite stela, lower part missing, 220 x 134 x 50 cm. Found in the eastern " +
+              "part of the Amun temple at Tanis. The lunette shows Ramesses II offering wine to Seth, with an " +
+              "official standing behind him in adoration.",
+            evidence:
+              "WHAT IS ESTABLISHED: the object's material, shape, surviving dimensions, findspot and the " +
+              "subject of its lunette, from the Thesaurus Linguae Aegyptiae object record. THE FINDSPOT IS " +
+              "NOT THE ORIGINAL SETTING: the stela is generally held to have come from Pi-Ramesses or " +
+              "Qantir, and the Austrian Archaeological Institute records that monuments were carried from " +
+              "Pi-Ramesses to Tanis after Pi-Ramesses was abandoned around 1100 BCE. An older literature " +
+              "treated Tanis AS Avaris; that premise is no longer tenable, and several early reconstructions " +
+              "of this stela rested on it.",
+            notes:
+              "A PHOTOGRAPH OF THE STELA IS STILL MISSING FROM THIS RECORD. The object is catalogued, " +
+              "measured and published, and this dataset has no picture of it.",
+          },
+          {
+            layer: "transliteration",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "ꜥnḫ Ḥr.w Kꜣ-nḫt-mri̯-Mꜣꜥ.t-nb-ḥb-sd.PL-mj-jtj=f-Ptḥ-Tꜣṯnn nswt-bj.tj " +
+              "Wsr-Mꜣꜥ.t-Rꜥw-stp.n-Rꜥw sꜣ-Rꜥw Rꜥw-msi̯-sw-mri̯-Jmn di ꜥnḫ Nb.tj " +
+              "mki̯-Km.t-wꜥf-ḫꜣs.t.PL-Rꜥw-msi̯-nṯr.PL-grg-tꜣ.DU Ḥr.w-nbw Wsr-rnp.t.PL-ꜥꜣ-nḫt.w nswt-bj.tj " +
+              "Wsr-Mꜣꜥ.t-Rꜥw-stp.n-Rꜥw sꜣ-Rꜥw Rꜥw-msi̯-sw-mri̯-Jmn jty grg-tꜣ.DU m mn.w ḥr rn=f wbn Rꜥw m " +
+              "ḥr.t n mrw.t=f nswt-bj.tj Wsr-Mꜣꜥ.t-Rꜥw-stp.n-Rꜥw sꜣ-Rꜥw Rꜥw-msi̯-sw-mri̯-Jmn",
+            language: "Egyptian",
+            script: "Transliteration in Latin letters",
+            evidence:
+              "QUOTED, NOT ASSEMBLED. From the Thesaurus Linguae Aegyptiae, whose text follows Kitchen, " +
+              "Ramesside Inscriptions II, 287-288, collated with a photograph. A transliteration built from " +
+              "memory would be indistinguishable from this one on the page and is the layer a reader is " +
+              "least able to check, so it is quoted or it is absent.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "Live the Horus, Mighty Bull, beloved of Maat, lord of jubilees like his father Ptah-Tatenen; " +
+              "King of Upper and Lower Egypt Usermaatre-setepenre; Son of Re Ramesses-meryamun, given life; " +
+              "the Two Ladies, Protector of Egypt, Subduer of Foreign Lands, Re-who-begot-the-gods, Founder " +
+              "of the Two Lands; the Golden Horus, Rich in Years, Great in Victories; King of Upper and " +
+              "Lower Egypt Usermaatre-setepenre; Son of Re Ramesses-meryamun, the ruler who establishes the " +
+              "Two Lands with monuments in his name, for love of whom Re rises in heaven.",
+            language: "English",
+            evidence:
+              "NOT A PUBLISHED ENGLISH TRANSLATION. This is a rendering into English of the Thesaurus " +
+              "Linguae Aegyptiae's German, made for this dataset. It is a real and useful row and it is one " +
+              "step further from the stone than the rows around it, which is why the distinction is recorded " +
+              "rather than left for a reader to guess.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "breasted_records_iii",
+            content:
+              "Live … King Ramses II, sovereign, who equips the Two Lands with monuments in his name, so " +
+              "that Re rises in heaven for love of him, King Ramses II. His majesty commanded to make a " +
+              "great stela of granite, in the great name of his fathers, in order that the name of his " +
+              "grandfather, King Menmare, Son of Re: Seti-Merneptah, might be exalted, enduring and abiding " +
+              "forever, like Re, every day.",
+            language: "English",
+            evidence:
+              "BREASTED 1906, VERBATIM, and the disagreement inside it is worth more than the agreement. " +
+              "Breasted writes 'his grandfather' and FLAGS IT HIMSELF as problematic, suggesting 'father of " +
+              "his fathers' may be preferable. The Thesaurus Linguae Aegyptiae reads jtj jtj.PL=f and gives " +
+              "exactly that: father of his fathers.\n\n" +
+              "WHY IT MATTERS: the two readings assert different genealogies. 'Grandfather' names a specific " +
+              "relationship; 'father of his fathers' is an ancestral formula that need not be one generation " +
+              "back. A dataset with one translation field would have silently picked a winner here, and a " +
+              "reader would never have known there was a contest.",
+            notes:
+              "The ellipsis is Breasted's own: he does not print the full titulary, writing 'Full fivefold " +
+              "titulary' in its place.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Ramesses II names himself with his full titulary and states that he ordered a great granite " +
+              "stela to be made, so that the name of his ancestor Seti (Menmaatre Seti-Merenptah) should " +
+              "endure. Whether that ancestor is his grandfather specifically, or an ancestor more generally, " +
+              "is where the two translations differ.",
+            evidence:
+              "OUR OWN WORDS, marked as ours. It reports what the layers above contain and adds nothing to " +
+              "them — including the disagreement, which a summary is not entitled to resolve.",
+          },
+        ],
+      },
+      {
+        label: "The dating formula, and Seth in royal titulary",
+        reference: "Line 7",
+        sourceKey: "tla_four_hundred_year_stela",
+        objectName: "Round-topped rose granite stela, lower part missing; 220 x 134 x 50 cm",
+        holdingInstitution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539 (often written JE 60539)",
+        notes:
+          "THE MOST CONSEQUENTIAL LINE ON THE STONE, and the one where a superseded reading is still in " +
+          "wide circulation. Read the two translations below against each other before reading anything " +
+          "written about this object.",
+        layers: [
+          {
+            layer: "transliteration",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "rnp.t 400 ꜣbd 4 Šm.w sw 4 nswt-bj.tj Stẖ-ꜥꜣ-pḥ.tj sꜣ-Rꜥw mri̯=f Nbw.tj mri̯ Rꜥw-Ḥr.w-ꜣḫ.tj " +
+              "wnn=f r nḥḥ ḏ.t",
+            language: "Egyptian",
+            script: "Transliteration in Latin letters",
+            evidence:
+              "QUOTED FROM THE THESAURUS LINGUAE AEGYPTIAE, after Kitchen collated with a photograph. THE " +
+              "TWO GROUPS THAT DECIDE THE ARGUMENT: Stẖ-ꜥꜣ-pḥ.tj — Seth, great of strength — and Nbw.tj, the " +
+              "Ombite, the god of Nubt. Both stand inside the royal formulae nswt-bj.tj and sꜣ-Rꜥw.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "Year 400, month 4 of the Shemu season, day 4, of the King of Upper and Lower Egypt " +
+              "Seth-with-great-strength, beloved Son of Re, the Ombite, beloved of Re-Harakhty, existing " +
+              "forever and eternity.",
+            language: "English",
+            evidence:
+              "THE CURRENT READING: the royal names in this line are SETH'S OWN. Seth is given the titles of " +
+              "a reigning king — King of Upper and Lower Egypt, Son of Re — and the era is reckoned in his " +
+              "regnal years. Rendered into English from the TLA's German for this dataset; not a published " +
+              "English translation.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "breasted_records_iii",
+            content:
+              "In the year 400, in the fourth month of the third season, on the fourth day, of the King of " +
+              "Upper and Lower Egypt: Opehtiset; Son of Re, his beloved: Nubti, whom Harakhte desires to be " +
+              "forever and ever …",
+            language: "English",
+            evidence:
+              "BREASTED 1906, VERBATIM, AND THIS IS WHERE A LONG-LIVED ERROR ENTERS. He transcribes the same " +
+              "two groups as PERSONAL NAMES — 'Opehtiset', 'Nubti' — and takes them to belong to an " +
+              "otherwise unknown Hyksos ruler, so that Year 400 becomes the four-hundredth year of that " +
+              "king's era.\n\n" +
+              "NOTE WHAT DOES AND DOES NOT DIFFER. The calendar date is the same in both: Shemu IS the third " +
+              "season, so 'month 4 of Shemu' and 'the fourth month of the third season' are one reading, not " +
+              "two. The entire disagreement is over whether those royal titles name a god or a man.",
+            notes:
+              "Breasted's own note records the alternative identification with Set. He did not hide the " +
+              "question; later writers simply stopped reporting it.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The stela dates itself to Year 400, fourth month of Shemu, day 4 — and the reign it counts " +
+              "those years in is Seth's. Seth is given a king's titulary and an era of his own.",
+            evidence:
+              "WHAT THIS SETTLES FOR THE DATASET: the era belongs to a god presented as a king, not to an " +
+              "unknown pharaoh. WHAT IT DOES NOT SETTLE, and no line on the stone does: what event the four " +
+              "hundred years are counted FROM.",
+          },
+          {
+            layer: "interpretation",
+            sourceKey: "breasted_records_iii",
+            content:
+              "That the royal names belong to a Hyksos ruler, and that Year 400 is the four-hundredth year " +
+              "of that ruler's era.",
+            viewpoint: "historical",
+            evidence:
+              "RECORDED AS SUPERSEDED, AND KEPT ANYWAY. This reading is wrong by current scholarship and it " +
+              "is the ancestor of a great deal of popular writing about the stela, including the claim that " +
+              "it names an unknown Hyksos king. A reader who meets that claim elsewhere should be able to " +
+              "find out here where it came from and when it was abandoned. Deleting a superseded reading " +
+              "does not remove it from the world; it only removes the explanation.",
+            notes: "Breasted 1906. See the current reading in the TLA row above.",
+          },
+        ],
+      },
+      {
+        label: "Seti's titulary, including High Priest of Seth",
+        reference: "Lines 8-10",
+        sourceKey: "tla_four_hundred_year_stela",
+        objectName: "Round-topped rose granite stela, lower part missing; 220 x 134 x 50 cm",
+        holdingInstitution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539 (often written JE 60539)",
+        notes:
+          "THE ONE PLACE WHERE BOTH EDITIONS AGREE COMPLETELY, on the detail that matters most to this " +
+          "dataset: ḥm-nṯr-tp.j-n-Stẖ, High Priest of Seth, held by the father of a future dynasty.",
+        layers: [
+          {
+            layer: "transliteration",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "jr.j-pꜥ.t jm.j-rʾ-nʾ.t ṯꜣ.tj ṯꜣ.y-ḫw-ḥr-wnm.j-nswt ḥr.j-pḏ.t.PL jm.j-rʾ-ḫꜣs.t.PL jm.j-rʾ-ḫtm n " +
+              "Ṯꜣr.w wr-n-mḏꜣ.w.PL sẖꜣ.w-nswt jm.j-rʾ-ssm.PL sšm-ḥb n Bꜣ-nb-Ḏd.t ḥm-nṯr-tp.j-n-Stẖ ẖr.j-ḥb n " +
+              "Wꜣḏ.jt wp.t-Tꜣ.DU jm.j-rʾ-ḥm.PL-nṯr n nṯr.PL nb.PL Stẖ.y mꜣꜥ-ḫrw",
+            language: "Egyptian",
+            script: "Transliteration in Latin letters",
+            evidence:
+              "QUOTED FROM THE THESAURUS LINGUAE AEGYPTIAE. ḥm-nṯr-tp.j-n-Stẖ is explicitly High Priest of " +
+              "Seth, and it sits in an unbroken sequence of civil, military, frontier-administration and " +
+              "priestly offices — not as an isolated religious curiosity.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "breasted_records_iii",
+            content:
+              "the hereditary prince, governor of the (residence) city, vizier, fan-bearer on the right of " +
+              "the king, chief of bowmen, governor of foreign countries, commandant of the fortress of " +
+              "Tharu, chief of the foreign gendarmes, king's-scribe, master of horse, chief priest of the " +
+              "Ram-god, lord of Mendes, High Priest of Set, ritual priest of Buto-Upet-Towe, chief of " +
+              "prophets of all gods, Seti, triumphant",
+            language: "English",
+            evidence:
+              "BREASTED 1906, VERBATIM, AND UNCONTESTED HERE. The 1906 translation and the modern " +
+              "transliteration agree on this passage, which is why it can be quoted without hedging. The " +
+              "stela goes on to name Seti's father Paramessu, holding a closely parallel run of offices, and " +
+              "his mother Tia, lady of the house and musician of Re.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Seti is titled across the whole apparatus of the Ramesside state — vizier, commandant of the " +
+              "frontier fortress of Tharu, master of horse, royal scribe — and, among those offices, High " +
+              "Priest of Seth. His father held a nearly identical set.",
+            evidence:
+              "WHY THIS IS EVIDENCE AND NOT COLOUR: the office is institutional, hereditary in effect, and " +
+              "held alongside the vizierate by the family that became the Nineteenth Dynasty. That is a very " +
+              "different thing from a king privately favouring a god, and it is hard to reconcile with Seth " +
+              "being under any kind of official shadow at this date.",
+          },
+        ],
+      },
+      {
+        label: "The prayer to Seth: in the bow of the barque of Re",
+        reference: "Lines 11-12, breaking off; line 13 onwards destroyed",
+        sourceKey: "tla_four_hundred_year_stela",
+        objectName: "Round-topped rose granite stela, lower part missing; 220 x 134 x 50 cm",
+        holdingInstitution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539 (often written JE 60539)",
+        notes:
+          "THE PASSAGE THAT CONNECTS THIS RECORD TO THE PICTURES. Read it beside the record of Set spearing " +
+          "Apep — and then read the caution at the end of it, which is equally important.",
+        layers: [
+          {
+            layer: "transliteration",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "[j]:nḏ ḥr=k Stẖ sꜣ-Nw.t ꜥꜣ-pḥ.tj m wjꜣ-n-ḥḥ.w ḫr ḫft.w m ḥꜣ.t wjꜣ-n-Rꜥw ꜥꜣ hmhm.t ⸮m? … " +
+              "⸢di⸣=[k] [n]=⸢j⸣ ꜥḥꜥ.w nfr ḥr šms kꜣ=k jw=j mn m …",
+            language: "Egyptian",
+            script: "Transliteration in Latin letters",
+            evidence:
+              "QUOTED FROM THE THESAURUS LINGUAE AEGYPTIAE, WITH ITS EDITORIAL MARKS LEFT IN. The brackets, " +
+              "the half-brackets and the question mark are the edition's own signals of damage and doubt, " +
+              "and they are kept rather than tidied away: a clean-looking transliteration of a broken stone " +
+              "is a small lie about how much survives.",
+            notes: "The TLA marks line 13 onwards as destroyed. The lower part of the stela is missing.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "breasted_records_iii",
+            content:
+              "Hail to thee, O Set, son of Nut, great in strength in the barque of millions of years, " +
+              "overthrowing enemies in front of the barque of Re, great in terror, [grant me] a happy life " +
+              "following thy ka, while I remain in …",
+            language: "English",
+            evidence:
+              "BREASTED 1906, VERBATIM. THIS IS THE FIND. A Ramesside royal monument states in TEXT what " +
+              "this dataset previously had only in PICTURES: that Seth stands at the front of Re's barque " +
+              "and overthrows its enemies. The protective solar role is not an art-historical inference from " +
+              "a Book of the Dead vignette — it is asserted on a king's stela.\n\n" +
+              "AND NOW THE CAUTION, WHICH MATTERS AS MUCH. THE SURVIVING PRAYER DOES NOT NAME APEP. It says " +
+              "'enemies'. The lunette of this stela shows a wine offering, not a combat. So this passage " +
+              "supports the protective-solar-barque tradition and does NOT show this stela depicting or " +
+              "naming the Apep battle, and the difference is exactly the kind a record like this exists to " +
+              "hold on to.",
+            notes:
+              "The bracketed words and the trailing ellipsis are Breasted's: the text breaks off in damage.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The stela addresses Seth directly as son of Nut, great of strength in the barque of millions " +
+              "of years, overthrowing enemies at the front of Re's barque, and asks him for a good lifetime " +
+              "in his service. The petition breaks off in damage.",
+            evidence:
+              "WHAT IT ESTABLISHES: Seth's protective solar role, in a dated royal text, in the thirteenth " +
+              "century BCE. WHAT IT DOES NOT: that the enemy in question is Apep, or that this monument " +
+              "depicts that battle.",
+          },
+        ],
+      },
+      {
+        label: "The lunette: what the inscription calls the god",
+        reference: "Lunette (Bildfeld)",
+        sourceKey: "tla_four_hundred_year_stela",
+        objectName: "Round-topped rose granite stela, lower part missing; 220 x 134 x 50 cm",
+        holdingInstitution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539 (often written JE 60539)",
+        notes:
+          "A PASSAGE RECORDED SO THAT ITS ABSENCE IS VISIBLE. The reading usually quoted for the lunette " +
+          "could not be verified, and an unverified reading in the place where a verified one belongs is " +
+          "worse than an empty row.",
+        layers: [
+          {
+            layer: "primary_object",
+            sourceKey: "tla_four_hundred_year_stela",
+            content:
+              "Ramesses II offers wine to Seth. An official stands behind the king in adoration.",
+            evidence:
+              "AGREED BY BOTH EDITIONS: the TLA object description and Breasted at section 539 both describe " +
+              "the lunette as Ramesses II offering wine to Set. The god is shown in the distinctive " +
+              "iconography usually described as foreign or Asiatic in character.",
+          },
+          {
+            layer: "transliteration",
+            sourceKey: null,
+            contentAbsentReason:
+              "NOT FOUND. The phrase conventionally rendered 'Seth of Ramesses' is widely quoted for this " +
+              "lunette. The Thesaurus Linguae Aegyptiae carries a separate lunette subtext based on Kitchen " +
+              "and a photograph, and the phrase could not be safely extracted from the accessible display. " +
+              "IT IS NOT RECONSTRUCTED HERE. A plausible transliteration in this row would be indistinguish" +
+              "able from a quoted one and would sit in the most authoritative-looking position on the page.",
+            evidence:
+              "A CITATION-ONLY ROW, WHICH IS A REAL ROW. It records that the text exists, where it is " +
+              "published, and that this dataset has not read it — which is a different and more useful " +
+              "statement than silence. The reading to check is in the TLA's lunette subtext, and behind that " +
+              "Kitchen, Ramesside Inscriptions II, 287-288.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The lunette shows the king offering wine to Seth, in iconography commonly described as " +
+              "Asiatic. What the lunette inscription calls the god has not been verified for this dataset.",
+            evidence:
+              "THE SCENE AND THE LABEL ARE TWO CLAIMS, and only one of them is currently supported. The " +
+              "iconographic claim rests on both editions describing the scene; the textual claim rests on " +
+              "nothing yet.",
+          },
+        ],
+      },
+    ],
     claims: [
       {
         sourceKey: "four_hundred_year_stela",
@@ -1591,7 +2049,10 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHAT IS DATED: the manufacture of the monument, placed by the king it names. WHY A RANGE RATHER " +
           "THAN A YEAR: the reign is long and the stela's position within it is debated. This is the securer " +
           "of the object's two dates.",
-        notes: "NEEDS SOURCE VERIFICATION for the regnal dates and for any proposed year within the reign.",
+        notes:
+          "VERIFIED that the stela is of Ramesses II's reign: the Thesaurus Linguae Aegyptiae object record " +
+          "and Breasted agree, and the king's titulary opens the text. NEEDS SOURCE VERIFICATION still for " +
+          "the regnal dates used in the conversion, and for any proposed year WITHIN the reign.",
       },
       {
         sourceKey: "four_hundred_year_stela",
@@ -1609,10 +2070,18 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHY NO START YEAR IS ENTERED: subtracting four hundred from the stela's own date would produce a " +
           "figure this dataset would then be asserting, and what the era counts from is exactly what is " +
           "disputed. The arithmetic is easy and the meaning is not, and entering the easy part would " +
-          "misrepresent the hard part as settled. WHAT IS ESTABLISHED: that the stela makes the claim.",
+          "misrepresent the hard part as settled. WHAT IS ESTABLISHED, and it is now established from the " +
+          "stone rather than from report: that the stela makes the claim, and that THE SURVIVING " +
+          "INSCRIPTION NEVER NAMES THE EVENT THE COUNT STARTS FROM. That silence is a finding. It means " +
+          "every proposal about the era is an argument from outside the object.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the inscription's own wording and for the range of scholarly " +
-          "proposals about the era's starting point.",
+          "THE INSCRIPTION'S OWN WORDING IS NOW ON THIS RECORD, in transliteration and in two translations: " +
+          "rnp.t 400 ꜣbd 4 Šm.w sw 4. The two editions agree on the calendar date — Shemu IS the third " +
+          "season, so Breasted's 'fourth month of the third season' and the TLA's 'month 4 of Shemu' are one " +
+          "reading, not two.\n\n" +
+          "STILL NEEDS SOURCE VERIFICATION: the range of scholarly proposals about what the era counts from. " +
+          "No publication directly arguing for a particular founding event was opened — Sethe 1930, Montet " +
+          "1933 and Habachi are the trail to follow, and none was read.",
       },
     ],
   },
