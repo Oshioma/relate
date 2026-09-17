@@ -291,3 +291,147 @@ test("unread sources say so, and the count is visible rather than buried", () =>
     assert.ok(source.notes.length > 40, `${source.key}: a source note must say what it is cited FOR`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// THE 400-YEAR STELA, READ FROM THE INSCRIPTION
+//
+// The first record in this dataset built from the text rather than from
+// writing about the text. These tests exist because every one of the gains is
+// the kind that erodes quietly: a transliteration gets "tidied", a superseded
+// reading gets deleted for being wrong, a citation-only row gets filled in
+// with something plausible, and a passage that says "enemies" starts saying
+// "Apep" because that is the story everyone knows.
+// ---------------------------------------------------------------------------
+
+const stela = record("four-hundred-year-stela");
+const stelaPassages = stela.passages ?? [];
+const layersOf = (label: string) => {
+  const passage = stelaPassages.find((p) => p.label === label);
+  assert.ok(passage, `missing passage: ${label}`);
+  return passage.layers;
+};
+
+test("the stela carries the evidence chain in pieces, not one block of prose", () => {
+  assert.ok(stelaPassages.length >= 5, "five passages were read; fewer means one was lost");
+  for (const passage of stelaPassages) {
+    assert.ok(passage.reference, `${passage.label}: a passage with no location is a quotation floating free`);
+    assert.equal(passage.accessionNumber, "JdE 60539 (often written JE 60539)");
+    assert.equal(passage.holdingInstitution, "Egyptian Museum, Cairo");
+    assert.ok(passage.layers.length >= 2, `${passage.label}: one layer is not a chain`);
+  }
+});
+
+test("every transliteration is quoted from a publication, never assembled here", () => {
+  for (const passage of stelaPassages) {
+    for (const layer of passage.layers) {
+      if (layer.layer !== "transliteration") continue;
+      if (!layer.content) {
+        // A citation-only row is legitimate and must say why it is empty.
+        assert.ok(layer.contentAbsentReason, `${passage.label}: an empty transliteration with no reason`);
+        continue;
+      }
+      assert.equal(
+        layer.sourceKey,
+        "tla_four_hundred_year_stela",
+        `${passage.label}: a transliteration must name the edition it is quoted from`
+      );
+      assert.match(layer.evidence, /QUOTED/, `${passage.label}: say that it is quoted rather than built`);
+    }
+  }
+});
+
+test("the lunette phrase stays NOT FOUND rather than being reconstructed", () => {
+  // The reading conventionally rendered "Seth of Ramesses" is widely quoted and
+  // was not verified. A plausible transliteration in that row would sit in the
+  // most authoritative-looking position on the page.
+  const lunette = layersOf("The lunette: what the inscription calls the god");
+  const translit = lunette.find((l) => l.layer === "transliteration");
+  assert.ok(translit, "the row must exist, so the absence is visible");
+  assert.equal(translit.content, undefined, "this is exactly the row that must not be filled in");
+  assert.match(translit.contentAbsentReason ?? "", /NOT FOUND/);
+});
+
+test("Breasted's Hyksos-king reading is kept, and kept marked as superseded", () => {
+  const dating = layersOf("The dating formula, and Seth in royal titulary");
+  const breasted = dating.find((l) => l.sourceKey === "breasted_records_iii" && l.layer === "interpretation");
+  assert.ok(breasted, "deleting an obsolete reading removes the explanation, not the reading");
+  assert.match(breasted.evidence, /SUPERSEDED/);
+
+  // And the current reading has to be present beside it, or the record would
+  // be teaching the superseded one.
+  const current = dating.find((l) => l.layer === "translation" && l.sourceKey === "tla_four_hundred_year_stela");
+  assert.ok(current);
+  assert.match(current.content ?? "", /Seth-with-great-strength/);
+});
+
+test("the two translations of the ancestor formula are both kept", () => {
+  // Breasted writes "grandfather" and flags it himself; the TLA reads
+  // jtj jtj.PL=f, "father of his fathers". They assert different genealogies,
+  // and one translation field would have silently picked a winner.
+  const opening = layersOf("The opening royal titulary, and the order to make the stela");
+  const translations = opening.filter((l) => l.layer === "translation");
+  assert.equal(translations.length, 2, "two editions were read; both belong here");
+  assert.ok(translations.some((l) => /grandfather/i.test(l.content ?? "")));
+  assert.ok(translations.some((l) => /father of his fathers/i.test(l.evidence)));
+});
+
+test("a rendering out of German is never presented as a published English translation", () => {
+  for (const passage of stelaPassages) {
+    for (const layer of passage.layers) {
+      if (layer.layer !== "translation") continue;
+      if (layer.sourceKey !== "tla_four_hundred_year_stela") continue;
+      assert.match(
+        layer.evidence,
+        /NOT A PUBLISHED ENGLISH TRANSLATION|from the TLA's German|Rendered into English/,
+        `${passage.label}: the TLA gives German; say so`
+      );
+    }
+  }
+});
+
+test("the prayer evidences the solar barque and stops short of Apep", () => {
+  const prayer = layersOf("The prayer to Seth: in the bow of the barque of Re");
+  const breasted = prayer.find((l) => l.sourceKey === "breasted_records_iii");
+  assert.ok(breasted);
+  assert.match(breasted.content ?? "", /barque of Re/);
+  // The surviving prayer says "enemies". The lunette is a wine offering. The
+  // record may connect this to the protective tradition and may not borrow its
+  // authority for the serpent's name.
+  assert.doesNotMatch(breasted.content ?? "", /Apep|Apophis/);
+  assert.match(breasted.evidence, /DOES NOT NAME APEP/);
+
+  const apep = record("set-spears-apep");
+  const claim = apep.claims[0];
+  assert.match(claim.evidence, /400-Year Stela|four-hundred-year-stela/);
+  assert.match(claim.evidence, /does not name Apep|not name Apep/i);
+});
+
+test("the era's starting point is recorded as unstated ON THE STONE", () => {
+  const era = stela.claims.find((c) => /counted from/i.test(c.whatIsDated ?? ""));
+  assert.ok(era);
+  assert.equal(era.startYear, undefined, "subtracting four hundred would assert the disputed part");
+  assert.match(era.evidence, /NEVER NAMES THE EVENT/);
+});
+
+test("Avaris archaeology is not upgraded into a dated Seth temple", () => {
+  // The single most tempting unsupported step available here: Tell el-Dab'a is
+  // securely Avaris, so it is one short move to "and a Seth temple was found
+  // there in the right stratum". No excavation report establishing that was
+  // opened.
+  const hyksos = record("hyksos-avaris-sutekh");
+  const notes = hyksos.claims.map((c) => c.notes ?? "").join("\n");
+  assert.match(notes, /not be quietly upgraded|NOT FOUND|was looked for and not found/i);
+
+  const oeai = SET_SUTEKH_SOURCES.find((s) => s.key === "oeai_tell_el_daba");
+  assert.ok(oeai);
+  assert.match(oeai.notes, /NOT CITED FOR/);
+});
+
+test("the sources that were actually read no longer claim they were not", () => {
+  for (const key of ["tla_four_hundred_year_stela", "breasted_records_iii", "oeai_tell_el_daba"]) {
+    const source = SET_SUTEKH_SOURCES.find((s) => s.key === key);
+    assert.ok(source, `missing source: ${key}`);
+    assert.match(source.notes, /^READ\./, `${key}: these three were opened; the notes should open by saying so`);
+    assert.ok(source.url, `${key}: a source that was read has a URL somebody else can open`);
+  }
+});
