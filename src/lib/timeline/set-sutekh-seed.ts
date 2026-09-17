@@ -171,6 +171,104 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
       "not be quietly upgraded into it.",
   },
   {
+    key: "hope_kaper_2010",
+    title: "Egyptian Interest in the Oases in the New Kingdom and a New Stela for Seth from Mut el-Kharab",
+    author: "Colin A. Hope and Olaf E. Kaper",
+    reference: "Pages 137-154; the stela described at 144-149, figures 4-7",
+    url: "https://www.monash.edu/__data/assets/pdf_file/0018/2231604/Hope-Kaper.pdf",
+    sourceType: "academic_paper",
+    publishedYear: 2010,
+    notes:
+      "READ. The publication of the Ramesside sandstone stela carrying a hymn to Seth, and the source of the " +
+      "transliteration, translation, measurements and findspot on that record. Cited also for the New " +
+      "Kingdom royal material at Mut — the Thutmose III cartouche, the Horemheb blocks naming Amun-Re, the " +
+      "Ramesses IV block — and for the Eighteenth Dynasty block reading mry nb wḥꜣt.\n\n" +
+      "CITED PARTICULARLY FOR TWO LIMITS THE AUTHORS SET THEMSELVES, which are worth more here than any of " +
+      "their positive findings. They could not date the paving in which the stela was reused. And on the " +
+      "question this dataset most wants answered they write: 'Whether the two gods physically shared the " +
+      "same temple building within this enclosure remains to be established' (p. 147).",
+  },
+  {
+    key: "hope_warfe_2017",
+    title: "The Proscription of Seth Revisited",
+    author: "Colin A. Hope and Ashten R. Warfe",
+    reference: "Pages 273-284, in the Ockinga festschrift; the conclusion quoted here is at 281",
+    url: "https://www.monash.edu/__data/assets/pdf_file/0004/2231572/Ockinga-22-Hope-pp-273-284.pdf",
+    sourceType: "academic_paper",
+    publishedYear: 2017,
+    notes:
+      "READ, AND IT IS THE MOST IMPORTANT SOURCE ON THIS DATASET'S CENTRAL QUESTION. Cited for the " +
+      "conclusion that the attack on Seth's image 'cannot be considered systematic or complete' (p. 281), " +
+      "and for the reasoning behind it: that religious vilification and physical erasure are different " +
+      "phenomena; that textual vilification is specific to its cult context; that damage to Seth is real but " +
+      "selective and often accompanies damage to other signs; that some erasures may predate or postdate the " +
+      "first millennium BCE; and that accessibility, reuse, visibility and WHICH ASPECT of Seth is shown all " +
+      "affect what survives.\n\n" +
+      "ALSO CITED FOR THE OVERWRITTEN DOORWAY BLOCK at Mut, which they take from Kaper 2001, and for their " +
+      "argument that centrally supported oasis temples at Mut and Hibis make 'remote priests were merely " +
+      "tolerated' an inadequate explanation.\n\n" +
+      "WHAT THEY DO NOT PROVIDE, and the dataset must not invent: a table of ban dates by region. Their " +
+      "model is contextual rather than cartographic.",
+  },
+  {
+    key: "monash_mut_el_kharab",
+    title: "Mut el-Kharab",
+    workTitle: "Dakhleh Oasis Project",
+    publisher: "Monash University",
+    url: "https://www.monash.edu/arts/philosophical-historical-indigenous-studies/dakhleh-oasis-project/excavations/mut-el-kharab",
+    sourceType: "website",
+    notes:
+      "READ. The excavating institution's own site summary. Cited for the enclosure dimensions, the " +
+      "occupation sequence, the survival of mainly Late Period temple architecture, the ostraka beginning in " +
+      "Dynasty XXV, and the Christian-period use of the site.\n\n" +
+      "ONE DISCREPANCY PRESERVED RATHER THAN RESOLVED: this page gives the ancient Egyptian name as Mt/Mrt " +
+      "while Hope and Warfe give Mjt. Both are recorded. A dataset that quietly picked one would be making " +
+      "an editorial decision it has no basis for.",
+  },
+  {
+    key: "mut_2013_season",
+    title: "Mut al-Kharab: Field Season 2013",
+    author: "Colin A. Hope",
+    reference: "Section I; the decorated block naming Seth from trench 41",
+    url: "https://www.monash.edu/__data/assets/pdf_file/0005/2060537/Report-on-the-Mut-al-Kharab-2013-excavations.pdf",
+    sourceType: "academic_paper",
+    notes:
+      "READ. Cited for the reused decorated block from trench 41 naming Seth Great of Strength, found in " +
+      "lower paving over an L-shaped mud-brick feature. Cited for the findspot and NOT for a date: a block " +
+      "reused in paving is dated by the paving only if the paving is dated, and here it is not.",
+  },
+  {
+    key: "leahy_greater_dakhleh_2010",
+    title: "The date of the 'larger' Dakhleh stela (Oxford, Ashmolean 1894.107a)",
+    author: "Anthony Leahy",
+    workTitle: "Göttinger Miszellen",
+    reference: "Volume 226 (2010)",
+    sourceType: "academic_paper",
+    publishedYear: 2010,
+    notes:
+      "CITED FROM ITS METADATA AND ABSTRACT; the article itself was NOT OPENED. Cited for the Ashmolean " +
+      "accession number 1894.107a, which is verified, and for the stela's content being a water-rights or " +
+      "property dispute settled through an ORACLE of Seth. NEEDS SOURCE VERIFICATION for the date: the " +
+      "article is specifically a redating study, so the association with Shoshenq I that circulates widely " +
+      "is exactly what it examines, and this dataset does not know its conclusion.",
+  },
+  {
+    key: "janssen_smaller_dakhleh_1968",
+    title: "The Smaller Dakhla Stela",
+    author: "J. J. Janssen",
+    workTitle: "Journal of Egyptian Archaeology",
+    reference: "Volume 54 (1968), pages 165-172, plate 25",
+    sourceType: "academic_paper",
+    publishedYear: 1968,
+    notes:
+      "CITED AT SECOND HAND AND NOT OPENED. The reference comes through Hope and Kaper 2010, page 147, note " +
+      "42. Everything this dataset says about the Smaller Dakhleh Stela — the attribution to Piye, Seth as " +
+      "principal deity in the upper scene, the decree concerning Amun, and the priest titled God's Father of " +
+      "Amun and Second Prophet of Seth — descends from that citation rather than from Janssen. NEEDS SOURCE " +
+      "VERIFICATION throughout, and the plate is the thing most worth having: the determinative comparison " +
+      "with the Greater Stela cannot be made without it.",
+  },
+  {
     key: "plutarch_isis_osiris",
     title: "On Isis and Osiris",
     author: "Plutarch",
@@ -2257,57 +2355,547 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "not carry. WHAT WOULD IMPROVE THIS RECORD: dated instances of erasure, site by site, which would " +
           "replace one vague span with a map of many precise ones.",
         notes:
-          "NEEDS SOURCE VERIFICATION throughout. This record is a summary of a scholarly consensus about a " +
-          "process, and it is the record in this dataset most in need of primary evidence.",
+          "PARTLY ANSWERED, AND NOT IN THE DIRECTION THIS RECORD EXPECTED. Hope and Warfe, having gone " +
+          "through the material, conclude that the attack on Seth's image 'cannot be considered systematic " +
+          "or complete' (2017, page 281). They separate religious vilification from physical erasure and " +
+          "treat vilification as specific to its cult context; they find the damage real but selective, and " +
+          "often accompanied by damage to other signs; and they note that some erasures may fall outside " +
+          "the first millennium BCE altogether, earlier or later.\n\n" +
+          "SO THE SEVEN-CENTURY RANGE ABOVE IS NOT MERELY IMPRECISE — IT MAY BE THE WRONG INSTRUMENT. What " +
+          "the evidence appears to support is not a national process with fuzzy edges but a set of local " +
+          "acts whose timing, motive and completeness differ. See the Dakhleh records: at Mut, a doorway " +
+          "block has Seth's name overwritten from the Twenty-fifth Dynasty onward while the same temple is " +
+          "being maintained, expanded and given donations.\n\n" +
+          "STILL NEEDS SOURCE VERIFICATION for dated instances of erasure site by site in the Nile Valley, " +
+          "which would replace this record with a set of them. Hope and Warfe deliberately do NOT supply " +
+          "ban dates by region, and this dataset must not manufacture the map they declined to draw.",
       },
     ],
   },
 
   {
     slug: "set-survives-in-the-oases",
-    title: "Set outlasts his own disgrace in the western oases",
+    title: "Dakhleh: where Seth's story stops being one story",
     summary:
-      "While the Nile Valley turns against him, temples in the oases go on serving Set — the clearest evidence that the change was regional rather than national.",
+      "Seth's cult at Mut el-Kharab runs to the end of the Ptolemaic period, contemporary with hostility to him elsewhere. It was not untouched — his name was overwritten there too — and it was not continuous.",
     description:
-      "WHAT KIND OF RECORD IS THIS? The counter-example that stops the decline being told as a single event.\n\n" +
-      "WHAT IS REPORTED. In the western oases, and Dakhla in particular, Set continued to receive cult later " +
-      "than in much of the valley. The temple site at Mut el-Kharab in Dakhla has been excavated as a temple " +
-      "of Seth, and the oasis material is regularly cited for exactly this point.\n\n" +
-      "WHY IT FITS. The oases are where Set's associations are assets rather than embarrassments. A god of " +
-      "the desert, the caravan route and the frontier is not a liability in a settlement that lives by the " +
-      "desert. What the valley found intolerable, the oases found useful.\n\n" +
-      "WHAT THIS RECORD DOES NOT ASSERT. How late the cult ran, what its liturgy was, or that it was " +
-      "continuous. Those are the substance, and this record does not have them.\n\n" +
-      "THE HONEST LIMIT, STATED PLAINLY. Nothing here has been read. The excavation reports of the Dakhleh " +
-      "Oasis Project exist, are extensive, and would turn this from a sentence anyone could repeat into a " +
-      "record worth having. Until then this is a signpost, and it is labelled as one.\n\n" +
-      "THINGS TO ASK: Which other gods survived at the edges after falling at the centre? Is the edge always " +
-      "where old religion goes?",
+      "WHAT KIND OF RECORD IS THIS? The synthesis of the Dakhleh objects, and a record that has been " +
+      "substantially rewritten because reading the excavation reports changed what it could say — in both " +
+      "directions.\n\n" +
+      "WHAT THIS RECORD USED TO SAY, AND WHY IT WAS WRONG. It was titled 'Set outlasts his own disgrace in " +
+      "the western oases' and described a place the valley's hostility did not reach. That is too clean. At " +
+      "Mut el-Kharab a temple doorway block has Seth's name overwritten — the crouching Seth-animal " +
+      "determinative and 'great of strength' replaced by a seated-god sign and 'the great god' — dated from " +
+      "the Twenty-fifth Dynasty onward, and later writings on unpublished material from the site also avoid " +
+      "the Seth animal. THE OASIS WAS NOT A REFUGE FROM THE CHANGE. It had its own version of it.\n\n" +
+      "WHAT SURVIVED THE CORRECTION, AND IT IS THE LOAD-BEARING PART. The overlap is real. The alteration of " +
+      "Seth's name at Mut is CONTEMPORARY with continued temple maintenance and expansion, continued " +
+      "donations, Seth-bearing personal names, a Twenty-fifth Dynasty royal decree with Seth presiding over " +
+      "its upper scene, and demotic ostraka recording donations to Seth into the late Ptolemaic period. So " +
+      "the Dakhleh material really does sit in the same centuries as vilification and erasure elsewhere, " +
+      "and it really does show a different trajectory. 'Egypt turned against Set' remains the wrong shape " +
+      "for the evidence.\n\n" +
+      "WHAT THE EXCAVATORS CONCLUDE, IN THEIR OWN WORDS. The attack on Seth's image 'cannot be considered " +
+      "systematic or complete' (Hope and Warfe 2017, page 281). They argue that religious vilification and " +
+      "physical erasure are different phenomena; that vilification is specific to its cult context; that " +
+      "damage to Seth is real but selective and often accompanies damage to other signs; that some erasures " +
+      "may predate or postdate the first millennium BCE; and that what survives depends on accessibility, " +
+      "reuse, visibility and WHICH ASPECT of Seth was shown.\n\n" +
+      "NOTE WHAT THEY DO NOT PROVIDE. A table of ban dates by region. Their model is contextual rather than " +
+      "cartographic, and this dataset does not manufacture the map they declined to draw.\n\n" +
+      "IT WAS NOT CONTINUOUS, AND THE PUBLICATIONS' OWN WORD INVITES THE MISREADING. Site summaries say " +
+      "veneration is documented 'continuously' to the end of the Ptolemaic period. The object record behind " +
+      "that word is CLUSTERS: a Ramesside cluster, a Libyan and Twenty-fifth Dynasty cluster, a late " +
+      "Ptolemaic cluster, with reused pieces between them. A gap in site material between the early Old " +
+      "Kingdom and the New Kingdom is noted outright. An object-by-object cult sequence is not established, " +
+      "and this record does not claim one.\n\n" +
+      "HOW LATE IT ACTUALLY RUNS, KEPT SEPARATE BY PLACE. At MUT, securely to the end of the Ptolemaic " +
+      "period; Hope and Warfe call Roman evidence for Seth's cult there SCANT. Elsewhere in DAKHLEH, Seth " +
+      "appears among the deities painted in the Tutu temple mammisi at Ismant el-Kharab, a cult that ran " +
+      "into the early fourth century CE. THOSE ARE TWO DIFFERENT SITES and the later one must not be " +
+      "relabelled as the earlier. Mut was a bishop's seat in the fourth century with a church and pottery " +
+      "running to the sixth or seventh — which dates Christian occupation, not the last act of Seth's cult.\n\n" +
+      "THE DISTINCTION THE WHOLE RECORD TURNS ON. Occupation is not cult. A standing temple is not a " +
+      "continuing one, and pottery in a stratum shows that people were there, not that anyone was making " +
+      "offerings.\n\n" +
+      "THINGS TO ASK: If a god's name is being rewritten in the same decades his temple is being given " +
+      "property, what is happening to him? Is there one word for it?",
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "archaeological_interpretation",
-    identificationStatus: "probable",
-    tags: ["set", "dakhla", "mut-el-kharab", "oasis", "survival", "regional"],
+    identificationStatus: "secure",
+    tags: ["set", "dakhla", "mut-el-kharab", "oasis", "survival", "regional", "proscription"],
     civilisations: ["Ancient Egypt"],
     locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
     claims: [
       {
-        sourceKey: null,
+        sourceKey: "hope_warfe_2017",
+        endYear: -30,
+        startYear: -1294,
         datePrecision: "century",
         isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The span of evidenced Seth cult at Mut el-Kharab",
+        originalDateText: "From the Ramesside stela to the late Ptolemaic donation ostraka",
+        datingMethod: "archaeological",
+        chronology: "archaeological",
+        evidence:
+          "WHAT THE TWO ENDS REST ON. The early end is the Ramesside hymn stela, which the excavators call " +
+          "the earliest evidence for Seth's cult at the site — a statement about excavation, not about when " +
+          "the cult began. The late end is the demotic ostraka recording donations to Seth, running to the " +
+          "close of the Ptolemaic period.\n\n" +
+          "WHAT THIS RANGE IS NOT: a continuous sequence. The evidence inside it is clusters — Ramesside, " +
+          "Libyan and Twenty-fifth Dynasty, late Ptolemaic — with reused pieces and gaps between. The span " +
+          "is the outer bound of the evidence, not a claim that every century within it is attested.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the ostraka, whose individual object numbers were not accessible. " +
+          "That is the weakest point in the late end of this range.",
+      },
+      {
+        sourceKey: "hope_warfe_2017",
+        datePrecision: "year",
+        isApproximate: false,
         temporalClaimType: "unknown",
-        whatIsDated: "How long Set's cult continued in the oases",
-        originalDateText: "Later than in much of the Nile Valley; no span entered",
+        whatIsDated: "Whether Dakhleh escaped the hostility seen elsewhere",
+        originalDateText: "No. Seth's name was overwritten at Mut too, from the Twenty-fifth Dynasty onward",
+        datingMethod: "archaeological",
+        chronology: "archaeological",
+        evidence:
+          "THE CORRECTION THIS RECORD WAS REWRITTEN AROUND. The oasis is routinely described, including by " +
+          "an earlier version of this record, as the place Seth's cult was left alone. A temple doorway " +
+          "block at Mut has his determinative and epithet overwritten, and later writings on unpublished " +
+          "site material avoid the Seth animal.\n\n" +
+          "WHAT THAT DOES AND DOES NOT DO TO THE ARGUMENT. It kills 'the oases were untouched'. It does not " +
+          "kill the regional point, because the same site and the same centuries also give continued " +
+          "donations, temple expansion, Seth-theophoric names and a royal decree with Seth in its upper " +
+          "scene. The finding is not shelter. It is a DIFFERENT TRAJECTORY, and a stranger one.",
+      },
+      {
+        sourceKey: "hope_warfe_2017",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether the attack on Seth was systematic",
+        originalDateText: "It 'cannot be considered systematic or complete' — Hope and Warfe 2017, page 281",
+        datingMethod: "source_assertion",
+        chronology: "archaeological",
+        evidence:
+          "QUOTED, NOT PARAPHRASED, because this sentence is the thing the dataset's whole late-period " +
+          "section has been circling. WHAT IT LICENSES: recording erasure site by site rather than as a " +
+          "national event. WHAT IT DOES NOT LICENSE: a claim that nothing happened. Damage to Seth is real; " +
+          "it is selective, contextual, and frequently accompanies damage to other signs.",
+        notes:
+          "The excavators explicitly do NOT supply ban dates by region. Their model is contextual rather " +
+          "than cartographic, and a regional map built on this paper would be this dataset's invention.",
+      },
+    ],
+  },
+
+  {
+    slug: "mut-el-kharab-ramesside-seth-stela",
+    title: "A sandstone stela at Mut el-Kharab: the earliest Seth at Dakhleh",
+    summary:
+      "Ramesside. A hymn to Seth, son of Nut, found face-down in a paving. Its excavators call it the earliest evidence for the cult of Seth at Mut el-Kharab — and only its first two lines can be read.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? The object the whole oasis argument rests on, given a record of its own " +
+      "so that the argument can be checked against a thing rather than against a sentence.\n\n" +
+      "WHAT IT IS. Local reddish sandstone, 109 centimetres of surviving height, 37 centimetres wide at the " +
+      "base tapering to 34, 20 thick. Sunk relief, crudely and schematically carved, with residual red and " +
+      "blue pigment still on it. The top and the lower-left corner are gone, a large loss runs through the " +
+      "middle-right, and the lower surface is abraded — because the stela ended its life face-down as a " +
+      "paving slab, walked on.\n\n" +
+      "WHAT THE EXCAVATORS SAY IT IS FOR. 'It is currently the earliest evidence for the cult of Seth at Mut " +
+      "el-Kharab' (Hope and Kaper 2010, page 143). Note the word CURRENTLY. They are describing the state of " +
+      "excavation, not the age of the cult.\n\n" +
+      "HOW MUCH OF IT CAN ACTUALLY BE READ, WHICH IS THE PART USUALLY LEFT OUT. The hymn has nine lines. " +
+      "Only the first two form substantially readable text. From line three onward, in the excavators' own " +
+      "account, no sentences can be read at all — only disconnected words. The names of the donor family are " +
+      "largely illegible. A record that quoted the opening line and moved on would be reporting a legible " +
+      "monument, and this is not one.\n\n" +
+      "WHY IT IS DATED THE WAY IT IS, AND WHY THAT IS WEAKER THAN IT SOUNDS. Ramesside, on the strength of " +
+      "parallels for the prayers and hymns to Seth — stylistic and epigraphic, not a sealed context. The " +
+      "reuse tells us nothing: Hope and Kaper could not date the paving. Worse, the deposits around it " +
+      "disagree with each other. Ptolemaic ostraka came from nearby basal levels in one unit; contexts " +
+      "beneath the room walls in another held Early Dynastic and Old Kingdom sherds with nothing later. THE " +
+      "AUTHORS STRESS THE DISPARITY RATHER THAN USING EITHER DEPOSIT TO DATE THE STELA, and that restraint " +
+      "is the model this dataset tries to follow.\n\n" +
+      "THINGS TO ASK: What is the earliest evidence for a cult, as opposed to the earliest evidence anyone " +
+      "has dug up? How would you tell the difference?",
+    category: "archaeology",
+    subcategory: "New Kingdom",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    tags: ["set", "dakhla", "mut-el-kharab", "oasis", "ramesside", "stela", "hymn"],
+    civilisations: ["Ancient Egypt"],
+    locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
+    passages: [
+      {
+        label: "The hymn to Seth, son of Nut",
+        reference: "Lines 1-9; only lines 1-2 substantially readable",
+        sourceKey: "hope_kaper_2010",
+        objectName: "Sandstone stela with a hymn to Seth; surviving height 109 cm, width 37 cm tapering to 34 cm, thickness 20 cm",
+        holdingInstitution: "Not established in the accessible publication",
+        notes:
+          "THE EXCAVATION NUMBER AND THE CURRENT LOCATION OF THIS STELA ARE BOTH UNKNOWN TO THIS DATASET. " +
+          "That is an uncomfortable gap on the object the oasis argument rests on, and it is recorded rather " +
+          "than glossed over.",
+        layers: [
+          {
+            layer: "primary_object",
+            sourceKey: "hope_kaper_2010",
+            content:
+              "Local reddish sandstone. Surviving height 109 cm; width 37 cm at the base tapering to 34 cm; " +
+              "thickness 20 cm. Top and lower-left corner missing; large loss from the middle-right; lower " +
+              "surface abraded by reuse. Sunk relief, crude and schematic, with residual red and blue " +
+              "pigment. Upper scene: three damaged deities. Lower register: a donor, two women and a male " +
+              "child. Found at the entrance of the small room west of excavation unit 18 and north of unit " +
+              "25, reused face-down within a paving.",
+            evidence:
+              "MEASURED AND DESCRIBED BY ITS EXCAVATORS. The findspot is a REUSE context: the stela was a " +
+              "paving slab when it was found, which is why the lower face is worn. WHAT THE CONTEXT CANNOT " +
+              "DO: date it. Hope and Kaper could not date the laying of the pavement, and the deposits " +
+              "nearby disagree — Ptolemaic ostraka in one unit, Early Dynastic and Old Kingdom sherds with " +
+              "nothing later beneath walls in another.",
+          },
+          {
+            layer: "transliteration",
+            sourceKey: "hope_kaper_2010",
+            content:
+              "dwA %tX sA Nw.t nTr aA nb p.t my […] / wn [...]=k nty Hr aA.wy n.w p.t [...] / [... …] mAa […] " +
+              "/ [… …] m [t]A Ha.t […] isf.t(?) […] / [… …] n=k m[…] nb m […] / [… …] itn […] =k m St.w / " +
+              "[… … …] Hr nfrw.t snb anx / […] mw [… …] wab nb.t […] / […] Sdi m [… … …]",
+            language: "Egyptian",
+            script: "Transliteration in Latin letters",
+            evidence:
+              "QUOTED FROM HOPE AND KAPER 2010, PAGE 148, WITH ITS BRACKETS INTACT. Count them. The square " +
+              "brackets and ellipses are most of this text, and they are the honest shape of it: nine lines " +
+              "survive as damage with words in it. Tidying them away would turn a wrecked hymn into a " +
+              "readable one.",
+            notes: "The Seth determinative is not safely legible from the text as extracted. Figure inspection is required.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "hope_kaper_2010",
+            content:
+              "Adoring Seth the son of Nut, the Great God, Lord of Heaven. Come … open … the one who is at " +
+              "the doors of heaven … …in the prow … evil … … sun … tortoise … on account of the beauty, " +
+              "health and life… … recite … …",
+            language: "English",
+            evidence:
+              "HOPE AND KAPER 2010, PAGE 149, VERBATIM. WHAT SURVIVES INTACT is the opening address: Seth, " +
+              "son of Nut, the Great God, Lord of Heaven. That is a god being praised, at Dakhleh, on a " +
+              "monument set up by a named family. AFTER THAT IT IS WORDS, not sentences — and one of those " +
+              "words is 'prow', which is tantalising beside the 400-Year Stela's placing of Seth at the bow " +
+              "of Re's barque, AND IS NOT AN ARGUMENT. A disconnected word in a broken line cannot carry a " +
+              "parallel, and this record does not let it.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "A Ramesside stela from Mut el-Kharab opens by adoring Seth as son of Nut, Great God, Lord of " +
+              "Heaven, and was dedicated by a family shown in its lower register. Its excavators consider it " +
+              "the earliest evidence so far found for Seth's cult at the site. Two of its nine lines can be " +
+              "read.",
+            evidence:
+              "WHAT IT ESTABLISHES: Seth worshipped at Dakhleh in the Ramesside period, by private " +
+              "individuals, in a temple enclosure. WHAT IT DOES NOT: how long before this, what the cult " +
+              "did, or anything at all from line three onward.",
+          },
+        ],
+      },
+      {
+        label: "The upper scene: Amun, Seth and Nephthys — a reconstruction, not a survival",
+        reference: "Upper register; heads and top lost",
+        sourceKey: "hope_kaper_2010",
+        objectName: "Sandstone stela with a hymn to Seth",
+        notes:
+          "KEPT AS A SEPARATE PASSAGE BECAUSE THE IDENTIFICATION IS INFERRED. Merging it into the object " +
+          "description would let a reasoned reconstruction read as surviving iconography, which is the " +
+          "precise error this dataset is built to avoid.",
+        layers: [
+          {
+            layer: "primary_object",
+            sourceKey: "hope_kaper_2010",
+            content:
+              "A male deity at the left with a wꜣs staff and blue skin faces a male and a female deity. The " +
+              "second male holds a wꜣs staff. The goddess holds a wꜣḏ staff and what appears to be an " +
+              "ostrich feather; her damaged rear arm probably held an ankh. The heads and the top of the " +
+              "scene are lost.",
+            evidence:
+              "WHAT PHYSICALLY SURVIVES, AND NOTE WHAT DOES NOT: the heads. In Egyptian art the head is " +
+              "where a deity is usually identified — by crown, by animal form, by attribute. This scene has " +
+              "lost exactly the part that would name its figures.",
+          },
+          {
+            layer: "interpretation",
+            sourceKey: "hope_kaper_2010",
+            content:
+              "Amun at the left, with Seth and Nephthys facing him. Supported by the blue skin of the left " +
+              "figure, by the room available above it for Amun's feather crown, and by a later Dakhleh " +
+              "depiction of Nephthys holding an ostrich feather. The authors reject the alternative " +
+              "arrangement, in which Seth would be the principal deity receiving Amun's adoration, as less " +
+              "plausible.",
+            viewpoint: "archaeological",
+            evidence:
+              "THE EXCAVATORS' REASONED RECONSTRUCTION, AND THEY PRESENT IT AS ONE. It is a good argument " +
+              "from blue skin, available space and a regional parallel. It is still an argument. 'Seth and " +
+              "Nephthys appear together at Mut el-Kharab' is a sentence this dataset can only write with " +
+              "the word RECONSTRUCTED in it, because the stela does not preserve a single labelled head.",
+          },
+        ],
+      },
+    ],
+    claims: [
+      {
+        sourceKey: "hope_kaper_2010",
+        startYear: -1294,
+        endYear: -1070,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "When the stela was carved",
+        originalDateText: "Ramesside Period, from parallels for the prayers and hymns to Seth",
+        datingMethod: "stylistic_comparison",
+        chronology: "conventional",
+        evidence:
+          "WHAT PRODUCED THIS DATE: comparison with other prayers and hymns to Seth. Stylistic and " +
+          "epigraphic, which is the weakest kind of date in this dataset and is here the only kind " +
+          "available. WHY THE ARCHAEOLOGY CANNOT HELP: the stela was reused face-down in a paving, the " +
+          "excavators could not date the paving, and the surrounding deposits contradict each other. The " +
+          "range entered is the conventional span of the Ramesside period, not a finding of its own.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the parallels themselves, which are named in the publication and " +
+          "not read here, and for the Ramesside dates used for the range.",
+      },
+      {
+        sourceKey: "hope_kaper_2010",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "How long Seth's cult at Mut el-Kharab had already existed",
+        originalDateText: "Unknown. This is the earliest evidence FOUND, which is a fact about excavation",
         datingMethod: "archaeological",
         chronology: "conventional",
         evidence:
-          "WHY NO YEARS ARE ENTERED: the claim being made is comparative — later THERE than HERE — and the " +
-          "absolute span is precisely what this record has not established. Entering a range would convert a " +
-          "signpost into a finding. WHAT IS REPORTED: an excavated temple of Seth at Mut el-Kharab and a " +
-          "regional survival regularly cited in the literature.",
+          "WHY THIS IS A SEPARATE, POSITIONLESS CLAIM: 'the earliest evidence for the cult' and 'when the " +
+          "cult began' are different statements, and the excavators mark the difference themselves with the " +
+          "word CURRENTLY. A dataset that dated the cult from its earliest surviving object would be " +
+          "reporting the history of digging as the history of religion.",
+      },
+    ],
+  },
+
+  {
+    slug: "mut-el-kharab-seth-determinative-overwritten",
+    title: "The doorway block at Mut where Seth's name was overwritten",
+    summary:
+      "A temple doorway block whose Seth-animal determinative and 'great of strength' were replaced with a seated-god sign and 'the great god'. Dated from the Twenty-fifth Dynasty onward — in the oasis usually said to have sheltered him.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? The object that complicates this dataset's own oasis story, which is why " +
+      "it gets a record of its own rather than a clause in somebody else's.\n\n" +
+      "WHAT WAS DONE. Seth's name on this block was originally written with a crouching Seth-animal " +
+      "determinative followed by the epithet 'great of strength'. Both were overwritten: the animal became a " +
+      "seated-god determinative, and the epithet became 'the great god'.\n\n" +
+      "READ THAT AGAIN, BECAUSE THE SHAPE OF IT MATTERS. The god was not erased. His name was not hacked " +
+      "out. He was RESPELLED — kept, and written in a way that does not draw the animal. Whatever that is, " +
+      "it is not the same act as chiselling a figure off a wall, and a dataset that filed both under " +
+      "'persecution' would be flattening two different things.\n\n" +
+      "WHY IT MATTERS TO THE ARGUMENT THIS DATASET WAS MAKING. The oasis record here said Set 'outlasts his " +
+      "own disgrace' in the west, as though Dakhleh were untouched. It was not. The alteration is dated from " +
+      "the Twenty-fifth Dynasty onward, and later writings on unpublished material from the site also avoid " +
+      "the Seth animal. The shelter was partial.\n\n" +
+      "AND WHY IT DOES NOT DEMOLISH THE ARGUMENT EITHER. At the same site, across the same centuries, the " +
+      "temple was maintained and expanded, donations continued, Seth-bearing personal names continued, and " +
+      "demotic ostraka record donations to Seth into the late Ptolemaic period. A god whose name is being " +
+      "respelled and who is still being given property is in a stranger position than either 'worshipped' " +
+      "or 'proscribed' allows for. That strangeness is the finding.\n\n" +
+      "WHAT IS NOT KNOWN, AND IT IS A LOT. The block's excavation number, its size, its exact findspot and " +
+      "its present whereabouts are all unknown to this dataset. Kaper's 2001 publication and its figure were " +
+      "not opened; everything here comes through Hope and Warfe's 2017 citation of it. There is no " +
+      "photograph. WHEN this dataset was written it was the only alteration at Mut known to them.\n\n" +
+      "WHAT MUST NOT BE WRITTEN HERE. That this is demonisation. That is the conclusion under test, and the " +
+      "excavators' own framing is that vilification in text and destruction of images are different " +
+      "phenomena that need not travel together.\n\n" +
+      "THINGS TO ASK: Why respell a name rather than remove it? Who is the new spelling for?",
+    category: "archaeology",
+    subcategory: "Late Period",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    tags: ["set", "dakhla", "mut-el-kharab", "determinative", "erasure", "orthography", "late-period"],
+    civilisations: ["Ancient Egypt"],
+    locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
+    claims: [
+      {
+        sourceKey: "hope_warfe_2017",
+        startYear: -746,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "after_event",
+        whatIsDated: "When the name was overwritten",
+        originalDateText: "From the Twenty-fifth Dynasty onward",
+        datingMethod: "textual_interpretation",
+        chronology: "archaeological",
+        evidence:
+          "WHAT KIND OF DATE THIS IS: a terminus, not a moment. The alteration is placed no earlier than the " +
+          "Twenty-fifth Dynasty and is not otherwise fixed, which is why the claim is filed as 'after' " +
+          "rather than as a range with an invented end. The original inscription is assigned to the New " +
+          "Kingdom or the Third Intermediate Period, so the block was already old when somebody changed it.",
         notes:
-          "NEEDS SOURCE VERIFICATION against the Dakhleh Oasis Project publications, which is the single " +
-          "highest-value piece of reading outstanding on this dataset.",
+          "AT SECOND HAND. Hope and Warfe 2017, pages 274-275, citing Kaper 2001, pages 72-74. NEEDS SOURCE " +
+          "VERIFICATION against Kaper directly — his figure is the thing to see, because everything about " +
+          "this record turns on what the recutting actually looks like.",
+      },
+    ],
+  },
+
+  {
+    slug: "greater-dakhleh-stela-oracle-of-seth",
+    title: "The Greater Dakhleh Stela: a water dispute settled by Seth's oracle",
+    summary:
+      "Libyan Period. A property and water-rights case decided through an oracle of Seth — the god acting as a working legal institution in the oasis. Ashmolean 1894.107a.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? Seth doing administrative work, which is a long way from either the " +
+      "protector of the sun boat or the enemy of Osiris.\n\n" +
+      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a — a number this dataset " +
+      "has verified. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
+      "SETH.\n\n" +
+      "WHY AN ORACLE IS THE INTERESTING PART. An oracle is not devotion. It is procedure. For a community to " +
+      "settle a dispute over water — which in an oasis is a dispute over survival — by putting it to Seth, " +
+      "Seth has to be an institution with standing that the parties will accept. That is a much heavier fact " +
+      "than a hymn, because a hymn only tells you somebody praised him.\n\n" +
+      "THE DATE IS EXACTLY WHAT IS DISPUTED, AND THIS RECORD DOES NOT SETTLE IT. The stela is Libyan Period " +
+      "and is widely associated with Shoshenq I. But the article cited here, Leahy 2010, is SPECIFICALLY A " +
+      "REDATING STUDY — its whole subject is that association — and it was not opened. So this dataset " +
+      "knows the question exists and does not know the answer, and enters a broad Libyan Period range " +
+      "rather than the confident attribution that circulates.\n\n" +
+      "WHAT IS MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
+      "Smaller Dakhleh Stelae were to be compared on how each writes Seth's name — the comparison that would " +
+      "show whether the respelling seen on the Mut doorway block is part of a pattern. The Griffith " +
+      "Institute holds a scale hand-copy and a hieroglyphic transcription under Griffith-2-9; access was " +
+      "blocked. WITHOUT THE FACSIMILES THE COMPARISON CANNOT BE MADE, and it is recorded as not made rather " +
+      "than guessed at.\n\n" +
+      "THINGS TO ASK: What does it take for a god to be trusted with a water dispute? Is that the same thing " +
+      "as being worshipped?",
+    category: "archaeology",
+    subcategory: "Third Intermediate Period",
+    eventType: "historical",
+    identificationStatus: "secure",
+    tags: ["set", "dakhla", "greater-dakhleh-stela", "oracle", "libyan-period", "ashmolean", "water-rights"],
+    civilisations: ["Ancient Egypt"],
+    locationName: "Dakhla Oasis, Egypt; now Ashmolean Museum, Oxford",
+    claims: [
+      {
+        sourceKey: "leahy_greater_dakhleh_2010",
+        startYear: -1069,
+        endYear: -746,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "When the stela was made",
+        originalDateText: "Libyan Period; often associated with Shoshenq I, which is itself under review",
+        datingMethod: "historical_record",
+        chronology: "conventional",
+        evidence:
+          "WHY THE RANGE IS THE WHOLE LIBYAN PERIOD RATHER THAN A REIGN: the Shoshenq I attribution is " +
+          "widely repeated and is the express subject of a redating study this dataset has not read. " +
+          "Entering the popular attribution would mean asserting the very thing under examination. The broad " +
+          "range says what is not in doubt and nothing more.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and it is a specific and reachable job: read Leahy, Göttinger " +
+          "Miszellen 226 (2010), and enter whatever he concludes, with his argument.",
+      },
+      {
+        sourceKey: "leahy_greater_dakhleh_2010",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "How Seth's name is written on this stela",
+        originalDateText: "Not established. The facsimiles were not accessible",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "A CLAIM RECORDED SO THAT ITS EMPTINESS IS VISIBLE. The comparison between this stela and the " +
+          "Smaller Dakhleh Stela on the writing of Seth's name is the single piece of evidence that would " +
+          "show whether the Mut doorway block's respelling is an isolated act or a regional pattern. The " +
+          "Griffith Institute holds a scale hand-copy and hieroglyphic transcription under Griffith-2-9. " +
+          "Access was blocked. NOTHING IS ENTERED HERE, because a guess in this field would answer the " +
+          "dataset's own open question on no evidence.",
+      },
+    ],
+  },
+
+  {
+    slug: "smaller-dakhleh-stela-piye",
+    title: "The Smaller Dakhleh Stela: one priest, two gods",
+    summary:
+      "Reign of Piye. A donation decree that principally concerns Amun, with Seth as the principal deity of its upper scene — and a priest who served both.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? The best evidence at Dakhleh that Seth and Amun were institutionally " +
+      "entangled, and a careful account of how far that evidence reaches.\n\n" +
+      "WHAT IS REPORTED. A donation decree of the reign of Piye, Twenty-fifth Dynasty. Seth is the principal " +
+      "deity in the upper scene. The decree itself principally concerns Amun. And line five names an " +
+      "otherwise anonymous priest carrying both titles at once: God's Father of Amun, and Second Prophet of " +
+      "Seth.\n\n" +
+      "WHAT THAT ONE MAN ESTABLISHES. A shared priestly institution. Not a metaphor, not an iconographic " +
+      "association — an office-holder drawing two titles, in a dated royal document.\n\n" +
+      "WHAT IT DOES NOT ESTABLISH, and the excavators are explicit about it: that the two gods occupied the " +
+      "same temple building. Hope and Kaper's own sentence is worth keeping exactly: 'Whether the two gods " +
+      "physically shared the same temple building within this enclosure remains to be established' (2010, " +
+      "page 147). A shared priesthood and a shared building are different claims and the evidence supports " +
+      "one of them.\n\n" +
+      "THE DATE IS THE FIRM PART. Piye's reign is a Twenty-fifth Dynasty anchor, which makes this the most " +
+      "securely dated Seth evidence at Dakhleh in this dataset — and it sits in the same window as the " +
+      "overwriting of Seth's name on the Mut doorway block. The same dynasty, the same oasis: a royal decree " +
+      "with Seth presiding over its upper scene, and a doorway where his animal was being written out. Both " +
+      "are the evidence. Neither cancels the other.\n\n" +
+      "THE HONEST LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
+      "Kaper's citation of it. The object number, the material, the size, the present location and the " +
+      "exact findspot are all unknown here, and the plate — which would allow the determinative comparison " +
+      "with the Greater Stela — has not been seen.\n\n" +
+      "THINGS TO ASK: If one man served both gods, whose temple was he in? What would settle it?",
+    category: "archaeology",
+    subcategory: "Late Period",
+    eventType: "historical",
+    identificationStatus: "secure",
+    tags: ["set", "amun", "dakhla", "smaller-dakhleh-stela", "piye", "priesthood", "twenty-fifth-dynasty"],
+    civilisations: ["Ancient Egypt"],
+    locationName: "Dakhla Oasis, Egypt",
+    people: ["Piye"],
+    claims: [
+      {
+        sourceKey: "janssen_smaller_dakhleh_1968",
+        startYear: -743,
+        endYear: -713,
+        datePrecision: "decade",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "When the decree was issued",
+        originalDateText: "The reign of Piye",
+        datingMethod: "regnal_chronology",
+        chronology: "conventional",
+        evidence:
+          "DATED BY A NAMED KING, which is why this is the firmest Seth date at Dakhleh on this dataset. The " +
+          "range is the conventional span of Piye's reign; the attribution comes through Hope and Kaper " +
+          "citing Janssen.",
+        notes:
+          "NEEDS SOURCE VERIFICATION against Janssen, Journal of Egyptian Archaeology 54 (1968), 165-172 " +
+          "and plate 25, which was not opened. Also needs the regnal dates used for the range.",
+      },
+      {
+        sourceKey: "hope_kaper_2010",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether Seth and Amun shared a temple building at Mut",
+        originalDateText: "Remains to be established, in the excavators' own words",
+        datingMethod: "archaeological",
+        chronology: "archaeological",
+        evidence:
+          "WHAT IS ESTABLISHED: a shared priesthood, from a priest holding both titles on this stela; Amun " +
+          "named on Horemheb blocks at Mut; and Amun reconstructed alongside Seth in the upper scene of the " +
+          "Ramesside hymn stela. WHAT IS NOT: a shared building. Hope and Kaper say so directly, and this " +
+          "claim exists to carry their limit rather than to quietly pass over it.",
       },
     ],
   },
