@@ -293,16 +293,70 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
   },
   {
     key: "chester_beatty_i",
-    title: "The Contendings of Horus and Seth",
-    workTitle: "Papyrus Chester Beatty I",
-    reference: "Twentieth Dynasty; from Deir el-Medina; Chester Beatty Library, Dublin",
-    sourceType: "religious_text",
+    title: "The Library of A. Chester Beatty: Description of a Hieratic Papyrus with a Mythological Story, Love-Songs, and Other Miscellaneous Texts",
+    author: "Alan H. Gardiner",
+    reference: "Oxford, 1931. The Contendings at pages 8-26, plates 1-16",
+    url: "https://chesterbeatty.ie/assets/uploads/2018/11/The-Library-of-A.-Chestera-Beatty-Description-of-a-Hieratic-Papyrus-with-a-Mythological-Story-Love-Songs-and-Other-Miscellaneous-Texts.pdf",
+    sourceType: "academic_paper",
+    publishedYear: 1931,
     notes:
-      "THE LONGEST CONTINUOUS NARRATIVE ABOUT SET THAT SURVIVES FROM EGYPT ITSELF, and the corrective to " +
-      "reading Plutarch as though it were Egyptian. Cited for the eighty-year lawsuit between Horus and Set " +
-      "before the tribunal of the gods, and for the story's tone, which is closer to comedy than to scripture. " +
-      "NEEDS SOURCE VERIFICATION: the papyrus has not been read here in any edition, and no passage below is " +
-      "quoted. A serious version of these records cites Gardiner's edition or Lichtheim's translation by page.",
+      "READ. The primary edition, and the source of every quotation attributed to Gardiner on this dataset. " +
+      "Cited for the text, for the manuscript's date and history, and — most valuably — for the limits " +
+      "Gardiner sets on his own work.\n\n" +
+      "WHAT IT DOES NOT CONTAIN, and the dataset had assumed it did: a Roman transliteration. The 1931 " +
+      "volume gives a HIEROGLYPHIC TRANSCRIPTION in its plates. That is why every transliteration row in " +
+      "this record is empty with a stated reason rather than filled in.\n\n" +
+      "GARDINER'S OWN CAUTIONS, which are worth more than most of his conclusions: the first page was " +
+      "reconstructed from thousands of fragments and its lacunae remain; the wording around the ferryman " +
+      "episode is in places nearly unintelligible; the semen test may preserve continuity from an earlier " +
+      "composition and the present story has inconsistencies; Horus's claim to repeated favourable verdicts " +
+      "is not supported by the preceding narration; his reading of 'place of Truth' in the colophon is " +
+      "'very precarious and only a pis aller' and the alternative 'in the highest degree speculative'; and " +
+      "arguments from narrative silence are 'exceedingly dangerous'.",
+  },
+  {
+    key: "lichtheim_ael_ii",
+    title: "Ancient Egyptian Literature, Volume II: The New Kingdom",
+    author: "Miriam Lichtheim",
+    reference: "Pages 214-223",
+    sourceType: "academic_paper",
+    publishedYear: 1976,
+    notes:
+      "READ, AND QUOTED ONLY IN SHORT PASSAGES. A modern translation still in copyright: this dataset " +
+      "records where it differs from Gardiner and does not reproduce it. Cited for her rendering of Seth's " +
+      "counterclaim, which makes the solar-barque function more explicit than Gardiner's — 'I slay the foe " +
+      "of Re daily while I am at the prow of the Bark of Millions' — and for her characterisation of the " +
+      "tale as 'coarsely humorous', which is HERS and is recorded as hers.",
+  },
+  {
+    key: "wente_in_simpson",
+    title: "The Contendings of Horus and Seth",
+    author: "Edward F. Wente",
+    workTitle: "The Literature of Ancient Egypt, edited by William Kelly Simpson",
+    reference: "Third edition, 2003, pages 91-103",
+    sourceType: "academic_paper",
+    publishedYear: 2003,
+    notes:
+      "READ, AND QUOTED ONLY IN SHORT PASSAGES. Cited where it differs materially from Gardiner — most " +
+      "sharply at Re-Harakhty's insult to Horus, where Gardiner has 'feeble of body' and Wente has " +
+      "'despicable in your person', which are not the same accusation. Cited also for his note that lettuce " +
+      "was associated with Min and regarded as an aphrodisiac, for the reading 'marsh' or 'cucumber bed', " +
+      "and for his description of the gods' behaviour as shocking with intended coarse humour, which is his " +
+      "judgement and is recorded as his.",
+  },
+  {
+    key: "met_journal_50",
+    title: "Metropolitan Museum Journal, Volume 50 (2015)",
+    reference: "Page 48, figure 9: a photograph of Papyrus Chester Beatty I recto page 4",
+    url: "https://resources.metmuseum.org/resources/metpublications/pdf/Metropolitan_Museum_Journal_v_50_2015.pdf",
+    sourceType: "academic_paper",
+    publishedYear: 2015,
+    notes:
+      "READ, AND THE PICTURE CANNOT BE USED. The journal reproduces recto page 4 — the leaf carrying both " +
+      "Hathor's exposure and Seth's counterclaim, which makes it the single most relevant image to this " +
+      "record. The PDF carries an all-rights-reserved notice and no open licence was found. IT IS CITED SO " +
+      "A READER CAN GO AND LOOK AT IT, which is the most this dataset can honestly do with an image it may " +
+      "not reproduce.",
   },
   {
     key: "egyptian_hittite_treaty",
@@ -804,15 +858,25 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "religious art and text over a long span. WHY THE CLAIM CARRIES NO DATE: it is not an event. It is " +
           "a role, held for centuries, and pinning it to a year would misrepresent what kind of thing it " +
           "is.\n\n" +
-          "ONE FIXED POINT NOW EXISTS, AND IT IS TEXTUAL. The 400-Year Stela — a dated royal monument of " +
+          "TWO FIXED POINTS NOW EXIST, AND BOTH ARE TEXTUAL.\n\n" +
+          "THE SECOND IS SETH'S OWN MOUTH. In the Contendings of Horus and Seth he argues for the kingship " +
+          "like this: 'I am Seth, the greatest of strength among the Ennead, and I slay the enemy of Pre " +
+          "daily, being in front of the Bark-of-Millions, and none other god is able to do it' (Gardiner " +
+          "1931, page 16; Lichtheim and Wente both read 'at the prow'). That is this role stated as a " +
+          "QUALIFICATION FOR OFFICE, in a narrative, in a papyrus of the reign of Ramesses V.\n\n" +
+          "THE EPITHET MATCHES ACROSS THE TWO SOURCES. 'Greatest of strength' in the Contendings; " +
+          "Stẖ-ꜥꜣ-pḥ.tj, Seth great of strength, in the 400-Year Stela's royal titulary. Different genres, " +
+          "different objects, same god doing the same job under the same name.\n\n" +
+          "THE FIRST IS THE 400-Year Stela — a dated royal monument of " +
           "Ramesses II — hails Seth as 'great in strength in the barque of millions of years, overthrowing " +
           "enemies in front of the barque of Re' (Breasted 1906, section 542). That is this role asserted on " +
           "a king's stela in the thirteenth century BCE, not inferred from a vignette. See the " +
           "four-hundred-year-stela record, where the passage is given in transliteration and in two " +
           "translations.\n\n" +
-          "WHAT THAT PASSAGE DOES NOT DO, AND THE DISTINCTION IS THE POINT: it does not name Apep. It says " +
-          "'enemies'. So it evidences SET IN THE PROW DEFENDING RE; it does not evidence the Apep combat " +
-          "specifically, and this record must not borrow the stela's authority for the serpent's name.",
+          "WHAT NEITHER PASSAGE DOES, AND THE DISTINCTION IS THE POINT: neither names Apep. The stela says " +
+          "'enemies'; the Contendings says 'the enemy of Pre'. So both evidence SET IN THE PROW DEFENDING " +
+          "RE, and neither evidences the Apep combat specifically. This record must not borrow their " +
+          "authority for the serpent's name.",
         notes:
           "STILL NEEDS SOURCE VERIFICATION for the chronological range of the motif — the earliest and " +
           "latest securely dated examples, which would turn a role into a span. The stela supplies one dated " +
@@ -1651,53 +1715,420 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
 
   {
     slug: "contendings-of-horus-and-seth",
-    title: "The Contendings of Horus and Seth: eighty years in court",
+    title: "The Contendings of Horus and Seth: an inheritance lawsuit, read from Gardiner",
     summary:
-      "Twentieth Dynasty papyrus. The longest surviving Egyptian narrative about Set is a lawsuit — and it is frequently funny.",
+      "Papyrus Chester Beatty I. The longest surviving Egyptian narrative about Seth is a succession case — and it ends not with his destruction but with Re adopting him as a son who thunders in the sky.",
     description:
       "WHAT KIND OF RECORD IS THIS? The best corrective available to reading Plutarch as though it were what " +
-      "Egyptians thought.\n\n" +
-      "WHAT THE TEXT IS. Papyrus Chester Beatty I, from the workmen's village at Deir el-Medina, Twentieth " +
-      "Dynasty. It narrates the dispute between Horus and Set over the kingship as a court case before the " +
-      "tribunal of the gods, dragging on for eighty years, with the deities bickering, changing their minds, " +
-      "being rude to one another, and being repeatedly unable to reach a decision.\n\n" +
-      "WHY ITS TONE IS EVIDENCE. Popular accounts of Egyptian religion present a solemn cosmic struggle " +
-      "between order and chaos. The longest Egyptian telling of that struggle that survives is closer to " +
-      "farce. That does not make it un-religious — myths can be funny and serious at once — but it does mean " +
-      "the solemnity in most retellings is imported.\n\n" +
-      "WHAT SET IS IN IT. Strong, crude, dangerous, sometimes ridiculous, and a party to a legal dispute with " +
-      "a genuine claim. Not a devil. Not an abstraction of evil. A litigant with a bad temper and a real case.\n\n" +
-      "A WARNING ABOUT THIS RECORD SPECIFICALLY. The papyrus has not been read here in any edition. The " +
-      "description above is the standard characterisation, given without page references, and it is exactly " +
-      "the kind of confident secondhand summary this dataset exists to be suspicious of. It is included " +
-      "because leaving out the most important Egyptian source on Set would distort the whole more.\n\n" +
-      "THINGS TO ASK: Why does a culture tell a comic version of its central conflict? Who was this copy for?",
+      "Egyptians thought, and now built from Gardiner's 1931 edition rather than from summaries of it.\n\n" +
+      "WHAT THIS RECORD USED TO SAY ABOUT ITSELF, and it was right to: 'The papyrus has not been read here " +
+      "in any edition… exactly the kind of confident secondhand summary this dataset exists to be suspicious " +
+      "of.' It has now been read. Three of its assertions survived, one was corrected, and one turned out to " +
+      "be true in a way that reaches into two other records.\n\n" +
+      "WHAT WAS CORRECTED. The record said the papyrus came 'from the workmen's village at Deir el-Medina' " +
+      "as a plain fact. GARDINER DOES NOT ESTABLISH THAT. The colophon at 16,8 says the work ended 'in " +
+      "Thebes' and a later line names a scribe of the Royal Necropolis, which supports a Theban-necropolis " +
+      "association and no more. There is no secure excavated findspot, and the first 55 centimetres had been " +
+      "broken by local finders before acquisition. Deir el-Medina is now recorded as an association rather " +
+      "than a provenance.\n\n" +
+      "WHAT WAS SHARPENED. 'Twentieth Dynasty' is now a reign: Gardiner dates the manuscript to RAMESSES V, " +
+      "because an Encomium on the verso names that king and the recto necessarily precedes it. That is a " +
+      "documentary terminus, not a date the narrative gives, and it dates THE COPY.\n\n" +
+      "HOW MUCH SURVIVES, which this record previously assumed without basis. Gardiner calls the story " +
+      "'preserved complete, save for a few lacunae on the first page', and follows it to its colophon at " +
+      "16,8. Page one was reconstructed from thousands of fragments. So: substantially complete, with real " +
+      "damage at the opening — a very different object from the Mut el-Kharab stela, where two of nine lines " +
+      "could be read.\n\n" +
+      "SETH'S CASE, WHICH THE RETELLINGS DROP. He does not merely obstruct. He makes a legal argument from " +
+      "COSMIC SERVICE: he is the strongest of the Ennead, he kills Re's enemy every day from the front of " +
+      "the Bark of Millions, and no other god can do it. That is a qualification for office, and the court " +
+      "treats it as one. The question the text poses is whether that service outranks a son's inheritance.\n\n" +
+      "AND THAT ARGUMENT REACHES OUTSIDE THIS RECORD. The 400-Year Stela hails Seth as 'great of strength in " +
+      "the barque of millions of years, overthrowing enemies in front of the barque of Re'. Here Seth says " +
+      "it of himself, in a different genre, in a different century. The Egyptian behind the stela's royal " +
+      "titulary is Stẖ-ꜥꜣ-pḥ.tj, Seth great of strength. THE EPITHET AND THE FUNCTION MATCH ACROSS TWO " +
+      "INDEPENDENT SOURCES, and neither is an inference drawn to fit the other.\n\n" +
+      "HOW IT ENDS, WHICH IS THE PART MOST OFTEN GOT WRONG. Not 'good defeats evil'. Seth concedes the " +
+      "office, Horus is crowned — and then Re asks for Seth: 'Let Seth the son of Nut be given unto me, that " +
+      "he may dwell with me and be as my son, and he shall thunder in the sky and men shall fear him.' The " +
+      "settlement DIFFERENTIATES OFFICES. Horus gets dynastic kingship; Seth is taken into the sun god's own " +
+      "household with a continuing celestial role. A tradition that ended by destroying him would be a " +
+      "different tradition.\n\n" +
+      "IS SETH CALLED EVIL? NOT ANYWHERE IN THIS TEXT. The search was made and came back empty. The verdict " +
+      "'Horus is in the right, and Seth is in the wrong' decides one evidentiary contest; it is not a " +
+      "classification of his nature. What the text gives instead is behaviour — he threatens to kill a judge " +
+      "a day, he assaults Horus, he tears out his eyes and lies about it — beside a legitimate claim and a " +
+      "place at Re's side.\n\n" +
+      "ON THE TONE, NOW PROPERLY ATTRIBUTED. This record used to call the text farcical in its own voice. " +
+      "The judgement belongs to the editors: Gardiner says it 'was meant to be diverting and even, from time " +
+      "to time, frankly farcical' and admits that identifying every intended laugh is difficult; Lichtheim " +
+      "calls it 'coarsely humorous'; Wente calls the humour coarse. The manuscript carries no genre label. " +
+      "The internal evidence is strong — Hathor exposing herself to stop a god sulking, Seth judging an " +
+      "inheritance case against himself without noticing, a stone boat that sinks — and it is evidence, not " +
+      "a caption.\n\n" +
+      "A NOTE ON THE FIFTEEN EPISODES. There are none. Gardiner prints the narrative continuously, with red " +
+      "rubrics and paragraphing. Any division into numbered episodes, including the one used to research " +
+      "this record, is an analytical convenience imposed from outside.\n\n" +
+      "THINGS TO ASK: If a god can lose a lawsuit and be adopted by the judge's father, what has he lost? " +
+      "Why does a culture tell a comic version of its central conflict?",
     category: "religion",
     subcategory: "New Kingdom",
     eventType: "religious_account",
     identificationStatus: "secure",
-    tags: ["set", "horus", "chester-beatty", "deir-el-medina", "kingship", "narrative"],
+    tags: ["set", "horus", "chester-beatty", "gardiner", "kingship", "narrative", "succession", "solar-barque"],
     civilisations: ["Ancient Egypt"],
-    locationName: "Deir el-Medina, Egypt",
+    locationName: "Thebes, Egypt",
+    passages: [
+      {
+        label: "Seth's counterclaim: the strongest of the Ennead, at the front of the Bark of Millions",
+        reference: "Recto 4,4-4,7",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        notes:
+          "THE PASSAGE THE RETELLINGS DROP, and the one this dataset most wanted. It is also the point at " +
+          "which this record joins the 400-Year Stela.",
+        layers: [
+          {
+            layer: "transliteration",
+            sourceKey: null,
+            contentAbsentReason:
+              "NOT FOUND. Gardiner's 1931 edition gives a HIEROGLYPHIC TRANSCRIPTION in its plates, not a " +
+              "Roman transliteration. Late Egyptian Stories pages 37-60 carries the transcription and was " +
+              "not opened. Nothing is reconstructed here.",
+            evidence:
+              "A CITATION-ONLY ROW, AND A CORRECTION OF THIS DATASET'S OWN ASSUMPTION. The brief asked for a " +
+              "published transliteration per episode on the assumption that Gardiner supplied one. He does " +
+              "not. Recording the absence is how that assumption gets fixed rather than quietly satisfied.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "As for me, I am Seth, the greatest of strength among the Ennead, and I slay the enemy of Pre " +
+              "daily, being in front of the Bark-of-Millions, and none other god is able to do it. I am " +
+              "entitled to the office of Osiris.",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGE 16, VERBATIM. READ WHAT KIND OF ARGUMENT THIS IS. It is not a claim of " +
+              "right by birth and not a threat. It is a qualification for office grounded in a service " +
+              "performed daily and performable by nobody else — and the court treats it as a case, which is " +
+              "why the story needs eighty years and a dozen procedural devices to resolve.\n\n" +
+              "AND IT MATCHES THE 400-YEAR STELA. That monument hails Seth as 'great of strength in the " +
+              "barque of millions of years, overthrowing enemies in front of the barque of Re', and gives " +
+              "him the royal name Stẖ-ꜥꜣ-pḥ.tj — Seth great of strength. Here Seth says the same thing about " +
+              "himself, in a narrative rather than a hymn. TWO INDEPENDENT SOURCES, SAME EPITHET, SAME " +
+              "FUNCTION, and neither read into the other: this passage was looked for with the explicit " +
+              "instruction that finding nothing would be a good answer.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "lichtheim_ael_ii",
+            content: "I slay the foe of Re daily while I am at the prow of the Bark of Millions",
+            language: "English",
+            evidence:
+              "LICHTHEIM 1976, PAGE 216, QUOTED SHORT BECAUSE THE TRANSLATION IS IN COPYRIGHT. She has PROW " +
+              "where Gardiner has 'in front of', which makes the position in the boat explicit rather than " +
+              "merely frontal. Wente 2003, page 94, agrees with her: 'at the prow of the Barque of " +
+              "Millions'. Two of the three read a station in the vessel.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Seth argues that his unmatched strength and his daily defence of Re's bark qualify him for " +
+              "Osiris's office. The court accepts that this constitutes a case; Horus's supporters answer " +
+              "with the priority of a bodily son over an uncle.",
+            evidence:
+              "WHAT IT ESTABLISHES: that the Egyptian narrative gives Seth a genuine legal position, and " +
+              "that the position is his solar role. WHAT IT DOES NOT: that he wins it.",
+          },
+        ],
+      },
+      {
+        label: "The court, and the eighty years",
+        reference: "Recto 2,13-3,1, repeated by Horus at 13,12-14,1",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "What are we to do unto the two men who these eighty years past have been before the tribunal, " +
+              "and none knoweth how to pronounce judgement upon them twain?",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGE 15, VERBATIM. ATTESTED TWICE: here in the court's own letter, and again " +
+              "at 13,12-14,1 in Horus's complaint. This record previously stated the eighty years without a " +
+              "reference; there are now two.",
+            notes:
+              "Grammatically a duration. WHETHER IT IS MEANT AS LITERAL CHRONOLOGY, A CONVENTIONAL ROUND " +
+              "NUMBER OR COMIC EXAGGERATION, the source does not say, and neither does this record.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The tribunal has heard the case for eighty years without reaching judgement. It consults " +
+              "further divine judges and writes to Neith for advice.",
+            evidence:
+              "THE PROCEDURAL MACHINERY IS THE EVIDENCE: consultation, adjournment, evidentiary tests, " +
+              "appeals and letters. This is a court that cannot decide, not a battlefield.",
+          },
+        ],
+      },
+      {
+        label: "Re-Harakhty dissents, and the translators disagree about how",
+        reference: "Recto 3,7-4,1",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        notes:
+          "KEPT AS A PASSAGE FOR ONE REASON: the two translations accuse Horus of different things, and the " +
+          "difference is the sort a single translation field would have swallowed.",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "Thou art feeble of body, and this office is too great for thee, thou lad with the taste of " +
+              "thy mouth still bad.",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGE 15, VERBATIM. His charge is PHYSICAL WEAKNESS and immaturity. Gardiner " +
+              "notes uncertainty in the epithet himself.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "wente_in_simpson",
+            content: "You are despicable in your person, and this office is too much for you",
+            language: "English",
+            evidence:
+              "WENTE 2003, PAGE 94, QUOTED SHORT. 'DESPICABLE IN YOUR PERSON' IS NOT 'FEEBLE OF BODY'. One " +
+              "is an accusation of unfitness, the other of contemptibility, and a reader given only one " +
+              "would form a different picture of how the court regards its claimant. Wente reads the closing " +
+              "phrase as infantile bad breath.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The presiding solar god rejects the Ennead's unanimous recommendation and disparages Horus. " +
+              "Insulted in return, he withdraws from the proceeding altogether.",
+            evidence:
+              "WHY THIS MATTERS TO THE DATASET'S ARGUMENT: the court's resistance to Horus is substantive. " +
+              "The text does not present every deity as instantly agreeing that Horus should rule, which is " +
+              "what a good-versus-evil reading requires.",
+          },
+        ],
+      },
+      {
+        label: "Hathor stops a god sulking",
+        reference: "Recto 4,1-4,4",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        notes:
+          "INCLUDED IN FULL. It is routinely euphemised or cut from retellings, and it is the strongest " +
+          "single piece of internal evidence for how the text expects to be received.",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "Hathor, the Lady of the Southern Sycamore, came and stood before her father the Master of the " +
+              "Universe, and she uncovered her nakedness before his face. And the great god laughed at her. " +
+              "Then he arose and sat down with the Great Ennead.",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGE 16, VERBATIM — AND HE IS SOFTENING IT. His own note concedes that " +
+              "'nakedness' renders a grosser word; later philological discussion identifies the noun more " +
+              "directly as 'vagina'. Wente 2003, page 94, has 'she exposed her private parts before his " +
+              "very eyes'. THE EUPHEMISM IS THE TRANSLATOR'S, NOT THE EGYPTIAN'S, and recording that is the " +
+              "point of keeping both.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "The withdrawn solar god is restored to the tribunal when Hathor exposes her genitals to him " +
+              "and he laughs.",
+            evidence:
+              "WHAT IT IS EVIDENCE OF: how the narrative handles its own gods. A cosmic tribunal that is " +
+              "restarted by a dirty joke is not the solemn struggle of the retellings. IT IS STILL " +
+              "RELIGIOUS — the two are not exclusive — and the solemnity is what has been added since.",
+          },
+        ],
+      },
+      {
+        label: "Isis gets Seth to judge the case against himself",
+        reference: "Recto 6,7-8,2",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        notes:
+          "THE LEGAL CENTRE OF THE NARRATIVE, and a passage that is usually reduced to 'Isis helps Horus'.",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "I was the wife of a herdsman; I bare unto him a son. My husband died, and the boy began to " +
+              "tend the cattle of his father. But behold a stranger came and took up his abode in my stable, " +
+              "and said thus unto my son: I will beat thee, and I will take the cattle of thy father, and I " +
+              "will cast thee out. … Shall the cattle be given to the stranger, while the son of the goodman " +
+              "is alive? … One shall beat the face of the stranger with a stick, and he shall be cast forth, " +
+              "and thy son shall be set in the place of his father. … It is thine own mouth that hath said " +
+              "it, it is thine own cleverness that hath judged thee.",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGES 18-19, VERBATIM, WITH ELLIPSES MARKING OMITTED NARRATION between the " +
+              "speeches. Isis, disguised, puts a hypothetical inheritance case; Seth rules for the son and " +
+              "against the stranger; Isis then applies his own rule to him.\n\n" +
+              "THE PUN THAT A TRANSLATION CAN LOSE: Gardiner notes a deliberate play between 'cattle' and " +
+              "'office'. Rendered as livestock alone, the passage reads as a fable. It is a legal argument.\n\n" +
+              "WHAT THIS DOES AND DOES NOT DO TO SETH'S CASE. It does not show he has no case. It shows that " +
+              "the principle of filial succession, which he himself states without hesitation when it is not " +
+              "about him, defeats his competing claim from strength and service.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Isis, disguised as a widow, obtains from Seth a ruling that a dead man's son must inherit and " +
+              "an intruding stranger be expelled. She then reveals herself and applies his own judgement to " +
+              "his claim on Osiris's office.",
+            evidence:
+              "WHAT IS ESTABLISHED: the text decides the succession on a stated legal principle, not on the " +
+              "moral character of the parties. That is a different kind of story from the one usually told " +
+              "about it.",
+          },
+        ],
+      },
+      {
+        label: "Osiris argues from the authority of the dead",
+        reference: "Recto 14,5-15,10",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "Wherefore shall my son Horus be defrauded, seeing that it is I who make you strong, and it is " +
+              "I who made the barley and the spelt to nourish the gods, as well as the cattle after the " +
+              "gods, while no god or goddess was able to do it? … As for the land wherein I am, it is filled " +
+              "with savage-faced messengers, who fear not any god or any goddess. If I send them forth, they " +
+              "will bring the heart of everyone who doth deeds of wickedness, and they shall be here with " +
+              "me. And what signifieth it that I be resting here in the West while ye are all outside? Who " +
+              "is there among them stronger than I?",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGES 24-25, VERBATIM. TWO ARGUMENTS IN SEQUENCE, AND THE FIRST ONE FAILS: Re " +
+              "directly rebuts Osiris's claim that grain depends on him. Only then does Osiris threaten to " +
+              "loose the messengers of the dead, and it is after that that the tribunal recognises his " +
+              "argument.\n\n" +
+              "NOTE THE SHAPE OF THAT. Legitimate succession is established here by a dead king's " +
+              "provisioning authority AND by his power to compel — and the text lets the first be answered " +
+              "before the second lands. A record that quoted only the barley would be reporting a nobler " +
+              "scene than the papyrus contains.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Thoth asks Osiris to adjudicate. Osiris grounds Horus's right in fatherhood and in his own " +
+              "provisioning of gods and men; when Re dismisses that, he invokes the power of the dead. The " +
+              "tribunal accepts his argument.",
+            evidence:
+              "THE STRONGEST EVIDENCE IN THE TEXT for how it conceives legitimate kingship: filial right, " +
+              "backed by the continuing authority of the dead ruler, made effective by what the dead can do.",
+          },
+        ],
+      },
+      {
+        label: "The settlement: Seth is not destroyed, he is adopted",
+        reference: "Recto 15,10-16,8",
+        sourceKey: "chester_beatty_i",
+        objectName: "Papyrus Chester Beatty I, recto",
+        holdingInstitution: "Chester Beatty Library, Dublin",
+        notes:
+          "THE ENDING, WHICH IS THE MOST MISREPORTED PART OF THE MOST IMPORTANT EGYPTIAN SOURCE ON SETH.",
+        layers: [
+          {
+            layer: "translation",
+            sourceKey: "chester_beatty_i",
+            content:
+              "Let Horus the son of Isis be summoned and let be given unto him the office of his father " +
+              "Osiris. … Let Seth the son of Nut be given unto me, that he may dwell with me and be as my " +
+              "son, and he shall thunder in the sky and men shall fear him.",
+            language: "English",
+            evidence:
+              "GARDINER 1931, PAGE 26, VERBATIM. The first sentence is SETH'S OWN CONCESSION, spoken before " +
+              "Atum as a prisoner. The second is Pre-Harakhti asking for him.\n\n" +
+              "WHAT THE SETTLEMENT ACTUALLY DOES: it differentiates offices. Horus receives dynastic " +
+              "kingship. Seth is taken into the sun god's household as a SON, with a continuing celestial " +
+              "manifestation — thunder — and the fear that goes with it. He is not killed, not banished and " +
+              "not condemned.\n\n" +
+              "WHY THIS RECORD EXISTS. 'Good defeats evil' is the summary in general circulation. The " +
+              "Egyptian text ends with the defeated party adopted by the head of the pantheon and given the " +
+              "sky. Any account of Set's later demonisation has to explain how the tradition got from here " +
+              "to there — and this passage is the measure of that distance.",
+          },
+          {
+            layer: "translation",
+            sourceKey: "wente_in_simpson",
+            content:
+              "Let me be given Seth … that he may dwell with me, being a son to me, and he shall thunder in " +
+              "the sky and be feared.",
+            language: "English",
+            evidence:
+              "WENTE 2003, PAGE 103, QUOTED SHORT. The two translations agree on everything that matters " +
+              "here, which is worth recording: the adoption and the thunder are not an artefact of " +
+              "Gardiner's Edwardian English.",
+          },
+          {
+            layer: "modern_summary",
+            sourceKey: null,
+            content:
+              "Seth concedes the office. Horus is crowned and acclaimed. Re then takes Seth to live with him " +
+              "as a son, assigning him thunder in the sky and the fear of men. The gods rejoice at Horus's " +
+              "accession.",
+            evidence:
+              "WHAT IS ESTABLISHED: the losing party keeps a place, a relationship and a cosmic function. " +
+              "WHAT IS NOT: anything about how Egyptians later came to treat him, which this text does not " +
+              "reach and must not be made to.",
+          },
+        ],
+      },
+    ],
     claims: [
       {
         sourceKey: "chester_beatty_i",
-        startYear: -1189,
-        endYear: -1076,
-        datePrecision: "century",
+        startYear: -1149,
+        endYear: -1145,
+        datePrecision: "decade",
         isApproximate: true,
         temporalClaimType: "estimated_range",
         whatIsDated: "When the surviving copy was written",
-        originalDateText: "Twentieth Dynasty",
+        originalDateText: "The reign of Ramesses V, from the Encomium naming him on the verso",
         datingMethod: "stylistic_comparison",
         chronology: "conventional",
         evidence:
-          "WHAT IS DATED: THIS PAPYRUS, not the story. A manuscript date is the date of a copy, and the " +
-          "narrative it carries may be considerably older. The distinction is the same one the dataset makes " +
-          "everywhere: the date of the object and the date of the content are two claims.",
+          "HOW THE DATE IS REACHED, AND IT IS INDIRECT. Gardiner dates the manuscript to Ramesses V because " +
+          "an Encomium on the VERSO names that king, and the recto necessarily precedes the verso text. That " +
+          "is a documentary terminus rather than a date the narrative states. His own approximate figure was " +
+          "about 1160 BCE; modern reign chronologies differ, which is why the range here is broad and " +
+          "flagged approximate.\n\n" +
+          "WHAT IS DATED: THIS PAPYRUS, not the story. Wente likewise calls it 'a papyrus of the reign of " +
+          "Ramesses V'.",
         notes:
-          "NEEDS SOURCE VERIFICATION for the dynasty, the reign sometimes attached to it, and the papyrus's " +
-          "history before the Chester Beatty Library.",
+          "This replaces a bare 'Twentieth Dynasty' and answers the record's own request for the reign " +
+          "'sometimes attached to it'. NEEDS SOURCE VERIFICATION only for the absolute dates of the reign, " +
+          "which vary between chronologies.",
       },
       {
         sourceKey: "chester_beatty_i",
@@ -1709,9 +2140,69 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         datingMethod: "textual_interpretation",
         chronology: "conventional",
         evidence:
-          "WHY THIS CARRIES NO DATE: elements of the Horus-and-Set dispute are attested far earlier, but " +
-          "nothing dates THIS narrative's composition. Recorded as positionless rather than assigned the " +
-          "papyrus's own date, which would silently claim the story was invented in the Twentieth Dynasty.",
+          "WHY THIS CARRIES NO DATE: elements of the Horus-and-Seth dispute are attested far earlier, but " +
+          "nothing dates THIS narrative's composition. Gardiner suspects the semen-test scene may preserve " +
+          "continuity from an earlier composition and notes that the present story has inconsistencies — " +
+          "which is a reason to think there is an older layer and not a way of dating it.",
+      },
+      {
+        sourceKey: "chester_beatty_i",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Where the papyrus was found",
+        originalDateText: "Thebes, by the colophon. Deir el-Medina is an association, not an excavated findspot",
+        datingMethod: "archaeological",
+        chronology: "conventional",
+        evidence:
+          "A CORRECTION TO THIS RECORD. It previously stated Deir el-Medina as the provenance. WHAT GARDINER " +
+          "ACTUALLY SUPPORTS: the colophon at 16,8 says the work ended 'in Thebes', and a later line names a " +
+          "scribe of the Royal Necropolis — a Theban-necropolis association. WHAT HE DOES NOT SUPPLY: a " +
+          "secure excavated findspot, or a complete ownership chain before Chester Beatty. The first 55 " +
+          "centimetres had been broken by local finders before acquisition, and page one was reconstructed " +
+          "from thousands of fragments.",
+        notes:
+          "The workmen's village association is widely repeated and may well be right. It is recorded here " +
+          "as an association because that is what the edition establishes.",
+      },
+      {
+        sourceKey: "chester_beatty_i",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether the text calls Seth evil",
+        originalDateText: "It does not. No such designation was found in the narrative",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "THE SEARCH WAS MADE AND CAME BACK EMPTY, and a negative is a finding. THE STRONGEST ADVERSE " +
+          "MATERIAL IS BEHAVIOURAL: Seth threatens to kill one judge a day, sexually assaults Horus, tears " +
+          "out his eyes and lies to the court. THE SAME TEXT gives him a legitimate cosmic service, treats " +
+          "his claim judicially, and ends by installing him beside Re.\n\n" +
+          "AND THE ONE SENTENCE THAT LOOKS LIKE A VERDICT IS NOT ONE. 'Horus is in the right, and Seth is in " +
+          "the wrong' decides the litigated sexual claim after Thoth's test. It is a ruling in a contest, " +
+          "not a classification of a nature. Gardiner's 'deeds of wickedness' elsewhere describe injustice, " +
+          "not Seth.",
+      },
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether the narrative is comic",
+        originalDateText: "The editors say so; the manuscript carries no genre label",
+        datingMethod: "source_assertion",
+        chronology: "conventional",
+        evidence:
+          "ATTRIBUTED, NOT ASSERTED, and this record used to assert it. GARDINER: the tale 'was meant to be " +
+          "diverting and even, from time to time, frankly farcical', while admitting that identifying every " +
+          "intended laugh is difficult. LICHTHEIM: 'coarsely humorous'. WENTE: the humour is coarse and the " +
+          "gods' behaviour shocking.\n\n" +
+          "THE INTERNAL EVIDENCE IS STRONG AND IS EVIDENCE RATHER THAN A CAPTION: Hathor exposing herself to " +
+          "stop a god sulking; Seth deciding an inheritance case against himself without noticing; a golden " +
+          "disk emerging from his head; a stone boat that sinks beside a wooden one painted to look like " +
+          "stone. WHAT REMAINS A MODERN JUDGEMENT: the word 'farce', and the assumption that a text can be " +
+          "funny and religious at once in the way we mean it.",
       },
     ],
   },

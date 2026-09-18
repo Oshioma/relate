@@ -403,7 +403,7 @@ test("the prayer evidences the solar barque and stops short of Apep", () => {
   const apep = record("set-spears-apep");
   const claim = apep.claims[0];
   assert.match(claim.evidence, /400-Year Stela|four-hundred-year-stela/);
-  assert.match(claim.evidence, /does not name Apep|not name Apep/i);
+  assert.match(claim.evidence, /neither names Apep|does not name Apep/i);
 });
 
 test("the era's starting point is recorded as unstated ON THE STONE", () => {
@@ -598,4 +598,155 @@ test("the sources read at Dakhleh say so, and the ones taken at second hand say 
     assert.ok(source, `missing source: ${key}`);
     assert.match(source.notes, /NOT OPENED|not opened|second hand/i, `${key}: say that it was not read`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// THE CONTENDINGS, READ FROM GARDINER
+//
+// This record used to carry a sentence admitting it had been written from
+// nothing. Reading the 1931 edition kept three of its claims, corrected one,
+// and turned one into a link across two other records.
+//
+// The tests below guard the corrections, because every one of them restores a
+// tidier story than the papyrus supports.
+// ---------------------------------------------------------------------------
+
+const contendings = record("contendings-of-horus-and-seth");
+const contendingsPassage = (label: RegExp) => {
+  const found = (contendings.passages ?? []).find((p) => label.test(p.label));
+  assert.ok(found, `missing passage matching ${label}`);
+  return found;
+};
+
+test("Deir el-Medina is an association, not a provenance", () => {
+  // The record stated it as fact. Gardiner supports Thebes, from the colophon
+  // and a scribe of the Royal Necropolis, and no excavated findspot at all.
+  const where = contendings.claims.find((c) => /Where the papyrus was found/i.test(c.whatIsDated ?? ""));
+  assert.ok(where);
+  assert.match(where.originalDateText, /association, not an excavated findspot/i);
+  assert.equal(contendings.locationName, "Thebes, Egypt");
+  assert.match(where.evidence, /A CORRECTION TO THIS RECORD/);
+});
+
+test("the copy is dated by the verso, and the record says so", () => {
+  const date = contendings.claims.find((c) => /surviving copy/i.test(c.whatIsDated ?? ""));
+  assert.ok(date);
+  assert.match(date.originalDateText, /Ramesses V/);
+  // The route to the date matters: an Encomium on the VERSO names the king, so
+  // the recto precedes it. That is a terminus, not a stated date.
+  assert.match(date.evidence, /VERSO/);
+  assert.match(date.evidence, /terminus/i);
+});
+
+test("the comic tone is attributed to editors, never asserted by the dataset", () => {
+  const tone = contendings.claims.find((c) => /comic/i.test(c.whatIsDated ?? ""));
+  assert.ok(tone, "the tone is a claim now, not a flourish in the prose");
+  assert.match(tone.originalDateText, /manuscript carries no genre label/i);
+  for (const name of ["GARDINER", "LICHTHEIM", "WENTE"]) {
+    assert.match(tone.evidence, new RegExp(name), `${name} should be named as holding this view`);
+  }
+  assert.match(tone.evidence, /ATTRIBUTED, NOT ASSERTED/);
+});
+
+test("the eighty years has a reference, and twice", () => {
+  const passage = contendingsPassage(/eighty years/i);
+  assert.match(passage.reference ?? "", /2,13-3,1/);
+  assert.match(passage.reference ?? "", /13,12-14,1/);
+  const layer = passage.layers.find((l) => l.layer === "translation");
+  // Whether it is literal, formulaic or comic is not established, and the
+  // record must not decide it.
+  assert.match(layer?.notes ?? "", /source does not say|does not say, and neither does this record/i);
+});
+
+test("the text is not made to call Seth evil, and the negative is recorded", () => {
+  const evil = contendings.claims.find((c) => /calls Seth evil/i.test(c.whatIsDated ?? ""));
+  assert.ok(evil, "a search that came back empty is a finding and belongs on the record");
+  assert.match(evil.originalDateText, /It does not/);
+  // The one sentence that looks like a verdict decides an evidentiary contest.
+  assert.match(evil.evidence, /Horus is in the right/);
+  assert.match(evil.evidence, /not a classification of a nature|ruling in a contest/i);
+});
+
+test("the settlement is adoption, not destruction", () => {
+  const passage = contendingsPassage(/settlement/i);
+  const gardiner = passage.layers.find((l) => l.sourceKey === "chester_beatty_i");
+  assert.ok(gardiner);
+  assert.match(gardiner.content ?? "", /dwell with me and be as my son/);
+  assert.match(gardiner.content ?? "", /thunder in the sky/);
+  // Wente agrees, which is worth having: the adoption is not an artefact of
+  // Gardiner's Edwardian English.
+  const wente = passage.layers.find((l) => l.sourceKey === "wente_in_simpson");
+  assert.ok(wente);
+  assert.match(wente.content ?? "", /being a son to me/);
+  assert.match(contendings.description, /Not 'good defeats evil'|not with his destruction/i);
+});
+
+test("Seth's counterclaim is quoted, and the solar-barque link is textual on both sides", () => {
+  const passage = contendingsPassage(/counterclaim/i);
+  const gardiner = passage.layers.find((l) => l.sourceKey === "chester_beatty_i");
+  assert.ok(gardiner);
+  assert.match(gardiner.content ?? "", /greatest of strength among the Ennead/);
+  assert.match(gardiner.content ?? "", /in front of the Bark-of-Millions/);
+  // The match with the 400-Year Stela's Stẖ-ꜥꜣ-pḥ.tj is the point, and it was
+  // found under an instruction that finding nothing would be a good answer.
+  assert.match(gardiner.evidence, /400-Year Stela/i);
+  assert.match(gardiner.evidence, /ꜥꜣ-pḥ\.tj/);
+  assert.match(gardiner.evidence, /finding nothing would be a good answer/i);
+
+  // Lichtheim's "prow" is a separate row because it is a different reading.
+  const lichtheim = passage.layers.find((l) => l.sourceKey === "lichtheim_ael_ii");
+  assert.ok(lichtheim);
+  assert.match(lichtheim.content ?? "", /prow/);
+});
+
+test("the Apep record cites both attestations and still stops short of Apep", () => {
+  const apep = record("set-spears-apep");
+  const claim = apep.claims[0];
+  assert.match(claim.evidence, /TWO FIXED POINTS/);
+  assert.match(claim.evidence, /Contendings/);
+  // Neither source names the serpent. The stela says "enemies"; the Contendings
+  // says "the enemy of Pre".
+  assert.match(claim.evidence, /neither names Apep|does not name Apep/i);
+});
+
+test("no transliteration is invented, because Gardiner 1931 does not contain one", () => {
+  // The brief assumed he did. He gives a hieroglyphic transcription in plates.
+  // The empty rows are how that assumption gets corrected rather than met.
+  const passage = contendingsPassage(/counterclaim/i);
+  const translit = passage.layers.find((l) => l.layer === "transliteration");
+  assert.ok(translit, "the row exists so the absence is visible");
+  assert.equal(translit.content, undefined);
+  assert.match(translit.contentAbsentReason ?? "", /HIEROGLYPHIC TRANSCRIPTION/);
+  assert.match(translit.contentAbsentReason ?? "", /NOT FOUND/);
+});
+
+test("the fifteen episodes are recorded as an imposed division", () => {
+  // Gardiner prints the narrative continuously with red rubrics. The numbered
+  // episodes are the research brief's, not the manuscript's.
+  assert.match(contendings.description, /There are none/);
+  assert.match(contendings.description, /analytical convenience imposed from outside/i);
+});
+
+test("copyrighted translations are quoted short and the picture is not used at all", () => {
+  for (const key of ["lichtheim_ael_ii", "wente_in_simpson"]) {
+    const source = SET_SUTEKH_SOURCES.find((s) => s.key === key);
+    assert.ok(source);
+    assert.match(source.notes, /QUOTED ONLY IN SHORT PASSAGES/);
+  }
+  // The Met reproduces recto page 4 — Hathor and Seth's counterclaim on one
+  // leaf, the most relevant image there is — under all rights reserved.
+  const met = SET_SUTEKH_SOURCES.find((s) => s.key === "met_journal_50");
+  assert.ok(met);
+  assert.match(met.notes, /CANNOT BE USED|all-rights-reserved/i);
+  const anyMetMedia = SET_SUTEKH_EVENTS.some((e) => (e.media ?? []).some((m) => /metmuseum/i.test(m.url)));
+  assert.equal(anyMetMedia, false, "an image we may not reproduce must not be in a media array");
+});
+
+test("Gardiner's own limits are carried on the source, not dropped", () => {
+  const gardiner = SET_SUTEKH_SOURCES.find((s) => s.key === "chester_beatty_i");
+  assert.ok(gardiner);
+  assert.match(gardiner.notes, /^READ\./);
+  assert.match(gardiner.notes, /thousands of fragments/);
+  assert.match(gardiner.notes, /pis aller/);
+  assert.match(gardiner.notes, /exceedingly dangerous/);
 });
