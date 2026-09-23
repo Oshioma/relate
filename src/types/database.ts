@@ -2345,6 +2345,66 @@ export type TimelineTextPassage = {
  * One act of rendering, by one named party. Three translations of a passage
  * are three rows, because the difference between them is the finding.
  */
+/**
+ * A CLAIM, AND THE ROUTE IT TOOK TO GET HERE.
+ *
+ * timeline_text_passages runs downwards, from a statement to the object under
+ * it. This runs forwards, through the people who repeated a claim. It exists
+ * for claims where true-or-false is the wrong question — and the verdict
+ * vocabulary therefore has six values and no boolean.
+ */
+export type TimelineClaimGenealogy = {
+  id: string;
+  event_id: string;
+  community_id: string;
+  created_by: string;
+  /** The claim in the words people actually use, not a tidied version. */
+  claim: string;
+  /** A CLAIM_VERDICTS key in src/lib/timeline/taxonomy.ts. Never a boolean. */
+  verdict: string;
+  /** Why that verdict, and — as important — what it does NOT say. */
+  verdict_evidence: string;
+  /** Required: a verdict nobody can state the conditions for overturning is an opinion. */
+  what_would_change_this: string;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+/**
+ * ONE LINK: one party, at one remove, saying one thing.
+ *
+ * `says` is what THIS link states, not what the link after it reports it as
+ * stating. `adds` is what it contributed that its predecessor did not contain,
+ * and is the column the table exists for.
+ */
+export type TimelineGenealogyLink = {
+  id: string;
+  genealogy_id: string;
+  community_id: string;
+  created_by: string;
+  /** Null for a link with no bibliographic record here — a film, a meme. */
+  source_id: string | null;
+  /** A GENEALOGY_STAGES key: how far from the evidence this link stands. */
+  stage: string;
+  who: string;
+  /** Null for an ancient object, or a stage spanning decades. */
+  year: number | null;
+  reference: string | null;
+  /** Null where nobody has opened it — which is common for the links that
+   *  matter most, and then says_absent_reason must say so. The database
+   *  enforces the pair. */
+  says: string | null;
+  says_absent_reason: string | null;
+  /** What this link ADDED that the one before it did not contain. */
+  adds: string | null;
+  /** A CITATION_STATUSES key. 'broken' means everything after it rests on nothing. */
+  citation_status: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type TimelineTextLayer = {
   id: string;
   passage_id: string;
@@ -3209,6 +3269,32 @@ export type Database = {
         };
         Update: Partial<TimelineTextPassage>;
         Relationships: [FKey<"event_id", "timeline_events">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_claim_genealogies: {
+        Row: TimelineClaimGenealogy;
+        Insert: Partial<TimelineClaimGenealogy> & {
+          event_id: string;
+          community_id: string;
+          created_by: string;
+          claim: string;
+          verdict: string;
+          verdict_evidence: string;
+          what_would_change_this: string;
+        };
+        Update: Partial<TimelineClaimGenealogy>;
+        Relationships: [FKey<"event_id", "timeline_events">];
+      };
+      timeline_genealogy_links: {
+        Row: TimelineGenealogyLink;
+        Insert: Partial<TimelineGenealogyLink> & {
+          genealogy_id: string;
+          community_id: string;
+          created_by: string;
+          stage: string;
+          who: string;
+        };
+        Update: Partial<TimelineGenealogyLink>;
+        Relationships: [FKey<"genealogy_id", "timeline_claim_genealogies">, FKey<"source_id", "timeline_sources">];
       };
       timeline_text_layers: {
         Row: TimelineTextLayer;

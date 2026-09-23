@@ -2020,3 +2020,194 @@ export function relationContradictsTransmission(
   if (!relationClaimsConnection(relation)) return false;
   return transmission === "no_contact_known" || transmission === "contact_possible";
 }
+
+// ---------------------------------------------------------------------------
+// CLAIM GENEALOGY: HOW A CLAIM GOT HERE
+//
+// The evidence chain already in this timeline runs DOWNWARDS, from a statement
+// to the object it rests on: primary object, text, transcription,
+// transliteration, translation, summary, interpretation.
+//
+// This runs the other way. It follows a claim FORWARDS through the people who
+// repeated it — an ancient object, an early translation, a nineteenth-century
+// reading, a twentieth-century book, a film, a meme — and asks at each step:
+// what does THIS link actually say, and what did it ADD that the link before
+// it did not contain?
+//
+// WHY IT EXISTS. Some claims cannot be usefully handled as true or false.
+// "Horus was crucified" is the standard case: a reader is normally offered a
+// choice between accepting it and being told it is invented, and both answers
+// destroy the interesting part. What is actually there is a real Egyptian
+// object, a real nineteenth-century writer who read it a particular way, a
+// real chain of books that repeated him, and a modern claim that no longer
+// resembles the object. That chain is more revealing than either verdict, and
+// it is a thing a database can hold.
+//
+// THE FIELD THAT MATTERS MOST IS `adds`. A claim rarely arrives in one piece.
+// It accumulates: one writer supplies an object, the next supplies an
+// interpretation, the next drops the hedge, the next adds a detail nobody
+// before them had. Recording what each link contributed is what turns a
+// bibliography into an explanation.
+//
+// AND THE SECOND IS `citationStatus`. A chain that ends in a source nobody can
+// find is not a chain, and saying so is a finding — not a reason to repeat the
+// citation as though it had been checked.
+//
+// NOTHING HERE IS A TRUE/FALSE FLAG, and the verdicts below are deliberately
+// six rather than two.
+// ---------------------------------------------------------------------------
+
+export const GENEALOGY_STAGES = [
+  {
+    key: "ancient_primary",
+    label: "Ancient primary evidence",
+    hint: "An object or text from the culture itself. What actually survives, before anybody interpreted it.",
+  },
+  {
+    key: "later_antiquity",
+    label: "Later antiquity",
+    hint:
+      "A source from a later ancient culture describing the first — Plutarch on Egypt, a Greek writer on Persia. Evidence about the reporter as much as the reported.",
+  },
+  {
+    key: "early_scholarship",
+    label: "Early scholarly interpretation",
+    hint:
+      "The first modern academic reading, usually nineteenth- or early twentieth-century. Frequently superseded, and frequently still in circulation because it is out of copyright and easy to find.",
+  },
+  {
+    key: "alternative_interpretation",
+    label: "Alternative or esoteric interpretation",
+    hint:
+      "A reading put forward outside the academic mainstream, usually with its own framework. Recorded with its author and date like any other link, because it is a real historical event that a claim happened here.",
+  },
+  {
+    key: "popular_claim",
+    label: "Popular claim",
+    hint:
+      "The form the claim takes in general circulation — a book for a wide readership, a film, a documentary, a meme. Usually the only version most people meet.",
+  },
+  {
+    key: "current_scholarship",
+    label: "Current scholarly position",
+    hint: "What specialists in the field say now, including where they say the question is open.",
+  },
+] as const;
+
+export type GenealogyStageKey = (typeof GENEALOGY_STAGES)[number]["key"];
+
+/**
+ * WHAT A CLAIM'S RELATION TO THE PRIMARY EVIDENCE IS.
+ *
+ * Six values, and the count is the point. A true/false flag on a claim like
+ * "Horus was born of a virgin" forces a choice between two wrong answers: the
+ * Egyptian conception story is genuinely extraordinary AND it is not a virginal
+ * conception in the Christian sense. "Related ancient tradition exists" is the
+ * true statement, and a boolean cannot hold it.
+ */
+export const CLAIM_VERDICTS = [
+  {
+    key: "directly_attested",
+    label: "Directly attested",
+    hint: "A primary source says this, in these terms. Cite it.",
+  },
+  {
+    key: "partially_attested",
+    label: "Partially attested",
+    hint: "A primary source supports part of the claim, and the rest is addition. Say which part.",
+  },
+  {
+    key: "related_tradition_exists",
+    label: "A related ancient tradition exists",
+    hint:
+      "Something real is behind it, and it is not what the claim says. The most interesting verdict available and the one a true/false flag destroys.",
+  },
+  {
+    key: "later_interpretation",
+    label: "A later interpretation of ancient material",
+    hint:
+      "The ancient object or text is real; the reading is modern and belongs to a named person at a datable moment. Both are recorded.",
+  },
+  {
+    key: "no_primary_evidence_located",
+    label: "No primary evidence located",
+    hint:
+      "Looked for and not found. NOT the same as 'disproved' — it is a statement about what searching has turned up, and it names who searched and where.",
+  },
+  {
+    key: "source_disputed",
+    label: "The source itself is disputed",
+    hint: "Specialists disagree about what the cited evidence is, says, or dates to.",
+  },
+] as const;
+
+export type ClaimVerdictKey = (typeof CLAIM_VERDICTS)[number]["key"];
+
+/** Can the citation at this link be followed? */
+export const CITATION_STATUSES = [
+  { key: "verified", label: "Verified", hint: "The cited source was opened and says what it is said to say." },
+  { key: "unverified", label: "Not checked", hint: "The citation exists and nobody here has followed it." },
+  {
+    key: "broken",
+    label: "Broken chain",
+    hint:
+      "The citation leads to a source that cannot be located, or to a passage that is not there. THE CHAIN ENDS HERE, and everything downstream of it rests on nothing. Marking it is the whole point of tracing a claim backwards.",
+  },
+  {
+    key: "misattributed",
+    label: "Misattributed",
+    hint: "The source exists and does not say this, or says it about something else.",
+  },
+  { key: "no_citation_given", label: "No citation given", hint: "The claim is made without a source at all." },
+] as const;
+
+export type CitationStatusKey = (typeof CITATION_STATUSES)[number]["key"];
+
+const STAGE_BY_KEY = new Map(GENEALOGY_STAGES.map((x) => [x.key as string, x]));
+const VERDICT_BY_KEY = new Map(CLAIM_VERDICTS.map((x) => [x.key as string, x]));
+const CITATION_BY_KEY = new Map(CITATION_STATUSES.map((x) => [x.key as string, x]));
+
+export function genealogyStageLabel(key: string | null | undefined): string | null {
+  return key ? (STAGE_BY_KEY.get(key)?.label ?? null) : null;
+}
+export function genealogyStageHint(key: string | null | undefined): string {
+  return STAGE_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+export function claimVerdictLabel(key: string | null | undefined): string | null {
+  return key ? (VERDICT_BY_KEY.get(key)?.label ?? null) : null;
+}
+export function claimVerdictHint(key: string | null | undefined): string {
+  return VERDICT_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+export function citationStatusLabel(key: string | null | undefined): string | null {
+  return key ? (CITATION_BY_KEY.get(key)?.label ?? null) : null;
+}
+export function citationStatusHint(key: string | null | undefined): string {
+  return CITATION_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/** The order links should be shown in, oldest stage first. */
+export function genealogyStageOrder(key: string | null | undefined): number {
+  const index = GENEALOGY_STAGES.findIndex((s) => s.key === key);
+  return index === -1 ? GENEALOGY_STAGES.length : index;
+}
+
+/**
+ * Does this link break the chain?
+ *
+ * A broken or misattributed citation is not a weak link. It is the END of the
+ * evidence, and everything later that rests on it rests on nothing.
+ */
+export function citationBreaksChain(key: string | null | undefined): boolean {
+  return key === "broken" || key === "misattributed";
+}
+
+/**
+ * Is there any ancient evidence at the bottom of this genealogy at all?
+ *
+ * The one question a reader most wants answered about a claim of this kind,
+ * and the one a list of books does not answer on its face.
+ */
+export function genealogyHasAncientBase(stages: (string | null | undefined)[]): boolean {
+  return stages.some((s) => s === "ancient_primary" || s === "later_antiquity");
+}

@@ -425,6 +425,82 @@ export type SeedPassage = {
   layers: SeedTextLayer[];
 };
 
+/**
+ * ONE LINK IN A CLAIM'S CHAIN OF TRANSMISSION.
+ *
+ * `says` is what THIS link actually states — not what it is reported to state
+ * by the link after it, which is the whole reason for tracing a claim rather
+ * than accepting a bibliography.
+ *
+ * `adds` is what it contributed that its predecessor did not contain, and it
+ * is the field that turns a reading list into an explanation. Claims rarely
+ * arrive whole: one writer supplies an object, the next an interpretation, the
+ * next quietly drops a hedge, and the one after that adds a detail nobody
+ * before them had.
+ */
+export type SeedGenealogyLink = {
+  /** A GENEALOGY_STAGES key: how far from the evidence this link stands. */
+  stage: string;
+  /** Who said it, or what work says it. */
+  who: string;
+  /** When. Omitted where a stage has no single date. */
+  year?: number;
+  /** A source in this dataset, where one exists for it. */
+  sourceKey?: string | null;
+  /** Volume, page, line, figure — whatever locates the statement. */
+  reference?: string;
+  /**
+   * What this link says, quoted where possible.
+   *
+   * OMITTED where it could not be read, which is a real and common state for
+   * exactly the links that matter most. Requires saysAbsentReason.
+   */
+  says?: string;
+  /** Required when `says` is absent: why this link has not been read. */
+  saysAbsentReason?: string;
+  /** What this link ADDED that the one before it did not contain. */
+  adds?: string;
+  /** A CITATION_STATUSES key: can this link's own citation be followed? */
+  citationStatus?: string;
+  notes?: string;
+};
+
+/**
+ * A CLAIM, AND THE ROUTE IT TOOK TO GET HERE.
+ *
+ * The evidence chain in SeedPassage runs downwards, from a statement to the
+ * object under it. This runs forwards, through the people who repeated a claim,
+ * and it exists for the claims where true-or-false is the wrong question.
+ *
+ * "Horus was crucified" is the case it was built for. Offered the choice
+ * between accepting that and being told it was invented, a reader loses the
+ * actual history: a real Egyptian object, a real nineteenth-century writer who
+ * read it a particular way, a chain of books that repeated him with the hedges
+ * falling away, and a modern claim that no longer resembles the object. The
+ * chain is the finding.
+ */
+export type SeedClaimGenealogy = {
+  /** Stable key within the event. */
+  key: string;
+  /** The claim in the words people actually use for it, not a tidied version. */
+  claim: string;
+  /** A CLAIM_VERDICTS key. Six values, never a boolean — see the taxonomy note. */
+  verdict: string;
+  /** Why the verdict is that one, and what it does and does not say. */
+  verdictEvidence: string;
+  /**
+   * WHAT WOULD CHANGE THIS ASSESSMENT.
+   *
+   * Required, and not a formality: a verdict nobody can state the conditions
+   * for overturning is an opinion wearing a label. "No primary evidence
+   * located" especially — it is a report on searching, and it must say what
+   * finding would end it.
+   */
+  whatWouldChangeThis: string;
+  /** Oldest first. The order is meaningful and the interface should keep it. */
+  links: SeedGenealogyLink[];
+};
+
 export type SeedEvent = {
   slug: string;
   title: string;
@@ -527,6 +603,11 @@ export type SeedEvent = {
    */
   argumentsFor?: string;
   argumentsAgainst?: string;
+  /**
+   * How a claim attached to this record travelled, for claims where true or
+   * false is the wrong question. See SeedClaimGenealogy.
+   */
+  genealogies?: SeedClaimGenealogy[];
   /** Where the remains are now, in plain words, when they survive. */
   remainsLocation?: string;
   /** Catalogue/accession number of the remains, where they have one. */
