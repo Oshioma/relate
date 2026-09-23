@@ -1572,6 +1572,67 @@ async function seedDataset(
       }
     }
 
+    // CLAIM GENEALOGY. The chain that runs the other way: forwards, through
+    // the people who repeated a claim. Optional and non-fatal for the same
+    // reason passages are — a record missing a genealogy is less complete, not
+    // undrawable.
+    //
+    // Same two-insert shape as passages, and the links are matched back to
+    // their genealogy by the claim text, which is unique within an event for
+    // exactly that reason.
+    if (seed.genealogies?.length) {
+      const genealogyRows = seed.genealogies.map((genealogy, index) => ({
+        event_id: event.id,
+        community_id: community.id,
+        created_by: userId,
+        claim: genealogy.claim,
+        verdict: genealogy.verdict,
+        verdict_evidence: genealogy.verdictEvidence,
+        what_would_change_this: genealogy.whatWouldChangeThis,
+        sort_order: index,
+      }));
+
+      const { data: insertedGenealogies, error: genealogyError } = await supabase
+        .from("timeline_claim_genealogies")
+        .insert(genealogyRows)
+        .select("id, claim");
+
+      if (genealogyError) {
+        console.error(`${label} genealogies failed:`, JSON.stringify(genealogyError));
+      } else {
+        const genealogyIdByClaim = new Map<string, string>(
+          (insertedGenealogies ?? []).map((row) => [row.claim, row.id])
+        );
+        const linkRows = seed.genealogies.flatMap((genealogy) => {
+          const genealogyId = genealogyIdByClaim.get(genealogy.claim);
+          if (!genealogyId) return [];
+          return genealogy.links.map((genealogyLink, index) => ({
+            genealogy_id: genealogyId,
+            community_id: community.id,
+            created_by: userId,
+            source_id: genealogyLink.sourceKey ? sourceIds.get(genealogyLink.sourceKey) ?? null : null,
+            stage: genealogyLink.stage,
+            who: genealogyLink.who,
+            year: genealogyLink.year ?? null,
+            reference: genealogyLink.reference ?? null,
+            // A link nobody has opened is written as one, which the database
+            // accepts only alongside a stated reason. That row is worth more
+            // than a row repeating what the NEXT link claims it says.
+            says: genealogyLink.says ?? null,
+            says_absent_reason: genealogyLink.saysAbsentReason ?? null,
+            adds: genealogyLink.adds ?? null,
+            citation_status: genealogyLink.citationStatus ?? null,
+            notes: genealogyLink.notes ?? null,
+            sort_order: index,
+          }));
+        });
+        if (linkRows.length > 0) {
+          const { error: linkError } = await supabase.from("timeline_genealogy_links").insert(linkRows);
+          if (linkError) console.error(`${label} genealogy links failed:`, JSON.stringify(linkError));
+        }
+      }
+    }
+
     // Citations, matched back to their claim by its date text — unique within
     // each event for exactly this reason.
     const claimIdByText = new Map<string, string>(
