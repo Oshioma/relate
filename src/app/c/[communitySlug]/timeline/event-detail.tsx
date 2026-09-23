@@ -13,7 +13,12 @@ import type {
   TimelineSource,
   TimelineTrack,
 } from "@/types/database";
-import type { TimelineEventWithClaims, TimelineLinkedRecord, TimelinePassageWithLayers } from "@/lib/data/timeline";
+import type {
+  TimelineEventWithClaims,
+  TimelineGenealogyWithLinks,
+  TimelineLinkedRecord,
+  TimelinePassageWithLayers,
+} from "@/lib/data/timeline";
 import { DateClaimCard } from "./date-claim-card";
 import { AddClaimForm } from "./add-claim-form";
 import { EditEventFlow } from "./edit-event-flow";
@@ -21,6 +26,7 @@ import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
+import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
 import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
 import {
   eventTypeHint,
@@ -75,6 +81,7 @@ export function EventDetail({
   links = [],
   linkedRecords = [],
   passages = [],
+  genealogies = [],
   tracks = [],
   userId = null,
   communitySlug,
@@ -107,6 +114,15 @@ export function EventDetail({
    * is also the normal state of every record written before passages existed.
    */
   passages?: TimelinePassageWithLayers[];
+  /**
+   * The claims attached to this record, and the chains that carried them.
+   *
+   * Supplied by the standalone page for the same reason passages are: the
+   * drawer must stay the fast way to read an event, and this is the panel you
+   * go to the full record for. Empty is the normal state of almost every
+   * record, and the panel draws nothing when it is.
+   */
+  genealogies?: TimelineGenealogyWithLinks[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -607,6 +623,10 @@ export function EventDetail({
           are what the page is FOR, and this is the answer to the question a
           reader asks next. Draws nothing when the record has no passages. */}
       <EvidenceChainPanel passages={passages} sourcesById={sourcesById} />
+
+      {/* And the chain that runs the other way: forwards, through whoever
+          repeated a claim. Draws nothing when the record carries none. */}
+      <ClaimGenealogyPanel genealogies={genealogies} sourcesById={sourcesById} />
 
       {/* ---- What else this is tied to ------------------------------------
           After the dates, deliberately. The dates are what the page is FOR;

@@ -16,6 +16,7 @@ import {
   temporalTypeIsPositioned,
 } from "./taxonomy";
 import { DATE_UNITS } from "./time";
+import { orderedLinks, whereClaimEnters } from "./claim-genealogy";
 
 const byslug = new Map(SET_SUTEKH_EVENTS.map((e) => [e.slug, e]));
 const record = (slug: string) => {
@@ -749,4 +750,65 @@ test("Gardiner's own limits are carried on the source, not dropped", () => {
   assert.match(gardiner.notes, /thousands of fragments/);
   assert.match(gardiner.notes, /pis aller/);
   assert.match(gardiner.notes, /exceedingly dangerous/);
+});
+
+// ---------------------------------------------------------------------------
+// THE FIRST CLAIM GENEALOGY
+//
+// Breasted's 1906 reading of line 7 as the name of a Hyksos king is the case
+// the genealogy structure was built for: the object is real, the reading is
+// modern and belongs to a named person at a datable moment, and it outlived
+// the scholarship that produced it partly because his volumes are free and the
+// editions that superseded him are not.
+// ---------------------------------------------------------------------------
+
+test("the stela carries the Hyksos-pharaoh reading as a traced claim", () => {
+  const genealogy = (stela.genealogies ?? []).find((g) => /Hyksos pharaoh/i.test(g.claim));
+  assert.ok(genealogy, "the claim is in circulation and belongs on the record as a chain");
+  assert.equal(genealogy.verdict, "later_interpretation");
+  // Not invented, and not correct. A boolean would have to pick one.
+  assert.match(genealogy.verdictEvidence, /NOT INVENTED AND IT IS NOT CORRECT/i);
+  assert.ok(genealogy.whatWouldChangeThis.length > 80, "a verdict with no overturning conditions is an opinion");
+});
+
+test("the chain runs object, then Breasted, then current scholarship", () => {
+  const genealogy = (stela.genealogies ?? [])[0];
+  assert.ok(genealogy);
+  const links = orderedLinks(genealogy.links);
+  assert.deepEqual(
+    links.map((l) => l.stage),
+    ["ancient_primary", "early_scholarship", "current_scholarship"]
+  );
+  // The claim enters with Breasted in 1906 — not with the Egyptian line, which
+  // does not settle between the two readings.
+  const enters = whereClaimEnters(genealogy.links);
+  assert.ok(enters);
+  assert.match(enters.who, /Breasted/);
+  assert.equal(enters.year, 1906);
+});
+
+test("every link says what it itself says, and names where it can be checked", () => {
+  for (const genealogy of stela.genealogies ?? []) {
+    for (const genealogyLink of genealogy.links) {
+      assert.ok(
+        genealogyLink.says || genealogyLink.saysAbsentReason,
+        `${genealogyLink.who}: a link with no text must say why it has none`
+      );
+      assert.ok(genealogyLink.reference, `${genealogyLink.who}: a link nobody can open is not a link`);
+      assert.equal(genealogyLink.citationStatus, "verified", `${genealogyLink.who}: all three were opened`);
+    }
+  }
+});
+
+test("Breasted's own hedge is recorded, and so is what does NOT differ", () => {
+  const genealogy = (stela.genealogies ?? [])[0];
+  const breasted = genealogy.links.find((l) => /Breasted/.test(l.who));
+  // He recorded the alternative identification with Set himself. The hedge
+  // drops out of the later repetitions, and that is the interesting part.
+  assert.match(breasted?.notes ?? "", /alternative identification with Set/i);
+
+  const current = genealogy.links.find((l) => l.stage === "current_scholarship");
+  // Shemu IS the third season: the calendar date is one reading, not two, and
+  // a chain that implied otherwise would overstate the disagreement.
+  assert.match(current?.adds ?? "", /WHAT DOES NOT DIFFER/i);
 });

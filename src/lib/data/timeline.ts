@@ -12,6 +12,8 @@ import type {
   TimelineEventLink,
   TimelineTextPassage,
   TimelineTextLayer,
+  TimelineClaimGenealogy,
+  TimelineGenealogyLink,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
 
@@ -941,6 +943,55 @@ export async function getEventPassages(
     else byPassage.set(layer.passage_id, [layer]);
   }
   return passages.map((passage) => ({ ...passage, layers: byPassage.get(passage.id) ?? [] }));
+}
+
+/**
+ * One claim's chain, with its links attached, oldest stage first.
+ */
+export type TimelineGenealogyWithLinks = TimelineClaimGenealogy & { links: TimelineGenealogyLink[] };
+
+/**
+ * The genealogies on one record: every claim, with the chain that carried it.
+ *
+ * Same two-query shape as getEventPassages and for the same reason — a record
+ * may carry four claims and a page fetching each chain separately would make
+ * five round trips to draw one panel.
+ *
+ * Ordering is by sort_order, the position the dataset put them in. The CHAIN
+ * order is applied at render time by orderedLinks, so a link entered out of
+ * sequence still draws where it belongs: a genealogy read out of order is
+ * unreadable, because the whole point is what each link added to the one
+ * before it.
+ */
+export async function getEventGenealogies(
+  supabase: Client,
+  eventId: string
+): Promise<TimelineGenealogyWithLinks[]> {
+  const { data: genealogies, error: genealogyError } = await supabase
+    .from("timeline_claim_genealogies")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("sort_order", { ascending: true });
+  if (genealogyError) throw genealogyError;
+  if (!genealogies?.length) return [];
+
+  const { data: links, error: linkError } = await supabase
+    .from("timeline_genealogy_links")
+    .select("*")
+    .in("genealogy_id", genealogies.map((genealogy) => genealogy.id))
+    .order("sort_order", { ascending: true });
+  if (linkError) throw linkError;
+
+  const byGenealogy = new Map<string, TimelineGenealogyLink[]>();
+  for (const genealogyLink of links ?? []) {
+    const existing = byGenealogy.get(genealogyLink.genealogy_id);
+    if (existing) existing.push(genealogyLink);
+    else byGenealogy.set(genealogyLink.genealogy_id, [genealogyLink]);
+  }
+  return genealogies.map((genealogy) => ({
+    ...genealogy,
+    links: byGenealogy.get(genealogy.id) ?? [],
+  }));
 }
 
 /** The far end of an edge, in the few fields a link needs to name and reach it. */

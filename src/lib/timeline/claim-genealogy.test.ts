@@ -25,7 +25,7 @@ type TestLink = {
   year?: number;
   says?: string;
   adds?: string;
-  citationStatus?: string;
+  citation_status?: string;
 };
 
 const link = (stage: string, who: string, extra: Omit<TestLink, "stage" | "who"> = {}): TestLink => ({
@@ -72,9 +72,9 @@ test("a later-antiquity source counts as an ancient base, and is not a primary o
 
 test("the chain stops at the first broken citation, in chain order", () => {
   const links = [
-    link("ancient_primary", "an object", { citationStatus: "verified" }),
-    link("alternative_interpretation", "writer A", { year: 1883, citationStatus: "broken" }),
-    link("popular_claim", "book B", { year: 1990, citationStatus: "misattributed" }),
+    link("ancient_primary", "an object", { citation_status: "verified" }),
+    link("alternative_interpretation", "writer A", { year: 1883, citation_status: "broken" }),
+    link("popular_claim", "book B", { year: 1990, citation_status: "misattributed" }),
   ];
   const broken = firstBrokenLink(links);
   assert.ok(broken);
@@ -88,8 +88,8 @@ test("the chain stops at the first broken citation, in chain order", () => {
 
 test("a chain with nothing broken says so", () => {
   const links = [
-    link("ancient_primary", "an object", { citationStatus: "verified" }),
-    link("current_scholarship", "a specialist", { citationStatus: "verified" }),
+    link("ancient_primary", "an object", { citation_status: "verified" }),
+    link("current_scholarship", "a specialist", { citation_status: "verified" }),
   ];
   assert.equal(firstBrokenLink(links), null);
 });
@@ -134,11 +134,11 @@ test("a link nobody has read cannot be reported as saying anything", () => {
 
 test("the shape summary answers the structural questions and passes no judgement", () => {
   const links = [
-    link("ancient_primary", "a relief", { says: "what is carved", citationStatus: "verified" }),
+    link("ancient_primary", "a relief", { says: "what is carved", citation_status: "verified" }),
     link("alternative_interpretation", "a writer", {
       year: 1883,
       adds: "the reading",
-      citationStatus: "broken",
+      citation_status: "broken",
     }),
     link("popular_claim", "a film", { year: 2007, adds: "the phrasing" }),
   ];

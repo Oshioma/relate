@@ -16,14 +16,22 @@ import {
 // Each of those is a function here rather than a sentence in a description,
 // because a sentence can be written without checking and a function cannot.
 
+/**
+ * SNAKE_CASE, BECAUSE THESE ARE DATABASE ROWS.
+ *
+ * The same shape evidence-chain.ts works on, and for the same reason: these
+ * functions serve the panel, the panel is handed rows straight out of
+ * timeline_genealogy_links, and a module that needed its input converted first
+ * would be testing a shape nothing actually renders.
+ */
 export type GenealogyLinkLike = {
   stage: string;
   who: string;
-  year?: number;
-  says?: string;
-  saysAbsentReason?: string;
-  adds?: string;
-  citationStatus?: string;
+  year?: number | null;
+  says?: string | null;
+  says_absent_reason?: string | null;
+  adds?: string | null;
+  citation_status?: string | null;
 };
 
 /** Oldest stage first, and within a stage, oldest year first. */
@@ -53,7 +61,7 @@ export function hasAncientBase(links: readonly GenealogyLinkLike[]): boolean {
  * which is a far more useful thing to tell a reader than a verdict.
  */
 export function firstBrokenLink<T extends GenealogyLinkLike>(links: readonly T[]): T | null {
-  return orderedLinks(links).find((l) => citationBreaksChain(l.citationStatus)) ?? null;
+  return orderedLinks(links).find((l) => citationBreaksChain(l.citation_status)) ?? null;
 }
 
 /**
