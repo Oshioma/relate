@@ -503,6 +503,30 @@ export type SeedEvent = {
    * only the first has answered the easier one.
    */
   identificationStatus?: string;
+  /**
+   * A KUNDALINI_RELATIONS key: what this record CLAIMS about its relation to
+   * Kuṇḍalinī. Not a confidence score — "cross-cultural parallel" is a
+   * different kind of statement from "historical precursor", not a weaker
+   * degree of it.
+   */
+  kundaliniRelation?: string;
+  /**
+   * A TRANSMISSION_STATUSES key: whether anything is actually shown to have
+   * travelled between the cultures involved.
+   *
+   * SEPARATE FROM kundaliniRelation ON PURPOSE. Contact being documented does
+   * not make a motif transmitted, and a record can honestly be a resemblance
+   * between two cultures that demonstrably met. Without two fields that
+   * position cannot be stated, and it is the position most of the serpent
+   * collection is in.
+   */
+  transmissionStatus?: string;
+  /**
+   * The argument FOR the comparison and the argument AGAINST it, kept apart
+   * from the description so neither can quietly become the record's own voice.
+   */
+  argumentsFor?: string;
+  argumentsAgainst?: string;
   /** Where the remains are now, in plain words, when they survive. */
   remainsLocation?: string;
   /** Catalogue/accession number of the remains, where they have one. */

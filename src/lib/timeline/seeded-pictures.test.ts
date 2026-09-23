@@ -30,6 +30,7 @@ import { ANCIENT_SITES_WORKED_STONE_EVENTS } from "./ancient-sites-worked-stone-
 import { ANCIENT_SITES_ACCEPTED_EVENTS } from "./ancient-sites-accepted-surprise-seed";
 import { ANCIENT_SITES_EXCAVATED_EVENTS } from "./ancient-sites-excavated-seed";
 import { SET_SUTEKH_EVENTS } from "./set-sutekh-seed";
+import { SERPENT_KUNDALINI_EVENTS } from "./serpent-kundalini-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -62,6 +63,7 @@ const ALL: SeedEvent[] = [
   ...ANCIENT_SITES_ACCEPTED_EVENTS,
   ...ANCIENT_SITES_EXCAVATED_EVENTS,
   ...SET_SUTEKH_EVENTS,
+  ...SERPENT_KUNDALINI_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>

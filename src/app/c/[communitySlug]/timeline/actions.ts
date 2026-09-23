@@ -131,6 +131,11 @@ import {
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
 import {
+  SERPENT_KUNDALINI_EVENTS,
+  SERPENT_KUNDALINI_SOURCES,
+  SERPENT_KUNDALINI_TRACK,
+} from "@/lib/timeline/serpent-kundalini-seed";
+import {
   SET_SUTEKH_EVENTS,
   SET_SUTEKH_SOURCES,
   SET_SUTEKH_TRACK,
@@ -2116,6 +2121,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     events: SET_SUTEKH_EVENTS,
     sources: SET_SUTEKH_SOURCES,
   },
+  {
+    label: "The serpent, Kundalini and sacred ascent",
+    track: SERPENT_KUNDALINI_TRACK,
+    events: SERPENT_KUNDALINI_EVENTS,
+    sources: SERPENT_KUNDALINI_SOURCES,
+  },
 ];
 
 /**
@@ -3084,6 +3095,29 @@ export async function seedSetSutekhDataset(communitySlug: string) {
     sources: SET_SUTEKH_SOURCES,
     track: SET_SUTEKH_TRACK,
     label: "Set, Seth, Sutekh: how one god changed",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The serpent, Kundalini and sacred ascent. Two fields do the work here that
+ * prose cannot be trusted with: what a record CLAIMS about its relation to
+ * Kundalini, and whether anything is actually shown to have TRAVELLED. A
+ * resemblance between cultures that demonstrably met is an honest position and
+ * needs both fields to state. See serpent-kundalini-seed.ts.
+ */
+export async function seedSerpentKundaliniDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: SERPENT_KUNDALINI_EVENTS,
+    sources: SERPENT_KUNDALINI_SOURCES,
+    track: SERPENT_KUNDALINI_TRACK,
+    label: "The serpent, Kundalini and sacred ascent",
   });
   revalidatePath(timelinePath(community.slug));
   return result;

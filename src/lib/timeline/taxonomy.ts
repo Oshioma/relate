@@ -1850,3 +1850,173 @@ export function orderEvidenceLayers<T extends { layer: string }>(rows: T[]): T[]
     return 0;
   });
 }
+
+// ---------------------------------------------------------------------------
+// HOW A RECORD RELATES TO KUṆḌALINĪ
+//
+// Serpent imagery is close to universal. So is vertical-axis imagery. It is
+// therefore very easy to assemble a hundred objects that "look remarkably
+// similar" and let the accumulation do the arguing — which is the failure mode
+// the serpent collection was commissioned to avoid rather than commit.
+//
+// This vocabulary exists to make the difference between the following two
+// sentences a STORED FIELD rather than a matter of tone:
+//
+//   "This is an early form of the same idea."
+//   "This looks like it and nothing connects them."
+//
+// THE LINE THAT MATTERS runs between `historical_precursor` and
+// `cross_cultural_parallel`. Everything above it claims a connection somebody
+// can be asked to demonstrate. Everything below it claims a resemblance and
+// says so. A record that cannot say which side it is on is not finished.
+//
+// THIS IS NOT A CONFIDENCE SCALE AND CARRIES NO NUMBERS. "Cross-cultural
+// parallel" is not 30% Kundalini. It is a different KIND of statement from
+// "historical precursor", not a weaker degree of the same one — and the
+// database rejects a confidence score here exactly as it does everywhere else.
+// ---------------------------------------------------------------------------
+
+export const KUNDALINI_RELATIONS = [
+  {
+    key: "explicit_kundalini",
+    label: "Explicitly Kuṇḍalinī",
+    hint:
+      "The source itself concerns Kuṇḍalinī by name, or an identified practice nobody disputes is that practice. The narrowest category, and the one a reader should be able to count.",
+  },
+  {
+    key: "historical_precursor",
+    label: "Historical precursor",
+    hint:
+      "An earlier idea WITHIN the relevant Indian tradition that demonstrably fed into, or closely precedes, later subtle-body systems. The claim is transmission, and somebody can be asked to show it.",
+  },
+  {
+    key: "related_tradition",
+    label: "Related tradition",
+    hint:
+      "A historically connected Tantric, yogic or subtle-body system that is not necessarily called Kundalini. Connected, and not the same thing — Buddhist caṇḍālī is not a synonym.",
+  },
+  {
+    key: "cross_cultural_parallel",
+    label: "Cross-cultural parallel",
+    hint:
+      "A real structural or visual similarity with NO demonstrated historical connection. The resemblance may be striking and the record still makes no claim that anything travelled. Most of the non-Indian material in this collection is here, and that is not a demotion.",
+  },
+  {
+    key: "speculative_esoteric",
+    label: "Speculative or esoteric interpretation",
+    hint:
+      "A comparison requiring assumptions the surviving evidence does not establish. Kept rather than dropped — an unusual correspondence is not refuted by lacking a mechanism — and labelled so nobody mistakes it for a finding.",
+  },
+  {
+    key: "modern_development",
+    label: "Modern development",
+    hint:
+      "A nineteenth-, twentieth- or twenty-first-century formulation: a translation, a synthesis, a new system. Modern is not a criticism. Presenting a modern system as an ancient one is.",
+  },
+] as const;
+
+export type KundaliniRelationKey = (typeof KUNDALINI_RELATIONS)[number]["key"];
+
+const KUNDALINI_RELATION_BY_KEY = new Map(KUNDALINI_RELATIONS.map((r) => [r.key as string, r]));
+
+export function kundaliniRelationLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return KUNDALINI_RELATION_BY_KEY.get(key)?.label ?? null;
+}
+
+export function kundaliniRelationHint(key: string | null | undefined): string {
+  return KUNDALINI_RELATION_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * Does this record claim a historical connection, as opposed to a resemblance?
+ *
+ * The one question the collection is built to keep answerable. A record that
+ * claims connection can be asked for its evidence of transmission; a record
+ * that claims resemblance cannot be, and must not be read as though it could.
+ */
+export function relationClaimsConnection(key: string | null | undefined): boolean {
+  return key === "explicit_kundalini" || key === "historical_precursor" || key === "related_tradition";
+}
+
+/** Should the interface warn that resemblance is not descent? */
+export function relationNeedsParallelWarning(key: string | null | undefined): boolean {
+  return key === "cross_cultural_parallel" || key === "speculative_esoteric";
+}
+
+// ---------------------------------------------------------------------------
+// WHETHER ANYTHING ACTUALLY TRAVELLED
+//
+// Separate from the relation above, and deliberately so. "Contact was
+// possible" and "this idea moved" are two statements, and the second does not
+// follow from the first. Trade routes between Mesopotamia and the Indus are
+// well evidenced; that is not evidence that a doctrine about the human body
+// went along them.
+//
+// A record may therefore be a cross-cultural parallel WITH documented contact
+// between the two cultures, and still make no claim that the motif itself was
+// transmitted. Without two fields that position cannot be stated at all, and
+// it is the position most of this collection is actually in.
+// ---------------------------------------------------------------------------
+
+export const TRANSMISSION_STATUSES = [
+  {
+    key: "demonstrated",
+    label: "Transmission demonstrated",
+    hint: "Specialists argue, from evidence, that this specific motif or idea moved between these cultures. Name them.",
+  },
+  {
+    key: "contact_documented",
+    label: "Contact documented, transmission not shown",
+    hint:
+      "The cultures demonstrably met — trade, conquest, administration, travellers. Whether THIS travelled is a separate question nobody has answered. The commonest honest position in this collection.",
+  },
+  {
+    key: "contact_possible",
+    label: "Contact possible, undocumented",
+    hint: "Geography and chronology allow it. Nothing shows it happened.",
+  },
+  {
+    key: "no_contact_known",
+    label: "No contact known",
+    hint: "Separated by distance, time or both, with nothing between them. A resemblance here is a resemblance and nothing more.",
+  },
+  {
+    key: "transmission_disputed",
+    label: "Transmission argued and contested",
+    hint: "Somebody has argued the case and somebody has answered it. Both belong on the record, as separate claims.",
+  },
+  {
+    key: "not_applicable",
+    label: "Not applicable",
+    hint: "The record is within one tradition, so there is no crossing to evidence.",
+  },
+] as const;
+
+export type TransmissionStatusKey = (typeof TRANSMISSION_STATUSES)[number]["key"];
+
+const TRANSMISSION_BY_KEY = new Map(TRANSMISSION_STATUSES.map((t) => [t.key as string, t]));
+
+export function transmissionStatusLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return TRANSMISSION_BY_KEY.get(key)?.label ?? null;
+}
+
+export function transmissionStatusHint(key: string | null | undefined): string {
+  return TRANSMISSION_BY_KEY.get(key ?? "")?.hint ?? "";
+}
+
+/**
+ * THE CHECK THAT STOPS THE COLLECTION ARGUING BY ACCUMULATION.
+ *
+ * A record may not claim a historical connection while recording that nothing
+ * shows the cultures ever met. That combination is how a gallery of
+ * resemblances turns into a lineage, one reasonable-looking record at a time.
+ */
+export function relationContradictsTransmission(
+  relation: string | null | undefined,
+  transmission: string | null | undefined
+): boolean {
+  if (!relationClaimsConnection(relation)) return false;
+  return transmission === "no_contact_known" || transmission === "contact_possible";
+}
