@@ -2263,6 +2263,87 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     civilisations: ["Ancient Egypt"],
     locationName: "Tanis, Egypt (findspot); probably originally Pi-Ramesses / Qantir",
     people: ["Ramesses II", "Seti", "Paramessu"],
+    genealogies: [
+      {
+        key: "hyksos-pharaoh-reading",
+        claim: "The 400-Year Stela names an otherwise unknown Hyksos pharaoh",
+        verdict: "later_interpretation",
+        verdictEvidence:
+          "THE OBJECT IS REAL AND THE READING IS MODERN, which is what this verdict means. Line 7 of the " +
+          "stela genuinely carries two groups inside royal formulae — nswt-bj.tj Stẖ-ꜥꜣ-pḥ.tj and sꜣ-Rꜥw " +
+          "Nbw.tj. Breasted in 1906 transcribed them as the personal names of a king, 'Opehtiset' and " +
+          "'Nubti', and took Year 400 to be that king's regnal era. Current scholarship parses the same " +
+          "groups as epithets of SETH HIMSELF, given a reigning king's titulary.\n\n" +
+          "SO THE CLAIM IS NOT INVENTED AND IT IS NOT CORRECT. It is a specific reading of a specific line, " +
+          "made by a named scholar at a datable moment, which then outlived the scholarship that produced " +
+          "it — helped by the fact that Breasted's volumes are out of copyright and freely available while " +
+          "the editions that superseded him are not.\n\n" +
+          "WHAT THIS VERDICT DOES NOT SAY: that Breasted was careless. His own note records the alternative " +
+          "identification with Set. He did not hide the question; later writers simply stopped reporting it.",
+        whatWouldChangeThis:
+          "A published argument, later than the Thesaurus Linguae Aegyptiae's reading and engaging with it, " +
+          "that the groups in line 7 are personal names after all. Failing that, the assessment would also " +
+          "change if the TLA's own parsing turned out to be contested in the specialist literature — which " +
+          "has not been checked here.\n\n" +
+          "SEPARATELY OUTSTANDING: the popular circulation of this claim has not been traced. Somebody " +
+          "carried Breasted's reading from 1906 into general writing, and this chain currently stops at the " +
+          "scholarship without showing that step.",
+        links: [
+          {
+            stage: "ancient_primary",
+            who: "The 400-Year Stela, line 7",
+            sourceKey: "tla_four_hundred_year_stela",
+            reference: "Cairo JdE 60539; transliteration after KRI II, 287-288, collated with a photograph",
+            says:
+              "rnp.t 400 ꜣbd 4 Šm.w sw 4 nswt-bj.tj Stẖ-ꜥꜣ-pḥ.tj sꜣ-Rꜥw mri̯=f Nbw.tj mri̯ Rꜥw-Ḥr.w-ꜣḫ.tj " +
+              "wnn=f r nḥḥ ḏ.t",
+            adds:
+              "The object itself: two groups standing inside the royal formulae nswt-bj.tj and sꜣ-Rꜥw. " +
+              "EVERYTHING DOWNSTREAM IS A READING OF THIS LINE, and the line does not settle between them.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "early_scholarship",
+            who: "James Henry Breasted, Ancient Records of Egypt III",
+            year: 1906,
+            sourceKey: "breasted_records_iii",
+            reference: "Section 542, pages 226-228",
+            says:
+              "In the year 400, in the fourth month of the third season, on the fourth day, of the King of " +
+              "Upper and Lower Egypt: Opehtiset; Son of Re, his beloved: Nubti, whom Harakhte desires to be " +
+              "forever and ever …",
+            adds:
+              "THE CLAIM ENTERS HERE. Breasted transcribes the two groups as PERSONAL NAMES and identifies " +
+              "their bearer as a Hyksos ruler, making Year 400 that king's regnal era. Nothing in the " +
+              "Egyptian line requires this; it is his reading of it.",
+            citationStatus: "verified",
+            notes:
+              "His own note records the alternative identification with Set. The hedge is in the 1906 text " +
+              "and drops out of the later repetitions.",
+          },
+          {
+            stage: "current_scholarship",
+            who: "Thesaurus Linguae Aegyptiae, after Kitchen",
+            sourceKey: "tla_four_hundred_year_stela",
+            reference: "Object HZGV3J42Y5FEDLP6WDSGQDU4PY; text after KRI II, 287-288",
+            says:
+              "Year 400, month 4 of the Shemu season, day 4, of the King of Upper and Lower Egypt " +
+              "Seth-with-great-strength, beloved Son of Re, the Ombite, beloved of Re-Harakhty, existing " +
+              "forever and eternity.",
+            adds:
+              "The parsing of the SAME two groups as epithets of Seth — great of strength, and the Ombite — " +
+              "so that the era belongs to a god presented as a king rather than to an unknown man.\n\n" +
+              "NOTE WHAT DOES NOT DIFFER: the calendar date. Shemu IS the third season, so Breasted's " +
+              "'fourth month of the third season' and this 'month 4 of Shemu' are one reading. The entire " +
+              "disagreement is over whether royal titles name a god or a man.",
+            citationStatus: "verified",
+            notes:
+              "Rendered into English from the TLA's German for this dataset; not a published English " +
+              "translation.",
+          },
+        ],
+      },
+    ],
     passages: [
       {
         label: "The opening royal titulary, and the order to make the stela",

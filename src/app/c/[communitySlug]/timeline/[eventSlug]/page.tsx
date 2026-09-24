@@ -8,6 +8,7 @@ import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff 
 import {
   getClaimCitations,
   getEventLinks,
+  getEventGenealogies,
   getEventPassages,
   getLinkedRecords,
   getSourceChains,
@@ -94,7 +95,12 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   // print three translations above three blanks where the translators belong —
   // and an unattributed translation is the precise thing this panel exists to
   // make impossible.
-  const passages = await getEventPassages(supabase, event.id);
+  // Two independent fetches: the evidence under the record, and the chains
+  // that carried any claims attached to it. Both are empty for most records.
+  const [passages, genealogies] = await Promise.all([
+    getEventPassages(supabase, event.id),
+    getEventGenealogies(supabase, event.id),
+  ]);
   const chainSourceIds = [
     ...passages.map((passage) => passage.source_id),
     ...passages.flatMap((passage) => passage.layers.map((layer) => layer.source_id)),
@@ -119,6 +125,7 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
         links={links}
         linkedRecords={linkedRecords}
         passages={passages}
+        genealogies={genealogies}
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}
