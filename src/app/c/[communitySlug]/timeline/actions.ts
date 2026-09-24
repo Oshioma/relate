@@ -131,6 +131,11 @@ import {
   THIRTY_THREE_TRACK,
 } from "@/lib/timeline/thirty-three-vedic-seed";
 import {
+  HORUS_CLAIMS_EVENTS,
+  HORUS_CLAIMS_SOURCES,
+  HORUS_CLAIMS_TRACK,
+} from "@/lib/timeline/horus-claims-seed";
+import {
   SERPENT_KUNDALINI_EVENTS,
   SERPENT_KUNDALINI_SOURCES,
   SERPENT_KUNDALINI_TRACK,
@@ -2188,6 +2193,12 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     events: SERPENT_KUNDALINI_EVENTS,
     sources: SERPENT_KUNDALINI_SOURCES,
   },
+  {
+    label: "Four claims about Horus, and where they came from",
+    track: HORUS_CLAIMS_TRACK,
+    events: HORUS_CLAIMS_EVENTS,
+    sources: HORUS_CLAIMS_SOURCES,
+  },
 ];
 
 /**
@@ -3179,6 +3190,29 @@ export async function seedSerpentKundaliniDataset(communitySlug: string) {
     sources: SERPENT_KUNDALINI_SOURCES,
     track: SERPENT_KUNDALINI_TRACK,
     label: "The serpent, Kundalini and sacred ascent",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * Four claims about Horus — virgin birth, December 25, twelve disciples,
+ * crucifixion — traced backwards through the people who made them until the
+ * chain reaches an Egyptian source or stops. Built as genealogies rather than
+ * as true/false records, because the true/false question destroys the
+ * interesting part in both directions. See horus-claims-seed.ts.
+ */
+export async function seedHorusClaimsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: HORUS_CLAIMS_EVENTS,
+    sources: HORUS_CLAIMS_SOURCES,
+    track: HORUS_CLAIMS_TRACK,
+    label: "Four claims about Horus, and where they came from",
   });
   revalidatePath(timelinePath(community.slug));
   return result;
