@@ -139,10 +139,11 @@ export const LEMURIA_SOURCES: SeedSource[] = [
     key: "besant_leadbeater1913",
     title: "Man: Whence, How and Whither",
     author: "Annie Besant and C. W. Leadbeater",
-    sourceType: "book",
+    url: "https://www.theosophy.world/sites/default/files/ebooks/Man%20Whence%2C%20How%20and%20Whither.pdf",
+    sourceType: "primary",
     publishedYear: 1913,
     notes:
-      "The most detailed later Theosophical chronology, written from what its authors describe as clairvoyant investigation. Cited as the place the elaborated root-race dates are worked out — and named here so that later figures are not attributed to Blavatsky by default.",
+      "Besant and Leadbeater's own text, explicitly subtitled a record of clairvoyant investigation. It supplies a detailed Lemurian chronology: changes toward sexual differentiation beginning about 16.5 million years ago, occupying about 5.5–6 million years, and the Coming of the Lords of the Flame about 6.5 million years ago. These are stored as the authors' claims, not as archaeological dates.",
   },
   {
     key: "scott_elliot_lemuria",
@@ -413,6 +414,49 @@ const IDEA_HISTORY: SeedEvent[] = [
       },
     ],
     claims: [
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(16.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "These changes began some sixteen and a half million years ago",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: Besant and Leadbeater place the beginning of bodily changes toward sexual differentiation about 16.5 million years ago. They explicitly present the book as a record of clairvoyant investigation. EVIDENCE TYPE: claimed clairvoyant observation/source assertion, not archaeology. IMPORTANT: this is a stage inside their Lemurian chronology, not a date for the beginning of Lemuria as a whole.",
+        notes:
+          "The same passage says the process occupied about five and a half to six million years. That duration is preserved in the adjacent range claim rather than collapsed into this point.",
+      },
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(16.5),
+        endYear: Ma(10.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "occupied some five and a half to six million years",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: the bodily changes beginning about 16.5 million years ago occupied roughly 5.5–6 million years, with slow change and frequent reversion. HOW THE RANGE IS DRAWN: 16.5 Ma minus the source's stated duration gives an endpoint around 11.0–10.5 Ma. The duration is primary; the endpoint is timeline arithmetic and is labelled approximate.",
+        notes:
+          "This is deliberately a range. It preserves the authors' long transition rather than turning sexual differentiation into a single instant.",
+      },
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(6.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "about six and a half million years ago",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: Besant and Leadbeater date their 'Coming of the Lords of the Flame' to about 6.5 million years ago within their Lemurian narrative. EVIDENCE TYPE: the authors' claimed clairvoyant investigation. This is stored because the number is explicit in their text, not because the timeline independently accepts the event as historical.",
+        notes:
+          "Do not merge this with Blavatsky's 18-million-year figure. They are different authors, different claimed events and different dates within a related Theosophical lineage.",
+      },
       {
         sourceKey: "scott_elliot_lemuria",
         startYear: 1904,
@@ -823,8 +867,8 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
         evidence:
           "WHAT THE SOURCE SAYS: that in traditional Theosophy the Lemurian root race began 34½ million years ago — in the middle of what was then believed to be the Jurassic. WHO SAYS IT: the tradition, as its own reference work states it. NOT, on the evidence found, Blavatsky: the figure is attributed to Theosophy generally rather than to a named author, and it is stored that way. EVIDENCE TYPE: an esoteric chronology. LIMITATION: the attribution could not be established to a specific author or a specific passage.",
         notes:
-          "NEEDS SOURCE VERIFICATION — the author, not the figure. The 34½-million-year date is stated plainly in the movement's own reference work; what could not be established is who first gave it. The detailed later chronologies are worked out in Besant and Leadbeater's Man: Whence, How and Whither (1913), which is the likeliest home for it, and this record does not assert that without having checked the text.\n\n" +
-          "Attributing it to Blavatsky by default would have been the easy error, and the brief this dataset was written from specifically warned against it.",
+          "SOURCE-GENEALOGY WARNING: the 34½-million-year figure is stated in a later Theosophical reference work, but this audit did not locate a primary Blavatsky passage saying that Lemuria began 34½ million years ago. Besant and Leadbeater's 1913 text has now been checked and supplies other explicit figures, but this exact one is not silently reassigned to them either.\n\n" +
+          "Keep this as a later-Theosophical chronology claim until the first primary passage carrying the number is identified. Do not label it 'Blavatsky's date for the beginning of Lemuria'.",
         citations: [
           {
             sourceKey: "besant_leadbeater1913",
@@ -844,9 +888,9 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
         datingMethod: "source_assertion",
         chronology: "alternative",
         evidence:
-          "WHAT THE SOURCE SAYS: Blavatsky writes that present physical humanity — the Vaivasvata humanity — began only eighteen millions of years ago, the point her scheme calls the lighting up of Manas: the awakening of mind, associated with the intervention of beings she calls the Lords of the Flame. WHO SAYS IT: Blavatsky herself, in The Secret Doctrine, which is why this claim is attributed to her and the 34½-million-year one above is not. EVIDENCE TYPE: an esoteric account, presented as knowledge from a hidden record rather than as an inference from anything examinable. LIMITATION: there is no evidence outside the text, and none is offered in it.",
+          "WHAT THE SOURCE SAYS: Blavatsky says the Vaivasvata humanity is eighteen million and odd years old, but immediately limits that figure to physical, or approximately physical, humanity dating from the close of the Third Root Race. Elsewhere she places the decisive transformation in the middle of the Third Race. She explicitly says the preceding two-and-a-half races may extend vastly farther back and that their exact figures are withheld. WHO SAYS IT: Blavatsky herself in The Secret Doctrine. EVIDENCE TYPE: an esoteric chronology presented from occult teaching, not an archaeological or geological measurement. LIMITATION: 18 million years is therefore NOT a primary-source date for the beginning of Lemuria.",
         notes:
-          "This is the Theosophical date that IS Blavatsky's, and the contrast with the claim above it is the point of seeding both: same tradition, two figures sixteen million years apart, one attributable to a named author in a datable book and one not.",
+          "PRIMARY-TEXT CORRECTION: keep 18 million years as Blavatsky's figure for physical/sexually differentiated humanity in the later Third Root Race; do not display it as 'Lemuria began 18 million years ago'. This distinction is why the 34½-million-year later-Theosophy claim remains separate.",
         citations: [
           {
             sourceKey: "blavatsky_human_evolution",
