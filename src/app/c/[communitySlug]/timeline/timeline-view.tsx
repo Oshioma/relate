@@ -73,6 +73,7 @@ import {
   seedThirtyThreeVedicDataset,
   seedBrutusAlbionDataset,
   seedSetSutekhDataset,
+  seedSacredTreesDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -293,6 +294,7 @@ export function TimelineView({
   hasThirtyThreeVedic,
   hasBrutusAlbion,
   hasSetSutekh,
+  hasSacredTrees,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -360,6 +362,7 @@ export function TimelineView({
   hasThirtyThreeVedic: boolean;
   hasBrutusAlbion: boolean;
   hasSetSutekh: boolean;
+  hasSacredTrees: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -1930,6 +1933,25 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+
+      {isStaff && !hasSacredTrees && (
+        <DatasetOffer
+          title="Add dated sacred trees and Tree of Life diagrams?"
+          busyLabel="Adding the records…"
+          label="Add nine records"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedSacredTreesDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Nine records from Ur and the Indus Valley through Egypt, Mari, Assyria, medieval Kabbalah, and a modern Kamitic diagram. Dates belong to surviving objects or publications. Source pages show the images; resemblance is kept separate from evidence of transmission.
+        </DatasetOffer>
+      )}
 
       {isStaff && !hasSetSutekh && (
         <DatasetOffer
