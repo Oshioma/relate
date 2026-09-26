@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960" role="img" aria-label="Modern schematic with eleven numbered positions, zero through ten">
+  <rect width="800" height="960" fill="#f5edda"/>
+  <text x="400" y="58" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#3e3834">ELEVEN POSITIONS</text>
+  <g stroke="#756656" stroke-width="5" fill="none">
+    <path d="M400 130 V240 M400 240 L245 345 M400 240 L555 345 M245 345 L400 455 M555 345 L400 455 M400 455 L245 565 M400 455 L555 565 M245 565 L400 675 M555 565 L400 675 M400 675 L245 770 M400 675 L555 770 M245 770 L400 860 M555 770 L400 860"/>
+  </g>
+  <g font-family="sans-serif" font-size="26" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#453a2c">
+    <circle cx="400" cy="130" r="43" fill="#d7b766"/><text x="400" y="130">0</text>
+    <circle cx="400" cy="240" r="43" fill="#eee1c1"/><text x="400" y="240">1</text>
+    <circle cx="245" cy="345" r="43" fill="#eee1c1"/><text x="245" y="345">2</text>
+    <circle cx="555" cy="345" r="43" fill="#eee1c1"/><text x="555" y="345">3</text>
+    <circle cx="400" cy="455" r="43" fill="#eee1c1"/><text x="400" y="455">4</text>
+    <circle cx="245" cy="565" r="43" fill="#eee1c1"/><text x="245" y="565">5</text>
+    <circle cx="555" cy="565" r="43" fill="#eee1c1"/><text x="555" y="565">6</text>
+    <circle cx="400" cy="675" r="43" fill="#eee1c1"/><text x="400" y="675">7</text>
+    <circle cx="245" cy="770" r="43" fill="#eee1c1"/><text x="245" y="770">8</text>
+    <circle cx="555" cy="770" r="43" fill="#eee1c1"/><text x="555" y="770">9</text>
+    <circle cx="400" cy="860" r="43" fill="#eee1c1"/><text x="400" y="860">10</text>
+  </g>
+  <text x="460" y="138" font-family="sans-serif" font-size="22" fill="#453a2c">Amen</text>
+  <text x="400" y="924" text-anchor="middle" font-family="sans-serif" font-size="17" fill="#453a2c">Modern explanatory layout • positions from a 2014 article</text>
+</svg>
