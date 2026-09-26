@@ -34,6 +34,48 @@ export type GenealogyLinkLike = {
   citation_status?: string | null;
 };
 
+/**
+ * A LINK AS A SEED FILE WRITES IT.
+ *
+ * The seed files use camelCase and the database uses snake_case, which is the
+ * convention throughout this repo and is fine — until a seed author calls one
+ * of the functions below on their own data and it silently reports nothing
+ * wrong, because `citationStatus` is not `citation_status` and an unread field
+ * is indistinguishable from an absent one.
+ *
+ * That happened. A test on the Horus dataset asked where the crucifixion chain
+ * breaks and got back "nowhere", on a chain whose break is the entire point.
+ * Hence this adapter: the seed shape is converted once, explicitly, rather
+ * than the functions being made to guess between two spellings.
+ */
+export type SeedShapedLink = {
+  stage: string;
+  who: string;
+  year?: number;
+  says?: string;
+  saysAbsentReason?: string;
+  adds?: string;
+  citationStatus?: string;
+};
+
+/** Normalise a seed-file link to the row shape these functions read. */
+export function fromSeedLink(link: SeedShapedLink): GenealogyLinkLike & { who: string } {
+  return {
+    stage: link.stage,
+    who: link.who,
+    year: link.year ?? null,
+    says: link.says ?? null,
+    says_absent_reason: link.saysAbsentReason ?? null,
+    adds: link.adds ?? null,
+    citation_status: link.citationStatus ?? null,
+  };
+}
+
+/** Normalise a whole chain as a seed file wrote it. */
+export function fromSeedLinks(links: readonly SeedShapedLink[]): (GenealogyLinkLike & { who: string })[] {
+  return links.map(fromSeedLink);
+}
+
 /** Oldest stage first, and within a stage, oldest year first. */
 export function orderedLinks<T extends GenealogyLinkLike>(links: readonly T[]): T[] {
   return [...links].sort((a, b) => {
