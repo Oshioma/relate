@@ -16,7 +16,7 @@ import {
   temporalTypeIsPositioned,
 } from "./taxonomy";
 import { DATE_UNITS } from "./time";
-import { orderedLinks, whereClaimEnters } from "./claim-genealogy";
+import { fromSeedLinks, hasAncientBase, orderedLinks, whereClaimEnters } from "./claim-genealogy";
 
 const byslug = new Map(SET_SUTEKH_EVENTS.map((e) => [e.slug, e]));
 const record = (slug: string) => {
@@ -72,6 +72,19 @@ test("the species of the Set animal is recorded as unresolved", () => {
 
 test("Set is never called the Egyptian Satan in this dataset's own voice", () => {
   for (const event of SET_SUTEKH_EVENTS) {
+    // ONE RECORD IS EXEMPT FROM THE WORD-WINDOW CHECK, and is held to a
+    // stricter one instead. The record that TRACES the claim has to use the
+    // phrase constantly, so scanning its prose for disowning words nearby
+    // proves nothing. What it must do instead is carry the claim as a
+    // genealogy with a verdict — which is a much harder thing to satisfy by
+    // accident than a word in the next sentence.
+    if (event.genealogies?.some((g) => g.key === "egyptian-satan")) {
+      const chain = event.genealogies.find((g) => g.key === "egyptian-satan");
+      assert.ok(chain);
+      assert.notEqual(chain.verdict, "directly_attested", `${event.slug}: it may be traced, never asserted`);
+      assert.ok(chain.links.length >= 4, `${event.slug}: a claim this central needs a real chain`);
+      continue;
+    }
     const text = `${event.title}\n${event.summary}\n${event.description}`;
     for (const match of text.matchAll(/Egyptian Satan/gi)) {
       const window = text.slice(Math.max(0, match.index - 400), match.index + 200);
@@ -811,4 +824,100 @@ test("Breasted's own hedge is recorded, and so is what does NOT differ", () => {
   // Shemu IS the third season: the calendar date is one reading, not two, and
   // a chain that implied otherwise would overstate the disagreement.
   assert.match(current?.adds ?? "", /WHAT DOES NOT DIFFER/i);
+});
+
+// ---------------------------------------------------------------------------
+// "THE EGYPTIAN SATAN", TRACED
+//
+// Nearly every record in this dataset contains a sentence rejecting the claim.
+// That is a position, repeated. This genealogy converts it into a chain, and
+// these tests guard the two ways a chain like this degrades: by becoming a
+// denial, and by pretending its unread half was read.
+// ---------------------------------------------------------------------------
+
+const satan = (() => {
+  const found = (record("set-the-egyptian-satan-claim").genealogies ?? []).find((g) => g.key === "egyptian-satan");
+  assert.ok(found, "the dataset's central argument must exist as a traced chain");
+  return found;
+})();
+
+test("the chain is not a denial: the real hostility is a link in it", () => {
+  // The failure mode for this record is insisting Set was never hated. He was.
+  assert.match(satan.verdictEvidence, /WHAT IS TRUE, AND THE CLAIM IS NOT PURE INVENTION/);
+  const mut = satan.links.find((l) => /Mut el-Kharab/.test(l.who));
+  assert.ok(mut, "the overwritten doorway block belongs in the chain, not outside it");
+  assert.match(mut.says ?? "", /overwritten/);
+  assert.match(mut.adds ?? "", /stops the record becoming a denial/i);
+});
+
+test("the Greek translation is not treated as a simple error", () => {
+  // By 100 CE there was something real for Typhon to catch. Saying otherwise
+  // would be the same flattening in the other direction.
+  const plutarch = satan.links.find((l) => /Plutarch/.test(l.who));
+  assert.ok(plutarch);
+  assert.match(plutarch.adds ?? "", /IT IS NOT A LIE|not a lie/i);
+  assert.match(plutarch.adds ?? "", /taking the Set of one moment/i);
+});
+
+test("the verdict turns on the category, not on whether Set was disliked", () => {
+  assert.equal(satan.verdict, "later_interpretation");
+  assert.match(satan.verdictEvidence, /What is later is the CATEGORY/i);
+  // And the overturning condition is the right one: a text classifying his
+  // NATURE, not one describing him as an enemy in a story.
+  assert.match(satan.whatWouldChangeThis, /role in a story.*nature|nature/is);
+});
+
+test("the four unread links say they are unread, and say what they would add", () => {
+  const unread = satan.links.filter((l) => !l.says);
+  assert.equal(unread.length, 3, "the modern half of this chain has not been traced");
+  for (const link of unread) {
+    assert.ok(link.saysAbsentReason, `${link.who}: an unread link must say why`);
+    assert.match(link.saysAbsentReason, /NOT TRACED/);
+    // Presumptive content is allowed and must be marked as presumptive.
+    assert.match(link.adds ?? "", /[Pp]resumptively|Unverified/);
+  }
+});
+
+test("no modern work is named from memory", () => {
+  const modern = satan.links.find((l) => /film, television/i.test(l.who));
+  assert.ok(modern);
+  assert.match(modern.saysAbsentReason ?? "", /DELIBERATELY/);
+  assert.match(modern.saysAbsentReason ?? "", /a wrong title would undercut/i);
+});
+
+test("the gap is a claim on the record, not only a note inside the chain", () => {
+  // A weakness recorded where the argument is made, so a reader meets both.
+  const gap = record("set-the-egyptian-satan-claim").claims.find((c) =>
+    /traced the modern half/i.test(c.whatIsDated ?? "")
+  );
+  assert.ok(gap);
+  assert.match(gap.evidence, /strongest exactly where it is most checked/i);
+});
+
+test("the question 'when did Set become Satan' is answered as malformed", () => {
+  const when = record("set-the-egyptian-satan-claim").claims.find((c) =>
+    /became the Egyptian Satan/i.test(c.whatIsDated ?? "")
+  );
+  assert.ok(when);
+  assert.equal(when.startYear, undefined);
+  assert.match(when.originalDateText, /no such date/i);
+  // Three separate processes, and collapsing them is what produces the question.
+  assert.match(when.evidence, /THREE DIFFERENT PROCESSES/);
+});
+
+test("every verified link in the chain names a source the dataset actually holds", () => {
+  const sourceKeys = new Set(SET_SUTEKH_SOURCES.map((s) => s.key));
+  for (const link of satan.links) {
+    if (link.citationStatus !== "verified") continue;
+    assert.ok(link.sourceKey, `${link.who}: a verified link must name its source`);
+    assert.ok(sourceKeys.has(link.sourceKey), `${link.who}: unknown source ${link.sourceKey}`);
+    assert.ok(link.reference, `${link.who}: a verified link must be locatable`);
+  }
+});
+
+test("the chain has an ancient base and a modern end", () => {
+  const links = fromSeedLinks(satan.links);
+  assert.equal(hasAncientBase(links), true);
+  assert.ok(satan.links.some((l) => l.stage === "popular_claim"), "where does it end up?");
+  assert.ok(satan.links.some((l) => l.stage === "current_scholarship"), "and what do specialists say now?");
 });

@@ -3650,6 +3650,255 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
   },
 
   {
+    slug: "set-the-egyptian-satan-claim",
+    title: "\"The Egyptian Satan\": the claim this whole dataset was built against, traced",
+    summary:
+      "Five thousand years of a royal, protective, dangerous god arrive in modern culture as a devil. Every record here argues against that in prose. This one follows it link by link instead.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? The dataset's central argument, converted from an argument into a chain.\n\n" +
+      "WHY IT NEEDED CONVERTING. Nearly every record in this file contains a sentence rejecting the Egyptian " +
+      "Satan. That is a position, repeated, and a reader is entitled to ask how we know. A traced chain " +
+      "answers differently from an assertion: it names who said what, when, and what each of them added that " +
+      "the one before did not.\n\n" +
+      "AND IT ANSWERS A FAIRER OBJECTION TOO. If the dataset merely insisted that Set was never a devil, it " +
+      "would be as flat as the claim it rejects. He does become a genuinely hostile figure in Egypt, late, " +
+      "in places — and that happens BEFORE the Greeks arrive, which means the Greek equation was not simply " +
+      "an error. The chain can hold that. A denial cannot.\n\n" +
+      "THE SHAPE OF WHAT THE CHAIN SHOWS.\n\n" +
+      "  There is no evil designation in the longest Egyptian narrative about him. The search was made in " +
+      "  Gardiner's edition of the Contendings and came back empty: he is violent, crude, dangerous and " +
+      "  ridiculous, and the text never classifies him.\n\n" +
+      "  He is in the prow of the sun boat, in text, on a royal monument, in the thirteenth century BCE.\n\n" +
+      "  Hostility in Egypt is real and late and PARTIAL. At Mut el-Kharab his name is respelled from the " +
+      "  Twenty-fifth Dynasty onward while the same temple is maintained and given donations, and the " +
+      "  excavators conclude the attack on his image cannot be considered systematic or complete.\n\n" +
+      "  The Greeks translate him as Typhon, an unambiguous monster, which keeps the danger and discards " +
+      "  everything else — and by then there is something real for that translation to catch.\n\n" +
+      "  And then, across handovers this dataset has NOT traced, he arrives as a screen villain.\n\n" +
+      "WHERE THE CHAIN GOES DARK, AND THIS RECORD SAYS SO ON ITS FACE. The ancient half is built from " +
+      "editions that were opened. The modern half — Christian-era readings of pagan gods as demons, Victorian " +
+      "popularisation, the entertainment version — is asserted in this dataset and NOT TRACED. No author, no " +
+      "date, no page. Those links are recorded as unread, with reasons, because the alternative is to do to " +
+      "the modern half exactly what the claim does to the ancient one.\n\n" +
+      "THINGS TO ASK: If a god really did become an enemy in his own country, what makes 'the Egyptian Satan' " +
+      "still the wrong description? And what would the right one be?",
+    category: "religion",
+    subcategory: "Modern reception",
+    eventType: "disputed",
+    identificationStatus: "modern_interpretation",
+    tags: ["set", "typhon", "satan", "reception", "demonisation", "claim-genealogy"],
+    civilisations: ["Ancient Egypt", "Greco-Roman world", "Modern world"],
+    genealogies: [
+      {
+        key: "egyptian-satan",
+        claim: "Set was the Egyptian Satan — the god of evil, the enemy of the good god",
+        verdict: "later_interpretation",
+        verdictEvidence:
+          "A REAL EGYPTIAN CHANGE, DESCRIBED IN SOMEBODY ELSE'S CATEGORY, AND THEN HARDENED BY REPETITION.\n\n" +
+          "WHAT IS NOT TRUE: that Egyptian religion had a devil and that Set was it. For most of Egyptian " +
+          "history he is royal, protective and necessary. A Second Dynasty king put him over his own name. " +
+          "Nineteenth Dynasty kings were named for him. He witnesses a treaty between empires. He stands in " +
+          "the prow of Re's barque and kills the enemy of the sun, and the 400-Year Stela says so in text. " +
+          "The longest surviving Egyptian narrative about him never calls him evil — a search that came back " +
+          "empty is a finding, and this one did.\n\n" +
+          "WHAT IS TRUE, AND THE CLAIM IS NOT PURE INVENTION: hostility toward Set is real. His images are " +
+          "attacked, his name is rewritten, and the Edfu material shows him speared. THAT HAPPENS LATE, IT " +
+          "HAPPENS UNEVENLY, AND IT HAPPENS BEFORE THE GREEKS ARRIVE — so when Greek writers matched him to " +
+          "Typhon they were describing something that had begun. Their error was not invention; it was " +
+          "taking the Set of their own day for the Set of three thousand years.\n\n" +
+          "AND EVEN THE LATE HOSTILITY IS NOT TOTAL. Hope and Warfe, having gone through the material, " +
+          "conclude that the attack on Seth's image 'cannot be considered systematic or complete' (2017, page " +
+          "281). At Mut el-Kharab his name is respelled from the Twenty-fifth Dynasty onward while the same " +
+          "temple is maintained, expanded and given donations. A god being rewritten and endowed in the same " +
+          "decades is not a devil; there is no word in English for what he is, which is the actual finding.\n\n" +
+          "WHY THE VERDICT IS 'LATER INTERPRETATION' RATHER THAN 'NO PRIMARY EVIDENCE': because the ancient " +
+          "material genuinely contains the raw material. What is later is the CATEGORY — a single cosmic " +
+          "adversary opposed to a single good god — which is not an Egyptian idea and which arrives with the " +
+          "traditions that supplied the word Satan.",
+        whatWouldChangeThis:
+          "AN EGYPTIAN TEXT CLASSIFYING SET AS EVIL IN ITSELF, rather than describing him as violent, " +
+          "dangerous, defeated or an enemy in a particular conflict. The distinction is the whole question: " +
+          "'the enemy of Osiris' is a role in a story, and 'the evil one' is a nature. A dated text making " +
+          "the second statement would move this verdict substantially.\n\n" +
+          "AND, SEPARATELY, THE MODERN HALF OF THIS CHAIN WOULD CHANGE WITH ALMOST ANY WORK AT ALL. Three of " +
+          "its links are unread. Named Christian-era authors treating Egyptian gods as demons, with passages; " +
+          "the Victorian Egyptological popularisations that carried Typhon into English; and named films, " +
+          "games or comics with dates. Every one of those is findable, and until they are found this chain " +
+          "has a well-documented start, a well-documented middle, and an end that is currently only asserted.",
+        links: [
+          {
+            stage: "ancient_primary",
+            who: "Papyrus Chester Beatty I, the Contendings of Horus and Seth",
+            sourceKey: "chester_beatty_i",
+            reference: "Gardiner 1931; the whole narrative, recto 1,1-16,8",
+            says:
+              "No designation of Seth as evil occurs. He threatens to kill a judge a day, assaults Horus and " +
+              "tears out his eyes — and the text also gives him a legitimate claim to the office, and ends by " +
+              "installing him beside Re as a son who thunders in the sky.",
+            adds:
+              "THE ABSENCE, WHICH IS THE FOUNDATION OF THIS RECORD. The longest Egyptian narrative about Seth " +
+              "describes appalling behaviour and never classifies his nature. 'Horus is in the right, and " +
+              "Seth is in the wrong' decides one evidentiary contest after Thoth's test; it is a ruling, not " +
+              "a category.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "ancient_primary",
+            who: "The 400-Year Stela",
+            sourceKey: "tla_four_hundred_year_stela",
+            reference: "Cairo JdE 60539; the prayer, Breasted 1906 section 542",
+            says:
+              "Hail to thee, O Set, son of Nut, great in strength in the barque of millions of years, " +
+              "overthrowing enemies in front of the barque of Re, great in terror.",
+            adds:
+              "THE POSITIVE CASE, ON A DATED ROYAL MONUMENT. Not an inference from a vignette: a king's stela " +
+              "in the thirteenth century BCE praising Seth for defending the sun. On the same stone, Seti is " +
+              "titled High Priest of Seth among the offices of state.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "ancient_primary",
+            who: "Mut el-Kharab: the overwritten doorway block, and the temple around it",
+            sourceKey: "hope_warfe_2017",
+            reference: "Hope and Warfe 2017, pages 274-275 and 281, citing Kaper 2001",
+            says:
+              "Seth's crouching animal determinative and the epithet 'great of strength' are overwritten with " +
+              "a seated-god sign and 'the great god', from the Twenty-fifth Dynasty onward — while the same " +
+              "temple is maintained, expanded and given donations, and Seth-bearing personal names continue. " +
+              "The attack on Seth's image 'cannot be considered systematic or complete'.",
+            adds:
+              "THE REAL HOSTILITY, AND ITS LIMITS, IN ONE PLACE. This is the link that stops the record " +
+              "becoming a denial: something genuinely happened to Seth in Egypt. It was late, it was uneven, " +
+              "and at this site it coexisted with endowment. He is being rewritten and funded in the same " +
+              "decades.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "later_antiquity",
+            who: "Plutarch, De Iside et Osiride",
+            year: 120,
+            sourceKey: "plutarch_isis_osiris",
+            reference: "Throughout; Set is rendered Typhon",
+            says:
+              "Identifies Set with Typhon — in Greek myth a monstrous chaos-serpent who fights Zeus and loses " +
+              "— consistently, as the natural translation.",
+            adds:
+              "THE TRANSLATION THAT DOES THE DAMAGE, AND IT IS NOT A LIE. Typhon is an unambiguous monster; " +
+              "Set is not. The equation keeps the danger and discards the royalty, the protection and the " +
+              "necessity. But by 100 CE there was something real for it to catch, so the fault is not " +
+              "invention — it is taking the Set of one moment for the Set of three millennia. AFTER THIS " +
+              "LINK, EUROPE MEETS SET PRE-SIMPLIFIED.",
+            citationStatus: "verified",
+            notes:
+              "Cited as evidence about Greco-Roman reception, never as a description of Egyptian religion in " +
+              "any earlier period.",
+          },
+          {
+            stage: "later_antiquity",
+            who: "Christian-era readings of pagan gods as demons",
+            saysAbsentReason:
+              "NOT TRACED. This dataset asserts the step — that the Greco-Roman Typhon was absorbed into a " +
+              "Christian framework in which pagan gods become demons — and has read no author, no passage " +
+              "and no date for it. The step is plausible and standard, and plausible and standard is what " +
+              "this whole record exists to distrust.",
+            adds:
+              "Presumptively, the CATEGORY: a single cosmic adversary opposed to a single good god, which is " +
+              "not an Egyptian idea. That is the specific thing 'Satan' contributes and the reason the word " +
+              "misdescribes Set. Recorded as presumptive because nobody here has opened a text.",
+            citationStatus: "no_citation_given",
+          },
+          {
+            stage: "early_scholarship",
+            who: "Victorian and Edwardian Egyptological popularisation",
+            saysAbsentReason:
+              "NOT TRACED. The dataset asserts that nineteenth-century popular Egyptology carried Typhon into " +
+              "English and fixed the hostile Set in general readership. No author, title, page or date has " +
+              "been established for it here.",
+            adds:
+              "Presumptively, reach — the move from a learned Greek text to a general English-speaking " +
+              "audience. Unverified.",
+            citationStatus: "no_citation_given",
+            notes:
+              "Bonwick 1878 is a known example of the genre and is read in the Horus dataset. Whether he or " +
+              "his contemporaries carried the Set-as-devil reading specifically has not been checked, and is " +
+              "not assumed here from the fact that they were available.",
+          },
+          {
+            stage: "popular_claim",
+            who: "Modern film, television, comics and games",
+            saysAbsentReason:
+              "NOT TRACED, DELIBERATELY. Naming works from memory is exactly the unchecked confident detail " +
+              "this dataset is built to avoid, and a wrong title would undercut the record's own argument. " +
+              "The set-in-modern-popular-culture record makes the same refusal for the same reason.",
+            adds:
+              "Presumptively, the form in which almost everyone now meets Set: an evil god of darkness, enemy " +
+              "of a heroic sky god, frequently Satanic in framing. MORE PEOPLE HAVE MET THIS VERSION IN FIFTY " +
+              "YEARS THAN MET THE EGYPTIAN GOD IN THREE THOUSAND, which is why the link belongs in the chain " +
+              "even unread.",
+            citationStatus: "no_citation_given",
+          },
+          {
+            stage: "current_scholarship",
+            who: "Hope and Warfe, The Proscription of Seth Revisited",
+            year: 2017,
+            sourceKey: "hope_warfe_2017",
+            reference: "Page 281",
+            says:
+              "The attack on Seth's image cannot be considered systematic or complete. Religious vilification " +
+              "and physical erasure are different phenomena; vilification is specific to its cult context; " +
+              "the damage is real but selective, and often accompanies damage to other signs.",
+            adds:
+              "THE CURRENT POSITION, AND IT REFUSES BOTH SIMPLE ANSWERS. Not 'Set was never hated' and not " +
+              "'Egypt turned against Set'. A set of local acts with different timings, motives and " +
+              "completeness — which is harder to say and is what the evidence supports.",
+            citationStatus: "verified",
+          },
+        ],
+      },
+    ],
+    claims: [
+      {
+        sourceKey: "hope_warfe_2017",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "When Set became the Egyptian Satan",
+        originalDateText: "Never, in those terms. There is no such date and the question is malformed",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "WHY THIS CLAIM CARRIES NO DATE, AND WHY IT EXISTS ANYWAY. It is the question readers arrive with, " +
+          "and the honest answer is that it has no answer — not because the evidence is thin, but because " +
+          "the category is imported. Egyptian religion has no single cosmic adversary for Set to be.\n\n" +
+          "WHAT DID HAPPEN, DATED WHERE IT CAN BE: hostility becomes visible across the first millennium BCE, " +
+          "unevenly and site by site; the name is respelled at Mut from the Twenty-fifth Dynasty onward; the " +
+          "Greek identification with Typhon is in place by Plutarch's day. THREE DIFFERENT PROCESSES, and " +
+          "collapsing them into one moment is what produces the question.",
+      },
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "Whether this dataset has traced the modern half of the claim",
+        originalDateText: "It has not. Three links are unread",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "RECORDED AS A CLAIM SO THE GAP IS VISIBLE IN THE SAME PLACE AS THE ARGUMENT. The ancient half of " +
+          "this chain is built from editions that were opened — Gardiner, the Thesaurus Linguae Aegyptiae, " +
+          "Breasted, Hope and Warfe. The modern half is asserted: Christian-era demonology, Victorian " +
+          "popularisation, and the screen version have no author, date or page here.\n\n" +
+          "SO THIS RECORD IS STRONGEST EXACTLY WHERE IT IS MOST CHECKED AND WEAKEST WHERE IT AGREES WITH " +
+          "ITSELF, which is the usual direction for a gap to run and the reason for saying so out loud.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for all three unread links. Any one of them would improve this record " +
+          "more than another ancient citation would.",
+      },
+    ],
+  },
+
+  {
     slug: "set-in-modern-popular-culture",
     title: "MODERN: Set as film villain, comic antagonist, game boss",
     summary:
