@@ -87,7 +87,9 @@ function isPrivateIPv6(host: string): boolean {
 export function isFetchableWebUrl(raw: string): { ok: true; url: URL } | { ok: false; reason: string } {
   let url: URL;
   try {
-    url = new URL(raw);
+    // Only bundled drawings may use a same-origin path.
+    const local = /^\/images\/sacred-trees\/[a-z-]+\.png$/.test(raw);
+    url = local ? new URL(raw, process.env.NEXT_PUBLIC_SITE_URL ?? "https://relate.click") : new URL(raw);
   } catch {
     return { ok: false, reason: "not a valid URL" };
   }

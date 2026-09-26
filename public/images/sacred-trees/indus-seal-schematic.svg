@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="620" viewBox="0 0 800 620" role="img" aria-label="Interpretive schematic of a figure in a pipal tree on an Indus seal">
+  <rect width="800" height="620" fill="#f5edda"/>
+  <rect x="75" y="95" width="650" height="420" rx="12" fill="#e4d2ab" stroke="#584834" stroke-width="9"/>
+  <g fill="none" stroke="#584834" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M400 450 V230 M400 340 C320 260 252 270 205 235 M400 325 C480 245 548 260 595 225" stroke-width="25"/>
+    <path d="M205 235 l-35 -35 m35 35 l-55 5 m88 12 l-20 -65 M595 225 l35 -35 m-35 35 l55 5 m-88 12 l20 -65" stroke-width="15"/>
+    <circle cx="400" cy="230" r="24" fill="#584834"/>
+    <path d="M400 256 v85 m0 20 l-48 70 m48 -70 l48 70 m-48 -85 l-48 -60 m48 60 l48 -60" stroke-width="14"/>
+    <circle cx="565" cy="380" r="20" fill="#584834"/>
+    <path d="M565 405 v62 m0 -42 l-50 -25 m50 25 l38 -18 m-38 60 l-32 30 m32 -30 l31 30" stroke-width="12"/>
+  </g>
+  <text x="400" y="56" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#40362c">INDUS TREE SCENE</text>
+  <text x="400" y="566" text-anchor="middle" font-family="sans-serif" font-size="19" fill="#40362c">Modern interpretive schematic • not a tracing of the seal</text>
+</svg>

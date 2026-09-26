@@ -63,6 +63,13 @@ export type PictureSource = {
 
 export const PICTURE_SOURCES: PictureSource[] = [
   {
+    key: "gallica",
+    name: "Gallica / Bibliothèque nationale de France",
+    hosts: ["gallica.bnf.fr"],
+    terms: "https://www.bnf.fr/en/reproduction-documents",
+    generally: null,
+  },
+  {
     key: "commons",
     name: "Wikimedia Commons",
     hosts: ["commons.wikimedia.org", "upload.wikimedia.org", "wikimedia.org", "wikipedia.org"],
@@ -145,6 +152,15 @@ export const PICTURE_SOURCES: PictureSource[] = [
 
 /** Which of the allowed sources, if any, is this picture from? */
 export function pictureSourceFor(url: string): PictureSource | null {
+  if (/^\/images\/sacred-trees\/[a-z-]+\.png$/.test(url)) {
+    return {
+      key: "relate-original",
+      name: "Relate",
+      hosts: [],
+      terms: "https://github.com/Oshioma/relate/blob/main/public/images/sacred-trees/README.md",
+      generally: "CC0",
+    };
+  }
   let host: string;
   try {
     host = new URL(url).hostname.toLowerCase();
