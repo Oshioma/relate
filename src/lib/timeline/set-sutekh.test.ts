@@ -863,8 +863,11 @@ test("the verdict turns on the category, not on whether Set was disliked", () =>
   assert.equal(satan.verdict, "later_interpretation");
   assert.match(satan.verdictEvidence, /What is later is the CATEGORY/i);
   // And the overturning condition is the right one: a text classifying his
-  // NATURE, not one describing him as an enemy in a story.
-  assert.match(satan.whatWouldChangeThis, /role in a story.*nature|nature/is);
+  // NATURE, not one describing him as an enemy in a story. Two assertions
+  // rather than one dotall regex — the `s` flag needs a newer target than this
+  // project compiles test files against.
+  assert.match(satan.whatWouldChangeThis, /role in a story/i);
+  assert.match(satan.whatWouldChangeThis, /nature/i);
 });
 
 test("the four unread links say they are unread, and say what they would add", () => {
