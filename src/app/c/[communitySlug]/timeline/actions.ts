@@ -47,6 +47,7 @@ import {
   EARLY_SAPIENS_TRACK,
 } from "@/lib/timeline/early-sapiens-seed";
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
+import { SACRED_TREES_EVENTS, SACRED_TREES_SOURCES, SACRED_TREES_TRACK } from "@/lib/timeline/sacred-trees-seed";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
@@ -2031,6 +2032,7 @@ type SeedDatasetSpec = {
 
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
+  { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
   { label: "Deep time",
@@ -3168,6 +3170,21 @@ export async function seedSetSutekhDataset(communitySlug: string) {
  * resemblance between cultures that demonstrably met is an honest position and
  * needs both fields to state. See serpent-kundalini-seed.ts.
  */
+export async function seedSacredTreesDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const result = await seedDataset(supabase, community, userId, {
+    events: SACRED_TREES_EVENTS,
+    sources: SACRED_TREES_SOURCES,
+    track: SACRED_TREES_TRACK,
+    label: "Sacred trees and sefirotic diagrams",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
 export async function seedSerpentKundaliniDataset(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
