@@ -3857,6 +3857,41 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for the range and for any individual spell naming Typhon-Seth.",
       },
     ],
+    media: [
+      {
+        url: commons("Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg"),
+        sourcePageUrl: commonsPage("Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg"),
+        fileName: "Papyrus magique - charme d'amour - BNUS inv 1167.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg",
+        caption:
+          "Fourth-century Greek magical papyrus from Egypt, BNUS P. gr. 1167, invoking Anubis in an attraction spell. This is genuine Greco-Egyptian magical-papyrus context, but it is not the specific PGM passage invoking Seth/Typhon and is labelled accordingly.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Bibliothèque nationale et universitaire de Strasbourg",
+        accessionNumber: "P. gr. 1167",
+        creator: "unknown ancient scribe; photograph by Pierre Tribhou",
+        objectDate: "4th century CE",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Leiden_papyrus_I_384_PGM_xii.jpg"),
+        sourcePageUrl: commonsPage("Leiden_papyrus_I_384_PGM_xii.jpg"),
+        fileName: "Leiden papyrus I 384 PGM xii.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Leiden_papyrus_I_384_PGM_xii.jpg",
+        caption:
+          "Leiden Papyrus I 384, PGM XII, a third-century Greek magical papyrus from Roman-period Egypt. It establishes the physical manuscript tradition of the PGM corpus; this photographed fragment is not claimed to be the particular Seth/Typhon spell discussed in the record.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Rijksmuseum van Oudheden, Leiden",
+        accessionNumber: "I 384",
+        objectDate: "3rd century CE",
+        licence: "Public-domain ancient work; Commons PD-Art reproduction",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
