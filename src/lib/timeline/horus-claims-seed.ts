@@ -458,8 +458,26 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "SO THIS CLAIM SAYS 'NOT FOUND HERE' AND NOT 'DOES NOT EXIST'. The difference is the whole " +
           "discipline of the dataset, and it is easiest to lose on exactly this kind of question.",
       },
-    ],
-  },
+    ],,
+    media: [
+      {
+        url: commons("Seti_I_Temple_Reliefs_at_Abydos_(X).jpg"),
+        sourcePageUrl: commonsPage("Seti_I_Temple_Reliefs_at_Abydos_(X).jpg"),
+        fileName: "Seti I Temple Reliefs at Abydos (X).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Seti_I_Temple_Reliefs_at_Abydos_(X).jpg",
+        caption:
+          "Relief in the temple of Seti I at Abydos showing Isis in bird form reviving Osiris and conceiving Horus. This is a later New Kingdom visualisation of the conception motif, not an illustration carved with the much earlier Pyramid Texts themselves.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Temple of Seti I, Abydos",
+        creator: "Kyera Giannini / Ancient World Image Bank",
+        objectDate: "Nineteenth Dynasty, reign of Seti I",
+        photographDate: "7 March 2009",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ]
+  }
 
   {
     slug: "horus-is-not-one-person",
@@ -688,6 +706,23 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "true and dodges the question, which is whether a form of Horus had a solstice association. " +
           "Plutarch gives one for Harpocrates but places the celebration of his birth days after the spring " +
           "equinox; the passage supplies no December 25 festival date.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Dendera_relief.jpg"),
+        sourcePageUrl: commonsPage("Dendera_relief.jpg"),
+        fileName: "Dendera relief.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Dendera_relief.jpg",
+        caption:
+          "Relief at Dendera associated with the mammisi/birth-house tradition and the divine child. Included as contextual evidence for Egyptian divine-birth iconography; the relief itself does not state 'December 25' and must not be presented as evidence for that fixed modern calendar date.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Dendera Temple complex",
+        creator: "Bernard Gagnon",
+        photographDate: "7 January 1989",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
