@@ -1468,6 +1468,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for specific publications and plates, which should be cited individually.",
       },
     ],
+    media: [
+      {
+        url: commons("Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg"),
+        sourcePageUrl: commonsPage("Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg"),
+        fileName: "Portrait de Champollion Le Jeune par Madame de Rumilly cropped.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg",
+        caption:
+          "1823 portrait of Jean-François Champollion holding his table of phonetic hieroglyphic signs. Included as contextual imagery for the nineteenth-century decipherment and Egyptological rediscovery through which Set's names and texts became newly readable in Europe.",
+        kind: "image",
+        shows: "portrait",
+        institution: "Musée Champollion, Vif",
+        creator: "Madame de Rumilly",
+        objectDate: "1823",
+        licence: "Public domain artwork; Commons file page records the reproduction status",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
