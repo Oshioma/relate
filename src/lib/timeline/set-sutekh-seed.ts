@@ -845,6 +845,38 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "than summarised as 'the familiar reading'.",
       },
     ],
+    media: [
+      {
+        url: commons("Khasekhemwy,_name_inscribed_on_door_jamb.jpg"),
+        sourcePageUrl: commonsPage("Khasekhemwy,_name_inscribed_on_door_jamb.jpg"),
+        fileName: "Khasekhemwy, name inscribed on door jamb.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Khasekhemwy,_name_inscribed_on_door_jamb.jpg",
+        caption:
+          "Granite door-jamb detail bearing Khasekhemwy's Horus-and-Set royal name from Hierakonpolis. The paired divine emblems are evidence for the royal titulary; political narratives about reconciliation or reunification remain interpretation.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        objectDate: "Second Dynasty, about the 27th century BCE",
+        licence: "Creative Commons Attribution-Share Alike 2.5 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Khasekhemwy_Horus-Seth_serekh.png"),
+        sourcePageUrl: commonsPage("Khasekhemwy_Horus-Seth_serekh.png"),
+        fileName: "Khasekhemwy Horus-Seth serekh.png",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Khasekhemwy_Horus-Seth_serekh.png",
+        caption:
+          "Modern line drawing of Khasekhemwy's double Horus-Set serekh. Included as a legibility aid beside the ancient object, not as independent archaeological evidence.",
+        kind: "image",
+        shows: "illustration",
+        creator: "Nephiliskos",
+        photographDate: "28 July 2012",
+        licence: "Creative Commons Attribution-Share Alike 3.0 Unported",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   // -------------------------------------------------------------------------
@@ -2260,6 +2292,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "disk emerging from his head; a stone boat that sinks beside a wooden one painted to look like " +
           "stone. WHAT REMAINS A MODERN JUDGEMENT: the word 'farce', and the assumption that a text can be " +
           "funny and religious at once in the way we mean it.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
+        sourcePageUrl: commonsPage("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
+        fileName: "Contendings of Horus and Seth (CBL Pap 1.2).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg",
+        caption:
+          "The surviving hieratic manuscript of The Contendings of Horus and Seth, Chester Beatty Library Papyrus 1.2, from Thebes. This is the primary manuscript object for the narrative, not a modern illustration of one episode.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Chester Beatty Library, Dublin",
+        accessionNumber: "Pap 1.2",
+        objectDate: "about 1160 BCE",
+        licence: "Creative Commons Public Domain Mark 1.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
