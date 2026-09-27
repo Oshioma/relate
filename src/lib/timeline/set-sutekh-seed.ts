@@ -3628,6 +3628,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "reporting the history of digging as the history of religion.",
       },
     ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab, Dakhleh Oasis, where the Ramesside Seth stela was excavated. This is site context only: the photograph does not show the stela itself, whose exact reusable image has not been verified.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3689,6 +3704,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "AT SECOND HAND. Hope and Warfe 2017, pages 274-275, citing Kaper 2001, pages 72-74. NEEDS SOURCE " +
           "VERIFICATION against Kaper directly — his figure is the thing to see, because everything about " +
           "this record turns on what the recutting actually looks like.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab, the archaeological site relevant to the overwritten Seth-determinative evidence. This photograph shows the site, not the inscribed object; the exact object image remains unverified.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3767,6 +3797,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "dataset's own open question on no evidence.",
       },
     ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab in Dakhleh Oasis, contextual location for the Greater Dakhleh Stela and the local Seth cult. This is deliberately labelled site context and is not an image of the Greater Dakhleh Stela.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3840,6 +3885,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "named on Horemheb blocks at Mut; and Amun reconstructed alongside Seth in the upper scene of the " +
           "Ramesside hymn stela. WHAT IS NOT: a shared building. Hope and Kaper say so directly, and this " +
           "claim exists to carry their limit rather than to quietly pass over it.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab in Dakhleh Oasis, contextual location for the Smaller Dakhleh Stela/Piye-period record. The exact stela image has not been verified for reuse, so this photograph must not be presented as the object.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
