@@ -53,7 +53,7 @@
 // figure reference in this file has been checked, and several are deliberately
 // absent rather than guessed.
 
-import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
+import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
 
 export const SERPENT_KUNDALINI_ANCHOR_SLUG = "pashupati-seal";
 
@@ -96,6 +96,41 @@ export const SERPENT_THREADS = {
 } as const;
 
 export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
+  {
+    key: "vian_1952_gigantomachy",
+    title: "The Gigantomachy in Greek art",
+    author: "Francis Vian",
+    reference: "Cited in this repository's Greek giants dataset for the date at which the Gigantes become serpent-legged",
+    sourceType: "academic_paper",
+    publishedYear: 1952,
+    notes:
+      "NOT READ HERE, AND CITED AT ONE REMOVE, which is stated because it matters. This dataset takes the " +
+      "post-380 BCE date for the serpent-legged Gigantes from the record `gigantes-gigantomachy` in this " +
+      "repository's Greek giants collection, where it was entered against Vian. The underlying work has not " +
+      "been opened by this collection.\n\n" +
+      "WHY A SECOND-HAND CITATION IS WORTH HAVING ANYWAY: this is the collection's only DATED case of " +
+      "serpent iconography arriving late and traceably inside a single culture, and a serpent collection " +
+      "without such a case can only argue in one direction.\n\n" +
+      "NEEDS SOURCE VERIFICATION for Vian's own wording and for how firm the art-historical consensus on " +
+      "the date actually is.",
+  },
+  {
+    key: "egyptian_serpent_adversary",
+    title: "Apep as the adversary, and Set as the god who kills him",
+    reference: "Cited from this repository's Set/Sutekh dataset, where the iconography was entered with its objects",
+    sourceType: "religious_text",
+    notes:
+      "A CROSS-REFERENCE RATHER THAN A NEW SOURCE. The Egyptian material this collection needs already sits " +
+      "in the record `set-spears-apep`: Set spearing the serpent Apep from the solar barque, with a " +
+      "photograph of the scene attached there.\n\n" +
+      "WHAT IT CONTRIBUTES TO A KUNDALINI COLLECTION, which is not what a reader expects. In Egypt the " +
+      "serpent in this role is the ENEMY — destroyed nightly so that the sun can rise — and the god doing " +
+      "the destroying is Set, the one later writers call the Egyptian Satan. There is no coil at the base of " +
+      "anything, no ascent, and no awakening. It is a serpent tradition that the Kundalini reading has no " +
+      "purchase on at all.\n\n" +
+      "NEEDS SOURCE VERIFICATION for the individual texts and spells, which are not cited by number either " +
+      "here or in the Set dataset.",
+  },
   {
     key: "marshall_mohenjo_daro",
     title: "Mohenjo-daro and the Indus Civilization",
@@ -522,5 +557,259 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         creditFrom: "source",
       },
     ],
+  },
+
+  // -------------------------------------------------------------------------
+  // THE CONTROL RECORD
+  //
+  // Every other record in this collection is at risk of reading as a brick in
+  // one argument: that the serpent is everywhere, means one thing, and that
+  // thing is Kundalini. This record exists to make that argument falsifiable
+  // from inside the collection, using material this repository has already
+  // sourced elsewhere rather than anything gathered to prove a point.
+  // -------------------------------------------------------------------------
+  {
+    slug: "serpent-is-not-one-symbol",
+    title: "Three serpents, three meanings, three dates: the collection's control",
+    summary:
+      "Egypt's serpent is the enemy. Greece's serpent limbs arrive after 380 BCE. Mesopotamia's two serpents belong to a named god's cult. None of them is an inner energy, and the dates are two thousand years apart.",
+    description:
+      "WHAT KIND OF RECORD IS THIS? A control — the record that tests what the rest of the collection " +
+      "claims, rather than adding to it.\n\n" +
+      "A NOTE ON ITS OWN CLASSIFICATION, because writing this record argued with the collection's rules " +
+      "and the rules won. It was first entered with `kundaliniRelation` unset, on the reasoning that a " +
+      "record making no Kundalini claim should not carry a Kundalini label. The collection's own guard " +
+      "rejected that: a record with no stated relation lets the reader supply one, which is exactly the " +
+      "failure the two fields exist to prevent, and an empty field is not neutral on a page. It is filed " +
+      "as `cross_cultural_parallel` — the category the comparison belongs to — and the comparison it " +
+      "draws is that these three serpents have nothing in common.\n\n" +
+      "WHY A COLLECTION LIKE THIS NEEDS ONE. Assemble enough serpents from enough places and the assembly " +
+      "argues on its own, whatever the captions say. A reader scrolling past Mohenjo-daro, Lagash and a " +
+      "cakra diagram will draw the line even where every individual record refuses to. The only honest " +
+      "answer is to put the counter-evidence in the same collection, at the same size.\n\n" +
+      "THE THREE CASES, AND ALL THREE ARE ALREADY EVIDENCED IN THIS REPOSITORY.\n\n" +
+      "EGYPT: THE SERPENT IS THE ADVERSARY. Apep is destroyed nightly so the sun can rise, and the god who " +
+      "spears him is Set. No coil, no base of a spine, no ascent, no awakening — and the killing is the " +
+      "point. See `set-spears-apep`, which carries the scene as a photograph.\n\n" +
+      "GREECE: THE SERPENT LIMBS ARE LATE, AND THE DATE IS KNOWN. In Archaic and Classical art the Gigantes " +
+      "are man-sized hoplites — helmet, shield, spear, fully human. The serpent-legged monster appears after " +
+      "about 380 BCE and is standard by the Pergamon Altar. THIS IS THE MOST USEFUL FACT IN THE COLLECTION, " +
+      "because it is a case where serpent iconography demonstrably arrives inside a single culture, late, " +
+      "for reasons internal to that culture's art. Anything that treats serpent imagery as primordial has to " +
+      "account for it. See `gigantes-gigantomachy`.\n\n" +
+      "MESOPOTAMIA: THE SERPENTS BELONG TO A GOD. Two serpents entwined about a central axis, around 2100 " +
+      "BCE, dedicated to Ningishzida — a deity with his own functions in his own religion, describable by " +
+      "specialists without reference to India. See `gudea-vase-entwined-serpents` in this collection.\n\n" +
+      "WHAT THE THREE TOGETHER ESTABLISH, AND WHAT THEY DO NOT. They establish that serpent imagery carries " +
+      "at least three unrelated meanings across cultures that are two thousand years apart, and that in one " +
+      "case the imagery can be dated to a moment of change. They do NOT establish that no serpent symbol " +
+      "ever meant anything like an inner energy — that would be the same overreach with the sign flipped. " +
+      "Three cases are three cases.\n\n" +
+      "WHAT WOULD MAKE THIS RECORD WRONG: a specialist in any of these three traditions arguing, in print, " +
+      "that the serpent in that tradition does carry a doctrine about energy in a body. None is known to " +
+      "this dataset, and none has been searched for properly, which is the honest state of it.\n\n" +
+      "THINGS TO ASK: If the same image means the enemy in one place and a god's emblem in another, what " +
+      "work is the word 'universal' doing? What would a symbol have to do to earn it?",
+    category: "archaeology",
+    subcategory: "Comparison",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "cross_cultural_parallel",
+    transmissionStatus: "not_applicable",
+    argumentsFor:
+      "EACH OF THE THREE CASES IS SOURCED SOMEWHERE IN THIS REPOSITORY ALREADY, and none was gathered for " +
+      "this record — they were entered for other collections, on their own evidence, before this comparison " +
+      "was drawn. That is the strongest thing about them: they are not a selection made to win an argument.",
+    argumentsAgainst:
+      "THREE CASES ARE NOT A SURVEY. A genuine test would need the serpent traditions this dataset has NOT " +
+      "looked at — Chinese, Mesoamerican, West African, Australian, Norse — and it would need a specialist " +
+      "in each. This record could be selecting the three that happen to disagree. It also rests on the " +
+      "Greek date at one remove: Vian 1952 has not been read here, only cited through another record.",
+    tags: [
+      SERPENT_THREADS.serpent,
+      SERPENT_THREADS.serpentStaff,
+      "comparison",
+      "control-record",
+      "egypt",
+      "greece",
+      "mesopotamia",
+    ],
+    civilisations: ["Ancient Egypt", "Ancient Greece", "Sumer"],
+    people: [],
+    claims: [
+      {
+        sourceKey: "vian_1952_gigantomachy",
+        startYear: -379,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "approximate_date",
+        whatIsDated: "When Greek art started giving the Gigantes serpent legs",
+        originalDateText: "Serpent-legged Gigantes appear in art after about 380 BCE",
+        datingMethod: "stylistic_comparison",
+        chronology: "conventional",
+        evidence:
+          "THE ONE DATED PIECE OF COUNTER-EVIDENCE IN THIS COLLECTION. Before this, three centuries of " +
+          "Archaic and Classical art show the Gigantes as man-sized soldiers in human form; after it, the " +
+          "serpent-legged type spreads. DATING METHOD: stylistic comparison across a corpus of vases and " +
+          "sculpture, which dates a change in pictures rather than an event.\n\n" +
+          "WHY IT BELONGS IN A KUNDALINI COLLECTION: it is a worked example of serpent iconography being " +
+          "INVENTED, inside a literate culture, at a datable moment, for reasons that have nothing to do " +
+          "with the human body.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and specifically at one remove: this date is taken from the record " +
+          "`gigantes-gigantomachy` in this repository's Greek giants collection, where it was entered " +
+          "against Vian 1952. Vian has not been opened by this collection, and the firmness of the " +
+          "art-historical consensus on the date has not been checked.",
+      },
+      {
+        sourceKey: "egyptian_serpent_adversary",
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "When the Egyptian serpent-as-adversary tradition began",
+        originalDateText: "Not established here. The role is attested across much of pharaonic history",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "A POSITIONLESS CLAIM, AND IT HAS TO BE. The Apep material spans millennia and this dataset cites " +
+          "no individual spell by number, so any start year would be invented. WHAT IS ESTABLISHED WITHOUT A " +
+          "DATE: that the role exists and that it is adversarial — the serpent is destroyed, nightly, and " +
+          "the destruction is the religious content.",
+        notes:
+          "NEEDS SOURCE VERIFICATION for the earliest and latest securely dated attestations, which would " +
+          "turn this from a role into a span. The same gap is recorded on `set-spears-apep`, and closing it " +
+          "there closes it here.",
+      },
+    ],
+    genealogies: [
+      {
+        key: "serpent-universal-energy",
+        claim: "The serpent is a universal symbol of the same inner energy, recognised independently by every ancient culture",
+        verdict: "later_interpretation",
+        verdictEvidence:
+          "THE CLAIM IS NOT ABSURD AND IT IS NOT ANCIENT. Serpents really are widespread in ancient art, and " +
+          "some traditions really do connect serpents to life, healing and renewal. What is later is the " +
+          "SYNTHESIS: the step from 'serpents appear in many places' to 'they all encode one doctrine about " +
+          "energy in the body' is an interpretive move, and it is made by identifiable modern writers rather " +
+          "than by any ancient source.\n\n" +
+          "THE THREE CASES ON THIS RECORD ARE WHAT THE VERDICT RESTS ON. An adversary destroyed nightly, a " +
+          "monster-limb convention invented after 380 BCE, and a named god's emblem are not three " +
+          "expressions of one idea, and no ancient text known to this dataset groups them.",
+        whatWouldChangeThis:
+          "An ancient source — not a modern comparativist — that itself treats serpent symbols from more " +
+          "than one culture as the same thing, or a specialist argument that any one of these three " +
+          "traditions carries a doctrine about energy in a body. Either would move this off " +
+          "`later_interpretation`.",
+        links: [
+          {
+            stage: "ancient_primary",
+            who: "The objects themselves: Apep in Egyptian iconography, the Gigantes in Greek art, the Gudea vase",
+            sourceKey: "egyptian_serpent_adversary",
+            adds:
+              "Serpents, in quantity, across cultures — and nothing that connects them. THE ABSENCE IS THE " +
+              "CONTENT OF THIS LINK: no ancient source known to this dataset compares serpent symbols across " +
+              "traditions, and the comparison is what the claim needs.",
+            saysAbsentReason:
+              "There is no quotation to give, because the claim at this stage is about what these objects do " +
+              "NOT say. Quoting one of them would misrepresent the link as positive evidence.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "early_scholarship",
+            who: "Nineteenth- and early twentieth-century comparative mythology",
+            adds:
+              "PRESUMPTIVE, AND MARKED SO. The step from scattered serpents to one underlying symbol is the " +
+              "characteristic move of comparative mythology in this period, and this dataset expects the " +
+              "chain to run through it. NO AUTHOR, TITLE, DATE OR PAGE IS ENTERED, because naming one from " +
+              "memory would put a fabricated citation at the load-bearing point of a chain about fabricated " +
+              "citations.",
+            saysAbsentReason:
+              "Unread. No work of comparative mythology has been opened by this collection.",
+            citationStatus: "unverified",
+          },
+          {
+            stage: "alternative_interpretation",
+            who: "Twentieth-century esoteric and Theosophical writing on serpent wisdom",
+            adds:
+              "PRESUMPTIVE. This is where the comparison is expected to acquire the specific claim that the " +
+              "shared referent is an energy in the body. This repository's Lemuria collection already " +
+              "documents the adjacent habit — Churchward's 'Naga-Maya' tablets, shown once and never " +
+              "produced — which is a reason to expect the stage and not evidence that it exists.",
+            saysAbsentReason: "Unread. No specific work is named, for the same reason as the link above.",
+            citationStatus: "unverified",
+          },
+          {
+            stage: "popular_claim",
+            who: "The modern form: the Gudea vase reproduced beside a cakra diagram",
+            adds:
+              "The claim in the shape a reader actually meets it — two images side by side, with no argument " +
+              "between them and no dates on either. That juxtaposition is doing all the work, and it is " +
+              "exactly what this collection's structure exists to take apart.",
+            saysAbsentReason:
+              "No single publication is cited. The claim circulates as a visual pairing rather than as a " +
+              "sentence anybody signed, which is itself the finding.",
+            citationStatus: "no_citation_given",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// LINKS OUT OF THE COLLECTION
+//
+// The brief asked for a cross-civilisation comparison. The honest form of one is
+// not a new table of unresearched claims: it is explicit links to records whose
+// dates were already established elsewhere in this repository, so a reader can
+// reach the counter-evidence without taking this collection's word for it.
+// ---------------------------------------------------------------------------
+
+export const SERPENT_KUNDALINI_LINKS: SeedEventLink[] = [
+  {
+    from: "serpent-is-not-one-symbol",
+    to: "set-spears-apep",
+    relation: "evidence_for",
+    viewpoint: "archaeological",
+    note:
+      "Egypt's serpent, and the case the Kundalini reading has no purchase on: Apep is the adversary, speared " +
+      "nightly so the sun can rise, and the god doing it is Set. That record carries the scene as a photograph.",
+  },
+  {
+    from: "serpent-is-not-one-symbol",
+    to: "gigantes-gigantomachy",
+    relation: "evidence_for",
+    viewpoint: "archaeological",
+    note:
+      "The collection's one DATED counter-example. Serpent-legged Gigantes appear in Greek art after about 380 " +
+      "BCE; for three centuries before that they are man-sized hoplites in human form. Serpent iconography " +
+      "being invented, late, inside a literate culture.",
+  },
+  {
+    from: "serpent-is-not-one-symbol",
+    to: "gudea-vase-entwined-serpents",
+    relation: "evidence_for",
+    viewpoint: "archaeological",
+    note:
+      "Mesopotamia's two serpents about an axis — the most reproduced 'ancient Kundalini' image there is, and " +
+      "the dedication is to Ningishzida.",
+  },
+  {
+    from: "serpent-is-not-one-symbol",
+    to: "horus-spears-set-edfu",
+    relation: "relevant",
+    viewpoint: "archaeological",
+    note:
+      "The same spearing composition with the roles swapped: here Set is the one speared. A reminder that in " +
+      "Egyptian iconography the figure on the point of the spear is a position in a scene, not a fixed meaning.",
+  },
+  {
+    from: "pashupati-seal",
+    to: "serpent-is-not-one-symbol",
+    relation: "responds_to",
+    note:
+      "Read the control record before the seal. The Pashupati identification is the collection's most " +
+      "frequently repeated claim and its script is undeciphered, so it is the record most in need of the " +
+      "counter-cases stated beside it.",
   },
 ];
