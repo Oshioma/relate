@@ -1542,6 +1542,12 @@ export const IDENTIFICATION_STATUSES = [
     hint:
       "A modern reading, emblem or reconstruction. It may be careful, scholarly and interesting, and it is not ancient evidence. Anything made after roughly 1800 belongs here unless it is a photograph of something older.",
   },
+  {
+    key: "unverified",
+    label: "UNVERIFIED",
+    hint:
+      "Relevant visual material whose exact image-to-object, image-to-claim, attribution or identification has not been verified. The caption must say what is uncertain and must not present the image as direct evidence.",
+  },
 ] as const;
 
 export type IdentificationStatusKey = (typeof IDENTIFICATION_STATUSES)[number]["key"];
