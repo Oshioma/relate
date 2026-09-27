@@ -106,8 +106,16 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
     notes:
       "A royal stela commemorating a four-hundred-year era of Set/Sutekh. THE REASON IT MATTERS TO THIS " +
       "TIMELINE'S ARCHITECTURE: it carries two dates that must never be merged — when it was made, and what " +
-      "it claims to commemorate. NEEDS SOURCE VERIFICATION for its museum location, its inscription and the " +
-      "scholarly literature on what the four hundred years are counted from.",
+      "it claims to commemorate.\n\n" +
+      "TWO OF THE THREE THINGS THIS NOTE USED TO ASK FOR HAVE SINCE ARRIVED, and leaving the request " +
+      "standing was telling a reader the record does not know what the record plainly knows. The object is " +
+      "in the Egyptian Museum, Cairo, as JdE 60539. Its inscription is on the record beneath this source in " +
+      "transliteration — quoted from the Thesaurus Linguae Aegyptiae, whose text follows Kitchen, Ramesside " +
+      "Inscriptions II, 287-288, collated with a photograph — together with a translation of the TLA's " +
+      "German and Breasted's independent English.\n\n" +
+      "STILL NEEDS SOURCE VERIFICATION for the one part that has not moved: the scholarly literature on " +
+      "what the four hundred years are counted FROM. No publication arguing for a particular founding event " +
+      "was opened. Sethe 1930, Montet 1933 and Habachi are the trail, and none of them has been read here.",
   },
   {
     key: "tla_four_hundred_year_stela",
