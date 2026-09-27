@@ -628,7 +628,11 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         evidence:
           "WHAT IS CLAIMED: about 3100 BCE. WHY BOTH ENDS ARE HERE: a century of disagreement on an object of " +
           "this importance is worth seeing, and a midpoint would be a number nobody actually proposes.",
-        notes: "NEEDS SOURCE VERIFICATION, as above.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and 'as above' was not good enough: a reader who followed it arrived at " +
+          "another flag naming nobody. WHAT WOULD CLEAR THIS: a publication proposing this date, cited on this " +
+          "claim. The record prints two dates a century apart and attributes neither, which is the part that " +
+          "makes the disagreement unusable — a reader can see that scholars differ but not who differs or why.",
       },
       {
         sourceKey: null,
@@ -706,7 +710,14 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "chronology is built from king lists, regnal counts and archaeology, and carries real uncertainty — " +
           "commonly a century or more at this depth. The identification below is far more secure than the date, " +
           "which is the reverse of the usual situation in this dataset.",
-        notes: "NEEDS SOURCE VERIFICATION against a current Early Dynastic chronology.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and the old wording could never be satisfied: 'a current chronology' " +
+          "names nothing, so no state of this record would have cleared it.\n\n" +
+          "WHAT WOULD CLEAR IT: naming the chronology these years come from. `chronology: \"conventional\"` " +
+          "records a VIEWPOINT — that these are mainstream rather than alternative dates — and not a source. " +
+          "Shaw's Oxford History of Ancient Egypt and Hornung, Krauss and Warburton's Ancient Egyptian " +
+          "Chronology are the two standard references and NEITHER HAS BEEN OPENED HERE. Early Dynastic dates " +
+          "differ between them by a century or more, so which one is being followed is not a formality.",
       },
       {
         sourceKey: null,
@@ -793,7 +804,12 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         evidence:
           "WHAT IS DATED: the last reign of the Second Dynasty, placed by king lists and archaeology with the " +
           "usual Early Dynastic uncertainty.",
-        notes: "NEEDS SOURCE VERIFICATION against a current chronology.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, with the same defect as the Peribsen claim and the same fix: " +
+          "'a current chronology' names nothing and cannot be satisfied.\n\n" +
+          "WHAT WOULD CLEAR IT: the reference work these years are taken from, named on the claim. Shaw's " +
+          "Oxford History of Ancient Egypt and Hornung, Krauss and Warburton's Ancient Egyptian Chronology " +
+          "are the trail; neither has been opened here.",
       },
       {
         sourceKey: null,
@@ -1386,7 +1402,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHAT IS DATED: the period in which Set was reconstructed from primary Egyptian sources for the " +
           "first time since antiquity. WHY IT STARTS IN THE 1820s: before decipherment the inscriptions were " +
           "present and unreadable, so no reconstruction from them was possible.",
-        notes: "NEEDS SOURCE VERIFICATION for specific publications and plates, which should be cited individually.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and the old wording asked for 'specific publications' without naming " +
+          "one, which is the same gap it was complaining about.\n\n" +
+          "WHAT WOULD CLEAR IT: this record covers a century of scholarship and cites no single work. Two " +
+          "would be enough to start — Champollion's Lettre à M. Dacier (1822) for the decipherment that opens " +
+          "the range, and any one study of Set specifically for what was reconstructed about HIM rather than " +
+          "about Egyptian religion generally. Neither is cited here and neither has been read.",
       },
     ],
   },
@@ -1437,7 +1459,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         evidence:
           "WHAT IS DATED: an organisational founding, included ONLY because the Temple of Set later emerged " +
           "from it. WHAT IT DOES NOT IMPLY: any identification of Set with Satan.",
-        notes: "NEEDS SOURCE VERIFICATION against independent accounts.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and 'independent accounts' did not say independent of what.\n\n" +
+          "WHAT WOULD CLEAR IT: a date carried by a source that is not the organisation describing itself. " +
+          "Everything this record knows about the 1966 founding comes from the movement's own account of its " +
+          "own origins, which is the weakest possible footing for a founding date and is worth saying plainly " +
+          "rather than leaving as a generic request. A scholarly study of new religious movements would " +
+          "settle it; this dataset has not identified one.",
       },
       {
         sourceKey: null,
@@ -1524,7 +1552,14 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "contain. Much of the material is generally held to be older than the walls it is written on, " +
           "transmitted before it was inscribed — but HOW MUCH older is not recoverable, and this record does " +
           "not guess. The inscribed date is what the evidence gives.",
-        notes: "NEEDS SOURCE VERIFICATION against a current edition and a current Old Kingdom chronology.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and it asked for two unnameable things at once — 'a current edition' " +
+          "and 'a current Old Kingdom chronology'.\n\n" +
+          "WHAT WOULD CLEAR IT, as two separate jobs. THE EDITION: Sethe's Die altaegyptischen Pyramidentexte " +
+          "is the classic edition and Allen's The Ancient Egyptian Pyramid Texts the standard English " +
+          "translation; neither has been opened, which is also why no utterance is cited by number anywhere " +
+          "in this dataset. THE CHRONOLOGY: the reference work these Fifth-to-Sixth Dynasty years come from, " +
+          "named — see the Peribsen claim for why `conventional` does not answer that.",
       },
       {
         sourceKey: "pyramid_texts",
@@ -1687,7 +1722,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHAT IS DATED: a period of rule, from king lists, monuments and the stratigraphy of Tell el-Dabaa. " +
           "WHY THE RANGE: Second Intermediate Period chronology is among the less settled parts of Egyptian " +
           "dating, and both ends carry decades of uncertainty.",
-        notes: "NEEDS SOURCE VERIFICATION against current Second Intermediate Period chronology.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and 'current Second Intermediate Period chronology' is the least " +
+          "satisfiable version of this request in the dataset, because that period's chronology is precisely " +
+          "the one with no settled version to be current.\n\n" +
+          "WHAT WOULD CLEAR IT: the scheme these years follow, named, and the competing schemes named beside " +
+          "it. The disagreement is the useful content here — a single range hides it. Hornung, Krauss and " +
+          "Warburton's Ancient Egyptian Chronology sets the competing positions out; it has not been opened.",
       },
       {
         sourceKey: null,
@@ -2812,7 +2853,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHAT IS DATED: a reign, on conventional New Kingdom chronology, which is better founded than the " +
           "earlier periods in this dataset but still carries competing high, middle and low schemes differing " +
           "by decades.",
-        notes: "NEEDS SOURCE VERIFICATION against a current New Kingdom chronology.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and the evidence line above already says it better than the flag did: " +
+          "there are competing high, middle and low schemes differing by decades. So 'a current chronology' " +
+          "is not one thing.\n\n" +
+          "WHAT WOULD CLEAR IT: which of those schemes these years follow, named on the claim. Shaw's Oxford " +
+          "History of Ancient Egypt and Hornung, Krauss and Warburton's Ancient Egyptian Chronology are the " +
+          "trail; neither has been opened here.",
       },
     ],
   },
@@ -2882,8 +2929,14 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "the Hittite storm god written Egyptian-fashion, or several local Sutekhs listed by place. WHAT IS " +
           "ESTABLISHED: the sign is there. WHAT IS NOT: exactly whom it names in each instance.",
         notes:
-          "NEEDS SOURCE VERIFICATION. This is the detail a reader would most want checked and it has not " +
-          "been checked here.",
+          "NEEDS SOURCE VERIFICATION, and the old wording said only that it mattered, which is not a job " +
+          "anybody can do.\n\n" +
+          "WHAT WOULD CLEAR IT: the witness list's own wording, on this record, in the form the treaty gives " +
+          "it. The Egyptian version is in Kitchen's Ramesside Inscriptions — the same series this dataset " +
+          "already reaches through the Thesaurus Linguae Aegyptiae for the 400-Year Stela — and the " +
+          "Akkadian version from Boğazköy is published in Beckman's Hittite Diplomatic Texts. Neither has " +
+          "been opened. Until one is, 'Sutekh witnesses the treaty' is as far as this record can honestly go, " +
+          "and WHICH Sutekh of which place stays open.",
       },
     ],
   },
@@ -3636,7 +3689,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         evidence:
           "WHAT IS ESTABLISHED: that the text was produced in Cairo in April 1904. This is a documented " +
           "modern fact with a paper trail, and it is the part of the record that is not in dispute.",
-        notes: "NEEDS SOURCE VERIFICATION for the exact days, which are given precisely in the literature.",
+        notes:
+          "NEEDS SOURCE VERIFICATION, and 'the literature' was doing the work a citation should do.\n\n" +
+          "WHAT WOULD CLEAR IT: the days named, with the account they come from. Crowley's own The Equinox of " +
+          "the Gods is the primary account of the Cairo working and has not been opened here; a date taken " +
+          "from it would still be the claimant's own testimony about his own experience, so an independent " +
+          "treatment is worth having beside it. The month and year are not in doubt and are entered above; " +
+          "only the days are missing, which makes this one of the cheapest open items in the dataset.",
       },
       {
         sourceKey: "crowley_equinox_of_the_gods",
