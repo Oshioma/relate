@@ -458,7 +458,7 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "SO THIS CLAIM SAYS 'NOT FOUND HERE' AND NOT 'DOES NOT EXIST'. The difference is the whole " +
           "discipline of the dataset, and it is easiest to lose on exactly this kind of question.",
       },
-    ],,
+    ],
     media: [
       {
         url: commons("Seti_I_Temple_Reliefs_at_Abydos_(X).jpg"),
@@ -476,8 +476,8 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
-    ]
-  }
+    ],
+  },
 
   {
     slug: "horus-is-not-one-person",
