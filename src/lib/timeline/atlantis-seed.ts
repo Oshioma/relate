@@ -239,6 +239,37 @@ export const ATLANTIS_SOURCES: SeedSource[] = [
     notes: "Cited for the conventional span of the Younger Dryas, about 12,900 to 11,700 years ago.",
   },
   {
+    key: "webster2025_mwp1b",
+    title: "Constraints on sea-level rise during meltwater pulse 1B from the Great Barrier Reef",
+    author: "Jody M. Webster and colleagues",
+    workTitle: "Nature Communications",
+    url: "https://www.nature.com/articles/s41467-025-59858-0",
+    sourceType: "academic_paper",
+    publishedYear: 2025,
+    notes:
+      "Dates the debated Meltwater Pulse 1B interval to about 11.45–11.1 ka. The Great Barrier Reef record permits an upper-bound rise of roughly 7.7–10.2 m but the authors conclude the actual rise was likely considerably smaller. Cited for sea-level history only, not as evidence for Atlantis.",
+  },
+  {
+    key: "unesco_gobekli",
+    title: "Göbekli Tepe",
+    publisher: "UNESCO World Heritage Centre",
+    url: "https://whc.unesco.org/en/list/1572",
+    sourceType: "government",
+    notes:
+      "UNESCO dates the monumental Pre-Pottery Neolithic structures to 9600–8200 BCE and describes them as erected by hunter-gatherers. Cited to show what complex communal building is actually archaeologically demonstrated near Plato's calculated Atlantis date.",
+  },
+  {
+    key: "shanahan2015_ahp",
+    title: "The time-transgressive termination of the African Humid Period",
+    author: "Timothy M. Shanahan and colleagues",
+    workTitle: "Nature Geoscience",
+    url: "https://www.nature.com/articles/ngeo2329",
+    sourceType: "academic_paper",
+    publishedYear: 2015,
+    notes:
+      "Places the African Humid Period broadly around 14,800–5,500 years ago. Cited for the radically different hydroclimate of North Africa during the early Holocene, not for an Atlantis identification.",
+  },
+  {
     key: "leiden_quest",
     title: "Quest for Atlantis: the search for archaeological evidence of a legend",
     publisher: "Leiden University Scholarly Publications",
@@ -537,6 +568,108 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
         ],
       },
     ],
+  },
+
+  {
+    slug: "atlantis-9600-comparison-node",
+    title: "Around 9600 BCE: Plato's calculated date beside the physical record",
+    summary:
+      "A comparison node: Plato's calculated Atlantis date sits close to a real deglacial transition, but chronological overlap is not evidence that Atlantis caused it or existed.",
+    description:
+      "This record deliberately asks a narrower question than 'Was Atlantis real?': what is independently evidenced around the date produced by adding Plato's round figure of nine thousand years to the conventional date of Solon?\n\n" +
+      "THE OVERLAP IS REAL. The Younger Dryas ends around this transition; postglacial sea level is rising; a debated interval called Meltwater Pulse 1B is reconstructed at about 11.45–11.1 ka; North Africa is moving within the African Humid Period; and monumental construction at Göbekli Tepe begins around 9600 BCE.\n\n" +
+      "THE MISSING LINK IS ALSO REAL. None of those observations identifies Atlantis. No excavated city, inscription, ship assemblage, state archive or independently dated Atlantic empire matching Plato's description has been demonstrated at 9600 BCE. The comparison is therefore chronology, not causation.",
+    category: "archaeology",
+    subcategory: "Atlantis comparison",
+    eventType: "archaeological_interpretation",
+    tags: ["atlantis", "9600-bce", "younger-dryas", "sea-level", "gobekli-tepe", "comparison"],
+    claims: [
+      {
+        sourceKey: "plato_timaeus",
+        startYear: bce(9600),
+        datePrecision: "century",
+        isApproximate: true,
+        originalDateText: "about 9,000 years before Solon; ~9600 BCE is a modern calculation",
+        datingMethod: "textual_interpretation",
+        chronology: "historical",
+        evidence:
+          "Plato supplies the round interval, not 9600 BCE. The modern date is obtained by counting roughly nine thousand years back from the conventional period of Solon's Egyptian journey.",
+      },
+    ],
+  },
+  {
+    slug: "mwp1b-atlantis-window",
+    title: "Sea-level rise near the 9600 BCE Atlantis window",
+    summary:
+      "Independent reef records place the debated Meltwater Pulse 1B at about 11.45–11.1 ka, overlapping the broad chronological neighbourhood of Plato's calculated date.",
+    description:
+      "This is geological evidence for rapid postglacial sea-level change, not evidence for an Atlantean civilisation. A 2025 Great Barrier Reef reconstruction places MWP-1B around 11.45–11.1 ka and finds that the rise there did not exceed roughly 7.7–10.2 m over the interval and was likely considerably smaller. The magnitude and even expression of MWP-1B remain debated between records.",
+    category: "science",
+    subcategory: "Sea-level change",
+    eventType: "mainstream",
+    tags: ["atlantis", "sea-level", "meltwater-pulse-1b", "early-holocene"],
+    claims: [{
+      sourceKey: "webster2025_mwp1b",
+      startYear: bce(9500),
+      endYear: bce(9150),
+      datePrecision: "century",
+      isApproximate: true,
+      originalDateText: "~11.45–11.1 ka",
+      datingMethod: "radiometric",
+      chronology: "scientific",
+      evidence:
+        "U/Th and calibrated radiocarbon ages from fossil Great Barrier Reef material constrain the MWP-1B interval. This independently demonstrates substantial deglacial sea-level change close in time to the calculated Atlantis date; it does not connect that change to Plato's story.",
+    }],
+  },
+  {
+    slug: "gobekli-tepe-9600-atlantis-comparison",
+    title: "Göbekli Tepe monumental building begins around 9600 BCE",
+    summary:
+      "At almost exactly the calculated Atlantis date, hunter-gatherer communities in Upper Mesopotamia were erecting monumental megalithic structures.",
+    description:
+      "Göbekli Tepe matters to this comparison because it establishes something positive about human capability around 9600 BCE. UNESCO dates its monumental Pre-Pottery Neolithic structures to 9600–8200 BCE. It does not demonstrate cities, ocean-going fleets or an Atlantic empire, but it rules out the simplistic assumption that substantial organised monument building was impossible at this date.",
+    category: "archaeology",
+    subcategory: "Pre-Pottery Neolithic",
+    eventType: "mainstream",
+    tags: ["gobekli-tepe", "9600-bce", "monumental-architecture", "atlantis-comparison"],
+    locationName: "Göbekli Tepe, Türkiye",
+    claims: [{
+      sourceKey: "unesco_gobekli",
+      startYear: bce(9600),
+      endYear: bce(8200),
+      datePrecision: "century",
+      isApproximate: true,
+      originalDateText: "9600–8200 BCE",
+      datingMethod: "archaeological",
+      chronology: "archaeological",
+      evidence:
+        "UNESCO's site chronology for the monumental structures. This is direct archaeological context for complex communal construction at the beginning of the Holocene, not evidence that Göbekli Tepe was Atlantis.",
+    }],
+  },
+  {
+    slug: "green-sahara-atlantis-window",
+    title: "North Africa during the early-Holocene humid transition",
+    summary:
+      "North Africa around the broad Atlantis window was environmentally unlike the modern Sahara, within the long African Humid Period transition.",
+    description:
+      "Palaeoclimate evidence places the African Humid Period broadly from about 14.8 to 5.5 thousand years ago, with strong regional differences and interruptions. This matters because reconstructing a 10th-millennium-BCE world from today's coastlines, deserts and lakes is misleading. It does not locate Atlantis in Africa.",
+    category: "science",
+    subcategory: "Palaeoclimate",
+    eventType: "mainstream",
+    tags: ["african-humid-period", "green-sahara", "atlantis-comparison", "palaeoclimate"],
+    locationName: "North Africa",
+    claims: [{
+      sourceKey: "shanahan2015_ahp",
+      startYear: bce(12850),
+      endYear: bce(3550),
+      datePrecision: "millennium",
+      isApproximate: true,
+      originalDateText: "about 14,800 to 5,500 years ago",
+      datingMethod: "scientific_study",
+      chronology: "scientific",
+      evidence:
+        "Multiple North African palaeohydrological records document a much wetter interval than the modern Sahara. The transition was regionally time-transgressive, so this broad range must not be rendered as one synchronous switch.",
+    }],
   },
 
   // -------------------------------------------------------------------------
