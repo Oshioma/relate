@@ -1716,7 +1716,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "religion",
     subcategory: "Middle Kingdom",
     eventType: "religious_account",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "coffin-texts", "middle-kingdom", "funerary", "transmission"],
     civilisations: ["Ancient Egypt"],
     claims: [
@@ -1745,7 +1745,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         fileName: "Coffin of Wah MET EG156.jpg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffin_of_Wah_MET_EG156.jpg",
         caption:
-          "Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
+          "UNVERIFIED — Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
         kind: "image",
         shows: "artefact",
         institution: "Metropolitan Museum of Art, New York",
@@ -1869,7 +1869,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "history",
     subcategory: "Second Intermediate Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "sutekh", "hyksos", "avaris", "baal", "tell-el-dabaa", "delta"],
     civilisations: ["Ancient Egypt", "Levant"],
     locationName: "Tell el-Dabaa (Avaris), eastern Nile Delta, Egypt",
@@ -1928,7 +1928,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         fileName: "Scarabs with the Name of the Hyksos King Sheshi MET 30.8.462 bottom.jpg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg",
         caption:
-          "Inscribed scarab associated with King Sheshi from the Second Intermediate Period, Metropolitan Museum 30.8.462. This is contextual material culture for the Hyksos-era political world; it does not itself name Sutekh or prove the later statement about Avaris cult.",
+          "UNVERIFIED — Inscribed scarab associated with King Sheshi from the Second Intermediate Period, Metropolitan Museum 30.8.462. This is contextual material culture for the Hyksos-era political world; it does not itself name Sutekh or prove the later statement about Avaris cult.",
         kind: "image",
         shows: "artefact",
         institution: "Metropolitan Museum of Art, New York",
