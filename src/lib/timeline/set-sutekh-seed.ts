@@ -1719,6 +1719,25 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for the epithets that would turn this from a summary into evidence.",
       },
     ],
+    media: [
+      {
+        url: commons("Horus_and_Seth_crowning_Ramesses_III.JPG"),
+        sourcePageUrl: commonsPage("Horus_and_Seth_crowning_Ramesses_III.JPG"),
+        fileName: "Horus and Seth crowning Ramesses III.JPG",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Horus_and_Seth_crowning_Ramesses_III.JPG",
+        caption:
+          "Twentieth Dynasty statue of Horus and Seth together crowning Ramesses III. Included as contextual evidence that Seth could remain structurally paired with Horus in Egyptian kingship; it does not by itself prove every thematic association listed in this record.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        creator: "A. Parrot",
+        objectDate: "Twentieth Dynasty, early 12th century BCE",
+        photographDate: "31 December 2015",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -2912,6 +2931,26 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "earlier periods in this dataset but still carries competing high, middle and low schemes differing " +
           "by decades.",
         notes: "NEEDS SOURCE VERIFICATION against a current New Kingdom chronology.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Sphinx_A21,_Louvre_122006_047.jpg"),
+        sourcePageUrl: commonsPage("Sphinx_A21,_Louvre_122006_047.jpg"),
+        fileName: "Sphinx A21, Louvre 122006 047.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sphinx_A21,_Louvre_122006_047.jpg",
+        caption:
+          "Inscribed dedication by Ramesses II to the god Seth on the base of a much older sphinx from Tanis, now Louvre A21. The sphinx itself predates Ramesses II; the inscription is the relevant Ramesside evidence for royal patronage of Seth.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "A21",
+        creator: "Rama",
+        objectDate: "sphinx: Middle Kingdom; Seth dedication: reign of Ramesses II",
+        photographDate: "13 December 2006",
+        licence: "Creative Commons Attribution-Share Alike 2.0 France",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
