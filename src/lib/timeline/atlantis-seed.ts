@@ -665,7 +665,7 @@ export const ATLANTIS_EVENTS: SeedEvent[] = [
       datePrecision: "millennium",
       isApproximate: true,
       originalDateText: "about 14,800 to 5,500 years ago",
-      datingMethod: "scientific_study",
+      datingMethod: "geological",
       chronology: "scientific",
       evidence:
         "Multiple North African palaeohydrological records document a much wetter interval than the modern Sahara. The transition was regionally time-transgressive, so this broad range must not be rendered as one synchronous switch.",
