@@ -4000,6 +4000,39 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "Neither is what a timeline is for.",
       },
     ],
+    media: [
+      {
+        url: commons("Stelae_of_Ankh-af-na-khonsu.jpg"),
+        sourcePageUrl: commonsPage("Stelae_of_Ankh-af-na-khonsu.jpg"),
+        fileName: "Stelae of Ankh-af-na-khonsu.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stelae_of_Ankh-af-na-khonsu.jpg",
+        caption:
+          "Photographic image of the painted funerary stela of Ankh-ef-en-Khonsu, Cairo A 9422, later called the Stele of Revealing in Thelemic tradition. The ancient stela predates Crowley by many centuries; its importance to this record is the modern 1904 encounter and interpretation.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        accessionNumber: "A 9422",
+        objectDate: "Third Intermediate Period, about the 8th century BCE",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
+        sourcePageUrl: commonsPage("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
+        fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg",
+        caption:
+          "Modern CC0 colour vector reconstruction of the same stela, included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
+        kind: "image",
+        shows: "illustration",
+        creator: "AnkhDuck",
+        photographDate: "12 October 2020",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
