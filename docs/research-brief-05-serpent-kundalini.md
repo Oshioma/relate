@@ -1,15 +1,37 @@
 # Research brief 05 — The Serpent, Kundalini & Sacred Ascent
 
 **For a researcher with web access. Pasteable as-is.**
+
 **This is brief 05a: the foundation.** The full collection is 75–100 events.
 That is too much for one pass, so this brief covers the material the rest
-depends on. Later briefs will take the remaining sections.
+depends on.
+
+**Status as of 2026-09-27, counted from the seed files rather than remembered.**
+This brief was issued once and has not come back. It has been refreshed rather
+than reissued unchanged, because the collection moved underneath it:
+
+| | then | now |
+| --- | --- | --- |
+| Records in the collection | 3 | **4** |
+| Records carrying a picture | 0 | **3 of 4** |
+| Traceback elements dated | 0 of 26 | **0 of 26** |
+
+**Two things changed that affect what is worth asking for.** Part D below has
+been rewritten: the three records it was about now have images, and asking for
+them again would burn a round. And a **control record** has since been added —
+`serpent-is-not-one-symbol` — which sets three serpent traditions against each
+other and is the thing Part C's transmission question now feeds.
+
+**Its companion is brief 05b**, which covers the Indian textual chain and the
+traditions this brief does not reach. The two are independent; either can be
+done first.
 
 ---
 
 ## The standard
 
-Unchanged from briefs 01–04, and it has now produced three usable rounds.
+Unchanged since brief 01, and it has now produced four usable rounds — the
+400-Year Stela, Mut el-Kharab, the Contendings, and the four Horus claims.
 
 - **Quote verbatim, with page, line or catalogue references.**
 - **Never reconstruct a transliteration, accession number or figure reference
@@ -196,11 +218,43 @@ needs to be able to show a reader exactly that gap.
 
 ## PART D — Images
 
-The collection wants to be **exceptionally visual** — the eventual target is
-200+ images — and the previous rounds have shown that the binding constraint is
-licensing, not availability.
+**MOST OF WHAT THIS SECTION ORIGINALLY ASKED FOR HAS ARRIVED.** All three
+records it covered now carry pictures:
 
-For every image:
+| record | what it now has |
+| --- | --- |
+| `pashupati-seal` | `Shiva Pashupati.jpg` |
+| `indus-script-undeciphered` | two Guimet seals — `Sceau Indus taureau`, `Sceau Indus unicorne` |
+| `gudea-vase-entwined-serpents` | the Ningishzida libation vase |
+
+**So do not go looking for those again.** The image standard, the allowed hosts,
+the five conflations and the `UNVERIFIED —` caption treatment now live in
+**brief 07**, which is the canonical image brief; this section keeps only what is
+specific to these three objects and still missing.
+
+### What is still wanted, and it is narrow
+
+**D1. `pashupati-seal` — a photograph AND the standard drawing, as two entries.**
+The seal is small and worn; the drawing is how most people have actually seen it,
+and the difference between the object and the drawing is part of the record's
+subject. If what is there now is one and not the other, say which.
+
+**D2. `gudea-vase-entwined-serpents` — the Louvre's own catalogue record for
+AO 190**, as `originalSourceUrl`, plus the accession details and whatever the
+Louvre states about the object. The record currently admits it does not know the
+vase's accession number, excavation context, or what its inscription says.
+
+**D3. Is the entwined-serpent motif attested elsewhere in Mesopotamian art?**
+This is an image question and a substantive one: **a motif with a local history
+in Mesopotamian art is a very different thing from an isolated image**, and the
+record says so. Any other securely provenanced examples, with their objects.
+
+**D4. Anything labelled "ancient Kundalini" that is in fact modern.** These
+circulate heavily. A documented example — with what it actually is and when it
+was made — is worth more here than another genuine ancient object.
+
+For anything you do send, use the full field list from brief 07. The older field
+list is kept below because it is still correct, and because it names the traps:
 
 ```
 IMAGE OF:            <which object>
@@ -261,6 +315,51 @@ stated.
 
 **Q6.** What do the excavators and editors say they **cannot** establish? Their
 stated limits, quoted.
+
+---
+
+## Return format
+
+Grouped by part, one block per question or object. This brief went out without a
+return format, which is the likeliest reason nothing has come back in a shape
+that files — so it is spelled out now.
+
+**For an object** (Parts A, B, D):
+
+```
+record:        (the slug this belongs to, e.g. pashupati-seal)
+object:        (what it is)
+institution:   (who holds it)
+accession:     (catalogue or accession number)
+dateText:      (as the scholarship states it)
+startYear:     (single integer, negative for BCE)
+establishedBy: (whose dating this is — a name, not "scholars")
+quote:         (verbatim, with page or line reference)
+url:           (the page you actually opened)
+```
+
+**For a question** (Parts C, E): the question number, the answer, and the source
+you answered it from. **A "no" is an answer** — record 05 asked whether a text
+calls Seth evil, searched, found that it does not, and that negative changed a
+record.
+
+**End with three lists:**
+
+1. **ANSWERED** — with the source for each.
+2. **NOT FOUND** — every question you searched and could not settle, **with what
+   you searched**. This is not a failure list; it stops the next person
+   repeating the search, and it is entered on the records as a finding.
+3. **DISAGREEMENTS** — anywhere two scholars gave different answers, with both
+   names. The disagreement is more interesting than either answer and the
+   dataset has fields for it.
+
+**One field this brief cannot ask you to fill.** The classification fields —
+`kundaliniRelation` and `transmissionStatus` — are set in the codebase, not by
+you, because they depend on how a record sits beside the others. What is needed
+from you is the evidence that decides them, especially for Part C: whether
+contact is documented, and separately, whether anything is shown to have
+travelled along it. **Those two are not the same question and the collection
+keeps them in different fields.**
 
 ---
 

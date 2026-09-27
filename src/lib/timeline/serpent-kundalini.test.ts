@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   SERPENT_KUNDALINI_ANCHOR_SLUG,
@@ -282,5 +283,60 @@ test("the universality claim is held as a genealogy, not as a rebuttal", () => {
     unread.length >= 2,
     "the two modern stages are unread and must stay marked so — naming a work from memory here would put a " +
       "fabricated citation inside a chain about fabricated citations"
+  );
+});
+
+// ---------------------------------------------------------------------------
+// BRIEF 05a, AND THE TWO WAYS IT WENT STALE
+//
+// It was issued once and nothing came back. Two things were wrong with it, and
+// neither was the research.
+//
+// IT HAD NO RETURN FORMAT. Every other brief in this repository says what shape
+// an answer should arrive in, so the reply files straight against the records.
+// 05a asked good questions and left the researcher to invent the container.
+//
+// AND ITS IMAGE SECTION OUTLIVED ITS OWN ANSWER. It asked for pictures of the
+// three Indus and Mesopotamian records; all three now have them. Reissuing it
+// unchanged would have spent a research round re-finding files already seeded —
+// the same class of failure as a stale verification flag, and costlier, because
+// a person does the wasted work.
+//
+// These tests hold both fixes in place.
+// ---------------------------------------------------------------------------
+
+const BRIEF_05A = readFileSync(
+  new URL("../../../docs/research-brief-05-serpent-kundalini.md", import.meta.url),
+  "utf8"
+);
+
+test("brief 05a says what shape an answer should come back in", () => {
+  assert.match(BRIEF_05A, /##\s+Return format/i, "brief 05a has no return format — replies will not file against the records");
+  assert.match(BRIEF_05A, /NOT FOUND/, "brief 05a no longer asks for the dead ends, which are findings");
+  assert.match(BRIEF_05A, /as of \d{4}-\d{2}-\d{2}/, "brief 05a does not date its own counts");
+});
+
+test("brief 05a does not ask again for pictures it already has", () => {
+  // The brief names three records as already illustrated and tells the
+  // researcher not to look for them. That instruction is only safe while it is
+  // true — if a picture is ever removed, the brief starts quietly under-asking.
+  const alreadyDone = ["pashupati-seal", "indus-script-undeciphered", "gudea-vase-entwined-serpents"];
+  for (const slug of alreadyDone) {
+    const event = SERPENT_KUNDALINI_EVENTS.find((item) => item.slug === slug);
+    assert.ok(event, `${slug} is named in brief 05a but is not a record`);
+    assert.ok(
+      (event.media ?? []).length > 0,
+      `brief 05a tells the researcher not to look for a picture of ${slug}, but it has none`
+    );
+  }
+});
+
+test("brief 05a points at the record it now feeds", () => {
+  // Part C asks the transmission question; the control record is where the
+  // answer lands. A brief that does not name it sends work to nowhere.
+  assert.match(
+    BRIEF_05A,
+    /serpent-is-not-one-symbol/,
+    "brief 05a does not mention the control record its transmission question feeds"
   );
 });
