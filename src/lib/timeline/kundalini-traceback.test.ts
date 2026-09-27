@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   KUNDALINI_ELEMENTS,
@@ -170,4 +171,59 @@ test("keys and names are unique, and nothing carries a confidence score", () => 
   const text = JSON.stringify(KUNDALINI_ELEMENTS);
   assert.doesNotMatch(text, /"confidence"/);
   assert.doesNotMatch(text, /\b\d{1,3}\s?% (certain|confident|likely|sure)\b/i);
+});
+
+// ---------------------------------------------------------------------------
+// THE BRIEF THAT FILLS THIS TABLE
+//
+// docs/research-brief-05b-serpent-textual-chain.md is what goes to a researcher
+// with web access, and what comes back is filed against these element keys. So
+// the keys in that document are not prose — they are the interface, and a stale
+// one costs a research round rather than a rebuild.
+//
+// It also has to name EVERY element. A brief that quietly lists twenty-four of
+// twenty-six does not produce two open rows; it produces two rows nobody was
+// ever asked about, which then read as "looked at, nothing found".
+// ---------------------------------------------------------------------------
+
+const BRIEF_05B = readFileSync(
+  new URL("../../../docs/research-brief-05b-serpent-textual-chain.md", import.meta.url),
+  "utf8"
+);
+
+test("brief 05b asks about every element, not a subset", () => {
+  for (const element of KUNDALINI_ELEMENTS) {
+    assert.ok(
+      BRIEF_05B.includes(`\`${element.key}\``),
+      `element "${element.key}" is not named in brief 05b, so nobody will be asked to date it`
+    );
+  }
+});
+
+test("brief 05b invents no element keys", () => {
+  const real = new Set<string>(KUNDALINI_ELEMENTS.map((element) => element.key));
+  // Only the rows that present a key as an element — the table cells.
+  const tabulated = new Set([...BRIEF_05B.matchAll(/\| `([a-z]+(?:-[a-z]+)+)` \|/g)].map((match) => match[1]));
+  assert.ok(tabulated.size > 5, `brief 05b tabulates only ${tabulated.size} keys — check the scan`);
+  for (const key of tabulated) {
+    assert.ok(real.has(key), `brief 05b asks for "${key}", which is not an element of the traceback`);
+  }
+});
+
+test("brief 05b still demands a scholar for every date", () => {
+  // The rule that makes the table impossible to fill dishonestly. If this
+  // sentence is ever softened out of the brief, the table can be filled with
+  // plausible centuries and will look finished.
+  // Whitespace-tolerant on purpose: this is a wrapped Markdown document and a
+  // test that broke when a paragraph was re-flowed would be noise, not a guard.
+  assert.match(
+    BRIEF_05B,
+    /will\s+not\s+accept\s+a\s+date\s+without\s+a\s+name/i,
+    "brief 05b no longer requires a named scholar for each date"
+  );
+  assert.match(
+    BRIEF_05B,
+    /A\s+date\s+with\s+no\s+passage\s+is\s+not\s+an\s+attestation/i,
+    "brief 05b no longer requires a passage for each date"
+  );
 });
