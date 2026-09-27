@@ -1671,6 +1671,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for the range and for any specific spell mentioning Set.",
       },
     ],
+    media: [
+      {
+        url: commons("Coffin_of_Wah_MET_EG156.jpg"),
+        sourcePageUrl: commonsPage("Coffin_of_Wah_MET_EG156.jpg"),
+        fileName: "Coffin of Wah MET EG156.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffin_of_Wah_MET_EG156.jpg",
+        caption:
+          "Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "20.3.202a, b",
+        objectDate: "about 1981-1975 BCE, Dynasty 12",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3024,6 +3042,41 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "been checked here.",
       },
     ],
+    media: [
+      {
+        url: commons("Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg"),
+        sourcePageUrl: commonsPage("Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg"),
+        fileName: "Karnak Ägyptisch-Hethitischer Friedensvertrag 06.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg",
+        caption:
+          "Egyptian hieroglyphic version of the Egyptian-Hittite peace treaty on the outer wall of the Cachette Court at Karnak. This is the treaty text whose divine witnesses include forms of Sutekh; the photograph is a broad view rather than a marked close-up of the Sutekh clauses.",
+        kind: "image",
+        shows: "inscription",
+        institution: "Karnak Temple Complex, Luxor",
+        objectDate: "reign of Ramesses II, 13th century BCE",
+        creator: "Olaf Tausch",
+        photographDate: "18 October 2019",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg"),
+        sourcePageUrl: commonsPage("Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg"),
+        fileName: "Istanbul - Museo archeol. - Trattato di Qadesh fra ittiti ed egizi (1269 a.C.) - Foto G. Dall'Orto 28-5-2006.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg",
+        caption:
+          "Cuneiform tablet of the Egyptian-Hittite treaty tradition in the Istanbul Archaeological Museums. Included beside the Karnak Egyptian version to show the treaty's bilingual diplomatic context, not as a claim that this photographed face visibly contains the Sutekh wording.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Istanbul Archaeological Museums",
+        objectDate: "13th century BCE",
+        creator: "Giovanni Dall'Orto",
+        photographDate: "28 May 2006",
+        licence: "Attribution required; reuse permitted for any purpose",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3205,6 +3258,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes:
           "The excavators explicitly do NOT supply ban dates by region. Their model is contextual rather " +
           "than cartographic, and a regional map built on this paper would be this dataset's invention.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(I).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(I).jpg"),
+        fileName: "Temple at Mut el-Kharab (I).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(I).jpg",
+        caption:
+          "Archaeological remains at Mut el-Kharab in Dakhleh Oasis, the site of a temple of Seth. This is contextual site evidence for the oasis cult setting; it is not a photograph of the specific Seth stelae or overwritten determinative discussed in neighbouring records.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        creator: "Institute for the Study of the Ancient World",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
