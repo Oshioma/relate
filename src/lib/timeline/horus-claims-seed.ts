@@ -563,6 +563,20 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         licence: "Creative Commons Attribution-ShareAlike 2.0 Generic",
         identificationStatus: "secure",
         creditFrom: "source",
+      },
+      {
+        url: commons("Horus_as_falcon-E_10659-louvre_024b.jpg"),
+        sourcePageUrl: commonsPage("Horus_as_falcon-E_10659-louvre_024b.jpg"),
+        fileName: "Horus as falcon-E 10659-louvre 024b.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Horus_as_falcon-E_10659-louvre_024b.jpg",
+        caption:
+          "Late Egyptian bronze statuette of Horus in full falcon form, Louvre E 10659. Together with Harpocrates and Haroeris this gives the reader three materially different Horus forms rather than collapsing them into one figure with one biography.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "E 10659",
+        identificationStatus: "secure",
+        creditFrom: "source",
       }
     ],
   },
