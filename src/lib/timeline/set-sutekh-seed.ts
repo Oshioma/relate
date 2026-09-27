@@ -1300,6 +1300,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for a tighter date of composition.",
       },
     ],
+    media: [
+      {
+        url: commons("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
+        sourcePageUrl: commonsPage("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
+        fileName: "Plutarch's morals- ... 1691- Vol 5 (IA bim early-english-books-1641-1700 plutarchs-morals- plutarch 1691 5).pdf",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf",
+        caption:
+          "Digitised 1691 volume of Plutarch's Moralia, included as an early-print witness to the work in which De Iside et Osiride circulated. This is a seventeenth-century printed transmission, not an ancient manuscript of Plutarch.",
+        kind: "document",
+        shows: "manuscript",
+        institution: "digitised historical book via Wikimedia Commons",
+        objectDate: "printed 1691",
+        licence: "Creative Commons Public Domain Mark 1.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -2967,6 +2984,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         objectDate: "sphinx: Middle Kingdom; Seth dedication: reign of Ramesses II",
         photographDate: "13 December 2006",
         licence: "Creative Commons Attribution-Share Alike 2.0 France",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
+    media: [
+      {
+        url: commons("Sethos_I_Name_Sa-Re_408_2005.jpg"),
+        sourcePageUrl: commonsPage("Sethos_I_Name_Sa-Re_408_2005.jpg"),
+        fileName: "Sethos I Name Sa-Re 408 2005.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sethos_I_Name_Sa-Re_408_2005.jpg",
+        caption:
+          "Cartouche of Seti I's personal name. This directly illustrates the royal name normally rendered Seti/Sethos; it is separate from the more specific Abydos question of places where the Set animal was avoided or substituted.",
+        kind: "image",
+        shows: "inscription",
+        creator: "Ochmann-HH",
+        photographDate: "27 February 2005",
+        licence: "GNU Free Documentation License 1.2 or later / Creative Commons Attribution-ShareAlike 3.0",
         identificationStatus: "secure",
         creditFrom: "source",
       },
