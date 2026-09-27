@@ -481,6 +481,38 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "the argument in the abstract.",
       },
     ],
+    media: [
+      {
+        url: commons("Naqada_D-ware_Jar.jpg"),
+        sourcePageUrl: commonsPage("Naqada_D-ware_Jar.jpg"),
+        fileName: "Naqada D-ware Jar.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Naqada_D-ware_Jar.jpg",
+        caption:
+          "Late Predynastic Naqada D-ware jar from grave 1680, decorated with boats and standards. Included as direct context for the visual world in which proposed early Set-animal identifications are made; no motif on this jar is labelled here as securely depicting Set.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Ashmolean Museum, Oxford",
+        objectDate: "late Predynastic / Naqada II",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "possible",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Late_Gerzean._Decorated_pottery_signs.jpg"),
+        sourcePageUrl: commonsPage("Late_Gerzean._Decorated_pottery_signs.jpg"),
+        fileName: "Late Gerzean. Decorated pottery signs.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Late_Gerzean._Decorated_pottery_signs.jpg",
+        caption:
+          "Flinders Petrie's 1939 published compilation of signs on Late Gerzean decorated pottery. It is useful comparative documentation for Predynastic symbols, but it is a modern scholarly plate and does not establish that any ambiguous animal sign is Set.",
+        kind: "image",
+        shows: "illustration",
+        creator: "Flinders Petrie",
+        photographDate: "1939 publication",
+        licence: "Public domain",
+        identificationStatus: "possible",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
