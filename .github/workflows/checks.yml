@@ -1,0 +1,82 @@
+name: Checks
+
+# THE HOLE THIS CLOSES.
+#
+# Until this existed, the only required status on a pull request was
+# check-migration-timestamps, which inspects migration FILENAMES. Nothing in CI
+# ran the type checker, the test suite, the linter or the build — so a branch
+# could merge with 774 tests and a red one among them, and twice it did:
+#
+#   #530 put a tsc error on main. `next build` does not typecheck test files,
+#        so the author's own build passed and the error shipped.
+#   #532 landed with a failing Lemuria test, discovered only when somebody ran
+#        the suite locally afterwards.
+#
+# Both were caught by a human running commands by hand, which is not a control.
+#
+# ALL FOUR RUN, AND ALL FOUR ARE SEPARATE STEPS. They fail differently and are
+# worth reading separately: typecheck catches what the build skips, the build
+# catches what the typecheck permits, and the linter catches neither. Running
+# them as one `&&` chain would hide which one failed behind the first.
+#
+# `continue-on-error` is deliberately NOT set anywhere here. A check that
+# reports green while something failed is worse than no check, because it is
+# trusted.
+#
+# NOTE ON MAKING THESE REQUIRED. Adding the workflow does not by itself block
+# anything: branch protection has to name these jobs as required status checks
+# before a red run can stop a merge. Until that is done in the repository
+# settings, this reports honestly and advises, and nothing more.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# A second push to the same branch makes the first run's answer obsolete, so
+# cancel it rather than paying for an answer about code nobody has any more.
+# Never on main: those runs are the record of what actually landed.
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # Matches the version the project is developed against. The test
+          # runner uses --experimental-strip-types, which needs a recent Node
+          # and is the reason this cannot simply be "lts/*".
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        # `npm ci` rather than `npm install`: it installs exactly the lockfile
+        # and fails if package.json and the lockfile disagree, which is itself
+        # worth knowing on a pull request.
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        # The suite covers the timeline's evidence rules — that a positionless
+        # claim carries no year, that an unread source says so, that a broken
+        # citation is marked. Those are the project's actual invariants and
+        # this is the step that defends them.
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        # Last because it is the slowest, and because a type error or a failing
+        # test is a more useful thing to be told about first.
+        run: npm run build

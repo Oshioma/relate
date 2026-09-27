@@ -415,49 +415,6 @@ const IDEA_HISTORY: SeedEvent[] = [
     ],
     claims: [
       {
-        sourceKey: "besant_leadbeater1913",
-        startYear: Ma(16.5),
-        datePrecision: "million_years",
-        precisionDecimals: 1,
-        isApproximate: true,
-        originalDateText: "These changes began some sixteen and a half million years ago",
-        datingMethod: "source_assertion",
-        chronology: "alternative",
-        evidence:
-          "WHAT THE SOURCE SAYS: Besant and Leadbeater place the beginning of bodily changes toward sexual differentiation about 16.5 million years ago. They explicitly present the book as a record of clairvoyant investigation. EVIDENCE TYPE: claimed clairvoyant observation/source assertion, not archaeology. IMPORTANT: this is a stage inside their Lemurian chronology, not a date for the beginning of Lemuria as a whole.",
-        notes:
-          "The same passage says the process occupied about five and a half to six million years. That duration is preserved in the adjacent range claim rather than collapsed into this point.",
-      },
-      {
-        sourceKey: "besant_leadbeater1913",
-        startYear: Ma(16.5),
-        endYear: Ma(10.5),
-        datePrecision: "million_years",
-        precisionDecimals: 1,
-        isApproximate: true,
-        originalDateText: "occupied some five and a half to six million years",
-        datingMethod: "source_assertion",
-        chronology: "alternative",
-        evidence:
-          "WHAT THE SOURCE SAYS: the bodily changes beginning about 16.5 million years ago occupied roughly 5.5–6 million years, with slow change and frequent reversion. HOW THE RANGE IS DRAWN: 16.5 Ma minus the source's stated duration gives an endpoint around 11.0–10.5 Ma. The duration is primary; the endpoint is timeline arithmetic and is labelled approximate.",
-        notes:
-          "This is deliberately a range. It preserves the authors' long transition rather than turning sexual differentiation into a single instant.",
-      },
-      {
-        sourceKey: "besant_leadbeater1913",
-        startYear: Ma(6.5),
-        datePrecision: "million_years",
-        precisionDecimals: 1,
-        isApproximate: true,
-        originalDateText: "about six and a half million years ago",
-        datingMethod: "source_assertion",
-        chronology: "alternative",
-        evidence:
-          "WHAT THE SOURCE SAYS: Besant and Leadbeater date their 'Coming of the Lords of the Flame' to about 6.5 million years ago within their Lemurian narrative. EVIDENCE TYPE: the authors' claimed clairvoyant investigation. This is stored because the number is explicit in their text, not because the timeline independently accepts the event as historical.",
-        notes:
-          "Do not merge this with Blavatsky's 18-million-year figure. They are different authors, different claimed events and different dates within a related Theosophical lineage.",
-      },
-      {
         sourceKey: "scott_elliot_lemuria",
         startYear: 1904,
         datePrecision: "year",
@@ -808,7 +765,7 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
   {
     slug: "lemuria-claimed-epoch",
     title: "Lemuria, as the esoteric traditions date it",
-    summary: "Four claims, from 34½ million years ago to 12,600 years ago — and one tradition that gives no date at all.",
+    summary: "Seven claims, from 34½ million years ago to 12,600 years ago — and one tradition that gives no date at all.",
     description:
       "Where the traditions that adopted Sclater's word put the thing they made of it. The dates below span more than thirty-four million years, and they were all proposed within fifty-six years of each other, between 1888 and 1944.\n\n" +
       "WHY THE FIGURES ARE SO LARGE, AND WHY THEY LOOK GEOLOGICAL. In the late nineteenth century the Earth was thought to be around two hundred million years old — radiometric dating did not yet exist — so the geological periods were placed far closer to the present than they are now. A Theosophical chronology putting the Lemurian root race at 34½ million years ago was, on the geology of its own day, putting it in the Jurassic. Read against modern dates it lands in the Eocene instead. The figure did not move; the geology under it did.\n\n" +
@@ -855,6 +812,49 @@ const CLAIMED_PREHISTORY: SeedEvent[] = [
       },
     ],
     claims: [
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(16.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "These changes began some sixteen and a half million years ago",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: Besant and Leadbeater place the beginning of bodily changes toward sexual differentiation about 16.5 million years ago. They explicitly present the book as a record of clairvoyant investigation. EVIDENCE TYPE: claimed clairvoyant observation/source assertion, not archaeology. IMPORTANT: this is a stage inside their Lemurian chronology, not a date for the beginning of Lemuria as a whole.",
+        notes:
+          "The same passage says the process occupied about five and a half to six million years. That duration is preserved in the adjacent range claim rather than collapsed into this point.",
+      },
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(16.5),
+        endYear: Ma(10.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "occupied some five and a half to six million years",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: the bodily changes beginning about 16.5 million years ago occupied roughly 5.5–6 million years, with slow change and frequent reversion. HOW THE RANGE IS DRAWN: 16.5 Ma minus the source's stated duration gives an endpoint around 11.0–10.5 Ma. The duration is primary; the endpoint is timeline arithmetic and is labelled approximate.",
+        notes:
+          "This is deliberately a range. It preserves the authors' long transition rather than turning sexual differentiation into a single instant.",
+      },
+      {
+        sourceKey: "besant_leadbeater1913",
+        startYear: Ma(6.5),
+        datePrecision: "million_years",
+        precisionDecimals: 1,
+        isApproximate: true,
+        originalDateText: "about six and a half million years ago",
+        datingMethod: "source_assertion",
+        chronology: "alternative",
+        evidence:
+          "WHAT THE SOURCE SAYS: Besant and Leadbeater date their 'Coming of the Lords of the Flame' to about 6.5 million years ago within their Lemurian narrative. EVIDENCE TYPE: the authors' claimed clairvoyant investigation. This is stored because the number is explicit in their text, not because the timeline independently accepts the event as historical.",
+        notes:
+          "Do not merge this with Blavatsky's 18-million-year figure. They are different authors, different claimed events and different dates within a related Theosophical lineage.",
+      },
       {
         sourceKey: "theosophy_wiki_rootrace",
         startYear: Ma(34.5),
