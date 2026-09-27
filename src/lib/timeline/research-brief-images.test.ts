@@ -78,3 +78,16 @@ test("the images brief states the count it was written against", () => {
   // vibe. If the brief is revised the date has to move with it.
   assert.match(BRIEF, /as of \d{4}-\d{2}-\d{2}/, "brief does not date its own counts");
 });
+
+
+test("image research policy requires multiple related images and visible UNVERIFIED treatment", () => {
+  const agents = readFileSync(new URL("../../../AGENTS.md", import.meta.url), "utf8");
+  assert.match(agents, /Prefer multiple useful images/, "AGENTS.md does not tell future AI sessions to seek multiple useful images");
+  assert.match(agents, /Related images are allowed/, "AGENTS.md does not permit related/context images");
+  assert.match(agents, /UNVERIFIED images/, "AGENTS.md does not define the UNVERIFIED treatment");
+  assert.match(BRIEF, /UNVERIFIED —/, "research brief does not require the visible UNVERIFIED caption prefix");
+  assert.ok(
+    IDENTIFICATION_STATUSES.some((status) => status.key === "unverified"),
+    "taxonomy does not expose unverified as a first-class identification status"
+  );
+});
