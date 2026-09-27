@@ -47,6 +47,10 @@
 
 import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
 
+const commons = (file: string, width = 1200) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
+const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+
 export const HORUS_CLAIMS_ANCHOR_SLUG = "horus-conception-pyramid-texts";
 
 export const HORUS_CLAIMS_TRACK: SeedTrack = {
@@ -455,6 +459,24 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "discipline of the dataset, and it is easiest to lose on exactly this kind of question.",
       },
     ],
+    media: [
+      {
+        url: commons("Seti_I_Temple_Reliefs_at_Abydos_(X).jpg"),
+        sourcePageUrl: commonsPage("Seti_I_Temple_Reliefs_at_Abydos_(X).jpg"),
+        fileName: "Seti I Temple Reliefs at Abydos (X).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Seti_I_Temple_Reliefs_at_Abydos_(X).jpg",
+        caption:
+          "Relief in the temple of Seti I at Abydos showing Isis in bird form reviving Osiris and conceiving Horus. This is a later New Kingdom visualisation of the conception motif, not an illustration carved with the much earlier Pyramid Texts themselves.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Temple of Seti I, Abydos",
+        creator: "Kyera Giannini / Ancient World Image Bank",
+        objectDate: "Nineteenth Dynasty, reign of Seti I",
+        photographDate: "7 March 2009",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -507,6 +529,24 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "WHAT IS ESTABLISHED: that the forms are distinct, and that Plutarch — the source most quoted in " +
           "these comparisons — distinguishes them himself at sections 12, 18 and 19. WHAT FOLLOWS: a claim " +
           "that does not say which Horus it is about has not yet said anything checkable.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Egyptian_-_Horus_the_Child_-_Walters_541983.jpg"),
+        sourcePageUrl: commonsPage("Egyptian_-_Horus_the_Child_-_Walters_541983.jpg"),
+        fileName: "Egyptian - Horus the Child - Walters 541983.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Egyptian_-_Horus_the_Child_-_Walters_541983.jpg",
+        caption:
+          "Late Period bronze of Harpocrates, Horus the Child, shown as a nude child with finger to mouth and sidelock. It illustrates one specific Horus form and should not be treated as a generic portrait of every deity called Horus.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Walters Art Museum, Baltimore",
+        accessionNumber: "54.1983",
+        objectDate: "Late Period, 664-342 BCE",
+        licence: "Creative Commons Attribution-ShareAlike 3.0 Unported",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -668,6 +708,23 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "equinox; the passage supplies no December 25 festival date.",
       },
     ],
+    media: [
+      {
+        url: commons("Dendera_relief.jpg"),
+        sourcePageUrl: commonsPage("Dendera_relief.jpg"),
+        fileName: "Dendera relief.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Dendera_relief.jpg",
+        caption:
+          "Relief at Dendera associated with the mammisi/birth-house tradition and the divine child. Included as contextual evidence for Egyptian divine-birth iconography; the relief itself does not state 'December 25' and must not be presented as evidence for that fixed modern calendar date.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Dendera Temple complex",
+        creator: "Bernard Gagnon",
+        photographDate: "7 January 1989",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -806,6 +863,24 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for Massey's Natural Genesis of 1883, Churchward, Higgins and " +
           "Lenormant. Any of them could move this date.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg"),
+        sourcePageUrl: commonsPage("Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg"),
+        fileName: "Zodiaque de Dendéra - Musée du Louvre Antiquités Egyptiennes D 38 ; E 13482.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg",
+        caption:
+          "The Dendera Zodiac in the Louvre, included as contextual evidence for genuine Egyptian twelvefold celestial imagery. It does not depict twelve disciples of Horus and is not evidence that Horus travelled with twelve followers.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "D 38; E 13482",
+        objectDate: "Ptolemaic/Roman period, about 50 BCE",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -990,6 +1065,40 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "WHAT IS DATED: an accessioned object in a named museum, on the museum's own catalogue record. " +
           "WHY IT IS ON THIS RECORD: it is the best-documented ancient instance of Horus in danger, and what " +
           "it shows is a poisoning and a cure.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Magical_Stela_(Cippus_of_Horus)_MET_DP319007.jpg"),
+        sourcePageUrl: commonsPage("Magical_Stela_(Cippus_of_Horus)_MET_DP319007.jpg"),
+        fileName: "Magical Stela (Cippus of Horus) MET DP319007.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Magical_Stela_(Cippus_of_Horus)_MET_DP319007.jpg",
+        caption:
+          "Front of the Metternich Stela, Metropolitan Museum 50.85, showing Horus the Child mastering dangerous animals. This is the ancient Horus-in-danger evidence discussed in the record: it is not a crucifixion scene and contains no cross execution.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "50.85",
+        objectDate: "360-343 BCE, Dynasty 30, reign of Nectanebo II",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("MetternichStela.jpg"),
+        sourcePageUrl: commonsPage("MetternichStela.jpg"),
+        fileName: "MetternichStela.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/MetternichStela.jpg",
+        caption:
+          "Detail of the Metternich Stela showing the child Horus standing on crocodiles and holding serpents, scorpions, an oryx and a lion. Included to make the actual ancient iconography visually inspectable beside the later crucifixion claim.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "50.85",
+        creator: "Eb.hoop",
+        photographDate: "21 November 2012",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },

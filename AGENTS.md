@@ -35,3 +35,40 @@ edits history that's already shipped. Before committing follow-up work, check
 whether the current branch's PR has merged. If it has, start over: create a new
 branch from the latest `main` (a new name — do not reuse the merged branch),
 put the follow-up work there, and open a new PR for it.
+
+
+# Timeline research image policy
+
+These rules apply to AI-assisted timeline research, seed creation, and future research briefs.
+
+## Prefer multiple useful images
+
+Do not stop after finding one image for a timeline record. When useful material exists, add multiple non-duplicate images that help a reader inspect the subject from different angles: primary object/manuscript/site evidence first, then related evidence, comparative material, historical reproductions, reconstructions, portraits, maps, or other genuinely useful context.
+
+Multiple crops or rescans of the same photograph are not multiple pieces of evidence. Mark duplicates with `duplicateOf` where applicable.
+
+## Related images are allowed
+
+An image does not have to depict the exact object named by the record to be useful. Related and contextual images are allowed when they materially help the reader understand the record. Never silently present them as direct evidence.
+
+Use this order of preference:
+
+1. exact primary object, manuscript, inscription, site, or other direct evidence;
+2. closely related ancient/historical evidence illuminating the same deity, motif, period, text, claim, or archaeological setting;
+3. contextual material such as maps, portraits, later engravings, reconstructions, comparison objects, or site photographs.
+
+## UNVERIFIED images
+
+If the exact image-to-object, image-to-claim, attribution, or identification cannot be verified, the image may still be used when it is relevant, but it MUST be visibly marked:
+
+- begin the caption with `UNVERIFIED —`;
+- set `identificationStatus: "unverified"`;
+- state specifically what is unverified;
+- state what the image actually shows;
+- never word the caption as though the uncertain identification were established.
+
+`UNVERIFIED` means "useful but not verified as the exact claimed evidence." It does not mean false.
+
+Do not downgrade a securely identified image merely because it is contextual. A securely identified site photograph can remain `secure` when the site identification is secure; however, if the UI or record could reasonably make a reader think it is the exact unverified object being discussed, use the `UNVERIFIED` treatment above.
+
+The goal is broad visual coverage with transparent provenance, not empty records caused by an exact-image-only rule and not misleading galleries caused by weak images being presented as primary evidence.

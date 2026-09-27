@@ -64,6 +64,10 @@ export const SERPENT_KUNDALINI_TRACK: SeedTrack = {
   color: "#2f8f6b",
 };
 
+const commons = (file: string, width = 1200) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
+const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+
 /**
  * THEMATIC THREADS, as tags rather than as a second taxonomy.
  *
@@ -259,6 +263,24 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
           "useful thing that could be added to this record.",
       },
     ],
+    media: [
+      {
+        url: commons("Shiva_Pashupati.jpg"),
+        sourcePageUrl: commonsPage("Shiva_Pashupati.jpg"),
+        fileName: "Shiva Pashupati.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Shiva_Pashupati.jpg",
+        caption:
+          "Seal M-304 from Mohenjo-daro, showing a seated horned figure surrounded by animals and Indus signs. The conventional file name says Pashupati, but the figure is not labelled Shiva or Pashupati on the object and that identification remains disputed.",
+        kind: "image",
+        shows: "artefact",
+        institution: "National Museum, New Delhi",
+        accessionNumber: "M-304",
+        objectDate: "Mature Harappan period, about 2600-1900 BCE",
+        licence: "Public domain",
+        identificationStatus: "disputed",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -312,6 +334,44 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for the current state of the question and for the principal positions " +
           "in it, including the argument that the sequences are not linguistic.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Sceau_Indus_taureau_Guimet.jpg"),
+        sourcePageUrl: commonsPage("Sceau_Indus_taureau_Guimet.jpg"),
+        fileName: "Sceau Indus taureau Guimet.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sceau_Indus_taureau_Guimet.jpg",
+        caption:
+          "Harappan steatite bull seal from Mohenjo-daro with a line of Indus signs, Musée Guimet AO 21167. The signs are genuine archaeological evidence; the image does not supply a decipherment or translation.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée Guimet, Paris",
+        accessionNumber: "AO 21167",
+        creator: "Zunkir",
+        objectDate: "Harappan civilisation",
+        photographDate: "25 July 2020",
+        licence: "Creative Commons Attribution-ShareAlike 4.0 International",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Sceau_Indus_unicorne_Guimet.jpg"),
+        sourcePageUrl: commonsPage("Sceau_Indus_unicorne_Guimet.jpg"),
+        fileName: "Sceau Indus unicorne Guimet.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sceau_Indus_unicorne_Guimet.jpg",
+        caption:
+          "Harappan steatite 'unicorn' seal from Mohenjo-daro with Indus inscription, Musée Guimet AO 21166. Included as a second independent example of the script's archaeological use; no proposed reading is treated as established.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée Guimet, Paris",
+        accessionNumber: "AO 21166",
+        creator: "Zunkir",
+        objectDate: "Harappan civilisation",
+        photographDate: "25 July 2020",
+        licence: "Creative Commons Attribution-ShareAlike 4.0 International",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -440,6 +500,26 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for the trade evidence, and separately for any scholar who has argued " +
           "for transmission of this specific motif in either direction.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Serpent_god_Ningishzida_on_the_libation_vase_of_Gudea,_circa_2100_BCE.jpg"),
+        sourcePageUrl: commonsPage("Serpent_god_Ningishzida_on_the_libation_vase_of_Gudea,_circa_2100_BCE.jpg"),
+        fileName: "Serpent god Ningishzida on the libation vase of Gudea, circa 2100 BCE.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Serpent_god_Ningishzida_on_the_libation_vase_of_Gudea,_circa_2100_BCE.jpg",
+        caption:
+          "Historical image detail of the intertwined serpents on Gudea's libation vase, Louvre AO 190. It shows the ancient motif clearly; calling that motif a caduceus or Kundalini is a later comparison, not an inscription on the vase.",
+        kind: "image",
+        shows: "engraving",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "AO 190",
+        creator: "Ernest de Sarzec",
+        objectDate: "about 2100 BCE",
+        photographDate: "1901 publication image",
+        licence: "Public domain",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },

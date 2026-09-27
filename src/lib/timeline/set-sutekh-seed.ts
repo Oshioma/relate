@@ -489,6 +489,38 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "the argument in the abstract.",
       },
     ],
+    media: [
+      {
+        url: commons("Naqada_D-ware_Jar.jpg"),
+        sourcePageUrl: commonsPage("Naqada_D-ware_Jar.jpg"),
+        fileName: "Naqada D-ware Jar.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Naqada_D-ware_Jar.jpg",
+        caption:
+          "Late Predynastic Naqada D-ware jar from grave 1680, decorated with boats and standards. Included as direct context for the visual world in which proposed early Set-animal identifications are made; no motif on this jar is labelled here as securely depicting Set.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Ashmolean Museum, Oxford",
+        objectDate: "late Predynastic / Naqada II",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "possible",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Late_Gerzean._Decorated_pottery_signs.jpg"),
+        sourcePageUrl: commonsPage("Late_Gerzean._Decorated_pottery_signs.jpg"),
+        fileName: "Late Gerzean. Decorated pottery signs.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Late_Gerzean._Decorated_pottery_signs.jpg",
+        caption:
+          "Flinders Petrie's 1939 published compilation of signs on Late Gerzean decorated pottery. It is useful comparative documentation for Predynastic symbols, but it is a modern scholarly plate and does not establish that any ambiguous animal sign is Set.",
+        kind: "image",
+        shows: "scientific_figure",
+        creator: "Flinders Petrie",
+        photographDate: "1939 publication",
+        licence: "Public domain",
+        identificationStatus: "possible",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -651,6 +683,44 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION. The museum holding the macehead and the published archaeological drawings " +
           "are where this should be settled; neither has been consulted here.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Mace-head_of_king_Scorpion.jpg"),
+        sourcePageUrl: commonsPage("Mace-head_of_king_Scorpion.jpg"),
+        fileName: "Mace-head of king Scorpion.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Mace-head_of_king_Scorpion.jpg",
+        caption:
+          "Photograph of the Scorpion Macehead in the Ashmolean Museum. The object is secure; whether an individual standard on its worn relief should be identified as the Set animal remains disputed.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Ashmolean Museum, Oxford",
+        accessionNumber: "AN1896-1908 E.3632",
+        creator: "Heidi Kontkanen",
+        objectDate: "about 3100-3000 BCE",
+        photographDate: "14 June 2012",
+        licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Detail_from_the_mace-head_of_King_Scorpion.jpg"),
+        sourcePageUrl: commonsPage("Detail_from_the_mace-head_of_King_Scorpion.jpg"),
+        fileName: "Detail from the mace-head of King Scorpion.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Detail_from_the_mace-head_of_King_Scorpion.jpg",
+        caption:
+          "Closer photograph of the surviving Scorpion Macehead relief, useful for inspecting the standards themselves. The image does not resolve the disputed identification of any standard animal as Set.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Ashmolean Museum, Oxford",
+        accessionNumber: "AN1896-1908 E.3632",
+        creator: "Heidi Kontkanen",
+        objectDate: "about 3100-3000 BCE",
+        photographDate: "14 June 2012",
+        licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -829,6 +899,38 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for the scholarly positions, which should be named and attributed rather " +
           "than summarised as 'the familiar reading'.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Khasekhemwy,_name_inscribed_on_door_jamb.jpg"),
+        sourcePageUrl: commonsPage("Khasekhemwy,_name_inscribed_on_door_jamb.jpg"),
+        fileName: "Khasekhemwy, name inscribed on door jamb.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Khasekhemwy,_name_inscribed_on_door_jamb.jpg",
+        caption:
+          "Granite door-jamb detail bearing Khasekhemwy's Horus-and-Set royal name from Hierakonpolis. The paired divine emblems are evidence for the royal titulary; political narratives about reconciliation or reunification remain interpretation.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        objectDate: "Second Dynasty, about the 27th century BCE",
+        licence: "Creative Commons Attribution-Share Alike 2.5 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Khasekhemwy_Horus-Seth_serekh.png"),
+        sourcePageUrl: commonsPage("Khasekhemwy_Horus-Seth_serekh.png"),
+        fileName: "Khasekhemwy Horus-Seth serekh.png",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Khasekhemwy_Horus-Seth_serekh.png",
+        caption:
+          "Modern line drawing of Khasekhemwy's double Horus-Set serekh. Included as a legibility aid beside the ancient object, not as independent archaeological evidence.",
+        kind: "image",
+        shows: "diagram",
+        creator: "Nephiliskos",
+        photographDate: "28 July 2012",
+        licence: "Creative Commons Attribution-Share Alike 3.0 Unported",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -1254,6 +1356,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for a tighter date of composition.",
       },
     ],
+    media: [
+      {
+        url: commons("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
+        sourcePageUrl: commonsPage("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
+        fileName: "Plutarch's morals- ... 1691- Vol 5 (IA bim early-english-books-1641-1700 plutarchs-morals- plutarch 1691 5).pdf",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf",
+        caption:
+          "Digitised 1691 volume of Plutarch's Moralia, included as an early-print witness to the work in which De Iside et Osiride circulated. This is a seventeenth-century printed transmission, not an ancient manuscript of Plutarch.",
+        kind: "document",
+        shows: "manuscript",
+        institution: "digitised historical book via Wikimedia Commons",
+        objectDate: "printed 1691",
+        licence: "Creative Commons Public Domain Mark 1.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -1409,6 +1528,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "would be enough to start — Champollion's Lettre à M. Dacier (1822) for the decipherment that opens " +
           "the range, and any one study of Set specifically for what was reconstructed about HIM rather than " +
           "about Egyptian religion generally. Neither is cited here and neither has been read.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg"),
+        sourcePageUrl: commonsPage("Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg"),
+        fileName: "Portrait de Champollion Le Jeune par Madame de Rumilly cropped.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Portrait_de_Champollion_Le_Jeune_par_Madame_de_Rumilly_cropped.jpg",
+        caption:
+          "1823 portrait of Jean-François Champollion holding his table of phonetic hieroglyphic signs. Included as contextual imagery for the nineteenth-century decipherment and Egyptological rediscovery through which Set's names and texts became newly readable in Europe.",
+        kind: "image",
+        shows: "portrait",
+        institution: "Musée Champollion, Vif",
+        creator: "Madame de Rumilly",
+        objectDate: "1823",
+        licence: "Public domain artwork; Commons file page records the reproduction status",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -1578,6 +1715,25 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "This record exists so the gap cannot be quietly closed by the inscription date.",
       },
     ],
+    media: [
+      {
+        url: commons("Pyramid_Texts_in_Unas’_Pyramid_2017.jpg"),
+        sourcePageUrl: commonsPage("Pyramid_Texts_in_Unas’_Pyramid_2017.jpg"),
+        fileName: "Pyramid Texts in Unas’ Pyramid 2017.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pyramid_Texts_in_Unas’_Pyramid_2017.jpg",
+        caption:
+          "Pyramid Texts covering the interior walls of the pyramid of Unas at Saqqara. This is a general view of the corpus and does not claim that the visible columns are the particular passages about Set discussed by this record.",
+        kind: "image",
+        shows: "site",
+        institution: "Pyramid of Unas, Saqqara",
+        creator: "Aidan McRae Thomson",
+        objectDate: "late Fifth Dynasty, 24th century BCE",
+        photographDate: "13 October 2017",
+        licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -1603,7 +1759,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "religion",
     subcategory: "Middle Kingdom",
     eventType: "religious_account",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "coffin-texts", "middle-kingdom", "funerary", "transmission"],
     civilisations: ["Ancient Egypt"],
     claims: [
@@ -1623,6 +1779,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "coffins that carry it. WHY IT IS A BROAD RANGE: it is a practice rather than an event, and the " +
           "boundaries at either end are conventions of periodisation rather than observations.",
         notes: "NEEDS SOURCE VERIFICATION for the range and for any specific spell mentioning Set.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Coffin_of_Wah_MET_EG156.jpg"),
+        sourcePageUrl: commonsPage("Coffin_of_Wah_MET_EG156.jpg"),
+        fileName: "Coffin of Wah MET EG156.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffin_of_Wah_MET_EG156.jpg",
+        caption:
+          "UNVERIFIED — Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "20.3.202a, b",
+        objectDate: "about 1981-1975 BCE, Dynasty 12",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -1673,6 +1847,42 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes: "NEEDS SOURCE VERIFICATION for the epithets that would turn this from a summary into evidence.",
       },
     ],
+    media: [
+      {
+        url: commons("Horus_and_Seth_crowning_Ramesses_III.JPG"),
+        sourcePageUrl: commonsPage("Horus_and_Seth_crowning_Ramesses_III.JPG"),
+        fileName: "Horus and Seth crowning Ramesses III.JPG",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Horus_and_Seth_crowning_Ramesses_III.JPG",
+        caption:
+          "Twentieth Dynasty statue of Horus and Seth together crowning Ramesses III. Included as contextual evidence that Seth could remain structurally paired with Horus in Egyptian kingship; it does not by itself prove every thematic association listed in this record.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        creator: "A. Parrot",
+        objectDate: "Twentieth Dynasty, early 12th century BCE",
+        photographDate: "31 December 2015",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Stela_of_Ramesses_I_with_Seth.jpg"),
+        sourcePageUrl: commonsPage("Stela_of_Ramesses_I_with_Seth.jpg"),
+        fileName: "Stela of Ramesses I with Seth.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stela_of_Ramesses_I_with_Seth.jpg",
+        caption:
+          "Nineteenth Dynasty stela showing Ramesses I making an offering to Seth, now in the Egyptian Museum in Cairo. This is direct evidence for Seth as a recipient of royal cult; it does not by itself establish every geographic or symbolic meaning attached to the 'red land' title.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        creator: "Sarah C. Murray",
+        objectDate: "Nineteenth Dynasty",
+        photographDate: "15 December 2020",
+        licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
+    ],
   },
 
   {
@@ -1702,7 +1912,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "history",
     subcategory: "Second Intermediate Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "sutekh", "hyksos", "avaris", "baal", "tell-el-dabaa", "delta"],
     civilisations: ["Ancient Egypt", "Levant"],
     locationName: "Tell el-Dabaa (Avaris), eastern Nile Delta, Egypt",
@@ -1758,6 +1968,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "Pi-Ramesses was abandoned around 1100 BCE, which is why Ramesside material turns up there.\n\n" +
           "STILL NEEDS SOURCE VERIFICATION for the scholarly literature on both sides of the demonisation " +
           "question, which exists and has not been consulted.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg"),
+        sourcePageUrl: commonsPage("Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg"),
+        fileName: "Scarabs with the Name of the Hyksos King Sheshi MET 30.8.462 bottom.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg",
+        caption:
+          "UNVERIFIED — Inscribed scarab associated with King Sheshi from the Second Intermediate Period, Metropolitan Museum 30.8.462. This is contextual material culture for the Hyksos-era political world; it does not itself name Sutekh or prove the later statement about Avaris cult.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "30.8.462",
+        objectDate: "Second Intermediate Period, about 1700 BCE",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -2252,6 +2480,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "disk emerging from his head; a stone boat that sinks beside a wooden one painted to look like " +
           "stone. WHAT REMAINS A MODERN JUDGEMENT: the word 'farce', and the assumption that a text can be " +
           "funny and religious at once in the way we mean it.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
+        sourcePageUrl: commonsPage("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
+        fileName: "Contendings of Horus and Seth (CBL Pap 1.2).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg",
+        caption:
+          "The surviving hieratic manuscript of The Contendings of Horus and Seth, Chester Beatty Library Papyrus 1.2, from Thebes. This is the primary manuscript object for the narrative, not a modern illustration of one episode.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Chester Beatty Library, Dublin",
+        accessionNumber: "Pap 1.2",
+        objectDate: "about 1160 BCE",
+        licence: "Creative Commons Public Domain Mark 1.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -2803,6 +3049,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "1933 and Habachi are the trail to follow, and none was read.",
       },
     ],
+    media: [
+      {
+        url: commons("400_Year_stele_Budge.png"),
+        sourcePageUrl: commonsPage("400_Year_stele_Budge.png"),
+        fileName: "400 Year stele Budge.png",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/400_Year_stele_Budge.png",
+        caption:
+          "Historical published image of the Four-Hundred-Year Stela, the Ramesside monument commemorating an era of Seth/Sutekh. This is a reproduction from older Egyptological publication, not a modern museum photograph of Cairo JdE 60539.",
+        kind: "image",
+        shows: "engraving",
+        institution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539",
+        objectDate: "Ramesside period",
+        licence: "Public domain",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -2860,6 +3124,41 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "WHAT WOULD CLEAR IT: which of those schemes these years follow, named on the claim. Shaw's Oxford " +
           "History of Ancient Egypt and Hornung, Krauss and Warburton's Ancient Egyptian Chronology are the " +
           "trail; neither has been opened here.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Sphinx_A21,_Louvre_122006_047.jpg"),
+        sourcePageUrl: commonsPage("Sphinx_A21,_Louvre_122006_047.jpg"),
+        fileName: "Sphinx A21, Louvre 122006 047.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sphinx_A21,_Louvre_122006_047.jpg",
+        caption:
+          "Inscribed dedication by Ramesses II to the god Seth on the base of a much older sphinx from Tanis, now Louvre A21. The sphinx itself predates Ramesses II; the inscription is the relevant Ramesside evidence for royal patronage of Seth.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "A21",
+        creator: "Rama",
+        objectDate: "sphinx: Middle Kingdom; Seth dedication: reign of Ramesses II",
+        photographDate: "13 December 2006",
+        licence: "Creative Commons Attribution-Share Alike 2.0 France",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Sethos_I_Name_Sa-Re_408_2005.jpg"),
+        sourcePageUrl: commonsPage("Sethos_I_Name_Sa-Re_408_2005.jpg"),
+        fileName: "Sethos I Name Sa-Re 408 2005.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sethos_I_Name_Sa-Re_408_2005.jpg",
+        caption:
+          "Cartouche of Seti I's personal name. This directly illustrates the royal name normally rendered Seti/Sethos; it is separate from the more specific Abydos question of places where the Set animal was avoided or substituted.",
+        kind: "image",
+        shows: "manuscript",
+        creator: "Ochmann-HH",
+        photographDate: "27 February 2005",
+        licence: "GNU Free Documentation License 1.2 or later / Creative Commons Attribution-ShareAlike 3.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -2939,6 +3238,41 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "and WHICH Sutekh of which place stays open.",
       },
     ],
+    media: [
+      {
+        url: commons("Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg"),
+        sourcePageUrl: commonsPage("Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg"),
+        fileName: "Karnak Ägyptisch-Hethitischer Friedensvertrag 06.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Karnak_Ägyptisch-Hethitischer_Friedensvertrag_06.jpg",
+        caption:
+          "Egyptian hieroglyphic version of the Egyptian-Hittite peace treaty on the outer wall of the Cachette Court at Karnak. This is the treaty text whose divine witnesses include forms of Sutekh; the photograph is a broad view rather than a marked close-up of the Sutekh clauses.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Karnak Temple Complex, Luxor",
+        objectDate: "reign of Ramesses II, 13th century BCE",
+        creator: "Olaf Tausch",
+        photographDate: "18 October 2019",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg"),
+        sourcePageUrl: commonsPage("Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg"),
+        fileName: "Istanbul - Museo archeol. - Trattato di Qadesh fra ittiti ed egizi (1269 a.C.) - Foto G. Dall'Orto 28-5-2006.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Istanbul_-_Museo_archeol._-_Trattato_di_Qadesh_fra_ittiti_ed_egizi_(1269_a.C.)_-_Foto_G._Dall'Orto_28-5-2006.jpg",
+        caption:
+          "Cuneiform tablet of the Egyptian-Hittite treaty tradition in the Istanbul Archaeological Museums. Included beside the Karnak Egyptian version to show the treaty's bilingual diplomatic context, not as a claim that this photographed face visibly contains the Sutekh wording.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Istanbul Archaeological Museums",
+        objectDate: "13th century BCE",
+        creator: "Giovanni Dall'Orto",
+        photographDate: "28 May 2006",
+        licence: "Attribution required; reuse permitted for any purpose",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3002,6 +3336,25 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "STILL NEEDS SOURCE VERIFICATION for dated instances of erasure site by site in the Nile Valley, " +
           "which would replace this record with a set of them. Hope and Warfe deliberately do NOT supply " +
           "ban dates by region, and this dataset must not manufacture the map they declined to draw.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Relief_Herihor_Seth_obliterated.jpg"),
+        sourcePageUrl: commonsPage("Relief_Herihor_Seth_obliterated.jpg"),
+        fileName: "Relief Herihor Seth obliterated.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Relief_Herihor_Seth_obliterated.jpg",
+        caption:
+          "Lepsius's 1849 published drawing of a Karnak relief in which Seth originally praised the High Priest Herihor; Seth's figure was subsequently obliterated while Herihor's cartouches remained visible. This is a historical drawing of a damaged relief, not a modern photograph, and it provides a separate witness to selective erasure.",
+        kind: "image",
+        shows: "engraving",
+        institution: "Temple of Khonsu, Karnak; published by Lepsius",
+        creator: "Karl Richard Lepsius",
+        objectDate: "relief: late New Kingdom / early Third Intermediate Period; published drawing: 1849",
+        photographDate: "1849 publication",
+        licence: "Public domain",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3122,6 +3475,57 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "than cartographic, and a regional map built on this paper would be this dataset's invention.",
       },
     ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(I).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(I).jpg"),
+        fileName: "Temple at Mut el-Kharab (I).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(I).jpg",
+        caption:
+          "Archaeological remains at Mut el-Kharab in Dakhleh Oasis, the site of a temple of Seth. This is contextual site evidence for the oasis cult setting; it is not a photograph of the specific Seth stelae or overwritten determinative discussed in neighbouring records.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        creator: "Institute for the Study of the Ancient World",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("HibisSeth.jpg"),
+        sourcePageUrl: commonsPage("HibisSeth.jpg"),
+        fileName: "HibisSeth.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/HibisSeth.jpg",
+        caption:
+          "Relief at the Temple of Hibis in Kharga Oasis showing a falcon-headed Seth slaying a serpent. This is direct contextual evidence for Seth's continuing positive protective role in an oasis temple during the Persian period.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Temple of Hibis, Kharga Oasis",
+        creator: "Roland Unger",
+        objectDate: "Persian period",
+        photographDate: "25 March 2008",
+        licence: "Creative Commons Attribution-ShareAlike 4.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg"),
+        sourcePageUrl: commonsPage("Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg"),
+        fileName: "Seth Slaying a Serpent, Temple of Amun at Hibis MET 48.105.6.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg",
+        caption:
+          "Charles K. Wilkinson facsimile of the Seth-slaying-serpent relief at Hibis. Included as a clearer study image beside site photography; it is a modern archaeological facsimile, not the temple wall itself.",
+        kind: "image",
+        shows: "reconstruction",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "48.105.5",
+        creator: "Charles K. Wilkinson",
+        objectDate: "facsimile after a Dynasty 27 relief, reign of Darius I",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3157,7 +3561,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "New Kingdom",
     eventType: "archaeological_interpretation",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "dakhla", "mut-el-kharab", "oasis", "ramesside", "stela", "hymn"],
     civilisations: ["Ancient Egypt"],
     locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
@@ -3317,6 +3721,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "reporting the history of digging as the history of religion.",
       },
     ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab, Dakhleh Oasis, where the Ramesside Seth stela was excavated. This is site context only: the photograph does not show the stela itself, whose exact reusable image has not been verified.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3354,7 +3773,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "archaeological_interpretation",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "dakhla", "mut-el-kharab", "determinative", "erasure", "orthography", "late-period"],
     civilisations: ["Ancient Egypt"],
     locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
@@ -3378,6 +3797,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "AT SECOND HAND. Hope and Warfe 2017, pages 274-275, citing Kaper 2001, pages 72-74. NEEDS SOURCE " +
           "VERIFICATION against Kaper directly — his figure is the thing to see, because everything about " +
           "this record turns on what the recutting actually looks like.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab, the archaeological site relevant to the overwritten Seth-determinative evidence. This photograph shows the site, not the inscribed object; the exact object image remains unverified.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3413,7 +3847,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Third Intermediate Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "dakhla", "greater-dakhleh-stela", "oracle", "libyan-period", "ashmolean", "water-rights"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt; now Ashmolean Museum, Oxford",
@@ -3456,6 +3890,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "dataset's own open question on no evidence.",
       },
     ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab in Dakhleh Oasis, contextual location for the Greater Dakhleh Stela and the local Seth cult. This is deliberately labelled site context and is not an image of the Greater Dakhleh Stela.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3490,7 +3939,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "amun", "dakhla", "smaller-dakhleh-stela", "piye", "priesthood", "twenty-fifth-dynasty"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt",
@@ -3529,6 +3978,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "named on Horemheb blocks at Mut; and Amun reconstructed alongside Seth in the upper scene of the " +
           "Ramesside hymn stela. WHAT IS NOT: a shared building. Hope and Kaper say so directly, and this " +
           "claim exists to carry their limit rather than to quietly pass over it.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Temple_at_Mut_el-Kharab_(V).jpg"),
+        sourcePageUrl: commonsPage("Temple_at_Mut_el-Kharab_(V).jpg"),
+        fileName: "Temple at Mut el-Kharab (V).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Temple_at_Mut_el-Kharab_(V).jpg",
+        caption: "Mut el-Kharab in Dakhleh Oasis, contextual location for the Smaller Dakhleh Stela/Piye-period record. The exact stela image has not been verified for reuse, so this photograph must not be presented as the object.",
+        kind: "image",
+        shows: "site",
+        institution: "Mut el-Kharab, Dakhleh Oasis",
+        photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3580,6 +4044,41 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "generations, and the single date a reader wants does not exist. WHAT WOULD IMPROVE THIS RECORD: " +
           "named papyri with their own dates, which would replace the span with instances.",
         notes: "NEEDS SOURCE VERIFICATION for the range and for any individual spell naming Typhon-Seth.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg"),
+        sourcePageUrl: commonsPage("Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg"),
+        fileName: "Papyrus magique - charme d'amour - BNUS inv 1167.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Papyrus_magique_-_charme_d'amour_-_BNUS_inv_1167.jpg",
+        caption:
+          "Fourth-century Greek magical papyrus from Egypt, BNUS P. gr. 1167, invoking Anubis in an attraction spell. This is genuine Greco-Egyptian magical-papyrus context, but it is not the specific PGM passage invoking Seth/Typhon and is labelled accordingly.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Bibliothèque nationale et universitaire de Strasbourg",
+        accessionNumber: "P. gr. 1167",
+        creator: "unknown ancient scribe; photograph by Pierre Tribhou",
+        objectDate: "4th century CE",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Leiden_papyrus_I_384_PGM_xii.jpg"),
+        sourcePageUrl: commonsPage("Leiden_papyrus_I_384_PGM_xii.jpg"),
+        fileName: "Leiden papyrus I 384 PGM xii.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Leiden_papyrus_I_384_PGM_xii.jpg",
+        caption:
+          "Leiden Papyrus I 384, PGM XII, a third-century Greek magical papyrus from Roman-period Egypt. It establishes the physical manuscript tradition of the PGM corpus; this photographed fragment is not claimed to be the particular Seth/Typhon spell discussed in the record.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Rijksmuseum van Oudheden, Leiden",
+        accessionNumber: "I 384",
+        objectDate: "3rd century CE",
+        licence: "Public-domain ancient work; Commons PD-Art reproduction",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3635,6 +4134,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for the individual proposals and their advocates, none of whom is named " +
           "here — which is a fair criticism of this record.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Set_animal.svg"),
+        sourcePageUrl: commonsPage("Set_animal.svg"),
+        fileName: "Set animal.svg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Set_animal.svg",
+        caption:
+          "Modern reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
+        kind: "image",
+        shows: "reconstruction",
+        creator: "PharaohCrab",
+        photographDate: "21 December 2024",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
@@ -3712,6 +4228,39 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "tradition's. WHAT THIS DATASET DOES: records that the claim is made, by whom, and when, and stops " +
           "there. Declaring it true would be theology; declaring it false would be a different theology. " +
           "Neither is what a timeline is for.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Stelae_of_Ankh-af-na-khonsu.jpg"),
+        sourcePageUrl: commonsPage("Stelae_of_Ankh-af-na-khonsu.jpg"),
+        fileName: "Stelae of Ankh-af-na-khonsu.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stelae_of_Ankh-af-na-khonsu.jpg",
+        caption:
+          "Photographic image of the painted funerary stela of Ankh-ef-en-Khonsu, Cairo A 9422, later called the Stele of Revealing in Thelemic tradition. The ancient stela predates Crowley by many centuries; its importance to this record is the modern 1904 encounter and interpretation.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        accessionNumber: "A 9422",
+        objectDate: "Third Intermediate Period, about the 8th century BCE",
+        licence: "Wikimedia Commons file-page licence applies",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
+        sourcePageUrl: commonsPage("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
+        fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg",
+        caption:
+          "Modern colour vector reconstruction of the same stela, included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
+        kind: "image",
+        shows: "reconstruction",
+        creator: "AnkhDuck",
+        photographDate: "12 October 2020",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },

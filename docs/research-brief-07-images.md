@@ -41,14 +41,17 @@ This is the same standard as briefs 03 to 06, and it has not moved.
 2. **Read each FILE's own licence page.** Never the category's, never the
    article's, never a sibling file's. Files in one Commons category routinely
    carry different licences, and some carry none.
-3. **`NOT FOUND` is a correct and valuable answer.** For any record below, "I
-   looked at X, Y and Z and there is no freely-licensed image of this object" is
-   a finding I will record. A plausible substitute is not. I would rather ship
-   thirty-five records with no picture than one record with the wrong picture.
-4. **If you are unsure whether an image shows what the record is about, say so
-   and send it flagged.** The dataset has a field for exactly that
-   (`identificationStatus: "disputed"`), and a disputed identification recorded
-   as disputed is an asset. A disputed identification recorded as secure is a lie.
+3. **`NOT FOUND` is still a correct and valuable answer, and a wrong picture is
+   still worse than none.** What changed is the threshold, not the standard: a
+   related or contextual image is now welcome where it genuinely helps, but a
+   picture of a different object passed off as the record's subject is the one
+   outcome this brief exists to prevent. If nothing honest fits, say so — the
+   NOT FOUND list at the end is where that goes, and it is a finding I record
+   rather than a blank.
+
+4. **Do not leave a record visually empty merely because the exact object image is unavailable.** Exact primary evidence is preferred, but useful related and contextual images are allowed. Search for multiple useful images per record where possible: exact object/manuscript/site first, then closely related ancient or historical evidence, then genuinely useful context such as a site, comparison object, reconstruction, map, portrait or historical reproduction. Do not pad galleries with irrelevant decoration or duplicate crops.
+5. **Use `UNVERIFIED` rather than silently rejecting a useful uncertain match.** If an image is relevant but its exact image-to-object, image-to-claim, attribution or identification cannot be verified, send it. Begin its caption with `UNVERIFIED —`, use `identificationStatus: "unverified"`, and state exactly what is uncertain and what the image actually shows. `UNVERIFIED` means useful but not verified as the exact claimed evidence; it does not mean false.
+6. **Keep disputed and unverified separate.** Use `disputed` when identifiable sources actually dispute an identification. Use `unverified` when this research pass has not established the exact match. A disputed identification recorded as secure is a lie; an unverified related image presented as primary evidence is also a lie.
 
 ---
 
@@ -175,8 +178,8 @@ collection), `manuscript` (a papyrus, tablet or inscription), `site` (a place),
 depiction), `portrait` (a person who made a claim), and `historical_document` (a
 title page, a book plate).
 
-**`identificationStatus` — 6 valid keys:**
-`secure`, `probable`, `possible`, `disputed`, `rejected`, `modern_interpretation`.
+**`identificationStatus` — valid keys:**
+`secure`, `probable`, `possible`, `disputed`, `rejected`, `modern_interpretation`, `unverified`.
 
 ### The caption rules, which are enforced by tests
 
@@ -189,6 +192,7 @@ title page, a book plate).
   in the `licence` field instead, where it belongs.
 - The caption is also the alt text, so write it as a description of the image,
   not as a citation.
+- **For an unverified match, begin the caption exactly with `UNVERIFIED —` and explain the uncertainty.**
 - **Where a picture invites a reading the record refuses, the caption should say
   so.** This is the house style and it is the point of the whole project. Not
   "the Pashupati seal" but "the seal usually called Pashupati; the seated figure's
@@ -401,6 +405,12 @@ would serve each:
 I am asking you to **confirm or overturn** these, not to fill them. If you think
 one of them *should* have an image, argue for it.
 
+**These five are the stated exception to rule 4.** "Do not leave a record
+visually empty" is a default, not an obligation, and it stops here: for these
+records the emptiness is the content. A picture on `documentary-gap-set` would
+furnish fourteen centuries that have nothing in them, which is the opposite of
+what the record says.
+
 | Record | Why I think it takes no image |
 | --- | --- |
 | `documentary-gap-set` — "roughly fourteen centuries with nothing in them" | The record is the absence. A picture would be an illustration of nothing, and would make the gap look furnished. |
@@ -440,7 +450,10 @@ End with two lists:
 - Any file whose licence you read off a category, an article or a sibling file.
 - Any filename you reconstructed rather than copied.
 - Any film still, comic panel, game screenshot or promotional artwork.
-- A picture of a different object that would "work" for the record.
+- A picture of a different object presented AS the record's subject. Related
+  and contextual images are welcome under rules 4 and 5 — what is banned is the
+  substitution being invisible, so such an image must say in its caption what it
+  is and what it is not.
 - A confident `identificationStatus` on an identification that is actually argued.
 
 The dataset's whole claim on a reader's trust is that it says how much evidence
