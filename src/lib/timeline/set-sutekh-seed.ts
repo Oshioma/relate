@@ -3228,6 +3228,25 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "ban dates by region, and this dataset must not manufacture the map they declined to draw.",
       },
     ],
+    media: [
+      {
+        url: commons("Relief_Herihor_Seth_obliterated.jpg"),
+        sourcePageUrl: commonsPage("Relief_Herihor_Seth_obliterated.jpg"),
+        fileName: "Relief Herihor Seth obliterated.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Relief_Herihor_Seth_obliterated.jpg",
+        caption:
+          "Lepsius's 1849 published drawing of a Karnak relief in which Seth originally praised the High Priest Herihor; Seth's figure was subsequently obliterated while Herihor's cartouches remained visible. This is a historical drawing of a damaged relief, not a modern photograph, and it provides a separate witness to selective erasure.",
+        kind: "image",
+        shows: "engraving",
+        institution: "Temple of Khonsu, Karnak; published by Lepsius",
+        creator: "Karl Richard Lepsius",
+        objectDate: "relief: late New Kingdom / early Third Intermediate Period; published drawing: 1849",
+        photographDate: "1849 publication",
+        licence: "Public domain",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
