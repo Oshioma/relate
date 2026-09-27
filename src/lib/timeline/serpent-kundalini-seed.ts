@@ -279,7 +279,38 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         licence: "Public domain",
         identificationStatus: "disputed",
         creditFrom: "source",
+      },,
+      {
+        url: commons("Pashupati_seal_impression.jpg"),
+        sourcePageUrl: commonsPage("Pashupati_seal_impression.jpg"),
+        fileName: "Pashupati seal impression.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pashupati_seal_impression.jpg",
+        caption:
+          "Published 1935 impression of the seal conventionally called the Pashupati seal, reproduced by excavator Ernest J. H. Mackay. It gives a historically important second view of the same object; the Pashupati/proto-Shiva identification remains a later disputed interpretation.",
+        kind: "image",
+        shows: "engraving",
+        creator: "Ernest John Henry Mackay",
+        photographDate: "1935 publication",
+        licence: "Public Domain Mark 1.0",
+        identificationStatus: "disputed",
+        creditFrom: "source",
       },
+      {
+        url: commons("Pashupati_Seal_from_the_Harappan_Civilization.jpg"),
+        sourcePageUrl: commonsPage("Pashupati_Seal_from_the_Harappan_Civilization.jpg"),
+        fileName: "Pashupati Seal from the Harappan Civilization.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pashupati_Seal_from_the_Harappan_Civilization.jpg",
+        caption:
+          "Modern museum photograph of the Mohenjo-daro seal in the National Museum, New Delhi. The archaeological object is secure; identifying its central seated figure as Pashupati, Shiva or a yogi is a later interpretation and remains disputed.",
+        kind: "image",
+        shows: "artefact",
+        institution: "National Museum, New Delhi",
+        creator: "Aadrit28",
+        photographDate: "4 February 2023",
+        licence: "Creative Commons Attribution-ShareAlike 4.0 International",
+        identificationStatus: "disputed",
+        creditFrom: "source",
+      }
     ],
   },
 
