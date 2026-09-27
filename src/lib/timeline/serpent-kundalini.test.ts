@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   SERPENT_KUNDALINI_ANCHOR_SLUG,
   SERPENT_KUNDALINI_EVENTS,
+  SERPENT_KUNDALINI_LINKS,
   SERPENT_KUNDALINI_SOURCES,
 } from "./serpent-kundalini-seed";
 import {
@@ -226,4 +227,60 @@ test("the unread sources admit it, because none of them has been opened", () => 
     );
     assert.ok(source.notes.length > 40, `${source.key}: a note must say what it is cited FOR`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// THE CONTROL RECORD, AND WHY IT IS TESTED SEPARATELY
+//
+// Every other record here is a serpent that might mean something. This one is
+// the collection arguing against itself, and it is the first thing that would
+// be quietly dropped if the collection ever started wanting to win. So it is
+// pinned: it must exist, it must carry the dated counter-example, and it must
+// reach the evidence rather than assert it.
+// ---------------------------------------------------------------------------
+
+const CONTROL = SERPENT_KUNDALINI_EVENTS.find((event) => event.slug === "serpent-is-not-one-symbol");
+
+test("the collection carries a control record", () => {
+  assert.ok(CONTROL, "the control record is gone — the collection can now only argue in one direction");
+});
+
+test("the control record carries the one DATED counter-example", () => {
+  // Not decoration. The Greek case is the only place in this collection where
+  // serpent iconography can be shown ARRIVING, inside one culture, at a date —
+  // and a positioned claim is what makes that checkable rather than rhetorical.
+  const dated = (CONTROL?.claims ?? []).filter((claim) => typeof claim.startYear === "number");
+  assert.ok(dated.length >= 1, "the control record has no dated claim, so its counter-example cannot be checked");
+  const greek = dated.find((claim) => claim.startYear === -379);
+  assert.ok(greek, "the post-380 BCE date for serpent-legged Gigantes is missing");
+  assert.match(
+    greek.notes ?? "",
+    /gigantes-gigantomachy/,
+    "the Greek date is taken at one remove and must say so, naming the record it came from"
+  );
+});
+
+test("the control record reaches its evidence instead of asserting it", () => {
+  // The three cases live in other datasets. A control that only DESCRIBED them
+  // would be this collection vouching for itself.
+  const out = SERPENT_KUNDALINI_LINKS.filter((link) => link.from === "serpent-is-not-one-symbol");
+  for (const slug of ["set-spears-apep", "gigantes-gigantomachy", "gudea-vase-entwined-serpents"]) {
+    assert.ok(out.some((link) => link.to === slug), `the control record does not link to ${slug}`);
+  }
+});
+
+test("the universality claim is held as a genealogy, not as a rebuttal", () => {
+  // A record that simply said "the serpent is not universal" would be the same
+  // kind of flat assertion as the claim it rejects. The chain has to show where
+  // the claim actually comes from — including the parts nobody here has read.
+  const genealogy = (CONTROL?.genealogies ?? []).find((item) => item.key === "serpent-universal-energy");
+  assert.ok(genealogy, "the universality claim is not traced");
+  assert.notEqual(genealogy.verdict, "directly_attested");
+  assert.ok(genealogy.links.length >= 4, "a chain this short cannot show where the claim enters");
+  const unread = genealogy.links.filter((link) => link.citationStatus === "unverified");
+  assert.ok(
+    unread.length >= 2,
+    "the two modern stages are unread and must stay marked so — naming a work from memory here would put a " +
+      "fabricated citation inside a chain about fabricated citations"
+  );
 });

@@ -138,6 +138,7 @@ import {
 } from "@/lib/timeline/horus-claims-seed";
 import {
   SERPENT_KUNDALINI_EVENTS,
+  SERPENT_KUNDALINI_LINKS,
   SERPENT_KUNDALINI_SOURCES,
   SERPENT_KUNDALINI_TRACK,
 } from "@/lib/timeline/serpent-kundalini-seed";
@@ -2194,6 +2195,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     track: SERPENT_KUNDALINI_TRACK,
     events: SERPENT_KUNDALINI_EVENTS,
     sources: SERPENT_KUNDALINI_SOURCES,
+    links: SERPENT_KUNDALINI_LINKS,
   },
   {
     label: "Four claims about Horus, and where they came from",
@@ -3205,6 +3207,7 @@ export async function seedSerpentKundaliniDataset(communitySlug: string) {
   const result = await seedDataset(supabase, community, userId, {
     events: SERPENT_KUNDALINI_EVENTS,
     sources: SERPENT_KUNDALINI_SOURCES,
+    links: SERPENT_KUNDALINI_LINKS,
     track: SERPENT_KUNDALINI_TRACK,
     label: "The serpent, Kundalini and sacred ascent",
   });
