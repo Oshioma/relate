@@ -513,7 +513,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Flinders Petrie's 1939 published compilation of signs on Late Gerzean decorated pottery. It is useful comparative documentation for Predynastic symbols, but it is a modern scholarly plate and does not establish that any ambiguous animal sign is Set.",
         kind: "image",
-        shows: "illustration",
+        shows: "scientific_figure",
         creator: "Flinders Petrie",
         photographDate: "1939 publication",
         licence: "Public domain",
@@ -925,7 +925,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Modern line drawing of Khasekhemwy's double Horus-Set serekh. Included as a legibility aid beside the ancient object, not as independent archaeological evidence.",
         kind: "image",
-        shows: "illustration",
+        shows: "diagram",
         creator: "Nephiliskos",
         photographDate: "28 July 2012",
         licence: "Creative Commons Attribution-Share Alike 3.0 Unported",
@@ -1864,7 +1864,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         licence: "Creative Commons CC0 License",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Stela_of_Ramesses_I_with_Seth.jpg"),
         sourcePageUrl: commonsPage("Stela_of_Ramesses_I_with_Seth.jpg"),
@@ -3153,7 +3153,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Cartouche of Seti I's personal name. This directly illustrates the royal name normally rendered Seti/Sethos; it is separate from the more specific Abydos question of places where the Set animal was avoided or substituted.",
         kind: "image",
-        shows: "inscription",
+        shows: "manuscript",
         creator: "Ochmann-HH",
         photographDate: "27 February 2005",
         licence: "GNU Free Documentation License 1.2 or later / Creative Commons Attribution-ShareAlike 3.0",
@@ -3247,7 +3247,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Egyptian hieroglyphic version of the Egyptian-Hittite peace treaty on the outer wall of the Cachette Court at Karnak. This is the treaty text whose divine witnesses include forms of Sutekh; the photograph is a broad view rather than a marked close-up of the Sutekh clauses.",
         kind: "image",
-        shows: "inscription",
+        shows: "manuscript",
         institution: "Karnak Temple Complex, Luxor",
         objectDate: "reign of Ramesses II, 13th century BCE",
         creator: "Olaf Tausch",
@@ -3499,7 +3499,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Relief at the Temple of Hibis in Kharga Oasis showing a falcon-headed Seth slaying a serpent. This is direct contextual evidence for Seth's continuing positive protective role in an oasis temple during the Persian period.",
         kind: "image",
-        shows: "inscription",
+        shows: "artefact",
         institution: "Temple of Hibis, Kharga Oasis",
         creator: "Roland Unger",
         objectDate: "Persian period",
@@ -3516,7 +3516,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Charles K. Wilkinson facsimile of the Seth-slaying-serpent relief at Hibis. Included as a clearer study image beside site photography; it is a modern archaeological facsimile, not the temple wall itself.",
         kind: "image",
-        shows: "illustration",
+        shows: "reconstruction",
         institution: "Metropolitan Museum of Art, New York",
         accessionNumber: "48.105.5",
         creator: "Charles K. Wilkinson",
@@ -4143,9 +4143,9 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         fileName: "Set animal.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Set_animal.svg",
         caption:
-          "Modern CC0 reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
+          "Modern reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
         kind: "image",
-        shows: "illustration",
+        shows: "reconstruction",
         creator: "PharaohCrab",
         photographDate: "21 December 2024",
         licence: "Creative Commons CC0 1.0 Universal",
@@ -4253,9 +4253,9 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg",
         caption:
-          "Modern CC0 colour vector reconstruction of the same stela, included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
+          "Modern colour vector reconstruction of the same stela, included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
         kind: "image",
-        shows: "illustration",
+        shows: "reconstruction",
         creator: "AnkhDuck",
         photographDate: "12 October 2020",
         licence: "Creative Commons CC0 1.0 Universal",
