@@ -47,6 +47,10 @@
 
 import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
 
+const commons = (file: string, width = 1200) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
+const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+
 export const HORUS_CLAIMS_ANCHOR_SLUG = "horus-conception-pyramid-texts";
 
 export const HORUS_CLAIMS_TRACK: SeedTrack = {
@@ -509,6 +513,24 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
           "that does not say which Horus it is about has not yet said anything checkable.",
       },
     ],
+    media: [
+      {
+        url: commons("Egyptian_-_Horus_the_Child_-_Walters_541983.jpg"),
+        sourcePageUrl: commonsPage("Egyptian_-_Horus_the_Child_-_Walters_541983.jpg"),
+        fileName: "Egyptian - Horus the Child - Walters 541983.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Egyptian_-_Horus_the_Child_-_Walters_541983.jpg",
+        caption:
+          "Late Period bronze of Harpocrates, Horus the Child, shown as a nude child with finger to mouth and sidelock. It illustrates one specific Horus form and should not be treated as a generic portrait of every deity called Horus.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Walters Art Museum, Baltimore",
+        accessionNumber: "54.1983",
+        objectDate: "Late Period, 664-342 BCE",
+        licence: "Creative Commons Attribution-ShareAlike 3.0 Unported",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -806,6 +828,24 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for Massey's Natural Genesis of 1883, Churchward, Higgins and " +
           "Lenormant. Any of them could move this date.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg"),
+        sourcePageUrl: commonsPage("Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg"),
+        fileName: "Zodiaque de Dendéra - Musée du Louvre Antiquités Egyptiennes D 38 ; E 13482.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Zodiaque_de_Dendéra_-_Musée_du_Louvre_Antiquités_Egyptiennes_D_38_;_E_13482.jpg",
+        caption:
+          "The Dendera Zodiac in the Louvre, included as contextual evidence for genuine Egyptian twelvefold celestial imagery. It does not depict twelve disciples of Horus and is not evidence that Horus travelled with twelve followers.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "D 38; E 13482",
+        objectDate: "Ptolemaic/Roman period, about 50 BCE",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
