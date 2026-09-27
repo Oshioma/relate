@@ -1573,7 +1573,7 @@ export function identificationStatusHint(key: string | null | undefined): string
  * in Naqada I, and the interface must not let it quietly become so.
  */
 export function identificationNeedsCaution(key: string | null | undefined): boolean {
-  return key === "possible" || key === "disputed" || key === "rejected" || key === "modern_interpretation";
+  return key === "possible" || key === "disputed" || key === "rejected" || key === "modern_interpretation" || key === "unverified";
 }
 
 // ---------------------------------------------------------------------------
