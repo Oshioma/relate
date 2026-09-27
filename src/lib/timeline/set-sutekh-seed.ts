@@ -3326,8 +3326,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
-    ],
-    media: [
+      },
       {
         url: commons("HibisSeth.jpg"),
         sourcePageUrl: commonsPage("HibisSeth.jpg"),
