@@ -1924,7 +1924,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "ON THE WORD HYKSOS. It renders an Egyptian phrase for rulers of foreign lands. It is a title, not an " +
       "ethnicity, and the older picture of a single violent invading horde has been substantially revised by " +
       "excavation at Tell el-Dabaa. This record does not depend on the old picture.\n\n" +
-      "THINGS TO ASK: If a foreign dynasty adopts a local god, what does that tell you about the god, and " +
+      "DIRECT AVARIS EVIDENCE AND ITS LIMIT. Excavation at Avaris recovered a late-Eighteenth-Dynasty sanctuary lintel dedicated to 'Sutekh, great of might' and bearing Horemheb's names. That is direct archaeological evidence for a Sutekh sanctuary at the site after the Hyksos period. It is not, by itself, a Hyksos-period temple inscription. A separate study notes that no depiction of Seth of Avaris has yet been identified. This is why the Hyksos-era Sheshi scarab below remains contextual rather than being promoted to direct Sutekh evidence.\n\nTHINGS TO ASK: If a foreign dynasty adopts a local god, what does that tell you about the god, and " +
       "what does it tell you about the dynasty?",
     category: "history",
     subcategory: "Second Intermediate Period",
@@ -3841,8 +3841,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     description:
       "WHAT KIND OF RECORD IS THIS? Seth doing administrative work, which is a long way from either the " +
       "protector of the sun boat or the enemy of Osiris.\n\n" +
-      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a — a number this dataset " +
-      "has verified. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
+      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a. The 2022 Dakhleh excavation monograph reproduces the object and lunette as Plate 1.1, independently confirming the accession and object identification. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
       "SETH.\n\n" +
       "WHY AN ORACLE IS THE INTERESTING PART. An oracle is not devotion. It is procedure. For a community to " +
       "settle a dispute over water — which in an oasis is a dispute over survival — by putting it to Seth, " +
@@ -3853,7 +3852,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "REDATING STUDY — its whole subject is that association — and it was not opened. So this dataset " +
       "knows the question exists and does not know the answer, and enters a broad Libyan Period range " +
       "rather than the confident attribution that circulates.\n\n" +
-      "WHAT IS MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
+      "WHAT IS NOW VISUALLY VERIFIED. The 2022 excavation monograph publishes a photograph of the Greater Dakhleh Stela and a detail of its lunette as Plate 1.1. The image is institutionally copyrighted rather than a freely reusable Commons asset, so the site retains its reusable Mut el-Kharab context photograph while recording the exact plate and accession for inspection.\n\nWHAT IS STILL MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
       "Smaller Dakhleh Stelae were to be compared on how each writes Seth's name — the comparison that would " +
       "show whether the respelling seen on the Mut doorway block is part of a pattern. The Griffith " +
       "Institute holds a scale hand-copy and a hieroglyphic transcription under Griffith-2-9; access was " +
@@ -3864,7 +3863,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Third Intermediate Period",
     eventType: "historical",
-    identificationStatus: "unverified",
+    identificationStatus: "secure",
     tags: ["set", "dakhla", "greater-dakhleh-stela", "oracle", "libyan-period", "ashmolean", "water-rights"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt; now Ashmolean Museum, Oxford",
@@ -3948,7 +3947,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "overwriting of Seth's name on the Mut doorway block. The same dynasty, the same oasis: a royal decree " +
       "with Seth presiding over its upper scene, and a doorway where his animal was being written out. Both " +
       "are the evidence. Neither cancels the other.\n\n" +
-      "THE HONEST LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
+      "OBJECT IDENTIFICATION NOW VERIFIED. The 2022 Dakhleh excavation monograph identifies and photographs the Smaller Dakhleh Stela as Ashmolean Museum 1894.107b, Plate 1.2, and gives its sandstone dimensions as 81.5 × 39.5 × 12 cm. The published photograph is not treated as freely reusable media.\n\nTHE REMAINING LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
       "Kaper's citation of it. The object number, the material, the size, the present location and the " +
       "exact findspot are all unknown here, and the plate — which would allow the determinative comparison " +
       "with the Greater Stela — has not been seen.\n\n" +
@@ -3956,7 +3955,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "historical",
-    identificationStatus: "unverified",
+    identificationStatus: "secure",
     tags: ["set", "amun", "dakhla", "smaller-dakhleh-stela", "piye", "priesthood", "twenty-fifth-dynasty"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt",
