@@ -41,14 +41,9 @@ This is the same standard as briefs 03 to 06, and it has not moved.
 2. **Read each FILE's own licence page.** Never the category's, never the
    article's, never a sibling file's. Files in one Commons category routinely
    carry different licences, and some carry none.
-3. **`NOT FOUND` is a correct and valuable answer.** For any record below, "I
-   looked at X, Y and Z and there is no freely-licensed image of this object" is
-   a finding I will record. A plausible substitute is not. I would rather ship
-   thirty-five records with no picture than one record with the wrong picture.
-4. **If you are unsure whether an image shows what the record is about, say so
-   and send it flagged.** The dataset has a field for exactly that
-   (`identificationStatus: "disputed"`), and a disputed identification recorded
-   as disputed is an asset. A disputed identification recorded as secure is a lie.
+3. **Do not leave a record visually empty merely because the exact object image is unavailable.** Exact primary evidence is preferred, but useful related and contextual images are allowed. Search for multiple useful images per record where possible: exact object/manuscript/site first, then closely related ancient or historical evidence, then genuinely useful context such as a site, comparison object, reconstruction, map, portrait or historical reproduction. Do not pad galleries with irrelevant decoration or duplicate crops.
+4. **Use `UNVERIFIED` rather than silently rejecting a useful uncertain match.** If an image is relevant but its exact image-to-object, image-to-claim, attribution or identification cannot be verified, send it. Begin its caption with `UNVERIFIED —`, use `identificationStatus: "unverified"`, and state exactly what is uncertain and what the image actually shows. `UNVERIFIED` means useful but not verified as the exact claimed evidence; it does not mean false.
+5. **Keep disputed and unverified separate.** Use `disputed` when identifiable sources actually dispute an identification. Use `unverified` when this research pass has not established the exact match. A disputed identification recorded as secure is a lie; an unverified related image presented as primary evidence is also a lie.
 
 ---
 
@@ -175,8 +170,8 @@ collection), `manuscript` (a papyrus, tablet or inscription), `site` (a place),
 depiction), `portrait` (a person who made a claim), and `historical_document` (a
 title page, a book plate).
 
-**`identificationStatus` — 6 valid keys:**
-`secure`, `probable`, `possible`, `disputed`, `rejected`, `modern_interpretation`.
+**`identificationStatus` — valid keys:**
+`secure`, `probable`, `possible`, `disputed`, `rejected`, `modern_interpretation`, `unverified`.
 
 ### The caption rules, which are enforced by tests
 
@@ -189,6 +184,7 @@ title page, a book plate).
   in the `licence` field instead, where it belongs.
 - The caption is also the alt text, so write it as a description of the image,
   not as a citation.
+- **For an unverified match, begin the caption exactly with `UNVERIFIED —` and explain the uncertainty.**
 - **Where a picture invites a reading the record refuses, the caption should say
   so.** This is the house style and it is the point of the whole project. Not
   "the Pashupati seal" but "the seal usually called Pashupati; the seated figure's
