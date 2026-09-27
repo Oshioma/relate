@@ -2915,6 +2915,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "1933 and Habachi are the trail to follow, and none was read.",
       },
     ],
+    media: [
+      {
+        url: commons("400_Year_stele_Budge.png"),
+        sourcePageUrl: commonsPage("400_Year_stele_Budge.png"),
+        fileName: "400 Year stele Budge.png",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/400_Year_stele_Budge.png",
+        caption:
+          "Historical published image of the Four-Hundred-Year Stela, the Ramesside monument commemorating an era of Seth/Sutekh. This is a reproduction from older Egyptological publication, not a modern museum photograph of Cairo JdE 60539.",
+        kind: "image",
+        shows: "engraving",
+        institution: "Egyptian Museum, Cairo",
+        accessionNumber: "JdE 60539",
+        objectDate: "Ramesside period",
+        licence: "Public domain",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
@@ -3305,6 +3323,42 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         institution: "Mut el-Kharab, Dakhleh Oasis",
         creator: "Institute for the Study of the Ancient World",
         photographDate: "27 January 2006",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
+    media: [
+      {
+        url: commons("HibisSeth.jpg"),
+        sourcePageUrl: commonsPage("HibisSeth.jpg"),
+        fileName: "HibisSeth.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/HibisSeth.jpg",
+        caption:
+          "Relief at the Temple of Hibis in Kharga Oasis showing a falcon-headed Seth slaying a serpent. This is direct contextual evidence for Seth's continuing positive protective role in an oasis temple during the Persian period.",
+        kind: "image",
+        shows: "inscription",
+        institution: "Temple of Hibis, Kharga Oasis",
+        creator: "Roland Unger",
+        objectDate: "Persian period",
+        photographDate: "25 March 2008",
+        licence: "Creative Commons Attribution-ShareAlike 4.0",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg"),
+        sourcePageUrl: commonsPage("Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg"),
+        fileName: "Seth Slaying a Serpent, Temple of Amun at Hibis MET 48.105.6.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Seth_Slaying_a_Serpent,_Temple_of_Amun_at_Hibis_MET_48.105.6.jpg",
+        caption:
+          "Charles K. Wilkinson facsimile of the Seth-slaying-serpent relief at Hibis. Included as a clearer study image beside site photography; it is a modern archaeological facsimile, not the temple wall itself.",
+        kind: "image",
+        shows: "illustration",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "48.105.5",
+        creator: "Charles K. Wilkinson",
+        objectDate: "facsimile after a Dynasty 27 relief, reign of Darius I",
+        licence: "Creative Commons CC0 1.0 Universal",
         identificationStatus: "secure",
         creditFrom: "source",
       },
@@ -3822,6 +3876,23 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         notes:
           "NEEDS SOURCE VERIFICATION for the individual proposals and their advocates, none of whom is named " +
           "here — which is a fair criticism of this record.",
+      },
+    ],
+    media: [
+      {
+        url: commons("Set_animal.svg"),
+        sourcePageUrl: commonsPage("Set_animal.svg"),
+        fileName: "Set animal.svg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Set_animal.svg",
+        caption:
+          "Modern CC0 reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
+        kind: "image",
+        shows: "illustration",
+        creator: "PharaohCrab",
+        photographDate: "21 December 2024",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
       },
     ],
   },
