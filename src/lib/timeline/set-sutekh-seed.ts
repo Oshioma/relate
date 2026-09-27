@@ -1872,6 +1872,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "question, which exists and has not been consulted.",
       },
     ],
+    media: [
+      {
+        url: commons("Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg"),
+        sourcePageUrl: commonsPage("Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg"),
+        fileName: "Scarabs with the Name of the Hyksos King Sheshi MET 30.8.462 bottom.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Scarabs_with_the_Name_of_the_Hyksos_King_Sheshi_MET_30.8.462_bottom.jpg",
+        caption:
+          "Inscribed scarab associated with King Sheshi from the Second Intermediate Period, Metropolitan Museum 30.8.462. This is contextual material culture for the Hyksos-era political world; it does not itself name Sutekh or prove the later statement about Avaris cult.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "30.8.462",
+        objectDate: "Second Intermediate Period, about 1700 BCE",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+    ],
   },
 
   {
