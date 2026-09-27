@@ -1789,7 +1789,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         licence: "Creative Commons CC0 License",
         identificationStatus: "secure",
         creditFrom: "source",
-      },
+      },,
+      {
+        url: commons("Stela_of_Ramesses_I_with_Seth.jpg"),
+        sourcePageUrl: commonsPage("Stela_of_Ramesses_I_with_Seth.jpg"),
+        fileName: "Stela of Ramesses I with Seth.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stela_of_Ramesses_I_with_Seth.jpg",
+        caption:
+          "Nineteenth Dynasty stela showing Ramesses I making an offering to Seth, now in the Egyptian Museum in Cairo. This is direct evidence for Seth as a recipient of royal cult; it does not by itself establish every geographic or symbolic meaning attached to the 'red land' title.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Egyptian Museum, Cairo",
+        creator: "Sarah C. Murray",
+        objectDate: "Nineteenth Dynasty",
+        photographDate: "15 December 2020",
+        licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 
