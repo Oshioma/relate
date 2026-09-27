@@ -24,7 +24,7 @@ export const ANCIENT_GREEK_APPEARANCE_SOURCES: SeedSource[] = [
 
 const point=(sourceKey:string, year:number, text:string, evidence:string)=>({
   sourceKey, startYear:bce(year), datePrecision:"range", isApproximate:true,
-  originalDateText:text, datingMethod:"archaeological_context", chronology:"conventional",
+  originalDateText:text, datingMethod:"archaeological", chronology:"conventional",
   evidence
 });
 
