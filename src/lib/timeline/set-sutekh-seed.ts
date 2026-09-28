@@ -809,22 +809,6 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "corpus of stone vessels and Umm el-Qaab material.",
       },
     ],
-    media: [
-      {
-        url: commons("Seal_impression_Peribsen.jpg"),
-        sourcePageUrl: "https://www.ucl.ac.uk/museums-static/digitalegypt/chronology/kingperibsen.html",
-        caption:
-          "Seal impression naming Peribsen, Petrie Museum UC 36828. The Set animal stands over the royal name in the place the Horus falcon occupies on every conventional serekh — which is what makes this identification secure rather than a matter of resemblance.",
-        kind: "image",
-        shows: "artefact",
-        institution: "Petrie Museum of Egyptian Archaeology, University College London",
-        accessionNumber: "UC 36828",
-        identificationStatus: "secure",
-        depictsActualRemains: false,
-        verifiedIdentity: true,
-        creditFrom: "source",
-      },
-    ],
   },
 
   {

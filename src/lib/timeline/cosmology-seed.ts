@@ -616,23 +616,7 @@ const HISTORY: SeedEvent[] = [
     eventType: "hypothesised",
     tags: ["cosmology", "cyclic", "ekpyrotic", "2002"],
     people: ["Paul Steinhardt", "Neil Turok"],
-    imageUrl:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
     media: [
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
-        shows: "diagram",
-        caption:
-          "An animation of a contraction running into an expansion. It illustrates the shape these proposals share " +
-          "and NOT the ekpyrotic model in particular — there is no picture of that model, because it is a set of " +
-          "equations about branes and nobody has photographed one.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
       {
         url:
           "https://commons.wikimedia.org/wiki/Special:FilePath/Neil_Turok_AIMS.jpg?width=1024",
@@ -687,20 +671,6 @@ const HISTORY: SeedEvent[] = [
           "A spin network, the kind of object loop quantum gravity uses to describe space itself. This is a picture " +
           "of the framework the 2006 result was obtained in, not of the result: the bounce is a feature of the " +
           "equations' solutions, and has no appearance.",
-        kind: "image",
-        // Written WITHOUT its credit: the credit is worked out from the
-        // picture's own source at seed time, so it says what the source says
-        // today rather than what was typed here from memory.
-        creditFrom: "source",
-      },
-      {
-        url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Big_Bounce.gif?width=1024",
-        shows: "diagram",
-        caption:
-          "A contraction running into an expansion. The same generic illustration as on the ekpyrotic record, and " +
-          "it is here to make the point that these are different theories reaching a similar-looking conclusion — " +
-          "the picture cannot tell them apart, and neither can a summary.",
         kind: "image",
         // Written WITHOUT its credit: the credit is worked out from the
         // picture's own source at seed time, so it says what the source says

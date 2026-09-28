@@ -1,7 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { picturesMissingFrom, pictureName, pictureTopUp } from "./bring-in-image";
+import {
+  PICTURE_BUDGET_MS,
+  PICTURE_BUDGET_PER_RUN,
+  pictureBudget,
+  picturesMissingFrom,
+  pictureName,
+  pictureTopUp,
+} from "./bring-in-image";
 import { ANCIENT_SITES_EVENTS } from "./ancient-sites-seed";
 import type { SeedEvent } from "./seed-types";
 
@@ -317,4 +324,52 @@ test("across every seeded dataset, a record holding only its first picture is re
   // what the banner was reporting while the timeline showed one picture each.
   assert.ok(shortRecords >= 130, `only ${shortRecords} records carry more than one picture`);
   assert.ok(shortPictures >= 154, `only ${shortPictures} pictures would be topped up`);
+});
+
+// ---------------------------------------------------------------------------
+// A PRESS MUST MAKE PROGRESS
+//
+// The repair button reported "61 more pictures are still waiting — press this
+// again to continue", and then reported exactly that on the next press, and the
+// next. Nothing varied, because nothing was happening: the picture clock was
+// started at the top of the run, the date corrections for every dataset ran
+// first and used all forty-five seconds, and by the time the loop reached a
+// record that needed a picture the deadline had already passed. Every record
+// was counted as still waiting and none was fetched.
+//
+// The property below is the one that was missing, and it is not "be fast".
+// ---------------------------------------------------------------------------
+
+test("a run that has attempted nothing always has room, however long the rest took", () => {
+  // startedAt null means no picture has been attempted. An hour may have gone
+  // on date checks first; this must still say go, or the button can report the
+  // same number for ever.
+  const anHourIn = 3_600_000;
+  const budget = pictureBudget({ pictured: 0, startedAt: null, now: anHourIn });
+  assert.equal(budget.exhausted, false, "a press that has done no picture work must still do some");
+  assert.equal(budget.startedAt, anHourIn, "the clock starts at the first attempt, not at the top of the run");
+});
+
+test("the clock, once started, is not restarted by later records", () => {
+  const started = 1_000_000;
+  const { startedAt } = pictureBudget({ pictured: 5, startedAt: started, now: started + 10_000 });
+  assert.equal(startedAt, started, "a later record must not give the run a fresh budget");
+});
+
+test("a run stops when its own clock runs out, not before", () => {
+  const started = 1_000_000;
+  assert.equal(
+    pictureBudget({ pictured: 1, startedAt: started, now: started + PICTURE_BUDGET_MS - 1 }).exhausted,
+    false
+  );
+  assert.equal(
+    pictureBudget({ pictured: 1, startedAt: started, now: started + PICTURE_BUDGET_MS }).exhausted,
+    true
+  );
+});
+
+test("the ceiling still holds, so one press cannot run away", () => {
+  const now = 1_000_000;
+  assert.equal(pictureBudget({ pictured: PICTURE_BUDGET_PER_RUN - 1, startedAt: now, now }).exhausted, false);
+  assert.equal(pictureBudget({ pictured: PICTURE_BUDGET_PER_RUN, startedAt: now, now }).exhausted, true);
 });
