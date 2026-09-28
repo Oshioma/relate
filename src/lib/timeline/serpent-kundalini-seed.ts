@@ -279,7 +279,7 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         licence: "Public domain",
         identificationStatus: "disputed",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Pashupati_seal_impression.jpg"),
         sourcePageUrl: commonsPage("Pashupati_seal_impression.jpg"),
