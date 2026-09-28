@@ -4155,7 +4155,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       {
         url: commons("Set_animal.svg", 1200),
         sourcePageUrl: commonsPage("Set_animal.svg"),
-        fileName: "Set animal.svg (displayed through Wikimedia raster thumbnail)",
+        fileName: "Set animal.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Set_animal.svg",
         caption:
           "Modern reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings and served through Wikimedia's raster thumbnail endpoint for site compatibility. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
@@ -4265,7 +4265,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       {
         url: commons("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg", 1200),
         sourcePageUrl: commonsPage("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
-        fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg (displayed through Wikimedia raster thumbnail)",
+        fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg",
         caption:
           "Modern colour vector reconstruction of the same stela, served through Wikimedia's raster thumbnail endpoint and included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
