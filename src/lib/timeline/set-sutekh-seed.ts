@@ -1741,7 +1741,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         caption:
           "Closer view of Pyramid Text columns inside Unas's pyramid. This supplements the wide chamber photograph so the inscriptional character of the corpus is visible; it still does not claim that the photographed columns are specifically the Set passages discussed here.",
         kind: "image",
-        shows: "inscription",
+        shows: "artefact",
         institution: "Pyramid of Unas, Saqqara",
         objectDate: "late Fifth Dynasty, 24th century BCE",
         identificationStatus: "secure",
@@ -2150,8 +2150,8 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
             evidence:
               "WHAT IT ESTABLISHES: that the Egyptian narrative gives Seth a genuine legal position, and " +
               "that the position is his solar role. WHAT IT DOES NOT: that he wins it.",
-          },
-        ],
+          }
+    ],
       },
       {
         label: "The court, and the eighty years",
@@ -2530,23 +2530,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
-      {
-        url: commons("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg", 2000),
-        sourcePageUrl: commonsPage("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
-        fileName: "Contendings of Horus and Seth (CBL Pap 1.2).jpg",
-        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg",
-        caption:
-          "Second display treatment of Chester Beatty Papyrus 1.2 at near-original width, included so the hieratic writing can be inspected more closely. This is the same manuscript image, not independent corroborating evidence.",
-        kind: "image",
-        shows: "manuscript",
-        institution: "Chester Beatty Library, Dublin",
-        accessionNumber: "Pap 1.2",
-        objectDate: "about 1160 BCE",
-        licence: "Creative Commons Public Domain Mark 1.0",
-        identificationStatus: "secure",
-        duplicateOf: "Contendings of Horus and Seth (CBL Pap 1.2).jpg",
-        creditFrom: "source",
-      }
+
     ],
   },
 
