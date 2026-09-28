@@ -1732,7 +1732,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         licence: "Creative Commons Attribution-Share Alike 2.0 Generic",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Unas_Pyramidentexte_det1.jpg"),
         sourcePageUrl: commonsPage("Unas_Pyramidentexte_det1.jpg"),
@@ -2529,7 +2529,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         licence: "Creative Commons Public Domain Mark 1.0",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg", 2000),
         sourcePageUrl: commonsPage("Contendings_of_Horus_and_Seth_(CBL_Pap_1.2).jpg"),
