@@ -343,3 +343,25 @@ export async function fetchCommonsAttribution(
 export function commonsFilePageUrl(fileName: string): string {
   return `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(fileName).replace(/%20/g, "_")}`;
 }
+
+/**
+ * THE IMAGE ITSELF, encoded the same way its file page is.
+ *
+ * This existed four times before it existed once. Three seed files had written
+ * their own `commons()` that interpolated the name RAW, and a fourth encoded it
+ * but without the %20 step — so a filename carrying a curly apostrophe, an
+ * umlaut or a semicolon produced a different URL depending on which dataset it
+ * was seeded from. `Zodiaque_de_Dendéra … D_38_;_E_13482.jpg` was live with
+ * both an unencoded é and an unencoded semicolon, and a semicolon is a URL
+ * sub-delimiter that the parser will not clean up on anyone's behalf.
+ *
+ * WHY %20 BECOMES AN UNDERSCORE rather than staying encoded: Commons titles
+ * treat space and underscore as the same character, and the underscore is the
+ * form its own canonical URLs use. Encoding to %20 works, but it means the name
+ * in the URL no longer matches the `fileName` stored beside it, which is the
+ * one comparison that proves a URL was DERIVED from a filename rather than
+ * typed alongside it.
+ */
+export function commonsFilePathUrl(fileName: string, width = 1200): string {
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName).replace(/%20/g, "_")}?width=${width}`;
+}

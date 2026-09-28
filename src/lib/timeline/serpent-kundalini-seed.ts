@@ -54,6 +54,7 @@
 // absent rather than guessed.
 
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "./seed-types";
+import { commonsFilePathUrl, commonsFilePageUrl } from "./check-pictures";
 
 export const SERPENT_KUNDALINI_ANCHOR_SLUG = "pashupati-seal";
 
@@ -64,9 +65,8 @@ export const SERPENT_KUNDALINI_TRACK: SeedTrack = {
   color: "#2f8f6b",
 };
 
-const commons = (file: string, width = 1200) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
-const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+const commons = (file: string, width = 1200) => commonsFilePathUrl(file, width);
+const commonsPage = (file: string) => commonsFilePageUrl(file);
 
 /**
  * THEMATIC THREADS, as tags rather than as a second taxonomy.
