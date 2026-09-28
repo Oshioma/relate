@@ -331,3 +331,44 @@ End with:
 The collection's whole claim on a reader is that it shows how much evidence sits
 under each part of a system usually presented as seamless. **An empty row proves
 that claim. A filled-in guess destroys it.**
+
+
+---
+
+## RETENTION RULE — KEEP THE COMPARISONS, LABEL THE STATUS
+
+Do **not** exclude a serpent/body/ascent comparison merely because the historical connection is unverified. The collection is meant to preserve the comparison while making the evidential status impossible to miss. This does **not** relax the traceback standard above: an unattested connection must never be promoted into an attested ancient doctrine.
+
+For every comparison, separate four questions wherever the evidence allows:
+
+1. **Object/text/tradition** — is the underlying object, passage or tradition itself securely identified and dated?
+2. **Interpretation** — who actually proposed the comparison, in what work, and when?
+3. **Relation** — is this explicit Kundalini, a historical precursor, a related tradition, a cross-cultural parallel, a speculative/esoteric reading, or a modern development?
+4. **Transmission** — is there evidence that the idea or motif travelled between the cultures, or is transmission unknown/unestablished?
+
+A record may therefore contain a secure ancient object and an **unverified proposed Kundalini connection** at the same time. That is not a contradiction; it is the point of the schema. Preserve the object, preserve the resemblance, preserve the claimant if one can be found, and preserve the absence of a demonstrated transmission mechanism.
+
+### Comparisons that must be retained rather than filtered out
+
+The following are explicit research targets. Their presence here means **investigate and keep the comparison**, not “accept the proposed equivalence.” Attach as many directly relevant and related images as licensing/provenance allows, with image-level identification status where appropriate.
+
+| comparison | secure material to establish | proposed connection to retain separately | default status until evidence improves |
+| --- | --- | --- | --- |
+| Gudea / Ningishzida libation vase | object, inscription, date, iconography, specialist account of Ningishzida | entwined serpents / central axis compared with Kundalini or subtle-body diagrams | ancient object may be secure; Kundalini equivalence unverified unless a sourced historical argument establishes more |
+| Greek caduceus | Hermes, two-serpent staff, chronology and iconography | serpents read as Iḍā/Piṅgalā and staff as Suṣumṇā | cross-cultural/speculative unless a specialist historical connection is found |
+| Rod of Asclepius | one-serpent healing staff and its Greek medical/religious context | serpent rising on a staff read as spinal/Kundalini ascent | cross-cultural/speculative unless demonstrated |
+| Quetzalcoatl / Kukulkan | Mesoamerican feathered-serpent traditions in their own specialist context | feathered serpent identified with Kundalini or ascending inner energy | related/cross-cultural; transmission unestablished unless evidence says otherwise |
+| Nehushtan / bronze serpent | Numbers 21, 2 Kings 18:4, archaeology and Hebrew scholarship | pole as spine and serpent as Kundalini | speculative/later interpretation unless ancient evidence is found |
+| Jörmungandr | Norse textual/iconographic tradition | world serpent equated with Kundalini or inner energy | related/cross-cultural; no bodily-energy equivalence assumed |
+| Egyptian uraeus | Egyptian textual/iconographic meaning and chronology of the forehead cobra | awakened Kundalini reaching brow/crown | speculative/later interpretation unless Egyptological evidence supports the bodily-energy claim |
+| Djed pillar | Egyptian meaning, chronology and iconographic contexts | Djed as spine/central channel carrying Kundalini | speculative/later interpretation unless the anatomical/esoteric chain can be sourced |
+| double helix / DNA comparison | modern discovery and structure of DNA plus the ancient serpent image being compared | claim that ancient double-serpent imagery encoded DNA | modern speculative comparison; ancient knowledge of DNA is not established by resemblance |
+| universal primordial serpent-energy doctrine | the individual serpent traditions and their own meanings | claim that they descend from one lost worldwide teaching (including Atlantis/Lemuria variants where sourced) | hypothesis/later interpretation; common origin or transmission must not be inferred from resemblance alone |
+
+### Image rule for these records
+
+Do not use “unverified connection” as a reason to omit an otherwise relevant historical image. Prefer, in order: the actual object/manuscript; museum or holding-institution photography; excavation/publication plates; historically significant reproductions; then clearly labelled related imagery. If an image is itself securely identified but its claimed Kundalini significance is not, say exactly that. The image's status and the interpretation's status are separate.
+
+### What would upgrade a comparison
+
+A resemblance becomes historically stronger only when evidence supplies something beyond the resemblance: an ancient passage giving the relevant bodily meaning; a specialist reading grounded in the culture's own sources; a documented contact/transmission chain; or a traceable history showing who first made the comparison and how later writers inherited it. Until then, keep the comparison visible and label the gap.
