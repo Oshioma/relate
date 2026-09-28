@@ -547,7 +547,7 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         licence: "Creative Commons Attribution-ShareAlike 3.0 Unported",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons('Haroeris,_"Horus_the_Greater"_(36320554561).jpg'),
         sourcePageUrl: commonsPage('Haroeris,_"Horus_the_Greater"_(36320554561).jpg'),
@@ -753,7 +753,7 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         photographDate: "7 January 1989",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Ptolemaic_Birth_House_at_Dendera_(I).jpg"),
         sourcePageUrl: commonsPage("Ptolemaic_Birth_House_at_Dendera_(I).jpg"),
@@ -926,7 +926,7 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         licence: "Creative Commons CC0 License",
         identificationStatus: "secure",
         creditFrom: "source",
-      },,
+      },
       {
         url: commons("Book_of_the_Amduat,_papyurs_-_Museo_Egizio_(Turin)_C_1776_p02.jpg"),
         sourcePageUrl: commonsPage("Book_of_the_Amduat,_papyurs_-_Museo_Egizio_(Turin)_C_1776_p02.jpg"),
