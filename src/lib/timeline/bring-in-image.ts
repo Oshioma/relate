@@ -438,3 +438,43 @@ export async function bringEventPicturesIn(
 
   return { pictures: { imageUrl, media }, broughtIn, reason };
 }
+
+// ---------------------------------------------------------------------------
+// HOW MUCH PICTURE WORK ONE PRESS DOES, AS A DECISION THAT CAN BE TESTED
+//
+// This lived inline in the repair action, which is a "use server" module and so
+// cannot export anything but async functions — which is why it had no test, and
+// why the bug below survived.
+//
+// THE BUG. The clock was started at the top of the whole run. The run visits
+// each dataset and corrects its DATES before it fetches its PICTURES, so on a
+// community carrying many datasets the entire budget was spent on date checks
+// before the first picture was reached. Every record then failed the deadline,
+// all of them were counted as still waiting, and none was fetched — so the
+// button reported "61 more pictures are still waiting" and reported exactly
+// that again on the next press, and the next, for ever.
+//
+// THE PROPERTY THAT WAS MISSING is not "the run should be fast". It is that a
+// press must make PROGRESS. A run may still stop early and say how many are
+// left; that was always the design. What it must never do is stop before it has
+// started, because then the number it reports is the number it will report next
+// time too.
+//
+// Passing `startedAt: null` means no picture has been attempted yet, and the
+// answer is always that there is room — however long everything before it took.
+// ---------------------------------------------------------------------------
+
+/** A fixed ceiling so one press cannot run away. */
+export const PICTURE_BUDGET_PER_RUN = 60;
+/** …and a deadline, so a slow press stops before the request does. */
+export const PICTURE_BUDGET_MS = 45_000;
+
+export function pictureBudget(
+  { pictured, startedAt, now }: { pictured: number; startedAt: number | null; now: number }
+): { startedAt: number; exhausted: boolean } {
+  // The clock starts at the first ATTEMPT, not at the first tick of the run.
+  const began = startedAt ?? now;
+  const outOfRoom = PICTURE_BUDGET_PER_RUN - pictured <= 0;
+  const outOfTime = now >= began + PICTURE_BUDGET_MS;
+  return { startedAt: began, exhausted: outOfRoom || outOfTime };
+}
