@@ -548,6 +548,36 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+      {
+        url: commons('Haroeris,_"Horus_the_Greater"_(36320554561).jpg'),
+        sourcePageUrl: commonsPage('Haroeris,_"Horus_the_Greater"_(36320554561).jpg'),
+        fileName: 'Haroeris, "Horus the Greater" (36320554561).jpg',
+        originalFileUrl: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Haroeris,_%22Horus_the_Greater%22_(36320554561).jpg',
+        caption:
+          "Relief of Haroeris, Horus the Elder/Greater, at the temple of Sobek and Haroeris at Kom Ombo. Placed beside Harpocrates to make the record's central point visible: ancient sources use distinct Horus forms rather than one invariant biography.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Temple of Kom Ombo, Egypt",
+        creator: "Bernard Dupont",
+        photographDate: "August 1985",
+        licence: "Creative Commons Attribution-ShareAlike 2.0 Generic",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      },
+      {
+        url: commons("Horus_as_falcon-E_10659-louvre_024b.jpg"),
+        sourcePageUrl: commonsPage("Horus_as_falcon-E_10659-louvre_024b.jpg"),
+        fileName: "Horus as falcon-E 10659-louvre 024b.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Horus_as_falcon-E_10659-louvre_024b.jpg",
+        caption:
+          "Late Egyptian bronze statuette of Horus in full falcon form, Louvre E 10659. Together with Harpocrates and Haroeris this gives the reader three materially different Horus forms rather than collapsing them into one figure with one biography.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Musée du Louvre, Paris",
+        accessionNumber: "E 10659",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 
@@ -724,6 +754,21 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+      {
+        url: commons("Ptolemaic_Birth_House_at_Dendera_(I).jpg"),
+        sourcePageUrl: commonsPage("Ptolemaic_Birth_House_at_Dendera_(I).jpg"),
+        fileName: "Ptolemaic Birth House at Dendera (I).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Ptolemaic_Birth_House_at_Dendera_(I).jpg",
+        caption:
+          "Remains of the Ptolemaic birth house at Dendera, originally constructed by Nectanebo I and later decorated under the Ptolemies. It is genuine architectural context for Egyptian divine-birth ritual; neither the building nor this photograph supplies a December 25 birth date for Horus.",
+        kind: "image",
+        shows: "site",
+        institution: "Dendera Temple complex, Egypt",
+        creator: "Kyera Giannini / Ancient World Image Bank",
+        photographDate: "6 March 2009",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 
@@ -882,6 +927,21 @@ export const HORUS_CLAIMS_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+      {
+        url: commons("Book_of_the_Amduat,_papyurs_-_Museo_Egizio_(Turin)_C_1776_p02.jpg"),
+        sourcePageUrl: commonsPage("Book_of_the_Amduat,_papyurs_-_Museo_Egizio_(Turin)_C_1776_p02.jpg"),
+        fileName: "Book of the Amduat, papyurs - Museo Egizio (Turin) C 1776 p02.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Book_of_the_Amduat,_papyurs_-_Museo_Egizio_(Turin)_C_1776_p02.jpg",
+        caption:
+          "Ancient Amduat papyrus in the Museo Egizio, Cat. 1776. The museum describes the Amduat as divided into twelve hours of day and night. This is direct evidence for genuine Egyptian twelvefold underworld structure, not for a historical Horus travelling with twelve disciples.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "Museo Egizio, Turin",
+        accessionNumber: "Cat.1776",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 

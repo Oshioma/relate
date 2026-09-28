@@ -1717,6 +1717,20 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+      {
+        url: commons("Unas_Pyramidentexte_det1.jpg"),
+        sourcePageUrl: commonsPage("Unas_Pyramidentexte_det1.jpg"),
+        fileName: "Unas Pyramidentexte det1.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Unas_Pyramidentexte_det1.jpg",
+        caption:
+          "Closer view of Pyramid Text columns inside Unas's pyramid. This supplements the wide chamber photograph so the inscriptional character of the corpus is visible; it still does not claim that the photographed columns are specifically the Set passages discussed here.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Pyramid of Unas, Saqqara",
+        objectDate: "late Fifth Dynasty, 24th century BCE",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 
@@ -1767,22 +1781,39 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     ],
     media: [
       {
-        url: commons("Coffin_of_Wah_MET_EG156.jpg"),
-        sourcePageUrl: commonsPage("Coffin_of_Wah_MET_EG156.jpg"),
-        fileName: "Coffin of Wah MET EG156.jpg",
-        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffin_of_Wah_MET_EG156.jpg",
+        url: commons("Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02.jpg"),
+        sourcePageUrl: commonsPage("Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02.jpg"),
+        fileName: "Inner facing of the coffin of Iqer, wood - Museo Egizio, Turin S 15744 01 p02.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02.jpg",
         caption:
-          "UNVERIFIED — Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
+          "Inner facing of Iqer's Twelfth-Dynasty wooden coffin, Museo Egizio S.15744/01. The museum description explicitly identifies the surviving inscriptions as spells from a local tradition of the Coffin Texts, making this direct visual evidence for the corpus rather than a generic coffin interior.",
         kind: "image",
         shows: "artefact",
-        institution: "Metropolitan Museum of Art, New York",
-        accessionNumber: "20.3.202a, b",
-        objectDate: "about 1981-1975 BCE, Dynasty 12",
-        licence: "Creative Commons CC0 License",
+        institution: "Museo Egizio, Turin",
+        accessionNumber: "S.15744/01",
+        objectDate: "Twelfth Dynasty, 1939–1759 BCE",
+        licence: "Creative Commons CC0 1.0 Universal",
         identificationStatus: "secure",
         creditFrom: "source",
       },
-    ],
+      {
+        url: commons("Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02_(cropped).jpg"),
+        sourcePageUrl: commonsPage("Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02_(cropped).jpg"),
+        fileName: "Inner facing of the coffin of Iqer, wood - Museo Egizio, Turin S 15744 01 p02 (cropped).jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Inner_facing_of_the_coffin_of_Iqer,_wood_-_Museo_Egizio,_Turin_S_15744_01_p02_(cropped).jpg",
+        caption:
+          "Wide crop of the same Iqer coffin boards emphasizing the inscribed interior. This is a duplicate view of S.15744/01 rather than independent evidence, included because the Coffin Text columns are substantially easier to inspect.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Museo Egizio, Turin",
+        accessionNumber: "S.15744/01",
+        objectDate: "Twelfth Dynasty, 1939–1759 BCE",
+        licence: "Creative Commons CC0 1.0 Universal",
+        identificationStatus: "secure",
+        duplicateOf: "Inner facing of the coffin of Iqer, wood - Museo Egizio, Turin S 15744 01 p02.jpg",
+        creditFrom: "source",
+      },
+    ]
   },
 
   {
@@ -1891,7 +1922,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "ON THE WORD HYKSOS. It renders an Egyptian phrase for rulers of foreign lands. It is a title, not an " +
       "ethnicity, and the older picture of a single violent invading horde has been substantially revised by " +
       "excavation at Tell el-Dabaa. This record does not depend on the old picture.\n\n" +
-      "THINGS TO ASK: If a foreign dynasty adopts a local god, what does that tell you about the god, and " +
+      "DIRECT AVARIS EVIDENCE AND ITS LIMIT. Excavation at Avaris recovered a late-Eighteenth-Dynasty sanctuary lintel dedicated to 'Sutekh, great of might' and bearing Horemheb's names. That is direct archaeological evidence for a Sutekh sanctuary at the site after the Hyksos period. It is not, by itself, a Hyksos-period temple inscription. A separate study notes that no depiction of Seth of Avaris has yet been identified. This is why the Hyksos-era Sheshi scarab below remains contextual rather than being promoted to direct Sutekh evidence.\n\nTHINGS TO ASK: If a foreign dynasty adopts a local god, what does that tell you about the god, and " +
       "what does it tell you about the dynasty?",
     category: "history",
     subcategory: "Second Intermediate Period",
@@ -2103,8 +2134,8 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
             evidence:
               "WHAT IT ESTABLISHES: that the Egyptian narrative gives Seth a genuine legal position, and " +
               "that the position is his solar role. WHAT IT DOES NOT: that he wins it.",
-          },
-        ],
+          }
+    ],
       },
       {
         label: "The court, and the eighty years",
@@ -2483,6 +2514,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+
     ],
   },
 
@@ -3808,8 +3840,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     description:
       "WHAT KIND OF RECORD IS THIS? Seth doing administrative work, which is a long way from either the " +
       "protector of the sun boat or the enemy of Osiris.\n\n" +
-      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a — a number this dataset " +
-      "has verified. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
+      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a. The 2022 Dakhleh excavation monograph reproduces the object and lunette as Plate 1.1, independently confirming the accession and object identification. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
       "SETH.\n\n" +
       "WHY AN ORACLE IS THE INTERESTING PART. An oracle is not devotion. It is procedure. For a community to " +
       "settle a dispute over water — which in an oasis is a dispute over survival — by putting it to Seth, " +
@@ -3820,7 +3851,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "REDATING STUDY — its whole subject is that association — and it was not opened. So this dataset " +
       "knows the question exists and does not know the answer, and enters a broad Libyan Period range " +
       "rather than the confident attribution that circulates.\n\n" +
-      "WHAT IS MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
+      "WHAT IS NOW VISUALLY VERIFIED. The 2022 excavation monograph publishes a photograph of the Greater Dakhleh Stela and a detail of its lunette as Plate 1.1. The image is institutionally copyrighted rather than a freely reusable Commons asset, so the site retains its reusable Mut el-Kharab context photograph while recording the exact plate and accession for inspection.\n\nWHAT IS STILL MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
       "Smaller Dakhleh Stelae were to be compared on how each writes Seth's name — the comparison that would " +
       "show whether the respelling seen on the Mut doorway block is part of a pattern. The Griffith " +
       "Institute holds a scale hand-copy and a hieroglyphic transcription under Griffith-2-9; access was " +
@@ -3831,7 +3862,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Third Intermediate Period",
     eventType: "historical",
-    identificationStatus: "unverified",
+    identificationStatus: "secure",
     tags: ["set", "dakhla", "greater-dakhleh-stela", "oracle", "libyan-period", "ashmolean", "water-rights"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt; now Ashmolean Museum, Oxford",
@@ -3915,7 +3946,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "overwriting of Seth's name on the Mut doorway block. The same dynasty, the same oasis: a royal decree " +
       "with Seth presiding over its upper scene, and a doorway where his animal was being written out. Both " +
       "are the evidence. Neither cancels the other.\n\n" +
-      "THE HONEST LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
+      "OBJECT IDENTIFICATION NOW VERIFIED. The 2022 Dakhleh excavation monograph identifies and photographs the Smaller Dakhleh Stela as Ashmolean Museum 1894.107b, Plate 1.2, and gives its sandstone dimensions as 81.5 × 39.5 × 12 cm. The published photograph is not treated as freely reusable media.\n\nTHE REMAINING LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
       "Kaper's citation of it. The object number, the material, the size, the present location and the " +
       "exact findspot are all unknown here, and the plate — which would allow the determinative comparison " +
       "with the Greater Stela — has not been seen.\n\n" +
@@ -3923,7 +3954,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "historical",
-    identificationStatus: "unverified",
+    identificationStatus: "secure",
     tags: ["set", "amun", "dakhla", "smaller-dakhleh-stela", "piye", "priesthood", "twenty-fifth-dynasty"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt",
@@ -4122,12 +4153,12 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     ],
     media: [
       {
-        url: commons("Set_animal.svg"),
+        url: commons("Set_animal.svg", 1200),
         sourcePageUrl: commonsPage("Set_animal.svg"),
         fileName: "Set animal.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Set_animal.svg",
         caption:
-          "Modern reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
+          "Modern reconstruction of the conventional Set animal hieroglyph, assembled from earlier drawings and served through Wikimedia's raster thumbnail endpoint for site compatibility. Useful as a clear visual guide to the creature's distinctive form, but not an ancient object and not evidence for identifying its biological species.",
         kind: "image",
         shows: "reconstruction",
         creator: "PharaohCrab",
@@ -4232,12 +4263,12 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         creditFrom: "source",
       },
       {
-        url: commons("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
+        url: commons("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg", 1200),
         sourcePageUrl: commonsPage("Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg"),
         fileName: "Stele of Ankh-ef-en-Khonsu vector art, colour.svg",
         originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Stele_of_Ankh-ef-en-Khonsu_vector_art,_colour.svg",
         caption:
-          "Modern colour vector reconstruction of the same stela, included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
+          "Modern colour vector reconstruction of the same stela, served through Wikimedia's raster thumbnail endpoint and included as a legibility aid. It is a 2020 reconstruction and must not be mistaken for a photograph of Cairo A 9422.",
         kind: "image",
         shows: "reconstruction",
         creator: "AnkhDuck",
