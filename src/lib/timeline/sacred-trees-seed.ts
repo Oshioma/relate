@@ -1,6 +1,7 @@
 // Dated objects and diagrams, not a claimed continuous lineage.
 // Dates belong to the surviving object, manuscript, print or modern publication.
 import type { SeedEvent, SeedPicture, SeedSource, SeedTrack } from "./seed-types";
+import { commonsFilePathUrl } from "./check-pictures";
 
 export const SACRED_TREES_TRACK: SeedTrack = { name: "Sacred trees and sefirotic diagrams", slug: "sacred-trees-diagrams", kind: "theme", color: "#62835b" };
 export const SACRED_TREES_ANCHOR_SLUG = "ur-goat-golden-plant";
@@ -79,8 +80,7 @@ export const SACRED_TREES_SOURCES: SeedSource[] = [
 
 // Keep the cover and the gallery picture together so a later correction run
 // can bring both into communities that took this dataset before it had images.
-const commons = (file: string) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=1024`;
+const commons = (file: string) => commonsFilePathUrl(file, 1024);
 const pictured = (picture: SeedPicture) => ({ imageUrl: picture.url, media: [picture] });
 const PICTURES: Record<string, ReturnType<typeof pictured>> = {
   "ur-goat-golden-plant": pictured({

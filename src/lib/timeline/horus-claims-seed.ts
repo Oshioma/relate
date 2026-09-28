@@ -46,10 +46,10 @@
 // say so rather than inheriting other people's summaries of them.
 
 import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
+import { commonsFilePathUrl, commonsFilePageUrl } from "./check-pictures";
 
-const commons = (file: string, width = 1200) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
-const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+const commons = (file: string, width = 1200) => commonsFilePathUrl(file, width);
+const commonsPage = (file: string) => commonsFilePageUrl(file);
 
 export const HORUS_CLAIMS_ANCHOR_SLUG = "horus-conception-pyramid-texts";
 

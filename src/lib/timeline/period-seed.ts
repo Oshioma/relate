@@ -715,11 +715,11 @@ export const PERIODS: SeedPeriod[] = [
       "That this record documents a diversification of animal life and a colonisation of land is the mainstream palaeontological reading. What is recovered is fossils in layers; the sequence of life those fossils are taken to describe is an interpretation, and a very well supported one.",
     displayPriority: 70,
     imageUrl:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian;_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian%3B_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
     media: [
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian;_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Elrathia_kingii_(fossil_trilobite)_(Wheeler_Formation,_Middle_Cambrian%3B_House_Range,_western_Utah,_USA)_1.jpg?width=1024",
         shows: "artefact",
         caption:
           "Elrathia kingii, a Middle Cambrian trilobite from Utah. One animal from one formation near the START " +
@@ -1395,11 +1395,11 @@ export const PERIODS: SeedPeriod[] = [
       "Reading a change in seed morphology as domestication, or a change in a bone assemblage as herding, is an interpretation of physical remains — and one that has been revised repeatedly as sampling improves. That the regional transitions were independent rather than diffused is also an interpretation, resting on different wild ancestors in each region.",
     displayPriority: 40,
     imageUrl:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/G\u00f6bekli_Tepe_Pillar.JPG?width=1024",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%B6bekli_Tepe_Pillar.JPG?width=1024",
     media: [
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/G\u00f6bekli_Tepe_Pillar.JPG?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%B6bekli_Tepe_Pillar.JPG?width=1024",
         shows: "site",
         caption:
           "A carved T-shaped pillar at G\u00f6bekli Tepe, built by people who had not yet taken up farming. THAT IS " +
@@ -1482,11 +1482,11 @@ export const PERIODS: SeedPeriod[] = [
       "Periodising by metal is a nineteenth-century scheme that has been kept because it is useful for ordering material, not because societies organised themselves by it. Reading the arrival of bronze as the start of an age is a convention of archaeologists.",
     displayPriority: 35,
     imageUrl:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f\u00fcr_Vorgeschichte_in_Halle.jpg?width=1024",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f%C3%BCr_Vorgeschichte_in_Halle.jpg?width=1024",
     media: [
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f\u00fcr_Vorgeschichte_in_Halle.jpg?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Himmelsscheibe_von_Nebra_-_Landesmuseum_f%C3%BCr_Vorgeschichte_in_Halle.jpg?width=1024",
         shows: "artefact",
         caption:
           "The Nebra sky disc, in the State Museum of Prehistory at Halle. Its date and its interpretation have " +
