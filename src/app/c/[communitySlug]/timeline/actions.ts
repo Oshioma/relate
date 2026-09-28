@@ -24,6 +24,7 @@ import {
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
 import { PICTURE_BUDGET_PER_RUN, bringEventPicturesIn, pictureBudget, pictureTopUp } from "@/lib/timeline/bring-in-image";
+import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
 
 /**
  * A picture as it comes back out of `timeline_events.media`, which is a jsonb
@@ -2454,34 +2455,25 @@ export async function refreshSeededDatasets(communitySlug: string) {
 
       const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
 
-      for (const seedClaim of seed.claims) {
-        // NULL MATCHES NULL. A seeded claim that places nothing has no
-        // startYear, and comparing undefined against a stored null matched
-        // nothing at all — so every positionless claim would have been counted
-        // ambiguous and never reconciled. Both sides are normalised to null so
-        // "no position" is a value that can be matched on, and the several
-        // positionless claims on one record are then told apart by their
-        // wording, which is the fallback that already exists below.
-        const wantStart = seedClaim.startYear ?? null;
-        const wantEnd = seedClaim.endYear ?? null;
-        const sameDate = stored.filter(
-          (claim) => (claim.start_year ?? null) === wantStart && (claim.end_year ?? null) === wantEnd
-        );
+      // A STORED ROW BELONGS TO AT MOST ONE SEEDED CLAIM. Without these two,
+      // several seeded claims at the same position all matched the same row and
+      // overwrote each other on every run — see reconcile-claims.ts, which is
+      // where the matching is now done and tested.
+      const seedAtPosition = seedClaimsByPosition(seed.claims);
+      const claimedRows = new Set<string>();
 
-        let match = sameDate.length === 1 ? sameDate[0] : null;
-        if (!match && sameDate.length > 1) {
-          // Two claims on one event at the same date — Plato and Donnelly both
-          // sit at ~9600 BCE. Fall back to the source's own wording, which is
-          // unique within an event by the seeder's own rule.
-          const byText = sameDate.filter((claim) => claim.original_date_text === seedClaim.originalDateText);
-          if (byText.length === 1) match = byText[0];
-        }
+      for (const seedClaim of seed.claims) {
+        const match = matchStoredClaim(seedClaim, stored, {
+          seedClaimsAtThisPosition: seedAtPosition.get(claimPositionKey(seedClaim)) ?? 1,
+          alreadyClaimed: claimedRows,
+        });
         if (!match) {
           // Either the date moved (a different claim now) or the match is
           // ambiguous. Either way this is not a row to guess at.
           skippedAmbiguous++;
           continue;
         }
+        claimedRows.add(match.id);
         if (editedHere.has(match.id)) {
           keptBecauseEdited++;
           continue;
