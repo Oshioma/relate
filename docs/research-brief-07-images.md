@@ -1,17 +1,29 @@
 # Research brief 07 — pictures for the Set, Serpent and Horus records
 
-**Status of the datasets as of 2026-09-27, counted from the seed files, not estimated:**
+**Status as of 2026-09-28, counted from the seed files, not estimated:**
 
 | Dataset | Records | Carry a picture | Carry none |
 | --- | --- | --- | --- |
-| Set / Sutekh | 34 | 7 | 27 |
-| Serpent & Kundalini | 3 | 0 | 3 |
-| Horus claims | 5 | 0 | 5 |
-| **Total** | **42** | **7** | **35** |
+| Set / Sutekh | 34 | 28 | 6 |
+| Serpent & Kundalini | 4 | 3 | 1 |
+| Horus claims | 5 | 5 | 0 |
+| **Total** | **43** | **36** | **7** |
 
-Thirty-five records out of forty-two have no image at all. This brief asks you to
-close as much of that as the evidence honestly allows — and to tell me, flatly,
-where it does not allow anything.
+**MOST OF THIS BRIEF HAS BEEN ANSWERED.** It went out at seven records
+illustrated out of forty-two and stands at thirty-six of forty-three — the
+Pyramid Texts at Unas, the Scorpion Macehead, Pashupati M-304, the Gudea vase,
+Harpocrates, the Dendera Zodiac, the Metternich Stela, the Karnak treaty wall,
+the Hibis relief, Seti I's cartouche and more besides. Two hundred and ninety-six
+of three hundred pictures loaded on the first seeding run.
+
+**So read the tranches as a list of what is LEFT, not of what is wanted.** Five
+of the seven records still without a picture are Tranche C, where that is the
+right answer. The two that are not are A16 below and the serpent collection's
+control record, which was added after this brief was written.
+
+Where a tranche entry has been satisfied, its own note says so — Part D of brief
+05a carries the same warning, for the same reason: re-finding a file that is
+already seeded costs a research round, and a person does that wasted work.
 
 ---
 
@@ -309,6 +321,54 @@ public domain) or a portrait of Champollion. **Careful:** a *Description* plate
 is `shows: "engraving"`, dated to its publication, not to the monument it draws.
 This is exactly the case where `objectDate` and `photographDate` diverge by
 three thousand years.
+
+### A16. `peribsen-set-above-the-serekh` — "Peribsen puts Set above the royal name"
+
+**Added 2026-09-28, and the only entry here that is a REPLACEMENT rather than a
+gap.** This record is the founding fact of the whole Set dataset and it now has
+no picture at all.
+
+**READ THIS FIRST, because it may make the rest of A16 unnecessary.** The record
+carried `Seal_impression_Peribsen.jpg` until a picture check reported it as
+failing, and it was removed. The evidence for removing it was thin: the check
+said only *"redirects (302) — destination not followed"*, which means the file
+was still hotlinked to Commons, i.e. the copy into our own storage had failed.
+**Why it failed was never established.** It could have been the file's size, a
+transient fetch, or a content type — none of which says anything about whether
+the file exists.
+
+So the first job is thirty seconds of work:
+
+> open `https://commons.wikimedia.org/wiki/File:Seal_impression_Peribsen.jpg`
+
+* **the page loads** → the file is fine, its removal was premature, and the
+  answer is to say so. Send the file's normal provenance block and we put it
+  back. Nothing below is needed.
+* **404** → the name was wrong or the file is gone, and the two objects below are
+  the replacement.
+
+**THE TWO OBJECTS, both already cited on the record, best first.**
+
+**1. The granodiorite funerary stela of Peribsen**, from his tomb at Umm el-Qaab,
+Abydos, now in the **British Museum**. This is the one that carries the serekh
+with the Set animal standing where the Horus falcon belongs — the thing the
+record is actually about, and the best possible picture for it. I need its
+**accession number**, which this dataset does not have, the Commons filename if a
+freely-licensed image exists, and the British Museum's own catalogue URL for
+`originalSourceUrl`. If the Museum's rights statement differs from the Commons
+one, send both — see conflation 2.
+
+**2. Seal impression UC 36828, Petrie Museum, UCL.** That accession number is
+already verified in the dataset. A photograph would serve as a second entry
+rather than a substitute for the stela.
+
+**CAREFUL, AND THIS IS THE RECORD'S WHOLE POINT.** The caption must not say the
+Set animal *replaces* or *ousts* the falcon as though that reading were settled.
+What is observable is placement: Peribsen put the Set animal where the falcon
+normally stands. What it MEANT — a religious shift, a regional allegiance, a
+dynastic quarrel — is argued, and the record exists to keep those apart. A
+caption that explains the motive has answered a question the record deliberately
+leaves open.
 
 ---
 
