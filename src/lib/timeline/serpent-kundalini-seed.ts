@@ -44,6 +44,16 @@
 // carries, and the date of a MANUSCRIPT from the date of the composition it
 // preserves. A seal has a stratum; a doctrine does not.
 //
+// THE COMPARISON BLOCK AT THE END OF THIS FILE. Nine records answer the
+// retention rule in research brief 05b: a comparison that cannot be verified
+// is kept and labelled rather than dropped, because dropping it hides a claim
+// the reader will meet elsewhere with nothing attached to it at all. Each of
+// the nine states an ancient object or tradition, the proposed Kundalini
+// reading of it, and what is missing. Each carries one positionless claim,
+// because nobody has yet found the passage or the publication that would date
+// the proposal. They are the thinnest records in the file, deliberately and
+// visibly so, and what each still needs is named in its own notes.
+//
 // ON WHAT IS NOT HERE YET. This file is the foundation of a collection intended
 // to run to seventy-five records or more. It was begun in an environment that
 // could not reach a museum catalogue, an excavation report or a journal, so
@@ -789,108 +799,391 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
   {
     slug: "caduceus-kundalini-comparison",
     title: "The caduceus: two serpents around a staff, and the later Kundalini comparison",
-    summary: "The Greek caduceus belongs first to Hermes. Its resemblance to later Iḍā–Piṅgalā–Suṣumṇā diagrams is retained here as a comparison, not silently converted into a historical connection.",
-    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. The ancient object-type and Greek tradition are real; the claim that its two serpents encode Iḍā and Piṅgalā and its staff Suṣumṇā requires a separately sourced history of interpretation. No transmission from Indian subtle-body doctrine is asserted here.",
+    summary:
+      "The Greek caduceus belongs first to Hermes. Its resemblance to later Iḍā–Piṅgalā–Suṣumṇā diagrams is kept here as a comparison, not converted into a historical connection.",
+    description:
+      "STATUS: RELATED / CROSS-CULTURAL PARALLEL. The object-type and the Greek tradition are real. The " +
+      "claim that its two serpents encode Iḍā and Piṅgalā, and its staff Suṣumṇā, is a separate claim and " +
+      "needs its own sourced history of interpretation.\n\n" +
+      "TRANSMISSION. Greece and India demonstrably met — Alexander, the Indo-Greek kingdoms, Megasthenes. " +
+      "That is why this record reads CONTACT DOCUMENTED. It is not evidence that THIS motif travelled, and " +
+      "the distinction is the whole point of the field: the cultures met, and whether the caduceus has " +
+      "anything to do with the three channels is a question nobody here has answered.\n\n" +
+      "WHY IT IS KEPT. The comparison is specific and recurrent. Dropping it would hide a claim a reader " +
+      "will meet elsewhere with no label at all.",
     category: "religion",
     subcategory: "Ancient Greece",
     eventType: "archaeological_interpretation",
     identificationStatus: "secure",
     kundaliniRelation: "cross_cultural_parallel",
-    transmissionStatus: "unestablished",
+    transmissionStatus: "contact_documented",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, SERPENT_THREADS.subtleBody, "caduceus", "hermes", "greece"],
     civilisations: ["Ancient Greece"],
     people: ["Hermes"],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed identification of the caduceus with the three-channel Kundalini scheme", originalDateText: "Ancient equivalence not established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The visual comparison is retained because it is specific and recurrent. What is missing is an ancient text, specialist historical argument, or transmission chain identifying the Greek staff with Iḍā, Piṅgalā and Suṣumṇā.", notes: "OPEN: establish the earliest printed pairing and any specialist discussion." }],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The proposed identification of the caduceus with the three-channel Kundalini scheme",
+        originalDateText: "Ancient equivalence not established here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "WHY IT IS HERE AND NOT DISCARDED: the visual comparison is specific and it recurs. WHAT IS " +
+          "MISSING: an ancient text, a specialist historical argument, or a transmission chain identifying " +
+          "the Greek staff with Iḍā, Piṅgalā and Suṣumṇā. None of the three is in this dataset.",
+        notes:
+          "OPEN: establish the earliest printed pairing of the caduceus with the three channels, and any " +
+          "specialist discussion of it. Until then this is a resemblance with a named absence beside it.",
+      },
+    ],
   },
+
   {
     slug: "asclepius-staff-kundalini-comparison",
-    title: "The Rod of Asclepius: healing serpent and the spinal-ascent comparison",
-    summary: "A single serpent around the healing staff of Asclepius is ancient Greek material. Reading it as Kundalini rising on the spine is kept as a later proposed comparison.",
-    description: "STATUS: RELATED / LATER INTERPRETATION. Keep the Greek healing symbolism and the modern spinal/Kundalini comparison on the same record, but do not merge them.",
-    category: "religion", subcategory: "Ancient Greece", eventType: "archaeological_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "unestablished",
+    title: "The Rod of Asclepius: healing serpent, and the spinal-ascent comparison",
+    summary:
+      "A single serpent around the healing staff of Asclepius is ancient Greek material. Reading it as Kundalini rising on the spine is a later proposal, kept as one.",
+    description:
+      "STATUS: RELATED / LATER INTERPRETATION. The Greek healing symbolism and the modern spinal reading " +
+      "sit on the same record and are not merged.\n\n" +
+      "WHY BOTH BELONG. The rod is routinely confused with the caduceus, and the Kundalini reading is " +
+      "routinely attached to whichever of the two the writer has to hand. Keeping the two objects and the " +
+      "two claims separate is most of the work this record does.\n\n" +
+      "TRANSMISSION. Greece and India demonstrably met, so this reads CONTACT DOCUMENTED — which says " +
+      "nothing about whether a bodily-energy doctrine crossed with them.",
+    category: "religion",
+    subcategory: "Ancient Greece",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "cross_cultural_parallel",
+    transmissionStatus: "contact_documented",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "asclepius", "healing", "greece"],
-    civilisations: ["Ancient Greece"], people: ["Asclepius"],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed spinal/Kundalini reading of the Rod of Asclepius", originalDateText: "No ancient bodily-energy equivalence established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The ancient healing emblem and the modern Kundalini comparison are separate propositions. This record preserves both without treating resemblance as descent.", notes: "OPEN: add the best museum object and the publication history of the modern comparison." }],
+    civilisations: ["Ancient Greece"],
+    people: ["Asclepius"],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The proposed spinal or Kundalini reading of the Rod of Asclepius",
+        originalDateText: "No ancient bodily-energy equivalence established here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "TWO SEPARATE PROPOSITIONS: that the rod is an ancient Greek healing emblem, which is well " +
+          "attested, and that it depicts energy rising on the spine, which is not. Resemblance is not " +
+          "descent, and this record holds both without letting the first carry the second.",
+        notes:
+          "OPEN: add the best museum object for the rod itself, and the publication history of the modern " +
+          "comparison — who first made it, where, and on what.",
+      },
+    ],
   },
+
   {
     slug: "quetzalcoatl-kundalini-comparison",
-    title: "Quetzalcoatl and Kukulkan: feathered serpent, retained without forced equivalence",
-    summary: "Mesoamerican feathered-serpent traditions are retained beside Kundalini because modern comparisons exist; their indigenous meanings must remain primary.",
-    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. The feathered serpent is not labelled Kundalini by this record. Any claim of ascending inner energy, chakras or historical transmission needs its own claimant and evidence.",
-    category: "religion", subcategory: "Mesoamerica", eventType: "archaeological_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "no_contact_known",
+    title: "Quetzalcoatl and Kukulkan: feathered serpent, kept without forced equivalence",
+    summary:
+      "Mesoamerican feathered-serpent traditions are kept beside Kundalini because modern comparisons exist. Their indigenous meanings stay primary.",
+    description:
+      "STATUS: RELATED / CROSS-CULTURAL PARALLEL. This record does not label the feathered serpent " +
+      "Kundalini. Any claim of ascending inner energy, of chakras, or of historical transmission needs a " +
+      "named claimant and its own evidence.\n\n" +
+      "TRANSMISSION. NO CONTACT KNOWN. Mesoamerica and India are separated by an ocean and by the whole " +
+      "period in question, with nothing documented between them. A resemblance here is a resemblance.\n\n" +
+      "THE FAILURE MODE THIS RECORD GUARDS. Comparisons of this kind have a long history of overwriting " +
+      "indigenous accounts of Quetzalcoatl with whatever the comparer brought. The specialist account comes " +
+      "first; the comparison is a second, labelled thing.",
+    category: "religion",
+    subcategory: "Mesoamerica",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "cross_cultural_parallel",
+    transmissionStatus: "no_contact_known",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.ascent, "quetzalcoatl", "kukulkan", "mesoamerica"],
-    civilisations: ["Mesoamerica"], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed equivalence with Kundalini", originalDateText: "Not established in indigenous sources here", datingMethod: "comparative_mythology", chronology: "disputed", evidence: "The comparison is preserved for investigation. It must not overwrite specialist accounts of Quetzalcoatl/Kukulkan or imply Old World transmission without evidence.", notes: "OPEN: specialist Mesoamerican source plus earliest traceable Kundalini comparison." }],
+    civilisations: ["Mesoamerica"],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The proposed equivalence with Kundalini",
+        originalDateText: "Not established in indigenous sources here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "KEPT FOR INVESTIGATION, NOT AS A FINDING. It must not overwrite specialist accounts of " +
+          "Quetzalcoatl and Kukulkan, and it must not be read as implying Old World transmission, which " +
+          "nothing in this dataset supports.",
+        notes:
+          "OPEN: a specialist Mesoamerican source for the feathered serpent's own meanings, and the " +
+          "earliest traceable Kundalini comparison.",
+      },
+    ],
   },
+
   {
     slug: "nehushtan-kundalini-comparison",
-    title: "The bronze serpent and Nehushtan: healing pole versus Kundalini reading",
-    summary: "The Hebrew Bible's bronze serpent tradition is real; interpreting the pole as a spine and serpent as Kundalini is retained as a later claim requiring its own source.",
-    description: "STATUS: TEXT ATTESTED / KUNDALINI CONNECTION UNVERIFIED. Numbers 21 and 2 Kings 18:4 belong to the evidence chain for the Hebrew tradition. They do not themselves name chakras, nāḍīs or Kundalini.",
-    category: "religion", subcategory: "Hebrew Bible", eventType: "textual_tradition",
-    identificationStatus: "secure", kundaliniRelation: "speculative_reading", transmissionStatus: "unestablished",
+    title: "The bronze serpent and Nehushtan: healing pole, and the Kundalini reading",
+    summary:
+      "The Hebrew Bible's bronze serpent tradition is attested. Reading the pole as a spine and the serpent as Kundalini is a later claim, and needs its own source.",
+    description:
+      "STATUS: TEXT ATTESTED / KUNDALINI CONNECTION UNVERIFIED. Numbers 21 and 2 Kings 18:4 belong to the " +
+      "evidence chain for the Hebrew tradition. Neither names chakras, nāḍīs or Kundalini.\n\n" +
+      "WHAT THE TEXTS DO GIVE, and it is more interesting than the comparison: a serpent on a pole that " +
+      "heals, and then a king who destroys it. The object is both sanctioned and suppressed inside one " +
+      "tradition.\n\n" +
+      "TRANSMISSION. CONTACT POSSIBLE. Geography and chronology do not rule out contact between the " +
+      "Levant and India, and nothing here shows any.",
+    category: "religion",
+    subcategory: "Hebrew Bible",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "speculative_esoteric",
+    transmissionStatus: "contact_possible",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "nehushtan", "bronze-serpent", "hebrew-bible"],
-    civilisations: ["Ancient Israel"], people: ["Moses", "Hezekiah"],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The Kundalini interpretation of the bronze serpent", originalDateText: "Later interpretation; ancient equivalence not established", datingMethod: "textual_interpretation", chronology: "disputed", evidence: "The underlying serpent-on-pole narrative and later destruction of Nehushtan can be sourced directly. The additional spine/Kundalini reading is a separate claim and remains unverified until a traceable interpreter is supplied.", notes: "OPEN: add scholarly Hebrew commentary and earliest printed Kundalini reading." }],
+    civilisations: ["Ancient Israel"],
+    people: ["Moses", "Hezekiah"],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The Kundalini interpretation of the bronze serpent",
+        originalDateText: "Later interpretation; ancient equivalence not established",
+        datingMethod: "textual_interpretation",
+        chronology: "disputed",
+        evidence:
+          "THE TWO CHAINS ARE DIFFERENT LENGTHS. The serpent-on-pole narrative and the destruction of " +
+          "Nehushtan can be sourced to chapter and verse. The spine-and-Kundalini reading has no traceable " +
+          "interpreter in this dataset at all, and stays unverified until one is supplied.",
+        notes:
+          "OPEN: scholarly Hebrew commentary on Numbers 21 and 2 Kings 18:4, and the earliest printed " +
+          "Kundalini reading of either.",
+      },
+    ],
   },
+
   {
     slug: "jormungandr-kundalini-comparison",
-    title: "Jörmungandr: the world serpent and the proposed inner-energy comparison",
-    summary: "The Norse world serpent is kept in the comparison set, but no bodily subtle-anatomy meaning is supplied by resemblance alone.",
-    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. Jörmungandr's Norse textual role and any modern Kundalini interpretation are different evidence chains.",
-    category: "religion", subcategory: "Norse", eventType: "textual_tradition",
-    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "no_contact_known",
+    title: "Jörmungandr: the world serpent, and the proposed inner-energy comparison",
+    summary:
+      "The Norse world serpent stays in the comparison set. Resemblance alone supplies no bodily subtle-anatomy meaning.",
+    description:
+      "STATUS: RELATED / CROSS-CULTURAL PARALLEL. Jörmungandr's role in the Norse texts and any modern " +
+      "Kundalini reading of it are different evidence chains, and only the first has passages behind it " +
+      "here.\n\n" +
+      "TRANSMISSION. NO CONTACT KNOWN for the period in question.\n\n" +
+      "WHAT WOULD CHANGE THIS RECORD. An Eddic passage, cited by stanza, plus a named interpreter for the " +
+      "comparison. Neither is present.",
+    category: "religion",
+    subcategory: "Norse",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "cross_cultural_parallel",
+    transmissionStatus: "no_contact_known",
     tags: [SERPENT_THREADS.serpent, "jormungandr", "world-serpent", "norse"],
-    civilisations: ["Norse"], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed Kundalini equivalence", originalDateText: "No specialist bodily-energy equivalence established here", datingMethod: "comparative_mythology", chronology: "disputed", evidence: "The comparison stays visible but is not promoted into a historical connection.", notes: "OPEN: primary Eddic passage, academic Norse source, and earliest traceable Kundalini comparison." }],
+    civilisations: ["Norse"],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The proposed Kundalini equivalence",
+        originalDateText: "No specialist bodily-energy equivalence established here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "THE COMPARISON STAYS VISIBLE AND IS NOT PROMOTED. A serpent encircling the world and a serpent " +
+          "coiled at the base of a spine are both serpents in a circle, which is where the argument " +
+          "currently ends.",
+        notes:
+          "OPEN: the primary Eddic passage, an academic Norse source, and the earliest traceable Kundalini " +
+          "comparison.",
+      },
+    ],
   },
+
   {
     slug: "uraeus-kundalini-comparison",
-    title: "The Egyptian uraeus: forehead cobra and the brow/crown Kundalini reading",
-    summary: "The royal forehead cobra is securely Egyptian. Its modern interpretation as awakened Kundalini reaching the brow or crown is retained separately as a speculative reading.",
-    description: "STATUS: ANCIENT ICONOGRAPHY SECURE / KUNDALINI CONNECTION UNVERIFIED. Similar placement at the forehead is worth comparing; it is not itself evidence of shared subtle anatomy.",
-    category: "religion", subcategory: "Ancient Egypt", eventType: "archaeological_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "speculative_reading", transmissionStatus: "unestablished",
+    title: "The Egyptian uraeus: forehead cobra, and the brow-or-crown Kundalini reading",
+    summary:
+      "The royal forehead cobra is securely Egyptian. Reading it as awakened Kundalini reaching the brow or crown is a separate, speculative claim.",
+    description:
+      "STATUS: ANCIENT ICONOGRAPHY SECURE / KUNDALINI CONNECTION UNVERIFIED. The placement at the forehead " +
+      "is worth comparing. Placement is not evidence of shared subtle anatomy.\n\n" +
+      "WHY THE COMPARISON IS SPECIFIC ENOUGH TO KEEP. It is not a general resemblance between serpents: it " +
+      "is the same position on the same part of the body, which is a narrower claim than most in this " +
+      "collection and therefore a more testable one.\n\n" +
+      "TRANSMISSION. CONTACT POSSIBLE. Egypt and India met demonstrably in later periods; the uraeus is " +
+      "very much older than any of that contact.",
+    category: "religion",
+    subcategory: "Ancient Egypt",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "speculative_esoteric",
+    transmissionStatus: "contact_possible",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.innerEye, SERPENT_THREADS.crown, "uraeus", "egypt"],
-    civilisations: ["Ancient Egypt"], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The claim that the uraeus depicts awakened Kundalini", originalDateText: "Later interpretation; not established by Egyptian evidence here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The forehead placement and serpent form are observable. The proposed inner-energy meaning needs Egyptological or historical evidence beyond visual correspondence.", notes: "OPEN: Egyptological source for uraeus meanings and first traceable Kundalini comparison." }],
+    civilisations: ["Ancient Egypt"],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The claim that the uraeus depicts awakened Kundalini",
+        originalDateText: "Later interpretation; not established by Egyptian evidence here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "WHAT IS OBSERVABLE: the forehead placement and the serpent form. WHAT IS NOT: the inner-energy " +
+          "meaning, which needs Egyptological or historical evidence beyond the correspondence itself.",
+        notes:
+          "OPEN: an Egyptological source for what the uraeus meant to Egyptians, and the first traceable " +
+          "Kundalini comparison.",
+      },
+    ],
   },
+
   {
     slug: "djed-spine-kundalini-comparison",
-    title: "The djed pillar: stability symbol, spine comparison and Kundalini claim",
-    summary: "The Egyptian djed is retained because modern esoteric readings compare it with the spine or central channel; that anatomical/Kundalini identification is not assumed ancient.",
-    description: "STATUS: ANCIENT SYMBOL SECURE / SPINAL-KUNDALINI READING UNVERIFIED. Record the Egyptian meanings first, then name and date later interpreters.",
-    category: "religion", subcategory: "Ancient Egypt", eventType: "archaeological_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "speculative_reading", transmissionStatus: "unestablished",
+    title: "The djed pillar: stability symbol, spine comparison, Kundalini claim",
+    summary:
+      "The Egyptian djed is kept because modern esoteric readings compare it with the spine or the central channel. That identification is not assumed ancient.",
+    description:
+      "STATUS: ANCIENT SYMBOL SECURE / SPINAL-KUNDALINI READING UNVERIFIED. The Egyptian meanings come " +
+      "first; the later interpreters are to be named and dated.\n\n" +
+      "WHAT THE RECORD IS FOR. The djed is one of the commonest objects in the esoteric literature and one " +
+      "of the least often sourced in it. Keeping it here with the status attached is what lets a reader see " +
+      "the gap rather than inherit it.\n\n" +
+      "TRANSMISSION. CONTACT POSSIBLE, and nothing shown.",
+    category: "religion",
+    subcategory: "Ancient Egypt",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "speculative_esoteric",
+    transmissionStatus: "contact_possible",
     tags: [SERPENT_THREADS.subtleBody, SERPENT_THREADS.ascent, "djed", "spine", "egypt"],
-    civilisations: ["Ancient Egypt"], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The claim that the djed represents the spine or Kundalini central channel", originalDateText: "Later interpretation; ancient anatomical equivalence not established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The comparison is retained explicitly so it can be sourced and tested rather than either repeated as fact or discarded.", notes: "OPEN: Egyptological history of the djed plus earliest spine/Kundalini reading." }],
+    civilisations: ["Ancient Egypt"],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The claim that the djed represents the spine or the Kundalini central channel",
+        originalDateText: "Later interpretation; ancient anatomical equivalence not established here",
+        datingMethod: "stylistic_comparison",
+        chronology: "disputed",
+        evidence:
+          "KEPT EXPLICITLY SO IT CAN BE SOURCED AND TESTED, rather than repeated as a fact or quietly " +
+          "dropped. The Egyptian symbol is secure; the anatomical identification is the part with nothing " +
+          "behind it here.",
+        notes:
+          "OPEN: the Egyptological history of the djed, and the earliest spine or Kundalini reading of it.",
+      },
+    ],
   },
+
   {
     slug: "double-serpent-dna-comparison",
     title: "Double serpents and DNA: a modern resemblance claim, not ancient genetics",
-    summary: "Claims that ancient entwined-serpent imagery encoded the DNA double helix are retained as modern interpretation. Resemblance alone does not establish ancient knowledge of molecular genetics.",
-    description: "STATUS: MODERN SPECULATIVE COMPARISON. This belongs in the timeline because the claim is culturally influential and testable: identify who made it, when, which ancient image they used, and what evidence they offered.",
-    category: "history-of-ideas", subcategory: "Modern esotericism", eventType: "modern_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "modern_development", transmissionStatus: "not_applicable",
+    summary:
+      "Claims that ancient entwined-serpent imagery encoded the DNA double helix are kept as modern interpretation. Resemblance does not establish ancient molecular genetics.",
+    description:
+      "STATUS: MODERN SPECULATIVE COMPARISON. It belongs in the timeline because the claim is culturally " +
+      "influential and because it is testable — not as a claim about antiquity, but as a claim with a " +
+      "date, an author and a page.\n\n" +
+      "WHAT WOULD TEST IT. Who made it, when, which ancient image they used, and what evidence they " +
+      "offered. Four questions, all answerable from print, none answered here.\n\n" +
+      "THE ORDER MATTERS. The double helix was published in 1953. Any ancient object compared to it is " +
+      "being read backwards through a twentieth-century diagram, and that is the historical event this " +
+      "record is about.",
+    category: "culture",
+    subcategory: "Modern esotericism",
+    eventType: "alternative",
+    identificationStatus: "secure",
+    kundaliniRelation: "modern_development",
+    transmissionStatus: "not_applicable",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "dna", "double-helix", "modern-esotericism"],
-    civilisations: [], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The emergence of the ancient-serpent-as-DNA claim", originalDateText: "Date not yet established", datingMethod: "publication_history", chronology: "disputed", evidence: "The modern claim is the historical object here. It should be dated from publications, not back-projected onto the ancient artefacts it compares.", notes: "OPEN: find earliest printed claimant, publication, page and image pairing." }],
+    civilisations: [],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The emergence of the ancient-serpent-as-DNA claim",
+        originalDateText: "Date not yet established",
+        datingMethod: "other",
+        chronology: "disputed",
+        evidence:
+          "THE MODERN CLAIM IS THE HISTORICAL OBJECT HERE. It should be dated from publications, and it " +
+          "must not be back-projected onto the ancient artefacts it compares. NO DATE IS ENTERED, because " +
+          "the first printed instance has not been found.",
+        notes:
+          "OPEN: the earliest printed claimant, the publication, the page, and which image was paired with " +
+          "the helix. Once that is in hand this becomes a positioned claim with a real year.",
+      },
+    ],
   },
+
   {
     slug: "primordial-serpent-energy-doctrine",
     title: "One primordial serpent-energy doctrine: the universal-origin hypothesis",
-    summary: "The proposal that ancient serpent traditions descend from one lost worldwide teaching is kept as a hypothesis, including Atlantis or Lemuria variants when a source actually makes that claim.",
-    description: "STATUS: LATER INTERPRETATION / HYPOTHESIS. This record exists so the strongest version of the universal-serpent argument can be shown rather than implied. Each claimant must be named; each proposed transmission route must be sourced; resemblance by itself is not entered as transmission.",
-    category: "history-of-ideas", subcategory: "Comparative esotericism", eventType: "modern_interpretation",
-    identificationStatus: "secure", kundaliniRelation: "modern_development", transmissionStatus: "unestablished",
+    summary:
+      "The proposal that ancient serpent traditions descend from one lost worldwide teaching is kept as a hypothesis, Atlantis and Lemuria variants included where a source actually makes that claim.",
+    description:
+      "STATUS: LATER INTERPRETATION / HYPOTHESIS. This record exists so the strongest version of the " +
+      "universal-serpent argument can be shown rather than implied. Each claimant is to be named; each " +
+      "proposed transmission route is to be sourced; resemblance by itself is not entered as " +
+      "transmission.\n\n" +
+      "WHAT THE DATASET CURRENTLY HAS. Ancient serpent traditions, and no ancient source that groups them " +
+      "as manifestations of one bodily-energy doctrine. The hypothesis is therefore stored as a modern " +
+      "one, which is what it is until an ancient statement of it turns up.\n\n" +
+      "WHY IT IS NOT SIMPLY REFUSED. It is the argument the rest of this collection is arranged against, " +
+      "and an argument nobody can read is one nobody can answer.",
+    category: "culture",
+    subcategory: "Comparative esotericism",
+    eventType: "hypothesised",
+    identificationStatus: "secure",
+    kundaliniRelation: "modern_development",
+    transmissionStatus: "transmission_disputed",
     tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.subtleBody, "universal-serpent", "atlantis", "lemuria", "comparative-esotericism"],
-    civilisations: [], people: [],
-    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The universal-origin hypothesis itself", originalDateText: "No ancient cross-cultural statement established here", datingMethod: "publication_history", chronology: "disputed", evidence: "The dataset currently has ancient serpent traditions but no ancient source that groups them as manifestations of one bodily energy doctrine. The hypothesis remains visible while its genealogy is researched.", notes: "OPEN: identify earliest comparative-mythology and esoteric publications, including sourced Atlantis/Lemuria variants." }],
+    civilisations: [],
+    people: [],
+    claims: [
+      {
+        sourceKey: null,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "unknown",
+        whatIsDated: "The universal-origin hypothesis itself",
+        originalDateText: "No ancient cross-cultural statement established here",
+        datingMethod: "other",
+        chronology: "disputed",
+        evidence:
+          "WHAT IS DATED IS THE HYPOTHESIS, NOT THE TRADITIONS IT GROUPS. The traditions have their own " +
+          "dates on their own records. This claim is about when somebody first argued that they are one " +
+          "thing, and that has not been established.",
+        notes:
+          "OPEN: the earliest comparative-mythology and esoteric publications making the argument, " +
+          "including the Atlantis and Lemuria variants, each with its own source rather than as a group.",
+      },
+    ],
   },
-
 ];
 
 // ---------------------------------------------------------------------------

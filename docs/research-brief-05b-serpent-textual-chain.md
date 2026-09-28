@@ -244,7 +244,9 @@ no, and a well-evidenced no is a finding I will record**, not a wasted search.
 
 # PART D — THE TRADITIONS THIS COLLECTION HAS NOT TOUCHED
 
-Four records is not a cross-cultural collection. But the gap must not be filled
+Thirteen records is still not a cross-cultural collection — and nine of the
+thirteen are the comparison records described under the retention rule at the
+end of this brief, which carry a status and no passage. The gap must not be filled
 by scraping serpents from everywhere — that would build the exact pile the
 collection exists to resist.
 
@@ -253,13 +255,13 @@ collection exists to resist.
 > What does the serpent **do** in this tradition, according to specialists in it,
 > and does any specialist connect it to energy, ascent, or the human body?
 
-| tradition | the obvious starting point |
-| --- | --- |
-| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body |
-| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing |
-| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil |
-| West Africa | Dan / Damballa and the serpent-and-rainbow complex |
-| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 |
+| tradition | the obvious starting point | record so far |
+| --- | --- | --- |
+| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body | **none** |
+| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing | `quetzalcoatl-kundalini-comparison`, no passage |
+| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil | `jormungandr-kundalini-comparison`, no passage; Níðhöggr untouched |
+| West Africa | Dan / Damballa and the serpent-and-rainbow complex | **none** |
+| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 | `nehushtan-kundalini-comparison`, no passage; Genesis 3 untouched |
 
 **Two rules for this section, and the first one matters more than the research.**
 
@@ -372,3 +374,25 @@ Do not use “unverified connection” as a reason to omit an otherwise relevant
 ### What would upgrade a comparison
 
 A resemblance becomes historically stronger only when evidence supplies something beyond the resemblance: an ancient passage giving the relevant bodily meaning; a specialist reading grounded in the culture's own sources; a documented contact/transmission chain; or a traceable history showing who first made the comparison and how later writers inherited it. Until then, keep the comparison visible and label the gap.
+
+### What now exists, and what it still lacks
+
+Nine records were created against the table above: `caduceus-`,
+`asclepius-staff-`, `quetzalcoatl-`, `nehushtan-`, `jormungandr-`, `uraeus-`,
+`djed-spine-` and `double-serpent-dna-comparison`, plus
+`primordial-serpent-energy-doctrine`. Gudea already had one.
+
+**Each of the nine carries a relation, a transmission status and a named
+absence. Not one carries a passage, a claimant or an image.** That is the
+honest state of them, and it is what this brief is for:
+
+- **no passage** — every claim is positionless, because no ancient text has been
+  cited on any of them;
+- **no claimant** — not one of the proposed Kundalini readings has a name, a
+  work or a year attached, so none can yet be dated;
+- **no images** — the image rule above has not been applied to any of them;
+- **no `argumentsFor` / `argumentsAgainst`** — the collection's own test lets a
+  record through when it has neither, and these nine go through that gap.
+
+Answering any one of the four for any one record is worth more than a tenth
+record.
