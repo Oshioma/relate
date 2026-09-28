@@ -597,11 +597,11 @@ export const DEEP_TIME_EVENTS: SeedEvent[] = [
     tags: ["hunting", "butchery", "zooarchaeology", "middle-pleistocene", "deep-time"],
     locationName: "Europe and Africa",
     imageUrl:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Sch\u00f6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
     media: [
       {
         url:
-          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch\u00f6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
+          "https://commons.wikimedia.org/wiki/Special:FilePath/Sch%C3%B6ningen_wooden_artifacts_Lower_Palaeolithic.jpg?width=1024",
         shows: "artefact",
         caption:
           "The Sch\u00f6ningen spears, from a waterlogged lignite mine in Germany. Wood almost never survives this " +

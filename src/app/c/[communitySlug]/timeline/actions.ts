@@ -23,7 +23,8 @@ import {
   SHOWCASE_SOURCES,
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
-import { bringEventPicturesIn, pictureTopUp } from "@/lib/timeline/bring-in-image";
+import { PICTURE_BUDGET_PER_RUN, bringEventPicturesIn, pictureBudget, pictureTopUp } from "@/lib/timeline/bring-in-image";
+import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
 
 /**
  * A picture as it comes back out of `timeline_events.media`, which is a jsonb
@@ -138,6 +139,7 @@ import {
 } from "@/lib/timeline/horus-claims-seed";
 import {
   SERPENT_KUNDALINI_EVENTS,
+  SERPENT_KUNDALINI_LINKS,
   SERPENT_KUNDALINI_SOURCES,
   SERPENT_KUNDALINI_TRACK,
 } from "@/lib/timeline/serpent-kundalini-seed";
@@ -2194,6 +2196,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
     track: SERPENT_KUNDALINI_TRACK,
     events: SERPENT_KUNDALINI_EVENTS,
     sources: SERPENT_KUNDALINI_SOURCES,
+    links: SERPENT_KUNDALINI_LINKS,
   },
   {
     label: "Four claims about Horus, and where they came from",
@@ -2323,21 +2326,6 @@ export async function seededDatasetGaps(communitySlug: string): Promise<{
   };
 }
 
-/**
- * HOW MUCH PICTURE WORK ONE PRESS DOES.
- *
- * A fixed count of twelve was the wrong shape of limit. Twelve pictures is
- * either two seconds or four minutes depending on how Wikimedia is feeling,
- * so the count guaranteed neither that the request would finish nor that it
- * would get much done — and with a community two hundred pictures short it
- * meant seventeen presses.
- *
- * A DEADLINE fits both ends: a fast run gets through a lot, a slow one stops
- * before the request does, and either way the button returns and says how many
- * are left. The count stays as a ceiling so one press cannot run away.
- */
-const PICTURE_BUDGET_MS = 45_000;
-const PICTURE_BUDGET_PER_RUN = 60;
 
 export async function refreshSeededDatasets(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
@@ -2377,8 +2365,24 @@ export async function refreshSeededDatasets(communitySlug: string) {
   let pictured = 0;
   // Left for the next press, because this run hit its budget.
   let picturesStillMissing = 0;
-  // Set once, at the top, so it bounds the whole run rather than each dataset.
-  const pictureDeadline = Date.now() + PICTURE_BUDGET_MS;
+  // STARTED WHEN THE FIRST PICTURE IS ACTUALLY ATTEMPTED, which is not the same
+  // as the top of the run — and the difference was a button that did nothing.
+  //
+  // This clock used to start here. But the loop below visits each dataset and
+  // does its DATE corrections before its pictures, so on a community with many
+  // datasets the whole budget was spent checking dates before the first picture
+  // was reached. Every record then failed `Date.now() >= pictureDeadline`, all
+  // of them were counted as still waiting, and none was fetched.
+  //
+  // The symptom was a press that reported "61 more pictures are still waiting"
+  // with no "Added" line beside it, and reported exactly the same thing on the
+  // next press, and the next. Deterministic, because nothing about it varied.
+  //
+  // Starting the clock at the first ATTEMPT guarantees the one property this
+  // loop actually needs: every press makes progress. A run can still stop early
+  // and say so — that was always the design — but it can no longer stop before
+  // it has begun.
+  let pictureClockStartedAt: number | null = null;
   // What the picture step wrote, so the classify step below reads the new media
   // rather than the snapshot taken before it ran.
   const pictureWrites = new Map<string, { url: string; caption?: string; kind?: string; shows?: string }[]>();
@@ -2451,34 +2455,25 @@ export async function refreshSeededDatasets(communitySlug: string) {
 
       const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
 
-      for (const seedClaim of seed.claims) {
-        // NULL MATCHES NULL. A seeded claim that places nothing has no
-        // startYear, and comparing undefined against a stored null matched
-        // nothing at all — so every positionless claim would have been counted
-        // ambiguous and never reconciled. Both sides are normalised to null so
-        // "no position" is a value that can be matched on, and the several
-        // positionless claims on one record are then told apart by their
-        // wording, which is the fallback that already exists below.
-        const wantStart = seedClaim.startYear ?? null;
-        const wantEnd = seedClaim.endYear ?? null;
-        const sameDate = stored.filter(
-          (claim) => (claim.start_year ?? null) === wantStart && (claim.end_year ?? null) === wantEnd
-        );
+      // A STORED ROW BELONGS TO AT MOST ONE SEEDED CLAIM. Without these two,
+      // several seeded claims at the same position all matched the same row and
+      // overwrote each other on every run — see reconcile-claims.ts, which is
+      // where the matching is now done and tested.
+      const seedAtPosition = seedClaimsByPosition(seed.claims);
+      const claimedRows = new Set<string>();
 
-        let match = sameDate.length === 1 ? sameDate[0] : null;
-        if (!match && sameDate.length > 1) {
-          // Two claims on one event at the same date — Plato and Donnelly both
-          // sit at ~9600 BCE. Fall back to the source's own wording, which is
-          // unique within an event by the seeder's own rule.
-          const byText = sameDate.filter((claim) => claim.original_date_text === seedClaim.originalDateText);
-          if (byText.length === 1) match = byText[0];
-        }
+      for (const seedClaim of seed.claims) {
+        const match = matchStoredClaim(seedClaim, stored, {
+          seedClaimsAtThisPosition: seedAtPosition.get(claimPositionKey(seedClaim)) ?? 1,
+          alreadyClaimed: claimedRows,
+        });
         if (!match) {
           // Either the date moved (a different claim now) or the match is
           // ambiguous. Either way this is not a row to guess at.
           skippedAmbiguous++;
           continue;
         }
+        claimedRows.add(match.id);
         if (editedHere.has(match.id)) {
           keptBecauseEdited++;
           continue;
@@ -2569,12 +2564,16 @@ export async function refreshSeededDatasets(communitySlug: string) {
       // So each run does a fixed number of PICTURES — not records, which is
       // what it used to count and why "3 more records are waiting" could mean
       // forty photographs. The rest are reported and wait for the next press.
-      const room = PICTURE_BUDGET_PER_RUN - pictured;
-      if (room <= 0 || Date.now() >= pictureDeadline) {
+      // The first record that actually needs pictures starts the clock, so the
+      // budget measures picture work rather than everything that preceded it.
+      // See pictureBudget, which is where this decision is tested.
+      const budget = pictureBudget({ pictured, startedAt: pictureClockStartedAt, now: Date.now() });
+      pictureClockStartedAt = budget.startedAt;
+      if (budget.exhausted) {
         picturesStillMissing += count;
         continue;
       }
-      const take = missing.slice(0, room);
+      const take = missing.slice(0, PICTURE_BUDGET_PER_RUN - pictured);
       // What this run will not get to. The cover, when one is wanted, is
       // normally the first gallery picture and so is inside `take`.
       picturesStillMissing += missing.length - take.length;
@@ -3205,6 +3204,7 @@ export async function seedSerpentKundaliniDataset(communitySlug: string) {
   const result = await seedDataset(supabase, community, userId, {
     events: SERPENT_KUNDALINI_EVENTS,
     sources: SERPENT_KUNDALINI_SOURCES,
+    links: SERPENT_KUNDALINI_LINKS,
     track: SERPENT_KUNDALINI_TRACK,
     label: "The serpent, Kundalini and sacred ascent",
   });

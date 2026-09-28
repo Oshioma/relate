@@ -48,6 +48,7 @@
 // be worse than having no image.
 
 import type { SeedEvent, SeedSource, SeedTrack } from "./seed-types";
+import { commonsFilePathUrl, commonsFilePageUrl } from "./check-pictures";
 
 export const SET_SUTEKH_ANCHOR_SLUG = "peribsen-set-above-the-serekh";
 
@@ -58,9 +59,8 @@ export const SET_SUTEKH_TRACK: SeedTrack = {
   color: "#8a5a2b",
 };
 
-const commons = (file: string, width = 1200) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=${width}`;
-const commonsPage = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
+const commons = (file: string, width = 1200) => commonsFilePathUrl(file, width);
+const commonsPage = (file: string) => commonsFilePageUrl(file);
 
 export const SET_SUTEKH_SOURCES: SeedSource[] = [
   {
@@ -809,22 +809,6 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "corpus of stone vessels and Umm el-Qaab material.",
       },
     ],
-    media: [
-      {
-        url: commons("Seal_impression_Peribsen.jpg"),
-        sourcePageUrl: "https://www.ucl.ac.uk/museums-static/digitalegypt/chronology/kingperibsen.html",
-        caption:
-          "Seal impression naming Peribsen, Petrie Museum UC 36828. The Set animal stands over the royal name in the place the Horus falcon occupies on every conventional serekh — which is what makes this identification secure rather than a matter of resemblance.",
-        kind: "image",
-        shows: "artefact",
-        institution: "Petrie Museum of Egyptian Archaeology, University College London",
-        accessionNumber: "UC 36828",
-        identificationStatus: "secure",
-        depictsActualRemains: false,
-        verifiedIdentity: true,
-        creditFrom: "source",
-      },
-    ],
   },
 
   {
@@ -1089,8 +1073,8 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         creditFrom: "source",
       },
       {
-        url: commons("Seth_%2B_Horus_%3D_2_terres.jpg"),
-        sourcePageUrl: commonsPage("Seth_%2B_Horus_%3D_2_terres.jpg"),
+        url: commons("Seth_+_Horus_=_2_terres.jpg"),
+        sourcePageUrl: commonsPage("Seth_+_Horus_=_2_terres.jpg"),
         caption:
           "Horus and Set binding the Two Lands — the sema-tawy — each securing the emblem that represents Upper and Lower Egypt joined. The unity of the kingdom is shown as requiring both of them.",
         kind: "image",

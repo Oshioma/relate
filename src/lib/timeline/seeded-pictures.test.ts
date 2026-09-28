@@ -323,3 +323,77 @@ test("every seeded dataset carrying pictures is in the list this file checks", a
     `these events carry pictures that no rule in this file has ever looked at:\n  ${missing.join("\n  ")}`
   );
 });
+
+// ---------------------------------------------------------------------------
+// THE URL IS BUILT FROM THE FILENAME, EXACTLY ONCE
+//
+// These three tests exist because writing them caught two live defects and then
+// caught two more that the fix itself introduced, which is the best argument for
+// a guard there is.
+//
+// WHAT WAS ALREADY WRONG. Four Commons URLs carried characters that a URL path
+// cannot hold unencoded — a curly apostrophe in the Pyramid Texts file, an
+// umlaut, an Ä, and the Dendera Zodiac's é together with a SEMICOLON. The
+// semicolon is the one that matters: it is a URL sub-delimiter and no parser
+// will clean it up on anyone's behalf.
+//
+// WHAT THE FIX BROKE, briefly. Encoding the filename in the shared helper
+// double-encoded two names that had already been encoded by hand —
+// `Seth_%2B_Horus` became `Seth_%252B_Horus`, and a `%3B` became `%253B`. Both
+// were WORKING before the fix. A repair that silently breaks two pictures to
+// fix four is not a repair, and only reading the diff caught it.
+//
+// SO THE RULE IS: the filename is stored decoded, the URL is built from it, and
+// the encoding happens once. `%25` in a seeded URL means it happened twice.
+// ---------------------------------------------------------------------------
+
+// EVENTS **AND PERIODS**, and the covers as well as the galleries. The first
+// version of this covered only event galleries, and the negative test caught it
+// immediately: a semicolon reintroduced into a PERIOD url went unreported,
+// which is precisely where one of the real defects lived. A guard that watches
+// three quarters of the data reports green on the quarter it cannot see.
+const EVERY_URL = [...ALL, ...PERIODS].flatMap((record) => [
+  ...(record.media ?? []).map((item) => ({ slug: record.slug, url: item.url })),
+  ...(record.imageUrl ? [{ slug: record.slug, url: record.imageUrl }] : []),
+]);
+
+test("no picture URL carries a character that a URL path cannot hold", () => {
+  for (const { slug, url } of EVERY_URL) {
+    const offending = [...url].filter((char) => /[^\x21-\x7E]/.test(char) || char === ";");
+    assert.equal(
+      offending.length,
+      0,
+      `${slug}: ${JSON.stringify([...new Set(offending)].join(""))} is unencoded in ${url}`
+    );
+  }
+});
+
+test("no picture URL has been encoded twice", () => {
+  // %25 is a literal percent sign, which in a Commons filename means an earlier
+  // encoding pass was run over an already-encoded name.
+  for (const { slug, url } of EVERY_URL) {
+    assert.doesNotMatch(
+      url,
+      /%25[0-9A-Fa-f]{2}/,
+      `${slug}: double-encoded — pass the DECODED filename to the helper and let it encode once (${url})`
+    );
+  }
+});
+
+test("where a picture names its file, the URL was built from that name", () => {
+  // The point of storing fileName separately: a URL typed alongside a filename
+  // can drift from it, and a URL derived from one cannot.
+  // EVENT pictures only, and not because periods were forgotten: SeedPeriod
+  // declares its own narrower media type with no `fileName` on it at all, so
+  // there is nothing here to check and tsc says so. That the two media types
+  // have drifted apart again is worth someone's attention — seed-types.ts
+  // carries a comment about the last time they did — but it is not this test's
+  // job to fix. The encoding checks above DO cover periods, which is where the
+  // real defect was.
+  for (const { slug, item } of PICTURES) {
+    if (!item.fileName) continue;
+    const expected = item.fileName.replace(/ /g, "_");
+    const inUrl = decodeURIComponent(item.url.split("/").pop()!.split("?")[0]);
+    assert.equal(inUrl, expected, `${slug}: fileName says "${expected}" but the URL carries "${inUrl}"`);
+  }
+});
