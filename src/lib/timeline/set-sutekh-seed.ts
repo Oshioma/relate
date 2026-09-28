@@ -3840,7 +3840,8 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     description:
       "WHAT KIND OF RECORD IS THIS? Seth doing administrative work, which is a long way from either the " +
       "protector of the sun boat or the enemy of Osiris.\n\n" +
-      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a. The 2022 Dakhleh excavation monograph reproduces the object and lunette as Plate 1.1, independently confirming the accession and object identification. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
+      "WHAT IT IS. A stela now in the Ashmolean Museum, Oxford, accession 1894.107a — a number this dataset " +
+      "has verified. Its content is a water-rights or property dispute, adjudicated through THE ORACLE OF " +
       "SETH.\n\n" +
       "WHY AN ORACLE IS THE INTERESTING PART. An oracle is not devotion. It is procedure. For a community to " +
       "settle a dispute over water — which in an oasis is a dispute over survival — by putting it to Seth, " +
@@ -3851,7 +3852,14 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "REDATING STUDY — its whole subject is that association — and it was not opened. So this dataset " +
       "knows the question exists and does not know the answer, and enters a broad Libyan Period range " +
       "rather than the confident attribution that circulates.\n\n" +
-      "WHAT IS NOW VISUALLY VERIFIED. The 2022 excavation monograph publishes a photograph of the Greater Dakhleh Stela and a detail of its lunette as Plate 1.1. The image is institutionally copyrighted rather than a freely reusable Commons asset, so the site retains its reusable Mut el-Kharab context photograph while recording the exact plate and accession for inspection.\n\nWHAT IS STILL MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
+      "A PLATE MAY EXIST, AND THIS DATASET CANNOT CITE IT. A round of image research reported that a 2022 " +
+      "Dakhleh excavation monograph reproduces this stela, with a detail of its lunette, as Plate 1.1. THE " +
+      "WORK WAS NEVER NAMED: no author, no title, no publisher and no page came with the report, and there " +
+      "is no such entry in the source list. It is kept here AS A LEAD AND NOT AS A CITATION, because a " +
+      "plate of this object is exactly what the comparison described next requires. Nothing in this " +
+      "record's identification rests on it, and the identification stays UNVERIFIED until the work is " +
+      "named and opened.\n\n" +
+      "WHAT IS MISSING, AND WHY IT BLOCKS SOMETHING THIS DATASET WANTED. The determinative. The Greater and " +
       "Smaller Dakhleh Stelae were to be compared on how each writes Seth's name — the comparison that would " +
       "show whether the respelling seen on the Mut doorway block is part of a pattern. The Griffith " +
       "Institute holds a scale hand-copy and a hieroglyphic transcription under Griffith-2-9; access was " +
@@ -3862,7 +3870,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Third Intermediate Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "dakhla", "greater-dakhleh-stela", "oracle", "libyan-period", "ashmolean", "water-rights"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt; now Ashmolean Museum, Oxford",
@@ -3946,7 +3954,13 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "overwriting of Seth's name on the Mut doorway block. The same dynasty, the same oasis: a royal decree " +
       "with Seth presiding over its upper scene, and a doorway where his animal was being written out. Both " +
       "are the evidence. Neither cancels the other.\n\n" +
-      "OBJECT IDENTIFICATION NOW VERIFIED. The 2022 Dakhleh excavation monograph identifies and photographs the Smaller Dakhleh Stela as Ashmolean Museum 1894.107b, Plate 1.2, and gives its sandstone dimensions as 81.5 × 39.5 × 12 cm. The published photograph is not treated as freely reusable media.\n\nTHE REMAINING LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
+      "REPORTED, AND NOT CONFIRMED. A round of image research reported that a 2022 Dakhleh excavation " +
+      "monograph identifies this stela as Ashmolean Museum 1894.107b, photographs it as Plate 1.2, and " +
+      "gives its sandstone dimensions as 81.5 by 39.5 by 12 cm. THE WORK WAS NEVER NAMED, and there is no " +
+      "such entry in the source list, so not one of those figures is entered here as a fact about the " +
+      "object. They are written down as THE THING TO CHECK. If they hold, they answer most of the limit " +
+      "stated next — which is why the limit stays stated until somebody checks them.\n\n" +
+      "THE HONEST LIMIT. Janssen's 1968 publication was not opened. Everything above comes through Hope and " +
       "Kaper's citation of it. The object number, the material, the size, the present location and the " +
       "exact findspot are all unknown here, and the plate — which would allow the determinative comparison " +
       "with the Greater Stela — has not been seen.\n\n" +
@@ -3954,7 +3968,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     category: "archaeology",
     subcategory: "Late Period",
     eventType: "historical",
-    identificationStatus: "secure",
+    identificationStatus: "unverified",
     tags: ["set", "amun", "dakhla", "smaller-dakhleh-stela", "piye", "priesthood", "twenty-fifth-dynasty"],
     civilisations: ["Ancient Egypt"],
     locationName: "Dakhla Oasis, Egypt",
