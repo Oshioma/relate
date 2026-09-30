@@ -101,5 +101,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     // provenance depend on which copy somebody happened to open.
     sourceUrl: lesson.source_url,
     sourceTitle: lesson.source_title,
+    videoUrl: lesson.video_url,
   });
 }

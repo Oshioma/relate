@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     ageBand?: unknown;
     sourceUrl?: unknown;
     sourceTitle?: unknown;
+    videoUrl?: unknown;
   };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   if (!spaceId) {
@@ -97,5 +98,7 @@ export async function POST(request: NextRequest) {
     // page it read the text from, and a lesson shows this as a link.
     sourceUrl: typeof payload.sourceUrl === "string" ? payload.sourceUrl : null,
     sourceTitle: typeof payload.sourceTitle === "string" ? payload.sourceTitle : null,
+    // Checked against the supported platforms in streamLesson.
+    videoUrl: typeof payload.videoUrl === "string" ? payload.videoUrl : null,
   });
 }

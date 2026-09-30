@@ -1,0 +1,6 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+requests>=2.32
+# yt-dlp changes weekly to keep up with the sites; start.sh upgrades it on
+# every boot, so this is only the floor.
+yt-dlp[default]>=2025.10.22
