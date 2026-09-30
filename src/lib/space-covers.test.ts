@@ -36,3 +36,17 @@ test("no photo anywhere leaves the card to its icon", () => {
   const covers = pickSpaceCovers([tides], [{ spaceId: "tides", url: "not-a-url" }], null);
   assert.equal(covers.get("tides"), null);
 });
+
+test("logos and share cards are skipped, and PNGs come after photos", () => {
+  const covers = pickSpaceCovers(
+    [directory],
+    [
+      { spaceId: "dir", url: "https://organzibar.com/og-image.png" },
+      { spaceId: "dir", url: "https://seezanzibartours.com/img/logo.png" },
+      { spaceId: "dir", url: "https://x/blob.png" },
+      { spaceId: "dir", url: "https://x/beach.webp" },
+    ],
+    null
+  );
+  assert.equal(covers.get("dir"), "https://x/beach.webp");
+});
