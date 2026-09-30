@@ -86,6 +86,11 @@ Without these two variables the feature is simply hidden.
 
 ## Cookies
 
+The same steps, written for teachers, are on the site at
+**`/help/video-cookies`** (e.g. <https://relate.click/help/video-cookies>) —
+that's the page the composer's error messages link to. Set `COOKIES_HELP_URL`
+on the worker if your site lives somewhere else.
+
 **When you need this:** the composer says *"YouTube is asking the video service to
 prove it isn't a bot"*, or *"That video needs a login"*. YouTube often challenges
 cloud servers like Railway, and Facebook/Instagram usually want a logged-in

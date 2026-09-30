@@ -43,6 +43,9 @@ const PLATFORM_PATH_PREFIXES = [
   // reached from inside a community's host too, where it must stay the
   // platform page rather than rewriting onto /c/<slug>/pricing (404).
   "/pricing",
+  // Help pages (e.g. /help/video-cookies, linked from the lesson composer's
+  // video errors) exist only at the platform root.
+  "/help",
   // The platform super-admin page. It lives at /platform-admin (not /admin)
   // precisely so it doesn't collide with a community's own /c/<slug>/admin
   // page, which canonicalizes to a bare /admin on the community's host.

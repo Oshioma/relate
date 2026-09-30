@@ -23,6 +23,23 @@ export type VideoLink = {
   portrait: boolean;
 };
 
+// The page that explains how to give the video worker cookies, which the
+// worker's login / bot-check errors point at. See src/app/help/video-cookies.
+export const VIDEO_COOKIES_HELP_PATH = "/help/video-cookies";
+
+// The worker's errors end with a link to its cookie instructions — by default
+// this site's page, but an older worker (or one configured elsewhere) points
+// at the README in the private repository, which a teacher can't open. Either
+// way the composer shows this site's page. Absolute, because the composer only
+// turns full URLs into links.
+const WORKER_HELP_LINK = /https?:\/\/\S*(?:README\.md#cookies|\/help\/video-cookies)/g;
+
+export function withSiteHelpLink(text: string | null, siteUrl?: string): string | null {
+  if (!text) return text;
+  const site = (siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://relate.click").replace(/\/+$/, "");
+  return text.replace(WORKER_HELP_LINK, `${site}${VIDEO_COOKIES_HELP_PATH}`);
+}
+
 export const VIDEO_PLATFORM_NAMES: Record<VideoPlatform, string> = {
   youtube: "YouTube",
   facebook: "Facebook",

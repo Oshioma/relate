@@ -124,7 +124,7 @@ def _write_cookies(text: str) -> str:
 # in the composer. Ends the sentence with no full stop, so the link stays clean.
 COOKIES_HELP_URL = os.environ.get(
     "COOKIES_HELP_URL",
-    "https://github.com/Oshioma/relate/blob/main/workers/video-transcriber/README.md#cookies",
+    "https://relate.click/help/video-cookies",
 ).strip()
 
 COOKIES_FILE: Optional[str] = os.environ.get("COOKIES_FILE", "").strip() or None

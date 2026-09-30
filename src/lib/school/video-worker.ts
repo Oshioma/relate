@@ -18,6 +18,7 @@
 
 import "server-only";
 import type { LessonVideoJob, LessonVideoJobStatus } from "@/types/database";
+import { withSiteHelpLink } from "@/lib/school/video-links";
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -138,7 +139,7 @@ export function publicJob(job: LessonVideoJob, withTranscript: boolean) {
     title: job.title,
     durationSeconds: job.duration_seconds,
     method: job.method,
-    error: job.error,
+    error: withSiteHelpLink(job.error),
     createdAt: job.created_at,
     transcriptChars: job.transcript?.length ?? 0,
     transcript: withTranscript ? job.transcript : null,
