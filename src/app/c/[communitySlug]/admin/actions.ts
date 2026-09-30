@@ -765,8 +765,8 @@ export async function verifyCustomDomain(_prevState: CustomDomainState, formData
 
   // Also register the www / bare counterpart as a redirect, so visitors who
   // type the other form land on the community. Best-effort: it only matters
-  // once the owner's DNS for it points here too, and the proxy redirects it
-  // either way.
+  // once the owner's DNS for it points here too, and the proxy serves the
+  // community on it either way.
   const counterpart = wwwCounterpart(community.custom_domain);
   if (counterpart) {
     await addDomainToVercelProject(counterpart, community.custom_domain);

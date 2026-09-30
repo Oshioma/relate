@@ -78,15 +78,14 @@ export async function proxy(request: NextRequest) {
   if (!slug && host && !isPlatformHost(host)) {
     slug = await resolveCommunitySlugForHost(host);
 
-    // www.foo.com when the owner verified foo.com (or the reverse): send the
-    // visitor to the verified host rather than the platform's landing page.
+    // www.foo.com when the owner verified foo.com (or the reverse): serve
+    // the community here too rather than the platform's landing page. This
+    // must not redirect to the verified host: the domain's host (Vercel)
+    // may already redirect that host to this one (its default is apex ->
+    // www), and the two redirects would loop forever.
     if (!slug) {
       const counterpart = wwwCounterpart(host);
-      if (counterpart && (await resolveCommunitySlugForHost(counterpart))) {
-        const url = request.nextUrl.clone();
-        url.hostname = counterpart;
-        return NextResponse.redirect(url, 308);
-      }
+      if (counterpart) slug = await resolveCommunitySlugForHost(counterpart);
     }
   }
 
