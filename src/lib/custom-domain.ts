@@ -42,8 +42,8 @@ export function normalizeCustomDomain(raw: string): string | null {
 }
 
 // The other half of a www / bare pair: "www.foo.com" <-> "foo.com". An owner
-// verifies one of them, but visitors type both, so the proxy redirects the
-// counterpart to the verified one and verification registers both with the
+// verifies one of them, but visitors type both, so the proxy serves the
+// community on the counterpart too and verification registers both with the
 // host. Null when stripping "www." would leave no real domain.
 export function wwwCounterpart(host: string): string | null {
   const hostname = host.toLowerCase().replace(/:\d+$/, "");
