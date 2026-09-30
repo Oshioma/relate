@@ -49,6 +49,14 @@ const PLATFORM_PATH_PREFIXES = [
   "/platform-admin",
 ];
 
+// Supabase's session cookie (sb-<project-ref>-auth-token, split into .0/.1…
+// chunks when large). Only its presence matters here: it decides whether "/"
+// on a community's host shows the signed-out welcome page or the feed. A
+// stale cookie just means the feed, which is the pre-welcome behaviour.
+function hasSessionCookie(request: NextRequest) {
+  return request.cookies.getAll().some((cookie) => /^sb-.+-auth-token(\.\d+)?$/.test(cookie.name));
+}
+
 function isPlatformPath(pathname: string) {
   return PLATFORM_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
@@ -108,7 +116,13 @@ export async function proxy(request: NextRequest) {
     // becomes /c/<slug>/events, and so on. The browser URL stays clean.
     if (!isPlatformPath(pathname) && !pathname.startsWith("/c/")) {
       const rewriteTo = request.nextUrl.clone();
-      rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
+      if (pathname === "/" && !hasSessionCookie(request) && request.nextUrl.searchParams.get("view") !== "feed") {
+        // Signed-out visitors meet the community's welcome page at "/";
+        // its "Take a look around" link (?view=feed) reaches the guest feed.
+        rewriteTo.pathname = `/welcome/${slug}`;
+      } else {
+        rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
+      }
       return updateSession(request, rewriteTo);
     }
   }
