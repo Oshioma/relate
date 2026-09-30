@@ -7,6 +7,8 @@ import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityFeatures } from "@/lib/data/features";
+import { getSpaceContentPhotos } from "@/lib/data/space-covers";
+import { pickSpaceCovers } from "@/lib/space-covers";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { coverPositionClass } from "@/lib/cover-position";
@@ -56,11 +58,12 @@ export default async function CommunityWelcomePage({
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) notFound();
 
-  const [spaces, events, features, stats] = await Promise.all([
+  const [spaces, events, features, stats, contentPhotos] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     community.events_public ? getCommunityEvents(supabase, community.id) : Promise.resolve([]),
     getCommunityFeatures(supabase, community.id),
     getCommunityStats(supabase, community.id),
+    getSpaceContentPhotos(supabase, community.id),
   ]);
 
   const base = `/c/${community.slug}`;
@@ -72,6 +75,9 @@ export default async function CommunityWelcomePage({
 
   // RLS already narrows spaces to the ones a guest may see.
   const featuredSpaces = spaces.filter((space) => space.show_in_nav).slice(0, 6);
+  // A real photo on every card where one exists: the admin's cover, else one
+  // from the space's own content, else the community cover (src/lib/space-covers.ts).
+  const spaceCovers = pickSpaceCovers(featuredSpaces, contentPhotos, community.cover_image_url);
   const upcoming = features.events ? splitUpcomingPast(events).upcoming.slice(0, 3) : [];
   // Counts a guest can't read (RLS) come back as 0 — show only what's real.
   const statItems = [
@@ -172,17 +178,31 @@ export default async function CommunityWelcomePage({
               {featuredSpaces.map((space) => {
                 const meta = SPACE_TYPES[space.space_type];
                 const Icon = meta?.icon;
+                const cover = spaceCovers.get(space.id);
                 return (
                   <Link
                     key={space.id}
                     href={`${base}/spaces/${space.slug}`}
                     className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
                   >
-                    {space.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- remote community upload
-                      <img src={space.image_url} alt="" className="h-36 w-full object-cover" />
+                    {cover ? (
+                      <div className="relative h-44 overflow-hidden bg-accent-soft">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- remote community upload */}
+                        <img
+                          src={cover}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                        {Icon && (
+                          <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-card/90 text-accent shadow-sm backdrop-blur">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                        )}
+                      </div>
                     ) : (
-                      <div className="flex h-36 items-center justify-center bg-accent-soft text-accent">
+                      <div className="flex h-44 items-center justify-center bg-accent-soft text-accent">
                         {Icon && <Icon className="h-10 w-10" />}
                       </div>
                     )}
