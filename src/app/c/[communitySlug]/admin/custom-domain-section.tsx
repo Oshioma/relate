@@ -159,7 +159,7 @@ export function CustomDomainSection({
           <div className="mt-4 space-y-3">
             <p className="text-sm text-foreground">
               One last step. Log in to the website where you bought <span className="font-mono">{domain}</span> (like
-              GoDaddy or Namecheap), open its <strong>DNS settings</strong>, and add these two records — copy each field
+              GoDaddy or Namecheap), open its <strong>DNS settings</strong>, and add these records — copy each field
               exactly:
             </p>
             <RecordRow
@@ -176,6 +176,15 @@ export function CustomDomainSection({
               name="@"
               value="76.76.21.21"
             />
+            {!domain.startsWith("www.") && (
+              <RecordRow
+                title="Record 3"
+                why={`so www.${domain} works too`}
+                type="CNAME"
+                name="www"
+                value="cname.vercel-dns.com"
+              />
+            )}
             <p className="text-xs text-muted-foreground">
               &ldquo;@&rdquo; means the domain itself. If your provider wants a full name for record 1, use{" "}
               <span className="font-mono">{verificationRecordName(domain)}</span>. Save, wait a few minutes (DNS changes

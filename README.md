@@ -692,6 +692,11 @@ registrar:
    to Cloudflare) and marks the domain verified on a match.
 2. an A record pointing the domain at Vercel (`76.76.21.21`), or a
    CNAME to `cname.vercel-dns.com` for a `www` subdomain.
+3. a CNAME at `www` to `cname.vercel-dns.com`, so the `www` form works
+   too. Visitors on `www.<domain>` (or the bare domain, when the owner
+   verified the `www` form) are 308-redirected to the verified host by
+   `src/proxy.ts`, and verification registers that counterpart on the
+   Vercel project as a redirect.
 
 **Platform operator flow.** With `VERCEL_TOKEN` + `VERCEL_PROJECT_ID`
 set (see `.env.local.example`), there is nothing to do per domain:

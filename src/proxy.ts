@@ -5,6 +5,7 @@ import {
   platformSubdomainSlug,
   communitySubdomainUrl,
   RESERVED_SUBDOMAIN_LABELS,
+  wwwCounterpart,
 } from "@/lib/custom-domain";
 import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
 
@@ -68,6 +69,17 @@ export async function proxy(request: NextRequest) {
   let slug = platformSubdomainSlug(host);
   if (!slug && host && !isPlatformHost(host)) {
     slug = await resolveCommunitySlugForHost(host);
+
+    // www.foo.com when the owner verified foo.com (or the reverse): send the
+    // visitor to the verified host rather than the platform's landing page.
+    if (!slug) {
+      const counterpart = wwwCounterpart(host);
+      if (counterpart && (await resolveCommunitySlugForHost(counterpart))) {
+        const url = request.nextUrl.clone();
+        url.hostname = counterpart;
+        return NextResponse.redirect(url, 308);
+      }
+    }
   }
 
   if (slug) {
