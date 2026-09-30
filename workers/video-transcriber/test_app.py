@@ -91,5 +91,35 @@ class CaptionPickTests(unittest.TestCase):
         self.assertIsNone(app._pick_captions(info))
 
 
+class CookieTests(unittest.TestCase):
+    GOOD = ".youtube.com\tTRUE\t/\tTRUE\t1893456000\tSID\tabc123"
+
+    def test_tabs_turned_to_spaces_are_restored(self):
+        pasted = "# Netscape HTTP Cookie File\n# comment\n.youtube.com TRUE / TRUE 1893456000 SID abc123\n"
+        self.assertEqual(app.normalise_cookies(pasted), "# Netscape HTTP Cookie File\n" + self.GOOD + "\n")
+
+    def test_flattened_newlines_and_missing_header(self):
+        pasted = ".youtube.com TRUE / TRUE 1893456000 SID abc123\\n#HttpOnly_.youtube.com TRUE / TRUE 1893456000 HSID x"
+        out = app.normalise_cookies(pasted).splitlines()
+        self.assertEqual(out[0], "# Netscape HTTP Cookie File")
+        self.assertEqual(out[1], self.GOOD)
+        self.assertEqual(out[2], "#HttpOnly_.youtube.com\tTRUE\t/\tTRUE\t1893456000\tHSID\tx")
+
+    def test_empty_value_kept(self):
+        out = app.normalise_cookies(".x.com\tTRUE\t/\tFALSE\t0\tEMPTY\t").splitlines()
+        self.assertEqual(out[1], ".x.com\tTRUE\t/\tFALSE\t0\tEMPTY\t")
+
+    def test_real_file_passes_through(self):
+        real = "# Netscape HTTP Cookie File\n" + self.GOOD + "\n"
+        self.assertEqual(app.normalise_cookies(real), real)
+
+
+class ErrorTests(unittest.TestCase):
+    def test_bot_check_is_named(self):
+        msg = app._friendly_download_error(Exception("ERROR: [youtube] x: Sign in to confirm you're not a bot. Use --cookies"))
+        self.assertIn("bot", msg)
+        self.assertTrue(msg.endswith(app.COOKIES_HELP_URL), msg)
+
+
 if __name__ == "__main__":
     unittest.main()
