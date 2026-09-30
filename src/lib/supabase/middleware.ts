@@ -45,6 +45,9 @@ function isPublicPath(pathname: string) {
   // signed-out) visitor lands — bouncing them to /login here hid the
   // "confirm your email" step entirely and read as a login loop.
   if (pathname.startsWith("/invite/")) return true;
+  // A community's signed-out welcome page (src/app/welcome) — by definition
+  // for visitors without a session.
+  if (pathname.startsWith("/welcome/")) return true;
   // The cross-host auth bridge exists precisely for visitors with no session
   // on the current host (see src/lib/auth-bridge.ts); gating it behind
   // /login would loop.
