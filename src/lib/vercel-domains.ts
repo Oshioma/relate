@@ -15,8 +15,12 @@ function vercelApiUrl(path: string) {
   return `https://api.vercel.com${path}${teamId ? `?teamId=${encodeURIComponent(teamId)}` : ""}`;
 }
 
+// `redirectTo` registers the domain as a redirect to another domain on the
+// project instead of serving it directly — used for the www / bare
+// counterpart of a verified custom domain.
 export async function addDomainToVercelProject(
-  domain: string
+  domain: string,
+  redirectTo?: string
 ): Promise<{ ok: true } | { ok: false; reason: string } | { skipped: true }> {
   if (!isVercelDomainAutomationConfigured()) return { skipped: true };
 
@@ -29,7 +33,9 @@ export async function addDomainToVercelProject(
           Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: domain }),
+        body: JSON.stringify(
+          redirectTo ? { name: domain, redirect: redirectTo, redirectStatusCode: 308 } : { name: domain }
+        ),
         cache: "no-store",
       }
     );
