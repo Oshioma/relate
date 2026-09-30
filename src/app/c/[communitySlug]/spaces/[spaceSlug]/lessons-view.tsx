@@ -189,6 +189,7 @@ export function LessonsView({
   isMember,
   defaultAgeBand,
   writerConfigured,
+  videoConfigured,
 }: {
   lessons: LessonRow[];
   spaceId: string;
@@ -208,6 +209,9 @@ export function LessonsView({
   // False when ANTHROPIC_API_KEY isn't set: the library still reads, but there
   // is no point offering a composer that cannot work.
   writerConfigured: boolean;
+  // False when VIDEO_WORKER_URL / VIDEO_WORKER_SECRET aren't set: the composer
+  // then simply doesn't offer video links.
+  videoConfigured: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [discovery, setDiscovery] = useState<DiscoveryCategory | null>(null);
@@ -349,6 +353,7 @@ export function LessonsView({
         <LessonComposer
           spaceId={spaceId}
           defaultAgeBand={defaultAgeBand}
+          videoConfigured={videoConfigured}
           onClose={() => setComposing(false)}
         />
       )}

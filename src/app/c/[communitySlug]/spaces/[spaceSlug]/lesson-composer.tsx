@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import { FileUp, Link2, Loader2, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FileUp, Film, Link2, Loader2, Sparkles, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,8 @@ import {
   isSubtitleFile,
   isTextFile,
 } from "@/lib/school/transcript-text";
+import { VIDEO_PLATFORM_NAMES, formatDuration, parseVideoLink } from "@/lib/school/video-links";
+import type { PublicVideoJob } from "@/lib/school/video-worker";
 
 // Writes a lesson from pasted material.
 //
@@ -46,19 +48,44 @@ type Phase = "idle" | "writing" | "images";
 // mistake is refused instead of freezing the tab.
 const MAX_FILE_BYTES = 8_000_000;
 
+// How often an unfinished video job is checked on. Each check is one request
+// to our API and one to the worker; an hour of video takes minutes, so there
+// is nothing to gain from asking more often.
+const VIDEO_POLL_MS = 4000;
+
+function isJobFinished(job: PublicVideoJob): boolean {
+  return job.status === "done" || job.status === "error";
+}
+
+function jobLabel(job: PublicVideoJob): string {
+  if (job.title) return job.title;
+  const link = parseVideoLink(job.sourceUrl);
+  return link ? `${VIDEO_PLATFORM_NAMES[link.platform]} video` : job.sourceUrl;
+}
+
 export function LessonComposer({
   spaceId,
   defaultAgeBand,
+  videoConfigured,
   onClose,
 }: {
   spaceId: string;
   // The reading age this school starts on, from its school_kind. Every lesson
   // can still be written for any band.
   defaultAgeBand: string;
+  // Whether the video worker is set up. Without it a video link is answered
+  // the old way: "paste the transcript instead".
+  videoConfigured: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [sourceText, setSourceText] = useState("");
+  // Read by the video poller, which runs outside React's render cycle and
+  // would otherwise see the box as it was when polling started.
+  const sourceTextRef = useRef("");
+  useEffect(() => {
+    sourceTextRef.current = sourceText;
+  }, [sourceText]);
   const [ageBand, setAgeBand] = useState<AgeBandKey>(
     isAgeBandKey(defaultAgeBand) ? defaultAgeBand : DEFAULT_AGE_BAND
   );
@@ -77,11 +104,171 @@ export function LessonComposer({
   // that page served, crediting it would be a claim we can't stand behind.
   const [source, setSource] = useState<{ url: string; title: string | null } | null>(null);
 
+  // The video a transcript came from, to show at the top of the lesson. Kept
+  // through hand edits, unlike `source`: trimming a transcript is the whole
+  // point of the review step, and the lesson is still about that video.
+  const [video, setVideo] = useState<{ url: string; title: string | null } | null>(null);
+  const [embedVideo, setEmbedVideo] = useState(true);
+
+  // Video jobs: the ones started here, plus any recent ones from an earlier
+  // visit, so closing the composer mid-transcription loses nothing.
+  const [jobs, setJobs] = useState<PublicVideoJob[]>([]);
+  const [starting, setStarting] = useState(false);
+  // The job whose transcript should drop into the box by itself when it
+  // finishes — the one started in this sitting. Older ones wait for a click.
+  const autoUseRef = useRef<string | null>(null);
+
   // Dropping or picking a file. Read in the browser and never uploaded: the
   // material has to land in the box to be edited before a lesson is written,
   // so a round trip to the server would buy nothing.
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragging, setDragging] = useState(false);
+
+  const trimmed = sourceText.trim();
+  const tooShort = trimmed.length > 0 && trimmed.length < MIN_SOURCE_CHARS;
+  const tooLong = trimmed.length > MAX_SOURCE_CHARS;
+  const busy = phase !== "idle";
+  const canSubmit = !busy && trimmed.length >= MIN_SOURCE_CHARS && !tooLong;
+
+  const urlIsVideo = videoConfigured && parseVideoLink(url) !== null;
+
+  function mergeJob(job: PublicVideoJob) {
+    setJobs((current) => {
+      const exists = current.some((j) => j.id === job.id);
+      return exists ? current.map((j) => (j.id === job.id ? job : j)) : [job, ...current];
+    });
+  }
+
+  // Puts a finished transcript in the box. Appended, like everything else,
+  // because whatever is already there was put there on purpose.
+  const insertTranscript = useCallback((job: PublicVideoJob) => {
+    const text = job.transcript?.trim();
+    if (!text) return;
+    const before = sourceTextRef.current.trim();
+    setSourceText(before ? `${before}\n\n${text}` : text);
+    // Credited only when it is the whole of the material — same rule as a page.
+    setSource(before ? null : { url: job.sourceUrl, title: job.title });
+    setVideo({ url: job.sourceUrl, title: job.title });
+    setEmbedVideo(true);
+    setError(null);
+
+    const length = formatDuration(job.durationSeconds);
+    const how = job.method === "captions" ? "from its captions" : "by listening to it";
+    setReadNote(
+      `Transcribed "${jobLabel(job)}"${length ? ` (${length})` : ""} ${how} — ` +
+        `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing.` +
+        (job.message ? ` ${job.message}` : "")
+    );
+  }, []);
+
+  // Recent jobs, once, when the composer opens.
+  useEffect(() => {
+    if (!videoConfigured) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch(`/api/lessons/video-jobs?spaceId=${encodeURIComponent(spaceId)}`, {
+          cache: "no-store",
+        });
+        const body = (await response.json().catch(() => null)) as { jobs?: PublicVideoJob[] } | null;
+        if (!cancelled && body?.jobs) setJobs(body.jobs);
+      } catch {
+        // No list is fine — it's a convenience, not the feature.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [spaceId, videoConfigured]);
+
+  // Polls whichever jobs are still running. Keyed on their ids, so it restarts
+  // only when that set changes, and a slow answer never overlaps the next ask.
+  const pendingIds = jobs
+    .filter((job) => !isJobFinished(job))
+    .map((job) => job.id)
+    .join(",");
+
+  useEffect(() => {
+    if (!pendingIds) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function tick() {
+      for (const id of pendingIds.split(",")) {
+        try {
+          const response = await fetch(`/api/lessons/video-jobs/${id}`, { cache: "no-store" });
+          const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob } | null;
+          if (cancelled) return;
+          if (!body?.job) continue;
+          mergeJob(body.job);
+          if (autoUseRef.current === id && isJobFinished(body.job)) {
+            autoUseRef.current = null;
+            if (body.job.status === "done") insertTranscript(body.job);
+          }
+        } catch {
+          // Try again next tick.
+        }
+      }
+      if (!cancelled) timer = setTimeout(tick, VIDEO_POLL_MS);
+    }
+
+    timer = setTimeout(tick, VIDEO_POLL_MS);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [pendingIds, insertTranscript]);
+
+  async function startVideo() {
+    if (!url.trim() || starting || busy) return;
+    setStarting(true);
+    setError(null);
+    setReadNote(null);
+    try {
+      const response = await fetch("/api/lessons/video-jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spaceId, url }),
+      });
+      const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob; error?: string } | null;
+      if (!response.ok || !body?.job) {
+        setError(body?.error ?? "Couldn't start transcribing that video.");
+        return;
+      }
+      mergeJob(body.job);
+      if (body.job.status === "error") {
+        setError(body.job.error ?? "Couldn't start transcribing that video.");
+        return;
+      }
+      autoUseRef.current = body.job.id;
+      setUrl("");
+    } catch {
+      setError("Couldn't reach the server just now.");
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function loadFinishedJob(job: PublicVideoJob) {
+    setError(null);
+    try {
+      const response = await fetch(`/api/lessons/video-jobs/${job.id}`, { cache: "no-store" });
+      const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob; error?: string } | null;
+      if (!body?.job?.transcript) {
+        setError(body?.error ?? "That transcript isn't available any more.");
+        return;
+      }
+      insertTranscript(body.job);
+    } catch {
+      setError("Couldn't load that transcript just now.");
+    }
+  }
+
+  async function removeJob(job: PublicVideoJob) {
+    setJobs((current) => current.filter((j) => j.id !== job.id));
+    if (autoUseRef.current === job.id) autoUseRef.current = null;
+    await fetch(`/api/lessons/video-jobs/${job.id}`, { method: "DELETE" }).catch(() => null);
+  }
 
   async function addFile(file: File) {
     if (busy) return;
@@ -131,6 +318,12 @@ export function LessonComposer({
 
   async function readFromUrl() {
     if (!url.trim() || reading || busy) return;
+    // One box for every kind of link: a video goes to the transcriber, and
+    // everything else is read as a page.
+    if (urlIsVideo) {
+      await startVideo();
+      return;
+    }
     setReading(true);
     setError(null);
     setReadNote(null);
@@ -168,12 +361,6 @@ export function LessonComposer({
       setReading(false);
     }
   }
-
-  const trimmed = sourceText.trim();
-  const tooShort = trimmed.length > 0 && trimmed.length < MIN_SOURCE_CHARS;
-  const tooLong = trimmed.length > MAX_SOURCE_CHARS;
-  const busy = phase !== "idle";
-  const canSubmit = !busy && trimmed.length >= MIN_SOURCE_CHARS && !tooLong;
 
   function handleEvent(event: StreamEvent, onFailure: () => void) {
     switch (event.type) {
@@ -222,6 +409,7 @@ export function LessonComposer({
           ageBand,
           sourceUrl: source?.url ?? null,
           sourceTitle: source?.title ?? null,
+          videoUrl: video && embedVideo ? video.url : null,
         }),
         signal: controller.signal,
       });
@@ -266,6 +454,7 @@ export function LessonComposer({
       if (failed) return;
 
       setSourceText("");
+      setVideo(null);
       // The library is a server component; pull the new lesson into it.
       router.refresh();
       onClose();
@@ -281,14 +470,16 @@ export function LessonComposer({
     }
   }
 
+  const linkBusy = reading || starting;
+
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold tracking-tight text-foreground">Write a lesson</h3>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Paste anything you want taught — a chapter, an article, your own notes. It gets rewritten as a lesson for
-            the age you pick.
+            Paste anything you want taught — a chapter, an article, your own notes
+            {videoConfigured ? ", or a video link" : ""}. It gets rewritten as a lesson for the age you pick.
           </p>
         </div>
         <button
@@ -325,15 +516,18 @@ export function LessonComposer({
       </div>
 
       {/* A link is a shortcut into the box below, not a second way to write a
-          lesson. Works on anything whose words are in the page — an article, a
-          recipe, a Wikipedia entry. A video page carries no transcript, and
-          the server says so plainly rather than returning a summary of the
-          description dressed up as one. */}
+          lesson. A page is read straight in; a YouTube, Facebook or Instagram
+          video is handed to the video worker, which fetches its captions or
+          listens to it, and the transcript lands in the box when it's done. */}
       <div className="mt-4">
         <span className="text-sm font-medium text-foreground">Read from a link</span>
         <div className="mt-2 flex flex-wrap gap-2">
           <div className="relative min-w-[14rem] flex-1">
-            <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            {urlIsVideo ? (
+              <Film className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            ) : (
+              <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            )}
             <input
               type="url"
               inputMode="url"
@@ -345,21 +539,41 @@ export function LessonComposer({
                   void readFromUrl();
                 }
               }}
-              disabled={busy || reading}
-              placeholder="Paste an article or recipe link…"
+              disabled={busy || linkBusy}
+              placeholder={
+                videoConfigured
+                  ? "Paste an article, or a YouTube, Facebook or Instagram video link…"
+                  : "Paste an article or recipe link…"
+              }
               className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
           </div>
-          <Button
-            variant="secondary"
-            onClick={readFromUrl}
-            disabled={busy || reading || !url.trim()}
-          >
-            {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-            {reading ? "Reading…" : "Read it in"}
+          <Button variant="secondary" onClick={readFromUrl} disabled={busy || linkBusy || !url.trim()}>
+            {linkBusy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : urlIsVideo ? (
+              <Film className="h-4 w-4" />
+            ) : (
+              <Link2 className="h-4 w-4" />
+            )}
+            {reading ? "Reading…" : starting ? "Starting…" : urlIsVideo ? "Transcribe" : "Read it in"}
           </Button>
         </div>
         {readNote && <p className="mt-2 text-xs text-muted-foreground">{readNote}</p>}
+
+        {videoConfigured && jobs.length > 0 && (
+          <ul className="mt-3 space-y-2">
+            {jobs.map((job) => (
+              <VideoJobRow
+                key={job.id}
+                job={job}
+                disabled={busy}
+                onUse={() => void loadFinishedJob(job)}
+                onRemove={() => void removeJob(job)}
+              />
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* The box, and the two ways to fill it that aren't typing. A caption
@@ -370,12 +584,7 @@ export function LessonComposer({
         <label htmlFor="lesson-source" className="text-sm font-medium text-foreground">
           Source material
         </label>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={busy}
-        >
+        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={busy}>
           <FileUp className="h-4 w-4" />
           Add a file
         </Button>
@@ -400,6 +609,8 @@ export function LessonComposer({
         onChange={(e) => {
           setSourceText(e.target.value);
           setSource(null);
+          // Emptying the box is starting over; the video goes with it.
+          if (!e.target.value.trim()) setVideo(null);
         }}
         onDragOver={(e) => {
           if (busy) return;
@@ -440,6 +651,24 @@ export function LessonComposer({
         )}
       </div>
 
+      {video && (
+        <label className="mt-3 flex items-start gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={embedVideo}
+            onChange={(e) => setEmbedVideo(e.target.checked)}
+            disabled={busy}
+            className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--accent)]"
+          />
+          <span>
+            Show the video at the top of the lesson
+            <span className="block text-xs text-muted-foreground">
+              {video.title ?? video.url} — everyone who can see the lesson can watch it there.
+            </span>
+          </span>
+        </label>
+      )}
+
       {error && (
         <p className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           {error}
@@ -457,5 +686,75 @@ export function LessonComposer({
         {phase === "images" && <span className="text-xs text-muted-foreground">Looking for pictures…</span>}
       </div>
     </Card>
+  );
+}
+
+// One video job in the composer: a progress bar while it runs, a button to
+// put the transcript in the box once it's done, the reason if it failed.
+function VideoJobRow({
+  job,
+  disabled,
+  onUse,
+  onRemove,
+}: {
+  job: PublicVideoJob;
+  disabled: boolean;
+  onUse: () => void;
+  onRemove: () => void;
+}) {
+  const running = !isJobFinished(job);
+  const length = formatDuration(job.durationSeconds);
+  const percent = Math.round((job.progress ?? 0) * 100);
+
+  return (
+    <li className="rounded-md border border-border bg-card px-3 py-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
+            <Film className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">{jobLabel(job)}</span>
+            {length && <span className="shrink-0 text-xs font-normal text-muted-foreground">{length}</span>}
+          </p>
+          {running && (
+            <>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-500"
+                  style={{ width: `${Math.max(4, percent)}%` }}
+                />
+              </div>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                {job.message ?? "Working…"} You can close this and come back.
+              </p>
+            </>
+          )}
+          {job.status === "done" && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Ready — {job.transcriptChars.toLocaleString()} characters
+              {job.method === "captions" ? ", from the video's captions" : ", transcribed from the audio"}.
+            </p>
+          )}
+          {job.status === "error" && <p className="mt-0.5 text-xs text-danger">{job.error ?? "That didn't work."}</p>}
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          {job.status === "done" && (
+            <Button size="sm" variant="secondary" onClick={onUse} disabled={disabled}>
+              Use transcript
+            </Button>
+          )}
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={disabled}
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            aria-label={running ? "Stop watching this video" : "Remove from the list"}
+            title={running ? "Stop watching this video" : "Remove from the list"}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </li>
   );
 }

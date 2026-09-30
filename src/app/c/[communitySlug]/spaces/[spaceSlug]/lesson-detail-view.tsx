@@ -21,6 +21,7 @@ import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
 import { LessonClassification } from "./lesson-classification";
 import { LessonRulesPanel } from "./lesson-rules-panel";
+import { LessonVideo } from "./lesson-video";
 import {
   deleteLesson,
   removeLessonImage,
@@ -233,7 +234,11 @@ export function LessonDetailView({
           </span>
         </div>
 
-        {lesson.lesson.cover ? (
+        {/* A lesson written from a video leads with the video: it is the thing
+            to watch before reading, and a better picture than any cover. */}
+        {lesson.video_url ? (
+          <LessonVideo url={lesson.video_url} className="mt-4" />
+        ) : lesson.lesson.cover ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={lesson.lesson.cover.url}

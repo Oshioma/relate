@@ -31,6 +31,7 @@ import {
   LessonGenerationError,
 } from "@/lib/ai/lesson-writer";
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
+import { parseVideoLink } from "@/lib/school/video-links";
 
 export function streamLesson(input: {
   supabase: SupabaseClient<Database>;
@@ -47,6 +48,9 @@ export function streamLesson(input: {
   // box, so a lesson could never say where it came from.
   sourceUrl?: string | null;
   sourceTitle?: string | null;
+  // A video to show at the top of the lesson, when the material is its
+  // transcript. Anything that isn't a recognised video link is dropped.
+  videoUrl?: string | null;
 }): Response {
   const { supabase, spaceId, communityId, userId, sourceText, ageBand } = input;
   const beyondSource = Boolean(input.beyondSource);
@@ -56,6 +60,7 @@ export function streamLesson(input: {
       ? input.sourceUrl
       : null;
   const sourceTitle = sourceUrl ? (input.sourceTitle?.trim() || null) : null;
+  const videoUrl = input.videoUrl ? (parseVideoLink(input.videoUrl)?.url ?? null) : null;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -108,6 +113,7 @@ export function streamLesson(input: {
             prompt_used: promptUsed,
             source_url: sourceUrl,
             source_title: sourceTitle,
+            video_url: videoUrl,
           })
           .select("*")
           .single();

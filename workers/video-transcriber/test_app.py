@@ -1,0 +1,95 @@
+"""Run with:  WORKER_SECRET=test python -m pytest test_app.py   (or python test_app.py)"""
+
+import os
+import unittest
+
+os.environ.setdefault("WORKER_SECRET", "test-secret")
+
+import app  # noqa: E402
+
+
+class VttTests(unittest.TestCase):
+    def test_rolling_auto_captions_say_each_line_once(self):
+        vtt = """WEBVTT
+Kind: captions
+Language: en
+
+00:00:00.000 --> 00:00:02.000 align:start position:0%
+hello<00:00:00.500><c> everyone</c>
+
+00:00:02.000 --> 00:00:02.010
+hello everyone
+
+00:00:02.010 --> 00:00:04.000
+hello everyone
+today we look at volcanoes
+
+00:00:04.000 --> 00:00:06.000
+today we look at volcanoes
+&amp; how they erupt
+"""
+        self.assertEqual(
+            app.vtt_to_text(vtt),
+            "hello everyone today we look at volcanoes & how they erupt",
+        )
+
+    def test_srt_style_numbers_and_music_are_dropped(self):
+        vtt = "WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.000\n[Music]\n\n2\n00:00:02.000 --> 00:00:03.000\nRight.\n"
+        self.assertEqual(app.vtt_to_text(vtt), "Right.")
+
+
+class ParagraphTests(unittest.TestCase):
+    def test_breaks_after_sentences(self):
+        text = " ".join(["This is a sentence of some length."] * 60)
+        paras = app.paragraphs(text, target=200).split("\n\n")
+        self.assertGreater(len(paras), 5)
+        self.assertTrue(all(p.endswith(".") for p in paras))
+
+    def test_breaks_unpunctuated_speech_on_words(self):
+        text = " ".join(["word"] * 1000)
+        paras = app.paragraphs(text, target=200).split("\n\n")
+        self.assertGreater(len(paras), 5)
+        self.assertEqual(sum(len(p.split()) for p in paras), 1000)
+
+
+class HostTests(unittest.TestCase):
+    def test_allowed(self):
+        for url in [
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "https://youtu.be/dQw4w9WgXcQ",
+            "https://m.facebook.com/x/videos/1/",
+            "https://fb.watch/abc/",
+            "https://www.instagram.com/reel/abc/",
+        ]:
+            self.assertTrue(app.is_allowed_url(url), url)
+
+    def test_refused(self):
+        for url in [
+            "http://169.254.169.254/latest/meta-data",
+            "https://youtube.com.evil.example/watch",
+            "file:///etc/passwd",
+            "https://notyoutube.com/watch",
+        ]:
+            self.assertFalse(app.is_allowed_url(url), url)
+
+
+class CaptionPickTests(unittest.TestCase):
+    def test_manual_beats_auto_and_translations_are_ignored(self):
+        info = {
+            "language": "en",
+            "subtitles": {"en-GB": [{"ext": "json3", "url": "x"}, {"ext": "vtt", "url": "manual"}]},
+            "automatic_captions": {"en": [{"ext": "vtt", "url": "auto"}]},
+        }
+        self.assertEqual(app._pick_captions(info), ("manual", "en-GB"))
+
+    def test_auto_translation_of_a_foreign_video_is_not_used(self):
+        info = {
+            "language": "es",
+            "subtitles": {},
+            "automatic_captions": {"es-orig": [{"ext": "vtt", "url": "es"}], "en": [{"ext": "vtt", "url": "en"}]},
+        }
+        self.assertIsNone(app._pick_captions(info))
+
+
+if __name__ == "__main__":
+    unittest.main()

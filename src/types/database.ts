@@ -1176,6 +1176,32 @@ export type SpaceLesson = {
   // When true, the source material and reference show to anyone who can see
   // the lesson. The system prompt stays staff-only either way.
   source_public: boolean;
+  // A video shown at the top of the lesson, when it was written from one.
+  // Part of the lesson rather than its private provenance, so it is not
+  // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
+  video_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonVideoJobStatus = "queued" | "downloading" | "transcribing" | "done" | "error";
+
+// One request to download and transcribe a video for the lesson composer.
+// Private to whoever made it. See 20260930145354_lesson_video_jobs.sql.
+export type LessonVideoJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  source_url: string;
+  status: LessonVideoJobStatus;
+  progress: number;
+  message: string | null;
+  title: string | null;
+  duration_seconds: number | null;
+  method: "captions" | "whisper" | null;
+  transcript: string | null;
+  error: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -2859,6 +2885,17 @@ export type Database = {
         Row: SpaceLesson;
         Insert: Partial<SpaceLesson> & { space_id: string; community_id: string; created_by: string };
         Update: Partial<SpaceLesson>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      lesson_video_jobs: {
+        Row: LessonVideoJob;
+        Insert: Partial<LessonVideoJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+          source_url: string;
+        };
+        Update: Partial<LessonVideoJob>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
       meetup_participants: {
