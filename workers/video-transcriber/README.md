@@ -84,22 +84,47 @@ Redeploy. The composer now says *"Paste an article, or a YouTube, Facebook or
 Instagram video link…"* and the button turns into **Transcribe** for video links.
 Without these two variables the feature is simply hidden.
 
-## Facebook, Instagram, and "Sign in to confirm you're not a bot"
+## Cookies
 
-Public YouTube videos usually just work. Facebook and Instagram often need a
-logged-in session, and YouTube sometimes challenges server IPs. Give the
-worker cookies from a browser that's logged in:
+**When you need this:** the composer says *"YouTube is asking the video service to
+prove it isn't a bot"*, or *"That video needs a login"*. YouTube often challenges
+cloud servers like Railway, and Facebook/Instagram usually want a logged-in
+session. Giving the worker the cookies of a logged-in browser fixes both.
+No terminal needed.
 
-1. Install a "Get cookies.txt LOCALLY" browser extension (or use
-   `yt-dlp --cookies-from-browser chrome --cookies cookies.txt` on your own computer).
-2. Log in to Facebook/Instagram/YouTube in that browser and export `cookies.txt`.
-   Use a **separate, low-value account** — the cookies grant access to it.
-3. Either upload it to the volume and set `COOKIES_FILE=/data/cookies.txt`,
-   or set `COOKIES_B64` to the output of `base64 -w0 cookies.txt`
-   (macOS: `base64 -i cookies.txt`).
+1. **Use a spare account**, not your main one — the sites sometimes flag
+   accounts used this way. A new free Gmail (and a spare Facebook/Instagram
+   account if you need those) is safest.
+2. **Install the Chrome extension "Get cookies.txt LOCALLY"**. Then open
+   `chrome://extensions` → the extension's **Details** → turn on
+   **Allow in Incognito**, and pin it (puzzle icon → pin).
+3. **Open an Incognito window** (⌘ + Shift + N on a Mac, Ctrl + Shift + N on Windows).
+4. Go to **youtube.com** and **sign in** with the spare account.
+   (For Facebook/Instagram, sign in to those too, in the same window.)
+5. In the same tab, go to **youtube.com/robots.txt** — a plain page, so
+   YouTube doesn't change the cookies while you copy them.
+6. Click the extension icon → **Copy** (not Export). For Facebook/Instagram,
+   also open facebook.com / instagram.com and copy those — paste them all one
+   after another in the next step.
+7. **Close the Incognito window straight away**, and don't sign in to that
+   account anywhere else — using it again makes the site replace the cookies
+   and the copied ones stop working.
+8. **Railway** → your worker service → **Variables** → **New Variable**:
+   - Name: `COOKIES_TXT`
+   - Value: paste (⌘ + V)
+   - **Add**, then **Deploy**.
+9. Open `https://<your-worker-domain>/health` — it should say `"cookies":true`.
+   Try the video again.
 
-Cookies expire — if downloads start failing with "needs a login", export fresh ones.
-If YouTube blocks the server's IP outright, set `YTDLP_PROXY` to a residential proxy.
+Cookies expire after a few weeks to months. When the error comes back, repeat
+steps 3–8 and replace the value.
+
+**Still blocked with fresh cookies?** Railway's IP is being blocked outright. Set
+`YTDLP_PROXY` to a residential proxy (`http://user:pass@host:port`, from any
+residential-proxy provider, a few dollars a month) and deploy.
+
+*Alternatives to `COOKIES_TXT`:* `COOKIES_FILE=/data/cookies.txt` (a file on the
+volume) or `COOKIES_B64` (the file base64-encoded).
 
 ## When a site changes and downloads break
 

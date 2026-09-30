@@ -78,14 +78,60 @@ JOBS_DIR = Path(os.environ.get("JOBS_DIR", "/tmp/relate-video-jobs"))
 YTDLP_PROXY = os.environ.get("YTDLP_PROXY", "").strip() or None
 
 # Browser cookies (Netscape cookies.txt) for videos that need a login —
-# Facebook and Instagram often do, and YouTube sometimes asks a server IP to
-# "sign in to confirm you're not a bot". Either a path, or the whole file
-# base64-encoded in an env var for hosts where you can't upload files.
+# Facebook and Instagram often do, and YouTube often asks a server IP to
+# "sign in to confirm you're not a bot". Three ways in, for three kinds of
+# host: a path to the file, the file base64-encoded, or — the one that needs
+# no terminal — the file's text pasted straight into COOKIES_TXT.
+
+_NETSCAPE_HEADER = "# Netscape HTTP Cookie File"
+
+
+def normalise_cookies(text: str) -> str:
+    """A cookies.txt that survived being pasted into a web form.
+
+    Pasting into a dashboard tends to turn the file's tabs into spaces, and
+    some flatten newlines into a literal "\\n". yt-dlp is strict about both,
+    so every cookie line is rebuilt as seven tab-separated fields, and the
+    header it looks for is put back if it went missing.
+    """
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    if "\n" not in text.strip() and "\\n" in text:
+        text = text.replace("\\n", "\n").replace("\\t", "\t")
+    lines = [_NETSCAPE_HEADER]
+    for raw in text.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        # "#HttpOnly_" lines are cookies; any other "#" line is a comment.
+        if line.startswith("#") and not line.startswith("#HttpOnly_"):
+            continue
+        fields = line.split(None, 6)
+        if len(fields) == 6:  # a cookie with an empty value
+            fields.append("")
+        if len(fields) != 7:
+            continue
+        lines.append("\t".join(fields))
+    return "\n".join(lines) + "\n"
+
+
+def _write_cookies(text: str) -> str:
+    path = Path(tempfile.gettempdir()) / "relate-cookies.txt"
+    path.write_text(normalise_cookies(text))
+    return str(path)
+
+
+# Where error messages send people to fix a login/bot block. Shown as a link
+# in the composer. Ends the sentence with no full stop, so the link stays clean.
+COOKIES_HELP_URL = os.environ.get(
+    "COOKIES_HELP_URL",
+    "https://github.com/Oshioma/relate/blob/main/workers/video-transcriber/README.md#cookies",
+).strip()
+
 COOKIES_FILE: Optional[str] = os.environ.get("COOKIES_FILE", "").strip() or None
-if not COOKIES_FILE and os.environ.get("COOKIES_B64", "").strip():
-    _cookie_path = Path(tempfile.gettempdir()) / "relate-cookies.txt"
-    _cookie_path.write_bytes(base64.b64decode(os.environ["COOKIES_B64"]))
-    COOKIES_FILE = str(_cookie_path)
+if not COOKIES_FILE and os.environ.get("COOKIES_TXT", "").strip():
+    COOKIES_FILE = _write_cookies(os.environ["COOKIES_TXT"])
+elif not COOKIES_FILE and os.environ.get("COOKIES_B64", "").strip():
+    COOKIES_FILE = _write_cookies(base64.b64decode(os.environ["COOKIES_B64"]).decode("utf-8", "replace"))
 
 # Only these sites are fetched. Every job costs bandwidth and money, and a
 # video worker that downloads any URL it's given is an open proxy.
@@ -263,8 +309,22 @@ def _ydl_opts(**extra: Any) -> dict[str, Any]:
 def _friendly_download_error(error: Exception) -> str:
     message = str(error)
     lowered = message.lower()
-    if "sign in" in lowered or "login" in lowered or "cookies" in lowered:
-        return "That video needs a login to watch, and the video service isn't signed in to that site."
+    # Kept in full in the Railway logs; the teacher gets a sentence.
+    print(f"download failed: {message}", flush=True)
+    how = f" How to fix it: {COOKIES_HELP_URL}"
+    if "not a bot" in lowered or "confirm you" in lowered:
+        if COOKIES_FILE:
+            return (
+                "YouTube is still blocking the video service even with cookies — "
+                "they may have expired, or the server's address is blocked." + how
+            )
+        return "YouTube is asking the video service to prove it isn't a bot, so it needs YouTube cookies." + how
+    if "age" in lowered and ("confirm" in lowered or "restricted" in lowered):
+        return "That video is age-restricted, so the video service needs a signed-in account (cookies)." + how
+    if "sign in" in lowered or "login" in lowered or "log in" in lowered or "cookies" in lowered:
+        if COOKIES_FILE:
+            return "That video needs a login, and the video service's cookies didn't work — they may have expired." + how
+        return "That video needs a login, and the video service isn't signed in to that site." + how
     if "private" in lowered:
         return "That video is private."
     if "unavailable" in lowered or "not available" in lowered or "removed" in lowered:

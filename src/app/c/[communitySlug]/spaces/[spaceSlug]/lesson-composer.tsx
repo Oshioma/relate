@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FileUp, Film, Link2, Loader2, Sparkles, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Linkify } from "@/components/ui/linkify";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
@@ -670,9 +671,9 @@ export function LessonComposer({
       )}
 
       {error && (
-        <p className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
-          {error}
-        </p>
+        <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
+          <Linkify text={error} />
+        </div>
       )}
 
       <div className="mt-4 flex items-center gap-3">
@@ -735,7 +736,11 @@ function VideoJobRow({
               {job.method === "captions" ? ", from the video's captions" : ", transcribed from the audio"}.
             </p>
           )}
-          {job.status === "error" && <p className="mt-0.5 text-xs text-danger">{job.error ?? "That didn't work."}</p>}
+          {/* Linkified: a login or bot-check error ends with a link to the
+              instructions for fixing it. */}
+          {job.status === "error" && (
+            <Linkify text={job.error ?? "That didn't work."} className="mt-0.5 text-xs text-danger" />
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {job.status === "done" && (
