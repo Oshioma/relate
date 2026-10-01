@@ -121,5 +121,31 @@ class ErrorTests(unittest.TestCase):
         self.assertTrue(msg.endswith(app.COOKIES_HELP_URL), msg)
 
 
+class ProxyTests(unittest.TestCase):
+    def test_whole_curl_command_is_reduced_to_the_proxy(self):
+        pasted = "curl -v -x http://u:p_country-gb_session-x_lifetime-30m@geo.iproyal.com:12321 -L https://ipv4.icanhazip.com"
+        self.assertEqual(app.clean_proxy(pasted), "http://u:p_country-gb_session-x_lifetime-30m@geo.iproyal.com:12321")
+
+    def test_plain_values(self):
+        self.assertEqual(app.clean_proxy("  http://u:p@h:1  "), "http://u:p@h:1")
+        self.assertEqual(app.clean_proxy("socks5://h:1"), "socks5://h:1")
+        self.assertEqual(app.clean_proxy("u:p@h:1"), "http://u:p@h:1")
+        self.assertIsNone(app.clean_proxy(""))
+
+    def test_credentials_are_redacted(self):
+        self.assertEqual(
+            app.redact("Unable to connect to proxy http://user:secret@geo.iproyal.com:12321 failed"),
+            "Unable to connect to proxy http://***@geo.iproyal.com:12321 failed",
+        )
+        self.assertEqual(app.redact("https://youtube.com/watch?v=x"), "https://youtube.com/watch?v=x")
+
+    def test_proxy_errors_name_the_proxy_and_hide_the_password(self):
+        msg = app._friendly_download_error(
+            Exception("Unable to connect to proxy http://user:secret@h:1 Tunnel connection failed: 407")
+        )
+        self.assertIn("YTDLP_PROXY", msg)
+        self.assertNotIn("secret", msg)
+
+
 if __name__ == "__main__":
     unittest.main()

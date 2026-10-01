@@ -75,7 +75,35 @@ MAX_CONCURRENT_JOBS = _env_int("MAX_CONCURRENT_JOBS", 2)
 JOB_TTL_HOURS = _env_int("JOB_TTL_HOURS", 72)
 
 JOBS_DIR = Path(os.environ.get("JOBS_DIR", "/tmp/relate-video-jobs"))
-YTDLP_PROXY = os.environ.get("YTDLP_PROXY", "").strip() or None
+
+
+def clean_proxy(raw: str) -> Optional[str]:
+    """The proxy address, even when a whole curl command was pasted.
+
+    Proxy dashboards show a test command like
+    `curl -v -x http://user:pass@host:port -L https://ipv4.icanhazip.com`, and
+    pasting all of it made every download fail on "invalid character ' '".
+    Takes the first proxy-looking address and drops the rest.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    match = re.search(r"(?:https?|socks4a?|socks5h?)://\S+", raw)
+    if match:
+        return match.group(0)
+    # No scheme: the first token that isn't "curl" or a flag, as http.
+    for token in raw.split():
+        if token != "curl" and not token.startswith("-"):
+            return f"http://{token}"
+    return None
+
+
+def redact(text: str) -> str:
+    """Hide user:password in any URL, so proxy credentials never reach logs or teachers."""
+    return re.sub(r"([a-z0-9+.-]+://)[^/\s:@]+:[^@\s]+@", r"\1***@", text, flags=re.IGNORECASE)
+
+
+YTDLP_PROXY = clean_proxy(os.environ.get("YTDLP_PROXY", ""))
 
 # Browser cookies (Netscape cookies.txt) for videos that need a login —
 # Facebook and Instagram often do, and YouTube often asks a server IP to
@@ -307,12 +335,22 @@ def _ydl_opts(**extra: Any) -> dict[str, Any]:
 
 
 def _friendly_download_error(error: Exception) -> str:
-    message = str(error)
+    message = redact(str(error))
     lowered = message.lower()
     # Kept in full in the Railway logs; the teacher gets a sentence.
     print(f"download failed: {message}", flush=True)
     how = f" How to fix it: {COOKIES_HELP_URL}"
+    if "proxy" in lowered and ("unable to connect" in lowered or "tunnel" in lowered or "407" in lowered):
+        return (
+            "The video service couldn't connect through its proxy. Check YTDLP_PROXY in Railway — "
+            "the address and password, and that the proxy plan still has data left."
+        )
     if "not a bot" in lowered or "confirm you" in lowered:
+        if YTDLP_PROXY:
+            return (
+                "YouTube is blocking the video service even through its proxy. Use a residential, "
+                "sticky proxy (not datacenter or rotating), or add cookies." + how
+            )
         if COOKIES_FILE:
             return (
                 "YouTube is still blocking the video service even with cookies — "
@@ -506,7 +544,7 @@ def run_job(job_id: str, url: str) -> None:
                         vtt = ydl.urlopen(caption_url).read().decode("utf-8", "replace")
                     text = vtt_to_text(vtt)
                 except Exception as error:
-                    print(f"{job_id}: captions failed, falling back to audio: {error}", flush=True)
+                    print(f"{job_id}: captions failed, falling back to audio: {redact(str(error))}", flush=True)
                     text = ""
                 # A handful of words is a "[Music]" track, not a transcript.
                 if len(text) > 200:
@@ -560,8 +598,8 @@ def run_job(job_id: str, url: str) -> None:
 
         _update(job_id, status="done", progress=1.0, method="whisper", transcript=text, message=None)
     except Exception as error:  # never leave a job stuck "running"
-        print(f"{job_id}: failed: {error!r}", flush=True)
-        _update(job_id, status="error", error=str(error)[:300] or "Something went wrong.")
+        print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
+        _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -607,6 +645,7 @@ def health() -> dict[str, Any]:
         "ffmpeg": shutil.which("ffmpeg") is not None,
         "groq": bool(GROQ_API_KEY),
         "cookies": bool(COOKIES_FILE),
+        "proxy": bool(YTDLP_PROXY),
     }
 
 
