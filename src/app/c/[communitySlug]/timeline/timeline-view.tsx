@@ -106,6 +106,7 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
 
 // The timeline page.
 //
@@ -119,6 +120,8 @@ import {
 const REFETCH_DEBOUNCE_MS = 260;
 /** How long a jump takes to fly from where the reader is to where they asked to be. */
 const FLIGHT_MS = 650;
+/** How long the view has to sit still before the address is rewritten to match it. */
+const URL_WRITE_DEBOUNCE_MS = 300;
 
 type Mode = "timeline" | "compare";
 
@@ -312,7 +315,7 @@ export function TimelineView({
   isStaff,
   userId,
   pendingCount,
-  focusSlug,
+  initialUrlState,
 }: {
   communitySlug: string;
   initialEvents: TimelineEventWithClaims[];
@@ -385,7 +388,8 @@ export function TimelineView({
   isStaff: boolean;
   userId: string | null;
   pendingCount: number;
-  focusSlug: string | null;
+  /** Scale, selection and filters read from the address (see url-state.ts). */
+  initialUrlState: Omit<TimelineUrlState, "window">;
 }) {
   const router = useRouter();
 
@@ -407,7 +411,8 @@ export function TimelineView({
   const [mode, setMode] = useState<Mode>("timeline");
   // Linear by default, always. A log axis is a distortion — a useful one, but a
   // reader who has not chosen it must never be shown it.
-  const [scale, setScale] = useState<TimeScale>("linear");
+  // (Unless the reader chose it and the address remembers they did.)
+  const [scale, setScale] = useState<TimeScale>(initialUrlState.scale);
   const [seeding, setSeeding] = useState(false);
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
@@ -459,14 +464,14 @@ export function TimelineView({
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
-  const [category, setCategory] = useState("");
-  const [trackId, setTrackId] = useState("");
-  const [chronology, setChronology] = useState("");
-  const [sourceType, setSourceType] = useState("");
-  const [person, setPerson] = useState("");
-  const [civilisation, setCivilisation] = useState("");
-  const [disputedOnly, setDisputedOnly] = useState(false);
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [category, setCategory] = useState(initialUrlState.category);
+  const [trackId, setTrackId] = useState(initialUrlState.trackId);
+  const [chronology, setChronology] = useState(initialUrlState.chronology);
+  const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
+  const [person, setPerson] = useState(initialUrlState.person);
+  const [civilisation, setCivilisation] = useState(initialUrlState.civilisation);
+  const [disputedOnly, setDisputedOnly] = useState(initialUrlState.disputedOnly);
+  const [pendingOnly, setPendingOnly] = useState(initialUrlState.pendingOnly);
 
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<TimelineEventWithClaims[] | null>(null);
@@ -483,11 +488,11 @@ export function TimelineView({
   // went stale the moment the server sent a newer one — the same bug the event
   // panel had after a rename. The id is the thing the reader chose; the period
   // is looked up from the current props on every render, so it cannot be old.
-  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(initialUrlState.period);
   const periodDetailRef = useRef<HTMLDivElement>(null);
 
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
-    focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
+    initialUrlState.focus ? initialEvents.find((event) => event.slug === initialUrlState.focus) ?? null : null
   );
   const [compareTrackIds, setCompareTrackIds] = useState<string[]>(() => tracks.slice(0, 4).map((track) => track.id));
 
@@ -504,6 +509,56 @@ export function TimelineView({
     }),
     [category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly, isStaff]
   );
+
+  // --- The address follows the reader --------------------------------------
+  //
+  // Position, zoom, selection and filters are written into the URL as they
+  // change, so Back from a record's own page — or a reload, or a shared link —
+  // lands exactly here rather than on the default window.
+  //
+  // replaceState, not router.replace: the router would re-run this whole
+  // server page (every dataset check, the initial window query) once per pan.
+  // The native call updates the address and Next's router keeps in step with
+  // it without a round trip. Replace rather than push, because a history entry
+  // per drag would make Back step through every pixel the reader moved.
+  //
+  // Debounced so a drag writes once when it settles, not once per frame.
+  // Skipped until something actually changed, so an untouched timeline keeps
+  // the address it was opened with.
+  const selectedSlug = selected?.slug ?? null;
+  const urlState: TimelineUrlState = useMemo(
+    () => ({
+      window: view,
+      scale,
+      focus: selectedSlug,
+      period: selectedPeriodId,
+      category,
+      trackId,
+      chronology,
+      sourceType,
+      person,
+      civilisation,
+      disputedOnly,
+      pendingOnly,
+    }),
+    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly]
+  );
+  const openedWith = useRef<TimelineUrlState | null>(null);
+  useEffect(() => {
+    if (openedWith.current === null) {
+      openedWith.current = urlState;
+      return;
+    }
+    const handle = setTimeout(() => {
+      // Built against the live address so parameters this page does not own
+      // are carried along rather than dropped.
+      const next = timelineSearch(urlState, window.location.search);
+      if (next !== window.location.search) {
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${next}${window.location.hash}`);
+      }
+    }, URL_WRITE_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [urlState]);
 
   // --- Progressive loading --------------------------------------------------
   //
