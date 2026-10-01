@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { layoutTimeline, ROW_BASE_PX } from "./layout";
+import { CLUSTER_CARD_PX, layoutTimeline, ROW_BASE_PX } from "./layout";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 
 // ---------------------------------------------------------------------------
@@ -367,4 +367,47 @@ test("a strip with events still hidden has spent the height it was given", () =>
       `height ${height}: ${hidden} events are in chips while the strip uses only ${Math.round(layout.height)}px`
     );
   }
+});
+
+// ---------------------------------------------------------------------------
+// CLUSTER CARDS
+// ---------------------------------------------------------------------------
+
+test("a crowd on a strip with room becomes a card that carries its records", () => {
+  const crowd = Array.from({ length: 30 }, (_, index) => eventAt(-2600 + index, { title: `Crowded ${index}` }));
+  const layout = layoutTimeline([...crowd, eventAt(1000), eventAt(2000)], WINDOW, WIDTH, 220, "linear");
+  const cards = layout.clusters.filter((cluster) => cluster.card);
+  assert.ok(cards.length > 0, "no cluster was drawn as a card");
+  const carried = layout.clusters.reduce((sum, cluster) => sum + cluster.events.length, 0);
+  const counted = layout.clusters.reduce((sum, cluster) => sum + cluster.count, 0);
+  assert.equal(carried, counted, "a cluster's records and its count disagree");
+  for (const card of cards) {
+    assert.ok(card.cardLeft >= 0 && card.cardLeft + CLUSTER_CARD_PX <= WIDTH, `card at ${card.cardLeft} runs off the strip`);
+  }
+});
+
+test("a card is never drawn over a caption on its row", () => {
+  const crowd = Array.from({ length: 30 }, (_, index) => eventAt(-2600 + index));
+  const neighbours = Array.from({ length: 12 }, (_, index) =>
+    eventAt(-2500 + index * 40, { title: `Neighbour ${index} with a caption` })
+  );
+  for (const height of [160, 240, 400]) {
+    const layout = layoutTimeline([...crowd, ...neighbours], WINDOW, WIDTH, height, "linear");
+    for (const card of layout.clusters.filter((cluster) => cluster.card)) {
+      for (const placed of layout.events.filter((item) => item.row === card.row && item.showLabel)) {
+        const labelFrom = placed.xFrom - placed.labelWidth;
+        const labelTo = placed.xTo + placed.labelWidth;
+        const overlaps = labelTo > card.cardLeft && labelFrom < card.cardLeft + CLUSTER_CARD_PX;
+        assert.ok(!overlaps, `height ${height}: card at ${card.cardLeft} overlaps "${placed.event.title}"`);
+      }
+    }
+    assert.ok(layout.height <= height || layout.rows === 1, `height ${height}: laid out ${layout.height}px`);
+  }
+});
+
+test("a strip too narrow for a card keeps the count chip", () => {
+  const crowd = Array.from({ length: 30 }, (_, index) => eventAt(-2600 + index));
+  const layout = layoutTimeline(crowd, WINDOW, CLUSTER_CARD_PX - 20, 200, "linear");
+  assert.ok(layout.clusters.length > 0);
+  assert.ok(layout.clusters.every((cluster) => !cluster.card));
 });

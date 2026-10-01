@@ -10,6 +10,7 @@ import {
   searchTimelineSources,
   countClaimsPerSource,
   getEventRevisions,
+  markTimelineEventSeen,
   type TimelineFilters,
   type TimelineEventWithClaims,
 } from "@/lib/data/timeline";
@@ -3464,6 +3465,21 @@ export async function loadTimelineEvent(
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community || !communityHasTimeline(community)) return null;
   return getTimelineEventBySlug(supabase, community.id, slug);
+}
+
+/**
+ * Remember that the signed-in member opened this record, so cluster cards lead
+ * with records they have not seen yet. Silent for a signed-out visitor, who has
+ * no history to keep. Fire-and-forget from the client: a failure costs only
+ * which record leads a card.
+ */
+export async function markEventSeen(eventId: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await markTimelineEventSeen(supabase, user.id, eventId);
 }
 
 export async function searchTimeline(communitySlug: string, term: string): Promise<TimelineEventWithClaims[]> {

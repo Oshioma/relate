@@ -1175,3 +1175,39 @@ export async function getTimelinePlaces(
     placeless: rows.filter((row) => (row.lat == null || row.lng == null) && !row.location_name),
   };
 }
+
+// --- Records a member has opened ---------------------------------------------
+//
+// Private to the member (see the timeline_event_views migration), so these read
+// and write as the caller and RLS does the scoping.
+
+/** How many seen ids a page loads at most. Far beyond any one reader's history. */
+const SEEN_EVENTS_CAP = 5000;
+
+/**
+ * Every record this member has opened. Not filtered to one community: the ids
+ * are only ever looked up, so an id from elsewhere is harmless, and skipping the
+ * join keeps this a single index scan. Empty for a signed-out visitor.
+ */
+export async function getSeenTimelineEventIds(supabase: Client, userId: string | null): Promise<string[]> {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from("timeline_event_views")
+    .select("event_id")
+    .eq("user_id", userId)
+    .limit(SEEN_EVENTS_CAP);
+  // A failure costs which record leads a cluster card, nothing more.
+  if (error) {
+    console.error("Could not read seen timeline records", error);
+    return [];
+  }
+  return (data ?? []).map((row) => row.event_id);
+}
+
+/** Record that this member opened this record. Opening it again is a no-op. */
+export async function markTimelineEventSeen(supabase: Client, userId: string, eventId: string): Promise<void> {
+  const { error } = await supabase
+    .from("timeline_event_views")
+    .upsert({ event_id: eventId, user_id: userId }, { onConflict: "event_id,user_id", ignoreDuplicates: true });
+  if (error) console.error("Could not record a seen timeline record", error);
+}

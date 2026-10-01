@@ -24,6 +24,14 @@ import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, type Time
 const CLUSTER_PX = 12;
 /** How many crowded events it takes before a cluster is more honest than a pile. */
 const CLUSTER_MIN = 4;
+/**
+ * How wide a cluster CARD is: a thumbnail, the leading record's title, and the
+ * date range with "+ N". Drawn only where a row has this much free; anywhere
+ * tighter the cluster stays the small count chip it always was.
+ */
+export const CLUSTER_CARD_PX = 200;
+/** How much of a row the small count chip takes, from 14px left of its x. */
+const CLUSTER_CHIP_PX = 60;
 /** The gap between a marker and its own caption. */
 const LABEL_GAP_PX = 6;
 
@@ -186,6 +194,12 @@ export type PlacedCluster = {
   /** The window to move to when this cluster is opened. */
   from: number;
   to: number;
+  /** The records it stands for, so the card can choose one to lead with and list the rest. */
+  events: TimelineEventWithClaims[];
+  /** True when its row had room for the full card; false draws the small chip. */
+  card: boolean;
+  /** Where the card's left edge goes — nudged in from the right edge so it stays on the strip. */
+  cardLeft: number;
 };
 
 /**
@@ -517,7 +531,18 @@ export function layoutTimeline(
       const x = run.reduce((sum, item) => sum + item.xFrom, 0) / run.length;
       const from = window.from + (Math.min(...run.map((r) => r.xFrom)) - CLUSTER_PX) * yearsPerPixel;
       const to = window.from + (Math.max(...run.map((r) => r.xTo)) + CLUSTER_PX) * yearsPerPixel;
-      clusters.push({ key: run.map((r) => r.event.id).join(":").slice(0, 60), row: 0, top: 0, x, count: run.length, from, to });
+      clusters.push({
+        key: run.map((r) => r.event.id).join(":").slice(0, 60),
+        row: 0,
+        top: 0,
+        x,
+        count: run.length,
+        from,
+        to,
+        events: run.map((r) => r.event),
+        card: false,
+        cardLeft: 0,
+      });
     } else {
       survivors.push(...run);
     }
@@ -778,6 +803,9 @@ export function layoutTimeline(
         count: items.length,
         from: window.from + (x - bucketPx) * yearsPerPixel,
         to: window.from + (x + bucketPx) * yearsPerPixel,
+        events: items.map((item) => item.event),
+        card: false,
+        cardLeft: 0,
       });
     }
   }
@@ -802,9 +830,56 @@ export function layoutTimeline(
   // the way across, no row is "free" and the fallback below has to choose one
   // anyway — and it has to choose a DIFFERENT one each time.
   const chipsOnRow: number[] = new Array(Math.max(1, finalLines.length)).fill(0);
+
+  // WHAT EACH ROW ACTUALLY HAS ON IT, as stretches of pixels, for the cards.
+  // The chip rule above only asks how far a row reaches, which is right for a
+  // 60px chip and far too strict for a 200px card: any later record anywhere on
+  // a row rules it out, and on a real strip that is every row. A card asks
+  // instead whether ITS stretch of a row is empty. Captions can hang to either
+  // side of their marker, so each one is counted on both sides — generous, and
+  // a card that misses a gap it could have used costs less than one drawn over
+  // a caption.
+  const occupied: [number, number][][] = finalLines.map(() => []);
+  for (const item of placedRows) {
+    const pad = item.showLabel ? item.labelWidth + LABEL_GAP_PX : 6;
+    occupied[item.row]?.push([item.xFrom - pad, reserveEnd(item) + pad]);
+  }
+  const stretchIsFree = (row: number, from: number, to: number) =>
+    (occupied[row] ?? []).every(([lo, hi]) => hi <= from || lo >= to);
+
   for (const cluster of clusters) {
+    // A CARD WHERE THERE IS ROOM FOR ONE. The full card names a record and the
+    // span it covers, which a bare count cannot; but it is over three times as
+    // wide, and a card squeezed on top of somebody's caption is worse than a
+    // chip. So the card goes on a row whose stretch under it is empty — or on
+    // a new row, when the strip has the height spare — and everything else
+    // falls through to the chip exactly as before.
+    const cardLeft = Math.max(0, Math.min(cluster.x - 14, width - CLUSTER_CARD_PX));
+    const cardFrom = cardLeft - 4;
+    const cardTo = cardLeft + CLUSTER_CARD_PX + 4;
+    let cardRow = width >= CLUSTER_CARD_PX ? occupied.findIndex((_, row) => stretchIsFree(row, cardFrom, cardTo)) : -1;
+    if (cardRow === -1 && width >= CLUSTER_CARD_PX && used + rowHeightFor(1) <= availableHeight) {
+      cardRow = finalLines.length;
+      finalLines.push(1);
+      rowTops.push(used);
+      used += rowHeightFor(1);
+      occupied.push([]);
+      clusterRowEnds.push(-Infinity);
+      chipsOnRow.push(0);
+    }
+    if (cardRow !== -1) {
+      chipsOnRow[cardRow] = (chipsOnRow[cardRow] ?? 0) + 1;
+      clusterRowEnds[cardRow] = Math.max(clusterRowEnds[cardRow], cardTo);
+      occupied[cardRow].push([cardFrom, cardTo]);
+      cluster.row = cardRow;
+      cluster.top = rowTops[cardRow] ?? 0;
+      cluster.card = true;
+      cluster.cardLeft = cardLeft;
+      continue;
+    }
+
     const start = cluster.x - 14;
-    const end = cluster.x + 46;
+    const end = start + CLUSTER_CHIP_PX;
     let row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1) {
       // NOWHERE IS FREE, SO TAKE THE LEAST CROWDED ROW RATHER THAN THE LAST.
@@ -834,6 +909,7 @@ export function layoutTimeline(
     }
     chipsOnRow[row] = (chipsOnRow[row] ?? 0) + 1;
     clusterRowEnds[row] = Math.max(clusterRowEnds[row], end);
+    occupied[row]?.push([start, end]);
     cluster.row = row;
     cluster.top = rowTops[row] ?? 0;
   }

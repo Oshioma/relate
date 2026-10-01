@@ -46,6 +46,7 @@ import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
   loadTimelineWindow,
+  markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
   seedEarlySapiensDataset,
@@ -316,6 +317,7 @@ export function TimelineView({
   userId,
   pendingCount,
   initialUrlState,
+  seenEventIds,
 }: {
   communitySlug: string;
   initialEvents: TimelineEventWithClaims[];
@@ -390,6 +392,8 @@ export function TimelineView({
   pendingCount: number;
   /** Scale, selection and filters read from the address (see url-state.ts). */
   initialUrlState: Omit<TimelineUrlState, "window">;
+  /** Records this member has opened before. Empty when signed out. */
+  seenEventIds: string[];
 }) {
   const router = useRouter();
 
@@ -706,6 +710,32 @@ export function TimelineView({
     if (!selectedId) return;
     reveal(detailRef.current);
   }, [selectedId, reveal]);
+
+  // WHAT THIS MEMBER HAS OPENED. Seeded from the server and added to the moment
+  // a record is opened — from the strip, a cluster card, the list or a search —
+  // so the cluster it came from stops leading with it straight away rather than
+  // on the next visit. Written to the account in the background; a failure only
+  // costs which record leads a card. Signed-out readers keep no history.
+  //
+  // The local set is updated DURING RENDER, keyed on the selection changing —
+  // React's pattern for state that follows another value — so the card that
+  // was clicked re-ranks in the same frame, with no effect-driven second pass.
+  const [seenState, setSeenState] = useState<{ last: string | null; ids: ReadonlySet<string> }>(() => ({
+    last: null,
+    ids: new Set(seenEventIds),
+  }));
+  if (selectedId && userId && selectedId !== seenState.last) {
+    const ids = seenState.ids.has(selectedId) ? seenState.ids : new Set([...seenState.ids, selectedId]);
+    setSeenState({ last: selectedId, ids });
+  }
+  const seen = seenState.ids;
+  // The account copy, once per newly opened record.
+  const recorded = useRef(new Set(seenEventIds));
+  useEffect(() => {
+    if (!selectedId || !userId || recorded.current.has(selectedId)) return;
+    recorded.current.add(selectedId);
+    void markEventSeen(selectedId);
+  }, [selectedId, userId]);
 
   useEffect(() => {
     if (!selectedPeriodId) return;
@@ -1349,6 +1379,7 @@ export function TimelineView({
           onSelectPeriod={(period) => setSelectedPeriodId((current) => (current === period.id ? null : period.id))}
           loading={loading}
           truncated={truncated}
+          seenIds={seen}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
