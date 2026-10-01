@@ -124,7 +124,7 @@ def _write_cookies(text: str) -> str:
 # in the composer. Ends the sentence with no full stop, so the link stays clean.
 COOKIES_HELP_URL = os.environ.get(
     "COOKIES_HELP_URL",
-    "https://github.com/Oshioma/relate/blob/main/workers/video-transcriber/README.md#cookies",
+    "https://relate.click/help/video-cookies",
 ).strip()
 
 COOKIES_FILE: Optional[str] = os.environ.get("COOKIES_FILE", "").strip() or None
@@ -389,7 +389,10 @@ def _download_audio(job_id: str, url: str, workdir: Path) -> Path:
             )
 
     opts = _ydl_opts(
-        format="bestaudio/best",
+        # A modest-bitrate audio stream where there is one: the audio is
+        # squashed to 48 kbps mono for Whisper anyway, and through a proxy
+        # that bills per GB, an hour at ~64 kbps is ~30 MB instead of ~60+.
+        format="bestaudio[abr<=80]/bestaudio/best",
         outtmpl=str(workdir / "source.%(ext)s"),
         progress_hooks=[hook],
     )
