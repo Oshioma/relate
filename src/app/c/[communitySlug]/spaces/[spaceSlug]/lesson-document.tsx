@@ -234,6 +234,24 @@ export function LessonDocument({
           </ul>
         </section>
       )}
+
+      {/* Claims from official bodies that the source quoted and the lesson
+          left out. Closed by default: out of the lesson, but one click away
+          for anyone who wants to see what was omitted. */}
+      {(lesson.omitted_institutional?.length ?? 0) > 0 && (
+        <section className="grid gap-2 border-t border-border pt-4">
+          {lesson.omitted_institutional?.map((entry, i) => (
+            <details key={i} className="group rounded-md bg-muted px-3 py-2">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
+                Data from {entry.body} omitted — click to view
+              </summary>
+              <div className="mt-2">
+                <Prose text={entry.content} />
+              </div>
+            </details>
+          ))}
+        </section>
+      )}
     </div>
   );
 }
