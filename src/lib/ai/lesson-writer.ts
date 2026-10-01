@@ -143,8 +143,11 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
         "  most specialists reject. Name who holds a contested position where",
         "  you can. Never present a fringe or discredited reading as though it",
         "  were established — that would be a worse lesson, not a bolder one.",
-        "- Be clear about which parts came from the material provided and which",
-        "  you brought, so a reader can tell the two apart.",
+        "- LABEL EVERYTHING YOU BRING. Any fact, figure or claim that is not in",
+        "  the source material must be followed, in the same sentence, by the",
+        "  label \"(not from the source — general knowledge, unchecked)\". Use it",
+        "  every time, not once per section: a reader skimming one paragraph must",
+        "  be able to tell what came from the material and what you brought.",
         "- Where you are genuinely unsure of a fact, say so rather than",
         "  asserting it. Do not invent names, dates, quotations or citations.",
       ]
@@ -173,6 +176,19 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     "  say, and what the evidence shows, including its limits — in neutral",
     "  language, without verdicts, alarm or calls to action. Leave the",
     "  conclusion to the reader.",
+  ];
+
+  // Who a claim comes from matters as much as the claim. A reader weighing a
+  // statement from a public-health agency or a global policy body is entitled
+  // to know that is where it came from, rather than meeting it as plain fact.
+  const attribution = [
+    "- NAME THE INSTITUTION. Whenever a claim, figure, recommendation or",
+    "  position comes from — or is the stated position of — the CDC, the World",
+    "  Economic Forum, or a similar official or institutional body (the WHO,",
+    "  the FDA, the NHS, government health agencies, the UN and its agencies,",
+    "  large foundations and the like), say so in the same sentence, e.g.",
+    "  \"according to the CDC\" or \"(source: World Economic Forum)\". Do this",
+    "  every time, including when the source material itself cites them.",
   ];
 
   // An older level of a lesson that already has younger ones. They sit above it
@@ -220,6 +236,7 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     ...accuracy,
     ...difficulty,
     ...health,
+    ...attribution,
     ...continuation,
     "",
     "Write the lesson straight through. This is a writing task, not a puzzle —",
