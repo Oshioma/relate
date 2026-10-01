@@ -147,8 +147,11 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
         "  most specialists reject. Name who holds a contested position where",
         "  you can. Never present a fringe or discredited reading as though it",
         "  were established — that would be a worse lesson, not a bolder one.",
-        "- Be clear about which parts came from the material provided and which",
-        "  you brought, so a reader can tell the two apart.",
+        "- LABEL EVERYTHING YOU BRING. Any fact, figure or claim that is not in",
+        "  the source material must be followed, in the same sentence, by the",
+        "  label \"(not from the source — general knowledge, unchecked)\". Use it",
+        "  every time, not once per section: a reader skimming one paragraph must",
+        "  be able to tell what came from the material and what you brought.",
         "- Where you are genuinely unsure of a fact, say so rather than",
         "  asserting it. Do not invent names, dates, quotations or citations.",
       ]
@@ -177,6 +180,37 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     "  say, and what the evidence shows, including its limits — in neutral",
     "  language, without verdicts, alarm or calls to action. Leave the",
     "  conclusion to the reader.",
+  ];
+
+  // The library's owner does not want the lines of official and institutional
+  // bodies in its lessons — their recommendations, their messaging and their
+  // figures. Other voices are welcome: independent researchers, practitioners,
+  // traditional and alternative perspectives, critics of the mainstream.
+  //
+  // This narrows what a lesson draws on; it does not loosen the accuracy rules
+  // above. A claim from anywhere else still has to be real, still says where it
+  // stands, and is still labelled when it is not from the source.
+  const excluded = [
+    "- LEAVE OUT INSTITUTIONAL LINES. Do not quote, repeat, cite or draw on the",
+    "  CDC, the World Economic Forum, or similar official and institutional",
+    "  bodies — the WHO, the FDA, the NHS, government health agencies, the UN",
+    "  and its agencies, large foundations and the like. That covers their",
+    "  recommendations, positions and messaging, and the figures and data they",
+    "  publish. If a fact's only source is one of these bodies, leave it out.",
+    "- If the source material itself quotes or relies on one of them, teach the",
+    "  rest of the material and leave their claims out; mention the body only",
+    "  where that is needed to follow the source's own argument. Record each",
+    "  claim you left out in omitted_institutional, as the source put it, so a",
+    "  reader can choose to look at it separately. Never put anything there",
+    "  that is not in the source material.",
+    "- Critique of these bodies is welcome: their record, conduct, conflicts of",
+    "  interest, reversals and influence, from the source or from independent",
+    "  critics. Describe only as much of what they said as the critique needs",
+    "  to make sense, and hold the critique to the same accuracy rules.",
+    "- Other perspectives are welcome: independent researchers and",
+    "  scholarship, practitioners, traditional and alternative views, and",
+    "  critics of the mainstream position. Represent them accurately and say",
+    "  where each one stands.",
   ];
 
   // An older level of a lesson that already has younger ones. They sit above it
@@ -224,6 +258,7 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     ...accuracy,
     ...difficulty,
     ...health,
+    ...excluded,
     ...continuation,
     "",
     // Video transcripts arrive with "[12:30]" paragraph markers from the

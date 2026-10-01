@@ -415,6 +415,22 @@ export const LessonSchema = z.object({
   discussion: z
     .array(z.string())
     .describe("Two or three open questions to talk about together — no single right answer."),
+  omitted_institutional: z
+    .array(
+      z.object({
+        body: z
+          .string()
+          .describe("The body whose material was left out, by its usual short name — 'CDC', 'WHO', 'World Economic Forum'."),
+        content: z
+          .string()
+          .describe(
+            "What the SOURCE MATERIAL said this body claimed, recommended or reported, quoted or closely paraphrased from the source. Only what the source actually contains — never added from general knowledge."
+          ),
+      })
+    )
+    .describe(
+      "Claims, figures or recommendations from the CDC, the World Economic Forum or a similar official body (WHO, FDA, NHS, government health agencies, the UN, large foundations) that appear IN THE SOURCE MATERIAL and were therefore left out of the lesson. One entry per body. An empty list when the source quotes none of them."
+    ),
   discovery_categories: z
     .array(z.enum(DISCOVERY_KEYS as [DiscoveryCategory, ...DiscoveryCategory[]]))
     .min(1)
@@ -456,8 +472,10 @@ export type LessonImage = {
 // in — see storableLesson below.
 export type StoredLesson = Omit<
   Lesson,
-  "sections" | "discovery_categories" | "duration_minutes"
+  "sections" | "discovery_categories" | "duration_minutes" | "omitted_institutional"
 > & {
+  // Absent on lessons written before institutional material was left out.
+  omitted_institutional?: Lesson["omitted_institutional"];
   // The lesson's own picture, shown on its card before it is opened.
   cover?: LessonImage | null;
   sections: (Omit<Lesson["sections"][number], "video_seconds"> & {
@@ -544,6 +562,11 @@ export const EditableLessonSchema = z.object({
   }),
   questions: z.array(z.object({ question: z.string(), answer: z.string() })),
   discussion: z.array(z.string()),
+  // Optional: lessons written before this existed have none, and must stay
+  // editable. Declared so an edit keeps it rather than zod dropping the key.
+  omitted_institutional: z
+    .array(z.object({ body: z.string(), content: z.string() }))
+    .optional(),
   cover_image_query: z.string().optional().default(""),
   cover: LessonImageSchema.nullish(),
   // Optional here, unlike in LessonSchema: lessons written before these
