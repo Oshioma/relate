@@ -326,6 +326,8 @@ async function saveLevel(
     ai_model: usage.model,
     ai_input_tokens: usage.inputTokens,
     ai_output_tokens: usage.outputTokens,
+    // Billed at half price; cost figures read this.
+    ai_batch: true,
   } as Database["public"]["Tables"]["space_lessons"]["Insert"];
 
   const { data, error } = await admin.from("space_lessons").insert(full).select("*").single();

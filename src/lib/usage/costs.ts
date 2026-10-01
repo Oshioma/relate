@@ -60,9 +60,13 @@ export function claudeCost(inputTokens: number, outputTokens: number, rate: Clau
 // Uses the recorded token counts when the lesson has them, and the same
 // length-based estimate the Usage tab uses when it doesn't — so the two never
 // disagree about the same lesson.
+// Lessons written through the Message Batches API are billed at half price.
+export const BATCH_PRICE_FACTOR = 0.5;
+
 export function lessonWritingCost(
   lesson: {
     ai_model?: string | null;
+    ai_batch?: boolean | null;
     ai_input_tokens?: number | null;
     ai_output_tokens?: number | null;
     sourceChars: number;
@@ -78,10 +82,8 @@ export function lessonWritingCost(
     input ??= guess.inputTokens;
     output ??= guess.outputTokens;
   }
-  return {
-    cost: claudeCost(input!, output!, claudeRateFor(lesson.ai_model ?? null, rates)),
-    estimated,
-  };
+  const full = claudeCost(input!, output!, claudeRateFor(lesson.ai_model ?? null, rates));
+  return { cost: lesson.ai_batch ? full * BATCH_PRICE_FACTOR : full, estimated };
 }
 
 // Prompt caching changes what input costs: writing the cache is billed at
@@ -148,6 +150,8 @@ export function periodStart(period: UsagePeriod, now: Date = new Date()): Date |
 export type LessonUsageRow = {
   community_id: string;
   ai_model: string | null;
+  // Written at half price through the Batches API. Absent before it existed.
+  ai_batch?: boolean | null;
   ai_input_tokens: number | null;
   ai_output_tokens: number | null;
   // Only present when the token counts are missing — see lesson_usage_rows.
@@ -172,8 +176,14 @@ export type CommunityUsage = {
   claudeCost: number;
   whisperCost: number;
   proxyCost: number;
+  // The other AI features, from the ai_spend ledger.
+  otherCost: number;
   total: number;
 };
+
+// Spend recorded straight into the ai_spend ledger by the AI features other
+// than lessons and videos (event discovery, plant ID, listing import…).
+export type OtherSpendRow = { community_id: string; kind: string; amount_usd: number };
 
 export type UsageSummary = {
   lessons: {
@@ -200,6 +210,8 @@ export type UsageSummary = {
     jobs: number;
     cost: number;
   };
+  // The other AI features, by kind, as the ledger recorded them.
+  other: { cost: number; byKind: Record<string, number> };
   total: number;
   byCommunity: CommunityUsage[];
 };
@@ -207,12 +219,14 @@ export type UsageSummary = {
 export function summariseUsage(
   lessonRows: LessonUsageRow[],
   videoRows: VideoUsageRow[],
-  rates: Rates
+  rates: Rates,
+  otherRows: OtherSpendRow[] = []
 ): UsageSummary {
   const summary: UsageSummary = {
     lessons: { count: 0, inputTokens: 0, outputTokens: 0, cost: 0, estimated: 0 },
     videos: { transcribed: 0, captions: 0, whisper: 0, audioSeconds: 0, estimatedAudio: 0, cost: 0 },
     proxy: { bytes: 0, jobs: 0, cost: 0 },
+    other: { cost: 0, byKind: {} },
     total: 0,
     byCommunity: [],
   };
@@ -220,7 +234,7 @@ export function summariseUsage(
   const community = (id: string) => {
     let entry = communities.get(id);
     if (!entry) {
-      entry = { communityId: id, lessons: 0, videos: 0, claudeCost: 0, whisperCost: 0, proxyCost: 0, total: 0 };
+      entry = { communityId: id, lessons: 0, videos: 0, claudeCost: 0, whisperCost: 0, proxyCost: 0, otherCost: 0, total: 0 };
       communities.set(id, entry);
     }
     return entry;
@@ -235,7 +249,9 @@ export function summariseUsage(
       output ??= guess.outputTokens;
       summary.lessons.estimated += 1;
     }
-    const cost = claudeCost(input, output, claudeRateFor(row.ai_model, rates));
+    const cost =
+      claudeCost(input, output, claudeRateFor(row.ai_model, rates)) *
+      (row.ai_batch ? BATCH_PRICE_FACTOR : 1);
     summary.lessons.count += 1;
     summary.lessons.inputTokens += input;
     summary.lessons.outputTokens += output;
@@ -276,8 +292,15 @@ export function summariseUsage(
     }
   }
 
-  for (const c of communities.values()) c.total = c.claudeCost + c.whisperCost + c.proxyCost;
-  summary.total = summary.lessons.cost + summary.videos.cost + summary.proxy.cost;
+  for (const row of otherRows) {
+    const amount = Number(row.amount_usd) || 0;
+    summary.other.cost += amount;
+    summary.other.byKind[row.kind] = (summary.other.byKind[row.kind] ?? 0) + amount;
+    community(row.community_id).otherCost += amount;
+  }
+
+  for (const c of communities.values()) c.total = c.claudeCost + c.whisperCost + c.proxyCost + c.otherCost;
+  summary.total = summary.lessons.cost + summary.videos.cost + summary.proxy.cost + summary.other.cost;
   summary.byCommunity = [...communities.values()].sort((a, b) => b.total - a.total);
   return summary;
 }

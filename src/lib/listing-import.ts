@@ -295,10 +295,14 @@ export async function importListingDraft({
   rawUrl,
   kind,
   categories,
+  aiBlockedReason = null,
 }: {
   rawUrl: string;
   kind: ListingImportKind;
   categories: string[];
+  // Set when the community's free AI allowance is used up: Google Maps links
+  // still import, but the AI read of any other page is refused with this.
+  aiBlockedReason?: string | null;
 }): Promise<ListingImportResult> {
   const parsed = parsePublicUrl(rawUrl);
   if (!parsed) {
@@ -339,6 +343,8 @@ export async function importListingDraft({
   if (!isListingExtractionConfigured()) {
     return { ok: false, error: "AI autofill isn't configured on this site yet. Add the details by hand for now." };
   }
+
+  if (aiBlockedReason) return { ok: false, error: aiBlockedReason };
 
   // 2. Read the page and let Claude extract it.
   const page = await fetchPageContent(url);

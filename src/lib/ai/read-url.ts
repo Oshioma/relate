@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { isVideoWorkerConfigured } from "@/lib/school/video-worker";
+import { meterClaude } from "@/lib/usage/ai-meter";
 
 // Read a web page into plain text, so a lesson can be written from a link
 // instead of a paste.
@@ -142,6 +143,8 @@ export async function readUrl(rawUrl: string): Promise<ReadUrlResult> {
         },
       ],
     });
+    // Charged to the community this runs for, when there is one (ai-meter.ts).
+    await meterClaude("lesson_read_url", message);
 
     // Fetch failures do not raise — they come back as a tool-result block
     // whose content is an error object rather than a document.

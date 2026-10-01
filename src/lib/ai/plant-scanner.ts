@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { meterClaude } from "@/lib/usage/ai-meter";
 
 const MODEL = "claude-haiku-4-5";
 
@@ -114,6 +115,8 @@ export async function scanPlant(imageBase64: string, mediaType: AnthropicImageMe
         },
       ],
     });
+    // Charged to the community this runs for, when there is one (ai-meter.ts).
+    await meterClaude("plant_scanner", response);
 
     const textBlock = response.content.find((block) => block.type === "text");
     return textBlock ? parseResult(textBlock.text) : null;

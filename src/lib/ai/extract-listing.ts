@@ -4,6 +4,7 @@ import { ACCOMMODATION_TYPES, ACCOMMODATION_PRICE_UNITS, ACCOMMODATION_AMENITIES
 import { EMPTY_DRAFT, type ListingDraft, type ListingImportKind } from "@/lib/listing-draft";
 import type { PageContent } from "@/lib/page-content";
 import type { BusinessCategory, AccommodationType, AccommodationPriceUnit } from "@/types/database";
+import { meterClaude } from "@/lib/usage/ai-meter";
 
 // Turns a pasted listing page (Booking.com, Airbnb, a hotel's own site …) into
 // a form draft. The model's only job is extraction: everything it returns has
@@ -286,6 +287,8 @@ export async function extractListingWithAi({
       tool_choice: { type: "tool", name: "save_listing" },
       messages: [{ role: "user", content: buildPrompt(url, page) }],
     });
+    // Charged to the community this runs for, when there is one (ai-meter.ts).
+    await meterClaude("listing_import", response);
 
     const toolUse = response.content.find((block) => block.type === "tool_use");
     if (!toolUse || toolUse.type !== "tool_use") return null;
