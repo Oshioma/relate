@@ -1298,6 +1298,14 @@ export type LessonSave = {
   created_at: string;
 };
 
+/** A timeline record a member has opened. Private to that member. */
+export type TimelineEventView = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type MeetupParticipant = {
   id: string;
   meetup_id: string;
@@ -3389,6 +3397,12 @@ export type Database = {
         Insert: Partial<TimelineRevision> & { community_id: string; entity: string; action: string };
         Update: Partial<TimelineRevision>;
         Relationships: [FKey<"actor_id", "profiles">];
+      };
+      timeline_event_views: {
+        Row: TimelineEventView;
+        Insert: Partial<TimelineEventView> & { event_id: string; user_id: string };
+        Update: Partial<TimelineEventView>;
+        Relationships: [FKey<"event_id", "timeline_events">, FKey<"user_id", "profiles">];
       };
       timeline_event_links: {
         Row: TimelineEventLink;

@@ -20,6 +20,7 @@ import {
   getTimelinePeriods,
   getTimelinePeriodLinks,
   hasTimelinePeriod,
+  getSeenTimelineEventIds,
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG, showcaseNeedsPictures } from "@/lib/timeline/showcase-event";
 import { HANNIBAL_ANCHOR_SLUG, HANNIBAL_EVENTS } from "@/lib/timeline/hannibal-seed";
@@ -221,7 +222,13 @@ export default async function TimelinePage({
   // The titles at the ends of those edges. A second query because it depends on
   // the first, and small: the far end of a link is very often outside the
   // window — Sclater's hypothesis is in 1864 and the Mauritia paper in 2017.
-  const linkedRecords = await getLinkedRecords(supabase, community.id, eventLinks);
+  //
+  // Alongside it, the records this member has already opened, so cluster
+  // cards can lead with one they have not. Private, read as the member.
+  const [linkedRecords, seenEventIds] = await Promise.all([
+    getLinkedRecords(supabase, community.id, eventLinks),
+    getSeenTimelineEventIds(supabase, user?.id ?? null),
+  ]);
 
   return (
     // WIDER THAN THE REST OF THE APP, ON PURPOSE.
@@ -302,6 +309,7 @@ export default async function TimelinePage({
         // the address by the view itself, so Back from a record's own page
         // lands exactly where they left. See url-state.ts.
         initialUrlState={readTimelineUrlState(query)}
+        seenEventIds={seenEventIds}
       />
     </div>
   );
