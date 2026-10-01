@@ -13,6 +13,8 @@ import {
   DEFAULT_AGE_BAND,
   type LessonRow,
 } from "@/lib/school/lesson-types";
+import { getUsageRates } from "@/lib/usage/pricing";
+import { formatUsd, lessonWritingCost } from "@/lib/usage/costs";
 import { LessonDetailView } from "../../lesson-detail-view";
 import { LessonAddLevel } from "../../lesson-add-level";
 import { LessonVideoProvider } from "../../lesson-video";
@@ -77,6 +79,41 @@ export default async function LessonPage({
     );
   }
 
+  // What writing each level cost, for staff only — computed here so the figure
+  // never reaches anyone else's page payload. Priced the same way as the
+  // platform admin's Usage & costs tab, so the two agree about any lesson.
+  const rates = isStaff ? getUsageRates() : null;
+  function priceOf(level: LessonRow) {
+    return lessonWritingCost(
+      {
+        ai_model: level.ai_model,
+        ai_input_tokens: level.ai_input_tokens,
+        ai_output_tokens: level.ai_output_tokens,
+        sourceChars: (level.source_text ?? "").length,
+        lessonChars: JSON.stringify(level.lesson ?? {}).length,
+      },
+      rates!
+    );
+  }
+  function costFor(level: LessonRow): string | null {
+    if (!rates) return null;
+    const { cost, estimated } = priceOf(level);
+    return `Writing this level (${ageBandLabel(level.age_band)}) cost about ${formatUsd(cost)}${
+      estimated ? " — estimated from its length" : ""
+    }.`;
+  }
+  // Every level on the page together, for staff, when there is more than one.
+  const familyCost =
+    rates && levels.length > 1
+      ? levels.reduce(
+          (sum, level) => {
+            const { cost, estimated } = priceOf(level);
+            return { cost: sum.cost + cost, estimated: sum.estimated || estimated };
+          },
+          { cost: 0, estimated: false }
+        )
+      : null;
+
   // The material is private unless its author has published it. Staff see it
   // regardless, because they answer for what is in their space and cannot
   // check a lesson they can't see the source of.
@@ -103,6 +140,13 @@ export default async function LessonPage({
           {space.name}
         </Link>
       </p>
+
+      {familyCost && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          All {levels.length} levels together cost about {formatUsd(familyCost.cost)} to write
+          {familyCost.estimated ? " (some estimated from their length)" : ""}.
+        </p>
+      )}
 
       {/* The levels on this page, so an adult can jump past the ones written
           for children without scrolling through them. */}
@@ -143,6 +187,7 @@ export default async function LessonPage({
               canSave={Boolean(isMember)}
               sourceRules={rulesFor(level)}
               rulesAreOriginal={Boolean(level.prompt_used)}
+              writingCost={costFor(level)}
               level={{
                 index,
                 count: levels.length,

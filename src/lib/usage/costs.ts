@@ -56,6 +56,34 @@ export function claudeCost(inputTokens: number, outputTokens: number, rate: Clau
   return (inputTokens * rate.inputPerMTok + outputTokens * rate.outputPerMTok) / 1_000_000;
 }
 
+// What writing one lesson cost, for the line staff see on the lesson itself.
+// Uses the recorded token counts when the lesson has them, and the same
+// length-based estimate the Usage tab uses when it doesn't — so the two never
+// disagree about the same lesson.
+export function lessonWritingCost(
+  lesson: {
+    ai_model?: string | null;
+    ai_input_tokens?: number | null;
+    ai_output_tokens?: number | null;
+    sourceChars: number;
+    lessonChars: number;
+  },
+  rates: Rates
+): { cost: number; estimated: boolean } {
+  let input = lesson.ai_input_tokens ?? null;
+  let output = lesson.ai_output_tokens ?? null;
+  const estimated = input === null || output === null;
+  if (estimated) {
+    const guess = estimateLessonTokens(lesson.sourceChars, lesson.lessonChars);
+    input ??= guess.inputTokens;
+    output ??= guess.outputTokens;
+  }
+  return {
+    cost: claudeCost(input!, output!, claudeRateFor(lesson.ai_model ?? null, rates)),
+    estimated,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Video
 // ---------------------------------------------------------------------------
