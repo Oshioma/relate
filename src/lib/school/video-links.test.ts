@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatDuration, parseVideoLink, withSiteHelpLink } from "./video-links";
+import {
+  formatDuration,
+  formatTimestamp,
+  parseVideoLink,
+  seekEmbedUrl,
+  withSiteHelpLink,
+} from "./video-links";
 
 test("YouTube links in every common shape resolve to one watch URL", () => {
   for (const raw of [
@@ -63,6 +69,41 @@ test("durations read like a video player's", () => {
   assert.equal(formatDuration(65), "1:05");
   assert.equal(formatDuration(3723), "1:02:03");
   assert.equal(formatDuration(null), null);
+});
+
+test("timestamps read like a player's clock", () => {
+  assert.equal(formatTimestamp(0), "0:00");
+  assert.equal(formatTimestamp(5), "0:05");
+  assert.equal(formatTimestamp(750.9), "12:30");
+  assert.equal(formatTimestamp(3723), "1:02:03");
+  assert.equal(formatTimestamp(-4), "0:00");
+});
+
+test("a YouTube embed can start at a moment and play", () => {
+  const link = parseVideoLink("https://youtu.be/dQw4w9WgXcQ");
+  assert.ok(link);
+  assert.equal(
+    seekEmbedUrl(link, 750),
+    "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=750&autoplay=1"
+  );
+  assert.equal(
+    seekEmbedUrl(link, 12.7),
+    "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=12&autoplay=1"
+  );
+  assert.equal(seekEmbedUrl(link, -1), null);
+  assert.equal(seekEmbedUrl(link, Number.NaN), null);
+});
+
+test("platforms whose player can't seek get no seek URL", () => {
+  for (const raw of [
+    "https://www.instagram.com/reel/C1a2b3c4d5/",
+    "https://www.facebook.com/watch/?v=123",
+    "https://fb.watch/abc/",
+  ]) {
+    const link = parseVideoLink(raw);
+    assert.ok(link, raw);
+    assert.equal(seekEmbedUrl(link, 30), null, raw);
+  }
 });
 
 test("worker help links point at this site's instructions page", () => {
