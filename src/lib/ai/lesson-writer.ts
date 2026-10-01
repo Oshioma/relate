@@ -314,8 +314,16 @@ export async function generateLesson(input: {
       );
     }
     if (error instanceof Anthropic.APIError) {
+      // The status alone ("400") says nothing a person can act on — a low
+      // credit balance, an over-long request and a malformed one all arrive as
+      // 400. Anthropic's own message says which, so it is logged and shown.
+      const body = error.error as { error?: { message?: unknown } } | undefined;
+      const detail = typeof body?.error?.message === "string" ? body.error.message : "";
+      console.error("Lesson writer API error", error.status, detail || error.message);
       throw new LessonGenerationError(
-        `The lesson writer failed (${error.status}).`,
+        detail
+          ? `The lesson writer failed (${error.status}): ${detail}`
+          : `The lesson writer failed (${error.status}).`,
         502
       );
     }
