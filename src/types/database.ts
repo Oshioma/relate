@@ -1180,6 +1180,11 @@ export type SpaceLesson = {
   // Part of the lesson rather than its private provenance, so it is not
   // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
   video_url: string | null;
+  // An uploaded video or audio file to play at the top of the lesson: an
+  // object path in the public 'uploads' bucket, and which player it needs.
+  // See 20261001092236_lesson_media_uploads.sql.
+  media_path: string | null;
+  media_type: LessonMediaType | null;
   // Every level written from the same source shares one, and they show on one
   // page, youngest first. A lesson on its own is a family of one.
   // See 20261001061018_lesson_families_and_adult_band.sql.
@@ -1190,6 +1195,13 @@ export type SpaceLesson = {
 
 export type LessonVideoJobStatus = "queued" | "downloading" | "transcribing" | "done" | "error";
 
+// 'link' a video link fetched by the worker; 'file' an upload kept in Storage;
+// 'direct' an upload too big for Storage, sent straight to the worker and not
+// kept. See 20261001092236_lesson_media_uploads.sql.
+export type LessonVideoJobKind = "link" | "file" | "direct";
+
+export type LessonMediaType = "video" | "audio";
+
 // One request to download and transcribe a video for the lesson composer.
 // Private to whoever made it. See 20260930145354_lesson_video_jobs.sql.
 export type LessonVideoJob = {
@@ -1197,7 +1209,13 @@ export type LessonVideoJob = {
   space_id: string;
   community_id: string;
   created_by: string;
-  source_url: string;
+  kind: LessonVideoJobKind;
+  // The link as given. Null for an upload, which has none.
+  source_url: string | null;
+  // The file's name on the uploader's computer, for an upload.
+  file_name: string | null;
+  // 'file' jobs: the kept object in the 'uploads' bucket.
+  storage_path: string | null;
   status: LessonVideoJobStatus;
   progress: number;
   message: string | null;
@@ -2897,7 +2915,6 @@ export type Database = {
           space_id: string;
           community_id: string;
           created_by: string;
-          source_url: string;
         };
         Update: Partial<LessonVideoJob>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
