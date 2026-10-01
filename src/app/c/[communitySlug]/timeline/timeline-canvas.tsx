@@ -210,9 +210,12 @@ export function TimelineCanvas({
   // number actually changed.
   const [measured, setMeasured] = useState<MeasuredLabels>(() => new Map());
 
+  // The open record is pinned: semantic zoom never hides what the reader is
+  // looking at, however far out they zoom.
+  const pinned = useMemo(() => new Set(selectedId ? [selectedId] : []), [selectedId]);
   const layout = useMemo(
-    () => layoutTimeline(events, view, width, areaHeight, scale, measured),
-    [events, view, width, areaHeight, scale, measured]
+    () => layoutTimeline(events, view, width, areaHeight, scale, measured, pinned),
+    [events, view, width, areaHeight, scale, measured, pinned]
   );
 
   const measureCaption = useCallback((element: HTMLButtonElement | null) => {
@@ -746,22 +749,26 @@ export function TimelineCanvas({
                   {span && <span className="block truncate text-[10px] text-muted-foreground tabular-nums">{span}</span>}
                 </span>
               </button>
-              <button
-                type="button"
-                data-cluster-toggle
-                aria-expanded={listOpen}
-                aria-label={`${cluster.count - 1} more records here — show them`}
-                onClick={() => {
-                  if (nav.wasDragged()) return;
-                  setOpenCluster(listOpen ? null : cluster.key);
-                }}
-                className={cn(
-                  "shrink-0 rounded-md px-1.5 py-1 text-[11px] font-semibold tabular-nums transition-colors",
-                  listOpen ? "bg-accent-soft text-foreground" : "bg-muted text-foreground hover:bg-accent-soft"
-                )}
-              >
-                +{cluster.count - 1}
-              </button>
+              {/* A lone record semantic zoom had no room for is just its card:
+                  there is no "rest" to list, and "+0" would read as a bug. */}
+              {cluster.count > 1 && (
+                <button
+                  type="button"
+                  data-cluster-toggle
+                  aria-expanded={listOpen}
+                  aria-label={`${cluster.count - 1} more records here — show them`}
+                  onClick={() => {
+                    if (nav.wasDragged()) return;
+                    setOpenCluster(listOpen ? null : cluster.key);
+                  }}
+                  className={cn(
+                    "shrink-0 rounded-md px-1.5 py-1 text-[11px] font-semibold tabular-nums transition-colors",
+                    listOpen ? "bg-accent-soft text-foreground" : "bg-muted text-foreground hover:bg-accent-soft"
+                  )}
+                >
+                  +{cluster.count - 1}
+                </button>
+              )}
             </div>
           );
         })}

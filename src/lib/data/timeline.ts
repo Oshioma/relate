@@ -110,6 +110,7 @@ const EVENT_COLUMN_LIST = [
   "people",
   "civilisations",
   "motifs",
+  "prominence",
   "status",
   "reviewed_by",
   "reviewed_at",

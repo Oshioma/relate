@@ -2223,6 +2223,11 @@ export type TimelineEvent = {
   // the tradition". A grid filled in from memory would invent the parallels it
   // exists to test.
   motifs: string[];
+  // HOW PROMINENT WHEN ZOOMED OUT — 1 landmark, 2 notable, 3 detail, null for
+  // "score it from what it has". Semantic zoom shows the most prominent records
+  // that fit. See src/lib/timeline/prominence.ts and
+  // 20261001220248_timeline_event_prominence.sql.
+  prominence: 1 | 2 | 3 | null;
   // Members contribute as 'pending' and staff approve — the same moderation
   // pattern business claims and crop proposals use. RLS forces it; this is not
   // merely a default.
