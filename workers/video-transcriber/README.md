@@ -132,6 +132,23 @@ residential-proxy provider, a few dollars a month) and deploy.
 *Alternatives to `COOKIES_TXT`:* `COOKIES_FILE=/data/cookies.txt` (a file on the
 volume) or `COOKIES_B64` (the file base64-encoded).
 
+## Proxy (recommended for YouTube)
+
+YouTube blocks many cloud servers outright. A **residential, sticky** proxy fixes
+that for good and needs no cookies:
+
+1. Buy residential proxy data (e.g. IPRoyal, pay as you go). 1 GB covers roughly
+   30 hour-long videos without captions; videos with captions use almost nothing.
+2. In the provider's dashboard choose **Sticky**, lifetime **30 min** or more, and
+   one country. Sticky matters: YouTube's download links only work from the IP
+   that asked for them, so a rotating proxy fails with 403.
+3. Railway → **Variables** → `YTDLP_PROXY` = `http://USER:PASS@HOST:PORT`.
+   Pasting the provider's whole `curl -x …` test command also works — the
+   worker keeps only the address.
+
+`/health` shows `"proxy": true` once it's set. Proxy passwords are scrubbed from
+logs and error messages.
+
 ## When a site changes and downloads break
 
 yt-dlp is upgraded automatically every time the container starts
