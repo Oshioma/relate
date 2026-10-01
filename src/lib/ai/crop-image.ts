@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { meterClaude, meterFlat } from "@/lib/usage/ai-meter";
 
 // AI-assisted crop photography. Two independent paths:
 //
@@ -105,6 +106,8 @@ If you cannot find a suitable direct image URL, respond with exactly {"image_url
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
       messages: [{ role: "user", content: `Find one openly-licensed photo of this plant/crop: ${name}.` }],
     });
+    // Charged to the community this runs for, when there is one (ai-meter.ts).
+    await meterClaude("crop_image_find", response);
     const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
@@ -203,6 +206,8 @@ export async function generateCropImage(opts: {
       return { ok: false, error: "Image generation failed — try again." };
     }
     const json = (await res.json()) as { data?: { b64_json?: string }[] };
+    // gpt-image-1 at 1024×1024, medium quality: about $0.04 an image.
+    await meterFlat("crop_image_generate", 0.04, crypto.randomUUID());
     const b64 = json.data?.[0]?.b64_json;
     if (!b64) return { ok: false, error: "Image generation returned nothing." };
     return { ok: true, base64: b64, mediaType: "image/png", credit: "AI-generated", sourceUrl: null };

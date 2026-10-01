@@ -1194,6 +1194,8 @@ export type SpaceLesson = {
   // tokens. Null on lessons written before usage was recorded — the cost panel
   // estimates those from text lengths. See 20261001092142_lesson_usage_costs.sql.
   ai_model: string | null;
+  // Written through the Message Batches API: billed at half the token price.
+  ai_batch: boolean;
   ai_input_tokens: number | null;
   ai_output_tokens: number | null;
   created_at: string;
@@ -1217,7 +1219,8 @@ export type AiSpend = {
   id: string;
   community_id: string;
   user_id: string | null;
-  kind: "lesson" | "video";
+  // "lesson", "video", or another AI feature's name (see ai-meter.ts).
+  kind: string;
   amount_usd: number;
   ref: string;
   created_at: string;
@@ -3482,6 +3485,7 @@ export type Database = {
           ai_model: string | null;
           ai_input_tokens: number | null;
           ai_output_tokens: number | null;
+          ai_batch: boolean;
           source_chars: number | null;
           lesson_chars: number | null;
         }[];

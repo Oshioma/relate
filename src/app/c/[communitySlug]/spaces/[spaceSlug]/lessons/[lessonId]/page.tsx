@@ -88,6 +88,7 @@ export default async function LessonPage({
     return lessonWritingCost(
       {
         ai_model: level.ai_model,
+        ai_batch: level.ai_batch,
         ai_input_tokens: level.ai_input_tokens,
         ai_output_tokens: level.ai_output_tokens,
         sourceChars: (level.source_text ?? "").length,

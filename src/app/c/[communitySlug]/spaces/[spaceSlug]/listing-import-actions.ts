@@ -5,6 +5,8 @@ import { importListingDraft } from "@/lib/listing-import";
 import { getCommunityAccommodationSpace } from "@/lib/data/accommodation";
 import { BUSINESS_CATEGORIES } from "@/lib/business-categories";
 import type { ListingImportKind, ListingImportResult } from "@/lib/listing-draft";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
+import { meteredFor } from "@/lib/usage/ai-meter";
 
 // Backs the "paste a link" box on the new-listing forms. The draft it returns
 // never touches the database — it only pre-fills the form the member then
@@ -45,7 +47,14 @@ export async function importListingFromLink({
     if (data) categories = [...categories, ...data.map((c) => c.slug)];
   }
 
-  const result = await importListingDraft({ rawUrl: url, kind, categories });
+  // The AI read is charged to the community; past its free allowance, links
+  // that need it are refused (Google Maps links don't, and still work).
+  const allowance = space?.community_id ? await checkAiAllowance(space.community_id, user.id) : null;
+  const aiBlockedReason = allowance && !allowance.allowed ? allowance.message : null;
+  const run = () => importListingDraft({ rawUrl: url, kind, categories, aiBlockedReason });
+  const result = space?.community_id
+    ? await meteredFor({ communityId: space.community_id, userId: user.id }, run)
+    : await run();
 
   // A place to stay pasted into the directory form isn't an error — the member
   // simply started in the wrong half of the app. Hand them a way through that

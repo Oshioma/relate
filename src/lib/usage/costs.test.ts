@@ -172,3 +172,42 @@ test("cached input is priced as a write or a read, not at the full rate", () => 
     claudeCost(21_000, 5_000, rate)
   );
 });
+
+test("a lesson written at half price through the Batches API costs half", () => {
+  const rates = {
+    claudeDefault: { model: "m", inputPerMTok: 4, outputPerMTok: 20 },
+    claudeByModel: {},
+    whisperPerHour: 0,
+    proxyPerGB: 0,
+  };
+  const usage = { ai_input_tokens: 40_000, ai_output_tokens: 10_000, sourceChars: 0, lessonChars: 0 };
+  const full = lessonWritingCost(usage, rates).cost;
+  const batch = lessonWritingCost({ ...usage, ai_batch: true }, rates).cost;
+  assert.ok(Math.abs(batch - full / 2) < 1e-12);
+
+  const summary = summariseUsage(
+    [{ community_id: "c", ai_model: "m", ai_input_tokens: 40_000, ai_output_tokens: 10_000, ai_batch: true, source_chars: null, lesson_chars: null }],
+    [],
+    rates
+  );
+  assert.ok(Math.abs(summary.lessons.cost - full / 2) < 1e-12);
+});
+
+test("other AI features' spend is added by kind and by community", () => {
+  const rates = {
+    claudeDefault: { model: "m", inputPerMTok: 4, outputPerMTok: 20 },
+    claudeByModel: {},
+    whisperPerHour: 0,
+    proxyPerGB: 0,
+  };
+  const summary = summariseUsage([], [], rates, [
+    { community_id: "a", kind: "plant_id", amount_usd: 0.01 },
+    { community_id: "a", kind: "event_discovery", amount_usd: 0.2 },
+    { community_id: "b", kind: "plant_id", amount_usd: 0.02 },
+  ]);
+  assert.ok(Math.abs(summary.other.cost - 0.23) < 1e-12);
+  assert.ok(Math.abs(summary.other.byKind.plant_id - 0.03) < 1e-12);
+  assert.ok(Math.abs(summary.total - 0.23) < 1e-12);
+  assert.equal(summary.byCommunity[0].communityId, "a");
+  assert.ok(Math.abs(summary.byCommunity[0].otherCost - 0.21) < 1e-12);
+});

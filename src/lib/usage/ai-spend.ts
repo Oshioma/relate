@@ -34,12 +34,15 @@ function exemptOwners(): string[] {
 
 export async function checkAiAllowance(
   communityId: string,
-  userId: string
+  // Null for a signed-out visitor (a public concierge or plant ID space).
+  userId: string | null
 ): Promise<AllowanceVerdict> {
   const admin = createAdminClient();
 
   const [{ data: caller }, { data: community }] = await Promise.all([
-    admin.from("profiles").select("is_super_admin").eq("id", userId).maybeSingle(),
+    userId
+      ? admin.from("profiles").select("is_super_admin").eq("id", userId).maybeSingle()
+      : Promise.resolve({ data: null }),
     admin
       .from("communities")
       .select("plan_status, owner:owner_id (username, is_super_admin)")
@@ -88,7 +91,9 @@ export async function checkAiAllowance(
 export async function recordAiSpend(entry: {
   communityId: string;
   userId: string | null;
-  kind: "lesson" | "video";
+  // "lesson" and "video" for lessons; the other AI features use their own
+  // names (see ai-meter.ts).
+  kind: string;
   amountUsd: number;
   ref: string;
 }): Promise<void> {

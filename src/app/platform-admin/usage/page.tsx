@@ -17,6 +17,19 @@ import { getUsageReport, UsageNotInstalledError, type UsageReport } from "@/lib/
 
 export const dynamic = "force-dynamic";
 
+// How the ledger's kinds read on the page (see src/lib/usage/ai-meter.ts).
+const OTHER_KIND_LABELS: Record<string, string> = {
+  event_discovery: "Event discovery",
+  plant_id: "Plant ID",
+  plant_scanner: "Plant scanner",
+  crop_assistant: "Growing assistant",
+  crop_image_find: "Crop photo search",
+  crop_image_generate: "Crop image generation",
+  listing_import: "Listing import",
+  concierge: "Concierge",
+  lesson_read_url: "Reading pages into lessons",
+};
+
 const formatInt = (n: number) => Math.round(n).toLocaleString("en-US");
 const formatTokens = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : n >= 1_000 ? `${(n / 1_000).toFixed(1)}k` : formatInt(n);
@@ -90,6 +103,21 @@ export default async function PlatformUsagePage({
         />
         <Tile label="Proxy data" value={formatGB(summary.proxy.bytes)} hint={`${formatUsd(summary.proxy.cost)}`} />
       </div>
+
+      {/* The other AI features, as each recorded its own spend. */}
+      {summary.other.cost > 0 && (
+        <div className="mb-3 rounded-lg border border-border bg-card px-4 py-3 text-sm">
+          <p className="font-medium text-foreground">
+            Other AI features: {formatUsd(summary.other.cost)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {Object.entries(summary.other.byKind)
+              .sort((a, b) => b[1] - a[1])
+              .map(([kind, cost]) => `${OTHER_KIND_LABELS[kind] ?? kind} ${formatUsd(cost)}`)
+              .join(" · ")}
+          </p>
+        </div>
+      )}
 
       {(report.truncated.lessons || report.truncated.videos) && (
         <p className="mb-3 text-xs text-danger">
@@ -172,6 +200,7 @@ export default async function PlatformUsagePage({
                 <th className="px-3 py-2 text-right font-medium">Claude</th>
                 <th className="px-3 py-2 text-right font-medium">Whisper</th>
                 <th className="px-3 py-2 text-right font-medium">Proxy</th>
+                <th className="px-3 py-2 text-right font-medium">Other AI</th>
                 <th className="px-4 py-2 text-right font-medium">Total</th>
               </tr>
             </thead>
@@ -194,6 +223,7 @@ export default async function PlatformUsagePage({
                     <td className="px-3 py-2 text-right tabular-nums">{formatUsd(row.claudeCost)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{formatUsd(row.whisperCost)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{formatUsd(row.proxyCost)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{formatUsd(row.otherCost)}</td>
                     <td className="px-4 py-2 text-right font-medium tabular-nums text-foreground">
                       {formatUsd(row.total)}
                     </td>

@@ -16,6 +16,7 @@ import {
   periodStart,
   summariseUsage,
   type LessonUsageRow,
+  type OtherSpendRow,
   type UsagePeriod,
   type UsageSummary,
   type VideoUsageRow,
@@ -83,8 +84,22 @@ export async function getUsageReport(
     }),
   ]);
 
+  // Everything else AI, straight from the ledger. Lessons and videos are
+  // priced from their own rows above, so they're left out here.
+  const other = await readPages<OtherSpendRow>((from, to) => {
+    let query = admin
+      .from("ai_spend")
+      .select("community_id, kind, amount_usd")
+      .not("kind", "in", "(lesson,video)")
+      .order("created_at", { ascending: false })
+      .order("id")
+      .range(from, to);
+    if (since) query = query.gte("created_at", since);
+    return query;
+  }).catch(() => ({ rows: [] as OtherSpendRow[], truncated: false }));
+
   const rates = getUsageRates();
-  const summary = summariseUsage(lessons.rows, videos.rows, rates);
+  const summary = summariseUsage(lessons.rows, videos.rows, rates, other.rows);
 
   const ids = summary.byCommunity.slice(0, TOP_COMMUNITIES).map((c) => c.communityId);
   const communityNames: UsageReport["communityNames"] = {};
