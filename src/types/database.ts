@@ -1176,6 +1176,113 @@ export type SpaceLesson = {
   // When true, the source material and reference show to anyone who can see
   // the lesson. The system prompt stays staff-only either way.
   source_public: boolean;
+  // A video shown at the top of the lesson, when it was written from one.
+  // Part of the lesson rather than its private provenance, so it is not
+  // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
+  video_url: string | null;
+  // An uploaded video or audio file to play at the top of the lesson: an
+  // object path in the public 'uploads' bucket, and which player it needs.
+  // See 20261001092236_lesson_media_uploads.sql.
+  media_path: string | null;
+  media_type: LessonMediaType | null;
+  // Every level written from the same source shares one, and they show on one
+  // page, youngest first. A lesson on its own is a family of one.
+  // See 20261001061018_lesson_families_and_adult_band.sql.
+  family_id: string;
+  // What writing it cost, in Claude's billing units: the model that answered,
+  // every billed input token (cache creation and reads folded in) and output
+  // tokens. Null on lessons written before usage was recorded — the cost panel
+  // estimates those from text lengths. See 20261001092142_lesson_usage_costs.sql.
+  ai_model: string | null;
+  ai_input_tokens: number | null;
+  ai_output_tokens: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonVideoJobStatus = "queued" | "downloading" | "transcribing" | "done" | "error";
+
+// 'link' a video link fetched by the worker; 'file' an upload kept in Storage;
+// 'direct' an upload too big for Storage, sent straight to the worker and not
+// kept. See 20261001092236_lesson_media_uploads.sql.
+export type LessonVideoJobKind = "link" | "file" | "direct";
+
+export type LessonMediaType = "video" | "audio";
+
+// One request to download and transcribe a video for the lesson composer.
+// Private to whoever made it. See 20260930145354_lesson_video_jobs.sql.
+// One paid AI call, priced at list rates when it happened. Service-role only.
+// See 20261001120904_ai_spend_ledger.sql.
+export type AiSpend = {
+  id: string;
+  community_id: string;
+  user_id: string | null;
+  kind: "lesson" | "video";
+  amount_usd: number;
+  ref: string;
+  created_at: string;
+};
+
+// A lesson that was written but whose insert failed, parked so it can be saved
+// later without paying for it again. Service-role only.
+// See 20261001122856_unsaved_lessons.sql.
+export type UnsavedLesson = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  row: Record<string, unknown>;
+  error: string | null;
+  created_at: string;
+};
+
+// A background job writing a lesson's missing ages at half price, one level
+// after another. Service-role only. See 20261001135949_lesson_batch_jobs.sql.
+export type LessonBatchJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  family_id: string;
+  source_lesson_id: string | null;
+  pending_bands: string[];
+  current_band: string | null;
+  batch_id: string | null;
+  lesson_ids: string[];
+  status: "running" | "done" | "error" | "cancelled";
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonVideoJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  kind: LessonVideoJobKind;
+  // The link as given. Null for an upload, which has none.
+  source_url: string | null;
+  // The file's name on the uploader's computer, for an upload.
+  file_name: string | null;
+  // 'file' jobs: the kept object in the 'uploads' bucket.
+  storage_path: string | null;
+  status: LessonVideoJobStatus;
+  progress: number;
+  message: string | null;
+  title: string | null;
+  duration_seconds: number | null;
+  method: "captions" | "whisper" | null;
+  transcript: string | null;
+  error: string | null;
+  // What the job used of the paid services, as the worker reports it: seconds
+  // of audio sent to Whisper (0/null for captions), bytes downloaded (what a
+  // per-GB proxy bills), and whether it went through the proxy. Null on jobs
+  // from before the worker reported them.
+  // See 20261001092142_lesson_usage_costs.sql.
+  audio_seconds: number | null;
+  download_bytes: number | null;
+  proxied: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -2861,6 +2968,43 @@ export type Database = {
         Update: Partial<SpaceLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
+      lesson_video_jobs: {
+        Row: LessonVideoJob;
+        Insert: Partial<LessonVideoJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+        };
+        Update: Partial<LessonVideoJob>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      unsaved_lessons: {
+        Row: UnsavedLesson;
+        Insert: Omit<UnsavedLesson, "id" | "created_at" | "error"> & {
+          id?: string;
+          created_at?: string;
+          error?: string | null;
+        };
+        Update: Partial<UnsavedLesson>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      lesson_batch_jobs: {
+        Row: LessonBatchJob;
+        Insert: Partial<LessonBatchJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+          family_id: string;
+        };
+        Update: Partial<LessonBatchJob>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      ai_spend: {
+        Row: AiSpend;
+        Insert: Omit<AiSpend, "id" | "created_at"> & { id?: string; created_at?: string };
+        Update: Partial<AiSpend>;
+        Relationships: [FKey<"community_id", "communities">];
+      };
       meetup_participants: {
         Row: MeetupParticipant;
         Insert: Partial<MeetupParticipant> & { meetup_id: string; user_id: string };
@@ -3331,6 +3475,17 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      lesson_usage_rows: {
+        Args: { p_since: string | null; p_limit: number };
+        Returns: {
+          community_id: string;
+          ai_model: string | null;
+          ai_input_tokens: number | null;
+          ai_output_tokens: number | null;
+          source_chars: number | null;
+          lesson_chars: number | null;
+        }[];
+      };
       approve_crop_proposal: {
         Args: { p_proposal_id: string };
         Returns: string;

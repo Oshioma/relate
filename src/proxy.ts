@@ -5,6 +5,7 @@ import {
   platformSubdomainSlug,
   communitySubdomainUrl,
   RESERVED_SUBDOMAIN_LABELS,
+  wwwCounterpart,
 } from "@/lib/custom-domain";
 import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
 
@@ -42,11 +43,22 @@ const PLATFORM_PATH_PREFIXES = [
   // reached from inside a community's host too, where it must stay the
   // platform page rather than rewriting onto /c/<slug>/pricing (404).
   "/pricing",
+  // Help pages (e.g. /help/video-cookies, linked from the lesson composer's
+  // video errors) exist only at the platform root.
+  "/help",
   // The platform super-admin page. It lives at /platform-admin (not /admin)
   // precisely so it doesn't collide with a community's own /c/<slug>/admin
   // page, which canonicalizes to a bare /admin on the community's host.
   "/platform-admin",
 ];
+
+// Supabase's session cookie (sb-<project-ref>-auth-token, split into .0/.1…
+// chunks when large). Only its presence matters here: it decides whether "/"
+// on a community's host shows the signed-out welcome page or the feed. A
+// stale cookie just means the feed, which is the pre-welcome behaviour.
+function hasSessionCookie(request: NextRequest) {
+  return request.cookies.getAll().some((cookie) => /^sb-.+-auth-token(\.\d+)?$/.test(cookie.name));
+}
 
 function isPlatformPath(pathname: string) {
   return PLATFORM_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -68,6 +80,16 @@ export async function proxy(request: NextRequest) {
   let slug = platformSubdomainSlug(host);
   if (!slug && host && !isPlatformHost(host)) {
     slug = await resolveCommunitySlugForHost(host);
+
+    // www.foo.com when the owner verified foo.com (or the reverse): serve
+    // the community here too rather than the platform's landing page. This
+    // must not redirect to the verified host: the domain's host (Vercel)
+    // may already redirect that host to this one (its default is apex ->
+    // www), and the two redirects would loop forever.
+    if (!slug) {
+      const counterpart = wwwCounterpart(host);
+      if (counterpart) slug = await resolveCommunitySlugForHost(counterpart);
+    }
   }
 
   if (slug) {
@@ -96,7 +118,13 @@ export async function proxy(request: NextRequest) {
     // becomes /c/<slug>/events, and so on. The browser URL stays clean.
     if (!isPlatformPath(pathname) && !pathname.startsWith("/c/")) {
       const rewriteTo = request.nextUrl.clone();
-      rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
+      if (pathname === "/" && !hasSessionCookie(request) && request.nextUrl.searchParams.get("view") !== "feed") {
+        // Signed-out visitors meet the community's welcome page at "/";
+        // its "Take a look around" link (?view=feed) reaches the guest feed.
+        rewriteTo.pathname = `/welcome/${slug}`;
+      } else {
+        rewriteTo.pathname = pathname === "/" ? base : `${base}${pathname}`;
+      }
       return updateSession(request, rewriteTo);
     }
   }

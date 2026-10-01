@@ -36,6 +36,10 @@ export type ImageSource = {
   // Set when the source only works if an API key is configured. Sources
   // without this are free and need no account.
   requiresEnv?: string;
+  // Only used when a caller asks for it by name (sourcesPreferring), never in
+  // the default chain. For collections without a mature-content filter, whose
+  // pictures must not reach a children's lesson.
+  onlyWhenPreferred?: boolean;
   search: (query: string, signal: AbortSignal) => Promise<LessonImage | null>;
 };
 
@@ -48,6 +52,36 @@ async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
   });
   if (!response.ok) throw new Error(`${response.status}`);
   return response.json();
+}
+
+function withoutFormatParam(url: string | undefined): string | undefined {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.delete("format");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+// Whether a link actually serves a picture right now. Catalogues list images
+// that have since been deleted or moved, and a lesson should never be saved
+// pointing at one. A short GET (some hosts refuse HEAD), judged on status and
+// content type only; the body is abandoned.
+async function servesImage(url: string, signal: AbortSignal): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      signal,
+      headers: { "User-Agent": USER_AGENT, Accept: "image/*" },
+      redirect: "follow",
+    });
+    const type = response.headers.get("content-type") ?? "";
+    response.body?.cancel().catch(() => {});
+    return response.ok && type.startsWith("image/");
+  } catch {
+    return false;
+  }
 }
 
 // Strips the HTML Wikimedia returns inside its metadata fields.
@@ -93,7 +127,9 @@ const openverse: ImageSource = {
 
     return {
       url: hit.url,
-      thumbUrl: hit.thumbnail || hit.url,
+      // Openverse echoes the search's format=json onto its thumbnail links,
+      // which can then answer with JSON instead of a picture. Strip it.
+      thumbUrl: withoutFormatParam(hit.thumbnail) || hit.url,
       title: hit.title || query,
       creator: hit.creator || "",
       license: license || "Openly licensed",
@@ -245,14 +281,130 @@ const pexels: ImageSource = {
   },
 };
 
+// -------------------------------------------------------- Internet Archive
+
+// Scanned books, prints, maps, photographs and documents. Rights vary by item,
+// so the credit links to the item page, which states them.
+const internetArchive: ImageSource = {
+  key: "archive",
+  label: "Internet Archive",
+  // No mature-content filter, so never in the default chain children's
+  // lessons use — only for the adult "look into it" pictures that ask for it.
+  onlyWhenPreferred: true,
+  async search(query, signal) {
+    const url =
+      "https://archive.org/advancedsearch.php" +
+      `?q=${encodeURIComponent(`(${query}) AND mediatype:(image)`)}` +
+      "&fl[]=identifier&fl[]=title&fl[]=creator&rows=3&output=json";
+    const data = (await getJson(url, signal)) as {
+      response?: { docs?: { identifier?: string; title?: string; creator?: string | string[] }[] };
+    };
+    const hit = data.response?.docs?.find((d) => d.identifier);
+    if (!hit?.identifier) return null;
+    const image = `https://archive.org/services/img/${encodeURIComponent(hit.identifier)}`;
+    return {
+      url: image,
+      thumbUrl: image,
+      title: hit.title || query,
+      creator: Array.isArray(hit.creator) ? hit.creator[0] ?? "" : hit.creator ?? "",
+      license: "See item for rights",
+      sourceName: "Internet Archive",
+      sourceUrl: `https://archive.org/details/${encodeURIComponent(hit.identifier)}`,
+    };
+  },
+};
+
+// ------------------------------------------------- Art Institute of Chicago
+
+// Public-domain works only, served through the museum's IIIF image server.
+const artInstitute: ImageSource = {
+  key: "artic",
+  label: "Art Institute of Chicago",
+  async search(query, signal) {
+    const url =
+      "https://api.artic.edu/api/v1/artworks/search" +
+      `?q=${encodeURIComponent(query)}` +
+      "&query[term][is_public_domain]=true&limit=3&fields=id,title,image_id,artist_display";
+    const data = (await getJson(url, signal)) as {
+      config?: { iiif_url?: string };
+      data?: { id?: number; title?: string; image_id?: string | null; artist_display?: string }[];
+    };
+    const iiif = data.config?.iiif_url || "https://www.artic.edu/iiif/2";
+    const hit = data.data?.find((d) => d.image_id);
+    if (!hit?.image_id) return null;
+    return {
+      url: `${iiif}/${hit.image_id}/full/843,/0/default.jpg`,
+      thumbUrl: `${iiif}/${hit.image_id}/full/400,/0/default.jpg`,
+      title: hit.title || query,
+      creator: (hit.artist_display ?? "").split("\n")[0] ?? "",
+      license: "Public domain",
+      sourceName: "Art Institute of Chicago",
+      sourceUrl: hit.id ? `https://www.artic.edu/artworks/${hit.id}` : "https://www.artic.edu",
+    };
+  },
+};
+
+// -------------------------------------------------- Cleveland Museum of Art
+
+// Open Access: CC0 works only.
+const clevelandMuseum: ImageSource = {
+  key: "cleveland",
+  label: "Cleveland Museum of Art",
+  async search(query, signal) {
+    const url =
+      "https://openaccess-api.clevelandart.org/api/artworks/" +
+      `?q=${encodeURIComponent(query)}&has_image=1&cc0=1&limit=3`;
+    const data = (await getJson(url, signal)) as {
+      data?: {
+        title?: string;
+        url?: string;
+        creators?: { description?: string }[];
+        images?: { web?: { url?: string } };
+      }[];
+    };
+    const hit = data.data?.find((d) => d.images?.web?.url);
+    const image = hit?.images?.web?.url;
+    if (!hit || !image) return null;
+    return {
+      url: image,
+      thumbUrl: image,
+      title: hit.title || query,
+      creator: hit.creators?.[0]?.description ?? "",
+      license: "CC0",
+      sourceName: "Cleveland Museum of Art",
+      sourceUrl: hit.url || "https://www.clevelandart.org",
+    };
+  },
+};
+
 // Registry. Order is the fallback order; Openverse leads because it is the
 // only one with a mature-content filter.
 export const IMAGE_SOURCES: ImageSource[] = [
   openverse,
   commons,
   metMuseum,
+  artInstitute,
+  clevelandMuseum,
+  internetArchive,
   pexels,
 ];
+
+// The order for "look into it" pictures: archives and museums first, because
+// those topics are history, documents and ideas, which the collections hold
+// and a stock-photo search doesn't. The rest follow as the fallback.
+export const ARCHIVE_FIRST = ["archive", "met", "artic", "cleveland"];
+
+// The active sources with the preferred ones moved to the front, in the order
+// given; everything else keeps its usual order behind them.
+export function sourcesPreferring(preferred: readonly string[] | null | undefined): ImageSource[] {
+  const active = activeSources();
+  const usual = active.filter((source) => !source.onlyWhenPreferred);
+  if (!preferred?.length) return usual;
+  const first = preferred
+    .map((key) => active.find((source) => source.key === key))
+    .filter((source): source is ImageSource => Boolean(source));
+  return [...first, ...usual.filter((source) => !first.includes(source))];
+}
 
 // Sources usable in this deployment, in the order they should be tried.
 export function activeSources(): ImageSource[] {
@@ -277,12 +429,13 @@ export function activeSources(): ImageSource[] {
 // Stops early once the shared deadline has passed.
 export async function findImage(
   query: string,
-  deadline = Number.POSITIVE_INFINITY
+  deadline = Number.POSITIVE_INFINITY,
+  preferred?: readonly string[] | null
 ): Promise<LessonImage | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
 
-  for (const source of activeSources()) {
+  for (const source of sourcesPreferring(preferred)) {
     const remaining = deadline - Date.now();
     if (remaining <= 0) return null;
 
@@ -291,7 +444,18 @@ export async function findImage(
         trimmed,
         AbortSignal.timeout(Math.min(PER_SOURCE_TIMEOUT_MS, remaining))
       );
-      if (result?.url) return result;
+      if (!result?.url) continue;
+      // Only keep a picture that loads. If the thumbnail is dead but the full
+      // image works, use the full image for both.
+      const left = Math.max(500, Math.min(PER_SOURCE_TIMEOUT_MS, deadline - Date.now()));
+      const [fullOk, thumbOk] = await Promise.all([
+        servesImage(result.url, AbortSignal.timeout(left)),
+        result.thumbUrl && result.thumbUrl !== result.url
+          ? servesImage(result.thumbUrl, AbortSignal.timeout(left))
+          : Promise.resolve(true),
+      ]);
+      if (fullOk) return thumbOk ? result : { ...result, thumbUrl: result.url };
+      if (thumbOk && result.thumbUrl) return { ...result, url: result.thumbUrl };
     } catch {
       // Unreachable, rate-limited, or shape changed — try the next source.
     }
@@ -304,8 +468,58 @@ export async function findImage(
 // section without a picture.
 export async function findImages(
   queries: string[],
-  budgetMs: number = IMAGE_PHASE_BUDGET_MS
+  budgetMs: number = IMAGE_PHASE_BUDGET_MS,
+  // Per query, sources to try first (see ARCHIVE_FIRST). Missing or null
+  // means the usual order.
+  preferred?: (readonly string[] | null)[]
 ): Promise<(LessonImage | null)[]> {
   const deadline = Date.now() + budgetMs;
-  return Promise.all(queries.map((query) => findImage(query, deadline)));
+  return Promise.all(queries.map((query, i) => findImage(query, deadline, preferred?.[i])));
+}
+
+// ------------------------------------------------ Internet Archive: items
+
+// A real item or two on the Internet Archive to investigate a topic further —
+// a book, a document, a recording, a film. Found by search, so the links are
+// to items that exist, never addresses a model made up. Sorted by how much
+// they are used, which keeps the obscure-but-matching noise down. Returns an
+// empty list rather than throwing: these are a bonus.
+export type ArchiveItem = { title: string; url: string; kind: string };
+
+const ARCHIVE_KINDS: Record<string, string> = {
+  texts: "Text",
+  movies: "Video",
+  audio: "Audio",
+  image: "Image",
+  collection: "Collection",
+};
+
+export async function findArchiveItems(
+  query: string,
+  deadline = Number.POSITIVE_INFINITY,
+  limit = 2
+): Promise<ArchiveItem[]> {
+  const trimmed = query.trim();
+  const remaining = deadline - Date.now();
+  if (!trimmed || remaining <= 0) return [];
+  try {
+    const url =
+      "https://archive.org/advancedsearch.php" +
+      `?q=${encodeURIComponent(`(${trimmed}) AND mediatype:(texts OR movies OR audio)`)}` +
+      "&fl[]=identifier&fl[]=title&fl[]=mediatype&sort[]=downloads+desc" +
+      `&rows=${limit}&output=json`;
+    const data = (await getJson(url, AbortSignal.timeout(Math.min(PER_SOURCE_TIMEOUT_MS, remaining)))) as {
+      response?: { docs?: { identifier?: string; title?: string; mediatype?: string }[] };
+    };
+    return (data.response?.docs ?? [])
+      .filter((doc) => doc.identifier && doc.title)
+      .slice(0, limit)
+      .map((doc) => ({
+        title: doc.title as string,
+        url: `https://archive.org/details/${encodeURIComponent(doc.identifier as string)}`,
+        kind: ARCHIVE_KINDS[doc.mediatype ?? ""] ?? "Item",
+      }));
+  } catch {
+    return [];
+  }
 }

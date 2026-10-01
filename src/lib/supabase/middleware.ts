@@ -11,7 +11,7 @@ import {
 } from "@/lib/presence";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing", "/help/video-cookies"];
 
 // Community sub-sections a signed-out visitor is allowed to reach. The page
 // (and Postgres RLS) still decides what actually renders — a members-only
@@ -45,6 +45,9 @@ function isPublicPath(pathname: string) {
   // signed-out) visitor lands — bouncing them to /login here hid the
   // "confirm your email" step entirely and read as a login loop.
   if (pathname.startsWith("/invite/")) return true;
+  // A community's signed-out welcome page (src/app/welcome) — by definition
+  // for visitors without a session.
+  if (pathname.startsWith("/welcome/")) return true;
   // The cross-host auth bridge exists precisely for visitors with no session
   // on the current host (see src/lib/auth-bridge.ts); gating it behind
   // /login would loop.

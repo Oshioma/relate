@@ -1,5 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
+import { isVideoWorkerConfigured } from "@/lib/school/video-worker";
 
 // Read a web page into plain text, so a lesson can be written from a link
 // instead of a paste.
@@ -107,7 +108,9 @@ export async function readUrl(rawUrl: string): Promise<ReadUrlResult> {
       ok: false,
       error:
         "A video page doesn't carry its transcript, so there's nothing here to read. " +
-        "Open the video, use its transcript button, and paste the text in instead.",
+        (isVideoWorkerConfigured()
+          ? "YouTube, Facebook, Instagram, TikTok and Vimeo links are transcribed instead — this one is from a site that isn't supported yet, so open it, use its transcript button, and paste the text in."
+          : "Open the video, use its transcript button, and paste the text in instead."),
     };
   }
 
