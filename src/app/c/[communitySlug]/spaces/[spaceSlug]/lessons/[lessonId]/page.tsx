@@ -17,6 +17,7 @@ import { getUsageRates } from "@/lib/usage/pricing";
 import { formatUsd, lessonWritingCost } from "@/lib/usage/costs";
 import { LessonDetailView } from "../../lesson-detail-view";
 import { LessonAddLevel } from "../../lesson-add-level";
+import { activeBatchJob, batchJobStatus } from "@/lib/school/lesson-batch";
 import { LessonVideoProvider } from "../../lesson-video";
 
 // One page per source: every age level written from the same material, youngest
@@ -133,6 +134,12 @@ export default async function LessonPage({
     writerConfigured &&
     levels.some((level) => (level.source_text ?? "").trim().length > 0);
 
+  // A background half-price job for this lesson, for staff to watch. The page
+  // only reads it; the panel's first poll is what moves it on, so a level that
+  // has just come back never holds up the page load.
+  const runningJob = canAddLevel ? await activeBatchJob(lesson.family_id, lesson.space_id) : null;
+  const batchJob = runningJob ? batchJobStatus(runningJob) : null;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -208,6 +215,7 @@ export default async function LessonPage({
               existingBands={levels.map((level) => level.age_band)}
               communitySlug={community.slug}
               spaceSlug={space.slug}
+              batchJob={batchJob}
             />
           )}
         </div>
