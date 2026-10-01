@@ -5,6 +5,7 @@ import {
   claudeRateFor,
   estimateLessonTokens,
   formatUsd,
+  lessonWritingCost,
   parseUsagePeriod,
   periodStart,
   proxyCost,
@@ -127,4 +128,25 @@ test("small sums keep their fractions of a cent", () => {
   assert.equal(formatUsd(0), "$0.00");
   assert.equal(formatUsd(0.0042), "$0.0042");
   assert.equal(formatUsd(1234.5), "$1,234.50");
+});
+
+test("one lesson's cost uses its recorded tokens when it has them", () => {
+  const rates = {
+    claudeDefault: { model: "m", inputPerMTok: 4, outputPerMTok: 20 },
+    claudeByModel: {},
+    whisperPerHour: 0,
+    proxyPerGB: 0,
+  };
+  const recorded = lessonWritingCost(
+    { ai_input_tokens: 40_000, ai_output_tokens: 10_000, sourceChars: 0, lessonChars: 0 },
+    rates
+  );
+  // 40k × $4/M + 10k × $20/M = $0.16 + $0.20
+  assert.equal(recorded.estimated, false);
+  assert.ok(Math.abs(recorded.cost - 0.36) < 1e-9);
+
+  const guessed = lessonWritingCost({ sourceChars: 88_000, lessonChars: 20_000 }, rates);
+  // (88,000 + 12,000) / 4 = 25,000 in; 20,000 / 4 = 5,000 out
+  assert.equal(guessed.estimated, true);
+  assert.ok(Math.abs(guessed.cost - (0.1 + 0.1)) < 1e-9);
 });
