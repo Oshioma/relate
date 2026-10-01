@@ -36,6 +36,8 @@ import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
+import { JumpToDate } from "./jump-to-date";
+import { interpolateWindow, jumpWindow } from "@/lib/timeline/jump-date";
 import { EventDetail } from "./event-detail";
 import { PeriodDetail } from "./period-detail";
 import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
@@ -115,6 +117,8 @@ import {
 // already has enough to draw the next frame.
 
 const REFETCH_DEBOUNCE_MS = 260;
+/** How long a jump takes to fly from where the reader is to where they asked to be. */
+const FLIGHT_MS = 650;
 
 type Mode = "timeline" | "compare";
 
@@ -692,6 +696,53 @@ export function TimelineView({
     }, 300);
     return () => clearTimeout(handle);
   }, [term, communitySlug, searching]);
+
+  // --- Flying to a date ------------------------------------------------------
+  //
+  // A jump TRAVELS rather than cuts, so the reader sees which way and how far
+  // they went — the difference between being moved and being teleported. The
+  // flight is interpolated by interpolateWindow (geometric zoom, log-distance
+  // travel), and any gesture during it wins: the moment the view is set by
+  // something other than the flight, the flight stops.
+  const flight = useRef<{ frame: number; last: TimeWindow } | null>(null);
+  const cancelFlight = useCallback(() => {
+    if (flight.current) cancelAnimationFrame(flight.current.frame);
+    flight.current = null;
+  }, []);
+  useEffect(() => {
+    if (flight.current && view !== flight.current.last) cancelFlight();
+  }, [view, cancelFlight]);
+  useEffect(() => cancelFlight, [cancelFlight]);
+
+  const flyTo = useCallback(
+    (target: TimeWindow) => {
+      cancelFlight();
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        setView(target);
+        return;
+      }
+      const start = view;
+      const startedAt = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startedAt) / FLIGHT_MS);
+        // Ease in and out, so the strip neither lurches off nor slams to a stop.
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const next = t >= 1 ? target : interpolateWindow(start, target, eased);
+        flight.current = t >= 1 ? null : { frame: requestAnimationFrame(step), last: next };
+        setView(next);
+      };
+      flight.current = { frame: requestAnimationFrame(step), last: start };
+    },
+    [view, cancelFlight]
+  );
+
+  const jumpTo = useCallback(
+    (position: number) => {
+      flyTo(jumpWindow(view, position, scale));
+    },
+    [flyTo, view, scale]
+  );
 
   const goTo = useCallback((event: TimelineEventWithClaims) => {
     // Jump to the first claim that is actually somewhere. An event whose only
@@ -1306,6 +1357,9 @@ export function TimelineView({
             </button>
           ))}
         </div>
+
+        {/* Straight to a moment: "10,500 BCE", "500 AD", "65 million years ago". */}
+        <JumpToDate communitySlug={communitySlug} onJump={jumpTo} />
 
         <button
           type="button"
