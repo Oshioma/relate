@@ -25,6 +25,10 @@ const NO_STORE = { "Cache-Control": "no-store" };
 // How far back "recent" reaches in the composer.
 const RECENT_MS = 3 * 24 * 60 * 60_000;
 const RECENT_LIMIT = 5;
+// Jobs older than this are deleted when their owner next opens the composer.
+// By then a transcript has either become a lesson (which keeps its own copy as
+// source_text) or been abandoned, and an hour of text per row adds up.
+const KEEP_MS = 30 * 24 * 60 * 60_000;
 
 export async function POST(request: NextRequest) {
   if (!isVideoWorkerConfigured()) {
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
   const link = parseVideoLink(rawUrl);
   if (!link) {
     return NextResponse.json(
-      { error: "That isn't a YouTube, Facebook or Instagram video link." },
+      { error: "That isn't a YouTube, Facebook, Instagram, TikTok or Vimeo video link." },
       { status: 400, headers: NO_STORE }
     );
   }
@@ -116,6 +120,15 @@ export async function GET(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "You need to be signed in." }, { status: 401, headers: NO_STORE });
   }
+
+  // Housekeeping first, and never fatal: RLS limits the delete to the caller's
+  // own rows.
+  const { error: pruneError } = await supabase
+    .from("lesson_video_jobs")
+    .delete()
+    .eq("created_by", user.id)
+    .lt("created_at", new Date(Date.now() - KEEP_MS).toISOString());
+  if (pruneError) console.error("Could not prune old video jobs", pruneError);
 
   // RLS limits this to the caller's own jobs; the filters are for the index.
   const { data, error } = await supabase

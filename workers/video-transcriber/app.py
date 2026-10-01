@@ -1,9 +1,10 @@
 """
 Relate video transcriber.
 
-A small web service that turns a YouTube / Facebook / Instagram video link into
-plain text for the lesson composer. The Relate app starts a job and polls it;
-this service never calls the app and holds no database credentials.
+A small web service that turns a YouTube / Facebook / Instagram / TikTok /
+Vimeo video link into plain text for the lesson composer. The Relate app starts
+a job and polls it; this service never calls the app and holds no database
+credentials.
 
     POST /jobs        {"id": "<uuid>", "url": "<video link>"}   -> 202
     GET  /jobs/{id}                                             -> job status
@@ -17,6 +18,10 @@ How a video becomes text, cheapest first:
   2. Whisper. Otherwise download just the audio, squash it to small mono
      chunks with ffmpeg, and send each chunk to Groq's Whisper API
      (about $0.04 per hour of audio).
+
+Either way the transcript comes back as paragraphs that each open with the
+moment they start in the video — "[4:05] …", or "[1:02:03] …" past the hour —
+so a lesson written from it can link each section back to its place.
 
 Configuration is all environment variables — see .env.example.
 """
@@ -75,7 +80,35 @@ MAX_CONCURRENT_JOBS = _env_int("MAX_CONCURRENT_JOBS", 2)
 JOB_TTL_HOURS = _env_int("JOB_TTL_HOURS", 72)
 
 JOBS_DIR = Path(os.environ.get("JOBS_DIR", "/tmp/relate-video-jobs"))
-YTDLP_PROXY = os.environ.get("YTDLP_PROXY", "").strip() or None
+
+
+def clean_proxy(raw: str) -> Optional[str]:
+    """The proxy address, even when a whole curl command was pasted.
+
+    Proxy dashboards show a test command like
+    `curl -v -x http://user:pass@host:port -L https://ipv4.icanhazip.com`, and
+    pasting all of it made every download fail on "invalid character ' '".
+    Takes the first proxy-looking address and drops the rest.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    match = re.search(r"(?:https?|socks4a?|socks5h?)://\S+", raw)
+    if match:
+        return match.group(0)
+    # No scheme: the first token that isn't "curl" or a flag, as http.
+    for token in raw.split():
+        if token != "curl" and not token.startswith("-"):
+            return f"http://{token}"
+    return None
+
+
+def redact(text: str) -> str:
+    """Hide user:password in any URL, so proxy credentials never reach logs or teachers."""
+    return re.sub(r"([a-z0-9+.-]+://)[^/\s:@]+:[^@\s]+@", r"\1***@", text, flags=re.IGNORECASE)
+
+
+YTDLP_PROXY = clean_proxy(os.environ.get("YTDLP_PROXY", ""))
 
 # Browser cookies (Netscape cookies.txt) for videos that need a login —
 # Facebook and Instagram often do, and YouTube often asks a server IP to
@@ -135,7 +168,17 @@ elif not COOKIES_FILE and os.environ.get("COOKIES_B64", "").strip():
 
 # Only these sites are fetched. Every job costs bandwidth and money, and a
 # video worker that downloads any URL it's given is an open proxy.
-ALLOWED_HOSTS = ("youtube.com", "youtu.be", "facebook.com", "fb.watch", "instagram.com")
+# Subdomains match too (is_allowed_url), which is what lets vm.tiktok.com
+# share links and player.vimeo.com embed addresses through.
+ALLOWED_HOSTS = (
+    "youtube.com",
+    "youtu.be",
+    "facebook.com",
+    "fb.watch",
+    "instagram.com",
+    "tiktok.com",
+    "vimeo.com",
+)
 
 # --------------------------------------------------------------------------
 # Job store: in memory, mirrored to JOBS_DIR so a restart doesn't forget
@@ -297,26 +340,54 @@ def is_allowed_url(raw: str) -> bool:
     return any(host == allowed or host.endswith("." + allowed) for allowed in ALLOWED_HOSTS)
 
 
-_TIMING = re.compile(r"^\s*(\d{1,2}:)?\d{1,2}:\d{2}[.,]\d{3}\s*-->")
+_TIMING = re.compile(r"^\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})[.,](\d{3})\s*-->")
 _TAG = re.compile(r"<[^>]+>")
+
+# A piece of speech and the second of the video it starts at.
+Timed = tuple[float, str]
+
+
+def _cue_start(match: re.Match[str]) -> float:
+    hours, minutes, seconds, millis = match.groups()
+    return int(hours or 0) * 3600 + int(minutes) * 60 + int(seconds) + int(millis) / 1000
+
+
+def format_marker(seconds: float) -> str:
+    """[4:05], or [1:02:03] past the hour — the form a viewer reads off a player.
+
+    The lesson writer reads these to tie each section to a point in the video,
+    so the same form is used whether the times came from captions or Whisper.
+    """
+    total = max(0, int(seconds))
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"[{hours}:{minutes:02d}:{secs:02d}]"
+    return f"[{minutes}:{secs:02d}]"
 
 
 def vtt_to_text(vtt: str) -> str:
-    """Caption file -> the words, once each.
+    """Caption file -> the words, once each, in timed paragraphs.
 
     YouTube's automatic captions "roll": every cue repeats the previous cue's
-    line before adding a new one, so a naive join says everything twice.
+    line before adding a new one, so a naive join says everything twice. A
+    line keeps the start time of the cue it FIRST appeared in, which is when
+    it was actually said.
     """
-    lines: list[str] = []
+    lines: list[Timed] = []
     in_header = True
+    start = 0.0
     for raw in vtt.splitlines():
         line = raw.strip()
-        if in_header:
+        timing = _TIMING.match(line)
+        if timing:
             # Everything before the first cue timing is the WEBVTT header.
-            if _TIMING.match(line):
-                in_header = False
+            in_header = False
+            start = _cue_start(timing)
             continue
-        if not line or _TIMING.match(line) or line.isdigit():
+        if in_header:
+            continue
+        if not line or line.isdigit():
             continue
         if line.startswith(("NOTE", "STYLE", "REGION")):
             continue
@@ -332,36 +403,51 @@ def vtt_to_text(vtt: str) -> str:
         text = re.sub(r"\s+", " ", text).strip()
         if not text or text in ("[Music]", "[Applause]"):
             continue
-        if lines and lines[-1] == text:
+        if lines and lines[-1][1] == text:
             continue
-        lines.append(text)
-    return paragraphs(" ".join(lines))
+        lines.append((start, text))
+    return timed_paragraphs(lines)
 
 
-def paragraphs(text: str, target: int = 700) -> str:
-    """One wall of speech -> readable paragraphs of roughly `target` chars.
+def _split_words(pieces: list[Timed], target: int) -> list[tuple[float, str]]:
+    """Timed pieces -> (start of first word, paragraph text) of roughly `target` chars.
 
     Breaks after a sentence when there are sentences; auto-captions have no
     punctuation, so failing that, at the next word boundary.
     """
-    text = re.sub(r"\s+", " ", text).strip()
-    if not text:
-        return ""
-    out: list[str] = []
+    out: list[tuple[float, str]] = []
     current = ""
-    for sentence in re.split(r"(?<=[.!?])\s+", text):
-        words = sentence.split(" ")
-        for word in words:
+    current_start = 0.0
+    for start, piece in pieces:
+        for word in re.sub(r"\s+", " ", piece).strip().split(" "):
+            if not word:
+                continue
+            if not current:
+                current_start = start
             current = f"{current} {word}" if current else word
-            if len(current) >= target * 1.6:
-                out.append(current)
+            if len(current) >= target * 1.6 or (word[-1] in ".!?" and len(current) >= target):
+                out.append((current_start, current))
                 current = ""
-        if len(current) >= target:
-            out.append(current)
-            current = ""
     if current:
-        out.append(current)
-    return "\n\n".join(p.strip() for p in out if p.strip())
+        out.append((current_start, current))
+    return out
+
+
+def paragraphs(text: str, target: int = 700) -> str:
+    """One wall of speech -> readable paragraphs of roughly `target` chars."""
+    return "\n\n".join(p for _, p in _split_words([(0.0, text)], target))
+
+
+def timed_paragraphs(pieces: list[Timed], target: int = 700) -> str:
+    """Timed speech -> paragraphs that each open with when they start: "[4:05] …".
+
+    The markers are plain text so they survive the composer's textarea and
+    land in the lesson's source, where the writer uses them to point each
+    section at its place in the video.
+    """
+    return "\n\n".join(
+        f"{format_marker(start)} {text}" for start, text in _split_words(pieces, target)
+    )
 
 
 # --------------------------------------------------------------------------
@@ -386,12 +472,22 @@ def _ydl_opts(**extra: Any) -> dict[str, Any]:
 
 
 def _friendly_download_error(error: Exception) -> str:
-    message = str(error)
+    message = redact(str(error))
     lowered = message.lower()
     # Kept in full in the Railway logs; the teacher gets a sentence.
     print(f"download failed: {message}", flush=True)
     how = f" How to fix it: {COOKIES_HELP_URL}"
+    if "proxy" in lowered and ("unable to connect" in lowered or "tunnel" in lowered or "407" in lowered):
+        return (
+            "The video service couldn't connect through its proxy. Check YTDLP_PROXY in Railway — "
+            "the address and password, and that the proxy plan still has data left."
+        )
     if "not a bot" in lowered or "confirm you" in lowered:
+        if YTDLP_PROXY:
+            return (
+                "YouTube is blocking the video service even through its proxy. Use a residential, "
+                "sticky proxy (not datacenter or rotating), or add cookies." + how
+            )
         if COOKIES_FILE:
             return (
                 "YouTube is still blocking the video service even with cookies — "
@@ -516,8 +612,58 @@ def _split_audio(source: Path, workdir: Path) -> list[Path]:
 # --------------------------------------------------------------------------
 
 
-def _transcribe_chunk(path: Path, prompt: str) -> str:
-    data = {"model": GROQ_MODEL, "response_format": "json", "temperature": "0"}
+def _parse_verbose(body: dict[str, Any]) -> tuple[str, list[Timed]]:
+    text = (body.get("text") or "").strip()
+    segments: list[Timed] = []
+    for segment in body.get("segments") or []:
+        words = (segment.get("text") or "").strip()
+        try:
+            start = float(segment.get("start") or 0)
+        except (TypeError, ValueError):
+            start = 0.0
+        if words:
+            segments.append((start, words))
+    # No segments (an API that ignored verbose_json) still has its words: put
+    # them at the start of the chunk rather than lose them.
+    if not segments and text:
+        segments = [(0.0, text)]
+    return text, segments
+
+
+def _transcribe_all(
+    job_id: str, chunks: list[Path], chunk_seconds: Optional[list[float]] = None
+) -> list[Timed]:
+    """Every chunk, in order, with segment times made relative to the whole video.
+
+    ffmpeg resets each chunk's clock to zero (-reset_timestamps), and every
+    chunk but the last is exactly CHUNK_MINUTES long, so a chunk's offset is
+    just its index times that.
+    """
+    pieces: list[Timed] = []
+    previous = ""
+    for index, chunk in enumerate(chunks):
+        _update(
+            job_id,
+            progress=round(0.4 + 0.58 * index / len(chunks), 3),
+            message=f"Transcribing part {index + 1} of {len(chunks)}…",
+        )
+        text, segments = _transcribe_chunk(chunk, previous)
+        offset = index * CHUNK_MINUTES * 60
+        pieces.extend((offset + start, words) for start, words in segments)
+        previous = text
+        if chunk_seconds is not None:
+            _add_usage(job_id, audio_seconds=chunk_seconds[index] or 0.0)
+    return pieces
+
+
+def _transcribe_chunk(path: Path, prompt: str) -> tuple[str, list[Timed]]:
+    """(plain text, [(seconds into THIS chunk, segment text)]).
+
+    verbose_json rather than json for the segment start times, which become
+    the transcript's [m:ss] markers. The plain text is still returned because
+    it is what the next chunk's prompt is made of.
+    """
+    data = {"model": GROQ_MODEL, "response_format": "verbose_json", "temperature": "0"}
     if WHISPER_LANGUAGE:
         data["language"] = WHISPER_LANGUAGE
     if prompt:
@@ -535,7 +681,7 @@ def _transcribe_chunk(path: Path, prompt: str) -> str:
                 timeout=300,
             )
         if response.status_code == 200:
-            return (response.json().get("text") or "").strip()
+            return _parse_verbose(response.json())
         if response.status_code == 429 or response.status_code >= 500:
             retry_after = response.headers.get("retry-after")
             try:
@@ -593,7 +739,7 @@ def run_job(job_id: str, url: str) -> None:
                     _add_usage(job_id, download_bytes=len(raw))
                     text = vtt_to_text(raw.decode("utf-8", "replace"))
                 except Exception as error:
-                    print(f"{job_id}: captions failed, falling back to audio: {error}", flush=True)
+                    print(f"{job_id}: captions failed, falling back to audio: {redact(str(error))}", flush=True)
                     text = ""
                 # A handful of words is a "[Music]" track, not a transcript.
                 if len(text) > 200:
@@ -638,26 +784,17 @@ def run_job(job_id: str, url: str) -> None:
             probed = [fallback if seconds is None else seconds for seconds in probed]
 
         _update(job_id, status="transcribing", progress=0.4)
-        parts: list[str] = []
-        for index, chunk in enumerate(chunks):
-            _update(
-                job_id,
-                progress=round(0.4 + 0.58 * index / len(chunks), 3),
-                message=f"Transcribing part {index + 1} of {len(chunks)}…",
-            )
-            parts.append(_transcribe_chunk(chunk, parts[-1] if parts else ""))
-            # Only once Whisper has answered: a chunk that failed wasn't billed.
-            _add_usage(job_id, audio_seconds=probed[index] or 0.0)
-
-        text = paragraphs(" ".join(p for p in parts if p))
+        # Each chunk's audio is counted for the cost report as Whisper answers
+        # for it: a chunk that failed wasn't billed.
+        text = timed_paragraphs(_transcribe_all(job_id, chunks, probed))
         if not text:
             _update(job_id, status="error", error="No speech was found in that video.")
             return
 
         _update(job_id, status="done", progress=1.0, method="whisper", transcript=text, message=None)
     except Exception as error:  # never leave a job stuck "running"
-        print(f"{job_id}: failed: {error!r}", flush=True)
-        _update(job_id, status="error", error=str(error)[:300] or "Something went wrong.")
+        print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
+        _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -710,6 +847,7 @@ def health() -> dict[str, Any]:
         "ffmpeg": shutil.which("ffmpeg") is not None,
         "groq": bool(GROQ_API_KEY),
         "cookies": bool(COOKIES_FILE),
+        "proxy": bool(YTDLP_PROXY),
     }
 
 
@@ -718,7 +856,7 @@ def create_job(body: NewJob) -> dict[str, Any]:
     if not re.fullmatch(r"[A-Za-z0-9-]{8,64}", body.id):
         raise HTTPException(status_code=400, detail="Bad job id.")
     if not is_allowed_url(body.url):
-        raise HTTPException(status_code=400, detail="Only YouTube, Facebook and Instagram links are supported.")
+        raise HTTPException(status_code=400, detail="Only YouTube, Facebook, Instagram, TikTok and Vimeo links are supported.")
 
     _prune()
     with _lock:

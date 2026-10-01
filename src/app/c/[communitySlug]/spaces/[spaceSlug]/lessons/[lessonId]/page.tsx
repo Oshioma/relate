@@ -15,6 +15,7 @@ import {
 } from "@/lib/school/lesson-types";
 import { LessonDetailView } from "../../lesson-detail-view";
 import { LessonAddLevel } from "../../lesson-add-level";
+import { LessonVideoProvider } from "../../lesson-video";
 
 // One page per source: every age level written from the same material, youngest
 // first. Opening any level's link opens the whole page, and a reader skims the
@@ -125,43 +126,47 @@ export default async function LessonPage({
         </nav>
       )}
 
-      <div className="space-y-10">
-        {levels.map((level, index) => (
-          <LessonDetailView
-            key={level.id}
-            lesson={{ ...visibleRow(level), saved: savedIds.has(level.id) }}
-            communitySlug={community.slug}
-            spaceSlug={space.slug}
-            canEdit={Boolean(isStaff)}
-            // Its author decides whether anyone else sees it; staff can too,
-            // since they answer for what is in their space.
-            canManageVisibility={Boolean(isStaff) || level.created_by === user?.id}
-            canSave={Boolean(isMember)}
-            sourceRules={rulesFor(level)}
-            rulesAreOriginal={Boolean(level.prompt_used)}
-            level={{
-              index,
-              count: levels.length,
-              // Only claimed for a level that really was written on top of
-              // the ones above it. Levels written before families existed were
-              // each written on their own, and may overlap.
-              previousBand:
-                index > 0 && level.prompt_used?.includes("<earlier_levels>")
-                  ? levels[index - 1].age_band
-                  : null,
-            }}
-          />
-        ))}
+      {/* The first level's video is the one on the page (see LessonDetailView),
+          and every level's sections may point into it. */}
+      <LessonVideoProvider url={levels[0]?.video_url ?? null}>
+        <div className="space-y-10">
+          {levels.map((level, index) => (
+            <LessonDetailView
+              key={level.id}
+              lesson={{ ...visibleRow(level), saved: savedIds.has(level.id) }}
+              communitySlug={community.slug}
+              spaceSlug={space.slug}
+              canEdit={Boolean(isStaff)}
+              // Its author decides whether anyone else sees it; staff can too,
+              // since they answer for what is in their space.
+              canManageVisibility={Boolean(isStaff) || level.created_by === user?.id}
+              canSave={Boolean(isMember)}
+              sourceRules={rulesFor(level)}
+              rulesAreOriginal={Boolean(level.prompt_used)}
+              level={{
+                index,
+                count: levels.length,
+                // Only claimed for a level that really was written on top of
+                // the ones above it. Levels written before families existed were
+                // each written on their own, and may overlap.
+                previousBand:
+                  index > 0 && level.prompt_used?.includes("<earlier_levels>")
+                    ? levels[index - 1].age_band
+                    : null,
+              }}
+            />
+          ))}
 
-        {canAddLevel && (
-          <LessonAddLevel
-            lessonId={levels.find((level) => (level.source_text ?? "").trim())?.id ?? lesson.id}
-            existingBands={levels.map((level) => level.age_band)}
-            communitySlug={community.slug}
-            spaceSlug={space.slug}
-          />
-        )}
-      </div>
+          {canAddLevel && (
+            <LessonAddLevel
+              lessonId={levels.find((level) => (level.source_text ?? "").trim())?.id ?? lesson.id}
+              existingBands={levels.map((level) => level.age_band)}
+              communitySlug={community.slug}
+              spaceSlug={space.slug}
+            />
+          )}
+        </div>
+      </LessonVideoProvider>
     </div>
   );
 }

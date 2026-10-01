@@ -226,6 +226,12 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     ...health,
     ...continuation,
     "",
+    // Video transcripts arrive with "[12:30]" paragraph markers from the
+    // worker; the lesson page turns video_seconds into "watch from" buttons.
+    "If the source material contains timestamps like [12:30], set each section's",
+    "video_seconds to where its material starts in the video. Never print",
+    "timestamps in the lesson text. Without timestamps, video_seconds is null.",
+    "",
     "Write the lesson straight through. This is a writing task, not a puzzle —",
     "don't deliberate at length before starting.",
   ].join("\n");
