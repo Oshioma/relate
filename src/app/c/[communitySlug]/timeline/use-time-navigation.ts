@@ -2,17 +2,21 @@
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { panWindow, zoomWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
+import { wheelIntent, type WheelAxis } from "@/lib/timeline/wheel-intent";
 
-// Moving through time: drag to pan, wheel or pinch to zoom, arrow keys for the
-// keyboard. Shared by the main canvas and by Compare mode's lanes so both feel
-// like the same object — a lane that panned differently from the strip above it
-// would read as a bug however well each behaved alone.
+// Moving through time: drag or swipe sideways to pan, pinch or Ctrl/Cmd+wheel
+// to zoom, Shift+wheel to pan, arrow keys for the keyboard. A plain vertical
+// wheel is the page's, not ours — see wheel-intent.ts.
+//
+// Shared by the main canvas and by Compare mode's lanes so both feel like the
+// same object — a lane that panned differently from the strip above it would
+// read as a bug however well each behaved alone.
 //
 // Everything is computed in YEARS from the window it started with, never
 // accumulated in pixels, so a long drag doesn't drift and a pinch that starts
 // at 13 billion years wide behaves the same as one at ten years wide.
 
-const WHEEL_SENSITIVITY = 0.0016;
+const WHEEL_GESTURE_GAP_MS = 200;
 
 export function useTimeNavigation(
   containerRef: RefObject<HTMLElement | null>,
@@ -36,8 +40,15 @@ export function useTimeNavigation(
   const pinch = useRef<{ distance: number; window: TimeWindow; centre: number } | null>(null);
   const drag = useRef<{ x: number; window: TimeWindow; moved: boolean } | null>(null);
 
+  // The axis the current run of wheel events was first read on, and when the
+  // last one arrived. A trackpad swipe is a stream of events with momentum
+  // tail; a gap this long means the fingers lifted and a new gesture began.
+  const wheelAxis = useRef<{ axis: WheelAxis; at: number } | null>(null);
+
   // React's synthetic wheel handler is passive, and a passive listener cannot
-  // preventDefault — so without this the page scrolls underneath every zoom.
+  // preventDefault — so this is attached natively. Only the gestures the strip
+  // claims are prevented; a plain vertical scroll is left alone so the page
+  // scrolls through the strip to the record, evidence and sources below it.
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -45,17 +56,31 @@ export function useTimeNavigation(
     function handleWheel(nativeEvent: WheelEvent) {
       const el = containerRef.current;
       if (!el) return;
+
+      // An uncancelable wheel event is the browser telling us this gesture is
+      // already scrolling something — usually the page, which carried the
+      // strip under a stationary pointer mid-scroll. Joining in would move
+      // the strip AND the page with one swipe.
+      if (!nativeEvent.cancelable) return;
+
+      const now = nativeEvent.timeStamp;
+      const locked = wheelAxis.current && now - wheelAxis.current.at < WHEEL_GESTURE_GAP_MS ? wheelAxis.current.axis : null;
+      const intent = wheelIntent(nativeEvent, nativeEvent.ctrlKey || nativeEvent.metaKey || nativeEvent.shiftKey ? null : locked);
+      if (!nativeEvent.ctrlKey && !nativeEvent.metaKey && !nativeEvent.shiftKey) {
+        wheelAxis.current = { axis: locked ?? (intent.kind === "pan" ? "x" : "y"), at: now };
+      }
+
+      if (intent.kind === "page") return;
       nativeEvent.preventDefault();
       const rect = el.getBoundingClientRect();
-      const anchor = rect.width > 0 ? (nativeEvent.clientX - rect.left) / rect.width : 0.5;
 
-      // A trackpad's horizontal swipe is a pan; everything else is a zoom about
-      // the cursor. Matching what maps do matters more here than being clever.
-      if (!nativeEvent.ctrlKey && Math.abs(nativeEvent.deltaX) > Math.abs(nativeEvent.deltaY)) {
-        onWindowChange(panWindow(viewRef.current, nativeEvent.deltaX / Math.max(1, rect.width), scale));
+      if (intent.kind === "pan") {
+        onWindowChange(panWindow(viewRef.current, intent.pixels / Math.max(1, rect.width), scale));
         return;
       }
-      onWindowChange(zoomWindow(viewRef.current, Math.exp(nativeEvent.deltaY * WHEEL_SENSITIVITY), anchor, scale));
+      // Zoom about the pointer: the date under it stays under it.
+      const anchor = rect.width > 0 ? (nativeEvent.clientX - rect.left) / rect.width : 0.5;
+      onWindowChange(zoomWindow(viewRef.current, intent.factor, anchor, scale));
     }
 
     element.addEventListener("wheel", handleWheel, { passive: false });

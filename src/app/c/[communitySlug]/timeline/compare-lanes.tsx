@@ -92,7 +92,7 @@ export function CompareLanes({
     <div
       ref={containerRef}
       role="application"
-      aria-label="Compare timelines. Drag to move through time, pinch or scroll to zoom."
+      aria-label="Compare timelines. Drag, swipe sideways or Shift-scroll to move through time, pinch or Ctrl-scroll to zoom."
       tabIndex={0}
       onPointerDown={nav.onPointerDown}
       onPointerMove={nav.onPointerMove}
