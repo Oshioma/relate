@@ -10,6 +10,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, LessonVideoJob } from "@/types/database";
 import { MAX_SOURCE_CHARS } from "@/lib/school/lesson-types";
 import { isFinished, pollWorkerJob } from "@/lib/school/video-worker";
+import { recordAiSpend } from "@/lib/usage/ai-spend";
+import { getUsageRates } from "@/lib/usage/pricing";
+import { proxyCost, whisperCost } from "@/lib/usage/costs";
 
 // Longer than the worker should ever need for the longest video it accepts.
 // Past this, a job that still isn't finished is not going to be.
@@ -82,9 +85,23 @@ export async function syncVideoJob(
     ({ data, error } = await write(rest));
   }
 
-  if (error || !data) {
-    console.error("Could not update video job", error);
-    return { ...job, ...update };
+  const result = (error || !data ? { ...job, ...update } : data) as LessonVideoJob;
+  if (error || !data) console.error("Could not update video job", error);
+
+  // The job has just finished, one way or the other: charge what it used to
+  // the community's AI allowance. The ref is the job, so two polls racing to
+  // see it finish record it once.
+  if (isFinished(result)) {
+    const rates = getUsageRates();
+    await recordAiSpend({
+      communityId: job.community_id,
+      userId: job.created_by,
+      kind: "video",
+      amountUsd:
+        whisperCost(result.audio_seconds ?? 0, rates) + proxyCost(result.download_bytes ?? 0, rates),
+      ref: `video:${job.id}`,
+    });
   }
-  return data as LessonVideoJob;
+
+  return result;
 }

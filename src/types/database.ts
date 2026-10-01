@@ -1211,6 +1211,18 @@ export type LessonMediaType = "video" | "audio";
 
 // One request to download and transcribe a video for the lesson composer.
 // Private to whoever made it. See 20260930145354_lesson_video_jobs.sql.
+// One paid AI call, priced at list rates when it happened. Service-role only.
+// See 20261001120904_ai_spend_ledger.sql.
+export type AiSpend = {
+  id: string;
+  community_id: string;
+  user_id: string | null;
+  kind: "lesson" | "video";
+  amount_usd: number;
+  ref: string;
+  created_at: string;
+};
+
 export type LessonVideoJob = {
   id: string;
   space_id: string;
@@ -2933,6 +2945,12 @@ export type Database = {
         };
         Update: Partial<LessonVideoJob>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      ai_spend: {
+        Row: AiSpend;
+        Insert: Omit<AiSpend, "id" | "created_at"> & { id?: string; created_at?: string };
+        Update: Partial<AiSpend>;
+        Relationships: [FKey<"community_id", "communities">];
       };
       meetup_participants: {
         Row: MeetupParticipant;

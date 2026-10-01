@@ -32,6 +32,9 @@ import {
   type EarlierLevel,
 } from "@/lib/ai/lesson-writer";
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
+import { recordAiSpend } from "@/lib/usage/ai-spend";
+import { getUsageRates } from "@/lib/usage/pricing";
+import { claudeCost, claudeRateFor } from "@/lib/usage/costs";
 import { parseVideoLink } from "@/lib/school/video-links";
 import { isLessonMediaPath, mediaTypeOfPath } from "@/lib/school/lesson-media";
 
@@ -97,6 +100,19 @@ export function streamLesson(input: {
             lastSent = chars;
             send({ type: "progress", chars });
           },
+        });
+
+        // Charged to the community's AI allowance as soon as the call returns —
+        // before saving, so a lesson written but never saved still counts.
+        await recordAiSpend({
+          communityId,
+          userId,
+          kind: "lesson",
+          amountUsd: (() => {
+            const rates = getUsageRates();
+            return claudeCost(usage.inputTokens, usage.outputTokens, claudeRateFor(usage.model, rates));
+          })(),
+          ref: `lesson:${crypto.randomUUID()}`,
         });
 
         // The document as it is stored. The writer also returns how long the
