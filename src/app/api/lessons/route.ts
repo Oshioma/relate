@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { streamLesson } from "@/lib/school/lesson-stream";
 import { findOwnUpload } from "@/lib/school/lesson-media-storage";
 import {
@@ -95,6 +96,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: found.error }, { status: 400, headers: NO_STORE });
     }
   }
+
+  // The community's free monthly AI allowance, unless it is exempt or
+
+  // subscribed. Checked before the daily quota so a refusal here doesn't
+
+  // also use up one of the person's daily lessons.
+
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+
+  if (!allowance.allowed) {
+
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+
+  }
+
 
   const quota = await consumeLessonQuota(supabase, auth.userId);
   if (!quota.allowed) {

@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { streamLesson } from "@/lib/school/lesson-stream";
 import { getLesson, getLessonFamily } from "@/lib/data/lessons";
 import {
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   }
 
   // A rewrite is a full model call, so it counts against the same quota.
+  // The community's free monthly AI allowance, unless it is exempt or
+  // subscribed. Checked before the daily quota so a refusal here doesn't
+  // also use up one of the person's daily lessons.
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+  if (!allowance.allowed) {
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+  }
+
   const quota = await consumeLessonQuota(supabase, auth.userId);
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.message }, { status: 429, headers: NO_STORE });
