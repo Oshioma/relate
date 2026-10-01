@@ -41,3 +41,22 @@ test("only the Adult band goes beyond the source", () => {
     assert.equal(canGoBeyondSource(band), false, band);
   }
 });
+
+test("editing a lesson keeps the institutional material it left out", async () => {
+  const { EditableLessonSchema } = await import("./lesson-types");
+  const parsed = EditableLessonSchema.parse({
+    title: "T",
+    subject: "History",
+    summary: "",
+    objectives: [],
+    vocabulary: [],
+    sections: [],
+    activity: { title: "", instructions: "", materials: [] },
+    questions: [],
+    discussion: [],
+    omitted_institutional: [{ body: "CDC", content: "What the source said the CDC claimed." }],
+  });
+  assert.deepEqual(parsed.omitted_institutional, [
+    { body: "CDC", content: "What the source said the CDC claimed." },
+  ]);
+});
