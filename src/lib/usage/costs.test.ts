@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   claudeCost,
+  claudeCostWithCache,
   claudeRateFor,
   estimateLessonTokens,
   formatUsd,
@@ -149,4 +150,25 @@ test("one lesson's cost uses its recorded tokens when it has them", () => {
   // (88,000 + 12,000) / 4 = 25,000 in; 20,000 / 4 = 5,000 out
   assert.equal(guessed.estimated, true);
   assert.ok(Math.abs(guessed.cost - (0.1 + 0.1)) < 1e-9);
+});
+
+test("cached input is priced as a write or a read, not at the full rate", () => {
+  const rate = { inputPerMTok: 4, outputPerMTok: 20 };
+  // 1,000 plain + 20,000 written to cache + 0 read; 5,000 out.
+  const first = claudeCostWithCache(
+    { inputTokens: 21_000, outputTokens: 5_000, cacheWriteTokens: 20_000, cacheReadTokens: 0 },
+    rate
+  );
+  assert.ok(Math.abs(first - (1_000 * 4 + 25_000 * 4 + 5_000 * 20) / 1e6) < 1e-9);
+  // The next level reads the same 20,000 from cache.
+  const next = claudeCostWithCache(
+    { inputTokens: 21_000, outputTokens: 5_000, cacheWriteTokens: 0, cacheReadTokens: 20_000 },
+    rate
+  );
+  assert.ok(Math.abs(next - (1_000 * 4 + 2_000 * 4 + 5_000 * 20) / 1e6) < 1e-9);
+  // No cache fields: same as the plain price.
+  assert.equal(
+    claudeCostWithCache({ inputTokens: 21_000, outputTokens: 5_000 }, rate),
+    claudeCost(21_000, 5_000, rate)
+  );
 });

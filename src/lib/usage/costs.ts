@@ -84,6 +84,24 @@ export function lessonWritingCost(
   };
 }
 
+// Prompt caching changes what input costs: writing the cache is billed at
+// 1.25× the input rate, reading it at a fraction (0.1× is the usual list rate;
+// some models are cheaper still, so this errs high, the safe direction for an
+// allowance). `inputTokens` is the total, cached share included, as stored.
+export const CACHE_WRITE_MULTIPLIER = 1.25;
+export const CACHE_READ_MULTIPLIER = 0.1;
+
+export function claudeCostWithCache(
+  usage: { inputTokens: number; outputTokens: number; cacheWriteTokens?: number; cacheReadTokens?: number },
+  rate: ClaudeRate
+): number {
+  const write = usage.cacheWriteTokens ?? 0;
+  const read = usage.cacheReadTokens ?? 0;
+  const plain = Math.max(0, usage.inputTokens - write - read);
+  const input = plain + write * CACHE_WRITE_MULTIPLIER + read * CACHE_READ_MULTIPLIER;
+  return (input * rate.inputPerMTok + usage.outputTokens * rate.outputPerMTok) / 1_000_000;
+}
+
 // ---------------------------------------------------------------------------
 // Video
 // ---------------------------------------------------------------------------
