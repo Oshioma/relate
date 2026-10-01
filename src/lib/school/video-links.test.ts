@@ -50,6 +50,62 @@ test("Facebook video links keep only what identifies the video", () => {
   assert.equal(parseVideoLink("https://www.facebook.com/share/v/abc123/")?.embedUrl, null);
 });
 
+test("TikTok videos keep the user and id, drop the tracking and embed portrait", () => {
+  for (const raw of [
+    "https://www.tiktok.com/@some.school/video/7234567890123456789?is_from_webapp=1&sender_device=pc",
+    "tiktok.com/@some.school/video/7234567890123456789",
+    "https://m.tiktok.com/@some.school/video/7234567890123456789/",
+  ]) {
+    const link = parseVideoLink(raw);
+    assert.equal(link?.platform, "tiktok", raw);
+    assert.equal(link?.url, "https://www.tiktok.com/@some.school/video/7234567890123456789", raw);
+    assert.equal(link?.embedUrl, "https://www.tiktok.com/embed/v2/7234567890123456789", raw);
+    assert.equal(link?.portrait, true, raw);
+  }
+});
+
+test("TikTok share links are kept but not embedded", () => {
+  const vm = parseVideoLink("https://vm.tiktok.com/ZMabc123/");
+  assert.equal(vm?.platform, "tiktok");
+  assert.equal(vm?.url, "https://vm.tiktok.com/ZMabc123/");
+  assert.equal(vm?.embedUrl, null);
+  assert.equal(vm?.portrait, true);
+
+  const t = parseVideoLink("https://www.tiktok.com/t/ZTabc123/?_r=1");
+  assert.equal(t?.url, "https://www.tiktok.com/t/ZTabc123/");
+  assert.equal(t?.embedUrl, null);
+});
+
+test("Vimeo links in every common shape resolve to one address", () => {
+  for (const raw of [
+    "https://vimeo.com/76979871",
+    "vimeo.com/76979871?share=copy",
+    "https://www.vimeo.com/76979871",
+    "https://vimeo.com/channels/staffpicks/76979871",
+    "https://vimeo.com/groups/shortfilms/videos/76979871",
+    "https://player.vimeo.com/video/76979871",
+  ]) {
+    const link = parseVideoLink(raw);
+    assert.equal(link?.platform, "vimeo", raw);
+    assert.equal(link?.url, "https://vimeo.com/76979871", raw);
+    assert.equal(link?.embedUrl, "https://player.vimeo.com/video/76979871?dnt=1", raw);
+    assert.equal(link?.portrait, false, raw);
+  }
+});
+
+test("unlisted Vimeo videos keep their hash", () => {
+  for (const raw of ["https://vimeo.com/76979871/a1b2c3d4e5", "https://player.vimeo.com/video/76979871?h=a1b2c3d4e5"]) {
+    const link = parseVideoLink(raw);
+    assert.equal(link?.url, "https://vimeo.com/76979871/a1b2c3d4e5", raw);
+    assert.equal(link?.embedUrl, "https://player.vimeo.com/video/76979871?dnt=1&h=a1b2c3d4e5", raw);
+  }
+  // Something that isn't a hash never reaches the iframe src.
+  assert.equal(
+    parseVideoLink("https://player.vimeo.com/video/76979871?h=x%22onload")?.embedUrl,
+    "https://player.vimeo.com/video/76979871?dnt=1"
+  );
+});
+
 test("anything else is not a video link", () => {
   for (const raw of [
     "",
@@ -60,6 +116,16 @@ test("anything else is not a video link", () => {
     "javascript:alert(1)",
     "file:///etc/passwd",
     "https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ",
+    "https://www.tiktok.com/@some.school",
+    "https://www.tiktok.com/@some.school/video/notanumber",
+    "https://www.tiktok.com/@some.school/photo/7234567890123456789",
+    "https://tiktok.com.evil.example/@some.school/video/7234567890123456789",
+    "https://eviltiktok.com/@some.school/video/7234567890123456789",
+    "https://vimeo.com/channels/staffpicks",
+    "https://vimeo.com/someuser",
+    "https://vimeo.com/groups/shortfilms",
+    "https://player.vimeo.com/api/player.js",
+    "https://vimeo.com.evil.example/76979871",
   ]) {
     assert.equal(parseVideoLink(raw), null, raw);
   }
