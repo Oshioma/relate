@@ -1236,6 +1236,25 @@ export type UnsavedLesson = {
   created_at: string;
 };
 
+// A background job writing a lesson's missing ages at half price, one level
+// after another. Service-role only. See 20261001135949_lesson_batch_jobs.sql.
+export type LessonBatchJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  family_id: string;
+  source_lesson_id: string | null;
+  pending_bands: string[];
+  current_band: string | null;
+  batch_id: string | null;
+  lesson_ids: string[];
+  status: "running" | "done" | "error" | "cancelled";
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type LessonVideoJob = {
   id: string;
   space_id: string;
@@ -2967,6 +2986,17 @@ export type Database = {
           error?: string | null;
         };
         Update: Partial<UnsavedLesson>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      lesson_batch_jobs: {
+        Row: LessonBatchJob;
+        Insert: Partial<LessonBatchJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+          family_id: string;
+        };
+        Update: Partial<LessonBatchJob>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
       ai_spend: {

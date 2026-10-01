@@ -31,7 +31,7 @@ import {
   LessonGenerationError,
   type EarlierLevel,
 } from "@/lib/ai/lesson-writer";
-import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
+import { cleanDiscoveryCategories, storableLesson, type AgeBandKey, type Lesson } from "@/lib/school/lesson-types";
 import { recordAiSpend } from "@/lib/usage/ai-spend";
 import { parkUnsavedLesson } from "@/lib/school/unsaved-lessons";
 import { getUsageRates } from "@/lib/usage/pricing";
@@ -113,40 +113,22 @@ export function streamLesson(input: {
           ref: `lesson:${crypto.randomUUID()}`,
         });
 
-        // The document as it is stored. The writer also returns how long the
-        // lesson takes and what kind of thing it is; those become columns, so
-        // staff can override them — and keeping a second copy in the jsonb
-        // would leave a stale one behind the moment they did.
-        const document = storableLesson(lesson);
-
-        const row = {
-          space_id: spaceId,
-          community_id: communityId,
-          created_by: userId,
-          age_band: ageBand,
-          title: lesson.title,
-          subject: lesson.subject,
-          source_text: sourceText,
-          lesson: document,
-          // Classified by the same call that wrote it. Cleaned rather than
-          // trusted: the column constrains these to the eight, and a model
-          // returning something else should lose the value, not the lesson.
-          discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
-          duration_minutes: lesson.duration_minutes ?? null,
-          // Recorded on the row, not just in the prose: a reader deciding
-          // whether to print this needs to know before they open it.
-          beyond_source: beyondSource,
-          // The prompt as sent, not as rebuildable. A lesson written today
-          // stays truthful about its own rules after the prompt changes.
-          prompt_used: promptUsed,
-          source_url: sourceUrl,
-          source_title: sourceTitle,
-          video_url: videoUrl,
-          media_path: mediaPath,
-          media_type: mediaType,
-          // Left to the column default for a new lesson: a family of one.
-          ...(input.familyId ? { family_id: input.familyId } : {}),
-        };
+        const { document, row } = buildLessonRow({
+          spaceId,
+          communityId,
+          userId,
+          ageBand,
+          sourceText,
+          lesson,
+          promptUsed,
+          beyondSource,
+          sourceUrl,
+          sourceTitle,
+          videoUrl,
+          mediaPath,
+          mediaType,
+          familyId: input.familyId,
+        });
         // What the call cost in tokens, for the platform admin's cost panel.
         // Recorded now because it can't be recovered later.
         const usageColumns = {
@@ -236,4 +218,60 @@ export function streamLesson(input: {
       "X-Accel-Buffering": "no",
     },
   });
+}
+
+// The space_lessons row for a freshly written lesson. Shared by the instant
+// writer and the half-price background writer, so a lesson is stored the same
+// way however it was written.
+export function buildLessonRow(input: {
+  spaceId: string;
+  communityId: string;
+  userId: string;
+  ageBand: AgeBandKey;
+  sourceText: string;
+  lesson: Lesson;
+  promptUsed: string;
+  beyondSource: boolean;
+  sourceUrl: string | null;
+  sourceTitle: string | null;
+  videoUrl: string | null;
+  mediaPath: string | null;
+  mediaType: LessonMediaType | null;
+  familyId?: string;
+}) {
+  const { lesson } = input;
+  // The document as it is stored. The writer also returns how long the
+  // lesson takes and what kind of thing it is; those become columns, so
+  // staff can override them — and keeping a second copy in the jsonb
+  // would leave a stale one behind the moment they did.
+  const document = storableLesson(lesson);
+  const row = {
+    space_id: input.spaceId,
+    community_id: input.communityId,
+    created_by: input.userId,
+    age_band: input.ageBand,
+    title: lesson.title,
+    subject: lesson.subject,
+    source_text: input.sourceText,
+    lesson: document,
+    // Classified by the same call that wrote it. Cleaned rather than
+    // trusted: the column constrains these to the eight, and a model
+    // returning something else should lose the value, not the lesson.
+    discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
+    duration_minutes: lesson.duration_minutes ?? null,
+    // Recorded on the row, not just in the prose: a reader deciding
+    // whether to print this needs to know before they open it.
+    beyond_source: input.beyondSource,
+    // The prompt as sent, not as rebuildable. A lesson written today
+    // stays truthful about its own rules after the prompt changes.
+    prompt_used: input.promptUsed,
+    source_url: input.sourceUrl,
+    source_title: input.sourceTitle,
+    video_url: input.videoUrl,
+    media_path: input.mediaPath,
+    media_type: input.mediaType,
+    // Left to the column default for a new lesson: a family of one.
+    ...(input.familyId ? { family_id: input.familyId } : {}),
+  };
+  return { document, row };
 }

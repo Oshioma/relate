@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Telescope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SaveUnsavedLesson } from "./save-unsaved-lesson";
+import { LessonBatchPanel, type BatchJobView } from "./lesson-batch-panel";
 import {
   AGE_BANDS,
   ageBandLabel,
@@ -27,17 +28,23 @@ export function LessonAddLevel({
   existingBands,
   communitySlug,
   spaceSlug,
+  batchJob = null,
 }: {
   // Any level of the family: they all carry the same source.
   lessonId: string;
   existingBands: string[];
   communitySlug: string;
   spaceSlug: string;
+  // A background half-price job already running for this lesson, if any.
+  batchJob?: BatchJobView | null;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Set when a level was written but couldn't be saved: the server kept it.
   const [unsavedId, setUnsavedId] = useState<string | null>(null);
+  // While the background job runs, adding single levels by hand is paused so
+  // the two don't write the same age.
+  const [batchRunning, setBatchRunning] = useState(batchJob?.status === "running");
 
   const missing = AGE_BANDS.filter((band) => !existingBands.includes(band.key));
   if (missing.length === 0) return null;
@@ -138,7 +145,7 @@ export function LessonAddLevel({
             <button
               key={band.key}
               type="button"
-              disabled={busy !== null}
+              disabled={busy !== null || batchRunning}
               onClick={() => addLevel(band.key)}
               title={
                 ageBandRank(band.key) > oldest
@@ -175,6 +182,13 @@ export function LessonAddLevel({
           {unsavedId && <SaveUnsavedLesson unsavedId={unsavedId} onSaved={openLevel} />}
         </div>
       )}
+      <LessonBatchPanel
+        lessonId={lessonId}
+        missingCount={missing.length}
+        initialJob={batchJob}
+        disabled={busy !== null}
+        onRunningChange={setBatchRunning}
+      />
     </div>
   );
 }

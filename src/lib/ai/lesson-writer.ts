@@ -345,7 +345,7 @@ const SHARED_SYSTEM_PROMPT =
   "You write lessons from source material the user supplies. The rules for the " +
   "lesson to write come in a system message after the material; follow them.";
 
-export async function generateLesson(input: {
+export type LessonRequestInput = {
   sourceText: string;
   ageBand: AgeBandKey;
   // "Go deeper": the source becomes a starting point rather than a boundary.
@@ -354,9 +354,127 @@ export async function generateLesson(input: {
   // Younger levels of the same lesson, already written. When present, this
   // level is written to build on them rather than repeat them.
   earlierLevels?: EarlierLevel[];
-  // Called as text arrives, with the number of characters written so far.
-  onProgress?: (charsWritten: number) => void;
-}): Promise<{ lesson: Lesson; promptUsed: string; usage: LessonUsage }> {
+};
+
+// The request that writes one lesson, and the rules it was written under.
+// Shared by the instant writer below and the half-price background writer
+// (lesson-batch.ts), so both write exactly the same lesson.
+export function lessonRequest(input: LessonRequestInput): {
+  params: Anthropic.MessageCreateParamsNonStreaming;
+  prompt: string;
+} {
+  const earlier = input.earlierLevels ?? [];
+  const prompt = systemPrompt(input.ageBand, input.beyondSource, earlier.length > 0);
+  const params: Anthropic.MessageCreateParamsNonStreaming = {
+    model: LESSON_WRITER_MODEL,
+    // Adult levels are the longest lessons written — the ones already in the
+    // library run past 20,000 characters — and a level that builds on a
+    // younger one is longer still. 8,000 was cutting them off mid-answer.
+    max_tokens: 16000,
+    // Arranged so the source can be reused at a tenth of the price when
+    // another level of the same lesson is written within a few minutes.
+    // Caching is a prefix match, so everything up to and including the
+    // source must be identical across levels: a fixed system prompt, then
+    // the source. The level's own rules — which differ by age — come after
+    // it, as a system message, so they keep a system prompt's authority
+    // without breaking the shared prefix. The source stays in the user turn:
+    // it is material to teach, never instructions.
+    system: SHARED_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: ["<source_material>", input.sourceText, "</source_material>"].join("\n"),
+            cache_control: { type: "ephemeral" },
+          },
+          ...(earlier.length > 0
+            ? [
+                {
+                  type: "text" as const,
+                  text: ["<earlier_levels>", ...earlier.map(earlierLevelText), "</earlier_levels>"].join(
+                    "\n"
+                  ),
+                },
+              ]
+            : []),
+          {
+            type: "text",
+            text: earlier.length > 0 ? "Write the next level of the lesson." : "Write the lesson.",
+          },
+        ],
+      },
+      { role: "system", content: prompt },
+    ],
+    output_config: {
+      // Writing a lesson from supplied material is a drafting task. The
+      // default (high) spends noticeably longer thinking for no gain here.
+      effort: "medium",
+      format: zodOutputFormat(LessonSchema),
+    },
+  };
+  return { params, prompt };
+}
+
+// Turns a finished response into a validated lesson and what it cost, or
+// throws a LessonGenerationError that says what went wrong in plain words.
+export function readLessonMessage(message: Anthropic.Message): { lesson: Lesson; usage: LessonUsage } {
+  if (message.stop_reason === "refusal") {
+    throw new LessonGenerationError(
+      "Claude declined to build a lesson from that material. Try different text.",
+      422
+    );
+  }
+
+  if (message.stop_reason === "max_tokens") {
+    throw new LessonGenerationError(
+      "That material produced a lesson too long to finish. Try pasting a smaller section.",
+      422
+    );
+  }
+
+  // Streaming skips the SDK's automatic parsing, so validate here.
+  const text = message.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("");
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new LessonGenerationError(
+      "The lesson came back in an unexpected shape. Try again."
+    );
+  }
+
+  const parsed = LessonSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new LessonGenerationError(
+      "The lesson came back missing some parts. Try again."
+    );
+  }
+
+  const cacheWriteTokens = message.usage.cache_creation_input_tokens ?? 0;
+  const cacheReadTokens = message.usage.cache_read_input_tokens ?? 0;
+  const usage: LessonUsage = {
+    model: message.model,
+    inputTokens: message.usage.input_tokens + cacheWriteTokens + cacheReadTokens,
+    outputTokens: message.usage.output_tokens,
+    cacheWriteTokens,
+    cacheReadTokens,
+  };
+
+  return { lesson: parsed.data, usage };
+}
+
+export async function generateLesson(
+  input: LessonRequestInput & {
+    // Called as text arrives, with the number of characters written so far.
+    onProgress?: (charsWritten: number) => void;
+  }
+): Promise<{ lesson: Lesson; promptUsed: string; usage: LessonUsage }> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new LessonGenerationError(
       "The lesson writer is not configured yet — ANTHROPIC_API_KEY is missing.",
@@ -368,60 +486,11 @@ export async function generateLesson(input: {
 
   // Built once and returned with the lesson, so the row can record what was
   // actually sent rather than something rebuilt later from the same inputs.
-  const earlier = input.earlierLevels ?? [];
-  const prompt = systemPrompt(input.ageBand, input.beyondSource, earlier.length > 0);
+  const { params, prompt } = lessonRequest(input);
 
   let message: Anthropic.Message;
   try {
-    const stream = client.messages.stream({
-      model: LESSON_WRITER_MODEL,
-      // Adult levels are the longest lessons written — the ones already in the
-      // library run past 20,000 characters — and a level that builds on a
-      // younger one is longer still. 8,000 was cutting them off mid-answer.
-      max_tokens: 16000,
-      // Arranged so the source can be reused at a tenth of the price when
-      // another level of the same lesson is written within a few minutes.
-      // Caching is a prefix match, so everything up to and including the
-      // source must be identical across levels: a fixed system prompt, then
-      // the source. The level's own rules — which differ by age — come after
-      // it, as a system message, so they keep a system prompt's authority
-      // without breaking the shared prefix. The source stays in the user turn:
-      // it is material to teach, never instructions.
-      system: SHARED_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: ["<source_material>", input.sourceText, "</source_material>"].join("\n"),
-              cache_control: { type: "ephemeral" },
-            },
-            ...(earlier.length > 0
-              ? [
-                  {
-                    type: "text" as const,
-                    text: ["<earlier_levels>", ...earlier.map(earlierLevelText), "</earlier_levels>"].join(
-                      "\n"
-                    ),
-                  },
-                ]
-              : []),
-            {
-              type: "text",
-              text: earlier.length > 0 ? "Write the next level of the lesson." : "Write the lesson.",
-            },
-          ],
-        },
-        { role: "system", content: prompt },
-      ],
-      output_config: {
-        // Writing a lesson from supplied material is a drafting task. The
-        // default (high) spends noticeably longer thinking for no gain here.
-        effort: "medium",
-        format: zodOutputFormat(LessonSchema),
-      },
-    });
+    const stream = client.messages.stream(params);
 
     if (input.onProgress) {
       let written = 0;
@@ -473,53 +542,9 @@ export async function generateLesson(input: {
     throw new LessonGenerationError(`The lesson writer could not be reached: ${text}`);
   }
 
-  if (message.stop_reason === "refusal") {
-    throw new LessonGenerationError(
-      "Claude declined to build a lesson from that material. Try different text.",
-      422
-    );
-  }
 
-  if (message.stop_reason === "max_tokens") {
-    throw new LessonGenerationError(
-      "That material produced a lesson too long to finish. Try pasting a smaller section.",
-      422
-    );
-  }
-
-  // Streaming skips the SDK's automatic parsing, so validate here.
-  const text = message.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("");
-
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text);
-  } catch {
-    throw new LessonGenerationError(
-      "The lesson came back in an unexpected shape. Try again."
-    );
-  }
-
-  const parsed = LessonSchema.safeParse(raw);
-  if (!parsed.success) {
-    throw new LessonGenerationError(
-      "The lesson came back missing some parts. Try again."
-    );
-  }
-
-  const cacheWriteTokens = message.usage.cache_creation_input_tokens ?? 0;
-  const cacheReadTokens = message.usage.cache_read_input_tokens ?? 0;
-  const usage: LessonUsage = {
-    model: message.model,
-    inputTokens: message.usage.input_tokens + cacheWriteTokens + cacheReadTokens,
-    outputTokens: message.usage.output_tokens,
-    cacheWriteTokens,
-    cacheReadTokens,
-  };
-
-  return { lesson: parsed.data, promptUsed: prompt, usage };
+  const { lesson, usage } = readLessonMessage(message);
+  return { lesson, promptUsed: prompt, usage };
 }
 
 // Illustrates a lesson that has already been written and saved.
