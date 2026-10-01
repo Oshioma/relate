@@ -373,6 +373,7 @@ export function LessonsView({
           spaceId={spaceId}
           defaultAgeBand={defaultAgeBand}
           videoConfigured={videoConfigured}
+          lessonHref={(id) => `/c/${communitySlug}/spaces/${spaceSlug}/lessons/${id}`}
           onClose={() => setComposing(false)}
         />
       )}
