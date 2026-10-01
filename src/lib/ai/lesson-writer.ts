@@ -16,7 +16,13 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { findImages } from "@/lib/ai/lesson-images";
+import {
+  ARCHIVE_FIRST,
+  findArchiveItems,
+  findImages,
+  IMAGE_PHASE_BUDGET_MS,
+  type ArchiveItem,
+} from "@/lib/ai/lesson-images";
 import type { LessonImage } from "@/lib/school/lesson-types";
 import {
   AGE_BANDS,
@@ -602,13 +608,27 @@ export async function attachImages(
     ...lookInto.map((item) => item.query),
   ];
 
+  // Real Internet Archive items to investigate each topic, looked up in
+  // parallel with the pictures and on the same deadline.
+  const archiveDeadline = Date.now() + (budgetMs ?? IMAGE_PHASE_BUDGET_MS);
+  const archiveLookups = Promise.all(
+    lesson.sections.flatMap((section) =>
+      (section.look_into ?? []).map((item) => findArchiveItems(item.search || item.topic, archiveDeadline))
+    )
+  );
+
   let results: (LessonImage | null)[] = [];
   try {
-    results = await findImages(queries, budgetMs);
+    // "Look into it" topics search archives and museums first.
+    results = await findImages(queries, budgetMs, [
+      ...queries.slice(0, 1 + lesson.sections.length).map(() => null),
+      ...lookInto.map(() => ARCHIVE_FIRST),
+    ]);
   } catch (error) {
     console.error("Image lookup failed", error);
   }
 
+  const archiveItems = await archiveLookups.catch(() => [] as ArchiveItem[][]);
   const cover = results[0] ?? null;
   const images = results.slice(1, 1 + lesson.sections.length);
   const lookIntoImages = results.slice(1 + lesson.sections.length);
@@ -627,7 +647,14 @@ export async function attachImages(
         look_into: (section.look_into ?? []).map((item, i) => {
           const at = lookInto.findIndex((entry) => entry.s === s && entry.i === i);
           const existing = "image" in item ? (item as { image?: LessonImage | null }).image : null;
-          return { ...item, image: (at >= 0 ? lookIntoImages[at] : null) ?? existing ?? null };
+          const existingItems =
+            "archive_items" in item ? (item as { archive_items?: ArchiveItem[] }).archive_items : undefined;
+          const items = at >= 0 ? archiveItems[at] : undefined;
+          return {
+            ...item,
+            image: (at >= 0 ? lookIntoImages[at] : null) ?? existing ?? null,
+            archive_items: items?.length ? items : (existingItems ?? []),
+          };
         }),
       })),
     },

@@ -144,6 +144,23 @@ function LookIntoIt({ items }: { items: NonNullable<StoredLesson["sections"][num
             />
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">{item.topic}</p>
+              {(item.archive_items?.length ?? 0) > 0 && (
+                <ul className="mt-1 grid gap-0.5 text-xs">
+                  {item.archive_items?.map((found) => (
+                    <li key={found.url}>
+                      <a
+                        href={found.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-foreground underline underline-offset-2 hover:text-accent"
+                      >
+                        {found.title}
+                      </a>
+                      <span className="text-muted-foreground"> · {found.kind}, Internet Archive</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
                 {researchLinks(item.search || item.topic).map((link) => (
                   <a
