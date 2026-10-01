@@ -1345,6 +1345,21 @@ export function TimelineView({
           be measuring nothing. */}
       <SpanRuler window={view} scale={scale} />
 
+      {/* ---- The scrollbar -------------------------------------------------
+          Where everything is, and where you are in it. Above the strip, under
+          the measurement, so the three read as one instrument: how wide, what
+          is out there, and then the detail. Grab the thumb to travel, pull its
+          ends to zoom; it moves with every pan and zoom of the strip below. */}
+      <TimelineOverview
+        markers={markers}
+        window={view}
+        onWindowChange={setView}
+        // The centre date it writes has to be the date the strip's own centre
+        // line marks, and that depends on how the strip spaces its years.
+        scale={scale}
+        className="mt-3"
+      />
+
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1379,21 +1394,6 @@ export function TimelineView({
           selectedId={selected?.id ?? null}
         />
       )}
-
-      {/* ---- The scrollbar -------------------------------------------------
-          Where everything is, and where you are in it, DIRECTLY UNDER THE
-          STRIP — where a scrollbar belongs, so the hand goes to it without
-          looking. Grab the thumb to travel, pull its ends to zoom. It moves
-          with every pan and zoom of the strip above, in both modes. */}
-      <TimelineOverview
-        markers={markers}
-        window={view}
-        onWindowChange={setView}
-        // The centre date it writes has to be the date the strip's own centre
-        // line marks, and that depends on how the strip spaces its years.
-        scale={scale}
-        className="mt-2"
-      />
 
       {/* ---- Zoom rail -----------------------------------------------------
           Nothing to zoom when the page is already showing everything, so the
