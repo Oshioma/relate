@@ -78,7 +78,11 @@ export function LessonAddLevel({
               error?: string;
               row?: { id?: string };
             };
-            if (event.type === "error" && event.error) failed = event.error;
+            // A "done" without a row is a lesson that was written but could
+            // not be saved — the server says why in its error.
+            if (event.error && (event.type === "error" || event.type === "done")) {
+              failed = event.error;
+            }
             if ((event.type === "done" || event.type === "illustrated") && event.row?.id) {
               newId = event.row.id;
             }
@@ -88,15 +92,21 @@ export function LessonAddLevel({
         }
       }
 
-      if (failed && !newId) {
-        setError(failed);
+      // No saved level means nothing to show. Say so rather than reloading
+      // the page and leaving it looking as if nothing happened — a stream that
+      // ends with neither a row nor an error is a request the server cut off.
+      if (!newId) {
+        setError(
+          failed ??
+            "The new level didn't finish — the server stopped before it was saved. Try again."
+        );
         return;
       }
 
       // A full load rather than a client refresh: it lands on the new level's
       // anchor reliably, with every level re-read.
       const page = `/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`;
-      window.location.assign(newId ? `${page}#level-${newId}` : page);
+      window.location.assign(`${page}#level-${newId}`);
     } catch {
       setError("The connection dropped while writing the new level.");
     } finally {
