@@ -411,3 +411,86 @@ test("a strip too narrow for a card keeps the count chip", () => {
   assert.ok(layout.clusters.length > 0);
   assert.ok(layout.clusters.every((cluster) => !cluster.card));
 });
+
+// ---------------------------------------------------------------------------
+// SEMANTIC ZOOM
+// ---------------------------------------------------------------------------
+
+/** Every record in the input is either drawn or counted in a cluster — exactly once. */
+const everyRecordOnce = (layout: ReturnType<typeof layoutTimeline>) => {
+  const ids = [...layout.events.map((item) => item.event.id), ...layout.clusters.flatMap((cluster) => cluster.events.map((event) => event.id))];
+  return { ids, unique: new Set(ids).size };
+};
+
+test("zoomed out, a landmark in a crowd is drawn and the crowd is counted around it", () => {
+  const crowd = Array.from({ length: 40 }, (_, index) => eventAt(-2600 + index, { title: `Find ${index}` }));
+  const landmark = { ...eventAt(-2580, { title: "Great Pyramid" }), prominence: 1 } as unknown as (typeof crowd)[number];
+  const layout = layoutTimeline([...crowd, landmark], WINDOW, WIDTH, 200, "linear");
+  assert.ok(
+    layout.events.some((item) => item.event.id === landmark.id),
+    "the landmark was hidden while lesser records were drawn"
+  );
+  const { ids, unique } = everyRecordOnce(layout);
+  assert.equal(ids.length, 41, "a record was dropped or counted twice");
+  assert.equal(unique, 41);
+});
+
+test("with room for everything, nothing is hidden", () => {
+  const events = Array.from({ length: 8 }, (_, index) => eventAt(-3000 + index * 700));
+  const layout = layoutTimeline(events, WINDOW, WIDTH, 600, "linear");
+  assert.equal(layout.events.length, 8);
+  assert.equal(layout.clusters.length, 0);
+});
+
+test("zooming in reveals more records", () => {
+  const events = Array.from({ length: 120 }, (_, index) => eventAt(-2600 + index * 2, { title: `Record ${index}` }));
+  const wide = layoutTimeline(events, WINDOW, WIDTH, 240, "linear");
+  const close = layoutTimeline(events, { from: -2620, to: -2340 }, WIDTH, 240, "linear");
+  assert.ok(close.events.length > wide.events.length, `wide ${wide.events.length}, close ${close.events.length}`);
+  assert.equal(everyRecordOnce(wide).ids.length, 120);
+});
+
+test("the open record is never hidden, however unimportant", () => {
+  const crowd = Array.from({ length: 40 }, (_, index) => ({ ...eventAt(-2600 + index), prominence: 1 }) as unknown as ReturnType<typeof eventAt>);
+  const minor = { ...eventAt(-2590, { title: "Minor" }), prominence: 3 } as unknown as ReturnType<typeof eventAt>;
+  const layout = layoutTimeline([...crowd, minor], WINDOW, WIDTH, 200, "linear", undefined, new Set([minor.id]));
+  assert.ok(layout.events.some((item) => item.event.id === minor.id));
+});
+
+test("a cluster's zoom window covers every record it counts", () => {
+  const events = Array.from({ length: 60 }, (_, index) => eventAt(-2600 + index * 3));
+  const layout = layoutTimeline(events, WINDOW, WIDTH, 160, "linear");
+  for (const cluster of layout.clusters) {
+    for (const event of cluster.events) {
+      const year = event.claims[0].start_year as number;
+      assert.ok(year >= cluster.from - 1 && year <= cluster.to + 1, `${year} outside ${cluster.from}..${cluster.to}`);
+    }
+  }
+});
+
+test("under semantic zoom, no marker is drawn on another record's caption", () => {
+  const events = [
+    ...Array.from({ length: 30 }, (_, index) => eventAt(-2900 + index * 25, { title: `Old Kingdom record ${index}` })),
+    { ...eventAt(-2599, { title: "Great Pyramid of Giza" }), prominence: 1 } as unknown as ReturnType<typeof eventAt>,
+  ];
+  for (const window of [WINDOW, { from: -3300, to: -2000 }, { from: -2750, to: -2450 }]) {
+    const layout = layoutTimeline(events, window, WIDTH, 220, "linear");
+    for (const captioned of layout.events.filter((item) => item.showLabel)) {
+      const [lo, hi] =
+        captioned.labelSide === "left"
+          ? [captioned.xFrom - 6 - captioned.labelWidth, captioned.xFrom]
+          : [captioned.xTo + 6, captioned.xTo + 6 + captioned.labelWidth];
+      for (const other of layout.events) {
+        if (other === captioned || other.row !== captioned.row) continue;
+        assert.ok(
+          !(other.xFrom > lo + 1 && other.xFrom < hi - 1),
+          `${window.from}..${window.to}: "${other.event.title}" is drawn on "${captioned.event.title}"`
+        );
+      }
+    }
+    assert.ok(
+      layout.events.some((item) => item.event.title === "Great Pyramid of Giza" && item.showLabel),
+      `${window.from}..${window.to}: the landmark lost its caption`
+    );
+  }
+});

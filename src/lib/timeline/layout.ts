@@ -1,5 +1,6 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, type TimeScale, type TimeWindow } from "./time";
+import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, positionAt, type TimeScale, type TimeWindow } from "./time";
+import { compareImportance, importanceOf } from "./prominence";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -398,6 +399,86 @@ function placeClaim(
   };
 }
 
+// --- Semantic zoom ---------------------------------------------------------------
+//
+// THE MOST IMPORTANT RECORDS THAT FIT, NOT THE FIRST ONES.
+//
+// When a stretch holds more than the rows can show, the packer below used to
+// keep whichever records it reached first — left to right — and push the rest
+// into "+N". Zoomed out to the ancient world that kept the earliest dozen dated
+// finds and hid the Great Pyramid. Now the records are offered in order of
+// importance (prominence.ts), each taking room only where it fits, so a wide
+// view shows landmarks and every zoom step makes room for the next tier — a
+// map showing countries, then cities, then streets.
+//
+// The room model is the packer's own: a record needs its footprint plus its
+// caption on some row, or failing that its bare marker, exactly the two tries
+// the packer makes. Any set this accepts is one the packer can lay out (an
+// interval set that fits R rows is packed into R rows by left-to-right
+// first-fit), so what is selected is what is drawn.
+//
+// Whatever does not fit is returned as hidden, to be counted into nearby
+// cluster cards — nothing is invisible, it is only further down the order.
+
+const NO_PINNED: ReadonlySet<string> = new Set();
+
+/** How far a hidden record may sit from a cluster and still be counted in it, in pixels. */
+const HIDDEN_MERGE_PX = 120;
+/** Hidden records further from any cluster than that are grouped at this pitch. */
+const HIDDEN_BUCKET_PX = 60;
+
+function selectByImportance(
+  items: PlacedEvent[],
+  rows: number,
+  pinned: ReadonlySet<string>
+): { shown: PlacedEvent[]; hidden: PlacedEvent[]; rowOf: Map<PlacedEvent, number> } {
+  // Fewer records than rows always fit: one each, packed as they always were.
+  if (items.length <= rows) return { shown: items, hidden: [], rowOf: new Map() };
+
+  // A record the reader has selected is never hidden from under them.
+  const ranked = [...items].sort(
+    (a, b) => Number(pinned.has(b.event.id)) - Number(pinned.has(a.event.id)) || compareImportance(a.event, b.event)
+  );
+
+  const attempt = (rowCount: number) => {
+    const occupied: [number, number][][] = Array.from({ length: rowCount }, () => []);
+    const shown: PlacedEvent[] = [];
+    const hidden: PlacedEvent[] = [];
+    const rowOf = new Map<PlacedEvent, number>();
+    for (const item of ranked) {
+      const from = item.xFrom - 6;
+      const markerEnd = reserveEnd(item) + ROW_GAP_PX;
+      const labelEnd = markerEnd + item.labelWidth;
+      const free = (row: number, to: number) => occupied[row].every(([lo, hi]) => hi <= from || lo >= to);
+      let end = labelEnd;
+      let row = occupied.findIndex((_, r) => free(r, labelEnd));
+      if (row === -1) {
+        end = markerEnd;
+        row = occupied.findIndex((_, r) => free(r, markerEnd));
+      }
+      if (row === -1) {
+        // Pinned records go through regardless; the packer's overflow is the
+        // backstop for the one case where that over-fills a row.
+        (pinned.has(item.event.id) ? shown : hidden).push(item);
+        continue;
+      }
+      occupied[row].push([from, end]);
+      rowOf.set(item, row);
+      shown.push(item);
+    }
+    return { shown, hidden, rowOf };
+  };
+
+  let result = attempt(rows);
+  // Something is being hidden, so a cluster card is coming: leave it a row
+  // rather than making it squeeze on top of the records that were kept.
+  // (Wrapped captions can still spend that row's height; the cluster
+  // placement makes room locally when they do — see makeRoom.)
+  if (result.hidden.length > 0 && rows > 1) result = attempt(rows - 1);
+  result.shown.sort((a, b) => a.xFrom - b.xFrom);
+  return result;
+}
+
 export function layoutTimeline(
   events: TimelineEventWithClaims[],
   window: TimeWindow,
@@ -410,7 +491,9 @@ export function layoutTimeline(
   availableHeight: number,
   scale: TimeScale = "linear",
   /** What the browser reported for captions it has already drawn. See MeasuredLabels. */
-  measured?: MeasuredLabels
+  measured?: MeasuredLabels,
+  /** Records that must stay on the strip whatever the zoom — the one the reader has open. */
+  pinned: ReadonlySet<string> = NO_PINNED
 ): TimelineLayout {
   if (width <= 0) return { events: [], clusters: [], rows: 0, rowHeights: [], height: 0 };
 
@@ -500,19 +583,28 @@ export function layoutTimeline(
   const survivors: PlacedEvent[] = [];
   const yearsPerPixel = (window.to - window.from) / width;
 
+  // Semantic zoom first: the most important records that fit go on to be
+  // laid out; the rest are counted into clusters at the end.
+  const selection = selectByImportance(placed, maxRows, pinned);
+  const shown = selection.shown;
+  const selectedRow = selection.rowOf;
+  // Left out by semantic zoom, plus (below) anything the height budget could
+  // not hold. Counted into clusters at the end.
+  const hidden = [...selection.hidden];
+
   let i = 0;
-  while (i < placed.length) {
+  while (i < shown.length) {
     let j = i + 1;
     // A run of events that all start within CLUSTER_PX of the first, and none
     // of which is wide enough to be worth drawing as a span of its own.
     while (
-      j < placed.length &&
-      placed[j].xFrom - placed[i].xFrom < CLUSTER_PX &&
-      placed[j].xTo - placed[j].xFrom < CLUSTER_PX
+      j < shown.length &&
+      shown[j].xFrom - shown[i].xFrom < CLUSTER_PX &&
+      shown[j].xTo - shown[j].xFrom < CLUSTER_PX
     ) {
       j++;
     }
-    const run = placed.slice(i, j);
+    const run = shown.slice(i, j);
     // A CROWD IS ONLY COLLAPSED WHEN THE ROWS CANNOT HOLD IT.
     //
     // Rows exist precisely to separate things that share an x, and this ran
@@ -569,6 +661,25 @@ export function layoutTimeline(
 
   for (const item of survivors) {
     const start = item.xFrom - 6;
+
+    // THE ROW SEMANTIC ZOOM CHOSE, when it chose one. Its rows were handed out
+    // in order of importance, so the landmark got caption room before the
+    // records either side of it; first-fit from the left would give that room
+    // to whichever came first in time and leave the landmark a bare dot. Every
+    // row it chose is a valid placement against the same footprints used here.
+    const preset = selectedRow.get(item);
+    if (preset !== undefined) {
+      while (labelEnds.length <= preset) {
+        labelEnds.push(-Infinity);
+        markerEnds.push(-Infinity);
+      }
+      item.row = preset;
+      const reservedEnd = reserveEnd(item);
+      markerEnds[preset] = Math.max(markerEnds[preset], reservedEnd + ROW_GAP_PX);
+      labelEnds[preset] = Math.max(labelEnds[preset], reservedEnd + item.labelWidth + ROW_GAP_PX);
+      placedRows.push(item);
+      continue;
+    }
 
     let row = labelEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1 && labelEnds.length < maxRows) {
@@ -786,6 +897,13 @@ export function layoutTimeline(
       // A "+1" chip reads as a bug rather than as a crowd. One leftover event
       // goes back on the strip as a bare marker — it may sit under a neighbour's
       // label, which is a smaller cost than a badge that says nothing.
+      // Under semantic zoom a leftover is just one more record that did not
+      // make the cut: it is counted in the nearest cluster with the others,
+      // rather than dropped as a bare dot onto whatever caption is there.
+      if (items.length === 1 && selectedRow.size > 0) {
+        hidden.push(items[0]);
+        continue;
+      }
       if (items.length === 1) {
         items[0].row = lastRow;
         items[0].top = rowTops[lastRow] ?? 0;
@@ -803,6 +921,93 @@ export function layoutTimeline(
         count: items.length,
         from: window.from + (x - bucketPx) * yearsPerPixel,
         to: window.from + (x + bucketPx) * yearsPerPixel,
+        events: items.map((item) => item.event),
+        card: false,
+        cardLeft: 0,
+      });
+    }
+  }
+
+  // THE RECORDS SEMANTIC ZOOM LEFT OUT, counted where the reader can find them.
+  // Each joins the nearest cluster within reach — its "+ N" and its list grow
+  // to include it — and those with no cluster nearby are grouped into new ones.
+  // A cluster's zoom-to window is widened to cover what joined it, so "Zoom in"
+  // always reaches every record it counts.
+  if (hidden.length > 0) {
+    const spanOf = (items: PlacedEvent[]) => {
+      const lo = Math.min(...items.map((item) => item.xFrom)) - CLUSTER_PX;
+      const hi = Math.max(...items.map((item) => item.xTo)) + CLUSTER_PX;
+      return {
+        from: positionAt(window, Math.max(0, lo) / width, scale),
+        to: positionAt(window, Math.min(width, hi) / width, scale),
+      };
+    };
+    const strays: PlacedEvent[] = [];
+    const joined = new Map<PlacedCluster, PlacedEvent[]>();
+    for (const item of hidden) {
+      let nearest: PlacedCluster | null = null;
+      for (const cluster of clusters) {
+        const distance = Math.abs(cluster.x - item.xFrom);
+        if (distance <= HIDDEN_MERGE_PX && (!nearest || distance < Math.abs(nearest.x - item.xFrom))) nearest = cluster;
+      }
+      if (nearest) {
+        const list = joined.get(nearest);
+        if (list) list.push(item);
+        else joined.set(nearest, [item]);
+      } else strays.push(item);
+    }
+    for (const [cluster, items] of joined) {
+      cluster.events.push(...items.map((item) => item.event));
+      cluster.count += items.length;
+      const span = spanOf(items);
+      cluster.from = Math.min(cluster.from, span.from);
+      cluster.to = Math.max(cluster.to, span.to);
+    }
+    const buckets = new Map<number, PlacedEvent[]>();
+    for (const item of strays) {
+      const bucket = Math.round(item.xFrom / HIDDEN_BUCKET_PX);
+      const list = buckets.get(bucket);
+      if (list) list.push(item);
+      else buckets.set(bucket, [item]);
+    }
+    // A group of one has nothing to summarise, and a lone "1" chip reads as a
+    // bug. Fold it into the nearest group or cluster within reach first.
+    for (const [bucket, items] of [...buckets]) {
+      if (items.length !== 1) continue;
+      const x = items[0].xFrom;
+      let nearestBucket: number | null = null;
+      for (const [other, otherItems] of buckets) {
+        if (other === bucket) continue;
+        const ox = otherItems.reduce((sum, item) => sum + item.xFrom, 0) / otherItems.length;
+        if (Math.abs(ox - x) <= HIDDEN_MERGE_PX && (nearestBucket === null || Math.abs(other - bucket) < Math.abs(nearestBucket - bucket)))
+          nearestBucket = other;
+      }
+      let nearestCluster: PlacedCluster | null = null;
+      for (const cluster of clusters) {
+        if (Math.abs(cluster.x - x) <= HIDDEN_MERGE_PX * 2 && (!nearestCluster || Math.abs(cluster.x - x) < Math.abs(nearestCluster.x - x)))
+          nearestCluster = cluster;
+      }
+      if (nearestBucket !== null) {
+        buckets.get(nearestBucket)!.push(items[0]);
+        buckets.delete(bucket);
+      } else if (nearestCluster) {
+        nearestCluster.events.push(items[0].event);
+        nearestCluster.count += 1;
+        const span = spanOf(items);
+        nearestCluster.from = Math.min(nearestCluster.from, span.from);
+        nearestCluster.to = Math.max(nearestCluster.to, span.to);
+        buckets.delete(bucket);
+      }
+    }
+    for (const [bucket, items] of buckets) {
+      const x = items.reduce((sum, item) => sum + item.xFrom, 0) / items.length;
+      clusters.push({
+        key: `hidden-${bucket}`,
+        row: 0,
+        top: 0,
+        x,
+        count: items.length,
+        ...spanOf(items),
         events: items.map((item) => item.event),
         card: false,
         cardLeft: 0,
@@ -846,6 +1051,60 @@ export function layoutTimeline(
   }
   const stretchIsFree = (row: number, from: number, to: number) =>
     (occupied[row] ?? []).every(([lo, hi]) => hi <= from || lo >= to);
+  // The chips and cards already placed, per row, kept apart from the records
+  // so making room (below) never evicts one cluster to fit another.
+  const clusterOccupied: [number, number][][] = finalLines.map(() => []);
+  const footprintOf = (item: PlacedEvent): [number, number] => {
+    const pad = item.showLabel ? item.labelWidth + LABEL_GAP_PX : 6;
+    return [item.xFrom - pad, reserveEnd(item) + pad];
+  };
+
+  // MAKING ROOM FOR A CHIP THAT HAS NOWHERE TO GO.
+  //
+  // Wrapped captions spend the height, so on a crowded strip there can be no
+  // free stretch and no spare row for the chip that counts what semantic zoom
+  // left out — and the old fallback drew it straight over a caption. Instead,
+  // the least important records under the chip's spot on one row join the
+  // cluster (they are counted in its "+ N" and listed, so nothing is lost) and
+  // the chip takes their place. The open record is never moved.
+  const makeRoom = (cluster: PlacedCluster, from: number, to: number, ownCrowdOnly = false): number => {
+    const overlaps = ([lo, hi]: [number, number]) => hi > from && lo < to;
+    // A card is wide; it may only move records from its own crowd, never the
+    // neighbours that happen to sit within its 200 pixels.
+    const nearCluster = (item: PlacedEvent) => Math.abs(item.xFrom - cluster.x) <= HIDDEN_MERGE_PX / 2;
+    let bestRow = -1;
+    let bestCost = Infinity;
+    let bestVictims: PlacedEvent[] = [];
+    for (let r = 0; r < occupied.length; r++) {
+      if ((clusterOccupied[r] ?? []).some(overlaps)) continue;
+      const victims = placedRows.filter((item) => item.row === r && overlaps(footprintOf(item)));
+      // Never the open record, and never one staff marked landmark or notable:
+      // those are what semantic zoom exists to keep on screen.
+      if (victims.some((item) => pinned.has(item.event.id) || item.event.prominence === 1 || item.event.prominence === 2)) continue;
+      // A card trades at most one record of its own crowd for its place;
+      // anything more and the cards would eat the strip they are summarising.
+      if (ownCrowdOnly && (victims.length > 1 || !victims.every(nearCluster))) continue;
+      const cost = victims.reduce((sum, item) => sum + importanceOf(item.event), 0);
+      if (cost < bestCost) {
+        bestRow = r;
+        bestCost = cost;
+        bestVictims = victims;
+      }
+    }
+    if (bestRow === -1) return -1;
+    const evicted = new Set(bestVictims);
+    placedRows = placedRows.filter((item) => !evicted.has(item));
+    cluster.events.push(...bestVictims.map((item) => item.event));
+    cluster.count += bestVictims.length;
+    if (bestVictims.length > 0) {
+      const lo = Math.min(...bestVictims.map((item) => item.xFrom)) - CLUSTER_PX;
+      const hi = Math.max(...bestVictims.map((item) => item.xTo)) + CLUSTER_PX;
+      cluster.from = Math.min(cluster.from, positionAt(window, Math.max(0, lo) / width, scale));
+      cluster.to = Math.max(cluster.to, positionAt(window, Math.min(width, hi) / width, scale));
+    }
+    occupied[bestRow] = [...placedRows.filter((item) => item.row === bestRow).map(footprintOf), ...(clusterOccupied[bestRow] ?? [])];
+    return bestRow;
+  };
 
   for (const cluster of clusters) {
     // A CARD WHERE THERE IS ROOM FOR ONE. The full card names a record and the
@@ -864,13 +1123,18 @@ export function layoutTimeline(
       rowTops.push(used);
       used += rowHeightFor(1);
       occupied.push([]);
+      clusterOccupied.push([]);
       clusterRowEnds.push(-Infinity);
       chipsOnRow.push(0);
     }
+    // Still nowhere: a card may take the place of records from its own crowd,
+    // which it then counts — the same trade a chip makes, kept local.
+    if (cardRow === -1 && width >= CLUSTER_CARD_PX) cardRow = makeRoom(cluster, cardFrom, cardTo, true);
     if (cardRow !== -1) {
       chipsOnRow[cardRow] = (chipsOnRow[cardRow] ?? 0) + 1;
       clusterRowEnds[cardRow] = Math.max(clusterRowEnds[cardRow], cardTo);
       occupied[cardRow].push([cardFrom, cardTo]);
+      (clusterOccupied[cardRow] ??= []).push([cardFrom, cardTo]);
       cluster.row = cardRow;
       cluster.top = rowTops[cardRow] ?? 0;
       cluster.card = true;
@@ -880,7 +1144,22 @@ export function layoutTimeline(
 
     const start = cluster.x - 14;
     const end = start + CLUSTER_CHIP_PX;
-    let row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
+    // A row whose stretch under the chip is empty — the spot semantic zoom held
+    // for it, usually — then a fresh row if the height allows, and only then
+    // the old reach-based rule and its least-crowded fallback.
+    let row = occupied.findIndex((_, r) => stretchIsFree(r, start, end));
+    if (row === -1 && used + rowHeightFor(1) <= availableHeight) {
+      row = finalLines.length;
+      finalLines.push(1);
+      rowTops.push(used);
+      used += rowHeightFor(1);
+      occupied.push([]);
+      clusterOccupied.push([]);
+      clusterRowEnds.push(-Infinity);
+      chipsOnRow.push(0);
+    }
+    if (row === -1) row = makeRoom(cluster, start, end);
+    if (row === -1) row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1) {
       // NOWHERE IS FREE, SO TAKE THE LEAST CROWDED ROW RATHER THAN THE LAST.
       //
@@ -910,6 +1189,7 @@ export function layoutTimeline(
     chipsOnRow[row] = (chipsOnRow[row] ?? 0) + 1;
     clusterRowEnds[row] = Math.max(clusterRowEnds[row], end);
     occupied[row]?.push([start, end]);
+    (clusterOccupied[row] ??= []).push([start, end]);
     cluster.row = row;
     cluster.top = rowTops[row] ?? 0;
   }

@@ -916,6 +916,29 @@ export async function reviewTimelineEvent(
   return { ok: true };
 }
 
+/**
+ * How prominent a record is when zoomed out — landmark, notable, detail, or
+ * null to let the app score it. Staff only: it decides what every reader sees
+ * first, which is an editorial call, not a contributor's.
+ */
+export async function setEventProminence(eventId: string, communitySlug: string, prominence: 1 | 2 | 3 | null) {
+  if (prominence !== null && ![1, 2, 3].includes(prominence)) return { error: "That isn't a prominence level." };
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can decide what shows when zoomed out." };
+
+  const { error } = await supabase
+    .from("timeline_events")
+    .update({ prominence })
+    .eq("id", eventId)
+    .eq("community_id", community.id);
+
+  if (error) return { error: error.message };
+  revalidatePath(timelinePath(community.slug));
+  return { ok: true };
+}
+
 export async function deleteTimelineEvent(eventId: string, communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
