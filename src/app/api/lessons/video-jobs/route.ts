@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   const link = parseVideoLink(rawUrl);
   if (!link) {
     return NextResponse.json(
-      { error: "That isn't a YouTube, Facebook or Instagram video link." },
+      { error: "That isn't a YouTube, Facebook, Instagram, TikTok or Vimeo video link." },
       { status: 400, headers: NO_STORE }
     );
   }
