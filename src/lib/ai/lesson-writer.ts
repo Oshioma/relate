@@ -29,7 +29,7 @@ import {
 
 // The model every lesson is written with. Exported so the platform admin's
 // cost panel prices lessons with no recorded model as this one.
-export const LESSON_WRITER_MODEL = "claude-opus-5";
+export const LESSON_WRITER_MODEL = "claude-opus-5-5";
 
 export function isLessonWriterConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
@@ -221,8 +221,10 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     ? [
         "",
         "This lesson is the NEXT LEVEL of a lesson that already exists. The",
-        "earlier levels are given inside <earlier_levels> tags. They appear",
-        "above this one on the same page, and the reader has just read them —",
+        "earlier levels are summarised inside <earlier_levels> tags: each",
+        "section's heading and how it opens, the words defined, the questions",
+        "asked. The levels appear in full above this one on the same page, and",
+        "the reader has just read them —",
         "an adult will skim them and carry on down into this level. So:",
         "- Do NOT repeat them. No word they already defined goes in your",
         "  vocabulary; no background, story or explanation they already gave",
@@ -276,6 +278,10 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
 // reader of that level was told, without the pictures and search phrases.
 export type EarlierLevel = { ageBand: string; lesson: StoredLesson };
 
+// A digest, not the whole level: enough for the writer to know what has been
+// covered and must not be repeated — every heading and its opening, the words
+// already defined, the questions already asked — without paying to resend
+// every paragraph of every level above it.
 function earlierLevelText({ ageBand, lesson }: EarlierLevel): string {
   const lines: string[] = [];
   lines.push(`<level age="${ageBandLabel(ageBand)}">`);
@@ -285,22 +291,32 @@ function earlierLevelText({ ageBand, lesson }: EarlierLevel): string {
     lines.push("Objectives:", ...lesson.objectives.map((o) => `- ${o}`));
   }
   if (lesson.vocabulary?.length) {
-    lines.push("Vocabulary already defined:", ...lesson.vocabulary.map((v) => `- ${v.word}: ${v.meaning}`));
+    lines.push(`Words already defined: ${lesson.vocabulary.map((v) => v.word).join(", ")}`);
   }
-  for (const section of lesson.sections ?? []) {
-    lines.push(`## ${section.heading}`, section.body);
+  if (lesson.sections?.length) {
+    lines.push("Sections (heading, then how it opens):");
+    for (const section of lesson.sections) {
+      lines.push(`- ${section.heading}: ${opening(section.body)}`);
+    }
   }
-  if (lesson.activity) {
-    lines.push(`Activity: ${lesson.activity.title}`, lesson.activity.instructions);
-  }
+  if (lesson.activity?.title) lines.push(`Activity: ${lesson.activity.title}`);
   if (lesson.questions?.length) {
-    lines.push("Questions:", ...lesson.questions.map((q) => `- ${q.question}`));
+    lines.push("Questions already asked:", ...lesson.questions.map((q) => `- ${q.question}`));
   }
   if (lesson.discussion?.length) {
-    lines.push("Discussion:", ...lesson.discussion.map((d) => `- ${d}`));
+    lines.push("Discussion prompts already used:", ...lesson.discussion.map((d) => `- ${d}`));
   }
   lines.push("</level>");
   return lines.join("\n");
+}
+
+// The first two sentences of a section, capped, so the digest says what the
+// section covers without carrying the whole of it.
+function opening(body: string, maxChars = 320): string {
+  const text = (body ?? "").replace(/\s+/g, " ").trim();
+  const sentences = text.match(/[^.!?]+[.!?]+/g) ?? [text];
+  const firstTwo = sentences.slice(0, 2).join("").trim() || text;
+  return firstTwo.length > maxChars ? `${firstTwo.slice(0, maxChars).trimEnd()}…` : firstTwo;
 }
 
 // What writing one lesson cost, in the units Claude bills. Stored on the row so
@@ -313,9 +329,21 @@ export type LessonUsage = {
   // This call doesn't use prompt caching, so the last two are zero and the sum
   // is exact; folded together so the column can't silently miss them if
   // caching is ever turned on.
+  // ALL input tokens, cached or not — what the stored column has always held.
   inputTokens: number;
   outputTokens: number;
+  // The cached share of inputTokens, priced differently: writing the cache
+  // costs a little more than plain input, reading it a fraction.
+  cacheWriteTokens: number;
+  cacheReadTokens: number;
 };
+
+// Identical for every lesson and every age, so it can lead the cached prefix.
+// The real rules for the lesson being written arrive after the source, as a
+// system message — see the request below.
+const SHARED_SYSTEM_PROMPT =
+  "You write lessons from source material the user supplies. The rules for the " +
+  "lesson to write come in a system message after the material; follow them.";
 
 export async function generateLesson(input: {
   sourceText: string;
@@ -351,21 +379,41 @@ export async function generateLesson(input: {
       // library run past 20,000 characters — and a level that builds on a
       // younger one is longer still. 8,000 was cutting them off mid-answer.
       max_tokens: 16000,
-      system: prompt,
+      // Arranged so the source can be reused at a tenth of the price when
+      // another level of the same lesson is written within a few minutes.
+      // Caching is a prefix match, so everything up to and including the
+      // source must be identical across levels: a fixed system prompt, then
+      // the source. The level's own rules — which differ by age — come after
+      // it, as a system message, so they keep a system prompt's authority
+      // without breaking the shared prefix. The source stays in the user turn:
+      // it is material to teach, never instructions.
+      system: SHARED_SYSTEM_PROMPT,
       messages: [
         {
           role: "user",
           content: [
-            "<source_material>",
-            input.sourceText,
-            "</source_material>",
+            {
+              type: "text",
+              text: ["<source_material>", input.sourceText, "</source_material>"].join("\n"),
+              cache_control: { type: "ephemeral" },
+            },
             ...(earlier.length > 0
-              ? ["", "<earlier_levels>", ...earlier.map(earlierLevelText), "</earlier_levels>"]
+              ? [
+                  {
+                    type: "text" as const,
+                    text: ["<earlier_levels>", ...earlier.map(earlierLevelText), "</earlier_levels>"].join(
+                      "\n"
+                    ),
+                  },
+                ]
               : []),
-            "",
-            earlier.length > 0 ? "Write the next level of the lesson." : "Write the lesson.",
-          ].join("\n"),
+            {
+              type: "text",
+              text: earlier.length > 0 ? "Write the next level of the lesson." : "Write the lesson.",
+            },
+          ],
         },
+        { role: "system", content: prompt },
       ],
       output_config: {
         // Writing a lesson from supplied material is a drafting task. The
@@ -461,13 +509,14 @@ export async function generateLesson(input: {
     );
   }
 
+  const cacheWriteTokens = message.usage.cache_creation_input_tokens ?? 0;
+  const cacheReadTokens = message.usage.cache_read_input_tokens ?? 0;
   const usage: LessonUsage = {
     model: message.model,
-    inputTokens:
-      message.usage.input_tokens +
-      (message.usage.cache_creation_input_tokens ?? 0) +
-      (message.usage.cache_read_input_tokens ?? 0),
+    inputTokens: message.usage.input_tokens + cacheWriteTokens + cacheReadTokens,
     outputTokens: message.usage.output_tokens,
+    cacheWriteTokens,
+    cacheReadTokens,
   };
 
   return { lesson: parsed.data, promptUsed: prompt, usage };

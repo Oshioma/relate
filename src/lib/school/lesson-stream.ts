@@ -34,7 +34,7 @@ import {
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
 import { recordAiSpend } from "@/lib/usage/ai-spend";
 import { getUsageRates } from "@/lib/usage/pricing";
-import { claudeCost, claudeRateFor } from "@/lib/usage/costs";
+import { claudeCostWithCache, claudeRateFor } from "@/lib/usage/costs";
 import { parseVideoLink } from "@/lib/school/video-links";
 import { isLessonMediaPath, mediaTypeOfPath } from "@/lib/school/lesson-media";
 
@@ -108,10 +108,7 @@ export function streamLesson(input: {
           communityId,
           userId,
           kind: "lesson",
-          amountUsd: (() => {
-            const rates = getUsageRates();
-            return claudeCost(usage.inputTokens, usage.outputTokens, claudeRateFor(usage.model, rates));
-          })(),
+          amountUsd: claudeCostWithCache(usage, claudeRateFor(usage.model, getUsageRates())),
           ref: `lesson:${crypto.randomUUID()}`,
         });
 
