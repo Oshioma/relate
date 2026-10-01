@@ -24,7 +24,7 @@
 
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
+import type { Database, LessonMediaType } from "@/types/database";
 import {
   attachImages,
   generateLesson,
@@ -33,6 +33,7 @@ import {
 } from "@/lib/ai/lesson-writer";
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
 import { parseVideoLink } from "@/lib/school/video-links";
+import { isLessonMediaPath, mediaTypeOfPath } from "@/lib/school/lesson-media";
 
 export function streamLesson(input: {
   supabase: SupabaseClient<Database>;
@@ -57,6 +58,10 @@ export function streamLesson(input: {
   // A video to show at the top of the lesson, when the material is its
   // transcript. Anything that isn't a recognised video link is dropped.
   videoUrl?: string | null;
+  // An uploaded file to play at the top of the lesson instead: an object
+  // path in 'uploads'. The CALLER checks it may use it (POST /api/lessons
+  // checks it is the author's own upload; a rewrite reuses the stored one).
+  mediaPath?: string | null;
 }): Response {
   const { supabase, spaceId, communityId, userId, sourceText, ageBand } = input;
   const beyondSource = Boolean(input.beyondSource);
@@ -67,6 +72,10 @@ export function streamLesson(input: {
       : null;
   const sourceTitle = sourceUrl ? (input.sourceTitle?.trim() || null) : null;
   const videoUrl = input.videoUrl ? (parseVideoLink(input.videoUrl)?.url ?? null) : null;
+  // One thing at the top of a lesson: a link wins over a file, which can only
+  // happen if a client sends both.
+  const mediaPath = !videoUrl && input.mediaPath && isLessonMediaPath(input.mediaPath) ? input.mediaPath : null;
+  const mediaType: LessonMediaType | null = mediaPath ? mediaTypeOfPath(mediaPath) : null;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
@@ -119,6 +128,8 @@ export function streamLesson(input: {
           source_url: sourceUrl,
           source_title: sourceTitle,
           video_url: videoUrl,
+          media_path: mediaPath,
+          media_type: mediaType,
           // Left to the column default for a new lesson: a family of one.
           ...(input.familyId ? { family_id: input.familyId } : {}),
         };

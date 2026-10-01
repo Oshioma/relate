@@ -155,6 +155,39 @@ yt-dlp is upgraded automatically every time the container starts
 (`YTDLP_AUTO_UPDATE=1`), so **restart the service** first. `/health` shows the
 yt-dlp version in use.
 
+## Uploaded files
+
+The composer's **Upload a video or audio file** button goes through this
+service too. Files have no captions, so they always take the Whisper path —
+`GROQ_API_KEY` must be set, or the worker refuses file jobs up front. Two ways
+in, by size:
+
+| File | Route | Kept? |
+|---|---|---|
+| ≤ 200 MB, a type the `uploads` bucket takes | browser → Supabase Storage → worker fetches it (`kind: "file"`) | **yes** — the lesson plays it |
+| bigger, or a type the bucket refuses | browser → `PUT /jobs/{id}/upload` on this worker (`kind: "direct"`) | **no** — deleted after transcribing |
+
+- **`kind: "file"`** — the worker downloads the file from its public Storage
+  URL with plain HTTP (no redirects), only from hosts ending in
+  `UPLOAD_HOST_SUFFIXES` (default `supabase.co,supabase.in`; set it to your own
+  host if you self-host Supabase). The length comes from `ffprobe`, so
+  `MAX_DURATION_MINUTES` still applies.
+- **`kind: "direct"`** — the job waits ("Waiting for the upload…") until the
+  browser PUTs the file to `/jobs/{id}/upload` with
+  `Authorization: Upload <token>`. The token is an HMAC-SHA256 of
+  `"<id>.<expiry>"` with `WORKER_SECRET`, signed by the app, good for one job
+  and two hours — the browser never sees the secret. That one route answers
+  CORS for any origin (the token is the guard). The body is streamed to disk
+  and refused past `MAX_UPLOAD_MB` (default 4000). The app still gives up on a
+  job after 45 minutes, so a very slow upload of a very big file can time out.
+
+**Hosting limits — unverified.** A direct upload is one long HTTP request of up
+to several GB. Railway (and any proxy in front of the worker — Cloudflare,
+nginx) must allow request bodies that big and requests that long. We have not
+confirmed Railway's current limits; if big uploads fail part-way with a
+network error, that is the first thing to check. Files under 200 MB don't
+touch this route at all.
+
 ## Settings
 
 See [.env.example](./.env.example). The useful ones:
@@ -166,13 +199,20 @@ See [.env.example](./.env.example). The useful ones:
 | `WHISPER_LANGUAGE` | auto | force a language, e.g. `en` |
 | `MAX_DURATION_MINUTES` | `180` | longer videos are refused |
 | `MAX_CONCURRENT_JOBS` | `2` | parallel jobs; raise on a bigger box |
+| `UPLOAD_HOST_SUFFIXES` | `supabase.co,supabase.in` | where kept uploads may be fetched from |
+| `MAX_UPLOAD_MB` | `4000` | biggest file fetched or uploaded |
 
 ## API
 
-All `/jobs` routes need `Authorization: Bearer $WORKER_SECRET`.
+`POST /jobs` and `GET /jobs/{id}` need `Authorization: Bearer $WORKER_SECRET`.
 
 - `POST /jobs` `{"id": "<8–64 chars [A-Za-z0-9-]>", "url": "<video link>"}` → `202` job.
   Posting the same id again returns the existing job.
+  Add `"kind": "file"` (with `url` = the Storage URL and `file_name`) for a kept
+  upload, or `"kind": "direct"` (with `file_name`, no `url`) to wait for one.
+- `PUT /jobs/{id}/upload` — the file itself, for a `direct` job, with
+  `Authorization: Upload <token>` (see *Uploaded files*). `202` once it has
+  arrived; `401` bad/expired token; `409` not waiting for a file; `413` too big.
 - `GET /jobs/{id}` → `{id, status, progress, message, title, duration_seconds, method, transcript, error}`
   where `status` is `queued | downloading | transcribing | done | error` and
   `method` is `captions | whisper`. `404` if unknown.

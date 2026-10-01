@@ -2,17 +2,30 @@
 Relate video transcriber.
 
 A small web service that turns a YouTube / Facebook / Instagram / TikTok /
-Vimeo video link into plain text for the lesson composer. The Relate app starts
-a job and polls it; this service never calls the app and holds no database
-credentials.
+Vimeo video link, or a teacher's own video or audio file, into plain text for
+the lesson composer. The Relate app starts a job and polls it; this service
+never calls the app and holds no database credentials.
 
-    POST /jobs        {"id": "<uuid>", "url": "<video link>"}   -> 202
-    GET  /jobs/{id}                                             -> job status
-    GET  /health                                                -> ok + versions
+    POST /jobs        {"id": "<uuid>", "url": "<video link>"}             -> 202
+    POST /jobs        {"id", "kind": "file", "url": "<storage URL>", "file_name"}
+    POST /jobs        {"id", "kind": "direct", "file_name"}               -> 202
+    PUT  /jobs/{id}/upload   the file itself, for a "direct" job
+    GET  /jobs/{id}                                                       -> job status
+    GET  /health                                                          -> ok + versions
 
-Both /jobs routes need "Authorization: Bearer <WORKER_SECRET>".
+POST /jobs and GET /jobs/{id} need "Authorization: Bearer <WORKER_SECRET>".
+PUT /jobs/{id}/upload comes from the teacher's browser, so it can't carry the
+secret: it needs "Authorization: Upload <token>", a short-lived HMAC the app
+signs for that one job (see verify_upload_token).
 
-How a video becomes text, cheapest first:
+Three kinds of job:
+  link    a video link, fetched with yt-dlp — see below.
+  file    an upload the app kept in Supabase Storage (≤ 200 MB). Fetched from
+          its public URL with plain HTTP, only from UPLOAD_HOST_SUFFIXES.
+  direct  an upload too big for Storage. The browser PUTs it straight here.
+Files always go the Whisper way: a file has no captions to read.
+
+How a video link becomes text, cheapest first:
   1. Captions. If the platform already has captions in a language we want
      (most YouTube videos do), download those. Free, and takes seconds.
   2. Whisper. Otherwise download just the audio, squash it to small mono
@@ -29,6 +42,7 @@ Configuration is all environment variables — see .env.example.
 from __future__ import annotations
 
 import base64
+import hashlib
 import hmac
 import json
 import os
@@ -46,8 +60,9 @@ from urllib.parse import urlparse
 
 import requests
 import yt_dlp
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel
+from starlette.requests import ClientDisconnect
 
 # --------------------------------------------------------------------------
 # Settings
@@ -179,6 +194,22 @@ ALLOWED_HOSTS = (
     "tiktok.com",
     "vimeo.com",
 )
+
+# Where "file" jobs may be fetched from: the app's Supabase Storage. Same
+# reasoning as ALLOWED_HOSTS — the app only ever sends its own bucket's URLs,
+# so anything else is somebody trying to use the worker as a downloader.
+UPLOAD_HOST_SUFFIXES = tuple(
+    suffix.strip().lower().lstrip(".")
+    for suffix in os.environ.get("UPLOAD_HOST_SUFFIXES", "supabase.co,supabase.in").split(",")
+    if suffix.strip()
+)
+
+# The biggest file accepted, fetched or uploaded. Big enough for a couple of
+# hours of phone video; everything past MAX_DURATION_MINUTES is cut anyway.
+MAX_UPLOAD_MB = _env_int("MAX_UPLOAD_MB", 4000)
+MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
+
+JOB_KINDS = ("link", "file", "direct")
 
 # --------------------------------------------------------------------------
 # Job store: in memory, mirrored to JOBS_DIR so a restart doesn't forget
@@ -338,6 +369,49 @@ def is_allowed_url(raw: str) -> bool:
         return False
     host = (parsed.hostname or "").lower()
     return any(host == allowed or host.endswith("." + allowed) for allowed in ALLOWED_HOSTS)
+
+
+def is_allowed_upload_url(raw: str) -> bool:
+    """A "file" job's URL: https, on the app's own Storage host."""
+    try:
+        parsed = urlparse(raw)
+    except ValueError:
+        return False
+    if parsed.scheme != "https" or parsed.username or parsed.password:
+        return False
+    host = (parsed.hostname or "").lower()
+    return any(host == suffix or host.endswith("." + suffix) for suffix in UPLOAD_HOST_SUFFIXES)
+
+
+def sign_upload_token(job_id: str, expires_at: int, secret: Optional[str] = None) -> str:
+    """The token's signature. The app makes these; see src/lib/school/upload-token.ts."""
+    key = (WORKER_SECRET if secret is None else secret).encode()
+    return hmac.new(key, f"{job_id}.{expires_at}".encode(), hashlib.sha256).hexdigest()
+
+
+def verify_upload_token(job_id: str, token: str, now: Optional[float] = None, secret: Optional[str] = None) -> bool:
+    """"<expiry unix seconds>.<hex HMAC-SHA256(secret, '<job id>.<expiry>')>", for this job, not expired.
+
+    The browser sending a direct upload can't be given WORKER_SECRET, so the app
+    signs one of these for one job and a couple of hours instead.
+    """
+    if not (WORKER_SECRET if secret is None else secret):
+        return False
+    expiry, _, signature = token.partition(".")
+    if not expiry.isdigit() or not signature:
+        return False
+    if int(expiry) < (time.time() if now is None else now):
+        return False
+    expected = sign_upload_token(job_id, int(expiry), secret)
+    return hmac.compare_digest(signature.encode(), expected.encode())
+
+
+def title_from_file_name(name: Optional[str]) -> Optional[str]:
+    """ "Lecture 3.mp4" -> "Lecture 3". """
+    if not name:
+        return None
+    stem = re.sub(r"\.[A-Za-z0-9]{1,8}$", "", name).strip()
+    return (stem or name)[:200]
 
 
 _TIMING = re.compile(r"^\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})[.,](\d{3})\s*-->")
@@ -769,29 +843,140 @@ def run_job(job_id: str, url: str) -> None:
             _update(job_id, status="error", error=_friendly_download_error(error))
             return
 
-        _update(job_id, progress=0.36, message="Preparing the audio…")
-        chunks = _split_audio(audio, workdir)
-        audio.unlink(missing_ok=True)  # free the disk before the long part
-        if not chunks:
-            _update(job_id, status="error", error="That video has no audio track.")
+        _whisper(job_id, audio, workdir, duration=duration)
+    except Exception as error:  # never leave a job stuck "running"
+        print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
+        _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+def _whisper(
+    job_id: str, audio: Path, workdir: Path, what: str = "video", duration: Optional[float] = None
+) -> None:
+    """Downloaded audio (or video) -> chunks -> Groq Whisper -> a finished job."""
+    _update(job_id, progress=0.36, message="Preparing the audio…")
+    chunks = _split_audio(audio, workdir)
+    audio.unlink(missing_ok=True)  # free the disk before the long part
+    if not chunks:
+        _update(job_id, status="error", error=f"That {what} has no audio track.")
+        return
+
+    # How long each chunk is, for the cost report. ffprobe is exact; if it
+    # can't read one, the chunks share an estimate from the duration.
+    probed = [_probe_seconds(chunk) for chunk in chunks]
+    if any(seconds is None for seconds in probed):
+        fallback = estimate_audio_seconds(duration, len(chunks)) / len(chunks)
+        probed = [fallback if seconds is None else seconds for seconds in probed]
+
+    _update(job_id, status="transcribing", progress=0.4)
+    # Each chunk's audio is counted for the cost report as Whisper answers
+    # for it: a chunk that failed wasn't billed.
+    text = timed_paragraphs(_transcribe_all(job_id, chunks, probed))
+    if not text:
+        _update(job_id, status="error", error=f"No speech was found in that {what}.")
+        return
+
+    _update(job_id, status="done", progress=1.0, method="whisper", transcript=text, message=None)
+
+
+# --------------------------------------------------------------------------
+# Uploaded files
+# --------------------------------------------------------------------------
+
+
+def _probe_duration(path: Path) -> Optional[float]:
+    """Seconds of media in a file, or None if ffprobe can't tell."""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+            capture_output=True, text=True, timeout=120,
+        )
+        return float(result.stdout.strip()) if result.returncode == 0 else None
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+class TooBig(Exception):
+    pass
+
+
+def _fetch_file(job_id: str, url: str, workdir: Path) -> Path:
+    """A kept upload, fetched from Storage. Streamed to disk, capped at MAX_UPLOAD_MB.
+
+    Plain HTTP rather than yt-dlp: it is one file at a known address, and
+    redirects are refused so the host check can't be walked around.
+    """
+    target = workdir / "source.upload"
+    with requests.get(url, stream=True, timeout=(15, 120), allow_redirects=False) as response:
+        if response.status_code != 200:
+            raise RuntimeError(f"Couldn't fetch the uploaded file ({response.status_code}).")
+        total = int(response.headers.get("content-length") or 0)
+        if total > MAX_UPLOAD_BYTES:
+            raise TooBig()
+        done = 0
+        last_report = 0.0
+        with target.open("wb") as handle:
+            for block in response.iter_content(chunk_size=1024 * 1024):
+                done += len(block)
+                if done > MAX_UPLOAD_BYTES:
+                    raise TooBig()
+                handle.write(block)
+                if total and time.time() - last_report > 1:
+                    last_report = time.time()
+                    fraction = min(1.0, done / total)
+                    _update(
+                        job_id,
+                        progress=round(0.05 + 0.3 * fraction, 3),
+                        message=f"Fetching the file… {int(fraction * 100)}%",
+                    )
+    return target
+
+
+def _check_duration(job_id: str, source: Path) -> bool:
+    """Records the length; False (and an error on the job) if it's too long."""
+    duration = _probe_duration(source)
+    if duration:
+        _update(job_id, duration_seconds=int(duration))
+        if duration > MAX_DURATION_MINUTES * 60:
+            _update(
+                job_id,
+                status="error",
+                error=f"That recording is over {MAX_DURATION_MINUTES // 60} hours — too long for one lesson.",
+            )
+            return False
+    return True
+
+
+def run_file_job(job_id: str, url: str) -> None:
+    """A "file" job: fetch the kept upload from Storage, then Whisper."""
+    workdir = Path(tempfile.mkdtemp(prefix="relate-file-"))
+    try:
+        _update(job_id, status="downloading", progress=0.05, message="Fetching the file…")
+        try:
+            source = _fetch_file(job_id, url, workdir)
+        except TooBig:
+            _update(job_id, status="error", error=f"That file is over {MAX_UPLOAD_MB} MB.")
             return
-
-        # How long each chunk is, for the cost report. ffprobe is exact; if it
-        # can't read one, the chunks share an estimate from the duration.
-        probed = [_probe_seconds(chunk) for chunk in chunks]
-        if any(seconds is None for seconds in probed):
-            fallback = estimate_audio_seconds(duration, len(chunks)) / len(chunks)
-            probed = [fallback if seconds is None else seconds for seconds in probed]
-
-        _update(job_id, status="transcribing", progress=0.4)
-        # Each chunk's audio is counted for the cost report as Whisper answers
-        # for it: a chunk that failed wasn't billed.
-        text = timed_paragraphs(_transcribe_all(job_id, chunks, probed))
-        if not text:
-            _update(job_id, status="error", error="No speech was found in that video.")
+        except requests.RequestException as error:
+            print(f"{job_id}: fetch failed: {redact(repr(error))}", flush=True)
+            _update(job_id, status="error", error="Couldn't fetch the uploaded file. Try again.")
             return
+        if _check_duration(job_id, source):
+            _whisper(job_id, source, workdir, what="recording")
+    except Exception as error:  # never leave a job stuck "running"
+        print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
+        _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
 
-        _update(job_id, status="done", progress=1.0, method="whisper", transcript=text, message=None)
+
+def run_uploaded_job(job_id: str, source: Path, workdir: Path) -> None:
+    """A "direct" job, once its file has arrived: straight to Whisper."""
+    try:
+        if _check_duration(job_id, source):
+            _whisper(job_id, source, workdir, what="recording")
     except Exception as error:  # never leave a job stuck "running"
         print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
         _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
@@ -813,6 +998,48 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Relate video transcriber", docs_url=None, redoc_url=None, lifespan=lifespan)
 
+_UPLOAD_ROUTE = re.compile(r"^/jobs/[^/]+/upload$")
+_UPLOAD_CORS = [
+    # Any origin: the browser is on the Relate site, or a community's own
+    # domain, or localhost in development. The per-job token is the guard,
+    # not the origin — and no cookies are involved, so "*" is safe.
+    (b"access-control-allow-origin", b"*"),
+    (b"access-control-allow-methods", b"PUT, OPTIONS"),
+    (b"access-control-allow-headers", b"Authorization, Content-Type"),
+    (b"access-control-max-age", b"86400"),
+]
+
+
+class UploadCors:
+    """CORS for the one route a browser calls, and nothing else.
+
+    Plain ASGI rather than Starlette's CORSMiddleware or a BaseHTTPMiddleware,
+    so the request body streams straight through to the route untouched —
+    the body here can be gigabytes.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        if scope["type"] != "http" or not _UPLOAD_ROUTE.match(scope.get("path", "")):
+            await self.app(scope, receive, send)
+            return
+        if scope["method"] == "OPTIONS":
+            await send({"type": "http.response.start", "status": 204, "headers": _UPLOAD_CORS})
+            await send({"type": "http.response.body", "body": b""})
+            return
+
+        async def send_with_cors(message: dict[str, Any]) -> None:
+            if message["type"] == "http.response.start":
+                message = {**message, "headers": [*message.get("headers", []), *_UPLOAD_CORS]}
+            await send(message)
+
+        await self.app(scope, receive, send_with_cors)
+
+
+app.add_middleware(UploadCors)
+
 
 def require_secret(authorization: str = Header(default="")) -> None:
     expected = f"Bearer {WORKER_SECRET}"
@@ -822,7 +1049,33 @@ def require_secret(authorization: str = Header(default="")) -> None:
 
 class NewJob(BaseModel):
     id: str
-    url: str
+    # Required for "link" and "file"; a "direct" job's file arrives later.
+    url: Optional[str] = None
+    kind: str = "link"
+    file_name: Optional[str] = None
+
+
+def validate_new_job(body: NewJob) -> None:
+    """Raises a 400 for anything the worker shouldn't start."""
+    if not re.fullmatch(r"[A-Za-z0-9-]{8,64}", body.id):
+        raise HTTPException(status_code=400, detail="Bad job id.")
+    if body.kind not in JOB_KINDS:
+        raise HTTPException(status_code=400, detail="Unknown kind of job.")
+    if body.kind == "link":
+        if not body.url or not is_allowed_url(body.url):
+            raise HTTPException(status_code=400, detail="Only YouTube, Facebook, Instagram, TikTok and Vimeo links are supported.")
+        return
+    # Files have no captions, so without Whisper there is no point taking one
+    # — least of all a multi-GB upload.
+    if not GROQ_API_KEY:
+        raise HTTPException(
+            status_code=400,
+            detail="Transcribing uploaded files isn't set up on the video service (no GROQ_API_KEY).",
+        )
+    if body.kind == "file" and (not body.url or not is_allowed_upload_url(body.url)):
+        raise HTTPException(status_code=400, detail="That file isn't in the app's storage.")
+    if body.kind == "direct" and body.url:
+        raise HTTPException(status_code=400, detail="A direct upload is sent to /jobs/{id}/upload, not fetched.")
 
 
 def _public(job: dict[str, Any]) -> dict[str, Any]:
@@ -853,10 +1106,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/jobs", status_code=202, dependencies=[Depends(require_secret)])
 def create_job(body: NewJob) -> dict[str, Any]:
-    if not re.fullmatch(r"[A-Za-z0-9-]{8,64}", body.id):
-        raise HTTPException(status_code=400, detail="Bad job id.")
-    if not is_allowed_url(body.url):
-        raise HTTPException(status_code=400, detail="Only YouTube, Facebook, Instagram, TikTok and Vimeo links are supported.")
+    validate_new_job(body)
 
     _prune()
     with _lock:
@@ -866,22 +1116,91 @@ def create_job(body: NewJob) -> dict[str, Any]:
         now = time.time()
         job = {
             "id": body.id,
+            "kind": body.kind,
             "url": body.url,
+            "title": title_from_file_name(body.file_name),
             "status": "queued",
             "progress": 0.0,
-            "message": "Waiting for a free slot…",
-            # Usage, counted as the job runs — see _add_usage. The proxy
-            # setting is per worker, so it is fixed for the job's life.
+            "message": "Waiting for the upload…" if body.kind == "direct" else "Waiting for a free slot…",
+            # A direct job is only a placeholder until its file arrives.
+            "awaiting_upload": body.kind == "direct",
+            # Usage, counted as the job runs — see _add_usage. Only link jobs
+            # go through the proxy (uploads are fetched or received directly).
             "download_bytes": 0,
             "audio_seconds": 0,
-            "proxied": bool(YTDLP_PROXY),
+            "proxied": bool(YTDLP_PROXY) and body.kind == "link",
             "created_at": now,
             "updated_at": now,
         }
         _jobs[body.id] = job
     _save(job)
-    _pool.submit(run_job, body.id, body.url)
+    if body.kind == "link":
+        _pool.submit(run_job, body.id, body.url)
+    elif body.kind == "file":
+        _pool.submit(run_file_job, body.id, body.url)
     return _public(job)
+
+
+def _claim_upload(job_id: str) -> None:
+    """Marks a direct job as receiving its file, so a second PUT can't race it."""
+    with _lock:
+        job = _jobs.get(job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="No such job.")
+        if job.get("kind") != "direct" or not job.get("awaiting_upload"):
+            raise HTTPException(status_code=409, detail="That job isn't waiting for a file.")
+        job["awaiting_upload"] = False
+    _update(job_id, status="downloading", progress=0.02, message="Receiving the upload…")
+
+
+@app.put("/jobs/{job_id}/upload", status_code=202)
+async def upload_file(job_id: str, request: Request, authorization: str = Header(default="")) -> dict[str, Any]:
+    scheme, _, token = authorization.partition(" ")
+    if scheme != "Upload" or not verify_upload_token(job_id, token.strip()):
+        raise HTTPException(status_code=401, detail="That upload link has expired or isn't valid.")
+
+    declared = int(request.headers.get("content-length") or 0)
+    if declared > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"That file is over {MAX_UPLOAD_MB} MB.")
+
+    _claim_upload(job_id)
+    workdir = Path(tempfile.mkdtemp(prefix="relate-upload-"))
+    source = workdir / "source.upload"
+    received = 0
+    last_report = 0.0
+    try:
+        with source.open("wb") as handle:
+            async for block in request.stream():
+                received += len(block)
+                if received > MAX_UPLOAD_BYTES:
+                    raise HTTPException(status_code=413, detail=f"That file is over {MAX_UPLOAD_MB} MB.")
+                handle.write(block)
+                if declared and time.time() - last_report > 2:
+                    last_report = time.time()
+                    fraction = min(1.0, received / declared)
+                    _update(
+                        job_id,
+                        progress=round(0.02 + 0.33 * fraction, 3),
+                        message=f"Receiving the upload… {int(fraction * 100)}%",
+                    )
+    except HTTPException as error:
+        shutil.rmtree(workdir, ignore_errors=True)
+        _update(job_id, status="error", error=str(error.detail))
+        raise
+    except ClientDisconnect:
+        shutil.rmtree(workdir, ignore_errors=True)
+        _update(job_id, status="error", error="The upload was cut off. Start it again.")
+        raise HTTPException(status_code=400, detail="The upload was cut off.")
+
+    if received == 0:
+        shutil.rmtree(workdir, ignore_errors=True)
+        _update(job_id, status="error", error="The upload was empty.")
+        raise HTTPException(status_code=400, detail="The upload was empty.")
+
+    _update(job_id, progress=0.35, message="Uploaded — waiting for a free slot…")
+    _pool.submit(run_uploaded_job, job_id, source, workdir)
+    with _lock:
+        return _public(dict(_jobs[job_id]))
 
 
 @app.get("/jobs/{job_id}", dependencies=[Depends(require_secret)])

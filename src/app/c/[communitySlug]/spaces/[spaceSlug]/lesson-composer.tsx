@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileUp, Film, Link2, Loader2, Sparkles, Trash2, X } from "lucide-react";
+import { FileUp, Film, Link2, Loader2, Music, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Linkify } from "@/components/ui/linkify";
@@ -25,6 +25,20 @@ import {
 } from "@/lib/school/transcript-text";
 import { VIDEO_PLATFORM_NAMES, formatDuration, parseVideoLink } from "@/lib/school/video-links";
 import type { PublicVideoJob } from "@/lib/school/video-worker";
+import {
+  MAX_DIRECT_MEDIA_BYTES,
+  MAX_KEPT_MEDIA_BYTES,
+  MEDIA_FILE_ACCEPT,
+  canKeepMedia,
+  formatBytes,
+  isMediaContentType,
+  keptContentType,
+  lessonMediaPath,
+  mediaTypeOfPath,
+} from "@/lib/school/lesson-media";
+import { createClient } from "@/lib/supabase/client";
+import { UploadAborted, uploadErrorMessage, uploadWithProgress } from "@/lib/upload-with-progress";
+import type { LessonMediaType } from "@/types/database";
 
 // Writes a lesson from pasted material.
 //
@@ -61,8 +75,56 @@ function isJobFinished(job: PublicVideoJob): boolean {
 
 function jobLabel(job: PublicVideoJob): string {
   if (job.title) return job.title;
-  const link = parseVideoLink(job.sourceUrl);
-  return link ? `${VIDEO_PLATFORM_NAMES[link.platform]} video` : job.sourceUrl;
+  if (job.fileName) return job.fileName;
+  const link = job.sourceUrl ? parseVideoLink(job.sourceUrl) : null;
+  return link ? `${VIDEO_PLATFORM_NAMES[link.platform]} video` : (job.sourceUrl ?? "Uploaded file");
+}
+
+// What goes at the top of the lesson: an embedded video link, or a teacher's
+// own upload played from Storage.
+type TopMedia =
+  | { kind: "link"; url: string; title: string | null }
+  | { kind: "upload"; path: string; title: string | null; mediaType: LessonMediaType };
+
+// A file on its way up. `kept` says which way it is going: into Storage, to
+// stay with the lesson, or straight to the worker, to be thrown away after.
+type UploadProgress = { fileName: string; loaded: number; total: number; kept: boolean };
+
+// Puts a file in the uploader's own lesson-media folder in the 'uploads'
+// bucket. Straight to the Storage REST endpoint rather than supabase-js,
+// because only XMLHttpRequest reports upload progress. Same request
+// supabase-js would make; the bucket's RLS checks the folder is the caller's.
+async function uploadToStorage(
+  file: File,
+  onProgress: (loaded: number, total: number) => void,
+  signal: AbortSignal
+): Promise<{ ok: true; path: string } | { ok: false; error: string }> {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return { ok: false, error: "You need to be signed in." };
+
+  const contentType = keptContentType(file.type);
+  const path = contentType ? lessonMediaPath(session.user.id, crypto.randomUUID(), contentType) : null;
+  if (!contentType || !path) return { ok: false, error: "That kind of file can't be kept." };
+
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+  const result = await uploadWithProgress({
+    method: "POST",
+    url: `${base}/storage/v1/object/uploads/${path}`,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+      "Content-Type": contentType,
+      "x-upsert": "false",
+    },
+    body: file,
+    onProgress,
+    signal,
+  });
+  if (result.status >= 200 && result.status < 300) return { ok: true, path };
+  return { ok: false, error: uploadErrorMessage(result.body) ?? `The upload failed (${result.status}).` };
 }
 
 export function LessonComposer({
@@ -109,7 +171,7 @@ export function LessonComposer({
   // The video a transcript came from, to show at the top of the lesson. Kept
   // through hand edits, unlike `source`: trimming a transcript is the whole
   // point of the review step, and the lesson is still about that video.
-  const [video, setVideo] = useState<{ url: string; title: string | null } | null>(null);
+  const [video, setVideo] = useState<TopMedia | null>(null);
   const [embedVideo, setEmbedVideo] = useState(true);
 
   // Video jobs: the ones started here, plus any recent ones from an earlier
@@ -119,6 +181,15 @@ export function LessonComposer({
   // The job whose transcript should drop into the box by itself when it
   // finishes — the one started in this sitting. Older ones wait for a click.
   const autoUseRef = useRef<string | null>(null);
+
+  // Uploading a recording. One at a time; the bar is the file's journey up,
+  // after which it becomes an ordinary job in the list.
+  const mediaInputRef = useRef<HTMLInputElement | null>(null);
+  const [upload, setUpload] = useState<UploadProgress | null>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
+  // Cancel an upload still running when the composer closes, rather than
+  // letting it finish into a job nobody is watching for.
+  useEffect(() => () => uploadAbortRef.current?.abort(), []);
 
   // Dropping or picking a file. Read in the browser and never uploaded: the
   // material has to land in the box to be edited before a lesson is written,
@@ -148,9 +219,10 @@ export function LessonComposer({
     if (!text) return;
     const before = sourceTextRef.current.trim();
     setSourceText(before ? `${before}\n\n${text}` : text);
-    // Credited only when it is the whole of the material — same rule as a page.
-    setSource(before ? null : { url: job.sourceUrl, title: job.title });
-    setVideo({ url: job.sourceUrl, title: job.title });
+    // Credited only when it is the whole of the material — same rule as a
+    // page. An upload has no address to credit, same as a dropped file.
+    setSource(before || !job.sourceUrl ? null : { url: job.sourceUrl, title: job.title });
+    setVideo(topMediaOf(job));
     setEmbedVideo(true);
     setError(null);
 
@@ -158,11 +230,15 @@ export function LessonComposer({
     const how = job.method === "captions" ? "from its captions" : "by listening to it";
     setReadNote(
       `Transcribed "${jobLabel(job)}"${length ? ` (${length})` : ""} ${how} — ` +
-        `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing. ` +
+        `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing.` +
         // The worker's [m:ss] markers are what give each section its "watch
-        // from" button, and they look like clutter worth deleting.
-        `Leave the [m:ss] times in — they link each section back to its moment in the video.` +
-        (job.message ? ` ${job.message}` : "")
+        // from" button, and they look like clutter worth deleting. Only a
+        // linked video can be jumped to, so an upload doesn't get the hint.
+        (job.kind === "file" || job.kind === "direct"
+          ? ""
+          : " Leave the [m:ss] times in — they link each section back to its moment in the video.") +
+        (job.message ? ` ${job.message}` : "") +
+        (job.kind === "direct" ? " The file itself wasn't kept, so the lesson can't play it." : "")
     );
   }, []);
 
@@ -272,13 +348,144 @@ export function LessonComposer({
   async function removeJob(job: PublicVideoJob) {
     setJobs((current) => current.filter((j) => j.id !== job.id));
     if (autoUseRef.current === job.id) autoUseRef.current = null;
+    // Removing a job deletes its kept file (unless a saved lesson plays it),
+    // so it can't stay lined up to go on this lesson either.
+    if (video?.kind === "upload" && video.path === job.storagePath) setVideo(null);
     await fetch(`/api/lessons/video-jobs/${job.id}`, { method: "DELETE" }).catch(() => null);
+  }
+
+  // Starts a job for a file and returns it, or says why not. Shared by both
+  // ways an upload goes, which differ only in what they send.
+  async function createJob(
+    body: Record<string, unknown>
+  ): Promise<
+    { ok: true; job: PublicVideoJob; uploadUrl?: string; uploadToken?: string } | { ok: false; error: string }
+  > {
+    const response = await fetch("/api/lessons/video-jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spaceId, ...body }),
+    });
+    const json = (await response.json().catch(() => null)) as {
+      job?: PublicVideoJob;
+      uploadUrl?: string;
+      uploadToken?: string;
+      error?: string;
+    } | null;
+    if (!response.ok || !json?.job) return { ok: false, error: json?.error ?? "Couldn't start transcribing that file." };
+    mergeJob(json.job);
+    if (json.job.status === "error") return { ok: false, error: json.job.error ?? "Couldn't start transcribing that file." };
+    return { ok: true, job: json.job, uploadUrl: json.uploadUrl, uploadToken: json.uploadToken };
+  }
+
+  // Up to 200 MB (and a type the bucket takes): into Storage, kept, and the
+  // worker fetches it from there.
+  async function uploadKept(file: File, signal: AbortSignal) {
+    const stored = await uploadToStorage(file, (loaded, total) => setUpload((u) => u && { ...u, loaded, total }), signal);
+    if (!stored.ok) {
+      setError(stored.error);
+      return;
+    }
+    const started = await createJob({
+      upload: { storagePath: stored.path, fileName: file.name, contentType: file.type, size: file.size },
+    });
+    if (!started.ok) {
+      setError(started.error);
+      // Nothing will ever point at it now; don't leave it in the bucket.
+      await createClient().storage.from("uploads").remove([stored.path]).catch(() => null);
+      return;
+    }
+    autoUseRef.current = started.job.id;
+  }
+
+  // Bigger: straight to the worker with a one-job token, and not kept.
+  async function uploadDirect(file: File, signal: AbortSignal) {
+    const started = await createJob({
+      directUpload: { fileName: file.name, contentType: file.type, size: file.size },
+    });
+    if (!started.ok) {
+      setError(started.error);
+      return;
+    }
+    if (!started.uploadUrl || !started.uploadToken) {
+      setError("The video service didn't say where to send the file.");
+      return;
+    }
+    const job = started.job;
+    try {
+      const result = await uploadWithProgress({
+        method: "PUT",
+        url: started.uploadUrl,
+        headers: {
+          Authorization: `Upload ${started.uploadToken}`,
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: file,
+        onProgress: (loaded, total) => setUpload((u) => u && { ...u, loaded, total }),
+        signal,
+      });
+      if (result.status < 200 || result.status >= 300) {
+        setError(uploadErrorMessage(result.body) ?? `The video service refused the file (${result.status}).`);
+        void removeJob(job);
+        return;
+      }
+      autoUseRef.current = job.id;
+    } catch (uploadError) {
+      // The job would only sit at "Waiting for the upload…" until it timed
+      // out, so it goes from the list with the failed upload.
+      void removeJob(job);
+      throw uploadError;
+    }
+  }
+
+  async function uploadMedia(file: File) {
+    if (busy || upload) return;
+    setError(null);
+    setReadNote(null);
+
+    if (file.type && !isMediaContentType(file.type)) {
+      setError("That isn't a video or audio file.");
+      return;
+    }
+    if (file.size === 0) {
+      setError(`"${file.name}" is empty.`);
+      return;
+    }
+    if (file.size > MAX_DIRECT_MEDIA_BYTES) {
+      setError(
+        `That file is ${formatBytes(file.size)} — the most the video service takes is ${formatBytes(MAX_DIRECT_MEDIA_BYTES)}. Trim it, or export just the audio.`
+      );
+      return;
+    }
+
+    const kept = canKeepMedia(file);
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
+    setUpload({ fileName: file.name, loaded: 0, total: file.size, kept });
+    try {
+      if (kept) await uploadKept(file, controller.signal);
+      else await uploadDirect(file, controller.signal);
+    } catch (uploadError) {
+      if (!(uploadError instanceof UploadAborted)) {
+        setError(uploadError instanceof Error ? uploadError.message : "The upload failed.");
+      }
+    } finally {
+      uploadAbortRef.current = null;
+      setUpload(null);
+    }
   }
 
   async function addFile(file: File) {
     if (busy) return;
     setError(null);
     setReadNote(null);
+
+    // A recording dropped on the box means "transcribe this", so it goes the
+    // same way as the upload button rather than being refused.
+    if (videoConfigured && isMediaContentType(file.type)) {
+      await uploadMedia(file);
+      return;
+    }
 
     if (!isTextFile(file.name)) {
       setError(
@@ -414,7 +621,8 @@ export function LessonComposer({
           ageBand,
           sourceUrl: source?.url ?? null,
           sourceTitle: source?.title ?? null,
-          videoUrl: video && embedVideo ? video.url : null,
+          videoUrl: video?.kind === "link" && embedVideo ? video.url : null,
+          mediaPath: video?.kind === "upload" && embedVideo ? video.path : null,
         }),
         signal: controller.signal,
       });
@@ -475,7 +683,7 @@ export function LessonComposer({
     }
   }
 
-  const linkBusy = reading || starting;
+  const linkBusy = reading || starting || upload !== null;
 
   return (
     <Card className="p-5">
@@ -484,7 +692,7 @@ export function LessonComposer({
           <h3 className="text-base font-semibold tracking-tight text-foreground">Write a lesson</h3>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Paste anything you want taught — a chapter, an article, your own notes
-            {videoConfigured ? ", or a video link" : ""}. It gets rewritten as a lesson for the age you pick.
+            {videoConfigured ? ", a video link, or a recording you made" : ""}. It gets rewritten as a lesson for the age you pick.
           </p>
         </div>
         <button
@@ -534,7 +742,9 @@ export function LessonComposer({
           captions or listens to it, and the transcript lands in the box when
           it's done. */}
       <div className="mt-4">
-        <span className="text-sm font-medium text-foreground">Read from a link</span>
+        <span className="text-sm font-medium text-foreground">
+          {videoConfigured ? "Read from a link or a recording" : "Read from a link"}
+        </span>
         <div className="mt-2 flex flex-wrap gap-2">
           <div className="relative min-w-[14rem] flex-1">
             {urlIsVideo ? (
@@ -572,7 +782,35 @@ export function LessonComposer({
             )}
             {reading ? "Reading…" : starting ? "Starting…" : urlIsVideo ? "Transcribe" : "Read it in"}
           </Button>
+          {/* A teacher's own recording: a talk, a lecture, a voice memo. */}
+          {videoConfigured && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={busy || linkBusy}
+                title={`Up to ${formatBytes(MAX_KEPT_MEDIA_BYTES)} is kept so the lesson can play it; bigger files are transcribed and not kept.`}
+              >
+                <Upload className="h-4 w-4" />
+                Upload a video or audio file
+              </Button>
+              <input
+                ref={mediaInputRef}
+                type="file"
+                accept={MEDIA_FILE_ACCEPT}
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void uploadMedia(file);
+                }}
+              />
+            </>
+          )}
         </div>
+        {upload && (
+          <UploadRow upload={upload} onCancel={() => uploadAbortRef.current?.abort()} />
+        )}
         {readNote && <p className="mt-2 text-xs text-muted-foreground">{readNote}</p>}
 
         {videoConfigured && jobs.length > 0 && (
@@ -675,9 +913,13 @@ export function LessonComposer({
             className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--accent)]"
           />
           <span>
-            Show the video at the top of the lesson
+            {video.kind === "upload" && video.mediaType === "audio"
+              ? "Play the recording at the top of the lesson"
+              : "Show the video at the top of the lesson"}
             <span className="block text-xs text-muted-foreground">
-              {video.title ?? video.url} — everyone who can see the lesson can watch it there.
+              {video.kind === "link" ? (video.title ?? video.url) : (video.title ?? "Your upload")} — everyone
+              who can see the lesson can {video.kind === "upload" && video.mediaType === "audio" ? "listen to" : "watch"}{" "}
+              it there.
             </span>
           </span>
         </label>
@@ -703,6 +945,54 @@ export function LessonComposer({
   );
 }
 
+// Turns a finished job into what can go at the top of its lesson: the link,
+// or a kept upload. A direct upload wasn't kept, so there is nothing to show.
+function topMediaOf(job: PublicVideoJob): TopMedia | null {
+  if (job.kind === "link" && job.sourceUrl) return { kind: "link", url: job.sourceUrl, title: job.title };
+  if (job.kind === "file" && job.storagePath) {
+    const mediaType = mediaTypeOfPath(job.storagePath);
+    if (mediaType) return { kind: "upload", path: job.storagePath, title: job.title, mediaType };
+  }
+  return null;
+}
+
+// A recording on its way up. Kept and direct uploads say plainly which they
+// are, because only one of them ends up playable in the lesson.
+function UploadRow({ upload, onCancel }: { upload: UploadProgress; onCancel: () => void }) {
+  const percent = upload.total > 0 ? Math.round((upload.loaded / upload.total) * 100) : 0;
+  return (
+    <div className="mt-3 rounded-md border border-border bg-card px-3 py-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
+            <Upload className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">{upload.fileName}</span>
+            <span className="shrink-0 text-xs font-normal text-muted-foreground">{formatBytes(upload.total)}</span>
+          </p>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-accent transition-[width] duration-300"
+              style={{ width: `${Math.max(2, percent)}%` }}
+            />
+          </div>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+            Uploading… {percent}%. Keep this open until it finishes.
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {upload.kept
+              ? "The file is kept, so the lesson can play it."
+              : `Over ${formatBytes(MAX_KEPT_MEDIA_BYTES)} (or a type that can't be stored), so it goes straight to the transcriber and won't be kept — the lesson won't be able to play it.`}
+          </p>
+        </div>
+        <Button size="sm" variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // One video job in the composer: a progress bar while it runs, a button to
 // put the transcript in the box once it's done, the reason if it failed.
 function VideoJobRow({
@@ -719,13 +1009,18 @@ function VideoJobRow({
   const running = !isJobFinished(job);
   const length = formatDuration(job.durationSeconds);
   const percent = Math.round((job.progress ?? 0) * 100);
+  const isAudio = job.storagePath ? mediaTypeOfPath(job.storagePath) === "audio" : false;
+  const Icon = isAudio ? Music : job.kind === "link" ? Film : Upload;
+  // A direct upload is only "waiting" while this tab is sending it, so
+  // telling someone they can close it then would lose the file.
+  const awaitingUpload = job.kind === "direct" && job.status === "queued";
 
   return (
     <li className="rounded-md border border-border bg-card px-3 py-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 truncate text-sm font-medium text-foreground">
-            <Film className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate">{jobLabel(job)}</span>
             {length && <span className="shrink-0 text-xs font-normal text-muted-foreground">{length}</span>}
           </p>
@@ -739,7 +1034,8 @@ function VideoJobRow({
               </div>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                {job.message ?? "Working…"} You can close this and come back.
+                {job.message ?? "Working…"}
+                {awaitingUpload ? "" : " You can close this and come back."}
               </p>
             </>
           )}
@@ -747,6 +1043,7 @@ function VideoJobRow({
             <p className="mt-0.5 text-xs text-muted-foreground">
               Ready — {job.transcriptChars.toLocaleString()} characters
               {job.method === "captions" ? ", from the video's captions" : ", transcribed from the audio"}.
+              {job.kind === "direct" && " The file wasn't kept, so the lesson can't play it."}
             </p>
           )}
           {/* Linkified: a login or bot-check error ends with a link to the

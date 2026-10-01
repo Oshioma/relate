@@ -21,6 +21,7 @@ import { LessonEditor } from "./lesson-editor";
 import { LessonClassification } from "./lesson-classification";
 import { LessonRulesPanel } from "./lesson-rules-panel";
 import { LessonVideo } from "./lesson-video";
+import { LessonMediaPlayer } from "./lesson-media-player";
 import {
   deleteLesson,
   removeLessonImage,
@@ -206,6 +207,8 @@ export function LessonDetailView({
             to watch before reading, and a better picture than any cover. */}
         {continues ? null : lesson.video_url ? (
           <LessonVideo url={lesson.video_url} className="mt-4" />
+        ) : lesson.media_path ? (
+          <LessonMediaPlayer path={lesson.media_path} type={lesson.media_type} className="mt-4" />
         ) : lesson.lesson.cover ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
