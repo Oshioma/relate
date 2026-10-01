@@ -29,6 +29,7 @@ import {
   attachImages,
   generateLesson,
   LessonGenerationError,
+  type EarlierLevel,
 } from "@/lib/ai/lesson-writer";
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
 import { parseVideoLink } from "@/lib/school/video-links";
@@ -40,9 +41,14 @@ export function streamLesson(input: {
   userId: string;
   sourceText: string;
   ageBand: AgeBandKey;
-  // "Go deeper": the source is a starting point rather than a boundary. The
-  // caller has already checked this is an adult band — see canGoBeyondSource.
+  // The source is a starting point rather than a boundary. The caller derives
+  // this from the band — see canGoBeyondSource.
   beyondSource?: boolean;
+  // The family a new level joins, when it is another age of an existing
+  // lesson. Omitted for a brand-new lesson, which starts a family of its own.
+  familyId?: string;
+  // Younger levels already in that family, for the writer to build on.
+  earlierLevels?: EarlierLevel[];
   // Where the material came from, when it was read in from a link. The reader
   // hands both back and they were previously dropped once the text reached the
   // box, so a lesson could never say where it came from.
@@ -76,6 +82,7 @@ export function streamLesson(input: {
           sourceText,
           ageBand,
           beyondSource,
+          earlierLevels: input.earlierLevels,
           onProgress: (chars) => {
             if (chars - lastSent < 200) return;
             lastSent = chars;
@@ -114,6 +121,8 @@ export function streamLesson(input: {
             source_url: sourceUrl,
             source_title: sourceTitle,
             video_url: videoUrl,
+            // Left to the column default for a new lesson: a family of one.
+            ...(input.familyId ? { family_id: input.familyId } : {}),
           })
           .select("*")
           .single();

@@ -9,6 +9,7 @@ import { Linkify } from "@/components/ui/linkify";
 import { cn } from "@/lib/utils";
 import {
   AGE_BANDS,
+  canGoBeyondSource,
   DEFAULT_AGE_BAND,
   LONG_SOURCE_CHARS,
   MAX_SOURCE_CHARS,
@@ -514,6 +515,14 @@ export function LessonComposer({
             </button>
           ))}
         </div>
+        {/* The one band that changes what the lesson IS, not just its
+            reading level — said before writing, not discovered after. */}
+        {canGoBeyondSource(ageBand) && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Adult lessons go past what you paste (the history, the arguments and the stranger
+            theories it leaves out), so they can&apos;t be checked against it.
+          </p>
+        )}
       </div>
 
       {/* A link is a shortcut into the box below, not a second way to write a

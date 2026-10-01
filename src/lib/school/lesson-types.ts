@@ -46,7 +46,7 @@ export const AGE_BANDS = [
   {
     key: "16-18",
     label: "Ages 16\u201318",
-    reading: "sixth-formers and adults",
+    reading: "sixth-formers (16 to 18 year olds)",
     guidance:
       "Write for an adult reader. Full sentences and real subject vocabulary, " +
       "used rather than explained, unless a term is genuinely specialist. " +
@@ -54,13 +54,30 @@ export const AGE_BANDS = [
       "contested, say so and give the strongest version of each side rather " +
       "than a safe middle.",
     tint: "border-border bg-accent-soft text-foreground",
-    // The one band that does NOT teach around difficult material. See
-    // systemPrompt() in lesson-writer.ts: for every other band the writer is
-    // told to leave out anything unsuitable for the age, which is right for a
-    // nine-year-old and wrong for a sixth-former reading Wilfred Owen, an
-    // account of the slave trade, or a paper on assisted dying. Sanitising
-    // those is not teaching them.
+    // Does NOT teach around difficult material. See systemPrompt() in
+    // lesson-writer.ts: for the child bands the writer is told to leave out
+    // anything unsuitable for the age, which is right for a nine-year-old and
+    // wrong for a sixth-former reading Wilfred Owen, an account of the slave
+    // trade, or a paper on assisted dying. Sanitising those is not teaching
+    // them.
     adult: true,
+  },
+  {
+    key: "adult",
+    label: "Adult",
+    reading: "adults",
+    guidance:
+      "Write for a curious, well-read adult. Real subject vocabulary used " +
+      "without apology, argument and nuance throughout, and the history, " +
+      "scholarship and disputes behind the material rather than only the " +
+      "material itself.",
+    tint: "border-accent/40 bg-accent-soft text-accent",
+    adult: true,
+    // The one band that goes BEYOND the source: the material is a starting
+    // point, not a boundary. This used to be a separate "go deeper" button
+    // that filed its lesson under 16-18; it is a band now, so the label on the
+    // card says who the lesson is for. See canGoBeyondSource below.
+    beyondSource: true,
   },
 ] as const;
 
@@ -74,22 +91,31 @@ export function isAgeBandKey(value: string): value is AgeBandKey {
   return (AGE_BAND_KEYS as string[]).includes(value);
 }
 
-// "Go deeper" — the source becomes a starting point rather than a boundary —
-// is offered only on an adult band.
+// Going beyond the source — the material becomes a starting point rather than
+// a boundary — belongs to the Adult band and only to it.
 //
 // Not a policy flourish: the ordinary guarantee is that everything in a lesson
 // came from the pasted material, and a nine-year-old's lesson quietly
 // containing things nobody supplied is exactly the failure that guarantee
 // exists to prevent. An adult can weigh a claim they are told is contested; a
 // child being taught from a printout cannot.
-// The band "go deeper" writes for. Named rather than spelled out at the call
-// site so adding a second adult band later cannot leave the button pointing at
-// the wrong one.
-export const ADULT_BAND = "16-18";
+//
+// It is decided by the band rather than chosen alongside it, so an Adult
+// lesson always goes beyond its source and nothing else ever does. Named
+// rather than spelled out at call sites so a second such band later cannot
+// leave one of them pointing at the wrong one.
+export const ADULT_BAND: AgeBandKey = "adult";
 
 export function canGoBeyondSource(key: string): boolean {
   const band = AGE_BANDS.find((b) => b.key === key);
-  return Boolean(band && "adult" in band && band.adult);
+  return Boolean(band && "beyondSource" in band && band.beyondSource);
+}
+
+// Youngest first. A band the app no longer knows sorts after every known one
+// rather than disappearing from the page.
+export function ageBandRank(key: string): number {
+  const index = AGE_BAND_KEYS.indexOf(key as AgeBandKey);
+  return index === -1 ? AGE_BAND_KEYS.length : index;
 }
 
 export function ageBandLabel(key: string): string {
@@ -575,6 +601,51 @@ export type LessonRow = Omit<SpaceLesson, "lesson"> & {
 // say something rather than render a gap.
 export function providerName(row: { creator?: LessonAuthor }): string {
   return row.creator?.full_name?.trim() || row.creator?.username?.trim() || "Unknown";
+}
+
+// --- Families ---------------------------------------------------------------
+//
+// Every level written from one source shares a family_id. They show on one
+// page, youngest first, and the library shows one card for the lot — so a
+// chapter written for three ages is one thing to find, not three cards with
+// near-identical titles.
+
+// Youngest first; two levels at the same age keep the order they were written.
+export function sortLevels<T extends { age_band: string; created_at: string }>(levels: T[]): T[] {
+  return [...levels].sort(
+    (a, b) =>
+      ageBandRank(a.age_band) - ageBandRank(b.age_band) ||
+      a.created_at.localeCompare(b.created_at)
+  );
+}
+
+// "Ages 8–10", or "Ages 8–10 → Adult" when a family spans more than one age.
+export function familyRangeLabel(bands: string[]): string {
+  const unique = [...new Set(bands)].sort((a, b) => ageBandRank(a) - ageBandRank(b));
+  if (unique.length === 0) return "";
+  if (unique.length === 1) return ageBandLabel(unique[0]);
+  const last = ageBandLabel(unique[unique.length - 1]).replace(/^Ages\s*/, "");
+  return `${ageBandLabel(unique[0])} → ${last}`;
+}
+
+export type LessonFamily = {
+  id: string;
+  // Youngest first.
+  levels: LessonRow[];
+};
+
+// Collapses a list of lessons into families, keeping the order in which each
+// family first appears — so a newest-first list stays newest-first by whichever
+// level was written most recently.
+export function groupFamilies(lessons: LessonRow[]): LessonFamily[] {
+  const byId = new Map<string, LessonRow[]>();
+  for (const lesson of lessons) {
+    const key = lesson.family_id ?? lesson.id;
+    const levels = byId.get(key);
+    if (levels) levels.push(lesson);
+    else byId.set(key, [lesson]);
+  }
+  return [...byId.entries()].map(([id, levels]) => ({ id, levels: sortLevels(levels) }));
 }
 
 // Narrows a raw row from the database. The document is trusted: it was written

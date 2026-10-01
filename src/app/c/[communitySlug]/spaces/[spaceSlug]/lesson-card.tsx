@@ -8,8 +8,8 @@ import { LessonThumbnail } from "./lesson-document";
 import { toggleLessonSave, type LessonActionState } from "./lessons-actions";
 import { cn } from "@/lib/utils";
 import {
-  ageBandLabel,
   discoveryMeta,
+  familyRangeLabel,
   formatDuration,
   normaliseSubject,
   providerName,
@@ -28,12 +28,17 @@ import {
 // browsed by the look of them.
 export function LessonCard({
   lesson,
+  levelBands,
   href,
   communitySlug,
   spaceSlug,
   canSave,
 }: {
+  // The level the card leads with: the youngest that matched the filters.
   lesson: LessonRow;
+  // Every age this lesson is written for, when it has more than one level on
+  // its page. The card shows them as a range rather than one card per age.
+  levelBands?: string[];
   href: string;
   communitySlug: string;
   spaceSlug: string;
@@ -94,7 +99,7 @@ export function LessonCard({
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {subject}
           <span aria-hidden> &middot; </span>
-          {ageBandLabel(lesson.age_band)}
+          {familyRangeLabel(levelBands?.length ? levelBands : [lesson.age_band])}
         </p>
 
         {/* The title gets the whole width of the card and wraps to as many

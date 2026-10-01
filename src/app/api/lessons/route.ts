@@ -16,6 +16,7 @@ import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { streamLesson } from "@/lib/school/lesson-stream";
 import {
+  canGoBeyondSource,
   DEFAULT_AGE_BAND,
   MAX_SOURCE_CHARS,
   MIN_SOURCE_CHARS,
@@ -94,6 +95,9 @@ export async function POST(request: NextRequest) {
     userId: auth.userId,
     sourceText,
     ageBand: requestedBand,
+    // Decided by the band, not asked for: an Adult lesson goes beyond its
+    // source and nothing else does.
+    beyondSource: canGoBeyondSource(requestedBand),
     // Sanitised again in streamLesson — the client is only reporting which
     // page it read the text from, and a lesson shows this as a link.
     sourceUrl: typeof payload.sourceUrl === "string" ? payload.sourceUrl : null,

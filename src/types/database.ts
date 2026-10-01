@@ -1180,6 +1180,10 @@ export type SpaceLesson = {
   // Part of the lesson rather than its private provenance, so it is not
   // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
   video_url: string | null;
+  // Every level written from the same source shares one, and they show on one
+  // page, youngest first. A lesson on its own is a family of one.
+  // See 20261001061018_lesson_families_and_adult_band.sql.
+  family_id: string;
   created_at: string;
   updated_at: string;
 };
