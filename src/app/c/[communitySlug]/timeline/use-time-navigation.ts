@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { panWindow, zoomWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
+import { fingerDistance, pinchWindow, type PinchStart } from "@/lib/timeline/pinch";
 import { wheelIntent, type WheelAxis } from "@/lib/timeline/wheel-intent";
 
 // Moving through time: drag or swipe sideways to pan, pinch or Ctrl/Cmd+wheel
@@ -36,9 +37,82 @@ export function useTimeNavigation(
     viewRef.current = view;
   }, [view]);
 
-  const pointers = useRef(new Map<number, { x: number }>());
-  const pinch = useRef<{ distance: number; window: TimeWindow; centre: number } | null>(null);
+  const pointers = useRef(new Set<number>());
   const drag = useRef<{ x: number; window: TimeWindow; moved: boolean } | null>(null);
+  // A two-finger touch in progress, and whether one has happened since the
+  // last time every finger was lifted. The second matters at the END of a
+  // pinch: the finger still down would otherwise resume the one-finger pan it
+  // started before the pinch, from the window it started with, and the strip
+  // would leap back.
+  const pinch = useRef<PinchStart | null>(null);
+  const pinchedSinceLift = useRef(false);
+
+  // TOUCH PINCH, ON TOUCH EVENTS RATHER THAN POINTER EVENTS.
+  //
+  // The strip is touch-pan-y so the browser keeps vertical swipes for the page
+  // (see timeline-canvas.tsx). Pointer events cannot overrule that: once the
+  // browser reads two fingers moving as a vertical pan it cancels both
+  // pointers, and a pinch whose fingers happen to sit one above the other is
+  // exactly that. A non-passive touchmove CAN overrule it — preventDefault on
+  // a two-finger move stops the browser scrolling or zooming the page — so the
+  // pinch lives here, and pointer events keep the one-finger pan and the mouse.
+  //
+  // Measured as a straight-line distance, not a horizontal one: fingers placed
+  // one above the other are still a pinch, and a horizontal-only distance read
+  // them as touching and zoomed by a factor of a hundred.
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const fingers = (event: TouchEvent) => {
+      const rect = element.getBoundingClientRect();
+      const [a, b] = [event.touches[0], event.touches[1]];
+      const pa = { x: a.clientX, y: a.clientY };
+      const pb = { x: b.clientX, y: b.clientY };
+      const midX = (pa.x + pb.x) / 2;
+      return {
+        distance: fingerDistance(pa, pb),
+        anchor: rect.width > 0 ? Math.max(0, Math.min(1, (midX - rect.left) / rect.width)) : 0.5,
+      };
+    };
+
+    function handleTouchStart(event: TouchEvent) {
+      if (event.touches.length !== 2) return;
+      const { distance, anchor } = fingers(event);
+      pinch.current = { window: viewRef.current, distance, anchor };
+      pinchedSinceLift.current = true;
+      // Whatever the first finger had started is over: this is a pinch now.
+      drag.current = null;
+      if (event.cancelable) event.preventDefault();
+    }
+
+    function handleTouchMove(event: TouchEvent) {
+      if (!pinch.current || event.touches.length < 2) return;
+      // An uncancelable move means the browser is already scrolling the page
+      // (the first finger got there first). Moving the strip as well would be
+      // one gesture moving two things.
+      if (!event.cancelable) return;
+      event.preventDefault();
+      const { distance, anchor } = fingers(event);
+      onWindowChange(pinchWindow(pinch.current, distance, anchor, scale));
+    }
+
+    function handleTouchEnd(event: TouchEvent) {
+      if (event.touches.length < 2) pinch.current = null;
+      if (event.touches.length === 0) pinchedSinceLift.current = false;
+    }
+
+    element.addEventListener("touchstart", handleTouchStart, { passive: false });
+    element.addEventListener("touchmove", handleTouchMove, { passive: false });
+    element.addEventListener("touchend", handleTouchEnd);
+    element.addEventListener("touchcancel", handleTouchEnd);
+    return () => {
+      element.removeEventListener("touchstart", handleTouchStart);
+      element.removeEventListener("touchmove", handleTouchMove);
+      element.removeEventListener("touchend", handleTouchEnd);
+      element.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [containerRef, onWindowChange, scale]);
 
   // The axis the current run of wheel events was first read on, and when the
   // last one arrived. A trackpad swipe is a stream of events with momentum
@@ -91,37 +165,29 @@ export function useTimeNavigation(
     (event: React.PointerEvent<HTMLElement>) => {
       const element = containerRef.current;
       if (!element) return;
-      pointers.current.set(event.pointerId, { x: event.clientX });
+      pointers.current.add(event.pointerId);
 
-      if (pointers.current.size === 2) {
-        const [a, b] = [...pointers.current.values()];
-        const rect = element.getBoundingClientRect();
-        // A second finger is unambiguously a pinch, never a tap, so capturing
-        // here costs nothing and keeps the gesture alive if a finger leaves the
-        // element mid-zoom.
-        element.setPointerCapture?.(event.pointerId);
-        pinch.current = {
-          distance: Math.max(1, Math.abs(a.x - b.x)),
-          window: viewRef.current,
-          centre: rect.width > 0 ? ((a.x + b.x) / 2 - rect.left) / rect.width : 0.5,
-        };
+      // A second finger is a pinch, which the touch listeners above own. Two
+      // mouse buttons or a pen and a finger are not anything; ignore the extra.
+      if (pointers.current.size > 1 || pinchedSinceLift.current) {
         drag.current = null;
-      } else {
-        // DELIBERATELY NOT capturing the pointer yet.
-        //
-        // A press on this surface is still ambiguous: it might become a pan, or
-        // it might be somebody tapping an event to open it. Capturing on
-        // pointerdown resolves that ambiguity the wrong way — with a capture
-        // active, the browser dispatches the subsequent `click` to the CAPTURE
-        // ELEMENT rather than to whatever was actually pressed, so every event
-        // marker on the strip became unclickable and the detail panel could
-        // only be reached from the list.
-        //
-        // Capture is taken in onPointerMove instead, the moment the press turns
-        // into a real drag — which is the only moment it is needed, and by then
-        // there is no click left to lose.
-        drag.current = { x: event.clientX, window: viewRef.current, moved: false };
+        return;
       }
+
+      // DELIBERATELY NOT capturing the pointer yet.
+      //
+      // A press on this surface is still ambiguous: it might become a pan, or
+      // it might be somebody tapping an event to open it. Capturing on
+      // pointerdown resolves that ambiguity the wrong way — with a capture
+      // active, the browser dispatches the subsequent `click` to the CAPTURE
+      // ELEMENT rather than to whatever was actually pressed, so every event
+      // marker on the strip became unclickable and the detail panel could
+      // only be reached from the list.
+      //
+      // Capture is taken in onPointerMove instead, the moment the press turns
+      // into a real drag — which is the only moment it is needed, and by then
+      // there is no click left to lose.
+      drag.current = { x: event.clientX, window: viewRef.current, moved: false };
     },
     [containerRef]
   );
@@ -130,18 +196,10 @@ export function useTimeNavigation(
     (event: React.PointerEvent<HTMLElement>) => {
       const element = containerRef.current;
       if (!element || !pointers.current.has(event.pointerId)) return;
-      pointers.current.set(event.pointerId, { x: event.clientX });
+      // Mid-pinch, or the finger left over after one: the pinch decided where
+      // the strip is, and this finger's old pan must not overrule it.
+      if (pinch.current || pinchedSinceLift.current || !drag.current) return;
 
-      if (pinch.current && pointers.current.size >= 2) {
-        const [a, b] = [...pointers.current.values()];
-        const distance = Math.max(1, Math.abs(a.x - b.x));
-        // Fingers apart means zoom in, which is a NARROWER window — hence the
-        // reciprocal rather than the ratio.
-        onWindowChange(zoomWindow(pinch.current.window, pinch.current.distance / distance, pinch.current.centre, scale));
-        return;
-      }
-
-      if (!drag.current) return;
       const rect = element.getBoundingClientRect();
       const dx = event.clientX - drag.current.x;
       if (Math.abs(dx) > 3 && !drag.current.moved) {
@@ -157,7 +215,6 @@ export function useTimeNavigation(
 
   const onPointerUp = useCallback((event: React.PointerEvent<HTMLElement>) => {
     pointers.current.delete(event.pointerId);
-    if (pointers.current.size < 2) pinch.current = null;
     if (pointers.current.size === 0) {
       // Cleared on the next tick so the click that follows a drag can still ask
       // whether it was a drag — otherwise every pan ends by opening an event.

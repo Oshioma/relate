@@ -260,12 +260,12 @@ export function TimelineCanvas({
         // page scroll and never reaches here; a mostly-horizontal one comes
         // here and the page stays still. Either or, never both.
         //
-        // THE COST, ACCEPTED DELIBERATELY: two-finger pinch-to-zoom no longer
-        // works on this surface, because pan-y reserves only vertical panning
-        // for the browser and hands nothing else back. Zoom is still on the
-        // + and − buttons and on double-tap. Scrolling the page by swiping
-        // over the timeline is the thing people do constantly; pinching it is
-        // not, and "touch-none" made the commonest gesture do nothing at all.
+        // Two-finger pinch is NOT left to touch-action, which cannot express
+        // "vertical for the page, pinch for us". It is handled on touch
+        // events in use-time-navigation.ts, which preventDefault a
+        // two-finger move so the browser neither scrolls nor zooms the page
+        // under it. ("touch-none" would have bought pinch by making the
+        // commonest gesture, scrolling past the strip, do nothing at all.)
           "relative w-full touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-card",
           "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           className
