@@ -266,7 +266,10 @@ export async function generateLesson(input: {
   try {
     const stream = client.messages.stream({
       model: "claude-opus-5",
-      max_tokens: 8000,
+      // Adult levels are the longest lessons written — the ones already in the
+      // library run past 20,000 characters — and a level that builds on a
+      // younger one is longer still. 8,000 was cutting them off mid-answer.
+      max_tokens: 16000,
       system: prompt,
       messages: [
         {
@@ -327,7 +330,18 @@ export async function generateLesson(input: {
         502
       );
     }
-    throw new LessonGenerationError("The lesson writer could not be reached.");
+    // The SDK parses structured output itself, so a lesson cut off at the
+    // token limit surfaces here as a parse failure rather than as the
+    // max_tokens stop reason checked below.
+    const text = error instanceof Error ? error.message : String(error);
+    console.error("Lesson writer failed", text);
+    if (text.includes("Failed to parse structured output")) {
+      throw new LessonGenerationError(
+        "The lesson came out too long to finish. Try again, or paste a smaller section.",
+        422
+      );
+    }
+    throw new LessonGenerationError(`The lesson writer could not be reached: ${text}`);
   }
 
   if (message.stop_reason === "refusal") {
