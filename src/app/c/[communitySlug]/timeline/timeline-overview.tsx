@@ -27,7 +27,7 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // an event actually sits, and a box showing the stretch you are looking at.
 // Drag the box to move, click anywhere to go there.
 //
-// IT IS THE TIMELINE'S SCROLLBAR. Drawn directly under the strip as a track
+// IT IS THE TIMELINE'S SCROLLBAR. Drawn directly above the strip as a track
 // and a thumb, because that is the control everyone already knows how to use
 // for "move quickly through something long": grab it and throw it. Unlike a
 // native scrollbar it spans ALL of time on a log scale — a pixel-for-year
