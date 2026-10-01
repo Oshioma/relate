@@ -19,6 +19,10 @@ How a video becomes text, cheapest first:
      chunks with ffmpeg, and send each chunk to Groq's Whisper API
      (about $0.04 per hour of audio).
 
+Either way the transcript comes back as paragraphs that each open with the
+moment they start in the video — "[4:05] …", or "[1:02:03] …" past the hour —
+so a lesson written from it can link each section back to its place.
+
 Configuration is all environment variables — see .env.example.
 """
 
@@ -257,26 +261,54 @@ def is_allowed_url(raw: str) -> bool:
     return any(host == allowed or host.endswith("." + allowed) for allowed in ALLOWED_HOSTS)
 
 
-_TIMING = re.compile(r"^\s*(\d{1,2}:)?\d{1,2}:\d{2}[.,]\d{3}\s*-->")
+_TIMING = re.compile(r"^\s*(?:(\d{1,2}):)?(\d{1,2}):(\d{2})[.,](\d{3})\s*-->")
 _TAG = re.compile(r"<[^>]+>")
+
+# A piece of speech and the second of the video it starts at.
+Timed = tuple[float, str]
+
+
+def _cue_start(match: re.Match[str]) -> float:
+    hours, minutes, seconds, millis = match.groups()
+    return int(hours or 0) * 3600 + int(minutes) * 60 + int(seconds) + int(millis) / 1000
+
+
+def format_marker(seconds: float) -> str:
+    """[4:05], or [1:02:03] past the hour — the form a viewer reads off a player.
+
+    The lesson writer reads these to tie each section to a point in the video,
+    so the same form is used whether the times came from captions or Whisper.
+    """
+    total = max(0, int(seconds))
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"[{hours}:{minutes:02d}:{secs:02d}]"
+    return f"[{minutes}:{secs:02d}]"
 
 
 def vtt_to_text(vtt: str) -> str:
-    """Caption file -> the words, once each.
+    """Caption file -> the words, once each, in timed paragraphs.
 
     YouTube's automatic captions "roll": every cue repeats the previous cue's
-    line before adding a new one, so a naive join says everything twice.
+    line before adding a new one, so a naive join says everything twice. A
+    line keeps the start time of the cue it FIRST appeared in, which is when
+    it was actually said.
     """
-    lines: list[str] = []
+    lines: list[Timed] = []
     in_header = True
+    start = 0.0
     for raw in vtt.splitlines():
         line = raw.strip()
-        if in_header:
+        timing = _TIMING.match(line)
+        if timing:
             # Everything before the first cue timing is the WEBVTT header.
-            if _TIMING.match(line):
-                in_header = False
+            in_header = False
+            start = _cue_start(timing)
             continue
-        if not line or _TIMING.match(line) or line.isdigit():
+        if in_header:
+            continue
+        if not line or line.isdigit():
             continue
         if line.startswith(("NOTE", "STYLE", "REGION")):
             continue
@@ -292,36 +324,51 @@ def vtt_to_text(vtt: str) -> str:
         text = re.sub(r"\s+", " ", text).strip()
         if not text or text in ("[Music]", "[Applause]"):
             continue
-        if lines and lines[-1] == text:
+        if lines and lines[-1][1] == text:
             continue
-        lines.append(text)
-    return paragraphs(" ".join(lines))
+        lines.append((start, text))
+    return timed_paragraphs(lines)
 
 
-def paragraphs(text: str, target: int = 700) -> str:
-    """One wall of speech -> readable paragraphs of roughly `target` chars.
+def _split_words(pieces: list[Timed], target: int) -> list[tuple[float, str]]:
+    """Timed pieces -> (start of first word, paragraph text) of roughly `target` chars.
 
     Breaks after a sentence when there are sentences; auto-captions have no
     punctuation, so failing that, at the next word boundary.
     """
-    text = re.sub(r"\s+", " ", text).strip()
-    if not text:
-        return ""
-    out: list[str] = []
+    out: list[tuple[float, str]] = []
     current = ""
-    for sentence in re.split(r"(?<=[.!?])\s+", text):
-        words = sentence.split(" ")
-        for word in words:
+    current_start = 0.0
+    for start, piece in pieces:
+        for word in re.sub(r"\s+", " ", piece).strip().split(" "):
+            if not word:
+                continue
+            if not current:
+                current_start = start
             current = f"{current} {word}" if current else word
-            if len(current) >= target * 1.6:
-                out.append(current)
+            if len(current) >= target * 1.6 or (word[-1] in ".!?" and len(current) >= target):
+                out.append((current_start, current))
                 current = ""
-        if len(current) >= target:
-            out.append(current)
-            current = ""
     if current:
-        out.append(current)
-    return "\n\n".join(p.strip() for p in out if p.strip())
+        out.append((current_start, current))
+    return out
+
+
+def paragraphs(text: str, target: int = 700) -> str:
+    """One wall of speech -> readable paragraphs of roughly `target` chars."""
+    return "\n\n".join(p for _, p in _split_words([(0.0, text)], target))
+
+
+def timed_paragraphs(pieces: list[Timed], target: int = 700) -> str:
+    """Timed speech -> paragraphs that each open with when they start: "[4:05] …".
+
+    The markers are plain text so they survive the composer's textarea and
+    land in the lesson's source, where the writer uses them to point each
+    section at its place in the video.
+    """
+    return "\n\n".join(
+        f"{format_marker(start)} {text}" for start, text in _split_words(pieces, target)
+    )
 
 
 # --------------------------------------------------------------------------
@@ -479,8 +526,54 @@ def _split_audio(source: Path, workdir: Path) -> list[Path]:
 # --------------------------------------------------------------------------
 
 
-def _transcribe_chunk(path: Path, prompt: str) -> str:
-    data = {"model": GROQ_MODEL, "response_format": "json", "temperature": "0"}
+def _parse_verbose(body: dict[str, Any]) -> tuple[str, list[Timed]]:
+    text = (body.get("text") or "").strip()
+    segments: list[Timed] = []
+    for segment in body.get("segments") or []:
+        words = (segment.get("text") or "").strip()
+        try:
+            start = float(segment.get("start") or 0)
+        except (TypeError, ValueError):
+            start = 0.0
+        if words:
+            segments.append((start, words))
+    # No segments (an API that ignored verbose_json) still has its words: put
+    # them at the start of the chunk rather than lose them.
+    if not segments and text:
+        segments = [(0.0, text)]
+    return text, segments
+
+
+def _transcribe_all(job_id: str, chunks: list[Path]) -> list[Timed]:
+    """Every chunk, in order, with segment times made relative to the whole video.
+
+    ffmpeg resets each chunk's clock to zero (-reset_timestamps), and every
+    chunk but the last is exactly CHUNK_MINUTES long, so a chunk's offset is
+    just its index times that.
+    """
+    pieces: list[Timed] = []
+    previous = ""
+    for index, chunk in enumerate(chunks):
+        _update(
+            job_id,
+            progress=round(0.4 + 0.58 * index / len(chunks), 3),
+            message=f"Transcribing part {index + 1} of {len(chunks)}…",
+        )
+        text, segments = _transcribe_chunk(chunk, previous)
+        offset = index * CHUNK_MINUTES * 60
+        pieces.extend((offset + start, words) for start, words in segments)
+        previous = text
+    return pieces
+
+
+def _transcribe_chunk(path: Path, prompt: str) -> tuple[str, list[Timed]]:
+    """(plain text, [(seconds into THIS chunk, segment text)]).
+
+    verbose_json rather than json for the segment start times, which become
+    the transcript's [m:ss] markers. The plain text is still returned because
+    it is what the next chunk's prompt is made of.
+    """
+    data = {"model": GROQ_MODEL, "response_format": "verbose_json", "temperature": "0"}
     if WHISPER_LANGUAGE:
         data["language"] = WHISPER_LANGUAGE
     if prompt:
@@ -498,7 +591,7 @@ def _transcribe_chunk(path: Path, prompt: str) -> str:
                 timeout=300,
             )
         if response.status_code == 200:
-            return (response.json().get("text") or "").strip()
+            return _parse_verbose(response.json())
         if response.status_code == 429 or response.status_code >= 500:
             retry_after = response.headers.get("retry-after")
             try:
@@ -593,16 +686,7 @@ def run_job(job_id: str, url: str) -> None:
             return
 
         _update(job_id, status="transcribing", progress=0.4)
-        parts: list[str] = []
-        for index, chunk in enumerate(chunks):
-            _update(
-                job_id,
-                progress=round(0.4 + 0.58 * index / len(chunks), 3),
-                message=f"Transcribing part {index + 1} of {len(chunks)}…",
-            )
-            parts.append(_transcribe_chunk(chunk, parts[-1] if parts else ""))
-
-        text = paragraphs(" ".join(p for p in parts if p))
+        text = timed_paragraphs(_transcribe_all(job_id, chunks))
         if not text:
             _update(job_id, status="error", error="No speech was found in that video.")
             return
