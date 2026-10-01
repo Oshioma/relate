@@ -121,5 +121,57 @@ class ErrorTests(unittest.TestCase):
         self.assertTrue(msg.endswith(app.COOKIES_HELP_URL), msg)
 
 
+class UsageTests(unittest.TestCase):
+    def test_byte_counter_banks_each_finished_file(self):
+        counter = app.ByteCounter()
+        counter.hook({"status": "downloading", "downloaded_bytes": 100})
+        counter.hook({"status": "downloading", "downloaded_bytes": 600})
+        counter.hook({"status": "finished", "downloaded_bytes": 1000})
+        counter.hook({"status": "downloading", "downloaded_bytes": 50})
+        self.assertEqual(counter.total, 1050)  # a part-way second file still counts
+        counter.hook({"status": "finished", "total_bytes": 80})
+        self.assertEqual(counter.total, 1080)
+
+    def test_byte_counter_falls_back_to_last_progress(self):
+        counter = app.ByteCounter()
+        counter.hook({"status": "downloading", "downloaded_bytes": 400})
+        counter.hook({"status": "finished"})
+        self.assertEqual(counter.total, 400)
+
+    def test_audio_estimate_is_capped_by_duration(self):
+        full = app.CHUNK_MINUTES * 60
+        self.assertEqual(app.estimate_audio_seconds(None, 2), 2 * full)
+        self.assertEqual(app.estimate_audio_seconds(full + 30, 2), full + 30)
+        self.assertEqual(app.estimate_audio_seconds(0, 1), full)
+
+    def test_public_reports_usage(self):
+        job = {"id": "x", "status": "done", "audio_seconds": 612.4, "download_bytes": 1234, "proxied": True}
+        out = app._public(job)
+        self.assertEqual(out["audio_seconds"], 612)
+        self.assertEqual(out["download_bytes"], 1234)
+        self.assertTrue(out["proxied"])
+
+    def test_public_old_job_has_no_usage(self):
+        out = app._public({"id": "x", "status": "done"})
+        self.assertIsNone(out["audio_seconds"])
+        self.assertIsNone(out["download_bytes"])
+        self.assertIsNone(out["proxied"])
+
+    def test_add_usage_accumulates(self):
+        app._jobs["usage-test"] = {"id": "usage-test", "created_at": 0}
+        old_dir = app.JOBS_DIR
+        app.JOBS_DIR = app.Path(app.tempfile.mkdtemp())
+        try:
+            app._add_usage("usage-test", download_bytes=10)
+            app._add_usage("usage-test", download_bytes=5, audio_seconds=30.5)
+            job = app._jobs["usage-test"]
+            self.assertEqual(job["download_bytes"], 15)
+            self.assertEqual(job["audio_seconds"], 30.5)
+        finally:
+            app._jobs.pop("usage-test", None)
+            app.shutil.rmtree(app.JOBS_DIR, ignore_errors=True)
+            app.JOBS_DIR = old_dir
+
+
 if __name__ == "__main__":
     unittest.main()

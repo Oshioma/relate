@@ -27,6 +27,10 @@ import {
   type StoredLesson,
 } from "@/lib/school/lesson-types";
 
+// The model every lesson is written with. Exported so the platform admin's
+// cost panel prices lessons with no recorded model as this one.
+export const LESSON_WRITER_MODEL = "claude-opus-5";
+
 export function isLessonWriterConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
@@ -258,6 +262,20 @@ function earlierLevelText({ ageBand, lesson }: EarlierLevel): string {
   return lines.join("\n");
 }
 
+// What writing one lesson cost, in the units Claude bills. Stored on the row so
+// the platform admin can put a price on it later with whatever rates apply
+// then — see src/lib/usage/pricing.ts.
+export type LessonUsage = {
+  // The model that answered, as the response reports it.
+  model: string;
+  // Every billed input token: plain input plus cache creation and cache reads.
+  // This call doesn't use prompt caching, so the last two are zero and the sum
+  // is exact; folded together so the column can't silently miss them if
+  // caching is ever turned on.
+  inputTokens: number;
+  outputTokens: number;
+};
+
 export async function generateLesson(input: {
   sourceText: string;
   ageBand: AgeBandKey;
@@ -269,7 +287,7 @@ export async function generateLesson(input: {
   earlierLevels?: EarlierLevel[];
   // Called as text arrives, with the number of characters written so far.
   onProgress?: (charsWritten: number) => void;
-}): Promise<{ lesson: Lesson; promptUsed: string }> {
+}): Promise<{ lesson: Lesson; promptUsed: string; usage: LessonUsage }> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new LessonGenerationError(
       "The lesson writer is not configured yet — ANTHROPIC_API_KEY is missing.",
@@ -287,7 +305,7 @@ export async function generateLesson(input: {
   let message: Anthropic.Message;
   try {
     const stream = client.messages.stream({
-      model: "claude-opus-5",
+      model: LESSON_WRITER_MODEL,
       // Adult levels are the longest lessons written — the ones already in the
       // library run past 20,000 characters — and a level that builds on a
       // younger one is longer still. 8,000 was cutting them off mid-answer.
@@ -402,7 +420,16 @@ export async function generateLesson(input: {
     );
   }
 
-  return { lesson: parsed.data, promptUsed: prompt };
+  const usage: LessonUsage = {
+    model: message.model,
+    inputTokens:
+      message.usage.input_tokens +
+      (message.usage.cache_creation_input_tokens ?? 0) +
+      (message.usage.cache_read_input_tokens ?? 0),
+    outputTokens: message.usage.output_tokens,
+  };
+
+  return { lesson: parsed.data, promptUsed: prompt, usage };
 }
 
 // Illustrates a lesson that has already been written and saved.

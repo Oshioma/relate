@@ -1184,6 +1184,13 @@ export type SpaceLesson = {
   // page, youngest first. A lesson on its own is a family of one.
   // See 20261001061018_lesson_families_and_adult_band.sql.
   family_id: string;
+  // What writing it cost, in Claude's billing units: the model that answered,
+  // every billed input token (cache creation and reads folded in) and output
+  // tokens. Null on lessons written before usage was recorded — the cost panel
+  // estimates those from text lengths. See 20261001092142_lesson_usage_costs.sql.
+  ai_model: string | null;
+  ai_input_tokens: number | null;
+  ai_output_tokens: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -1206,6 +1213,14 @@ export type LessonVideoJob = {
   method: "captions" | "whisper" | null;
   transcript: string | null;
   error: string | null;
+  // What the job used of the paid services, as the worker reports it: seconds
+  // of audio sent to Whisper (0/null for captions), bytes downloaded (what a
+  // per-GB proxy bills), and whether it went through the proxy. Null on jobs
+  // from before the worker reported them.
+  // See 20261001092142_lesson_usage_costs.sql.
+  audio_seconds: number | null;
+  download_bytes: number | null;
+  proxied: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -3372,6 +3387,17 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      lesson_usage_rows: {
+        Args: { p_since: string | null; p_limit: number };
+        Returns: {
+          community_id: string;
+          ai_model: string | null;
+          ai_input_tokens: number | null;
+          ai_output_tokens: number | null;
+          source_chars: number | null;
+          lesson_chars: number | null;
+        }[];
+      };
       approve_crop_proposal: {
         Args: { p_proposal_id: string };
         Returns: string;

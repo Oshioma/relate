@@ -203,6 +203,85 @@ def _prune() -> None:
 
 
 # --------------------------------------------------------------------------
+# Usage: what a job spent of the paid services
+#
+# Reported with every job so the app can put a price on it (the platform
+# admin's "Usage & costs" tab). Raw quantities only — seconds of audio sent to
+# Whisper and bytes downloaded — never money: rates change, and the app owns
+# them. Counted as the work happens, so a job that fails half-way still
+# reports what it had already spent.
+# --------------------------------------------------------------------------
+
+
+def _add_usage(job_id: str, download_bytes: int = 0, audio_seconds: float = 0.0) -> None:
+    with _lock:
+        job = _jobs.get(job_id)
+        if not job:
+            return
+        job["download_bytes"] = int(job.get("download_bytes") or 0) + max(0, int(download_bytes))
+        job["audio_seconds"] = float(job.get("audio_seconds") or 0) + max(0.0, float(audio_seconds))
+        job["updated_at"] = time.time()
+        snapshot = dict(job)
+    _save(snapshot)
+
+
+class ByteCounter:
+    """Bytes a yt-dlp download actually fetched, from its progress hook.
+
+    yt-dlp reports a running downloaded_bytes per file and then "finished".
+    A format like "best" can be several files, so each finished file is
+    banked and the next one starts from zero. A download that dies part-way
+    still counts what came down — the proxy billed it either way.
+    """
+
+    def __init__(self) -> None:
+        self.finished = 0
+        self.current = 0
+
+    def hook(self, status: dict[str, Any]) -> None:
+        state = status.get("status")
+        if state == "downloading":
+            self.current = int(status.get("downloaded_bytes") or 0)
+        elif state == "finished":
+            self.finished += int(
+                status.get("downloaded_bytes") or status.get("total_bytes") or self.current or 0
+            )
+            self.current = 0
+
+    @property
+    def total(self) -> int:
+        return self.finished + self.current
+
+
+def estimate_audio_seconds(duration: Optional[float], chunks: int) -> int:
+    """Audio sent to Whisper when ffprobe can't say: every chunk is full
+    length except the last, and nothing past the video's own duration or the
+    MAX_DURATION_MINUTES cut ffmpeg makes."""
+    ceiling = chunks * CHUNK_MINUTES * 60
+    if duration and duration > 0:
+        ceiling = min(ceiling, duration)
+    return int(round(min(ceiling, MAX_DURATION_MINUTES * 60)))
+
+
+def _probe_seconds(path: Path) -> Optional[float]:
+    """A chunk's length in seconds, or None if ffprobe can't tell."""
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(path),
+            ],
+            capture_output=True, text=True, timeout=60,
+        )
+        value = float(result.stdout.strip())
+        return value if value >= 0 else None
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+# --------------------------------------------------------------------------
 # Text helpers
 # --------------------------------------------------------------------------
 
@@ -375,7 +454,10 @@ def _pick_captions(info: dict[str, Any]) -> Optional[tuple[str, str]]:
 
 
 def _download_audio(job_id: str, url: str, workdir: Path) -> Path:
+    counter = ByteCounter()
+
     def hook(status: dict[str, Any]) -> None:
+        counter.hook(status)
         if status.get("status") != "downloading":
             return
         total = status.get("total_bytes") or status.get("total_bytes_estimate") or 0
@@ -396,8 +478,12 @@ def _download_audio(job_id: str, url: str, workdir: Path) -> Path:
         outtmpl=str(workdir / "source.%(ext)s"),
         progress_hooks=[hook],
     )
-    with yt_dlp.YoutubeDL(opts) as ydl:
-        ydl.download([url])
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            ydl.download([url])
+    finally:
+        # Banked even when the download fails: a proxy bills what came down.
+        _add_usage(job_id, download_bytes=counter.total)
 
     files = [p for p in workdir.iterdir() if p.name.startswith("source.") and not p.name.endswith(".part")]
     if not files:
@@ -503,8 +589,9 @@ def run_job(job_id: str, url: str) -> None:
                 _update(job_id, progress=0.3, message=f"Reading the video's captions ({lang})…")
                 try:
                     with yt_dlp.YoutubeDL(_ydl_opts()) as ydl:
-                        vtt = ydl.urlopen(caption_url).read().decode("utf-8", "replace")
-                    text = vtt_to_text(vtt)
+                        raw = ydl.urlopen(caption_url).read()
+                    _add_usage(job_id, download_bytes=len(raw))
+                    text = vtt_to_text(raw.decode("utf-8", "replace"))
                 except Exception as error:
                     print(f"{job_id}: captions failed, falling back to audio: {error}", flush=True)
                     text = ""
@@ -543,6 +630,13 @@ def run_job(job_id: str, url: str) -> None:
             _update(job_id, status="error", error="That video has no audio track.")
             return
 
+        # How long each chunk is, for the cost report. ffprobe is exact; if it
+        # can't read one, the chunks share an estimate from the duration.
+        probed = [_probe_seconds(chunk) for chunk in chunks]
+        if any(seconds is None for seconds in probed):
+            fallback = estimate_audio_seconds(duration, len(chunks)) / len(chunks)
+            probed = [fallback if seconds is None else seconds for seconds in probed]
+
         _update(job_id, status="transcribing", progress=0.4)
         parts: list[str] = []
         for index, chunk in enumerate(chunks):
@@ -552,6 +646,8 @@ def run_job(job_id: str, url: str) -> None:
                 message=f"Transcribing part {index + 1} of {len(chunks)}…",
             )
             parts.append(_transcribe_chunk(chunk, parts[-1] if parts else ""))
+            # Only once Whisper has answered: a chunk that failed wasn't billed.
+            _add_usage(job_id, audio_seconds=probed[index] or 0.0)
 
         text = paragraphs(" ".join(p for p in parts if p))
         if not text:
@@ -593,10 +689,17 @@ class NewJob(BaseModel):
 
 
 def _public(job: dict[str, Any]) -> dict[str, Any]:
-    return {key: job.get(key) for key in (
+    out = {key: job.get(key) for key in (
         "id", "status", "progress", "message", "title", "duration_seconds",
-        "method", "transcript", "error",
+        "method", "transcript", "error", "proxied",
     )}
+    # Whole numbers on the wire; a job from before these were counted has
+    # neither, and says so with null rather than a misleading zero.
+    seconds = job.get("audio_seconds")
+    out["audio_seconds"] = int(round(seconds)) if isinstance(seconds, (int, float)) else None
+    size = job.get("download_bytes")
+    out["download_bytes"] = int(size) if isinstance(size, (int, float)) else None
+    return out
 
 
 @app.get("/health")
@@ -629,6 +732,11 @@ def create_job(body: NewJob) -> dict[str, Any]:
             "status": "queued",
             "progress": 0.0,
             "message": "Waiting for a free slot…",
+            # Usage, counted as the job runs — see _add_usage. The proxy
+            # setting is per worker, so it is fixed for the job's life.
+            "download_bytes": 0,
+            "audio_seconds": 0,
+            "proxied": bool(YTDLP_PROXY),
             "created_at": now,
             "updated_at": now,
         }
