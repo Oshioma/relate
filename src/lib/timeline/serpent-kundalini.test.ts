@@ -81,6 +81,47 @@ test("a cross-cultural parallel carries both sides of the argument", () => {
   }
 });
 
+test("the retained serpent comparisons stay visible and explicitly labelled", () => {
+  const retained = [
+    "gudea-vase-entwined-serpents",
+    "caduceus-kundalini-comparison",
+    "asclepius-staff-kundalini-comparison",
+    "quetzalcoatl-kundalini-comparison",
+    "nehushtan-kundalini-comparison",
+    "jormungandr-kundalini-comparison",
+    "uraeus-kundalini-comparison",
+    "djed-spine-kundalini-comparison",
+    "double-serpent-dna-comparison",
+    "primordial-serpent-energy-doctrine",
+  ];
+
+  for (const slug of retained) {
+    const event = record(slug);
+    assert.ok(event.kundaliniRelation, `${slug}: comparison has no Kundalini-relation label`);
+    assert.ok(event.transmissionStatus, `${slug}: comparison has no transmission status`);
+  }
+
+  for (const slug of [
+    "caduceus-kundalini-comparison",
+    "asclepius-staff-kundalini-comparison",
+    "quetzalcoatl-kundalini-comparison",
+    "jormungandr-kundalini-comparison",
+  ]) {
+    assert.equal(record(slug).kundaliniRelation, "cross_cultural_parallel", `${slug}: visual comparison was promoted into descent`);
+  }
+
+  for (const slug of [
+    "nehushtan-kundalini-comparison",
+    "uraeus-kundalini-comparison",
+    "djed-spine-kundalini-comparison",
+  ]) {
+    assert.equal(record(slug).kundaliniRelation, "speculative_reading", `${slug}: speculative reading lost its status`);
+  }
+
+  assert.equal(record("double-serpent-dna-comparison").kundaliniRelation, "modern_development");
+  assert.equal(record("primordial-serpent-energy-doctrine").kundaliniRelation, "modern_development");
+});
+
 test("the Gudea vase holds a parallel and documented contact at the same time", () => {
   // The position this collection is usually in, and the one that needs two
   // fields to state: Mesopotamia and the Indus demonstrably traded, AND
