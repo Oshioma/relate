@@ -235,7 +235,7 @@ export function TimelineCanvas({
       <div
         ref={containerRef}
         role="application"
-        aria-label="Timeline. Drag to move through time, pinch or scroll to zoom."
+        aria-label="Timeline. Drag, swipe sideways or Shift-scroll to move through time, pinch or Ctrl-scroll to zoom."
         tabIndex={0}
         onPointerDown={(event) => {
           hidePreview();

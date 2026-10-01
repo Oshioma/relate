@@ -36,6 +36,8 @@ import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
+import { JumpToDate } from "./jump-to-date";
+import { interpolateWindow, jumpWindow } from "@/lib/timeline/jump-date";
 import { EventDetail } from "./event-detail";
 import { PeriodDetail } from "./period-detail";
 import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
@@ -104,6 +106,7 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
 
 // The timeline page.
 //
@@ -115,6 +118,10 @@ import {
 // already has enough to draw the next frame.
 
 const REFETCH_DEBOUNCE_MS = 260;
+/** How long a jump takes to fly from where the reader is to where they asked to be. */
+const FLIGHT_MS = 650;
+/** How long the view has to sit still before the address is rewritten to match it. */
+const URL_WRITE_DEBOUNCE_MS = 300;
 
 type Mode = "timeline" | "compare";
 
@@ -308,7 +315,7 @@ export function TimelineView({
   isStaff,
   userId,
   pendingCount,
-  focusSlug,
+  initialUrlState,
 }: {
   communitySlug: string;
   initialEvents: TimelineEventWithClaims[];
@@ -381,7 +388,8 @@ export function TimelineView({
   isStaff: boolean;
   userId: string | null;
   pendingCount: number;
-  focusSlug: string | null;
+  /** Scale, selection and filters read from the address (see url-state.ts). */
+  initialUrlState: Omit<TimelineUrlState, "window">;
 }) {
   const router = useRouter();
 
@@ -403,7 +411,8 @@ export function TimelineView({
   const [mode, setMode] = useState<Mode>("timeline");
   // Linear by default, always. A log axis is a distortion — a useful one, but a
   // reader who has not chosen it must never be shown it.
-  const [scale, setScale] = useState<TimeScale>("linear");
+  // (Unless the reader chose it and the address remembers they did.)
+  const [scale, setScale] = useState<TimeScale>(initialUrlState.scale);
   const [seeding, setSeeding] = useState(false);
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
@@ -455,14 +464,14 @@ export function TimelineView({
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
-  const [category, setCategory] = useState("");
-  const [trackId, setTrackId] = useState("");
-  const [chronology, setChronology] = useState("");
-  const [sourceType, setSourceType] = useState("");
-  const [person, setPerson] = useState("");
-  const [civilisation, setCivilisation] = useState("");
-  const [disputedOnly, setDisputedOnly] = useState(false);
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [category, setCategory] = useState(initialUrlState.category);
+  const [trackId, setTrackId] = useState(initialUrlState.trackId);
+  const [chronology, setChronology] = useState(initialUrlState.chronology);
+  const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
+  const [person, setPerson] = useState(initialUrlState.person);
+  const [civilisation, setCivilisation] = useState(initialUrlState.civilisation);
+  const [disputedOnly, setDisputedOnly] = useState(initialUrlState.disputedOnly);
+  const [pendingOnly, setPendingOnly] = useState(initialUrlState.pendingOnly);
 
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<TimelineEventWithClaims[] | null>(null);
@@ -479,11 +488,11 @@ export function TimelineView({
   // went stale the moment the server sent a newer one — the same bug the event
   // panel had after a rename. The id is the thing the reader chose; the period
   // is looked up from the current props on every render, so it cannot be old.
-  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(initialUrlState.period);
   const periodDetailRef = useRef<HTMLDivElement>(null);
 
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
-    focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
+    initialUrlState.focus ? initialEvents.find((event) => event.slug === initialUrlState.focus) ?? null : null
   );
   const [compareTrackIds, setCompareTrackIds] = useState<string[]>(() => tracks.slice(0, 4).map((track) => track.id));
 
@@ -500,6 +509,56 @@ export function TimelineView({
     }),
     [category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly, isStaff]
   );
+
+  // --- The address follows the reader --------------------------------------
+  //
+  // Position, zoom, selection and filters are written into the URL as they
+  // change, so Back from a record's own page — or a reload, or a shared link —
+  // lands exactly here rather than on the default window.
+  //
+  // replaceState, not router.replace: the router would re-run this whole
+  // server page (every dataset check, the initial window query) once per pan.
+  // The native call updates the address and Next's router keeps in step with
+  // it without a round trip. Replace rather than push, because a history entry
+  // per drag would make Back step through every pixel the reader moved.
+  //
+  // Debounced so a drag writes once when it settles, not once per frame.
+  // Skipped until something actually changed, so an untouched timeline keeps
+  // the address it was opened with.
+  const selectedSlug = selected?.slug ?? null;
+  const urlState: TimelineUrlState = useMemo(
+    () => ({
+      window: view,
+      scale,
+      focus: selectedSlug,
+      period: selectedPeriodId,
+      category,
+      trackId,
+      chronology,
+      sourceType,
+      person,
+      civilisation,
+      disputedOnly,
+      pendingOnly,
+    }),
+    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly]
+  );
+  const openedWith = useRef<TimelineUrlState | null>(null);
+  useEffect(() => {
+    if (openedWith.current === null) {
+      openedWith.current = urlState;
+      return;
+    }
+    const handle = setTimeout(() => {
+      // Built against the live address so parameters this page does not own
+      // are carried along rather than dropped.
+      const next = timelineSearch(urlState, window.location.search);
+      if (next !== window.location.search) {
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${next}${window.location.hash}`);
+      }
+    }, URL_WRITE_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [urlState]);
 
   // --- Progressive loading --------------------------------------------------
   //
@@ -692,6 +751,53 @@ export function TimelineView({
     }, 300);
     return () => clearTimeout(handle);
   }, [term, communitySlug, searching]);
+
+  // --- Flying to a date ------------------------------------------------------
+  //
+  // A jump TRAVELS rather than cuts, so the reader sees which way and how far
+  // they went — the difference between being moved and being teleported. The
+  // flight is interpolated by interpolateWindow (geometric zoom, log-distance
+  // travel), and any gesture during it wins: the moment the view is set by
+  // something other than the flight, the flight stops.
+  const flight = useRef<{ frame: number; last: TimeWindow } | null>(null);
+  const cancelFlight = useCallback(() => {
+    if (flight.current) cancelAnimationFrame(flight.current.frame);
+    flight.current = null;
+  }, []);
+  useEffect(() => {
+    if (flight.current && view !== flight.current.last) cancelFlight();
+  }, [view, cancelFlight]);
+  useEffect(() => cancelFlight, [cancelFlight]);
+
+  const flyTo = useCallback(
+    (target: TimeWindow) => {
+      cancelFlight();
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        setView(target);
+        return;
+      }
+      const start = view;
+      const startedAt = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startedAt) / FLIGHT_MS);
+        // Ease in and out, so the strip neither lurches off nor slams to a stop.
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const next = t >= 1 ? target : interpolateWindow(start, target, eased);
+        flight.current = t >= 1 ? null : { frame: requestAnimationFrame(step), last: next };
+        setView(next);
+      };
+      flight.current = { frame: requestAnimationFrame(step), last: start };
+    },
+    [view, cancelFlight]
+  );
+
+  const jumpTo = useCallback(
+    (position: number) => {
+      flyTo(jumpWindow(view, position, scale));
+    },
+    [flyTo, view, scale]
+  );
 
   const goTo = useCallback((event: TimelineEventWithClaims) => {
     // Jump to the first claim that is actually somewhere. An event whose only
@@ -1209,19 +1315,6 @@ export function TimelineView({
           be measuring nothing. */}
       <SpanRuler window={view} scale={scale} />
 
-      {/* Where everything is, and where you are in it. Above the strip, under
-          the measurement, so the three read as one instrument: how wide, what
-          is out there, and then the detail. */}
-      <TimelineOverview
-        markers={markers}
-        window={view}
-        onWindowChange={setView}
-        // The centre date it writes has to be the date the strip's own centre
-        // line marks, and that depends on how the strip spaces its years.
-        scale={scale}
-        className="mt-3"
-      />
-
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1255,6 +1348,21 @@ export function TimelineView({
           selectedId={selected?.id ?? null}
         />
       )}
+
+      {/* ---- The scrollbar -------------------------------------------------
+          Where everything is, and where you are in it, DIRECTLY UNDER THE
+          STRIP — where a scrollbar belongs, so the hand goes to it without
+          looking. Grab the thumb to travel, pull its ends to zoom. It moves
+          with every pan and zoom of the strip above, in both modes. */}
+      <TimelineOverview
+        markers={markers}
+        window={view}
+        onWindowChange={setView}
+        // The centre date it writes has to be the date the strip's own centre
+        // line marks, and that depends on how the strip spaces its years.
+        scale={scale}
+        className="mt-2"
+      />
 
       {/* ---- Zoom rail -----------------------------------------------------
           Nothing to zoom when the page is already showing everything, so the
@@ -1306,6 +1414,9 @@ export function TimelineView({
             </button>
           ))}
         </div>
+
+        {/* Straight to a moment: "10,500 BCE", "500 AD", "65 million years ago". */}
+        <JumpToDate communitySlug={communitySlug} onJump={jumpTo} />
 
         <button
           type="button"
