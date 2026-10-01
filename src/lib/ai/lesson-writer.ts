@@ -154,6 +154,27 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
         "  filling gaps with guesses.",
       ];
 
+  // Health choices belong to the reader. This library is used by families who
+  // make their own decisions about birth, vaccination, medicine and treatment,
+  // and a lesson that lectures them — or the people in the source — towards or
+  // away from an intervention is a sermon, not a lesson.
+  //
+  // This is NOT permission to get the evidence wrong: the accuracy rules above
+  // still apply in full. The line is between describing (what a practice is,
+  // what it is for, what the studies found and how sure they are) and steering
+  // (warnings, verdicts, "should", and judging someone's choice).
+  const health = [
+    "- Health and medical choices — birth, vaccination, medicines, screening,",
+    "  treatments and the like — belong to the reader. Do not advise, urge,",
+    "  warn or steer the reader towards or away from any medical intervention,",
+    "  and do not judge or moralise about the choices of anyone in the source.",
+    "- Where such a topic comes up, describe it as you would any open question:",
+    "  what the practice is and what it is for, what supporters and critics",
+    "  say, and what the evidence shows, including its limits — in neutral",
+    "  language, without verdicts, alarm or calls to action. Leave the",
+    "  conclusion to the reader.",
+  ];
+
   // An older level of a lesson that already has younger ones. They sit above it
   // on the same page and the reader has just come through them, so repeating
   // them is the one thing this level must not do. The levels themselves arrive
@@ -198,6 +219,7 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     voice,
     ...accuracy,
     ...difficulty,
+    ...health,
     ...continuation,
     "",
     "Write the lesson straight through. This is a writing task, not a puzzle —",
