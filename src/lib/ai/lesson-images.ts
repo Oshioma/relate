@@ -50,6 +50,36 @@ async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
   return response.json();
 }
 
+function withoutFormatParam(url: string | undefined): string | undefined {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.delete("format");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+// Whether a link actually serves a picture right now. Catalogues list images
+// that have since been deleted or moved, and a lesson should never be saved
+// pointing at one. A short GET (some hosts refuse HEAD), judged on status and
+// content type only; the body is abandoned.
+async function servesImage(url: string, signal: AbortSignal): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      signal,
+      headers: { "User-Agent": USER_AGENT, Accept: "image/*" },
+      redirect: "follow",
+    });
+    const type = response.headers.get("content-type") ?? "";
+    response.body?.cancel().catch(() => {});
+    return response.ok && type.startsWith("image/");
+  } catch {
+    return false;
+  }
+}
+
 // Strips the HTML Wikimedia returns inside its metadata fields.
 function stripTags(value: string): string {
   return value
@@ -93,7 +123,9 @@ const openverse: ImageSource = {
 
     return {
       url: hit.url,
-      thumbUrl: hit.thumbnail || hit.url,
+      // Openverse echoes the search's format=json onto its thumbnail links,
+      // which can then answer with JSON instead of a picture. Strip it.
+      thumbUrl: withoutFormatParam(hit.thumbnail) || hit.url,
       title: hit.title || query,
       creator: hit.creator || "",
       license: license || "Openly licensed",
@@ -291,7 +323,18 @@ export async function findImage(
         trimmed,
         AbortSignal.timeout(Math.min(PER_SOURCE_TIMEOUT_MS, remaining))
       );
-      if (result?.url) return result;
+      if (!result?.url) continue;
+      // Only keep a picture that loads. If the thumbnail is dead but the full
+      // image works, use the full image for both.
+      const left = Math.max(500, Math.min(PER_SOURCE_TIMEOUT_MS, deadline - Date.now()));
+      const [fullOk, thumbOk] = await Promise.all([
+        servesImage(result.url, AbortSignal.timeout(left)),
+        result.thumbUrl && result.thumbUrl !== result.url
+          ? servesImage(result.thumbUrl, AbortSignal.timeout(left))
+          : Promise.resolve(true),
+      ]);
+      if (fullOk) return thumbOk ? result : { ...result, thumbUrl: result.url };
+      if (thumbOk && result.thumbUrl) return { ...result, url: result.thumbUrl };
     } catch {
       // Unreachable, rate-limited, or shape changed — try the next source.
     }

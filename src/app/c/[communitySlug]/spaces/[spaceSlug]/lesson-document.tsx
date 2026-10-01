@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/ui/safe-image";
 import {
   ageBandLabel,
   ageBandTint,
@@ -51,19 +53,8 @@ export function LessonThumbnail({
 }) {
   const image = lessonThumbnail(lesson);
 
-  if (image) {
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={image.thumbUrl}
-        alt=""
-        loading="lazy"
-        className={cn("bg-muted object-cover", className)}
-      />
-    );
-  }
-
-  return (
+  // The subject's icon, which also stands in for a picture that won't load.
+  const icon = (
     <div
       aria-hidden
       className={cn(
@@ -75,19 +66,34 @@ export function LessonThumbnail({
       {SUBJECT_ICONS[normaliseSubject(subject)]}
     </div>
   );
+
+  if (!image) return icon;
+
+  return (
+    <SafeImage
+      srcs={[image.thumbUrl, image.url]}
+      alt=""
+      className={cn("bg-muted object-cover", className)}
+      fallback={icon}
+    />
+  );
 }
 
 function LessonFigure({ image, onRemove }: { image: LessonImage; onRemove?: () => void }) {
+  // A picture that won't load takes its caption and frame with it: a credit
+  // under an empty box is worse than no picture at all.
+  const [gone, setGone] = useState(false);
+  if (gone) return null;
+
   return (
     <figure className="mt-2 mb-1 overflow-hidden rounded-lg border border-border bg-muted">
       {/* Plain img: these come from many public catalogues, so there is no
           fixed host list to configure in next.config. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={image.url}
+      <SafeImage
+        srcs={[image.url, image.thumbUrl]}
         alt={image.title}
-        loading="lazy"
         className="max-h-[320px] w-full bg-muted object-cover"
+        onAllFailed={() => setGone(true)}
       />
       <figcaption className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-[11px] text-muted-foreground">
         <span className="min-w-0 truncate">
