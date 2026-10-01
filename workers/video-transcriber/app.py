@@ -1,9 +1,10 @@
 """
 Relate video transcriber.
 
-A small web service that turns a YouTube / Facebook / Instagram video link into
-plain text for the lesson composer. The Relate app starts a job and polls it;
-this service never calls the app and holds no database credentials.
+A small web service that turns a YouTube / Facebook / Instagram / TikTok /
+Vimeo video link into plain text for the lesson composer. The Relate app starts
+a job and polls it; this service never calls the app and holds no database
+credentials.
 
     POST /jobs        {"id": "<uuid>", "url": "<video link>"}   -> 202
     GET  /jobs/{id}                                             -> job status
@@ -163,7 +164,17 @@ elif not COOKIES_FILE and os.environ.get("COOKIES_B64", "").strip():
 
 # Only these sites are fetched. Every job costs bandwidth and money, and a
 # video worker that downloads any URL it's given is an open proxy.
-ALLOWED_HOSTS = ("youtube.com", "youtu.be", "facebook.com", "fb.watch", "instagram.com")
+# Subdomains match too (is_allowed_url), which is what lets vm.tiktok.com
+# share links and player.vimeo.com embed addresses through.
+ALLOWED_HOSTS = (
+    "youtube.com",
+    "youtu.be",
+    "facebook.com",
+    "fb.watch",
+    "instagram.com",
+    "tiktok.com",
+    "vimeo.com",
+)
 
 # --------------------------------------------------------------------------
 # Job store: in memory, mirrored to JOBS_DIR so a restart doesn't forget
@@ -654,7 +665,7 @@ def create_job(body: NewJob) -> dict[str, Any]:
     if not re.fullmatch(r"[A-Za-z0-9-]{8,64}", body.id):
         raise HTTPException(status_code=400, detail="Bad job id.")
     if not is_allowed_url(body.url):
-        raise HTTPException(status_code=400, detail="Only YouTube, Facebook and Instagram links are supported.")
+        raise HTTPException(status_code=400, detail="Only YouTube, Facebook, Instagram, TikTok and Vimeo links are supported.")
 
     _prune()
     with _lock:
