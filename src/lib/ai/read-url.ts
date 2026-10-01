@@ -109,7 +109,7 @@ export async function readUrl(rawUrl: string): Promise<ReadUrlResult> {
       error:
         "A video page doesn't carry its transcript, so there's nothing here to read. " +
         (isVideoWorkerConfigured()
-          ? "YouTube, Facebook and Instagram links are transcribed instead — this one is from a site that isn't supported yet, so open it, use its transcript button, and paste the text in."
+          ? "YouTube, Facebook, Instagram, TikTok and Vimeo links are transcribed instead — this one is from a site that isn't supported yet, so open it, use its transcript button, and paste the text in."
           : "Open the video, use its transcript button, and paste the text in instead."),
     };
   }

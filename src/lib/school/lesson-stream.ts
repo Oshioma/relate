@@ -87,7 +87,7 @@ export function streamLesson(input: {
       try {
         // Throttle progress so a fast stream doesn't flood the client.
         let lastSent = 0;
-        const { lesson, promptUsed } = await generateLesson({
+        const { lesson, promptUsed, usage } = await generateLesson({
           sourceText,
           ageBand,
           beyondSource,
@@ -105,38 +105,51 @@ export function streamLesson(input: {
         // would leave a stale one behind the moment they did.
         const document = storableLesson(lesson);
 
-        const { data: saved, error: insertError } = await supabase
-          .from("space_lessons")
-          .insert({
-            space_id: spaceId,
-            community_id: communityId,
-            created_by: userId,
-            age_band: ageBand,
-            title: lesson.title,
-            subject: lesson.subject,
-            source_text: sourceText,
-            lesson: document,
-            // Classified by the same call that wrote it. Cleaned rather than
-            // trusted: the column constrains these to the eight, and a model
-            // returning something else should lose the value, not the lesson.
-            discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
-            duration_minutes: lesson.duration_minutes ?? null,
-            // Recorded on the row, not just in the prose: a reader deciding
-            // whether to print this needs to know before they open it.
-            beyond_source: beyondSource,
-            // The prompt as sent, not as rebuildable. A lesson written today
-            // stays truthful about its own rules after the prompt changes.
-            prompt_used: promptUsed,
-            source_url: sourceUrl,
-            source_title: sourceTitle,
-            video_url: videoUrl,
-            media_path: mediaPath,
-            media_type: mediaType,
-            // Left to the column default for a new lesson: a family of one.
-            ...(input.familyId ? { family_id: input.familyId } : {}),
-          })
-          .select("*")
-          .single();
+        const row = {
+          space_id: spaceId,
+          community_id: communityId,
+          created_by: userId,
+          age_band: ageBand,
+          title: lesson.title,
+          subject: lesson.subject,
+          source_text: sourceText,
+          lesson: document,
+          // Classified by the same call that wrote it. Cleaned rather than
+          // trusted: the column constrains these to the eight, and a model
+          // returning something else should lose the value, not the lesson.
+          discovery_categories: cleanDiscoveryCategories(lesson.discovery_categories),
+          duration_minutes: lesson.duration_minutes ?? null,
+          // Recorded on the row, not just in the prose: a reader deciding
+          // whether to print this needs to know before they open it.
+          beyond_source: beyondSource,
+          // The prompt as sent, not as rebuildable. A lesson written today
+          // stays truthful about its own rules after the prompt changes.
+          prompt_used: promptUsed,
+          source_url: sourceUrl,
+          source_title: sourceTitle,
+          video_url: videoUrl,
+          media_path: mediaPath,
+          media_type: mediaType,
+          // Left to the column default for a new lesson: a family of one.
+          ...(input.familyId ? { family_id: input.familyId } : {}),
+        };
+        // What the call cost in tokens, for the platform admin's cost panel.
+        // Recorded now because it can't be recovered later.
+        const usageColumns = {
+          ai_model: usage.model,
+          ai_input_tokens: usage.inputTokens,
+          ai_output_tokens: usage.outputTokens,
+        };
+
+        const insert = (values: Database["public"]["Tables"]["space_lessons"]["Insert"]) =>
+          supabase.from("space_lessons").insert(values).select("*").single();
+        let { data: saved, error: insertError } = await insert({ ...row, ...usageColumns });
+        // PGRST204 is "no such column": the code is deployed but the
+        // lesson_usage_costs migration isn't pushed yet. A missing cost figure
+        // must never cost a teacher their lesson, so save it without one.
+        if (insertError?.code === "PGRST204") {
+          ({ data: saved, error: insertError } = await insert(row));
+        }
 
         if (insertError || !saved) {
           console.error("Could not save lesson", insertError);

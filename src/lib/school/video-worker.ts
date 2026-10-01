@@ -1,9 +1,9 @@
 // Talking to the video worker: the small service in workers/video-transcriber
-// that downloads a YouTube / Facebook / Instagram video with yt-dlp and turns
-// it into text — the platform's own captions when there are some, Groq Whisper
-// when there aren't. It also transcribes a teacher's own uploaded file, either
-// fetched from Storage or sent to it straight from the browser — see
-// src/lib/school/lesson-media.ts.
+// that downloads a YouTube / Facebook / Instagram / TikTok / Vimeo video with
+// yt-dlp and turns it into text — the platform's own captions when there are
+// some, Groq Whisper when there aren't. It also transcribes a teacher's own
+// uploaded file, either fetched from Storage or sent to it straight from the
+// browser — see src/lib/school/lesson-media.ts.
 //
 // WHY A SEPARATE SERVICE
 // yt-dlp needs Python and ffmpeg, an hour of audio is a few hundred MB to
@@ -58,6 +58,11 @@ export type WorkerJobReport = {
   method: "captions" | "whisper" | null;
   transcript: string | null;
   error: string | null;
+  // What the job spent, for the platform admin's cost panel. Null from a
+  // worker that predates reporting them.
+  audioSeconds: number | null;
+  downloadBytes: number | null;
+  proxied: boolean | null;
 };
 
 const STATUSES: LessonVideoJobStatus[] = ["queued", "downloading", "transcribing", "done", "error"];
@@ -69,6 +74,11 @@ function parseReport(body: unknown): WorkerJobReport | null {
   if (!status) return null;
   const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : null);
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  // A count can't be negative; one that claims to be is noise, not usage.
+  const count = (v: unknown) => {
+    const n = num(v);
+    return n === null || n < 0 ? null : Math.round(n);
+  };
   return {
     status,
     progress: Math.min(1, Math.max(0, num(b.progress) ?? 0)),
@@ -78,6 +88,9 @@ function parseReport(body: unknown): WorkerJobReport | null {
     method: b.method === "captions" || b.method === "whisper" ? b.method : null,
     transcript: str(b.transcript),
     error: str(b.error),
+    audioSeconds: count(b.audio_seconds),
+    downloadBytes: count(b.download_bytes),
+    proxied: typeof b.proxied === "boolean" ? b.proxied : null,
   };
 }
 

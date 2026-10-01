@@ -1,7 +1,8 @@
 # Relate video transcriber
 
 The small service behind **"Read from a link" → Transcribe** in the lesson
-composer. Paste a YouTube, Facebook or Instagram video link and this:
+composer. Paste a YouTube, Facebook, Instagram, TikTok or Vimeo video link and
+this:
 
 1. looks the video up with **yt-dlp**;
 2. uses the video's **own captions** if it has them (most YouTube videos do) — free, seconds;
@@ -80,9 +81,9 @@ VIDEO_WORKER_URL=https://<your-worker-domain>
 VIDEO_WORKER_SECRET=<the same WORKER_SECRET>
 ```
 
-Redeploy. The composer now says *"Paste an article, or a YouTube, Facebook or
-Instagram video link…"* and the button turns into **Transcribe** for video links.
-Without these two variables the feature is simply hidden.
+Redeploy. The composer now says *"Paste an article, or a YouTube, Facebook,
+Instagram, TikTok or Vimeo video link…"* and the button turns into **Transcribe**
+for video links. Without these two variables the feature is simply hidden.
 
 ## Cookies
 
@@ -130,6 +131,23 @@ residential-proxy provider, a few dollars a month) and deploy.
 
 *Alternatives to `COOKIES_TXT`:* `COOKIES_FILE=/data/cookies.txt` (a file on the
 volume) or `COOKIES_B64` (the file base64-encoded).
+
+## Proxy (recommended for YouTube)
+
+YouTube blocks many cloud servers outright. A **residential, sticky** proxy fixes
+that for good and needs no cookies:
+
+1. Buy residential proxy data (e.g. IPRoyal, pay as you go). 1 GB covers roughly
+   30 hour-long videos without captions; videos with captions use almost nothing.
+2. In the provider's dashboard choose **Sticky**, lifetime **30 min** or more, and
+   one country. Sticky matters: YouTube's download links only work from the IP
+   that asked for them, so a rotating proxy fails with 403.
+3. Railway → **Variables** → `YTDLP_PROXY` = `http://USER:PASS@HOST:PORT`.
+   Pasting the provider's whole `curl -x …` test command also works — the
+   worker keeps only the address.
+
+`/health` shows `"proxy": true` once it's set. Proxy passwords are scrubbed from
+logs and error messages.
 
 ## When a site changes and downloads break
 

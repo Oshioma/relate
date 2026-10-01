@@ -10,6 +10,7 @@ import {
   type LessonImage,
   type StoredLesson,
 } from "@/lib/school/lesson-types";
+import { WatchFromButton } from "./lesson-video";
 
 // Renders one written lesson. Shared by the lesson page and the composer's
 // live preview, so a teacher sees exactly what they are about to save.
@@ -185,6 +186,7 @@ export function LessonDocument({
       {lesson.sections?.map((section, i) => (
         <section key={i}>
           <h3 className="mb-2 text-base font-semibold tracking-tight text-foreground">{section.heading}</h3>
+          <WatchFromButton seconds={section.video_seconds} />
           {section.image && (
             <LessonFigure image={section.image} onRemove={onRemoveImage ? () => onRemoveImage(i) : undefined} />
           )}

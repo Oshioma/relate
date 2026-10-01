@@ -103,7 +103,7 @@ function parseRequest(payload: Record<string, unknown>): Requested {
   }
 
   const link = parseVideoLink(typeof payload.url === "string" ? payload.url : "");
-  if (!link) return { kind: "invalid", error: "That isn't a YouTube, Facebook or Instagram video link." };
+  if (!link) return { kind: "invalid", error: "That isn't a YouTube, Facebook, Instagram, TikTok or Vimeo video link." };
   return { kind: "link", url: link.url };
 }
 

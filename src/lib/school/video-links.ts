@@ -10,16 +10,18 @@
 // one we know renders. Adding a platform is adding a case below and to
 // ALLOWED_HOSTS in workers/video-transcriber/app.py.
 
-export type VideoPlatform = "youtube" | "facebook" | "instagram";
+export type VideoPlatform = "youtube" | "facebook" | "instagram" | "tiktok" | "vimeo";
 
 export type VideoLink = {
   platform: VideoPlatform;
   // The link as it should be stored and handed to the worker.
   url: string;
   // An iframe src, or null when the platform can't be embedded from this link
-  // (a Facebook share link, say). The lesson then shows a plain link instead.
+  // (a Facebook or TikTok share link, say). The lesson then shows a plain link
+  // instead.
   embedUrl: string | null;
-  // Instagram reels and YouTube Shorts are portrait; everything else 16:9.
+  // Instagram reels, YouTube Shorts and TikToks are portrait; everything else
+  // 16:9.
   portrait: boolean;
 };
 
@@ -44,6 +46,8 @@ export const VIDEO_PLATFORM_NAMES: Record<VideoPlatform, string> = {
   youtube: "YouTube",
   facebook: "Facebook",
   instagram: "Instagram",
+  tiktok: "TikTok",
+  vimeo: "Vimeo",
 };
 
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
@@ -129,6 +133,83 @@ function facebook(url: URL): VideoLink | null {
   };
 }
 
+function tiktok(url: URL): VideoLink | null {
+  const host = hostOf(url);
+  // vm.tiktok.com (and vt.) are the app's share links, and /t/… is the same
+  // thing on the main host. Like fb.watch: yt-dlp follows them happily, but
+  // the numeric id the embed player needs is only behind the redirect, and
+  // following it here would mean fetching TikTok on every page render.
+  if (host === "vm.tiktok.com" || host === "vt.tiktok.com") {
+    const code = /^\/([A-Za-z0-9]+)\/?$/.exec(url.pathname)?.[1];
+    if (!code) return null;
+    return { platform: "tiktok", url: `https://${host}/${code}/`, embedUrl: null, portrait: true };
+  }
+  if (host !== "tiktok.com") return null;
+
+  const short = /^\/t\/([A-Za-z0-9]+)\/?$/.exec(url.pathname)?.[1];
+  if (short) {
+    return { platform: "tiktok", url: `https://www.tiktok.com/t/${short}/`, embedUrl: null, portrait: true };
+  }
+
+  // A profile (/@someone) or a photo post isn't something to transcribe; only
+  // /@user/video/<id> is. The query is all share tracking (is_from_webapp,
+  // sender_device…), so it's dropped.
+  const match = /^\/@([A-Za-z0-9._-]+)\/video\/(\d+)\/?$/.exec(url.pathname);
+  if (!match) return null;
+  const [, user, id] = match;
+  return {
+    platform: "tiktok",
+    url: `https://www.tiktok.com/@${user}/video/${id}`,
+    // The v2 player takes the bare id; the username isn't needed to embed.
+    embedUrl: `https://www.tiktok.com/embed/v2/${id}`,
+    portrait: true,
+  };
+}
+
+const VIMEO_ID = /^\d+$/;
+const VIMEO_HASH = /^[0-9a-f]+$/i;
+
+function vimeo(url: URL): VideoLink | null {
+  const host = hostOf(url);
+  const parts = url.pathname.split("/").filter(Boolean);
+  let id: string | undefined;
+  let hash: string | null = null;
+
+  if (host === "player.vimeo.com") {
+    // The embed address itself, which people copy out of an embed code.
+    if (parts[0] !== "video") return null;
+    id = parts[1];
+    hash = url.searchParams.get("h");
+  } else if (host === "vimeo.com") {
+    if (parts[0] === "channels") id = parts[2];
+    else if (parts[0] === "groups") id = parts[2] === "videos" ? parts[3] : undefined;
+    else {
+      // vimeo.com/<id>, or vimeo.com/<id>/<hash> for an unlisted video. Any
+      // other first segment (a user, a showcase) isn't a single video, and
+      // the numeric-id check below turns it away.
+      id = parts[0];
+      hash = parts[1] ?? null;
+    }
+  } else {
+    return null;
+  }
+
+  if (!id || !VIMEO_ID.test(id)) return null;
+  // An unlisted video can't be played (or downloaded) without its hash, so it
+  // travels with the id. Anything that doesn't look like one is dropped
+  // rather than written into the stored link and the iframe src.
+  if (hash && !VIMEO_HASH.test(hash)) hash = null;
+
+  return {
+    platform: "vimeo",
+    url: hash ? `https://vimeo.com/${id}/${hash}` : `https://vimeo.com/${id}`,
+    // dnt=1 is Vimeo's own "don't track the viewer" switch, for the same
+    // reason YouTube gets the no-cookie domain.
+    embedUrl: `https://player.vimeo.com/video/${id}?dnt=1${hash ? `&h=${hash}` : ""}`,
+    portrait: false,
+  };
+}
+
 // The one entry point. Accepts what people actually paste — no scheme, a
 // mobile host, tracking parameters — and returns null for anything that isn't
 // a video on a supported platform.
@@ -146,15 +227,51 @@ export function parseVideoLink(raw: string): VideoLink | null {
     return null;
   }
 
-  return youtube(url) ?? instagram(url) ?? facebook(url);
+  return youtube(url) ?? instagram(url) ?? facebook(url) ?? tiktok(url) ?? vimeo(url);
+}
+
+// "1:02:03" / "4:05" / "0:00" — a point in a video, as a player shows it.
+// Whole seconds, rounded down: a section that starts at 12:30.8 is found by
+// starting at 12:30, not by skipping past its first word.
+export function formatTimestamp(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const rest = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${rest}` : `${m}:${rest}`;
 }
 
 // "1:02:03" / "4:05", for a duration the worker reported in seconds.
 export function formatDuration(seconds: number | null | undefined): string | null {
   if (!seconds || seconds <= 0) return null;
-  const s = Math.round(seconds);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const rest = String(s % 60).padStart(2, "0");
-  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${rest}` : `${m}:${rest}`;
+  return formatTimestamp(Math.round(seconds));
+}
+
+// The embed address that starts the video at `seconds` and plays it, or null
+// when this platform's player can't be told where to start — the lesson page
+// then offers no "watch from" buttons rather than ones that start at 0:00.
+//
+// Built from the parsed link, never from a stored embed address, for the same
+// reason the embed itself is: only parseVideoLink decides what may be framed.
+// A platform that can seek is a case here (Vimeo would append "#t=<n>s").
+export function seekEmbedUrl(link: VideoLink, seconds: number): string | null {
+  if (!link.embedUrl || !Number.isFinite(seconds) || seconds < 0) return null;
+  switch (link.platform) {
+    case "youtube": {
+      const url = new URL(link.embedUrl);
+      url.searchParams.set("start", String(Math.floor(seconds)));
+      // The click that asked for this moment is the viewer's go-ahead to play.
+      url.searchParams.set("autoplay", "1");
+      return url.toString();
+    }
+    case "vimeo": {
+      // Vimeo's player takes the start time in the fragment, as #t=<n>s.
+      const url = new URL(link.embedUrl);
+      url.searchParams.set("autoplay", "1");
+      url.hash = `t=${Math.floor(seconds)}s`;
+      return url.toString();
+    }
+    default:
+      return null;
+  }
 }
