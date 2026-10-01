@@ -15,6 +15,7 @@ import {
   DISCOVERY_CATEGORIES,
   DURATION_FILTERS,
   SUBJECT_ICONS,
+  groupFamilies,
   lessonSearchText,
   matchesDuration,
   normaliseSubject,
@@ -105,9 +106,9 @@ function DiscoveryPill({
 
 // One age band, as a circle you can hit rather than a line in a select.
 //
-// There are exactly three of them and they never change, which is what makes
+// There are only a handful of them and they rarely change, which is what makes
 // this worth the room: a dropdown is right for a list that grows (subjects,
-// people who have written a lesson) and wrong for a fixed set of three that
+// people who have written a lesson) and wrong for a small fixed set that
 // half the visitors to a homeschool library want to set first.
 function AgeCircle({
   label,
@@ -169,6 +170,19 @@ function FilterSelect({
       ))}
     </select>
   );
+}
+
+// How many lessons (families, not levels) each discovery category holds.
+function countFamiliesByCategory(lessons: LessonRow[]): Map<string, number> {
+  const families = new Map<string, Set<string>>();
+  for (const lesson of lessons) {
+    for (const key of lesson.discovery_categories ?? []) {
+      const set = families.get(key) ?? new Set<string>();
+      set.add(lesson.family_id ?? lesson.id);
+      families.set(key, set);
+    }
+  }
+  return new Map([...families.entries()].map(([key, set]) => [key, set.size]));
 }
 
 // The standing line, used when a space has no description of its own. Says what
@@ -253,30 +267,35 @@ export function LessonsView({
     [beforeDiscovery, discovery]
   );
 
+  // One card per source. Every level written from the same material shares a
+  // page, so the library shows them once: a family is in the results if any
+  // of its levels matched, and its card leads with the youngest that did.
+  const allFamilies = useMemo(() => groupFamilies(lessons), [lessons]);
+  const familyBands = useMemo(
+    () =>
+      new Map(allFamilies.map((family) => [family.id, family.levels.map((l) => l.age_band)])),
+    [allFamilies]
+  );
+  const shownFamilies = useMemo(() => groupFamilies(filtered), [filtered]);
+  // The youngest level of every family, for the parts of the page that suggest
+  // lessons rather than list them — two levels of one lesson are one idea.
+  const familyLeads = useMemo(() => allFamilies.map((family) => family.levels[0]), [allFamilies]);
+
   // What each category holds in the whole library, ignoring every filter. A
   // category with nothing here has never been used by this community and is
   // not a choice — a homeschool group that never cooks should not have Cook
   // sitting in its rail forever. Counted off the unfiltered list so the rail's
   // membership is stable while you filter; only the numbers on it move.
-  const libraryCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const lesson of lessons) {
-      for (const key of lesson.discovery_categories ?? []) {
-        counts.set(key, (counts.get(key) ?? 0) + 1);
-      }
-    }
-    return counts;
-  }, [lessons]);
+  const libraryCounts = useMemo(() => countFamiliesByCategory(lessons), [lessons]);
 
-  const discoveryCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const lesson of beforeDiscovery) {
-      for (const key of lesson.discovery_categories ?? []) {
-        counts.set(key, (counts.get(key) ?? 0) + 1);
-      }
-    }
-    return counts;
-  }, [beforeDiscovery]);
+  const discoveryCounts = useMemo(
+    () => countFamiliesByCategory(beforeDiscovery),
+    [beforeDiscovery]
+  );
+  const beforeDiscoveryFamilies = useMemo(
+    () => new Set(beforeDiscovery.map((l) => l.family_id ?? l.id)).size,
+    [beforeDiscovery]
+  );
 
   // Only subjects and people that actually have lessons, so a dropdown never
   // offers a filter that returns nothing.
@@ -336,7 +355,7 @@ export function LessonsView({
           what it is for rather than counting rows at someone — and shows it,
           with the community's own lesson pictures. */}
       <LessonsHero
-        lessons={lessons}
+        lessons={familyLeads}
         title={spaceName}
         blurb={spaceDescription?.trim() || STANDING_BLURB}
         action={
@@ -372,7 +391,7 @@ export function LessonsView({
         {lessons.length > 0 && (
           <aside className="space-y-5 rail:sticky rail:top-6 rail:order-2">
             <IdeasForToday
-              lessons={lessons}
+              lessons={familyLeads}
               communitySlug={communitySlug}
               spaceSlug={spaceSlug}
               preferredAgeBand={defaultAgeBand}
@@ -415,7 +434,7 @@ export function LessonsView({
             <DiscoveryPill
               icon="✨"
               label="All"
-              count={beforeDiscovery.length}
+              count={beforeDiscoveryFamilies}
               active={discovery === null}
               onClick={() => setDiscovery(null)}
             />
@@ -542,21 +561,25 @@ export function LessonsView({
       ) : (
         <div id="lessons-library" className="scroll-mt-6 space-y-3">
           <p className="text-sm text-muted-foreground">
-            {filtered.length === lessons.length
-              ? `${lessons.length} lesson${lessons.length === 1 ? "" : "s"} in this library.`
-              : `${filtered.length} of ${lessons.length} lessons.`}
+            {shownFamilies.length === allFamilies.length
+              ? `${allFamilies.length} lesson${allFamilies.length === 1 ? "" : "s"} in this library.`
+              : `${shownFamilies.length} of ${allFamilies.length} lessons.`}
           </p>
           <div className={GRID}>
-            {filtered.map((lesson) => (
-              <LessonCard
-                key={lesson.id}
-                lesson={lesson}
-                href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
-                communitySlug={communitySlug}
-                spaceSlug={spaceSlug}
-                canSave={isMember}
-              />
-            ))}
+            {shownFamilies.map((family) => {
+              const lead = family.levels[0];
+              return (
+                <LessonCard
+                  key={family.id}
+                  lesson={lead}
+                  levelBands={familyBands.get(family.id) ?? [lead.age_band]}
+                  href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lead.id}#level-${lead.id}`}
+                  communitySlug={communitySlug}
+                  spaceSlug={spaceSlug}
+                  canSave={isMember}
+                />
+              );
+            })}
           </div>
         </div>
       )}
