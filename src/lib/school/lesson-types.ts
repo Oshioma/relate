@@ -503,7 +503,12 @@ export type StoredLesson = Omit<
     image?: LessonImage | null;
     // What in this section came from outside the source, with a picture each
     // and links to look into it. Absent on lessons written before this.
-    look_into?: (LookIntoItem & { image?: LessonImage | null })[];
+    look_into?: (LookIntoItem & {
+      image?: LessonImage | null;
+      // A real item or two on the Internet Archive to investigate, when one
+      // was found. See findArchiveItems in lesson-images.ts.
+      archive_items?: { title: string; url: string; kind: string }[];
+    })[];
     // Optional here though always sent by the writer: lessons saved before
     // sections carried a video time simply don't have one.
     video_seconds?: number | null;
@@ -585,6 +590,9 @@ export const EditableLessonSchema = z.object({
             search: z.string(),
             image_query: z.string().optional().default(""),
             image: LessonImageSchema.nullish(),
+            archive_items: z
+              .array(z.object({ title: z.string(), url: z.string(), kind: z.string() }))
+              .optional(),
           })
         )
         .optional(),
