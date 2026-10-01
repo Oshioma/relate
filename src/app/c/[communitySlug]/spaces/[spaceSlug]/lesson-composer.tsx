@@ -132,6 +132,7 @@ export function LessonComposer({
   spaceId,
   defaultAgeBand,
   videoConfigured,
+  lessonHref,
   onClose,
 }: {
   spaceId: string;
@@ -141,6 +142,8 @@ export function LessonComposer({
   // Whether the video worker is set up. Without it a video link is answered
   // the old way: "paste the transcript instead".
   videoConfigured: boolean;
+  // Where a lesson lives, so the cleared form can link to the one just written.
+  lessonHref?: (lessonId: string) => string;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -184,6 +187,11 @@ export function LessonComposer({
   // The job whose transcript should drop into the box by itself when it
   // finishes — the one started in this sitting. Older ones wait for a click.
   const autoUseRef = useRef<string | null>(null);
+  // Transcripts that went into the box this time. Once a lesson is written
+  // from them they are done with, and leave the list.
+  const usedJobIdsRef = useRef<Set<string>>(new Set());
+  // The lesson just written, so the cleared form can say where it went.
+  const [savedLesson, setSavedLesson] = useState<{ id: string; title: string } | null>(null);
 
   // Uploading a recording. One at a time; the bar is the file's journey up,
   // after which it becomes an ordinary job in the list.
@@ -228,6 +236,7 @@ export function LessonComposer({
     setVideo(topMediaOf(job));
     setEmbedVideo(true);
     setError(null);
+    usedJobIdsRef.current.add(job.id);
 
     const length = formatDuration(job.durationSeconds);
     const how = job.method === "captions" ? "from its captions" : "by listening to it";
@@ -603,9 +612,28 @@ export function LessonComposer({
     }
   }
 
+  // After a lesson is written: empty the form so the next link can go straight
+  // in, and take the transcripts that were used off the list.
+  function clearForNext(saved: { id: string; title: string } | null) {
+    const used = jobs.filter((job) => usedJobIdsRef.current.has(job.id));
+    usedJobIdsRef.current = new Set();
+    for (const job of used) void removeJob(job);
+    setSourceText("");
+    setUrl("");
+    setVideo(null);
+    setSource(null);
+    setReadNote(null);
+    setError(null);
+    setUnsavedId(null);
+    setSavedLesson(saved);
+    // The library is a server component; pull the new lesson into it.
+    router.refresh();
+  }
+
   async function submit() {
     setPhase("writing");
     setError(null);
+    setSavedLesson(null);
     setUnsavedId(null);
     setCharsWritten(0);
 
@@ -615,6 +643,7 @@ export function LessonComposer({
     // Errors arrive mid-stream, so the decision below can't read them from
     // state — it wouldn't have re-rendered yet.
     let failed = false;
+    let savedRow: { id: string; title: string } | null = null;
 
     try {
       const response = await fetch("/api/lessons", {
@@ -656,7 +685,14 @@ export function LessonComposer({
         for (const line of lines) {
           if (!line.trim()) continue;
           try {
-            handleEvent(JSON.parse(line) as StreamEvent, () => {
+            const event = JSON.parse(line) as StreamEvent;
+            if (event.type === "done" && event.row && typeof event.row === "object") {
+              const row = event.row as { id?: unknown; title?: unknown };
+              if (typeof row.id === "string") {
+                savedRow = { id: row.id, title: typeof row.title === "string" ? row.title : "Your lesson" };
+              }
+            }
+            handleEvent(event, () => {
               failed = true;
             });
           } catch {
@@ -671,11 +707,7 @@ export function LessonComposer({
       // it — closing would take the error message away with it.
       if (failed) return;
 
-      setSourceText("");
-      setVideo(null);
-      // The library is a server component; pull the new lesson into it.
-      router.refresh();
-      onClose();
+      clearForNext(savedRow);
     } catch (streamError) {
       if ((streamError as Error)?.name === "AbortError") {
         setPhase("idle");
@@ -930,20 +962,28 @@ export function LessonComposer({
         </label>
       )}
 
+      {savedLesson && !error && (
+        <p className="mt-3 rounded-md bg-accent-soft px-3 py-2 text-sm text-foreground" role="status">
+          Lesson saved
+          {lessonHref ? (
+            <>
+              {": "}
+              <a href={lessonHref(savedLesson.id)} className="font-medium text-accent hover:underline">
+                {savedLesson.title}
+              </a>
+            </>
+          ) : null}
+          . Paste another link or more material to write the next one.
+        </p>
+      )}
+
       {error && (
         <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           <Linkify text={error} />
           {unsavedId && (
             <SaveUnsavedLesson
               unsavedId={unsavedId}
-              onSaved={() => {
-                setUnsavedId(null);
-                setError(null);
-                setSourceText("");
-                setVideo(null);
-                router.refresh();
-                onClose();
-              }}
+              onSaved={(id) => clearForNext({ id, title: "Your lesson" })}
             />
           )}
         </div>
