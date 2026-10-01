@@ -52,6 +52,7 @@ export function LessonDetailView({
   sourceRules,
   rulesAreOriginal,
   level,
+  writingCost,
 }: {
   lesson: LessonRow;
   communitySlug: string;
@@ -73,6 +74,9 @@ export function LessonDetailView({
   // only one. Only the first level shows the video or cover picture: the rest
   // are the same material further down the same page.
   level?: { index: number; count: number; previousBand: string | null };
+  // "This Adult level cost about $0.40 to write." Staff only: null for
+  // everyone else, and never computed for them.
+  writingCost?: string | null;
 }) {
   const router = useRouter();
   const [deleteState, deleteAction, deleting] = useActionState<LessonActionState, FormData>(deleteLesson, undefined);
@@ -159,6 +163,7 @@ export function LessonDetailView({
               {lesson.title || "Untitled lesson"}
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">by {providerName(lesson)}</p>
+            {writingCost && <p className="mt-1 text-xs text-muted-foreground">{writingCost}</p>}
             {/* Where the material came from, when it was read in from a link.
                 Shown to staff always, and to everyone once staff open the
                 source — attribution is the least secret part of a lesson, but

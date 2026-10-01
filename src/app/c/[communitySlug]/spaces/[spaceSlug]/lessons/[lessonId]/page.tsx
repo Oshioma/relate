@@ -13,6 +13,8 @@ import {
   DEFAULT_AGE_BAND,
   type LessonRow,
 } from "@/lib/school/lesson-types";
+import { getUsageRates } from "@/lib/usage/pricing";
+import { formatUsd, lessonWritingCost } from "@/lib/usage/costs";
 import { LessonDetailView } from "../../lesson-detail-view";
 import { LessonAddLevel } from "../../lesson-add-level";
 import { LessonVideoProvider } from "../../lesson-video";
@@ -75,6 +77,27 @@ export default async function LessonPage({
         levels.some((other) => ageBandRank(other.age_band) < ageBandRank(level.age_band))
       )
     );
+  }
+
+  // What writing each level cost, for staff only — computed here so the figure
+  // never reaches anyone else's page payload. Priced the same way as the
+  // platform admin's Usage & costs tab, so the two agree about any lesson.
+  const rates = isStaff ? getUsageRates() : null;
+  function costFor(level: LessonRow): string | null {
+    if (!rates) return null;
+    const { cost, estimated } = lessonWritingCost(
+      {
+        ai_model: level.ai_model,
+        ai_input_tokens: level.ai_input_tokens,
+        ai_output_tokens: level.ai_output_tokens,
+        sourceChars: (level.source_text ?? "").length,
+        lessonChars: JSON.stringify(level.lesson ?? {}).length,
+      },
+      rates
+    );
+    return `This ${ageBandLabel(level.age_band)} level cost about ${formatUsd(cost)} to write${
+      estimated ? " (estimated from its length)" : ""
+    }.`;
   }
 
   // The material is private unless its author has published it. Staff see it
@@ -143,6 +166,7 @@ export default async function LessonPage({
               canSave={Boolean(isMember)}
               sourceRules={rulesFor(level)}
               rulesAreOriginal={Boolean(level.prompt_used)}
+              writingCost={costFor(level)}
               level={{
                 index,
                 count: levels.length,
