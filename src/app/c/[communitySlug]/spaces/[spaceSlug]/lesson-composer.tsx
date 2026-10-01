@@ -158,7 +158,10 @@ export function LessonComposer({
     const how = job.method === "captions" ? "from its captions" : "by listening to it";
     setReadNote(
       `Transcribed "${jobLabel(job)}"${length ? ` (${length})` : ""} ${how} — ` +
-        `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing.` +
+        `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing. ` +
+        // The worker's [m:ss] markers are what give each section its "watch
+        // from" button, and they look like clutter worth deleting.
+        `Leave the [m:ss] times in — they link each section back to its moment in the video.` +
         (job.message ? ` ${job.message}` : "")
     );
   }, []);

@@ -378,6 +378,15 @@ export const LessonSchema = z.object({
           .describe(
             "Two to four plain words naming a concrete thing to show a child alongside this section, used to search a photo library. Name a physical object, place, animal or scene — 'erupting volcano', 'Roman aqueduct', 'violin close up'. Never a person by name, never an abstract idea."
           ),
+        // Nullable rather than optional: structured outputs then always send
+        // the key, and null is the honest answer for text that isn't a video.
+        video_seconds: z
+          .number()
+          .int()
+          .nullable()
+          .describe(
+            "Where this section's material starts in the source video, in whole seconds from the beginning, taken from the [m:ss] or [h:mm:ss] timestamps in the source material. null when the source has no timestamps."
+          ),
       })
     )
     .describe("Three to five teaching sections that build on each other."),
@@ -469,8 +478,11 @@ export type StoredLesson = Omit<
   omitted_institutional?: Lesson["omitted_institutional"];
   // The lesson's own picture, shown on its card before it is opened.
   cover?: LessonImage | null;
-  sections: (Lesson["sections"][number] & {
+  sections: (Omit<Lesson["sections"][number], "video_seconds"> & {
     image?: LessonImage | null;
+    // Optional here though always sent by the writer: lessons saved before
+    // sections carried a video time simply don't have one.
+    video_seconds?: number | null;
   })[];
 };
 
@@ -538,6 +550,9 @@ export const EditableLessonSchema = z.object({
       body: z.string(),
       image_query: z.string().optional().default(""),
       image: LessonImageSchema.nullish(),
+      // Declared so an edit keeps the section's link into the video; nullish
+      // because most lessons were not written from one.
+      video_seconds: z.number().int().nullish(),
     })
   ),
   activity: z.object({

@@ -230,12 +230,48 @@ export function parseVideoLink(raw: string): VideoLink | null {
   return youtube(url) ?? instagram(url) ?? facebook(url) ?? tiktok(url) ?? vimeo(url);
 }
 
-// "1:02:03" / "4:05", for a duration the worker reported in seconds.
-export function formatDuration(seconds: number | null | undefined): string | null {
-  if (!seconds || seconds <= 0) return null;
-  const s = Math.round(seconds);
+// "1:02:03" / "4:05" / "0:00" — a point in a video, as a player shows it.
+// Whole seconds, rounded down: a section that starts at 12:30.8 is found by
+// starting at 12:30, not by skipping past its first word.
+export function formatTimestamp(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds));
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const rest = String(s % 60).padStart(2, "0");
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${rest}` : `${m}:${rest}`;
+}
+
+// "1:02:03" / "4:05", for a duration the worker reported in seconds.
+export function formatDuration(seconds: number | null | undefined): string | null {
+  if (!seconds || seconds <= 0) return null;
+  return formatTimestamp(Math.round(seconds));
+}
+
+// The embed address that starts the video at `seconds` and plays it, or null
+// when this platform's player can't be told where to start — the lesson page
+// then offers no "watch from" buttons rather than ones that start at 0:00.
+//
+// Built from the parsed link, never from a stored embed address, for the same
+// reason the embed itself is: only parseVideoLink decides what may be framed.
+// A platform that can seek is a case here (Vimeo would append "#t=<n>s").
+export function seekEmbedUrl(link: VideoLink, seconds: number): string | null {
+  if (!link.embedUrl || !Number.isFinite(seconds) || seconds < 0) return null;
+  switch (link.platform) {
+    case "youtube": {
+      const url = new URL(link.embedUrl);
+      url.searchParams.set("start", String(Math.floor(seconds)));
+      // The click that asked for this moment is the viewer's go-ahead to play.
+      url.searchParams.set("autoplay", "1");
+      return url.toString();
+    }
+    case "vimeo": {
+      // Vimeo's player takes the start time in the fragment, as #t=<n>s.
+      const url = new URL(link.embedUrl);
+      url.searchParams.set("autoplay", "1");
+      url.hash = `t=${Math.floor(seconds)}s`;
+      return url.toString();
+    }
+    default:
+      return null;
+  }
 }

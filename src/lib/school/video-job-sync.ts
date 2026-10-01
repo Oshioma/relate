@@ -42,6 +42,11 @@ export async function syncVideoJob(
       method: r.method ?? job.method,
       transcript: r.status === "done" ? transcript : job.transcript,
       error: r.status === "error" ? (r.error ?? "The video couldn't be transcribed.") : null,
+      // Usage only ever grows on the worker, so a missing figure keeps the
+      // last one we saw rather than wiping it.
+      audio_seconds: r.audioSeconds ?? job.audio_seconds,
+      download_bytes: r.downloadBytes ?? job.download_bytes,
+      proxied: r.proxied ?? job.proxied,
     };
     if (update.status === "done" && !update.transcript) {
       update.status = "error";
@@ -63,12 +68,19 @@ export async function syncVideoJob(
   const changed = (Object.keys(update) as (keyof LessonVideoJob)[]).some((k) => update![k] !== job[k]);
   if (!changed) return job;
 
-  const { data, error } = await supabase
-    .from("lesson_video_jobs")
-    .update(update)
-    .eq("id", job.id)
-    .select("*")
-    .single();
+  const write = (values: Partial<LessonVideoJob>) =>
+    supabase.from("lesson_video_jobs").update(values).eq("id", job.id).select("*").single();
+  let { data, error } = await write(update);
+  // PGRST204 is "no such column": the lesson_usage_costs migration isn't
+  // pushed yet. The usage figures are a nice-to-have; the job's progress
+  // isn't, so write it without them rather than leave the job stuck.
+  if (error?.code === "PGRST204") {
+    const rest = { ...update };
+    delete rest.audio_seconds;
+    delete rest.download_bytes;
+    delete rest.proxied;
+    ({ data, error } = await write(rest));
+  }
 
   if (error || !data) {
     console.error("Could not update video job", error);
