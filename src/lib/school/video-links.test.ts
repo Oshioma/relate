@@ -186,3 +186,11 @@ test("worker help links point at this site's instructions page", () => {
   assert.equal(withSiteHelpLink("That video is private.", "https://relate.click"), "That video is private.");
   assert.equal(withSiteHelpLink(null), null);
 });
+
+test("Vimeo seeks with the #t= fragment and keeps an unlisted video's hash", () => {
+  const link = parseVideoLink("https://vimeo.com/76979871/abc123")!;
+  assert.equal(
+    seekEmbedUrl(link, 754.9),
+    "https://player.vimeo.com/video/76979871?dnt=1&h=abc123&autoplay=1#t=754s"
+  );
+});

@@ -264,6 +264,13 @@ export function seekEmbedUrl(link: VideoLink, seconds: number): string | null {
       url.searchParams.set("autoplay", "1");
       return url.toString();
     }
+    case "vimeo": {
+      // Vimeo's player takes the start time in the fragment, as #t=<n>s.
+      const url = new URL(link.embedUrl);
+      url.searchParams.set("autoplay", "1");
+      url.hash = `t=${Math.floor(seconds)}s`;
+      return url.toString();
+    }
     default:
       return null;
   }
