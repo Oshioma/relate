@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { SaveUnsavedLesson } from "./save-unsaved-lesson";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FileUp, Film, Link2, Loader2, Music, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ import type { LessonMediaType } from "@/types/database";
 // finished lesson over.
 type StreamEvent =
   | { type: "progress"; chars: number }
-  | { type: "done"; row?: unknown; error?: string }
+  | { type: "done"; row?: unknown; error?: string; unsavedId?: string }
   | { type: "images" }
   | { type: "illustrated"; row?: unknown }
   | { type: "error"; error: string };
@@ -156,6 +157,8 @@ export function LessonComposer({
   const [phase, setPhase] = useState<Phase>("idle");
   const [charsWritten, setCharsWritten] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  // Set when the lesson was written but couldn't be saved: the server kept it.
+  const [unsavedId, setUnsavedId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Reading a page into the box. Separate from writing the lesson on purpose:
@@ -584,6 +587,7 @@ export function LessonComposer({
         // there is no row to navigate to.
         if (event.error) {
           setError(event.error);
+          setUnsavedId(event.unsavedId ?? null);
           onFailure();
         }
         break;
@@ -602,6 +606,7 @@ export function LessonComposer({
   async function submit() {
     setPhase("writing");
     setError(null);
+    setUnsavedId(null);
     setCharsWritten(0);
 
     const controller = new AbortController();
@@ -928,6 +933,19 @@ export function LessonComposer({
       {error && (
         <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           <Linkify text={error} />
+          {unsavedId && (
+            <SaveUnsavedLesson
+              unsavedId={unsavedId}
+              onSaved={() => {
+                setUnsavedId(null);
+                setError(null);
+                setSourceText("");
+                setVideo(null);
+                router.refresh();
+                onClose();
+              }}
+            />
+          )}
         </div>
       )}
 

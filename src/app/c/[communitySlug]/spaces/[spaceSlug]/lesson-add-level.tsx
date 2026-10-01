@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Telescope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SaveUnsavedLesson } from "./save-unsaved-lesson";
 import {
   AGE_BANDS,
   ageBandLabel,
@@ -35,15 +36,25 @@ export function LessonAddLevel({
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set when a level was written but couldn't be saved: the server kept it.
+  const [unsavedId, setUnsavedId] = useState<string | null>(null);
 
   const missing = AGE_BANDS.filter((band) => !existingBands.includes(band.key));
   if (missing.length === 0) return null;
 
   const oldest = Math.max(...existingBands.map(ageBandRank));
 
+  // A full load rather than a client refresh: it lands on the new level's
+  // anchor reliably, with every level re-read.
+  function openLevel(id: string) {
+    const page = `/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`;
+    window.location.assign(`${page}#level-${id}`);
+  }
+
   async function addLevel(ageBand: string) {
     setBusy(ageBand);
     setError(null);
+    setUnsavedId(null);
     let newId: string | null = null;
     try {
       const response = await fetch(`/api/lessons/${lessonId}/rewrite`, {
@@ -77,7 +88,9 @@ export function LessonAddLevel({
               type: string;
               error?: string;
               row?: { id?: string };
+              unsavedId?: string;
             };
+            if (event.unsavedId) setUnsavedId(event.unsavedId);
             // A "done" without a row is a lesson that was written but could
             // not be saved — the server says why in its error.
             if (event.error && (event.type === "error" || event.type === "done")) {
@@ -103,10 +116,7 @@ export function LessonAddLevel({
         return;
       }
 
-      // A full load rather than a client refresh: it lands on the new level's
-      // anchor reliably, with every level re-read.
-      const page = `/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lessonId}`;
-      window.location.assign(`${page}#level-${newId}`);
+      openLevel(newId);
     } catch {
       setError("The connection dropped while writing the new level.");
     } finally {
@@ -160,9 +170,10 @@ export function LessonAddLevel({
         </p>
       )}
       {error && (
-        <p className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
+        <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           {error}
-        </p>
+          {unsavedId && <SaveUnsavedLesson unsavedId={unsavedId} onSaved={openLevel} />}
+        </div>
       )}
     </div>
   );
