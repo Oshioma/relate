@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
@@ -215,11 +216,19 @@ export function LessonDetailView({
         ) : lesson.media_path ? (
           <LessonMediaPlayer path={lesson.media_path} type={lesson.media_type} className="mt-4" />
         ) : lesson.lesson.cover ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={lesson.lesson.cover.url}
+          <SafeImage
+            srcs={[lesson.lesson.cover.url, lesson.lesson.cover.thumbUrl]}
             alt=""
+            loading="eager"
             className="mt-4 max-h-64 w-full rounded-lg bg-muted object-cover"
+            fallback={
+              <div
+                aria-hidden
+                className="mt-4 flex h-28 w-full items-center justify-center rounded-lg border border-border/60 bg-muted text-4xl"
+              >
+                {SUBJECT_ICONS[subject]}
+              </div>
+            }
           />
         ) : (
           // No cover: the subject's icon rather than a gap. Deliberately not the
