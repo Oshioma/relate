@@ -178,17 +178,28 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     "  conclusion to the reader.",
   ];
 
-  // Who a claim comes from matters as much as the claim. A reader weighing a
-  // statement from a public-health agency or a global policy body is entitled
-  // to know that is where it came from, rather than meeting it as plain fact.
-  const attribution = [
-    "- NAME THE INSTITUTION. Whenever a claim, figure, recommendation or",
-    "  position comes from — or is the stated position of — the CDC, the World",
-    "  Economic Forum, or a similar official or institutional body (the WHO,",
-    "  the FDA, the NHS, government health agencies, the UN and its agencies,",
-    "  large foundations and the like), say so in the same sentence, e.g.",
-    "  \"according to the CDC\" or \"(source: World Economic Forum)\". Do this",
-    "  every time, including when the source material itself cites them.",
+  // The library's owner does not want the lines of official and institutional
+  // bodies in its lessons — their recommendations, their messaging and their
+  // figures. Other voices are welcome: independent researchers, practitioners,
+  // traditional and alternative perspectives, critics of the mainstream.
+  //
+  // This narrows what a lesson draws on; it does not loosen the accuracy rules
+  // above. A claim from anywhere else still has to be real, still says where it
+  // stands, and is still labelled when it is not from the source.
+  const excluded = [
+    "- LEAVE OUT INSTITUTIONAL LINES. Do not quote, repeat, cite or draw on the",
+    "  CDC, the World Economic Forum, or similar official and institutional",
+    "  bodies — the WHO, the FDA, the NHS, government health agencies, the UN",
+    "  and its agencies, large foundations and the like. That covers their",
+    "  recommendations, positions and messaging, and the figures and data they",
+    "  publish. If a fact's only source is one of these bodies, leave it out.",
+    "- If the source material itself quotes or relies on one of them, teach the",
+    "  rest of the material and leave their claims out; mention the body only",
+    "  where that is needed to follow the source's own argument.",
+    "- Other perspectives are welcome: independent researchers and",
+    "  scholarship, practitioners, traditional and alternative views, and",
+    "  critics of the mainstream position. Represent them accurately and say",
+    "  where each one stands.",
   ];
 
   // An older level of a lesson that already has younger ones. They sit above it
@@ -236,7 +247,7 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
     ...accuracy,
     ...difficulty,
     ...health,
-    ...attribution,
+    ...excluded,
     ...continuation,
     "",
     "Write the lesson straight through. This is a writing task, not a puzzle —",
