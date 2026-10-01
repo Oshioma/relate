@@ -33,6 +33,7 @@ import {
 } from "@/lib/ai/lesson-writer";
 import { cleanDiscoveryCategories, storableLesson, type AgeBandKey } from "@/lib/school/lesson-types";
 import { recordAiSpend } from "@/lib/usage/ai-spend";
+import { parkUnsavedLesson } from "@/lib/school/unsaved-lessons";
 import { getUsageRates } from "@/lib/usage/pricing";
 import { claudeCostWithCache, claudeRateFor } from "@/lib/usage/costs";
 import { parseVideoLink } from "@/lib/school/video-links";
@@ -164,14 +165,35 @@ export function streamLesson(input: {
           ({ data: saved, error: insertError } = await insert(row));
         }
 
+        // One more try after a moment: most failures here are a blip, and the
+        // lesson has already been paid for.
+        if (insertError || !saved) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          ({ data: saved, error: insertError } = await insert({ ...row, ...usageColumns }));
+          if (insertError?.code === "PGRST204") {
+            ({ data: saved, error: insertError } = await insert(row));
+          }
+        }
+
         if (insertError || !saved) {
           console.error("Could not save lesson", insertError);
-          // The lesson is good even though saving failed — hand it back so the
-          // work isn't lost, and let the client say it wasn't saved.
+          // The lesson is good even though saving failed. Park the whole row so
+          // the page can offer "Save it now" — inserting it as written, with no
+          // second model call — and hand the document back as well.
+          const unsavedId = await parkUnsavedLesson({
+            spaceId,
+            communityId,
+            userId,
+            row: { ...row, ...usageColumns },
+            error: insertError?.message ?? null,
+          });
           send({
             type: "done",
             lesson: document,
-            error: "The lesson was written but not saved.",
+            unsavedId,
+            error: unsavedId
+              ? "The lesson was written but couldn't be saved. Press \"Save it now\" to try again without rewriting it."
+              : "The lesson was written but not saved.",
           });
           return;
         }
