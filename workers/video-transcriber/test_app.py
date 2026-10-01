@@ -60,6 +60,10 @@ class HostTests(unittest.TestCase):
             "https://m.facebook.com/x/videos/1/",
             "https://fb.watch/abc/",
             "https://www.instagram.com/reel/abc/",
+            "https://www.tiktok.com/@school/video/7234567890123456789",
+            "https://vm.tiktok.com/ZMabc123/",
+            "https://vimeo.com/76979871",
+            "https://player.vimeo.com/video/76979871?h=a1b2c3",
         ]:
             self.assertTrue(app.is_allowed_url(url), url)
 
@@ -69,6 +73,10 @@ class HostTests(unittest.TestCase):
             "https://youtube.com.evil.example/watch",
             "file:///etc/passwd",
             "https://notyoutube.com/watch",
+            "https://tiktok.com.evil.example/@school/video/1",
+            "https://eviltiktok.com/@school/video/1",
+            "https://vimeo.com.evil.example/76979871",
+            "https://notvimeo.com/76979871",
         ]:
             self.assertFalse(app.is_allowed_url(url), url)
 

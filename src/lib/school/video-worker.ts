@@ -1,7 +1,7 @@
 // Talking to the video worker: the small service in workers/video-transcriber
-// that downloads a YouTube / Facebook / Instagram video with yt-dlp and turns
-// it into text — the platform's own captions when there are some, Groq Whisper
-// when there aren't.
+// that downloads a YouTube / Facebook / Instagram / TikTok / Vimeo video with
+// yt-dlp and turns it into text — the platform's own captions when there are
+// some, Groq Whisper when there aren't.
 //
 // WHY A SEPARATE SERVICE
 // yt-dlp needs Python and ffmpeg, an hour of audio is a few hundred MB to

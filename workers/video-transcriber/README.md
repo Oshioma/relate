@@ -1,7 +1,8 @@
 # Relate video transcriber
 
 The small service behind **"Read from a link" → Transcribe** in the lesson
-composer. Paste a YouTube, Facebook or Instagram video link and this:
+composer. Paste a YouTube, Facebook, Instagram, TikTok or Vimeo video link and
+this:
 
 1. looks the video up with **yt-dlp**;
 2. uses the video's **own captions** if it has them (most YouTube videos do) — free, seconds;
@@ -80,9 +81,9 @@ VIDEO_WORKER_URL=https://<your-worker-domain>
 VIDEO_WORKER_SECRET=<the same WORKER_SECRET>
 ```
 
-Redeploy. The composer now says *"Paste an article, or a YouTube, Facebook or
-Instagram video link…"* and the button turns into **Transcribe** for video links.
-Without these two variables the feature is simply hidden.
+Redeploy. The composer now says *"Paste an article, or a YouTube, Facebook,
+Instagram, TikTok or Vimeo video link…"* and the button turns into **Transcribe**
+for video links. Without these two variables the feature is simply hidden.
 
 ## Cookies
 
