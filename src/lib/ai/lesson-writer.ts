@@ -147,11 +147,12 @@ function systemPrompt(band: AgeBandKey, beyondSource = false, buildsOnEarlierLev
         "  most specialists reject. Name who holds a contested position where",
         "  you can. Never present a fringe or discredited reading as though it",
         "  were established — that would be a worse lesson, not a bolder one.",
-        "- LABEL EVERYTHING YOU BRING. Any fact, figure or claim that is not in",
-        "  the source material must be followed, in the same sentence, by the",
-        "  label \"(not from the source — general knowledge, unchecked)\". Use it",
-        "  every time, not once per section: a reader skimming one paragraph must",
-        "  be able to tell what came from the material and what you brought.",
+        "- LIST EVERYTHING YOU BRING. Every fact, figure, idea or claim in a",
+        "  section that is not in the source material goes in that section's",
+        "  look_into list — its topic, a search phrase, and something to picture —",
+        "  so the page can show it in a \"look into it\" box with a picture and",
+        "  places to research it. Don't label it in the prose; the box does that.",
+        "  Miss none: a reader must be able to tell what came from the material.",
         "- Where you are genuinely unsure of a fact, say so rather than",
         "  asserting it. Do not invent names, dates, quotations or citations.",
       ]
@@ -587,11 +588,18 @@ export async function attachImages(
     ("cover_image_query" in lesson ? lesson.cover_image_query : "") ||
     lesson.title;
 
+  // Each "look into it" topic gets a picture too, from the same search and
+  // the same deadline. Flattened here and put back by position below.
+  const lookInto = lesson.sections.flatMap((section, s) =>
+    (section.look_into ?? []).map((item, i) => ({ s, i, query: item.image_query || item.topic }))
+  );
+
   const queries = [
     coverQuery,
     ...lesson.sections.map((section) =>
       sectionSearchPhrase(section, lesson.title)
     ),
+    ...lookInto.map((item) => item.query),
   ];
 
   let results: (LessonImage | null)[] = [];
@@ -601,7 +609,9 @@ export async function attachImages(
     console.error("Image lookup failed", error);
   }
 
-  const [cover, ...images] = results;
+  const cover = results[0] ?? null;
+  const images = results.slice(1, 1 + lesson.sections.length);
+  const lookIntoImages = results.slice(1 + lesson.sections.length);
   const found = results.filter(Boolean).length;
 
   const existingCover = "cover" in lesson ? lesson.cover : null;
@@ -611,9 +621,14 @@ export async function attachImages(
       ...lesson,
       // Keep a picture this lesson already had if the search found none.
       cover: cover ?? existingCover ?? null,
-      sections: lesson.sections.map((section, i) => ({
+      sections: lesson.sections.map((section, s) => ({
         ...section,
-        image: images[i] ?? ("image" in section ? section.image : null) ?? null,
+        image: images[s] ?? ("image" in section ? section.image : null) ?? null,
+        look_into: (section.look_into ?? []).map((item, i) => {
+          const at = lookInto.findIndex((entry) => entry.s === s && entry.i === i);
+          const existing = "image" in item ? (item as { image?: LessonImage | null }).image : null;
+          return { ...item, image: (at >= 0 ? lookIntoImages[at] : null) ?? existing ?? null };
+        }),
       })),
     },
     found,

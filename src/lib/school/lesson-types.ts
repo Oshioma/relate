@@ -387,6 +387,25 @@ export const LessonSchema = z.object({
           .describe(
             "Where this section's material starts in the source video, in whole seconds from the beginning, taken from the [m:ss] or [h:mm:ss] timestamps in the source material. null when the source has no timestamps."
           ),
+        look_into: z
+          .array(
+            z.object({
+              topic: z
+                .string()
+                .describe("A few words naming the outside fact or idea — 'Vitamin K deficiency bleeding', 'Gurdjieff's Fourth Way'."),
+              search: z
+                .string()
+                .describe("A short search phrase someone could use to research it themselves."),
+              image_query: z
+                .string()
+                .describe(
+                  "Two to four plain words naming something to picture alongside it — an object, place, document or scene. Never a person by name."
+                ),
+            })
+          )
+          .describe(
+            "Every fact, figure or idea in THIS section that is NOT in the source material, so a reader can look into it themselves. An empty list when everything in the section came from the source — always empty when you are told to build the lesson from the source only."
+          ),
       })
     )
     .describe("Three to five teaching sections that build on each other."),
@@ -470,6 +489,8 @@ export type LessonImage = {
 // document: staff can override them, and a second copy in the jsonb would go
 // stale the moment they did. So they are omitted here, and stripped on the way
 // in — see storableLesson below.
+export type LookIntoItem = Lesson["sections"][number]["look_into"][number];
+
 export type StoredLesson = Omit<
   Lesson,
   "sections" | "discovery_categories" | "duration_minutes" | "omitted_institutional"
@@ -478,8 +499,11 @@ export type StoredLesson = Omit<
   omitted_institutional?: Lesson["omitted_institutional"];
   // The lesson's own picture, shown on its card before it is opened.
   cover?: LessonImage | null;
-  sections: (Omit<Lesson["sections"][number], "video_seconds"> & {
+  sections: (Omit<Lesson["sections"][number], "video_seconds" | "look_into"> & {
     image?: LessonImage | null;
+    // What in this section came from outside the source, with a picture each
+    // and links to look into it. Absent on lessons written before this.
+    look_into?: (LookIntoItem & { image?: LessonImage | null })[];
     // Optional here though always sent by the writer: lessons saved before
     // sections carried a video time simply don't have one.
     video_seconds?: number | null;
@@ -553,6 +577,17 @@ export const EditableLessonSchema = z.object({
       // Declared so an edit keeps the section's link into the video; nullish
       // because most lessons were not written from one.
       video_seconds: z.number().int().nullish(),
+      // Declared so an edit keeps the "look into it" boxes and their pictures.
+      look_into: z
+        .array(
+          z.object({
+            topic: z.string(),
+            search: z.string(),
+            image_query: z.string().optional().default(""),
+            image: LessonImageSchema.nullish(),
+          })
+        )
+        .optional(),
     })
   ),
   activity: z.object({
@@ -721,3 +756,26 @@ export const MAX_SOURCE_CHARS = 150000;
 // Past this, a lesson takes long enough that the wait is worth mentioning
 // before someone starts it. Still allowed — just not instant.
 export const LONG_SOURCE_CHARS = 30000;
+
+// ---------------------------------------------------------------------------
+// "Look into it" — where a reader can research something a lesson brought in
+// from outside its source.
+//
+// Search links rather than links to particular pages: a model writing an
+// exact address gets it wrong often enough that the link would break, and a
+// search for the topic never does. The places are the library owner's choice.
+// ---------------------------------------------------------------------------
+export const RESEARCH_PLACES = [
+  { key: "reddit", label: "Reddit", url: (q: string) => `https://www.reddit.com/search/?q=${q}` },
+  { key: "x", label: "X", url: (q: string) => `https://x.com/search?q=${q}&f=live` },
+  { key: "rumble", label: "Rumble", url: (q: string) => `https://rumble.com/search/all?q=${q}` },
+  { key: "odysee", label: "Odysee", url: (q: string) => `https://odysee.com/$/search?q=${q}` },
+  { key: "bitchute", label: "BitChute", url: (q: string) => `https://www.bitchute.com/search?query=${q}` },
+  { key: "archive", label: "Internet Archive", url: (q: string) => `https://archive.org/search?query=${q}` },
+] as const;
+
+export function researchLinks(search: string): { key: string; label: string; href: string }[] {
+  const query = encodeURIComponent(search.trim());
+  if (!query) return [];
+  return RESEARCH_PLACES.map((place) => ({ key: place.key, label: place.label, href: place.url(query) }));
+}

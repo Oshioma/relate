@@ -8,6 +8,7 @@ import {
   ageBandTint,
   lessonThumbnail,
   normaliseSubject,
+  researchLinks,
   SUBJECT_ICONS,
   type LessonImage,
   type StoredLesson,
@@ -122,6 +123,48 @@ function LessonFigure({ image, onRemove }: { image: LessonImage; onRemove?: () =
   );
 }
 
+// What a section brought in from outside its source, each with a picture and
+// places to research it. This replaces labelling those facts in the prose: the
+// text reads cleanly, and the box says plainly that this part was not in the
+// material — and where to go and check it.
+function LookIntoIt({ items }: { items: NonNullable<StoredLesson["sections"][number]["look_into"]> }) {
+  return (
+    <aside className="mt-3 rounded-lg border border-dashed border-border bg-muted/50 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        Not from the source — look into it
+      </p>
+      <ul className="mt-2 grid gap-3">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-3">
+            <SafeImage
+              srcs={[item.image?.thumbUrl, item.image?.url]}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-md bg-muted object-cover"
+              fallback={<span aria-hidden className="h-14 w-14 shrink-0 rounded-md bg-muted" />}
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">{item.topic}</p>
+              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                {researchLinks(item.search || item.topic).map((link) => (
+                  <a
+                    key={link.key}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent underline-offset-2 hover:underline"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
 function Heading({ children }: { children: React.ReactNode }) {
   return (
     <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -197,6 +240,7 @@ export function LessonDocument({
             <LessonFigure image={section.image} onRemove={onRemoveImage ? () => onRemoveImage(i) : undefined} />
           )}
           <Prose text={section.body} />
+          {(section.look_into?.length ?? 0) > 0 && <LookIntoIt items={section.look_into ?? []} />}
         </section>
       ))}
 

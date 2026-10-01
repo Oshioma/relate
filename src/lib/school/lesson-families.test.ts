@@ -60,3 +60,39 @@ test("editing a lesson keeps the institutional material it left out", async () =
     { body: "CDC", content: "What the source said the CDC claimed." },
   ]);
 });
+
+test("look-into-it links are searches for the topic, on the owner's chosen sites", async () => {
+  const { researchLinks } = await import("./lesson-types");
+  const links = researchLinks("Vitamin K & newborns");
+  assert.deepEqual(
+    links.map((l) => l.label),
+    ["Reddit", "X", "Rumble", "Odysee", "BitChute", "Internet Archive"]
+  );
+  for (const link of links) {
+    assert.ok(link.href.startsWith("https://"), link.href);
+    assert.ok(link.href.includes("Vitamin%20K%20%26%20newborns"), link.href);
+  }
+  assert.deepEqual(researchLinks("   "), []);
+});
+
+test("editing a lesson keeps its look-into-it boxes", async () => {
+  const { EditableLessonSchema } = await import("./lesson-types");
+  const parsed = EditableLessonSchema.parse({
+    title: "T",
+    subject: "History",
+    summary: "",
+    objectives: [],
+    vocabulary: [],
+    sections: [
+      {
+        heading: "H",
+        body: "B",
+        look_into: [{ topic: "Fourth Way", search: "Gurdjieff Fourth Way", image_query: "old book" }],
+      },
+    ],
+    activity: { title: "", instructions: "", materials: [] },
+    questions: [],
+    discussion: [],
+  });
+  assert.equal(parsed.sections[0].look_into?.[0].topic, "Fourth Way");
+});
