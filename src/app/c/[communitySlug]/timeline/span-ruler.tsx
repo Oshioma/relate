@@ -9,8 +9,8 @@ import { eventDateLabel, formatYear, type TimeScale, type TimeWindow } from "@/l
 
 // WHEN AM I?
 //
-//   ◀————————— [▣] 1721 BCE ————————▶
-//   5471 BCE                  2030 CE
+//   ◀        [▣]  1721 BCE  Record title        ▶
+//   5471 BCE                  its dates   2030 CE
 //
 // A dimension line, the way a drawing measures a thing: an arrowhead at each
 // end of what is being measured, the two ends printed small under their own
@@ -53,31 +53,36 @@ export function SpanRuler({
 
   return (
     <div className="mt-3 select-none rounded-xl border border-border bg-card px-4 py-3">
-      <div className="flex items-center gap-3">
+      {/* THREE FIXED PLACES: picture | date | what the picture is.
+          The date sits in a fixed-width middle column of a grid whose two
+          sides are equal, so it is always at the exact centre of the card and
+          never shifts as its digits change; the picture is always at the same
+          spot to its left, and the record's name to its right. Nothing moves
+          as you scroll except what is written in those places. */}
+      <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-2 sm:gap-3">
         {/* Left end. The arrow points outward, away from the span, the way a
             dimension line's arrowheads do — it marks the edge rather than
             suggesting somewhere to go. */}
         <ArrowLeft className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
 
-        <div className="h-px flex-1 bg-border" />
-
-        <div className="flex min-w-0 shrink items-center gap-3 px-1">
-          {pictured && (
-            <button
-              type="button"
-              onClick={() => onOpen?.(pictured.event)}
-              className="group flex min-w-0 items-center gap-2 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              title={pictured.picture.caption ?? pictured.event.title}
-            >
-              {/* RESERVED SIZE, so a picture arriving never moves the date. */}
-              <span className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border border-border bg-muted sm:h-24 sm:w-36">
+        <div className="flex min-w-0 justify-end">
+          {/* RESERVED SIZE, so the picture's spot never moves, and is there
+              even while no record on screen has one. */}
+          <span className="relative block h-14 w-20 shrink-0 overflow-hidden rounded-lg sm:h-28 sm:w-40">
+            {pictured && (
+              <button
+                type="button"
+                onClick={() => onOpen?.(pictured.event)}
+                className="group block h-full w-full overflow-hidden rounded-lg border border-border bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                title={pictured.picture.caption ?? pictured.event.title}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   key={pictured.picture.url}
                   src={pictured.picture.url}
                   alt={pictured.picture.caption ?? ""}
-                  width={144}
-                  height={96}
+                  width={160}
+                  height={112}
                   decoding="async"
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   onError={() => markFailed(pictured.picture.url)}
@@ -89,24 +94,29 @@ export function SpanRuler({
                     Unverified
                   </span>
                 )}
-              </span>
-              <span className="hidden min-w-0 max-w-[14rem] leading-tight sm:block">
-                <span className="block truncate text-xs font-semibold text-foreground group-hover:underline">
-                  {pictured.event.title}
-                </span>
-                {pictureDate && <span className="block truncate text-[11px] text-muted-foreground tabular-nums">{pictureDate}</span>}
-              </span>
-            </button>
-          )}
-
-          <p
-            className="shrink-0 text-center text-xl font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl"
-          >
-            {formatYear(centre, { compact: true })}
-          </p>
+              </button>
+            )}
+          </span>
         </div>
 
-        <div className="h-px flex-1 bg-border" />
+        <p className="w-28 whitespace-nowrap text-center text-xl font-semibold tracking-tight text-foreground tabular-nums sm:w-64 sm:text-4xl">
+          {formatYear(centre, { compact: true })}
+        </p>
+
+        <div className="min-w-0">
+          {pictured && (
+            <button
+              type="button"
+              onClick={() => onOpen?.(pictured.event)}
+              className="group hidden max-w-full text-left leading-snug focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:block"
+            >
+              <span className="line-clamp-2 text-lg font-semibold text-foreground group-hover:underline lg:text-xl">
+                {pictured.event.title}
+              </span>
+              {pictureDate && <span className="mt-0.5 block truncate text-base text-muted-foreground tabular-nums">{pictureDate}</span>}
+            </button>
+          )}
+        </div>
 
         <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
       </div>
