@@ -2,11 +2,13 @@ import {
   clampWindow,
   fractionOf,
   logValueOf,
+  MIN_WINDOW_YEARS,
   positionAt,
   positionFromLogValue,
   presentPosition,
+  TIMELINE_MAX_YEAR,
+  TIMELINE_MIN_YEAR,
   timelineExtentWindow,
-  windowAround,
   zoomWindow,
   type TimeScale,
   type TimeWindow,
@@ -53,23 +55,47 @@ export function thumbCentre(view: TimeWindow, scale: TimeScale = "linear"): numb
   return barFraction(middleDate(view, scale));
 }
 
-/** `base` moved so the strip's middle date is `date`, at the same zoom. */
+/**
+ * `base` moved so the strip's middle date is `date` — at the same zoom when it
+ * fits, and NARROWED when it does not.
+ *
+ * A window can only be centred on a date if half its span fits on each side
+ * of it before the ends of time. Keeping the zoom regardless made most of the
+ * bar unreachable: a 100,000-year view cannot be centred later than about
+ * 47,000 BCE, so dragging the thumb right stopped dead around the middle of
+ * the bar, and the whole-of-time view could not be dragged at all. So near an
+ * end the window shrinks just enough to stay centred on the date, and every
+ * point on the bar can be reached. Drags always start from the window they
+ * began with, so dragging back out restores the zoom.
+ */
 export function windowCentredOn(
   base: TimeWindow,
   date: number,
   scale: TimeScale = "linear",
   now: number = presentPosition()
 ): TimeWindow {
-  if (scale === "linear") return windowAround(date, base.to - base.from);
-  const half = (logValueOf(base.to, now) - logValueOf(base.from, now)) / 2;
-  const middle = logValueOf(date, now);
-  return clampWindow({ from: positionFromLogValue(middle - half, now), to: positionFromLogValue(middle + half, now) });
+  const centre = Math.max(TIMELINE_MIN_YEAR, Math.min(TIMELINE_MAX_YEAR, date));
+  if (scale === "linear") {
+    const room = Math.min(centre - TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR - centre);
+    const half = Math.max(MIN_WINDOW_YEARS / 2, Math.min((base.to - base.from) / 2, room));
+    return clampWindow({ from: centre - half, to: centre + half });
+  }
+  const middle = logValueOf(centre, now);
+  const room = Math.min(logValueOf(TIMELINE_MAX_YEAR, now) - middle, middle - logValueOf(TIMELINE_MIN_YEAR, now));
+  const wanted = (logValueOf(base.to, now) - logValueOf(base.from, now)) / 2;
+  const half = Math.max(0, Math.min(wanted, room));
+  const window = { from: positionFromLogValue(middle - half, now), to: positionFromLogValue(middle + half, now) };
+  // A log window squeezed against an end can come out narrower than the
+  // narrowest the strip allows; widen it about its centre rather than letting
+  // clampWindow slide it off the date.
+  if (window.to - window.from < MIN_WINDOW_YEARS) return clampWindow({ from: centre - MIN_WINDOW_YEARS / 2, to: centre + MIN_WINDOW_YEARS / 2 });
+  return clampWindow(window);
 }
 
 /**
- * The window, at `base`'s zoom, whose thumb is centred at bar position
- * `centre`. Near either end of time the window stops at that end, and the
- * thumb with it.
+ * The window, at `base`'s zoom where it fits, whose thumb is centred at bar
+ * position `centre`. Near either end of time it narrows so that it can be
+ * (see windowCentredOn).
  */
 export function windowWithThumbAt(base: TimeWindow, centre: number, scale: TimeScale = "linear"): TimeWindow {
   return windowCentredOn(base, dateAtBar(centre), scale);
