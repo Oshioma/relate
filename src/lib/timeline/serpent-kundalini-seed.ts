@@ -325,9 +325,9 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
           },
           {
             sourceKey: "sankara_katha_2_3_16",
-            relation: "later_interpretation",
+            relation: "context",
             note:
-              "Śaṅkara later names the privileged upward channel suṣumṇā; the underlying Upaniṣadic verse does not.",
+              "LATER INTERPRETATION: Śaṅkara names the privileged upward channel suṣumṇā; the underlying Upaniṣadic verse does not.",
           },
         ],
         startYear: -700,
