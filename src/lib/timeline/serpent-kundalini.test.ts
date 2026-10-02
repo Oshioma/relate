@@ -128,7 +128,7 @@ test("the early Sārdhatriśatikālottara witness stays distinct from the later 
   assert.match(early.description, /heart/i);
   assert.match(early.description, /potentially very early/i);
   assert.match(early.description, /does not call 12\.1–2 the proven first occurrence/i);
-  assert.match(early.description, /does not turn[\\s\\S]*explicit serpent/i);
+  assert.ok(early.description.toLowerCase().includes("does not turn kuṇḍalinī into an explicit serpent"));
   assert.equal(early.media?.length ?? 0, 0, "do not decorate the early textual witness with later chakra imagery");
   assert.ok(early.claims.some((claim) => claim.sourceKey === "westoby_body_2024"));
   assert.ok(
