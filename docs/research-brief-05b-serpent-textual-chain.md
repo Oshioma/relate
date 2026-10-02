@@ -424,3 +424,36 @@ What is still missing for the project's FILLED contract: (1) the exact Sanskrit 
 `searched`: repository seed and research brief; Bhatt critical-edition bibliographic trail; Hatley specialist trail; modern historical discussions located in the preceding source pass. No repository source currently satisfies all three missing requirements together.
 
 **Decision:** no timeline `startYear` is added in this pass. A plausible 6th–7th-century axis position without the dating argument would violate the brief's most important rule.
+
+
+#### SOURCE PASS 03 — primary passage recovered; E1 remains narrowly OPEN
+
+The missing passage/translation requirement is now substantially resolved. Ben Williams, **“Cosmogenesis and Phonematic Emanation,” The Oxford Handbook of Tantric Studies** (2023), note 37, prints Sārdhatriśatikālottara 12.1–3 and 12.5–6ab. For 12.1 he gives: `candrāgniravisaṃyuktā ādyā kuṇḍalinī tu yā | hṛtpradeśe tu sā jñeyā aṅkurākāravatsthitā ||`; 12.2 continues the rite and instructs contemplation of flowing `amṛta`. Williams translates the first verse as primordial Kuṇḍalinī associated with moon, fire and sun, abiding in the heart in sprout-like form. His bracketed clarifications are explicitly drawn from Rāmakaṇṭha's commentary.
+
+Shaman Hatley's **“Kuṇḍalinī”** states that Kuṇḍalinī first comes into evidence in circa sixth-to-eighth-century Tantric Śaiva scriptures and calls Sārdhatriśatikālottara 12.1–2 a **potentially very early** reference. This is now the wording the dataset follows: early is established; absolute priority is not. Ruth Westoby (2024) describes the Sārdhatriśatikālottara as sixth-to-seventh century and calls its Kuṇḍalinī reference early.
+
+**Repository action:** an `explicit_kundalini` timeline record has now been added for this textual witness, dated only to Westoby's approximate sixth-to-seventh-century range. It has no image: a later chakra painting would be anachronistic evidence dressing.
+
+**E1 status:** still OPEN only in its strongest wording — *earliest securely dated occurrence*. To close that superlative, the research needs a firmer relative chronology across the competing early Śaiva witnesses. This caution is supported independently by current scholarship on the Sārdhatriśatikālottara's chronology: its relative position is early, but firm absolute dating remains difficult.
+
+
+#### SOURCE PASS 04 — Tantrasadbhāva: explicit serpent and sleep/dormancy
+
+A stronger primary-text route is now available through Junglan Bang, *Selected Chapters from the Tantrasadbhāva* (University of Hamburg dissertation, 2022). Bang describes the practice as first awakening Śakti in the form of a sleeping serpent, Kuṇḍalī, and cites Tantrasadbhāva 1.252cd directly: `nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ`. This gives a directly checkable textual basis for Kuṇḍalī at the navel/belly with the appearance of a sleeping serpent.
+
+Ruth Westoby's 2024 historical synthesis dates the Tantrasadbhāva to the eighth century and reports a developmental sequence inside chapter 1: Kuṇḍalinī as curved (`kuṭilākṛtiḥ`, 1.56), Śakti in the heart in snake form (1.215), and sleeping-snake material at 1.216–217. Westoby reports Shaman Hatley's suggestion that the snake-form description may be the first such occurrence. That wording remains a **candidate priority claim**, not a settled superlative.
+
+**Traceback effect:** `kundalini-as-serpent` now has strong early textual evidence; `dormant`/sleeping has a directly recoverable Sanskrit witness; `shakti` is supported in the same textual complex. `awakening` is strongly described by Bang's analysis and by Padoux's published translation trail, but its exact Sanskrit verse should still be attached before treating that row as independently complete under the strictest fill contract.
+
+**Repository action:** added a distinct eighth-century Tantrasadbhāva timeline record and a regression test that prevents it from being silently expanded into the later complete base/channel/seven-cakra model. No later chakra painting is attached as evidence.
+
+
+#### SOURCE PASS 05 — early Upaniṣadic heart-channel ascent
+
+Chāndogya Upaniṣad 8.6.6 and Kaṭha Upaniṣad 2.3.16 preserve essentially the same formula: 101 nāḍīs of the heart, one extending to the head, upward movement through that privileged route, and immortality as the result. These passages therefore provide direct textual evidence for the precursor keys `nadi`, `upward-movement` and `crown-destination`/head-destination.
+
+The verses themselves do **not** name the channel Suṣumṇā and do not mention Kuṇḍalinī, Iḍā, Piṅgalā, cakras or a serpent. A later Śaṅkara commentary on Kaṭha 2.3.16 identifies the upward channel as suṣumṇā. The timeline must preserve that chronological separation rather than back-projecting the commentary's terminology into the older verse.
+
+**Repository action:** added a single precursor record for the parallel Upaniṣadic formula, with the later Suṣumṇā identification attached as a separate interpretive citation. No later subtle-body diagram is attached as if it illustrated the early verse.
+
+**Dating caution:** this pass deliberately uses a broad first-millennium-BCE range rather than pretending that the parallel verses can presently be assigned an exact year. Before the strict 26-key matrix marks these rows fully FILLED, attach a named modern critical edition/translator and a named scholarly dating argument for the relevant textual strata.

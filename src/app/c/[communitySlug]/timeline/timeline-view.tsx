@@ -468,6 +468,11 @@ export function TimelineView({
   >(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
+  // "SEE ALL" FROM A CLUSTER: the strip and the list show only these records
+  // until the reader asks for everything back. Kept as the records themselves,
+  // not a filter on the loaded window, so panning away never empties it.
+  const [showingOnly, setShowingOnly] = useState<TimelineEventWithClaims[] | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
@@ -948,7 +953,14 @@ export function TimelineView({
 
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
-  const displayed = activeResults ?? visible;
+  // A pinned set reads its records' latest copies where the window has them,
+  // so an edit made while it is showing is shown too.
+  const pinned = useMemo(() => {
+    if (!showingOnly) return null;
+    const latest = new Map(events.map((event) => [event.id, event]));
+    return showingOnly.map((event) => latest.get(event.id) ?? event);
+  }, [showingOnly, events]);
+  const displayed = activeResults ?? pinned ?? visible;
   const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
     (disputedOnly ? 1 : 0) + (pendingOnly ? 1 : 0);
 
@@ -1342,11 +1354,10 @@ export function TimelineView({
         ))}
       </div>
 
-      {/* ---- How much time is on screen ------------------------------------
-          Above the strip in both windowed modes, and absent from "whole",
-          where the answer is "all of it" and a measurement of the view would
-          be measuring nothing. */}
-      <SpanRuler window={view} scale={scale} />
+      {/* ---- When the middle of the view is, and a picture of it ----------
+          Above the strip: the middle date, large, with one picture from the
+          record nearest it among those shown. Clicking the picture opens it. */}
+      <SpanRuler window={view} scale={scale} events={displayed} onOpen={setSelected} />
 
       {/* ---- The scrollbar -------------------------------------------------
           Where everything is, and where you are in it. Above the strip, under
@@ -1363,6 +1374,10 @@ export function TimelineView({
         className="mt-3"
       />
 
+      {/* "See all" from a cluster: say so, and how to undo it. */}
+      {pinned && (
+        <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} />
+      )}
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1383,6 +1398,13 @@ export function TimelineView({
           loading={loading}
           truncated={truncated}
           seenIds={seen}
+          onShowOnly={(records, window) => {
+            setShowingOnly(records);
+            setView(window);
+            setShowList(true);
+            // After the list has rendered with them in it.
+            requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
@@ -1552,10 +1574,11 @@ export function TimelineView({
           Also one list, not two. Always on a phone, where it is the primary way
           in; on a desktop only when asked for, because there the strip is doing
           that job. */}
-      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
+      <div ref={listRef} className={cn("mt-4 scroll-mt-4", showList ? "block" : "block sm:hidden")}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
           In order
         </h2>
+        {pinned && <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} className="mb-2" />}
         <TimelineList
           events={displayed}
           onSelect={setSelected}
@@ -2948,6 +2971,33 @@ export function TimelineView({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * The bar shown while "See all" has narrowed the timeline to one cluster's
+ * records: how many, and the one button that brings everything back.
+ */
+function ShowingOnlyBar({ count, onClear, className }: { count: number; onClear: () => void; className?: string }) {
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm text-foreground",
+        className
+      )}
+    >
+      <span className="min-w-0 flex-1">
+        Showing only these <span className="font-semibold tabular-nums">{count}</span> {count === 1 ? "record" : "records"}.
+      </span>
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+      >
+        Show everything
+      </button>
     </div>
   );
 }
