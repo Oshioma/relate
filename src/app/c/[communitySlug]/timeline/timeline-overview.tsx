@@ -15,6 +15,7 @@ import {
   type TimeWindow,
 } from "@/lib/timeline/time";
 import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
+import { thumbFor, windowForThumb } from "@/lib/timeline/thumb";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -178,8 +179,14 @@ export function TimelineOverview({
   // strip below honours whichever scale the reader chose.
   const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
 
-  const boxFrom = toFraction(view.from);
-  const boxTo = toFraction(view.to);
+  // THE THUMB'S SIZE MEANS ZOOM AND NOTHING ELSE (thumb.ts). Drawn as the
+  // window's true extent on this log bar, it ballooned near the present and
+  // shrank in the deep past as the reader swiped. Now its width comes only from
+  // how much time is on screen and its centre from the strip's centre date, so
+  // swiping slides it and only zooming resizes it.
+  const thumb = thumbFor(view, scale);
+  const boxFrom = thumb.from;
+  const boxTo = thumb.to;
 
   // ---- THE CENTRE DATE ------------------------------------------------------
   //
@@ -237,17 +244,14 @@ export function TimelineOverview({
   /** The narrowest the window may get, expressed as a fraction of the whole bar. */
   const minFraction = useCallback(() => minBox, [minBox]);
 
-  /** Move the window so its LEFT edge lands at this fraction, keeping its width. */
+  /** Slide the thumb so its LEFT edge lands at this fraction: same zoom, new centre date. */
   const moveTo = useCallback(
     (fraction: number) => {
       const width = boxTo - boxFrom;
       const clamped = Math.max(0, Math.min(1 - width, fraction));
-      onWindowChange({
-        from: positionAt(full, clamped, "log"),
-        to: positionAt(full, clamped + width, "log"),
-      });
+      onWindowChange(windowForThumb(clamped + width / 2, width, scale));
     },
-    [boxFrom, boxTo, full, onWindowChange]
+    [boxFrom, boxTo, onWindowChange, scale]
   );
 
   /**
@@ -264,16 +268,14 @@ export function TimelineOverview({
    */
   const resizeTo = useCallback(
     (edge: "from" | "to", fraction: number) => {
+      // The other edge stays where it is on the bar; the thumb's new width is
+      // the new zoom and its new middle the new centre date.
       const gap = minFraction();
-      if (edge === "from") {
-        const next = Math.max(0, Math.min(fraction, boxTo - gap));
-        onWindowChange({ from: positionAt(full, next, "log"), to: view.to });
-      } else {
-        const next = Math.min(1, Math.max(fraction, boxFrom + gap));
-        onWindowChange({ from: view.from, to: positionAt(full, next, "log") });
-      }
+      const lo = edge === "from" ? Math.max(0, Math.min(fraction, boxTo - gap)) : boxFrom;
+      const hi = edge === "to" ? Math.min(1, Math.max(fraction, boxFrom + gap)) : boxTo;
+      onWindowChange(windowForThumb((lo + hi) / 2, hi - lo, scale));
     },
-    [boxFrom, boxTo, full, minFraction, onWindowChange, view.from, view.to]
+    [boxFrom, boxTo, minFraction, onWindowChange, scale]
   );
 
   /**
