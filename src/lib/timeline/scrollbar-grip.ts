@@ -7,23 +7,29 @@ import {
   presentPosition,
   timelineExtentWindow,
   windowAround,
+  zoomWindow,
   type TimeScale,
   type TimeWindow,
 } from "./time";
 
-// DRAGGING THE SCROLLBAR THUMB: THE SPOT YOU GRABBED STAYS UNDER YOUR FINGER.
+// THE SCROLLBAR THUMB MARKS THE MIDDLE OF WHAT YOU ARE LOOKING AT.
 //
-// The thumb is drawn exactly — its edges are the first and last dates on
-// screen — on a bar that spans all of time spaced by order of magnitude. The
-// same number of years therefore takes more of the bar near the present than
-// in the deep past, and the thumb grows and shrinks as it travels. (A fixed-size
-// thumb was tried and dropped: it had to stop marking the dates on screen, and
-// ended up sitting over "Now" while the strip showed 125,501 BCE.)
+// The bar spans all of time spaced by order of magnitude around Now, so the
+// same number of years takes far more of it near the present than in the deep
+// past. Two earlier thumbs both fell foul of that:
 //
-// What a drag must not do is let that change of size slip the thumb out from
-// under the pointer, or change the zoom. So a drag keeps the zoom it started
-// with, and asks for the window whose thumb has the GRIPPED point — the same
-// share of the way along it — exactly under the pointer.
+//   - a thumb that covered the window's first and last dates exactly stayed at
+//     its minimum width left of centre and ballooned right of it (a 500-year
+//     window grew from 30px to ~500px as it neared Now), so the two halves of
+//     the bar behaved like different controls;
+//   - a fixed-size thumb pinned to the window's edges ended up sitting over
+//     "Now" while the strip showed 125,501 BCE.
+//
+// So the thumb is one fixed size everywhere and its CENTRE is the strip's
+// middle date — the same date the chip beside it names. It makes no claim about
+// where the strip's edges fall (the strip's ruler shows those), so it never
+// contradicts anything on screen, and it moves the same way on both sides of
+// the bar: a pixel of drag is the same step along the bar wherever you are.
 
 const FULL = timelineExtentWindow();
 
@@ -32,16 +38,28 @@ export function barFraction(position: number): number {
   return fractionOf(FULL, position, "log");
 }
 
-/** The thumb as drawn: its true extent, widened to `minWidth` and kept on the bar. */
-export function drawnThumb(view: TimeWindow, minWidth: number): { from: number; width: number } {
-  const lo = barFraction(view.from);
-  const hi = barFraction(view.to);
-  const width = Math.max(minWidth, Math.min(1, hi - lo));
-  return { from: Math.max(0, Math.min(1 - width, lo)), width };
+/** The date at the bar position `fraction`, the inverse of barFraction. */
+export function dateAtBar(fraction: number): number {
+  return positionAt(FULL, Math.max(0, Math.min(1, fraction)), "log");
 }
 
-/** `base` moved so the strip's centre date is `date`, at the same zoom. */
-function centredOn(base: TimeWindow, date: number, scale: TimeScale, now: number): TimeWindow {
+/** The date at the middle of the strip — what the thumb's centre marks. */
+export function middleDate(view: TimeWindow, scale: TimeScale = "linear"): number {
+  return positionAt(view, 0.5, scale);
+}
+
+/** Where the thumb's centre sits on the bar, 0–1. */
+export function thumbCentre(view: TimeWindow, scale: TimeScale = "linear"): number {
+  return barFraction(middleDate(view, scale));
+}
+
+/** `base` moved so the strip's middle date is `date`, at the same zoom. */
+export function windowCentredOn(
+  base: TimeWindow,
+  date: number,
+  scale: TimeScale = "linear",
+  now: number = presentPosition()
+): TimeWindow {
   if (scale === "linear") return windowAround(date, base.to - base.from);
   const half = (logValueOf(base.to, now) - logValueOf(base.from, now)) / 2;
   const middle = logValueOf(date, now);
@@ -49,29 +67,22 @@ function centredOn(base: TimeWindow, date: number, scale: TimeScale, now: number
 }
 
 /**
- * The window, at `base`'s zoom, whose drawn thumb has the point `grip` of the
- * way along it (0 = left edge, 1 = right edge) at bar position `pointer`.
- * Found by bisection on the centre date: the thumb moves steadily rightwards as
- * the centre moves later, but its changing width has no tidy inverse.
+ * The window, at `base`'s zoom, whose thumb is centred at bar position
+ * `centre`. Near either end of time the window stops at that end, and the
+ * thumb with it.
  */
-export function windowWithGripAt(
-  base: TimeWindow,
-  grip: number,
-  pointer: number,
-  minWidth: number,
-  scale: TimeScale = "linear",
-  now: number = presentPosition()
-): TimeWindow {
-  const gripAt = (window: TimeWindow) => {
-    const thumb = drawnThumb(window, minWidth);
-    return thumb.from + grip * thumb.width;
-  };
-  let lo = 0;
-  let hi = 1;
-  for (let i = 0; i < 48; i++) {
-    const mid = (lo + hi) / 2;
-    if (gripAt(centredOn(base, positionAt(FULL, mid, "log"), scale, now)) < pointer) lo = mid;
-    else hi = mid;
-  }
-  return centredOn(base, positionAt(FULL, (lo + hi) / 2, "log"), scale, now);
+export function windowWithThumbAt(base: TimeWindow, centre: number, scale: TimeScale = "linear"): TimeWindow {
+  return windowCentredOn(base, dateAtBar(centre), scale);
+}
+
+/** Pixels of pull on a thumb end that double (outwards) or halve (inwards) the span. */
+export const PULL_PX_PER_DOUBLING = 40;
+
+/**
+ * Pulling an end of the thumb zooms about the strip's middle date: outwards
+ * shows more time, inwards less. `outwardPx` is how far the end has been
+ * pulled away from the thumb's centre (negative when pushed towards it).
+ */
+export function windowAfterPull(base: TimeWindow, outwardPx: number, scale: TimeScale = "linear"): TimeWindow {
+  return zoomWindow(base, Math.pow(2, outwardPx / PULL_PX_PER_DOUBLING), 0.5, scale);
 }
