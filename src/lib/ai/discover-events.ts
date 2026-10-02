@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { meterClaude } from "@/lib/usage/ai-meter";
 
 // Cheap-and-fast configuration while the feature bakes: Haiku costs ~5x less
 // than Sonnet per token and finishes in well under a minute, which also
@@ -147,6 +148,8 @@ export async function discoverEventsWithAI(opts: {
     console.log(`[discover-events] starting ${MODEL} run for "${opts.locationName}"`);
 
     let response = await send();
+    // Charged to the community this runs for (ai-meter.ts), retries included.
+    await meterClaude("event_discovery", response);
     tallySearches(response.content);
     for (let i = 0; i < MAX_CONTINUATIONS && response.stop_reason === "pause_turn"; i++) {
       const elapsed = Date.now() - startedAt;
@@ -156,6 +159,7 @@ export async function discoverEventsWithAI(opts: {
       }
       messages.push({ role: "assistant", content: response.content });
       response = await send();
+      await meterClaude("event_discovery", response);
       tallySearches(response.content);
     }
 

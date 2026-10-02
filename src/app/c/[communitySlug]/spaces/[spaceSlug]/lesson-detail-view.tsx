@@ -6,7 +6,6 @@ import {
   Printer,
   Trash2,
   ImagePlus,
-  RefreshCw,
   Pencil,
   Eye,
   EyeOff,
@@ -16,11 +15,14 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Card } from "@/components/ui/card";
 import { AgeBadge, LessonDocument } from "./lesson-document";
 import { LessonEditor } from "./lesson-editor";
 import { LessonClassification } from "./lesson-classification";
 import { LessonRulesPanel } from "./lesson-rules-panel";
+import { LessonVideo } from "./lesson-video";
+import { LessonMediaPlayer } from "./lesson-media-player";
 import {
   deleteLesson,
   removeLessonImage,
@@ -33,8 +35,7 @@ import {
 import { printLesson } from "./print-lesson";
 import { cn } from "@/lib/utils";
 import {
-  ADULT_BAND,
-  AGE_BANDS,
+  ageBandLabel,
   normaliseSubject,
   providerName,
   SUBJECT_ICONS,
@@ -51,7 +52,8 @@ export function LessonDetailView({
   canSave,
   sourceRules,
   rulesAreOriginal,
-  writerConfigured,
+  level,
+  writingCost,
 }: {
   lesson: LessonRow;
   communitySlug: string;
@@ -69,7 +71,13 @@ export function LessonDetailView({
   sourceRules: string | null;
   // Whether that prompt was recorded at generation time or rebuilt now.
   rulesAreOriginal: boolean;
-  writerConfigured: boolean;
+  // Where this lesson sits on a page of several levels. Omitted when it is the
+  // only one. Only the first level shows the video or cover picture: the rest
+  // are the same material further down the same page.
+  level?: { index: number; count: number; previousBand: string | null };
+  // "This Adult level cost about $0.40 to write." Staff only: null for
+  // everyone else, and never computed for them.
+  writingCost?: string | null;
 }) {
   const router = useRouter();
   const [deleteState, deleteAction, deleting] = useActionState<LessonActionState, FormData>(deleteLesson, undefined);
@@ -91,7 +99,7 @@ export function LessonDetailView({
     FormData
   >(setLessonSourcePublic, undefined);
   const [editing, setEditing] = useState(false);
-  const [busy, setBusy] = useState<"images" | "rewrite" | "deeper" | null>(null);
+  const [busy, setBusy] = useState<"images" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -118,55 +126,6 @@ export function LessonDetailView({
     }
   }
 
-  // Writes the same source material again for another age band, as a NEW
-  // lesson — the point is usually to have one for each year group.
-  async function rewriteFor(ageBand: string, beyondSource = false) {
-    setBusy(beyondSource ? "deeper" : "rewrite");
-    setError(null);
-    try {
-      const response = await fetch(`/api/lessons/${lesson.id}/rewrite`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ageBand, beyondSource }),
-      });
-
-      if (!response.ok || !response.body) {
-        const body = (await response.json().catch(() => null)) as { error?: string } | null;
-        setError(body?.error ?? "Could not rewrite the lesson.");
-        return;
-      }
-
-      // Same NDJSON stream as the composer. Nothing here needs the progress
-      // events — the only outcome that matters is whether it errored.
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const event = JSON.parse(line) as { type: string; error?: string };
-            if (event.type === "error" && event.error) setError(event.error);
-          } catch {
-            // A malformed line is not worth failing the run over.
-          }
-        }
-      }
-
-      router.push(`/c/${communitySlug}/spaces/${spaceSlug}`);
-      router.refresh();
-    } catch {
-      setError("The connection dropped while rewriting.");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   const actionError =
     deleteState?.error ??
     imageState?.error ??
@@ -176,8 +135,24 @@ export function LessonDetailView({
     sourcePublicState?.error ??
     error;
 
+  const continues = Boolean(level && level.index > 0);
+
   return (
-    <div className="space-y-5">
+    <div id={`level-${lesson.id}`} className="scroll-mt-6 space-y-5">
+      {level && level.count > 1 && (
+        <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <span>
+            Level {level.index + 1} of {level.count}
+          </span>
+          <span aria-hidden>&middot;</span>
+          <span>{ageBandLabel(lesson.age_band)}</span>
+          {level.previousBand && (
+            <span className="font-normal normal-case tracking-normal">
+              — picks up where {ageBandLabel(level.previousBand)} left off
+            </span>
+          )}
+        </p>
+      )}
       <Card className="p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -189,6 +164,7 @@ export function LessonDetailView({
               {lesson.title || "Untitled lesson"}
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">by {providerName(lesson)}</p>
+            {writingCost && <p className="mt-1 text-xs text-muted-foreground">{writingCost}</p>}
             {/* Where the material came from, when it was read in from a link.
                 Shown to staff always, and to everyone once staff open the
                 source — attribution is the least secret part of a lesson, but
@@ -233,12 +209,26 @@ export function LessonDetailView({
           </span>
         </div>
 
-        {lesson.lesson.cover ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={lesson.lesson.cover.url}
+        {/* A lesson written from a video leads with the video: it is the thing
+            to watch before reading, and a better picture than any cover. */}
+        {continues ? null : lesson.video_url ? (
+          <LessonVideo url={lesson.video_url} className="mt-4" />
+        ) : lesson.media_path ? (
+          <LessonMediaPlayer path={lesson.media_path} type={lesson.media_type} className="mt-4" />
+        ) : lesson.lesson.cover ? (
+          <SafeImage
+            srcs={[lesson.lesson.cover.url, lesson.lesson.cover.thumbUrl]}
             alt=""
+            loading="eager"
             className="mt-4 max-h-64 w-full rounded-lg bg-muted object-cover"
+            fallback={
+              <div
+                aria-hidden
+                className="mt-4 flex h-28 w-full items-center justify-center rounded-lg border border-border/60 bg-muted text-4xl"
+              >
+                {SUBJECT_ICONS[subject]}
+              </div>
+            }
           />
         ) : (
           // No cover: the subject's icon rather than a gap. Deliberately not the
@@ -348,72 +338,6 @@ export function LessonDetailView({
             </form>
           )}
         </div>
-
-        {canEdit && writerConfigured && lesson.source_text && (
-          <div className="mt-4 border-t border-border pt-4">
-            <p className="text-xs font-medium text-muted-foreground">
-              Write this same material for another age — saved as a separate lesson, so you can keep both.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {AGE_BANDS.filter((entry) => entry.key !== lesson.age_band).map((entry) => (
-                <button
-                  key={entry.key}
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => rewriteFor(entry.key)}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-md border-2 border-border bg-card px-2.5 py-1.5",
-                    "text-xs font-medium text-muted-foreground transition-colors",
-                    "hover:border-muted-foreground/40 disabled:opacity-50"
-                  )}
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  {entry.label}
-                </button>
-              ))}
-            </div>
-            {busy === "rewrite" && (
-              <p className="mt-2 text-xs text-muted-foreground">Writing it again — this takes a minute or two…</p>
-            )}
-          </div>
-        )}
-
-        {/* Go deeper. Kept apart from the age buttons above because it is not
-            another age of the same lesson — it is a different KIND of lesson:
-            the only one allowed to contain things the source never said. The
-            copy says that plainly rather than selling it, since the person
-            pressing it is the person who will have to vouch for the result. */}
-        {canEdit && writerConfigured && lesson.source_text && (
-          <div className="mt-4 border-t border-border pt-4">
-            <p className="text-xs font-medium text-muted-foreground">
-              Or go past the source — the history, the arguments and the stranger theories
-              it leaves out, written for adults and saved as a separate lesson.
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled={busy !== null}
-                onClick={() => rewriteFor(ADULT_BAND, true)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md border-2 border-accent/40 bg-accent-soft px-2.5 py-1.5",
-                  "text-xs font-medium text-accent transition-colors",
-                  "hover:border-accent disabled:opacity-50"
-                )}
-              >
-                <Telescope className="h-3 w-3" />
-                Go deeper (adults)
-              </button>
-              <span className="text-[11px] text-muted-foreground">
-                Goes beyond what you pasted, so it can&apos;t be checked against it.
-              </span>
-            </div>
-            {busy === "deeper" && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Going deeper — this one takes a little longer…
-              </p>
-            )}
-          </div>
-        )}
 
         {/* Staff always (they get the rules too); everyone else only once the
             author has published the material — and for them the server has

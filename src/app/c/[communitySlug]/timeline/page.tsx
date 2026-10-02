@@ -20,6 +20,7 @@ import {
   getTimelinePeriods,
   getTimelinePeriodLinks,
   hasTimelinePeriod,
+  getSeenTimelineEventIds,
 } from "@/lib/data/timeline";
 import { SHOWCASE_EVENT_SLUG, showcaseNeedsPictures } from "@/lib/timeline/showcase-event";
 import { HANNIBAL_ANCHOR_SLUG, HANNIBAL_EVENTS } from "@/lib/timeline/hannibal-seed";
@@ -53,12 +54,13 @@ import { SACRED_TREES_ANCHOR_SLUG } from "@/lib/timeline/sacred-trees-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
+import { readTimelineUrlState, readWindow } from "@/lib/timeline/url-state";
 import { TimelineView } from "./timeline-view";
 import { seededDatasetGaps } from "./actions";
 
 export const metadata: Metadata = { title: "Timeline" };
 
-type SearchParams = { from?: string; to?: string; focus?: string };
+type SearchParams = Record<string, string | string[] | undefined>;
 
 /**
  * Where the timeline opens.
@@ -70,11 +72,8 @@ type SearchParams = { from?: string; to?: string; focus?: string };
  * ancient world, which is where a homeschool timeline nearly always starts.
  */
 function openingWindow(searchParams: SearchParams, extent: { from: number; to: number } | null): TimeWindow {
-  const from = Number(searchParams.from);
-  const to = Number(searchParams.to);
-  if (Number.isFinite(from) && Number.isFinite(to) && to > from) {
-    return clampWindow({ from, to });
-  }
+  const fromLink = readWindow(searchParams);
+  if (fromLink) return fromLink;
   if (!extent) return TIMELINE_JUMPS.find((jump) => jump.key === "ancient")!.window;
 
   const span = Math.max(50, extent.to - extent.from);
@@ -223,7 +222,13 @@ export default async function TimelinePage({
   // The titles at the ends of those edges. A second query because it depends on
   // the first, and small: the far end of a link is very often outside the
   // window — Sclater's hypothesis is in 1864 and the Mauritia paper in 2017.
-  const linkedRecords = await getLinkedRecords(supabase, community.id, eventLinks);
+  //
+  // Alongside it, the records this member has already opened, so cluster
+  // cards can lead with one they have not. Private, read as the member.
+  const [linkedRecords, seenEventIds] = await Promise.all([
+    getLinkedRecords(supabase, community.id, eventLinks),
+    getSeenTimelineEventIds(supabase, user?.id ?? null),
+  ]);
 
   return (
     // WIDER THAN THE REST OF THE APP, ON PURPOSE.
@@ -300,7 +305,11 @@ export default async function TimelinePage({
         isStaff={isStaff}
         userId={user?.id ?? null}
         pendingCount={pending.length}
-        focusSlug={query.focus ?? null}
+        // Where the reader was — scale, selection and filters — written into
+        // the address by the view itself, so Back from a record's own page
+        // lands exactly where they left. See url-state.ts.
+        initialUrlState={readTimelineUrlState(query)}
+        seenEventIds={seenEventIds}
       />
     </div>
   );

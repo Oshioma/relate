@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/safe-image";
 import { useMemo } from "react";
 import { ChevronRight, Lightbulb } from "lucide-react";
 import {
@@ -246,22 +247,19 @@ export function IdeasForToday({
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
                 className="group flex items-center gap-3 py-2.5 transition-opacity hover:opacity-80"
               >
-                {image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={image.thumbUrl}
-                    alt=""
-                    loading="lazy"
-                    className="h-14 w-14 shrink-0 rounded-xl bg-muted object-cover"
-                  />
-                ) : (
-                  <span
-                    aria-hidden
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
-                  >
-                    {category?.icon ?? "\u{1F4DA}"}
-                  </span>
-                )}
+                <SafeImage
+                  srcs={[image?.thumbUrl, image?.url]}
+                  alt=""
+                  className="h-14 w-14 shrink-0 rounded-xl bg-muted object-cover"
+                  fallback={
+                    <span
+                      aria-hidden
+                      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-muted text-xl"
+                    >
+                      {category?.icon ?? "\u{1F4DA}"}
+                    </span>
+                  }
+                />
 
                 <span className="min-w-0 flex-1">
                   {duration && (

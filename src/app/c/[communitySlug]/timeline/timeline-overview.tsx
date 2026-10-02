@@ -6,6 +6,8 @@ import {
   formatYear,
   fractionOf,
   positionAt,
+  presentPosition,
+  TIMELINE_JUMPS,
   timelineExtentWindow,
   type TimeScale,
   type TimeWindow,
@@ -21,9 +23,16 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // four billion years away, so panning becomes guesswork and usually finds
 // nothing at all.
 //
-// This is the answer: the whole span, always, in twenty pixels. A mark wherever
+// This is the answer: the whole span, always, in one bar. A mark wherever
 // an event actually sits, and a box showing the stretch you are looking at.
 // Drag the box to move, click anywhere to go there.
+//
+// IT IS THE TIMELINE'S SCROLLBAR. Drawn directly above the strip as a track
+// and a thumb, because that is the control everyone already knows how to use
+// for "move quickly through something long": grab it and throw it. Unlike a
+// native scrollbar it spans ALL of time on a log scale — a pixel-for-year
+// scrollbar for thirteen billion years would put recorded history inside its
+// last pixel — and its thumb has ends you can pull to zoom.
 //
 // It shows marks, not events. There is no room for a label at this height and
 // no need for one — the question it answers is "is there anything over there?",
@@ -53,6 +62,26 @@ const EDGE_GRAB_SHARE = 1 / 3;
 
 type DragMode = "move" | "from" | "to";
 
+// THE ERAS, WRITTEN UNDER THE TRACK, so the bar reads as a map of time rather
+// than a row of ticks: deep past on the left, now towards the right, the
+// future after it. Each label sits where its era begins. The keys are the era
+// jumps' own, so the names here and on the span cards can never disagree.
+const ERA_LABELS: { key: string; label: string }[] = [
+  { key: "earth", label: "Deep time" },
+  { key: "life", label: "Life" },
+  { key: "humans", label: "Early humans" },
+  { key: "ancient", label: "Ancient" },
+  { key: "medieval", label: "Medieval" },
+  { key: "modern", label: "Modern" },
+];
+
+// Rough width of a label at uppercase text-[11px], for hiding the ones that would
+// collide. Measured text is not worth a canvas here: a label that is dropped
+// a few pixels early costs nothing, and one that overlaps its neighbour reads
+// as a rendering bug.
+const ERA_CHAR_PX = 7.4;
+const ERA_GAP_PX = 10;
+
 export function TimelineOverview({
   markers,
   window: view,
@@ -70,6 +99,10 @@ export function TimelineOverview({
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ mode: DragMode; grabOffset: number } | null>(null);
+  // What a press here WOULD do, so the cursor can say so before the press:
+  // a hand over the thumb, a resize arrow over its ends, a pointer elsewhere.
+  const [hover, setHover] = useState<DragMode | "jump" | null>(null);
+  const [dragging, setDragging] = useState<DragMode | null>(null);
 
   // The rail's width is measured rather than assumed, because the DRAWN box and
   // the TRUE box are different things (see MIN_BOX_PX) and both the hit-testing
@@ -249,7 +282,49 @@ export function TimelineOverview({
     [boxFrom, boxTo, resizeTo]
   );
 
+  // Where each era label goes, dropping any that would run into the one
+  // before it. "Now" is always kept: it is the one landmark every reader
+  // navigates from.
+  const eraLabels = useMemo(() => {
+    if (railWidth === 0) return [];
+    const now = presentPosition();
+    const candidates = [
+      ...ERA_LABELS.flatMap(({ key, label }) => {
+        const jump = TIMELINE_JUMPS.find((item) => item.key === key);
+        return jump ? [{ key, label, fraction: fractionOf(full, jump.window.from, "log") }] : [];
+      }),
+      { key: "now", label: "Now", fraction: fractionOf(full, now, "log") },
+    ].sort((a, b) => a.fraction - b.fraction);
+
+    const nowItem = candidates.find((item) => item.key === "now")!;
+    const nowStart = nowItem.fraction * railWidth;
+    const placed: typeof candidates = [];
+    let lastEnd = -Infinity;
+    for (const item of candidates) {
+      const start = item.fraction * railWidth;
+      const end = start + item.label.length * ERA_CHAR_PX;
+      if (item.key !== "now") {
+        if (start < lastEnd + ERA_GAP_PX) continue;
+        if (end > railWidth) continue;
+        // Never crowd "Now" out from the left.
+        if (item.fraction < nowItem.fraction && end + ERA_GAP_PX > nowStart) continue;
+      }
+      placed.push(item);
+      lastEnd = end;
+    }
+    return placed;
+  }, [full, railWidth]);
+
   if (markers.length === 0) return null;
+
+  const cursor =
+    dragging === "move"
+      ? "cursor-grabbing"
+      : hover === "from" || hover === "to"
+        ? "cursor-ew-resize"
+        : hover === "move"
+          ? "cursor-grab"
+          : "cursor-pointer";
 
   return (
     <div className={cn("select-none", className)}>
@@ -267,11 +342,17 @@ export function TimelineOverview({
         //
         // pan-y makes the browser choose one: vertical is a page scroll and
         // never arrives here, horizontal arrives here and the page holds still.
-        className="relative h-9 w-full cursor-pointer touch-pan-y overflow-hidden rounded-lg border border-border bg-muted/40"
+        className={cn(
+          // A TRACK: recessed, full-width, rounded like every scrollbar track,
+          // so it is recognisably the thing you drag to travel.
+          "relative h-8 w-full touch-pan-y overflow-hidden rounded-full border border-border bg-muted shadow-inner",
+          cursor
+        )}
         onPointerDown={(event) => {
           const fraction = fractionAtClientX(event.clientX);
           const mode = modeAt(fraction);
           event.currentTarget.setPointerCapture(event.pointerId);
+          setDragging(mode);
 
           if (mode === "move") {
             // Grabbing inside the box moves it from where you took hold;
@@ -286,17 +367,27 @@ export function TimelineOverview({
           resizeTo(mode, fraction);
         }}
         onPointerMove={(event) => {
-          if (!drag.current) return;
           const fraction = fractionAtClientX(event.clientX);
+          if (!drag.current) {
+            const mode = modeAt(fraction);
+            const next = mode === "move" && (fraction < drawnFrom || fraction > drawnTo) ? "jump" : mode;
+            if (next !== hover) setHover(next);
+            return;
+          }
           if (drag.current.mode === "move") moveByGrab(fraction, drag.current.grabOffset);
           else resizeTo(drag.current.mode, fraction);
         }}
         onPointerUp={(event) => {
           drag.current = null;
+          setDragging(null);
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
         onPointerCancel={() => {
           drag.current = null;
+          setDragging(null);
+        }}
+        onPointerLeave={() => {
+          if (!drag.current) setHover(null);
         }}
       >
         {/* Every event on the timeline, in its category's colour. */}
@@ -306,20 +397,26 @@ export function TimelineOverview({
           return (
             <span
               key={`${marker.position}-${index}`}
-              className={cn("absolute top-1.5 h-6 w-px opacity-80", timelineCategory(marker.category).dotClass)}
+              className={cn("absolute inset-y-2 w-px opacity-70", timelineCategory(marker.category).dotClass)}
               style={{ left: `${left * 100}%` }}
             />
           );
         })}
 
-        {/* The stretch on screen, with a grip at each end. */}
+        {/* THE THUMB: the stretch on screen. A solid pill rather than an
+            outline, so it reads as a thing to take hold of; darker while held.
+            Its ends carry grips because, unlike a native thumb, pulling them
+            changes how much time is shown. */}
         <span
-          className="pointer-events-none absolute inset-y-0 rounded-md border-2 border-accent bg-accent/15"
+          className={cn(
+            "pointer-events-none absolute inset-y-[3px] rounded-full border border-accent/80 shadow-sm transition-colors",
+            dragging ? "bg-accent/45" : hover === "move" || hover === "from" || hover === "to" ? "bg-accent/35" : "bg-accent/25"
+          )}
           style={{ left: `${drawnFrom * 100}%`, width: `${drawnWidth * 100}%` }}
         >
-          {/* Drawn inside the box so they cannot drift away from its edges. */}
-          <span className="absolute inset-y-1 left-0 w-1 rounded-full bg-accent" />
-          <span className="absolute inset-y-1 right-0 w-1 rounded-full bg-accent" />
+          {/* Drawn inside the thumb so they cannot drift away from its edges. */}
+          <span className="absolute inset-y-1.5 left-1 w-1 rounded-full bg-accent" />
+          <span className="absolute inset-y-1.5 right-1 w-1 rounded-full bg-accent" />
         </span>
 
         {/* THE CENTRE DATE, WRITTEN. White, at the height the bar allows, sitting
@@ -346,7 +443,7 @@ export function TimelineOverview({
               is still written in white inside the scroll bar, and it can now
               actually be read. */}
           <span
-            className="whitespace-nowrap rounded-[5px] bg-accent px-2 py-1 text-[13px] font-semibold leading-none tracking-tight text-white tabular-nums shadow-sm"
+            className="whitespace-nowrap rounded-full bg-accent px-2 py-1 text-[13px] font-semibold leading-none tracking-tight text-white tabular-nums shadow-sm"
           >
             {centreLabel}
           </span>
@@ -389,9 +486,25 @@ export function TimelineOverview({
         />
       </div>
 
+      {/* The eras along the bottom of the track, each at the point it begins. */}
+      <div aria-hidden className="relative mt-1 h-4 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+        {eraLabels.map((item) => (
+          <span
+            key={item.key}
+            className={cn(
+              "absolute top-0 whitespace-nowrap border-l pl-1 leading-4",
+              item.key === "now" ? "border-accent text-foreground" : "border-border"
+            )}
+            style={{ left: `${item.fraction * 100}%` }}
+          >
+            {item.label}
+          </span>
+        ))}
+      </div>
+
       <p className="mt-1 text-xs text-muted-foreground">
-        Everything on this timeline. Drag the box itself to travel through time — left towards the beginning, right
-        towards now — or pull either end to widen what you are looking at.
+        All of time, spaced by order of magnitude. Drag the bar to travel through time, pull either end to zoom, or
+        click anywhere on the track to go there.
       </p>
     </div>
   );

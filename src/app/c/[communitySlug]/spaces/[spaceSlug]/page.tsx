@@ -39,6 +39,7 @@ import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import { isPlantIdConfigured } from "@/lib/ai/plant-id";
 import { isLessonWriterConfigured } from "@/lib/ai/lesson-writer";
+import { isVideoWorkerConfigured } from "@/lib/school/video-worker";
 import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
@@ -775,6 +776,7 @@ export default async function SpaceDetailPage({
           isMember={canPost}
           defaultAgeBand={schoolDefaultAgeBand(community.school_kind) ?? DEFAULT_AGE_BAND}
           writerConfigured={isLessonWriterConfigured()}
+          videoConfigured={isVideoWorkerConfigured()}
         />
       ) : isCropGuidesSpace ? (
         <CropGuidesView
