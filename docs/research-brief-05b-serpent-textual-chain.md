@@ -372,3 +372,38 @@ Do not use “unverified connection” as a reason to omit an otherwise relevant
 ### What would upgrade a comparison
 
 A resemblance becomes historically stronger only when evidence supplies something beyond the resemblance: an ancient passage giving the relevant bodily meaning; a specialist reading grounded in the culture's own sources; a documented contact/transmission chain; or a traceable history showing who first made the comparison and how later writers inherited it. Until then, keep the comparison visible and label the gap.
+
+
+---
+
+## VERIFIED SOURCE PASS 01 — EARLY TEXTUAL CHAIN
+
+**Status:** partial verification only. This section records what the current source pass can support without filling the remaining traceback from memory. It does not supersede the fill/open rules above.
+
+### Early Kuṇḍalinī: keep the heart-stage separate from the later serpent-stage
+
+**Sārdhatriśatikālottara 12.1–2 — candidate early Kuṇḍalinī attestation.** The critical-edition trail is N. R. Bhatt, *Sārdhatriśatikālottara* (Institut Français de Pondichéry, 1979). Modern specialist discussion by Shaman Hatley treats early tantric Śaiva material as central to the emergence of Kuṇḍalinī. The passage names *ādyā kuṇḍalinī* and places her in the region of the **heart**, with bud/sprout imagery and *amṛta*. This is important negative evidence against silently back-projecting the later base-of-spine sleeping-serpent system into every early occurrence.
+
+**Do not yet mark `kundalini-word` FILLED solely from this note.** Before promotion to FILLED, the repository still needs the exact critically edited Sanskrit/transliteration, a published translation with translator named, and the specialist's explicit dating argument tied to this passage.
+
+**Tantrasadbhāva — explicit serpentine development.** Published scholarship discussing this text reports Kuṇḍalinī/Śakti as curved and explicitly snake-like, including sleep/awakening imagery. This belongs in a separate developmental record from the Sārdhatriśatikālottara material. It is a candidate for `kundalini-as-serpent`, `dormant`, `awakening`, and `shakti`, but those elements remain OPEN until the exact passages, edition, published translation and dating authority are attached.
+
+**Interpretive rule established by this pass:** *kuṇḍalinī* / coiled power is not automatically an explicit snake. `kundalini-word`, `coiled`, and `kundalini-as-serpent` remain independent traceback rows.
+
+### Earlier channel/ascent precursors: do not relabel them Kuṇḍalinī
+
+**Chāndogya Upaniṣad 8.6.6** and **Kaṭha Upaniṣad 2.3.16** belong in the precursor chain because they describe the heart's channels, one going upward toward the head/crown, with immortality associated with ascent by that route. They are evidence relevant to `nadi`, `upward-movement`, and `crown-destination`.
+
+They do **not** by themselves establish Kuṇḍalinī, Suṣumṇā, Iḍā, Piṅgalā, a seven-cakra system, or a serpent rising through the spine. The research task remains to establish, with named specialists, whether treating these passages as precursors of the later nāḍī system is accepted or retrospective. Per the brief's original rule, that disagreement must not be resolved by the seed data.
+
+### Traceback status after pass 01
+
+**Candidate, not yet FILLED:** `kundalini-word`, `kundalini-as-serpent`, `coiled`, `dormant`, `awakening`, `shakti`, `nadi`, `upward-movement`, `crown-destination`, `amrta`.
+
+**Still OPEN:** `base-location`, `sushumna`, `ida`, `pingala`, `cakras`, `seven-cakra-system`, `lotus-imagery`, `granthis`, `cakra-piercing`, `sahasrara`, `ajna`, `inner-fire`, `prana`, `breath-retention`, `shiva-shakti-union`, `liberation-through-ascent`.
+
+The candidate rows remain unfilled deliberately: this pass found a stronger route to the primary evidence, but has not yet met the project's own requirement of passage + dating authority + exact text + published translation for each row.
+
+### Image rule added during this pass
+
+For textual-development records, do not attach a later chakra painting merely to make an early record visual. Prefer **no image** until a directly relevant manuscript, edition page, historical diagram or object is available. Across the track, duplicate crops, thumbnails and alternate resolutions of the same object do not count as additional evidence. A few materially different images are preferred to many near-duplicates.
