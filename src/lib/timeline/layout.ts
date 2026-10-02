@@ -430,51 +430,158 @@ const HIDDEN_BUCKET_PX = 60;
 function selectByImportance(
   items: PlacedEvent[],
   rows: number,
-  pinned: ReadonlySet<string>
-): { shown: PlacedEvent[]; hidden: PlacedEvent[]; rowOf: Map<PlacedEvent, number> } {
+  pinned: ReadonlySet<string>,
+  width: number,
+  availableHeight: number
+): {
+  shown: PlacedEvent[];
+  hidden: PlacedEvent[];
+  rowOf: Map<PlacedEvent, number>;
+  captionOf: Map<PlacedEvent, "left" | "right" | null>;
+} {
   // Fewer records than rows always fit: one each, packed as they always were.
-  if (items.length <= rows) return { shown: items, hidden: [], rowOf: new Map() };
+  if (items.length <= rows) return { shown: items, hidden: [], rowOf: new Map(), captionOf: new Map() };
 
   // A record the reader has selected is never hidden from under them.
   const ranked = [...items].sort(
     (a, b) => Number(pinned.has(b.event.id)) - Number(pinned.has(a.event.id)) || compareImportance(a.event, b.event)
   );
 
-  const attempt = (rowCount: number) => {
-    const occupied: [number, number][][] = Array.from({ length: rowCount }, () => []);
+  // DRAWN AND NAMED ARE TWO DIFFERENT DECISIONS.
+  //
+  // The first version of this hid any record whose dot would have landed on a
+  // caption. That kept the strip tidy and emptied it: on a real community's
+  // last ten thousand years it drew 33 records where the old packer drew 85,
+  // and readers saw their entries as gone. A dot costs a few pixels; a caption
+  // costs two hundred, and often several lines of height. So every record that
+  // has room for its DOT is drawn, and captions are handed out in order of
+  // importance on top of that:
+  //
+  //   1. a row where the dot AND its caption fit — the record is named;
+  //   2. else a row where the dot fits clear of every caption — a bare dot;
+  //   3. else a row where the dot fits among the other dots, taking the place
+  //      of the least important caption it would land on — that record loses
+  //      its name (it is still drawn, and still previews on hover), and no dot
+  //      is ever drawn over a caption;
+  //   4. else the dot itself has no room — a true pile-up — and the record is
+  //      counted in the cluster beside it.
+  //
+  // HEIGHT IS SPENT AS IT GOES. A caption wraps to as many as five lines, and a
+  // row is as tall as its tallest caption — so captions are what use up the
+  // strip's height. Every row and every caption is checked against the real
+  // height budget when it is handed out; a caption that would make the strip
+  // too tall is simply not given (its record stays a dot), rather than being
+  // given and then costing whole rows of records later.
+  type Caption = { lo: number; hi: number; owner: PlacedEvent };
+  const attempt = (budget: number) => {
+    const markers: [number, number][][] = [];
+    const captions: Caption[][] = [];
+    const lines: number[] = [];
     const shown: PlacedEvent[] = [];
     const hidden: PlacedEvent[] = [];
     const rowOf = new Map<PlacedEvent, number>();
+    const captionOf = new Map<PlacedEvent, "left" | "right" | null>();
+    const clear = (spans: { lo: number; hi: number }[], lo: number, hi: number) =>
+      spans.every((span) => span.hi <= lo || span.lo >= hi);
+    const dots = (row: number) => markers[row].map(([lo, hi]) => ({ lo, hi }));
+    const height = () => lines.reduce((sum, count) => sum + rowHeightFor(count), 0);
+    // Would row `row` (or a new row, when row === lines.length) with a caption
+    // `need` lines deep keep the strip within budget?
+    const affordable = (row: number, need: number) => {
+      const current = row < lines.length ? rowHeightFor(lines[row]) : 0;
+      const next = rowHeightFor(Math.max(row < lines.length ? lines[row] : 1, need));
+      return height() - current + next <= budget;
+    };
+    const addRow = () => {
+      markers.push([]);
+      captions.push([]);
+      lines.push(1);
+      return lines.length - 1;
+    };
+
     for (const item of ranked) {
-      const from = item.xFrom - 6;
-      const markerEnd = reserveEnd(item) + ROW_GAP_PX;
-      const labelEnd = markerEnd + item.labelWidth;
-      const free = (row: number, to: number) => occupied[row].every(([lo, hi]) => hi <= from || lo >= to);
-      let end = labelEnd;
-      let row = occupied.findIndex((_, r) => free(r, labelEnd));
-      if (row === -1) {
-        end = markerEnd;
-        row = occupied.findIndex((_, r) => free(r, markerEnd));
+      const dotLo = item.xFrom - 4;
+      const dotHi = reserveEnd(item) + 10;
+      const rightLo = item.xTo + LABEL_GAP_PX;
+      const rightHi = rightLo + item.labelWidth + ROW_GAP_PX / 2;
+      const leftHi = item.xFrom - LABEL_GAP_PX;
+      const leftLo = leftHi - item.labelWidth - ROW_GAP_PX / 2;
+      const need = Math.max(1, item.labelLines);
+
+      const dotFits = (r: number) => r >= lines.length || clear(dots(r), dotLo, dotHi);
+      const dotClearOfCaptions = (r: number) => r >= lines.length || clear(captions[r], dotLo, dotHi);
+      const captionFits = (r: number, lo: number, hi: number) =>
+        r >= lines.length || (clear(dots(r), lo, hi) && clear(captions[r], lo, hi));
+      const sideFor = (r: number): "left" | "right" | null =>
+        rightHi <= width && captionFits(r, rightLo, rightHi)
+          ? "right"
+          : leftLo >= 0 && captionFits(r, leftLo, leftHi)
+            ? "left"
+            : null;
+
+      let row = -1;
+      let side: "left" | "right" | null = null;
+      // 1. Named — on an existing row, or a new one if the height allows.
+      for (let r = 0; r <= lines.length && row === -1; r++) {
+        if (!dotFits(r) || !dotClearOfCaptions(r) || !affordable(r, need)) continue;
+        const fits = sideFor(r);
+        if (fits) {
+          row = r;
+          side = fits;
+        }
       }
+      // 2. A bare dot, clear of every caption.
       if (row === -1) {
-        // Pinned records go through regardless; the packer's overflow is the
-        // backstop for the one case where that over-fills a row.
-        (pinned.has(item.event.id) ? shown : hidden).push(item);
+        for (let r = 0; r <= lines.length && row === -1; r++) {
+          if (dotFits(r) && dotClearOfCaptions(r) && (r < lines.length || affordable(r, 1))) row = r;
+        }
+      }
+      // 3. A bare dot that takes the least important caption's place.
+      if (row === -1) {
+        let bestCost = Infinity;
+        for (let r = 0; r < lines.length; r++) {
+          if (!dotFits(r)) continue;
+          const blocking = captions[r].filter((caption) => caption.hi > dotLo && caption.lo < dotHi);
+          if (blocking.some((caption) => pinned.has(caption.owner.event.id))) continue;
+          const cost = blocking.reduce((sum, caption) => sum + importanceOf(caption.owner.event), 0);
+          if (cost < bestCost) {
+            bestCost = cost;
+            row = r;
+          }
+        }
+        if (row !== -1) {
+          const blocking = captions[row].filter((caption) => caption.hi > dotLo && caption.lo < dotHi);
+          for (const caption of blocking) captionOf.set(caption.owner, null);
+          captions[row] = captions[row].filter((caption) => !blocking.includes(caption));
+          lines[row] = Math.max(1, ...captions[row].map((caption) => Math.max(1, caption.owner.labelLines)));
+        }
+      }
+      // 4. No room even for the dot.
+      if (row === -1) {
+        if (pinned.has(item.event.id)) {
+          // The open record goes through regardless; the packer's overflow is
+          // the backstop for the one case where that over-fills a row.
+          shown.push(item);
+        } else hidden.push(item);
         continue;
       }
-      occupied[row].push([from, end]);
+
+      if (row === lines.length) addRow();
+      markers[row].push([dotLo, dotHi]);
+      if (side === "right") captions[row].push({ lo: rightLo, hi: rightHi, owner: item });
+      if (side === "left") captions[row].push({ lo: leftLo, hi: leftHi, owner: item });
+      if (side) lines[row] = Math.max(lines[row], need);
       rowOf.set(item, row);
+      captionOf.set(item, side);
       shown.push(item);
     }
-    return { shown, hidden, rowOf };
+    return { shown, hidden, rowOf, captionOf };
   };
 
-  let result = attempt(rows);
-  // Something is being hidden, so a cluster card is coming: leave it a row
-  // rather than making it squeeze on top of the records that were kept.
-  // (Wrapped captions can still spend that row's height; the cluster
-  // placement makes room locally when they do — see makeRoom.)
-  if (result.hidden.length > 0 && rows > 1) result = attempt(rows - 1);
+  // No height is held back for the cluster cards: holding it back left it
+  // unspent whenever a card found room on an existing row, and the card
+  // placement can already make room for itself (makeRoom).
+  const result = attempt(availableHeight);
   result.shown.sort((a, b) => a.xFrom - b.xFrom);
   return result;
 }
@@ -585,9 +692,10 @@ export function layoutTimeline(
 
   // Semantic zoom first: the most important records that fit go on to be
   // laid out; the rest are counted into clusters at the end.
-  const selection = selectByImportance(placed, maxRows, pinned);
+  const selection = selectByImportance(placed, maxRows, pinned, width, availableHeight);
   const shown = selection.shown;
   const selectedRow = selection.rowOf;
+  const selectedCaption = selection.captionOf;
   // Left out by semantic zoom, plus (below) anything the height budget could
   // not hold. Counted into clusters at the end.
   const hidden = [...selection.hidden];
@@ -746,6 +854,20 @@ export function layoutTimeline(
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         const next = list[index + 1];
+
+        // Semantic zoom has already decided this one's caption, by importance
+        // (selectByImportance). Its answer already accounts for every dot and
+        // caption on the row, so it is applied as given.
+        if (selectedCaption.has(item)) {
+          const side = selectedCaption.get(item) ?? null;
+          item.showLabel = side !== null;
+          item.labelSide = side ?? "right";
+          occupiedUntil = Math.max(
+            occupiedUntil,
+            side === "right" ? item.xTo + LABEL_GAP_PX + item.labelWidth : item.xTo
+          );
+          continue;
+        }
 
         const rightEnd = item.xTo + LABEL_GAP_PX + item.labelWidth;
         const clearOfNext = !next || next.xFrom > rightEnd + ROW_GAP_PX;

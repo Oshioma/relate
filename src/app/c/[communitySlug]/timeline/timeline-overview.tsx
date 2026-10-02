@@ -5,13 +5,16 @@ import { cn } from "@/lib/utils";
 import {
   formatYear,
   fractionOf,
+  panWindow,
   positionAt,
   presentPosition,
   TIMELINE_JUMPS,
   timelineExtentWindow,
+  zoomWindow,
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { wheelIntent } from "@/lib/timeline/wheel-intent";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -116,6 +119,37 @@ export function TimelineOverview({
     observer.observe(element);
     setRailWidth(element.clientWidth);
     return () => observer.disconnect();
+  }, []);
+
+  // A SWIPE ON THE SCROLLBAR MOVES THROUGH TIME, the same as one on the strip.
+  //
+  // It looks like a scrollbar, so it is where a reader's fingers go — and it
+  // had no wheel handling at all, so a two-finger swipe over it did nothing
+  // while the thumb sat there looking stuck. Same rules as the strip
+  // (wheel-intent.ts): sideways or Shift+wheel travels, at the strip's own
+  // speed rather than the bar's (a pixel on this bar can be millions of years);
+  // pinch or Ctrl/Cmd+wheel zooms about the middle; a plain vertical scroll is
+  // left to the page. Native and non-passive, because React's wheel handler
+  // cannot preventDefault.
+  const latest = useRef({ view, onWindowChange, scale });
+  useEffect(() => {
+    latest.current = { view, onWindowChange, scale };
+  }, [view, onWindowChange, scale]);
+  useEffect(() => {
+    const element = railRef.current;
+    if (!element) return;
+    function handleWheel(event: WheelEvent) {
+      if (!event.cancelable) return;
+      const intent = wheelIntent(event);
+      if (intent.kind === "page") return;
+      event.preventDefault();
+      const { view: current, onWindowChange: change, scale: strip } = latest.current;
+      const width = Math.max(1, element!.getBoundingClientRect().width);
+      if (intent.kind === "pan") change(panWindow(current, intent.pixels / width, strip));
+      else change(zoomWindow(current, intent.factor, 0.5, strip));
+    }
+    element.addEventListener("wheel", handleWheel, { passive: false });
+    return () => element.removeEventListener("wheel", handleWheel);
   }, []);
 
   // The bar always shows everything, whatever the strip is showing — that is
