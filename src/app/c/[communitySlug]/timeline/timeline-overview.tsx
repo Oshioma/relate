@@ -14,8 +14,8 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { drawnThumb, windowWithGripAt } from "@/lib/timeline/scrollbar-grip";
 import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
-import { thumbFor, windowAtThumb, windowForThumb } from "@/lib/timeline/thumb";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -102,12 +102,9 @@ export function TimelineOverview({
   className?: string;
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
-  // `startFraction`/`startFrom`: where on the bar a drag took hold, and where
-  // the drawn thumb's left edge was then. A move-drag puts the thumb's edge at
-  // startFrom plus however far the pointer has travelled, and asks for the view
-  // that draws it there (windowAtThumb) — so the thumb stays under the pointer
-  // even while it is easing against an end of the bar.
-  const drag = useRef<{ mode: DragMode; startFraction: number; startFrom: number } | null>(null);
+  // A move remembers the window it started from (so the zoom cannot drift) and
+  // how far along the thumb it took hold (so that spot stays under the pointer).
+  const drag = useRef<{ mode: DragMode; grip: number; base: TimeWindow } | null>(null);
   // What a press here WOULD do, so the cursor can say so before the press:
   // a hand over the thumb, a resize arrow over its ends, a pointer elsewhere.
   const [hover, setHover] = useState<DragMode | "jump" | null>(null);
@@ -184,14 +181,8 @@ export function TimelineOverview({
   // strip below honours whichever scale the reader chose.
   const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
 
-  // THE THUMB'S SIZE MEANS ZOOM AND NOTHING ELSE (thumb.ts). Drawn as the
-  // window's true extent on this log bar, it ballooned near the present and
-  // shrank in the deep past as the reader swiped. Now its width comes only from
-  // how much time is on screen and its centre from the strip's centre date, so
-  // swiping slides it and only zooming resizes it.
-  const thumb = thumbFor(view, scale);
-  const boxFrom = thumb.from;
-  const boxTo = thumb.to;
+  const boxFrom = toFraction(view.from);
+  const boxTo = toFraction(view.to);
 
   // ---- THE CENTRE DATE ------------------------------------------------------
   //
@@ -228,9 +219,15 @@ export function TimelineOverview({
   // the reader's finger — or the control answers gestures aimed at a box nobody
   // can see. The box is nudged back inside the rail when widening it would push
   // it off the right-hand end.
+  //
+  // Otherwise the thumb is EXACT: its edges are the first and last dates on the
+  // strip, so it never disagrees with the date or the era labels. On this
+  // spaced-by-magnitude bar that means a window of fixed span grows as it
+  // nears the present and shrinks into the deep past. (A fixed-size thumb was
+  // tried and dropped — it had to stop marking the dates on screen, and ended
+  // up pinned over "Now" while the strip showed 125,501 BCE.)
   const minBox = railWidth > 0 ? MIN_BOX_PX / railWidth : 0.02;
-  const drawnWidth = Math.max(minBox, Math.min(1, boxTo - boxFrom));
-  const drawnFrom = Math.max(0, Math.min(1 - drawnWidth, boxFrom));
+  const { from: drawnFrom, width: drawnWidth } = drawnThumb(view, minBox);
   const drawnTo = drawnFrom + drawnWidth;
 
   // Within a few pixels of either end, snap to the actual end of the timeline.
@@ -263,14 +260,16 @@ export function TimelineOverview({
    */
   const resizeTo = useCallback(
     (edge: "from" | "to", fraction: number) => {
-      // The other edge stays where it is on the bar; the thumb's new width is
-      // the new zoom and its new middle the new centre date.
       const gap = minFraction();
-      const lo = edge === "from" ? Math.max(0, Math.min(fraction, boxTo - gap)) : boxFrom;
-      const hi = edge === "to" ? Math.min(1, Math.max(fraction, boxFrom + gap)) : boxTo;
-      onWindowChange(windowForThumb((lo + hi) / 2, hi - lo, scale));
+      if (edge === "from") {
+        const next = Math.max(0, Math.min(fraction, boxTo - gap));
+        onWindowChange({ from: positionAt(full, next, "log"), to: view.to });
+      } else {
+        const next = Math.min(1, Math.max(fraction, boxFrom + gap));
+        onWindowChange({ from: view.from, to: positionAt(full, next, "log") });
+      }
     },
-    [boxFrom, boxTo, minFraction, onWindowChange, scale]
+    [boxFrom, boxTo, full, minFraction, onWindowChange, view.from, view.to]
   );
 
   /**
@@ -290,6 +289,21 @@ export function TimelineOverview({
       return "move";
     },
     [drawnFrom, drawnTo, drawnWidth, railWidth]
+  );
+
+  /**
+   * Slide the thumb so the spot you took hold of stays under the pointer.
+   *
+   * The zoom is the one the drag started with, and only the position changes.
+   * Because the thumb changes width as it travels, "keep the grip" means the
+   * same SHARE of the way along it, not the same distance from its left edge.
+   * Dragged past either end of the bar, the window stops at that end of time.
+   */
+  const moveByGrip = useCallback(
+    (fraction: number, grip: number, base: TimeWindow) => {
+      onWindowChange(windowWithGripAt(base, grip, fraction, minBox, scale));
+    },
+    [minBox, onWindowChange, scale]
   );
 
   /** Keyboard equivalents, so the control is not mouse-only. */
@@ -378,18 +392,12 @@ export function TimelineOverview({
             // clicking outside it jumps, centring on where you clicked. Both
             // measured on the drawn box, which is the one that was grabbed.
             const inside = fraction >= drawnFrom && fraction <= drawnTo;
-            if (inside) {
-              drag.current = { mode, startFraction: fraction, startFrom: thumb.from };
-            } else {
-              // A click on the track centres the thumb there, and the drag
-              // carries on from it.
-              const startFrom = fraction - thumb.width / 2;
-              onWindowChange(windowAtThumb(startFrom, thumb.width, scale));
-              drag.current = { mode, startFraction: fraction, startFrom };
-            }
+            const grip = inside && drawnWidth > 0 ? (fraction - drawnFrom) / drawnWidth : 0.5;
+            drag.current = { mode, grip, base: view };
+            if (!inside) moveByGrip(fraction, grip, view);
             return;
           }
-          drag.current = { mode, startFraction: fraction, startFrom: thumb.from };
+          drag.current = { mode, grip: 0, base: view };
           resizeTo(mode, fraction);
         }}
         onPointerMove={(event) => {
@@ -400,10 +408,8 @@ export function TimelineOverview({
             if (next !== hover) setHover(next);
             return;
           }
-          if (drag.current.mode === "move") {
-            const { startFraction, startFrom } = drag.current;
-            onWindowChange(windowAtThumb(startFrom + (fraction - startFraction), thumb.width, scale));
-          } else resizeTo(drag.current.mode, fraction);
+          if (drag.current.mode === "move") moveByGrip(fraction, drag.current.grip, drag.current.base);
+          else resizeTo(drag.current.mode, fraction);
         }}
         onPointerUp={(event) => {
           drag.current = null;
