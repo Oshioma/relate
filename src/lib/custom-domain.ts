@@ -41,6 +41,19 @@ export function normalizeCustomDomain(raw: string): string | null {
   return value;
 }
 
+// The other half of a www / bare pair: "www.foo.com" <-> "foo.com". An owner
+// verifies one of them, but visitors type both, so the proxy serves the
+// community on the counterpart too and verification registers both with the
+// host. Null when stripping "www." would leave no real domain.
+export function wwwCounterpart(host: string): string | null {
+  const hostname = host.toLowerCase().replace(/:\d+$/, "");
+  if (hostname.startsWith("www.")) {
+    const bare = hostname.slice(4);
+    return bare.includes(".") ? bare : null;
+  }
+  return `www.${hostname}`;
+}
+
 function platformApexHostname(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (!siteUrl) return null;

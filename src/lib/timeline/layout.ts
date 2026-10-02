@@ -1,5 +1,6 @@
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
-import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, type TimeScale, type TimeWindow } from "./time";
+import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, positionAt, type TimeScale, type TimeWindow } from "./time";
+import { compareImportance, importanceOf } from "./prominence";
 
 // Turning a set of events into positions on a strip of pixels.
 //
@@ -24,6 +25,14 @@ import { claimInterval, claimIsPositioned, eventDateLabel, fractionOf, type Time
 const CLUSTER_PX = 12;
 /** How many crowded events it takes before a cluster is more honest than a pile. */
 const CLUSTER_MIN = 4;
+/**
+ * How wide a cluster CARD is: a thumbnail, the leading record's title, and the
+ * date range with "+ N". Drawn only where a row has this much free; anywhere
+ * tighter the cluster stays the small count chip it always was.
+ */
+export const CLUSTER_CARD_PX = 200;
+/** How much of a row the small count chip takes, from 14px left of its x. */
+const CLUSTER_CHIP_PX = 60;
 /** The gap between a marker and its own caption. */
 const LABEL_GAP_PX = 6;
 
@@ -186,6 +195,12 @@ export type PlacedCluster = {
   /** The window to move to when this cluster is opened. */
   from: number;
   to: number;
+  /** The records it stands for, so the card can choose one to lead with and list the rest. */
+  events: TimelineEventWithClaims[];
+  /** True when its row had room for the full card; false draws the small chip. */
+  card: boolean;
+  /** Where the card's left edge goes — nudged in from the right edge so it stays on the strip. */
+  cardLeft: number;
 };
 
 /**
@@ -384,6 +399,193 @@ function placeClaim(
   };
 }
 
+// --- Semantic zoom ---------------------------------------------------------------
+//
+// THE MOST IMPORTANT RECORDS THAT FIT, NOT THE FIRST ONES.
+//
+// When a stretch holds more than the rows can show, the packer below used to
+// keep whichever records it reached first — left to right — and push the rest
+// into "+N". Zoomed out to the ancient world that kept the earliest dozen dated
+// finds and hid the Great Pyramid. Now the records are offered in order of
+// importance (prominence.ts), each taking room only where it fits, so a wide
+// view shows landmarks and every zoom step makes room for the next tier — a
+// map showing countries, then cities, then streets.
+//
+// The room model is the packer's own: a record needs its footprint plus its
+// caption on some row, or failing that its bare marker, exactly the two tries
+// the packer makes. Any set this accepts is one the packer can lay out (an
+// interval set that fits R rows is packed into R rows by left-to-right
+// first-fit), so what is selected is what is drawn.
+//
+// Whatever does not fit is returned as hidden, to be counted into nearby
+// cluster cards — nothing is invisible, it is only further down the order.
+
+const NO_PINNED: ReadonlySet<string> = new Set();
+
+/** How far a hidden record may sit from a cluster and still be counted in it, in pixels. */
+const HIDDEN_MERGE_PX = 120;
+/** Hidden records further from any cluster than that are grouped at this pitch. */
+const HIDDEN_BUCKET_PX = 60;
+
+function selectByImportance(
+  items: PlacedEvent[],
+  rows: number,
+  pinned: ReadonlySet<string>,
+  width: number,
+  availableHeight: number
+): {
+  shown: PlacedEvent[];
+  hidden: PlacedEvent[];
+  rowOf: Map<PlacedEvent, number>;
+  captionOf: Map<PlacedEvent, "left" | "right" | null>;
+} {
+  // Fewer records than rows always fit: one each, packed as they always were.
+  if (items.length <= rows) return { shown: items, hidden: [], rowOf: new Map(), captionOf: new Map() };
+
+  // A record the reader has selected is never hidden from under them.
+  const ranked = [...items].sort(
+    (a, b) => Number(pinned.has(b.event.id)) - Number(pinned.has(a.event.id)) || compareImportance(a.event, b.event)
+  );
+
+  // DRAWN AND NAMED ARE TWO DIFFERENT DECISIONS.
+  //
+  // The first version of this hid any record whose dot would have landed on a
+  // caption. That kept the strip tidy and emptied it: on a real community's
+  // last ten thousand years it drew 33 records where the old packer drew 85,
+  // and readers saw their entries as gone. A dot costs a few pixels; a caption
+  // costs two hundred, and often several lines of height. So every record that
+  // has room for its DOT is drawn, and captions are handed out in order of
+  // importance on top of that:
+  //
+  //   1. a row where the dot AND its caption fit — the record is named;
+  //   2. else a row where the dot fits clear of every caption — a bare dot;
+  //   3. else a row where the dot fits among the other dots, taking the place
+  //      of the least important caption it would land on — that record loses
+  //      its name (it is still drawn, and still previews on hover), and no dot
+  //      is ever drawn over a caption;
+  //   4. else the dot itself has no room — a true pile-up — and the record is
+  //      counted in the cluster beside it.
+  //
+  // HEIGHT IS SPENT AS IT GOES. A caption wraps to as many as five lines, and a
+  // row is as tall as its tallest caption — so captions are what use up the
+  // strip's height. Every row and every caption is checked against the real
+  // height budget when it is handed out; a caption that would make the strip
+  // too tall is simply not given (its record stays a dot), rather than being
+  // given and then costing whole rows of records later.
+  type Caption = { lo: number; hi: number; owner: PlacedEvent };
+  const attempt = (budget: number) => {
+    const markers: [number, number][][] = [];
+    const captions: Caption[][] = [];
+    const lines: number[] = [];
+    const shown: PlacedEvent[] = [];
+    const hidden: PlacedEvent[] = [];
+    const rowOf = new Map<PlacedEvent, number>();
+    const captionOf = new Map<PlacedEvent, "left" | "right" | null>();
+    const clear = (spans: { lo: number; hi: number }[], lo: number, hi: number) =>
+      spans.every((span) => span.hi <= lo || span.lo >= hi);
+    const dots = (row: number) => markers[row].map(([lo, hi]) => ({ lo, hi }));
+    const height = () => lines.reduce((sum, count) => sum + rowHeightFor(count), 0);
+    // Would row `row` (or a new row, when row === lines.length) with a caption
+    // `need` lines deep keep the strip within budget?
+    const affordable = (row: number, need: number) => {
+      const current = row < lines.length ? rowHeightFor(lines[row]) : 0;
+      const next = rowHeightFor(Math.max(row < lines.length ? lines[row] : 1, need));
+      return height() - current + next <= budget;
+    };
+    const addRow = () => {
+      markers.push([]);
+      captions.push([]);
+      lines.push(1);
+      return lines.length - 1;
+    };
+
+    for (const item of ranked) {
+      const dotLo = item.xFrom - 4;
+      const dotHi = reserveEnd(item) + 10;
+      const rightLo = item.xTo + LABEL_GAP_PX;
+      const rightHi = rightLo + item.labelWidth + ROW_GAP_PX / 2;
+      const leftHi = item.xFrom - LABEL_GAP_PX;
+      const leftLo = leftHi - item.labelWidth - ROW_GAP_PX / 2;
+      const need = Math.max(1, item.labelLines);
+
+      const dotFits = (r: number) => r >= lines.length || clear(dots(r), dotLo, dotHi);
+      const dotClearOfCaptions = (r: number) => r >= lines.length || clear(captions[r], dotLo, dotHi);
+      const captionFits = (r: number, lo: number, hi: number) =>
+        r >= lines.length || (clear(dots(r), lo, hi) && clear(captions[r], lo, hi));
+      const sideFor = (r: number): "left" | "right" | null =>
+        rightHi <= width && captionFits(r, rightLo, rightHi)
+          ? "right"
+          : leftLo >= 0 && captionFits(r, leftLo, leftHi)
+            ? "left"
+            : null;
+
+      let row = -1;
+      let side: "left" | "right" | null = null;
+      // 1. Named — on an existing row, or a new one if the height allows.
+      for (let r = 0; r <= lines.length && row === -1; r++) {
+        if (!dotFits(r) || !dotClearOfCaptions(r) || !affordable(r, need)) continue;
+        const fits = sideFor(r);
+        if (fits) {
+          row = r;
+          side = fits;
+        }
+      }
+      // 2. A bare dot, clear of every caption.
+      if (row === -1) {
+        for (let r = 0; r <= lines.length && row === -1; r++) {
+          if (dotFits(r) && dotClearOfCaptions(r) && (r < lines.length || affordable(r, 1))) row = r;
+        }
+      }
+      // 3. A bare dot that takes the least important caption's place.
+      if (row === -1) {
+        let bestCost = Infinity;
+        for (let r = 0; r < lines.length; r++) {
+          if (!dotFits(r)) continue;
+          const blocking = captions[r].filter((caption) => caption.hi > dotLo && caption.lo < dotHi);
+          if (blocking.some((caption) => pinned.has(caption.owner.event.id))) continue;
+          const cost = blocking.reduce((sum, caption) => sum + importanceOf(caption.owner.event), 0);
+          if (cost < bestCost) {
+            bestCost = cost;
+            row = r;
+          }
+        }
+        if (row !== -1) {
+          const blocking = captions[row].filter((caption) => caption.hi > dotLo && caption.lo < dotHi);
+          for (const caption of blocking) captionOf.set(caption.owner, null);
+          captions[row] = captions[row].filter((caption) => !blocking.includes(caption));
+          lines[row] = Math.max(1, ...captions[row].map((caption) => Math.max(1, caption.owner.labelLines)));
+        }
+      }
+      // 4. No room even for the dot.
+      if (row === -1) {
+        if (pinned.has(item.event.id)) {
+          // The open record goes through regardless; the packer's overflow is
+          // the backstop for the one case where that over-fills a row.
+          shown.push(item);
+        } else hidden.push(item);
+        continue;
+      }
+
+      if (row === lines.length) addRow();
+      markers[row].push([dotLo, dotHi]);
+      if (side === "right") captions[row].push({ lo: rightLo, hi: rightHi, owner: item });
+      if (side === "left") captions[row].push({ lo: leftLo, hi: leftHi, owner: item });
+      if (side) lines[row] = Math.max(lines[row], need);
+      rowOf.set(item, row);
+      captionOf.set(item, side);
+      shown.push(item);
+    }
+    return { shown, hidden, rowOf, captionOf };
+  };
+
+  // No height is held back for the cluster cards: holding it back left it
+  // unspent whenever a card found room on an existing row, and the card
+  // placement can already make room for itself (makeRoom).
+  const result = attempt(availableHeight);
+  result.shown.sort((a, b) => a.xFrom - b.xFrom);
+  return result;
+}
+
 export function layoutTimeline(
   events: TimelineEventWithClaims[],
   window: TimeWindow,
@@ -396,7 +598,9 @@ export function layoutTimeline(
   availableHeight: number,
   scale: TimeScale = "linear",
   /** What the browser reported for captions it has already drawn. See MeasuredLabels. */
-  measured?: MeasuredLabels
+  measured?: MeasuredLabels,
+  /** Records that must stay on the strip whatever the zoom — the one the reader has open. */
+  pinned: ReadonlySet<string> = NO_PINNED
 ): TimelineLayout {
   if (width <= 0) return { events: [], clusters: [], rows: 0, rowHeights: [], height: 0 };
 
@@ -486,19 +690,29 @@ export function layoutTimeline(
   const survivors: PlacedEvent[] = [];
   const yearsPerPixel = (window.to - window.from) / width;
 
+  // Semantic zoom first: the most important records that fit go on to be
+  // laid out; the rest are counted into clusters at the end.
+  const selection = selectByImportance(placed, maxRows, pinned, width, availableHeight);
+  const shown = selection.shown;
+  const selectedRow = selection.rowOf;
+  const selectedCaption = selection.captionOf;
+  // Left out by semantic zoom, plus (below) anything the height budget could
+  // not hold. Counted into clusters at the end.
+  const hidden = [...selection.hidden];
+
   let i = 0;
-  while (i < placed.length) {
+  while (i < shown.length) {
     let j = i + 1;
     // A run of events that all start within CLUSTER_PX of the first, and none
     // of which is wide enough to be worth drawing as a span of its own.
     while (
-      j < placed.length &&
-      placed[j].xFrom - placed[i].xFrom < CLUSTER_PX &&
-      placed[j].xTo - placed[j].xFrom < CLUSTER_PX
+      j < shown.length &&
+      shown[j].xFrom - shown[i].xFrom < CLUSTER_PX &&
+      shown[j].xTo - shown[j].xFrom < CLUSTER_PX
     ) {
       j++;
     }
-    const run = placed.slice(i, j);
+    const run = shown.slice(i, j);
     // A CROWD IS ONLY COLLAPSED WHEN THE ROWS CANNOT HOLD IT.
     //
     // Rows exist precisely to separate things that share an x, and this ran
@@ -517,7 +731,18 @@ export function layoutTimeline(
       const x = run.reduce((sum, item) => sum + item.xFrom, 0) / run.length;
       const from = window.from + (Math.min(...run.map((r) => r.xFrom)) - CLUSTER_PX) * yearsPerPixel;
       const to = window.from + (Math.max(...run.map((r) => r.xTo)) + CLUSTER_PX) * yearsPerPixel;
-      clusters.push({ key: run.map((r) => r.event.id).join(":").slice(0, 60), row: 0, top: 0, x, count: run.length, from, to });
+      clusters.push({
+        key: run.map((r) => r.event.id).join(":").slice(0, 60),
+        row: 0,
+        top: 0,
+        x,
+        count: run.length,
+        from,
+        to,
+        events: run.map((r) => r.event),
+        card: false,
+        cardLeft: 0,
+      });
     } else {
       survivors.push(...run);
     }
@@ -544,6 +769,25 @@ export function layoutTimeline(
 
   for (const item of survivors) {
     const start = item.xFrom - 6;
+
+    // THE ROW SEMANTIC ZOOM CHOSE, when it chose one. Its rows were handed out
+    // in order of importance, so the landmark got caption room before the
+    // records either side of it; first-fit from the left would give that room
+    // to whichever came first in time and leave the landmark a bare dot. Every
+    // row it chose is a valid placement against the same footprints used here.
+    const preset = selectedRow.get(item);
+    if (preset !== undefined) {
+      while (labelEnds.length <= preset) {
+        labelEnds.push(-Infinity);
+        markerEnds.push(-Infinity);
+      }
+      item.row = preset;
+      const reservedEnd = reserveEnd(item);
+      markerEnds[preset] = Math.max(markerEnds[preset], reservedEnd + ROW_GAP_PX);
+      labelEnds[preset] = Math.max(labelEnds[preset], reservedEnd + item.labelWidth + ROW_GAP_PX);
+      placedRows.push(item);
+      continue;
+    }
 
     let row = labelEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1 && labelEnds.length < maxRows) {
@@ -610,6 +854,20 @@ export function layoutTimeline(
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         const next = list[index + 1];
+
+        // Semantic zoom has already decided this one's caption, by importance
+        // (selectByImportance). Its answer already accounts for every dot and
+        // caption on the row, so it is applied as given.
+        if (selectedCaption.has(item)) {
+          const side = selectedCaption.get(item) ?? null;
+          item.showLabel = side !== null;
+          item.labelSide = side ?? "right";
+          occupiedUntil = Math.max(
+            occupiedUntil,
+            side === "right" ? item.xTo + LABEL_GAP_PX + item.labelWidth : item.xTo
+          );
+          continue;
+        }
 
         const rightEnd = item.xTo + LABEL_GAP_PX + item.labelWidth;
         const clearOfNext = !next || next.xFrom > rightEnd + ROW_GAP_PX;
@@ -761,6 +1019,13 @@ export function layoutTimeline(
       // A "+1" chip reads as a bug rather than as a crowd. One leftover event
       // goes back on the strip as a bare marker — it may sit under a neighbour's
       // label, which is a smaller cost than a badge that says nothing.
+      // Under semantic zoom a leftover is just one more record that did not
+      // make the cut: it is counted in the nearest cluster with the others,
+      // rather than dropped as a bare dot onto whatever caption is there.
+      if (items.length === 1 && selectedRow.size > 0) {
+        hidden.push(items[0]);
+        continue;
+      }
       if (items.length === 1) {
         items[0].row = lastRow;
         items[0].top = rowTops[lastRow] ?? 0;
@@ -778,6 +1043,96 @@ export function layoutTimeline(
         count: items.length,
         from: window.from + (x - bucketPx) * yearsPerPixel,
         to: window.from + (x + bucketPx) * yearsPerPixel,
+        events: items.map((item) => item.event),
+        card: false,
+        cardLeft: 0,
+      });
+    }
+  }
+
+  // THE RECORDS SEMANTIC ZOOM LEFT OUT, counted where the reader can find them.
+  // Each joins the nearest cluster within reach — its "+ N" and its list grow
+  // to include it — and those with no cluster nearby are grouped into new ones.
+  // A cluster's zoom-to window is widened to cover what joined it, so "Zoom in"
+  // always reaches every record it counts.
+  if (hidden.length > 0) {
+    const spanOf = (items: PlacedEvent[]) => {
+      const lo = Math.min(...items.map((item) => item.xFrom)) - CLUSTER_PX;
+      const hi = Math.max(...items.map((item) => item.xTo)) + CLUSTER_PX;
+      return {
+        from: positionAt(window, Math.max(0, lo) / width, scale),
+        to: positionAt(window, Math.min(width, hi) / width, scale),
+      };
+    };
+    const strays: PlacedEvent[] = [];
+    const joined = new Map<PlacedCluster, PlacedEvent[]>();
+    for (const item of hidden) {
+      let nearest: PlacedCluster | null = null;
+      for (const cluster of clusters) {
+        const distance = Math.abs(cluster.x - item.xFrom);
+        if (distance <= HIDDEN_MERGE_PX && (!nearest || distance < Math.abs(nearest.x - item.xFrom))) nearest = cluster;
+      }
+      if (nearest) {
+        const list = joined.get(nearest);
+        if (list) list.push(item);
+        else joined.set(nearest, [item]);
+      } else strays.push(item);
+    }
+    for (const [cluster, items] of joined) {
+      cluster.events.push(...items.map((item) => item.event));
+      cluster.count += items.length;
+      const span = spanOf(items);
+      cluster.from = Math.min(cluster.from, span.from);
+      cluster.to = Math.max(cluster.to, span.to);
+    }
+    const buckets = new Map<number, PlacedEvent[]>();
+    for (const item of strays) {
+      const bucket = Math.round(item.xFrom / HIDDEN_BUCKET_PX);
+      const list = buckets.get(bucket);
+      if (list) list.push(item);
+      else buckets.set(bucket, [item]);
+    }
+    // A group of one has nothing to summarise, and a lone "1" chip reads as a
+    // bug. Fold it into the nearest group or cluster within reach first.
+    for (const [bucket, items] of [...buckets]) {
+      if (items.length !== 1) continue;
+      const x = items[0].xFrom;
+      let nearestBucket: number | null = null;
+      for (const [other, otherItems] of buckets) {
+        if (other === bucket) continue;
+        const ox = otherItems.reduce((sum, item) => sum + item.xFrom, 0) / otherItems.length;
+        if (Math.abs(ox - x) <= HIDDEN_MERGE_PX && (nearestBucket === null || Math.abs(other - bucket) < Math.abs(nearestBucket - bucket)))
+          nearestBucket = other;
+      }
+      let nearestCluster: PlacedCluster | null = null;
+      for (const cluster of clusters) {
+        if (Math.abs(cluster.x - x) <= HIDDEN_MERGE_PX * 2 && (!nearestCluster || Math.abs(cluster.x - x) < Math.abs(nearestCluster.x - x)))
+          nearestCluster = cluster;
+      }
+      if (nearestBucket !== null) {
+        buckets.get(nearestBucket)!.push(items[0]);
+        buckets.delete(bucket);
+      } else if (nearestCluster) {
+        nearestCluster.events.push(items[0].event);
+        nearestCluster.count += 1;
+        const span = spanOf(items);
+        nearestCluster.from = Math.min(nearestCluster.from, span.from);
+        nearestCluster.to = Math.max(nearestCluster.to, span.to);
+        buckets.delete(bucket);
+      }
+    }
+    for (const [bucket, items] of buckets) {
+      const x = items.reduce((sum, item) => sum + item.xFrom, 0) / items.length;
+      clusters.push({
+        key: `hidden-${bucket}`,
+        row: 0,
+        top: 0,
+        x,
+        count: items.length,
+        ...spanOf(items),
+        events: items.map((item) => item.event),
+        card: false,
+        cardLeft: 0,
       });
     }
   }
@@ -802,10 +1157,131 @@ export function layoutTimeline(
   // the way across, no row is "free" and the fallback below has to choose one
   // anyway — and it has to choose a DIFFERENT one each time.
   const chipsOnRow: number[] = new Array(Math.max(1, finalLines.length)).fill(0);
+
+  // WHAT EACH ROW ACTUALLY HAS ON IT, as stretches of pixels, for the cards.
+  // The chip rule above only asks how far a row reaches, which is right for a
+  // 60px chip and far too strict for a 200px card: any later record anywhere on
+  // a row rules it out, and on a real strip that is every row. A card asks
+  // instead whether ITS stretch of a row is empty. Captions can hang to either
+  // side of their marker, so each one is counted on both sides — generous, and
+  // a card that misses a gap it could have used costs less than one drawn over
+  // a caption.
+  const occupied: [number, number][][] = finalLines.map(() => []);
+  for (const item of placedRows) {
+    const pad = item.showLabel ? item.labelWidth + LABEL_GAP_PX : 6;
+    occupied[item.row]?.push([item.xFrom - pad, reserveEnd(item) + pad]);
+  }
+  const stretchIsFree = (row: number, from: number, to: number) =>
+    (occupied[row] ?? []).every(([lo, hi]) => hi <= from || lo >= to);
+  // The chips and cards already placed, per row, kept apart from the records
+  // so making room (below) never evicts one cluster to fit another.
+  const clusterOccupied: [number, number][][] = finalLines.map(() => []);
+  const footprintOf = (item: PlacedEvent): [number, number] => {
+    const pad = item.showLabel ? item.labelWidth + LABEL_GAP_PX : 6;
+    return [item.xFrom - pad, reserveEnd(item) + pad];
+  };
+
+  // MAKING ROOM FOR A CHIP THAT HAS NOWHERE TO GO.
+  //
+  // Wrapped captions spend the height, so on a crowded strip there can be no
+  // free stretch and no spare row for the chip that counts what semantic zoom
+  // left out — and the old fallback drew it straight over a caption. Instead,
+  // the least important records under the chip's spot on one row join the
+  // cluster (they are counted in its "+ N" and listed, so nothing is lost) and
+  // the chip takes their place. The open record is never moved.
+  const makeRoom = (cluster: PlacedCluster, from: number, to: number, ownCrowdOnly = false): number => {
+    const overlaps = ([lo, hi]: [number, number]) => hi > from && lo < to;
+    // A card is wide; it may only move records from its own crowd, never the
+    // neighbours that happen to sit within its 200 pixels.
+    const nearCluster = (item: PlacedEvent) => Math.abs(item.xFrom - cluster.x) <= HIDDEN_MERGE_PX / 2;
+    let bestRow = -1;
+    let bestCost = Infinity;
+    let bestVictims: PlacedEvent[] = [];
+    for (let r = 0; r < occupied.length; r++) {
+      if ((clusterOccupied[r] ?? []).some(overlaps)) continue;
+      const victims = placedRows.filter((item) => item.row === r && overlaps(footprintOf(item)));
+      // Never the open record, and never one staff marked landmark or notable:
+      // those are what semantic zoom exists to keep on screen.
+      if (victims.some((item) => pinned.has(item.event.id) || item.event.prominence === 1 || item.event.prominence === 2)) continue;
+      // A card trades at most one record of its own crowd for its place;
+      // anything more and the cards would eat the strip they are summarising.
+      if (ownCrowdOnly && (victims.length > 1 || !victims.every(nearCluster))) continue;
+      const cost = victims.reduce((sum, item) => sum + importanceOf(item.event), 0);
+      if (cost < bestCost) {
+        bestRow = r;
+        bestCost = cost;
+        bestVictims = victims;
+      }
+    }
+    if (bestRow === -1) return -1;
+    const evicted = new Set(bestVictims);
+    placedRows = placedRows.filter((item) => !evicted.has(item));
+    cluster.events.push(...bestVictims.map((item) => item.event));
+    cluster.count += bestVictims.length;
+    if (bestVictims.length > 0) {
+      const lo = Math.min(...bestVictims.map((item) => item.xFrom)) - CLUSTER_PX;
+      const hi = Math.max(...bestVictims.map((item) => item.xTo)) + CLUSTER_PX;
+      cluster.from = Math.min(cluster.from, positionAt(window, Math.max(0, lo) / width, scale));
+      cluster.to = Math.max(cluster.to, positionAt(window, Math.min(width, hi) / width, scale));
+    }
+    occupied[bestRow] = [...placedRows.filter((item) => item.row === bestRow).map(footprintOf), ...(clusterOccupied[bestRow] ?? [])];
+    return bestRow;
+  };
+
   for (const cluster of clusters) {
+    // A CARD WHERE THERE IS ROOM FOR ONE. The full card names a record and the
+    // span it covers, which a bare count cannot; but it is over three times as
+    // wide, and a card squeezed on top of somebody's caption is worse than a
+    // chip. So the card goes on a row whose stretch under it is empty — or on
+    // a new row, when the strip has the height spare — and everything else
+    // falls through to the chip exactly as before.
+    const cardLeft = Math.max(0, Math.min(cluster.x - 14, width - CLUSTER_CARD_PX));
+    const cardFrom = cardLeft - 4;
+    const cardTo = cardLeft + CLUSTER_CARD_PX + 4;
+    let cardRow = width >= CLUSTER_CARD_PX ? occupied.findIndex((_, row) => stretchIsFree(row, cardFrom, cardTo)) : -1;
+    if (cardRow === -1 && width >= CLUSTER_CARD_PX && used + rowHeightFor(1) <= availableHeight) {
+      cardRow = finalLines.length;
+      finalLines.push(1);
+      rowTops.push(used);
+      used += rowHeightFor(1);
+      occupied.push([]);
+      clusterOccupied.push([]);
+      clusterRowEnds.push(-Infinity);
+      chipsOnRow.push(0);
+    }
+    // Still nowhere: a card may take the place of records from its own crowd,
+    // which it then counts — the same trade a chip makes, kept local.
+    if (cardRow === -1 && width >= CLUSTER_CARD_PX) cardRow = makeRoom(cluster, cardFrom, cardTo, true);
+    if (cardRow !== -1) {
+      chipsOnRow[cardRow] = (chipsOnRow[cardRow] ?? 0) + 1;
+      clusterRowEnds[cardRow] = Math.max(clusterRowEnds[cardRow], cardTo);
+      occupied[cardRow].push([cardFrom, cardTo]);
+      (clusterOccupied[cardRow] ??= []).push([cardFrom, cardTo]);
+      cluster.row = cardRow;
+      cluster.top = rowTops[cardRow] ?? 0;
+      cluster.card = true;
+      cluster.cardLeft = cardLeft;
+      continue;
+    }
+
     const start = cluster.x - 14;
-    const end = cluster.x + 46;
-    let row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
+    const end = start + CLUSTER_CHIP_PX;
+    // A row whose stretch under the chip is empty — the spot semantic zoom held
+    // for it, usually — then a fresh row if the height allows, and only then
+    // the old reach-based rule and its least-crowded fallback.
+    let row = occupied.findIndex((_, r) => stretchIsFree(r, start, end));
+    if (row === -1 && used + rowHeightFor(1) <= availableHeight) {
+      row = finalLines.length;
+      finalLines.push(1);
+      rowTops.push(used);
+      used += rowHeightFor(1);
+      occupied.push([]);
+      clusterOccupied.push([]);
+      clusterRowEnds.push(-Infinity);
+      chipsOnRow.push(0);
+    }
+    if (row === -1) row = makeRoom(cluster, start, end);
+    if (row === -1) row = clusterRowEnds.findIndex((rowEnd) => rowEnd <= start);
     if (row === -1) {
       // NOWHERE IS FREE, SO TAKE THE LEAST CROWDED ROW RATHER THAN THE LAST.
       //
@@ -834,6 +1310,8 @@ export function layoutTimeline(
     }
     chipsOnRow[row] = (chipsOnRow[row] ?? 0) + 1;
     clusterRowEnds[row] = Math.max(clusterRowEnds[row], end);
+    occupied[row]?.push([start, end]);
+    (clusterOccupied[row] ??= []).push([start, end]);
     cluster.row = row;
     cluster.top = rowTops[row] ?? 0;
   }

@@ -27,7 +27,8 @@ import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
 import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
-import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
+import { deleteTimelineEvent, reviewTimelineEvent, setEventProminence } from "./actions";
+import { PROMINENCE_LABELS, type Prominence } from "@/lib/timeline/prominence";
 import {
   eventTypeHint,
   eventTypeLabel,
@@ -175,6 +176,22 @@ export function EventDetail({
       const result = await reviewTimelineEvent(event.id, communitySlug, decision);
       if (result && "error" in result) setError(result.error);
       else router.refresh();
+    });
+  }
+
+  // Held locally so the control answers at once; the strip picks the new
+  // value up the next time its window loads.
+  const [prominence, setProminence] = useState<Prominence | null>(event.prominence ?? null);
+  function changeProminence(next: Prominence | null) {
+    setError(null);
+    const previous = prominence;
+    setProminence(next);
+    startTransition(async () => {
+      const result = await setEventProminence(event.id, communitySlug, next);
+      if (result && "error" in result) {
+        setProminence(previous);
+        setError(result.error);
+      } else router.refresh();
     });
   }
 
@@ -664,6 +681,33 @@ export function EventDetail({
               <Trash2 className="h-4 w-4" /> Delete event
             </Button>
           )}
+        </div>
+      )}
+
+      {/* WHAT SHOWS WHEN ZOOMED OUT. Semantic zoom shows the most important
+          records that fit; "Automatic" scores this one from its pictures,
+          dates and sources, and the three levels override that. Staff only:
+          it decides what every reader sees first. */}
+      {isStaff && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">When zoomed out, treat as</span>
+          <div className="flex items-center gap-0.5 rounded-full bg-muted p-0.5" role="group" aria-label="Prominence when zoomed out">
+            {([null, 1, 2, 3] as const).map((level) => (
+              <button
+                key={String(level)}
+                type="button"
+                onClick={() => changeProminence(level)}
+                disabled={pending}
+                aria-pressed={prominence === level}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  prominence === level ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {level === null ? "Automatic" : PROMINENCE_LABELS[level]}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

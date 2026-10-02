@@ -675,6 +675,14 @@ subdomain; custom domains keep their own host-scoped sign-in. The
 canonical redirect is skipped in dev and on bare `*.vercel.app`
 deployments, where wildcard subdomains don't resolve.
 
+**Welcome page.** On a community's own host, a signed-out visitor
+opening `/` gets the community's welcome page (`src/app/welcome/`) — cover,
+description, public spaces, upcoming public events and join / log-in
+buttons — rendered without the community shell. The proxy picks it when
+the request carries no Supabase session cookie; `/?view=feed` (the page's
+"Take a look around" link) shows the guest feed instead, and anyone signed
+in gets the feed as before.
+
 ## Custom domains
 
 Run `supabase/custom-domains.sql` too, and make sure
@@ -692,6 +700,13 @@ registrar:
    to Cloudflare) and marks the domain verified on a match.
 2. an A record pointing the domain at Vercel (`76.76.21.21`), or a
    CNAME to `cname.vercel-dns.com` for a `www` subdomain.
+3. a CNAME at `www` to `cname.vercel-dns.com`, so the `www` form works
+   too. `src/proxy.ts` serves the community on `www.<domain>` (or the
+   bare domain, when the owner verified the `www` form) as well, and
+   verification registers that counterpart on the Vercel project as a
+   redirect to the verified host. The proxy never redirects between the
+   two itself: if the Vercel project redirects the other way (its default
+   is apex to `www`), the two redirects would loop.
 
 **Platform operator flow.** With `VERCEL_TOKEN` + `VERCEL_PROJECT_ID`
 set (see `.env.local.example`), there is nothing to do per domain:

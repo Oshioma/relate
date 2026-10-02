@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, SpaceLesson } from "@/types/database";
-import { toLessonRow, type LessonRow } from "@/lib/school/lesson-types";
+import { sortLevels, toLessonRow, type LessonRow } from "@/lib/school/lesson-types";
 
 type Client = SupabaseClient<Database>;
 
@@ -44,6 +44,26 @@ export async function getLesson(supabase: Client, lessonId: string): Promise<Les
 
   if (error) throw error;
   return data ? toLessonRow(data as unknown as SpaceLesson) : null;
+}
+
+// Every level written from the same source, youngest first. RLS leaves out any
+// the viewer may not see, so a private level simply isn't on their page.
+export async function getLessonFamily(
+  supabase: Client,
+  lesson: LessonRow
+): Promise<LessonRow[]> {
+  const { data, error } = await supabase
+    .from("space_lessons")
+    .select("*, creator:created_by (full_name, username, avatar_url)")
+    .eq("family_id", lesson.family_id)
+    .eq("space_id", lesson.space_id);
+
+  if (error) throw error;
+  const levels = ((data ?? []) as unknown as SpaceLesson[]).map(toLessonRow);
+  // The lesson the page was opened on is always there, even if the family read
+  // somehow came back without it.
+  if (!levels.some((level) => level.id === lesson.id)) levels.push(lesson);
+  return sortLevels(levels);
 }
 
 // How many lessons this space holds, for the space list and nav counts.

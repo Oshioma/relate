@@ -8,6 +8,8 @@ import { buildDiscoveredEventRows, type DiscoveredEventWithImage } from "@/lib/d
 import { discoverEventsWithAI, type DiscoveredEvent } from "@/lib/ai/discover-events";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Community, Database } from "@/types/database";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
+import { meteredFor } from "@/lib/usage/ai-meter";
 
 const DISCOVERY_ERRORS: Record<string, string> = {
   unconfigured: "AI discovery isn't configured — set a valid ANTHROPIC_API_KEY, then try again.",
@@ -151,7 +153,12 @@ export async function discoverAndAddEvents(
   const existingTitles = (upcoming ?? []).map((e) => e.title);
   const locationName = community.location_name || community.name;
 
-  const result = await discoverEventsWithAI({ locationName, existingTitles });
+  const allowance = await checkAiAllowance(community.id, user.id);
+  if (!allowance.allowed) return { error: allowance.message };
+
+  const result = await meteredFor({ communityId: community.id, userId: user.id }, () =>
+    discoverEventsWithAI({ locationName, existingTitles })
+  );
   if (result.status !== "ok") {
     // This panel is staff-only, so include the raw diagnostic — it saves a
     // round-trip through the hosting provider's logs.

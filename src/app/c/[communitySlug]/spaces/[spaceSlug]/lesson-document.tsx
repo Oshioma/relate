@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/ui/safe-image";
 import {
   ageBandLabel,
   ageBandTint,
   lessonThumbnail,
   normaliseSubject,
+  researchLinks,
   SUBJECT_ICONS,
   type LessonImage,
   type StoredLesson,
 } from "@/lib/school/lesson-types";
+import { WatchFromButton } from "./lesson-video";
 
 // Renders one written lesson. Shared by the lesson page and the composer's
 // live preview, so a teacher sees exactly what they are about to save.
@@ -50,19 +54,8 @@ export function LessonThumbnail({
 }) {
   const image = lessonThumbnail(lesson);
 
-  if (image) {
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={image.thumbUrl}
-        alt=""
-        loading="lazy"
-        className={cn("bg-muted object-cover", className)}
-      />
-    );
-  }
-
-  return (
+  // The subject's icon, which also stands in for a picture that won't load.
+  const icon = (
     <div
       aria-hidden
       className={cn(
@@ -74,19 +67,34 @@ export function LessonThumbnail({
       {SUBJECT_ICONS[normaliseSubject(subject)]}
     </div>
   );
+
+  if (!image) return icon;
+
+  return (
+    <SafeImage
+      srcs={[image.thumbUrl, image.url]}
+      alt=""
+      className={cn("bg-muted object-cover", className)}
+      fallback={icon}
+    />
+  );
 }
 
 function LessonFigure({ image, onRemove }: { image: LessonImage; onRemove?: () => void }) {
+  // A picture that won't load takes its caption and frame with it: a credit
+  // under an empty box is worse than no picture at all.
+  const [gone, setGone] = useState(false);
+  if (gone) return null;
+
   return (
     <figure className="mt-2 mb-1 overflow-hidden rounded-lg border border-border bg-muted">
       {/* Plain img: these come from many public catalogues, so there is no
           fixed host list to configure in next.config. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={image.url}
+      <SafeImage
+        srcs={[image.url, image.thumbUrl]}
         alt={image.title}
-        loading="lazy"
         className="max-h-[320px] w-full bg-muted object-cover"
+        onAllFailed={() => setGone(true)}
       />
       <figcaption className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-[11px] text-muted-foreground">
         <span className="min-w-0 truncate">
@@ -112,6 +120,65 @@ function LessonFigure({ image, onRemove }: { image: LessonImage; onRemove?: () =
         )}
       </figcaption>
     </figure>
+  );
+}
+
+// What a section brought in from outside its source, each with a picture and
+// places to research it. This replaces labelling those facts in the prose: the
+// text reads cleanly, and the box says plainly that this part was not in the
+// material — and where to go and check it.
+function LookIntoIt({ items }: { items: NonNullable<StoredLesson["sections"][number]["look_into"]> }) {
+  return (
+    <aside className="mt-3 rounded-lg border border-dashed border-border bg-muted/50 p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        Not from the source — look into it
+      </p>
+      <ul className="mt-2 grid gap-3">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-3">
+            <SafeImage
+              srcs={[item.image?.thumbUrl, item.image?.url]}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-md bg-muted object-cover"
+              fallback={<span aria-hidden className="h-14 w-14 shrink-0 rounded-md bg-muted" />}
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">{item.topic}</p>
+              {(item.archive_items?.length ?? 0) > 0 && (
+                <ul className="mt-1 grid gap-0.5 text-xs">
+                  {item.archive_items?.map((found) => (
+                    <li key={found.url}>
+                      <a
+                        href={found.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-foreground underline underline-offset-2 hover:text-accent"
+                      >
+                        {found.title}
+                      </a>
+                      <span className="text-muted-foreground"> · {found.kind}, Internet Archive</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                {researchLinks(item.search || item.topic).map((link) => (
+                  <a
+                    key={link.key}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent underline-offset-2 hover:underline"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }
 
@@ -185,10 +252,12 @@ export function LessonDocument({
       {lesson.sections?.map((section, i) => (
         <section key={i}>
           <h3 className="mb-2 text-base font-semibold tracking-tight text-foreground">{section.heading}</h3>
+          <WatchFromButton seconds={section.video_seconds} />
           {section.image && (
             <LessonFigure image={section.image} onRemove={onRemoveImage ? () => onRemoveImage(i) : undefined} />
           )}
           <Prose text={section.body} />
+          {(section.look_into?.length ?? 0) > 0 && <LookIntoIt items={section.look_into ?? []} />}
         </section>
       ))}
 
@@ -232,6 +301,24 @@ export function LessonDocument({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {/* Claims from official bodies that the source quoted and the lesson
+          left out. Closed by default: out of the lesson, but one click away
+          for anyone who wants to see what was omitted. */}
+      {(lesson.omitted_institutional?.length ?? 0) > 0 && (
+        <section className="grid gap-2 border-t border-border pt-4">
+          {lesson.omitted_institutional?.map((entry, i) => (
+            <details key={i} className="group rounded-md bg-muted px-3 py-2">
+              <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
+                Data from {entry.body} omitted — click to view
+              </summary>
+              <div className="mt-2">
+                <Prose text={entry.content} />
+              </div>
+            </details>
+          ))}
         </section>
       )}
     </div>

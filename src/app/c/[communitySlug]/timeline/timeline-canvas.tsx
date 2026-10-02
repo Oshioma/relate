@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { cn } from "@/lib/utils";
 import type { TimelineEventWithClaims } from "@/lib/data/timeline";
 import {
+  CLUSTER_CARD_PX,
   LABEL_LINE_PX,
   layoutTimeline,
   MAX_LABEL_LINES,
@@ -19,8 +20,10 @@ import {
   scaleBandFor,
   SCALE_BAND_LABELS,
   clampWindow,
+  eventDateLabel,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { clusterSpanLabel, leadPicture, rankClusterEvents } from "@/lib/timeline/cluster-lead";
 import { timelineCategory, timelineCategoryLabel, periodTypeLabel } from "@/lib/timeline/taxonomy";
 import { periodBands, periodExtent, type PeriodWithClaims } from "@/lib/timeline/periods";
 import { useTimeNavigation } from "./use-time-navigation";
@@ -50,6 +53,8 @@ const LABEL_GAP = 6;
 /** The caption's own top and bottom padding (py-[3px]), plus a pixel of rounding slack. */
 const CAPTION_PAD_PX = 8;
 
+const NO_SEEN: ReadonlySet<string> = new Set();
+
 export function TimelineCanvas({
   events,
   periods = [],
@@ -60,10 +65,12 @@ export function TimelineCanvas({
   selectedId,
   selectedPeriodId = null,
   onSelect,
+  onShowOnly,
   onSelectPeriod,
   className,
   loading = false,
   truncated = false,
+  seenIds = NO_SEEN,
 }: {
   events: TimelineEventWithClaims[];
   /** Context bands. Empty is the normal case for a community that has none. */
@@ -76,11 +83,15 @@ export function TimelineCanvas({
   selectedId: string | null;
   selectedPeriodId?: string | null;
   onSelect: (event: TimelineEventWithClaims) => void;
+  /** "See all" on a cluster's list: show only these records, fitted to their dates. */
+  onShowOnly?: (events: TimelineEventWithClaims[], window: TimeWindow) => void;
   onSelectPeriod?: (period: PeriodWithClaims) => void;
   /** Height comes from a class rather than a number, so one canvas can be short on a phone and tall on a desktop. */
   className?: string;
   loading?: boolean;
   truncated?: boolean;
+  /** Records this reader has opened before, so a cluster card can lead with one they haven't. */
+  seenIds?: ReadonlySet<string>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -97,6 +108,37 @@ export function TimelineCanvas({
   // strip worse rather than better.
   const [preview, setPreview] = useState<{ id: string; x: number; y: number } | null>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(() => new Set());
+  const markImageFailed = useCallback((url: string) => {
+    setFailedImages((known) => {
+      if (known.has(url)) return known;
+      const next = new Set(known);
+      next.add(url);
+      return next;
+    });
+  }, []);
+
+  // THE "+ N" LIST. Which cluster's list is open, by key. A key that is no
+  // longer on the strip (the reader zoomed and the crowd separated) simply
+  // finds no cluster and draws nothing, so it needs no clearing.
+  const [openCluster, setOpenCluster] = useState<string | null>(null);
+  const clusterListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!openCluster) return;
+    const close = (event: Event) => {
+      if (event instanceof KeyboardEvent && event.key !== "Escape") return;
+      // A press inside the list, or on the "+ N" that toggles it, is not "outside".
+      const target = event.target as Element | null;
+      if (event.type === "pointerdown" && (clusterListRef.current?.contains(target) || target?.closest?.("[data-cluster-toggle]")))
+        return;
+      setOpenCluster(null);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [openCluster]);
   const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showPreview = (id: string, x: number, y: number) => {
     if (previewTimer.current) clearTimeout(previewTimer.current);
@@ -171,9 +213,12 @@ export function TimelineCanvas({
   // number actually changed.
   const [measured, setMeasured] = useState<MeasuredLabels>(() => new Map());
 
+  // The open record is pinned: semantic zoom never hides what the reader is
+  // looking at, however far out they zoom.
+  const pinned = useMemo(() => new Set(selectedId ? [selectedId] : []), [selectedId]);
   const layout = useMemo(
-    () => layoutTimeline(events, view, width, areaHeight, scale, measured),
-    [events, view, width, areaHeight, scale, measured]
+    () => layoutTimeline(events, view, width, areaHeight, scale, measured, pinned),
+    [events, view, width, areaHeight, scale, measured, pinned]
   );
 
   const measureCaption = useCallback((element: HTMLButtonElement | null) => {
@@ -235,7 +280,7 @@ export function TimelineCanvas({
       <div
         ref={containerRef}
         role="application"
-        aria-label="Timeline. Drag to move through time, pinch or scroll to zoom."
+        aria-label="Timeline. Drag, swipe sideways or Shift-scroll to move through time, pinch or Ctrl-scroll to zoom."
         tabIndex={0}
         onPointerDown={(event) => {
           hidePreview();
@@ -260,12 +305,12 @@ export function TimelineCanvas({
         // page scroll and never reaches here; a mostly-horizontal one comes
         // here and the page stays still. Either or, never both.
         //
-        // THE COST, ACCEPTED DELIBERATELY: two-finger pinch-to-zoom no longer
-        // works on this surface, because pan-y reserves only vertical panning
-        // for the browser and hands nothing else back. Zoom is still on the
-        // + and − buttons and on double-tap. Scrolling the page by swiping
-        // over the timeline is the thing people do constantly; pinching it is
-        // not, and "touch-none" made the commonest gesture do nothing at all.
+        // Two-finger pinch is NOT left to touch-action, which cannot express
+        // "vertical for the page, pinch for us". It is handled on touch
+        // events in use-time-navigation.ts, which preventDefault a
+        // two-finger move so the browser neither scrolls nor zooms the page
+        // under it. ("touch-none" would have bought pinch by making the
+        // commonest gesture, scrolling past the strip, do nothing at all.)
           "relative w-full touch-pan-y select-none overflow-hidden rounded-xl border border-border bg-card",
           "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           className
@@ -631,21 +676,105 @@ export function TimelineCanvas({
           );
         })}
 
-        {/* A crowd, honestly drawn. Tapping one zooms into its own span, which
-            is the only way to see 900 events inside a single pixel. */}
-        {layout.clusters.map((cluster) => (
-          <button
-            key={cluster.key}
-            type="button"
-            onClick={() => onWindowChange(clampWindow({ from: cluster.from, to: cluster.to }))}
-            className="absolute flex h-[22px] items-center gap-1 rounded-full bg-muted px-2 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:bg-accent-soft"
-            style={{ top: eventsTop + cluster.top + 2, left: Math.max(0, cluster.x - 12) }}
-            title={`${cluster.count} events here — zoom in`}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            {cluster.count}
-          </button>
-        ))}
+        {/* A CROWD, HONESTLY DRAWN.
+            Where its row has room, a card: one record by name — one this reader
+            has not opened yet if there is one, else one with a picture (see
+            cluster-lead.ts) — the span the crowd covers, and "+ N" for the
+            rest. Where there is no room, the small count chip it always was.
+            Either way "+ N" opens the list, which also offers to zoom in. */}
+        {layout.clusters.map((cluster) => {
+          const top = eventsTop + cluster.top + 2;
+          const listOpen = openCluster === cluster.key;
+          if (!cluster.card) {
+            return (
+              <button
+                key={cluster.key}
+                type="button"
+                data-cluster-toggle
+                aria-expanded={listOpen}
+                onClick={() => {
+                  if (nav.wasDragged()) return;
+                  setOpenCluster(listOpen ? null : cluster.key);
+                }}
+                className="absolute flex h-[22px] items-center gap-1 rounded-full bg-muted px-2 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:bg-accent-soft"
+                style={{ top, left: Math.max(0, cluster.x - 12) }}
+                title={`${cluster.count} records here — show them`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+                {cluster.count}
+              </button>
+            );
+          }
+
+          const lead = rankClusterEvents(cluster.events, seenIds, failedImages)[0];
+          const candidate = leadPicture(lead);
+          const picture = candidate && !failedImages.has(candidate) ? candidate : null;
+          const span = clusterSpanLabel(cluster.events);
+          const category = timelineCategory(lead.category);
+          return (
+            <div
+              key={cluster.key}
+              className={cn(
+                "absolute flex h-[30px] items-center gap-1 rounded-lg border bg-card pr-1 shadow-sm",
+                listOpen ? "border-accent" : "border-border"
+              )}
+              style={{ top: top - 4, left: cluster.cardLeft, width: CLUSTER_CARD_PX }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (nav.wasDragged()) return;
+                  onSelect(lead);
+                }}
+                className="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-l-lg pl-1 text-left hover:bg-muted/60"
+                title={lead.title}
+              >
+                {/* RESERVED SIZE, so a picture arriving never moves the card. */}
+                <span className={cn("flex h-[22px] w-[22px] shrink-0 items-center justify-center overflow-hidden rounded", !picture && category.chipClass)}>
+                  {picture ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={picture}
+                      alt=""
+                      width={22}
+                      height={22}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                      onError={() => markImageFailed(picture)}
+                    />
+                  ) : (
+                    <span className={cn("h-2 w-2 rounded-full", category.dotClass)} aria-hidden />
+                  )}
+                </span>
+                <span className="min-w-0 leading-tight">
+                  <span className="block truncate text-[12px] font-semibold text-foreground">{lead.title}</span>
+                  {span && <span className="block truncate text-[10px] text-muted-foreground tabular-nums">{span}</span>}
+                </span>
+              </button>
+              {/* A lone record semantic zoom had no room for is just its card:
+                  there is no "rest" to list, and "+0" would read as a bug. */}
+              {cluster.count > 1 && (
+                <button
+                  type="button"
+                  data-cluster-toggle
+                  aria-expanded={listOpen}
+                  aria-label={`${cluster.count - 1} more records here — show them`}
+                  onClick={() => {
+                    if (nav.wasDragged()) return;
+                    setOpenCluster(listOpen ? null : cluster.key);
+                  }}
+                  className={cn(
+                    "shrink-0 rounded-md px-1.5 py-1 text-[11px] font-semibold tabular-nums transition-colors",
+                    listOpen ? "bg-accent-soft text-foreground" : "bg-muted text-foreground hover:bg-accent-soft"
+                  )}
+                >
+                  +{cluster.count - 1}
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {/* THE PREVIEW CARD.
             Drawn last so it is over everything, and pointer-events-none so it
@@ -732,6 +861,108 @@ export function TimelineCanvas({
           </span>
         </div>
       </div>
+
+      {/* THE LIST BEHIND "+ N". Outside the strip's clipping box so it can hang
+          below the strip instead of being cut off, and outside its pan
+          handlers so scrolling the list or pressing a row never drags time. */}
+      {(() => {
+        const cluster = openCluster ? layout.clusters.find((item) => item.key === openCluster) : null;
+        if (!cluster) return null;
+        const ranked = rankClusterEvents(cluster.events, seenIds, failedImages);
+        const span = clusterSpanLabel(cluster.events);
+        const anchorLeft = cluster.card ? cluster.cardLeft : cluster.x - 12;
+        return (
+          <div
+            ref={clusterListRef}
+            role="dialog"
+            aria-label={`${cluster.count} records${span ? `, ${span}` : ""}`}
+            className="absolute z-30 w-[300px] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+            style={{
+              left: Math.max(8, Math.min(width - 308, anchorLeft)),
+              top: eventsTop + cluster.top + 32,
+            }}
+          >
+            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">{cluster.count} records</p>
+                {span && <p className="text-xs text-muted-foreground tabular-nums">{span}</p>}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onWindowChange(clampWindow({ from: cluster.from, to: cluster.to }));
+                  setOpenCluster(null);
+                }}
+                className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent-soft"
+              >
+                Zoom in
+              </button>
+              {/* SEE ALL: just these records, on the strip and in the list,
+                  with everything else cleared away until "Show everything". */}
+              {onShowOnly && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onShowOnly(cluster.events, clampWindow({ from: cluster.from, to: cluster.to }));
+                    setOpenCluster(null);
+                  }}
+                  className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                >
+                  See all
+                </button>
+              )}
+            </div>
+            <ul className="max-h-72 overflow-y-auto py-1">
+              {ranked.map((event) => {
+                const candidate = leadPicture(event);
+                const picture = candidate && !failedImages.has(candidate) ? candidate : null;
+                const category = timelineCategory(event.category);
+                const seen = seenIds.has(event.id);
+                return (
+                  <li key={event.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(event);
+                        setOpenCluster(null);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-muted/60",
+                        event.id === selectedId && "bg-accent-soft"
+                      )}
+                    >
+                      <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded", !picture && category.chipClass)}>
+                        {picture ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={picture}
+                            alt=""
+                            width={28}
+                            height={28}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                            onError={() => markImageFailed(picture)}
+                          />
+                        ) : (
+                          <span className={cn("h-2 w-2 rounded-full", category.dotClass)} aria-hidden />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1 leading-tight">
+                        <span className="block truncate text-[13px] font-medium text-foreground">{event.title}</span>
+                        <span className="block truncate text-[11px] text-muted-foreground tabular-nums">
+                          {eventDateLabel(event.claims) ?? "No date"}
+                        </span>
+                      </span>
+                      {seen && <span className="shrink-0 text-[10px] font-medium text-muted-foreground">Opened</span>}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })()}
 
       {truncated && (
         <p className="mt-2 text-xs text-muted-foreground">

@@ -3,6 +3,7 @@ import type { CropDetail } from "@/lib/data/crop-guides";
 import type { JournalStats } from "@/lib/data/crop-guides";
 import type { CropSection } from "@/types/database";
 import { calcMoonPhase, cropLunarGroup, GROUP_LABEL, GROUP_SOW_PHASE, GROUP_HARVEST_PHASE } from "@/lib/lunar";
+import { meterClaude } from "@/lib/usage/ai-meter";
 
 const MODEL = "claude-haiku-4-5";
 const MAX_QUESTION_LENGTH = 400;
@@ -108,6 +109,8 @@ export async function askCropAssistant(cropName: string, question: string, conte
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: `Crop: ${cropName}\nQuestion: ${q}\n\nCrop guide & community knowledge:\n${context}` }],
     });
+    // Charged to the community this runs for, when there is one (ai-meter.ts).
+    await meterClaude("crop_assistant", response);
 
     const textBlock = response.content.find((block) => block.type === "text");
     return textBlock ? textBlock.text.trim() : null;

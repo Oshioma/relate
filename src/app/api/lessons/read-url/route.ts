@@ -13,6 +13,8 @@ import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { readUrl } from "@/lib/ai/read-url";
 import { MAX_SOURCE_CHARS } from "@/lib/school/lesson-types";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
+import { meteredFor } from "@/lib/usage/ai-meter";
 
 export const maxDuration = 90;
 
@@ -53,7 +55,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: quota.message }, { status: 429, headers: NO_STORE });
   }
 
-  const result = await readUrl(url);
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+  if (!allowance.allowed) {
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+  }
+
+  const result = await meteredFor({ communityId: auth.space.community_id, userId: auth.userId }, () =>
+    readUrl(url)
+  );
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 422, headers: NO_STORE });
   }

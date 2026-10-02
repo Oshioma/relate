@@ -36,6 +36,8 @@ import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
+import { JumpToDate } from "./jump-to-date";
+import { interpolateWindow, jumpWindow } from "@/lib/timeline/jump-date";
 import { EventDetail } from "./event-detail";
 import { PeriodDetail } from "./period-detail";
 import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
@@ -44,6 +46,7 @@ import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
   loadTimelineWindow,
+  markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
   seedEarlySapiensDataset,
@@ -74,6 +77,7 @@ import {
   seedBrutusAlbionDataset,
   seedSetSutekhDataset,
   seedSacredTreesDataset,
+  seedOkomiloDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -104,6 +108,7 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
 
 // The timeline page.
 //
@@ -115,6 +120,10 @@ import {
 // already has enough to draw the next frame.
 
 const REFETCH_DEBOUNCE_MS = 260;
+/** How long a jump takes to fly from where the reader is to where they asked to be. */
+const FLIGHT_MS = 650;
+/** How long the view has to sit still before the address is rewritten to match it. */
+const URL_WRITE_DEBOUNCE_MS = 300;
 
 type Mode = "timeline" | "compare";
 
@@ -295,6 +304,7 @@ export function TimelineView({
   hasBrutusAlbion,
   hasSetSutekh,
   hasSacredTrees,
+  hasOkomilo,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -308,7 +318,8 @@ export function TimelineView({
   isStaff,
   userId,
   pendingCount,
-  focusSlug,
+  initialUrlState,
+  seenEventIds,
 }: {
   communitySlug: string;
   initialEvents: TimelineEventWithClaims[];
@@ -363,6 +374,7 @@ export function TimelineView({
   hasBrutusAlbion: boolean;
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
+  hasOkomilo: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -381,7 +393,10 @@ export function TimelineView({
   isStaff: boolean;
   userId: string | null;
   pendingCount: number;
-  focusSlug: string | null;
+  /** Scale, selection and filters read from the address (see url-state.ts). */
+  initialUrlState: Omit<TimelineUrlState, "window">;
+  /** Records this member has opened before. Empty when signed out. */
+  seenEventIds: string[];
 }) {
   const router = useRouter();
 
@@ -403,7 +418,8 @@ export function TimelineView({
   const [mode, setMode] = useState<Mode>("timeline");
   // Linear by default, always. A log axis is a distortion — a useful one, but a
   // reader who has not chosen it must never be shown it.
-  const [scale, setScale] = useState<TimeScale>("linear");
+  // (Unless the reader chose it and the address remembers they did.)
+  const [scale, setScale] = useState<TimeScale>(initialUrlState.scale);
   const [seeding, setSeeding] = useState(false);
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
@@ -452,17 +468,22 @@ export function TimelineView({
   >(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
+  // "SEE ALL" FROM A CLUSTER: the strip and the list show only these records
+  // until the reader asks for everything back. Kept as the records themselves,
+  // not a filter on the loaded window, so panning away never empties it.
+  const [showingOnly, setShowingOnly] = useState<TimelineEventWithClaims[] | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
-  const [category, setCategory] = useState("");
-  const [trackId, setTrackId] = useState("");
-  const [chronology, setChronology] = useState("");
-  const [sourceType, setSourceType] = useState("");
-  const [person, setPerson] = useState("");
-  const [civilisation, setCivilisation] = useState("");
-  const [disputedOnly, setDisputedOnly] = useState(false);
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [category, setCategory] = useState(initialUrlState.category);
+  const [trackId, setTrackId] = useState(initialUrlState.trackId);
+  const [chronology, setChronology] = useState(initialUrlState.chronology);
+  const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
+  const [person, setPerson] = useState(initialUrlState.person);
+  const [civilisation, setCivilisation] = useState(initialUrlState.civilisation);
+  const [disputedOnly, setDisputedOnly] = useState(initialUrlState.disputedOnly);
+  const [pendingOnly, setPendingOnly] = useState(initialUrlState.pendingOnly);
 
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<TimelineEventWithClaims[] | null>(null);
@@ -479,11 +500,11 @@ export function TimelineView({
   // went stale the moment the server sent a newer one — the same bug the event
   // panel had after a rename. The id is the thing the reader chose; the period
   // is looked up from the current props on every render, so it cannot be old.
-  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(initialUrlState.period);
   const periodDetailRef = useRef<HTMLDivElement>(null);
 
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
-    focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
+    initialUrlState.focus ? initialEvents.find((event) => event.slug === initialUrlState.focus) ?? null : null
   );
   const [compareTrackIds, setCompareTrackIds] = useState<string[]>(() => tracks.slice(0, 4).map((track) => track.id));
 
@@ -500,6 +521,56 @@ export function TimelineView({
     }),
     [category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly, isStaff]
   );
+
+  // --- The address follows the reader --------------------------------------
+  //
+  // Position, zoom, selection and filters are written into the URL as they
+  // change, so Back from a record's own page — or a reload, or a shared link —
+  // lands exactly here rather than on the default window.
+  //
+  // replaceState, not router.replace: the router would re-run this whole
+  // server page (every dataset check, the initial window query) once per pan.
+  // The native call updates the address and Next's router keeps in step with
+  // it without a round trip. Replace rather than push, because a history entry
+  // per drag would make Back step through every pixel the reader moved.
+  //
+  // Debounced so a drag writes once when it settles, not once per frame.
+  // Skipped until something actually changed, so an untouched timeline keeps
+  // the address it was opened with.
+  const selectedSlug = selected?.slug ?? null;
+  const urlState: TimelineUrlState = useMemo(
+    () => ({
+      window: view,
+      scale,
+      focus: selectedSlug,
+      period: selectedPeriodId,
+      category,
+      trackId,
+      chronology,
+      sourceType,
+      person,
+      civilisation,
+      disputedOnly,
+      pendingOnly,
+    }),
+    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly]
+  );
+  const openedWith = useRef<TimelineUrlState | null>(null);
+  useEffect(() => {
+    if (openedWith.current === null) {
+      openedWith.current = urlState;
+      return;
+    }
+    const handle = setTimeout(() => {
+      // Built against the live address so parameters this page does not own
+      // are carried along rather than dropped.
+      const next = timelineSearch(urlState, window.location.search);
+      if (next !== window.location.search) {
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${next}${window.location.hash}`);
+      }
+    }, URL_WRITE_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [urlState]);
 
   // --- Progressive loading --------------------------------------------------
   //
@@ -648,6 +719,32 @@ export function TimelineView({
     reveal(detailRef.current);
   }, [selectedId, reveal]);
 
+  // WHAT THIS MEMBER HAS OPENED. Seeded from the server and added to the moment
+  // a record is opened — from the strip, a cluster card, the list or a search —
+  // so the cluster it came from stops leading with it straight away rather than
+  // on the next visit. Written to the account in the background; a failure only
+  // costs which record leads a card. Signed-out readers keep no history.
+  //
+  // The local set is updated DURING RENDER, keyed on the selection changing —
+  // React's pattern for state that follows another value — so the card that
+  // was clicked re-ranks in the same frame, with no effect-driven second pass.
+  const [seenState, setSeenState] = useState<{ last: string | null; ids: ReadonlySet<string> }>(() => ({
+    last: null,
+    ids: new Set(seenEventIds),
+  }));
+  if (selectedId && userId && selectedId !== seenState.last) {
+    const ids = seenState.ids.has(selectedId) ? seenState.ids : new Set([...seenState.ids, selectedId]);
+    setSeenState({ last: selectedId, ids });
+  }
+  const seen = seenState.ids;
+  // The account copy, once per newly opened record.
+  const recorded = useRef(new Set(seenEventIds));
+  useEffect(() => {
+    if (!selectedId || !userId || recorded.current.has(selectedId)) return;
+    recorded.current.add(selectedId);
+    void markEventSeen(selectedId);
+  }, [selectedId, userId]);
+
   useEffect(() => {
     if (!selectedPeriodId) return;
     reveal(periodDetailRef.current);
@@ -692,6 +789,53 @@ export function TimelineView({
     }, 300);
     return () => clearTimeout(handle);
   }, [term, communitySlug, searching]);
+
+  // --- Flying to a date ------------------------------------------------------
+  //
+  // A jump TRAVELS rather than cuts, so the reader sees which way and how far
+  // they went — the difference between being moved and being teleported. The
+  // flight is interpolated by interpolateWindow (geometric zoom, log-distance
+  // travel), and any gesture during it wins: the moment the view is set by
+  // something other than the flight, the flight stops.
+  const flight = useRef<{ frame: number; last: TimeWindow } | null>(null);
+  const cancelFlight = useCallback(() => {
+    if (flight.current) cancelAnimationFrame(flight.current.frame);
+    flight.current = null;
+  }, []);
+  useEffect(() => {
+    if (flight.current && view !== flight.current.last) cancelFlight();
+  }, [view, cancelFlight]);
+  useEffect(() => cancelFlight, [cancelFlight]);
+
+  const flyTo = useCallback(
+    (target: TimeWindow) => {
+      cancelFlight();
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        setView(target);
+        return;
+      }
+      const start = view;
+      const startedAt = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startedAt) / FLIGHT_MS);
+        // Ease in and out, so the strip neither lurches off nor slams to a stop.
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const next = t >= 1 ? target : interpolateWindow(start, target, eased);
+        flight.current = t >= 1 ? null : { frame: requestAnimationFrame(step), last: next };
+        setView(next);
+      };
+      flight.current = { frame: requestAnimationFrame(step), last: start };
+    },
+    [view, cancelFlight]
+  );
+
+  const jumpTo = useCallback(
+    (position: number) => {
+      flyTo(jumpWindow(view, position, scale));
+    },
+    [flyTo, view, scale]
+  );
 
   const goTo = useCallback((event: TimelineEventWithClaims) => {
     // Jump to the first claim that is actually somewhere. An event whose only
@@ -809,7 +953,14 @@ export function TimelineView({
 
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
-  const displayed = activeResults ?? visible;
+  // A pinned set reads its records' latest copies where the window has them,
+  // so an edit made while it is showing is shown too.
+  const pinned = useMemo(() => {
+    if (!showingOnly) return null;
+    const latest = new Map(events.map((event) => [event.id, event]));
+    return showingOnly.map((event) => latest.get(event.id) ?? event);
+  }, [showingOnly, events]);
+  const displayed = activeResults ?? pinned ?? visible;
   const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
     (disputedOnly ? 1 : 0) + (pendingOnly ? 1 : 0);
 
@@ -1203,15 +1354,16 @@ export function TimelineView({
         ))}
       </div>
 
-      {/* ---- How much time is on screen ------------------------------------
-          Above the strip in both windowed modes, and absent from "whole",
-          where the answer is "all of it" and a measurement of the view would
-          be measuring nothing. */}
-      <SpanRuler window={view} scale={scale} />
+      {/* ---- When the middle of the view is, and a picture of it ----------
+          Above the strip: the middle date, large, with one picture from the
+          record nearest it among those shown. Clicking the picture opens it. */}
+      <SpanRuler window={view} scale={scale} events={displayed} onOpen={setSelected} />
 
-      {/* Where everything is, and where you are in it. Above the strip, under
+      {/* ---- The scrollbar -------------------------------------------------
+          Where everything is, and where you are in it. Above the strip, under
           the measurement, so the three read as one instrument: how wide, what
-          is out there, and then the detail. */}
+          is out there, and then the detail. Grab the thumb to travel, pull its
+          ends to zoom; it moves with every pan and zoom of the strip below. */}
       <TimelineOverview
         markers={markers}
         window={view}
@@ -1222,6 +1374,10 @@ export function TimelineView({
         className="mt-3"
       />
 
+      {/* "See all" from a cluster: say so, and how to undo it. */}
+      {pinned && (
+        <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} />
+      )}
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1241,6 +1397,14 @@ export function TimelineView({
           onSelectPeriod={(period) => setSelectedPeriodId((current) => (current === period.id ? null : period.id))}
           loading={loading}
           truncated={truncated}
+          seenIds={seen}
+          onShowOnly={(records, window) => {
+            setShowingOnly(records);
+            setView(window);
+            setShowList(true);
+            // After the list has rendered with them in it.
+            requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
@@ -1306,6 +1470,9 @@ export function TimelineView({
             </button>
           ))}
         </div>
+
+        {/* Straight to a moment: "10,500 BCE", "500 AD", "65 million years ago". */}
+        <JumpToDate communitySlug={communitySlug} onJump={jumpTo} />
 
         <button
           type="button"
@@ -1407,10 +1574,11 @@ export function TimelineView({
           Also one list, not two. Always on a phone, where it is the primary way
           in; on a desktop only when asked for, because there the strip is doing
           that job. */}
-      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
+      <div ref={listRef} className={cn("mt-4 scroll-mt-4", showList ? "block" : "block sm:hidden")}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
           In order
         </h2>
+        {pinned && <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} className="mb-2" />}
         <TimelineList
           events={displayed}
           onSelect={setSelected}
@@ -1933,6 +2101,25 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+
+      {isStaff && !hasOkomilo && (
+        <DatasetOffer
+          title="Add the Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)?"
+          busyLabel="Adding the records…"
+          label="Add the family and community history"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedOkomiloDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
 
       {isStaff && !hasSacredTrees && (
         <DatasetOffer
@@ -2784,6 +2971,33 @@ export function TimelineView({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * The bar shown while "See all" has narrowed the timeline to one cluster's
+ * records: how many, and the one button that brings everything back.
+ */
+function ShowingOnlyBar({ count, onClear, className }: { count: number; onClear: () => void; className?: string }) {
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm text-foreground",
+        className
+      )}
+    >
+      <span className="min-w-0 flex-1">
+        Showing only these <span className="font-semibold tabular-nums">{count}</span> {count === 1 ? "record" : "records"}.
+      </span>
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+      >
+        Show everything
+      </button>
     </div>
   );
 }
