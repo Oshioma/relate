@@ -424,3 +424,14 @@ What is still missing for the project's FILLED contract: (1) the exact Sanskrit 
 `searched`: repository seed and research brief; Bhatt critical-edition bibliographic trail; Hatley specialist trail; modern historical discussions located in the preceding source pass. No repository source currently satisfies all three missing requirements together.
 
 **Decision:** no timeline `startYear` is added in this pass. A plausible 6th–7th-century axis position without the dating argument would violate the brief's most important rule.
+
+
+#### SOURCE PASS 03 — primary passage recovered; E1 remains narrowly OPEN
+
+The missing passage/translation requirement is now substantially resolved. Ben Williams, **“Cosmogenesis and Phonematic Emanation,” The Oxford Handbook of Tantric Studies** (2023), note 37, prints Sārdhatriśatikālottara 12.1–3 and 12.5–6ab. For 12.1 he gives: `candrāgniravisaṃyuktā ādyā kuṇḍalinī tu yā | hṛtpradeśe tu sā jñeyā aṅkurākāravatsthitā ||`; 12.2 continues the rite and instructs contemplation of flowing `amṛta`. Williams translates the first verse as primordial Kuṇḍalinī associated with moon, fire and sun, abiding in the heart in sprout-like form. His bracketed clarifications are explicitly drawn from Rāmakaṇṭha's commentary.
+
+Shaman Hatley's **“Kuṇḍalinī”** states that Kuṇḍalinī first comes into evidence in circa sixth-to-eighth-century Tantric Śaiva scriptures and calls Sārdhatriśatikālottara 12.1–2 a **potentially very early** reference. This is now the wording the dataset follows: early is established; absolute priority is not. Ruth Westoby (2024) describes the Sārdhatriśatikālottara as sixth-to-seventh century and calls its Kuṇḍalinī reference early.
+
+**Repository action:** an `explicit_kundalini` timeline record has now been added for this textual witness, dated only to Westoby's approximate sixth-to-seventh-century range. It has no image: a later chakra painting would be anachronistic evidence dressing.
+
+**E1 status:** still OPEN only in its strongest wording — *earliest securely dated occurrence*. To close that superlative, the research needs a firmer relative chronology across the competing early Śaiva witnesses. This caution is supported independently by current scholarship on the Sārdhatriśatikālottara's chronology: its relative position is early, but firm absolute dating remains difficult.
