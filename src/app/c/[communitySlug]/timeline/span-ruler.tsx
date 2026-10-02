@@ -17,7 +17,7 @@ import { eventDateLabel, formatYear, type TimeScale, type TimeWindow } from "@/l
 // arrows.
 //
 // THE BIG ELEMENT IS THE MIDDLE DATE — the date at the centre line of the strip
-// below, and the same date the scrollbar's chip names. It used to be the width
+// below, and the date the scrollbar's thumb is centred on. It used to be the width
 // of the view ("7,500 years"); the two ends under the arrows already say how
 // much time is on screen, and "when am I?" is the question a reader travelling
 // through time keeps asking. It is taken from the strip's own midpoint, so on a
@@ -70,14 +70,14 @@ export function SpanRuler({
               title={pictured.picture.caption ?? pictured.event.title}
             >
               {/* RESERVED SIZE, so a picture arriving never moves the date. */}
-              <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+              <span className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg border border-border bg-muted sm:h-24 sm:w-36">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   key={pictured.picture.url}
                   src={pictured.picture.url}
                   alt={pictured.picture.caption ?? ""}
-                  width={64}
-                  height={48}
+                  width={144}
+                  height={96}
                   decoding="async"
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   onError={() => markFailed(pictured.picture.url)}
@@ -85,7 +85,7 @@ export function SpanRuler({
                 {/* An image the record itself marks UNVERIFIED says so here
                     too, rather than passing as a picture of the record. */}
                 {pictured.picture.unverified && (
-                  <span className="absolute inset-x-0 bottom-0 bg-black/60 text-center text-[9px] font-semibold uppercase leading-3 tracking-wide text-white">
+                  <span className="absolute inset-x-0 bottom-0 bg-black/60 text-center text-[10px] font-semibold uppercase leading-4 tracking-wide text-white">
                     Unverified
                   </span>
                 )}
