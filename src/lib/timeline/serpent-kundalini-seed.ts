@@ -246,9 +246,112 @@ export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
       "description. Elsewhere in the thesis she identifies 1.216–217 as a sleeping-snake passage. The " +
       "priority claim is therefore kept as a specialist suggestion, not promoted to certainty.",
   },
+  {
+    key: "chandogya_8_6_6",
+    title: "Chāndogya Upaniṣad 8.6.6",
+    reference: "8.6.6; the 101 nāḍīs of the heart and the single upward route to the head",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE PASSAGE. The Sanskrit says there are one hundred and one nāḍīs of the heart; one " +
+      "extends to the head (mūrdhan), and going upward by it one reaches immortality (amṛtatvam). The verse " +
+      "does not itself name that channel Suṣumṇā, nor does it mention Kuṇḍalinī, Iḍā, Piṅgalā, cakras or a serpent.",
+  },
+  {
+    key: "katha_2_3_16",
+    title: "Kaṭha Upaniṣad 2.3.16",
+    reference: "2.3.16; parallel 101-nāḍī formula",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE PASSAGE. The verse preserves the same core formula: one hundred and one nāḍīs of the " +
+      "heart, one reaching the head, upward movement through it, and immortality. This is strong evidence " +
+      "for an early channel-and-ascent precursor, but the verse itself does not call the channel Suṣumṇā or " +
+      "describe a rising serpent power.",
+  },
+  {
+    key: "sankara_katha_2_3_16",
+    title: "Śaṅkara's commentary on Kaṭha Upaniṣad 2.3.16",
+    author: "Śaṅkara",
+    reference: "Commentary to Kaṭha Upaniṣad 2.3.16; later identification of the upward channel as suṣumṇā",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE INTERPRETIVE LAYER. The commentary identifies the one upward nāḍī as suṣumṇā. This is " +
+      "kept separate from the older verse because importing the commentary's name into the Upaniṣadic text " +
+      "would erase the chronology the timeline is trying to show.",
+  },
 ];
 
 export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
+  {
+    slug: "upanishadic-heart-nadis-upward-immortality",
+    title: "One heart-channel rises to the head",
+    summary:
+      "Chāndogya Upaniṣad 8.6.6 and Kaṭha Upaniṣad 2.3.16 describe 101 nāḍīs of the heart, one extending upward to the head; ascent by that route leads to immortality.",
+    description:
+      "EARLY PRECURSOR, NOT YET THE LATER KUNDALINI SYSTEM. Chāndogya Upaniṣad 8.6.6 says that the heart " +
+      "has one hundred and one nāḍīs, that one extends to the head, and that one going upward by it reaches " +
+      "immortality. Kaṭha Upaniṣad 2.3.16 preserves essentially the same formula.\n\n" +
+      "WHAT THIS ESTABLISHES. The text itself gives nāḍīs, a heart locus, a privileged upward route to the " +
+      "head, and immortality as its destination. These are genuine early components relevant to the later " +
+      "subtle-body ascent tradition.\n\n" +
+      "WHAT IT DOES NOT ESTABLISH. Neither verse names this channel Suṣumṇā or mentions Kuṇḍalinī, Iḍā, " +
+      "Piṅgalā, cakras, a base-of-spine locus or a serpent. Śaṅkara's later commentary on Kaṭha 2.3.16 " +
+      "identifies the upward channel as suṣumṇā; that is recorded as a later interpretive layer rather than " +
+      "silently inserted into the older verse.",
+    category: "religion",
+    subcategory: "Early Upaniṣads",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "historical_precursor",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.subtleBody,
+      SERPENT_THREADS.ascent,
+      SERPENT_THREADS.crown,
+      SERPENT_THREADS.immortality,
+      "nadi",
+      "heart",
+      "upanishads",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "chandogya_8_6_6",
+        citations: [
+          {
+            sourceKey: "katha_2_3_16",
+            relation: "supports",
+            note:
+              "Kaṭha Upaniṣad 2.3.16 preserves essentially the same 101-heart-nāḍī, upward-to-head, immortality formula.",
+          },
+          {
+            sourceKey: "sankara_katha_2_3_16",
+            relation: "context",
+            note:
+              "LATER INTERPRETATION: Śaṅkara names the privileged upward channel suṣumṇā; the underlying Upaniṣadic verse does not.",
+          },
+        ],
+        startYear: -700,
+        endYear: -300,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The early Upaniṣadic channel-and-upward-ascent textual layer",
+        originalDateText: "first millennium BCE; exact relative dating of the parallel passages remains debated",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "The date range positions the early Upaniṣadic textual layer broadly rather than pretending to " +
+          "a precise year. The evidential point of this record rests on the directly preserved wording of " +
+          "Chāndogya 8.6.6 and Kaṭha 2.3.16, not on assigning either verse an exact composition date.",
+        notes:
+          "DIRECT TEXTUAL FEATURES: hṛdayasya nāḍyaḥ (nāḍīs of the heart), one reaching mūrdhan (the head), " +
+          "ūrdhvam āyan (going upward), and amṛtatvam eti (reaches immortality). The verse does not itself " +
+          "supply the later name suṣumṇā.",
+      },
+    ],
+    media: [],
+  },
+
   {
     slug: "tantrasadbhava-sleeping-serpent-kundali",
     title: "Kuṇḍalī takes the form of a sleeping serpent",

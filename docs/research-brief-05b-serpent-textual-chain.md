@@ -446,3 +446,14 @@ Ruth Westoby's 2024 historical synthesis dates the Tantrasadbhāva to the eighth
 **Traceback effect:** `kundalini-as-serpent` now has strong early textual evidence; `dormant`/sleeping has a directly recoverable Sanskrit witness; `shakti` is supported in the same textual complex. `awakening` is strongly described by Bang's analysis and by Padoux's published translation trail, but its exact Sanskrit verse should still be attached before treating that row as independently complete under the strictest fill contract.
 
 **Repository action:** added a distinct eighth-century Tantrasadbhāva timeline record and a regression test that prevents it from being silently expanded into the later complete base/channel/seven-cakra model. No later chakra painting is attached as evidence.
+
+
+#### SOURCE PASS 05 — early Upaniṣadic heart-channel ascent
+
+Chāndogya Upaniṣad 8.6.6 and Kaṭha Upaniṣad 2.3.16 preserve essentially the same formula: 101 nāḍīs of the heart, one extending to the head, upward movement through that privileged route, and immortality as the result. These passages therefore provide direct textual evidence for the precursor keys `nadi`, `upward-movement` and `crown-destination`/head-destination.
+
+The verses themselves do **not** name the channel Suṣumṇā and do not mention Kuṇḍalinī, Iḍā, Piṅgalā, cakras or a serpent. A later Śaṅkara commentary on Kaṭha 2.3.16 identifies the upward channel as suṣumṇā. The timeline must preserve that chronological separation rather than back-projecting the commentary's terminology into the older verse.
+
+**Repository action:** added a single precursor record for the parallel Upaniṣadic formula, with the later Suṣumṇā identification attached as a separate interpretive citation. No later subtle-body diagram is attached as if it illustrated the early verse.
+
+**Dating caution:** this pass deliberately uses a broad first-millennium-BCE range rather than pretending that the parallel verses can presently be assigned an exact year. Before the strict 26-key matrix marks these rows fully FILLED, attach a named modern critical edition/translator and a named scholarly dating argument for the relevant textual strata.
