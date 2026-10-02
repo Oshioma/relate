@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  formatYear,
   fractionOf,
   panWindow,
-  positionAt,
   presentPosition,
   TIMELINE_JUMPS,
   timelineExtentWindow,
@@ -173,25 +171,10 @@ export function TimelineOverview({
   // strip below honours whichever scale the reader chose.
   const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
 
-  // ---- THE CENTRE DATE ------------------------------------------------------
-  //
-  // ONE SPECIFIC DATE, rather than a range: the date exactly halfway across
-  // what the strip is showing. Drag left and it reads earlier, drag right and
-  // it reads later, so there is always a definite answer to "when am I?".
-  //
-  // Taken from the STRIP's own midpoint — positionAt(view, 0.5, scale) — and
-  // not from the arithmetic mean of the window's ends, because on the
-  // spaced-by-magnitude scale those are different years. This way the line
-  // written here and the line down the middle of the strip mark the same date,
-  // which is the whole point of drawing both.
-  //
-  // WHERE IT IS DRAWN: at the thumb's centre, which is where that date sits on
-  // this bar. (It was once fixed at the middle of the bar, back when the thumb
-  // stretched to the window's edges and its middle was nowhere in particular.
-  // Now the thumb's centre IS the middle date, so the line and the chip go
-  // there, and nothing on the bar points anywhere else.)
-  const centreYear = positionAt(view, 0.5, scale);
-  const centreLabel = formatYear(centreYear, { compact: true });
+  // THE MIDDLE DATE IS NOT WRITTEN HERE. It is the headline of the ruler just
+  // above (span-ruler.tsx), with a picture of that time beside it; a second
+  // copy on this bar was the same date twice. The bar marks WHERE it is: the
+  // thumb's centre, with a line down it.
 
   // THE THUMB, in bar fractions. It may hang half off either end of the rail
   // when the middle date is at an end of time; the rail clips it, rather than
@@ -200,11 +183,6 @@ export function TimelineOverview({
   const centre = thumbCentre(view, scale);
   const drawnFrom = centre - thumbWidth / 2;
   const drawnTo = centre + thumbWidth / 2;
-  // Room the date chip needs beside the thumb; short of it, the chip goes on
-  // the thumb's other side.
-  const CHIP_ROOM_PX = 130;
-  const chipOnLeft = railWidth > 0 && (1 - drawnTo) * railWidth < CHIP_ROOM_PX;
-
   // Within a few pixels of either end, snap to the actual end of the timeline.
   // Without this the last pixel is still worth millions of years and "drag it
   // all the way over" never quite arrives — you stop just short of the present
@@ -422,31 +400,6 @@ export function TimelineOverview({
             boxShadow: "0 0 0 1px rgba(0,0,0,0.18), 0 0 5px rgba(0,0,0,0.18)",
           }}
         />
-
-        {/* THE MIDDLE DATE, WRITTEN, beside the thumb: on its right, or on its
-            left when the thumb is too close to the right end to fit it.
-
-            Not interactive and not announced: the same date is on the strip's
-            ruler, and a screen reader being told the midpoint of the view on
-            every drag is noise. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 z-10 flex items-center"
-          style={
-            chipOnLeft
-              ? { right: `${(1 - drawnFrom) * 100}%`, paddingRight: 6 }
-              : { left: `${drawnTo * 100}%`, paddingLeft: 6 }
-          }
-        >
-          {/* ON A DARK CHIP, BECAUSE PLAIN WHITE IS NOT READABLE HERE. The bar
-              is pale; white letters on it came out as a grey blur, shadow or no
-              shadow — checked by rendering it rather than by eye. */}
-          <span
-            className="whitespace-nowrap rounded-full bg-accent px-2 py-1 text-[13px] font-semibold leading-none tracking-tight text-white tabular-nums shadow-sm"
-          >
-            {centreLabel}
-          </span>
-        </span>
 
         {/* The grips as real controls: focusable, keyboard-operable, and
             announced. The pointer drag above is handled on the rail so it
