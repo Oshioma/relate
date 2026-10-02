@@ -215,9 +215,107 @@ export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
       "century and says it contains an early reference to kuṇḍalinī. This supports an approximate period " +
       "for the textual witness, not a precise composition year and not proof that no earlier occurrence existed.",
   },
+  {
+    key: "bang_tantrasadbhava_2022",
+    title: "Selected Chapters from the Tantrasadbhāva",
+    author: "Junglan Bang",
+    publisher: "Universität Hamburg",
+    reference: "PhD dissertation, 2022; Tantrasadbhāva chapter 1, especially 1.252cd",
+    url: "https://ediss.sub.uni-hamburg.de/bitstream/ediss/9642/1/Dissertation_Bang_TaSa.pdf",
+    sourceType: "academic_book",
+    publishedYear: 2022,
+    notes:
+      "READ FOR THE PRIMARY-TEXT READING. Bang's critical study states that the yogin awakens Śakti in " +
+      "the form of a sleeping serpent, Kuṇḍalī, and cites Tantrasadbhāva 1.252cd directly: nābhisthā " +
+      "kuṇḍalī jñeyā prasuptabhujagākṛtiḥ. Bang contrasts early Saiddhāntika heart-location material with " +
+      "the Tantrasadbhāva's belly/navel location.",
+  },
+  {
+    key: "westoby_snake_woman_2024",
+    title: "Kuṇḍalinī in the Haṭha sources: snake woman (uragāṅganā)",
+    author: "Ruth Westoby",
+    publisher: "SOAS University of London",
+    reference: "The body in early haṭha yoga, PhD thesis, 2024; discussion of Tantrasadbhāva 1.56, 1.215 and 1.216–217",
+    url: "https://www.wisdomlib.org/hinduism/essay/the-body-in-early-hatha-yoga/d/doc1500797.html",
+    sourceType: "academic_book",
+    publishedYear: 2024,
+    notes:
+      "READ FOR THE HISTORICAL SYNTHESIS. Westoby dates the Tantrasadbhāva to the eighth century, reports " +
+      "1.56 as describing Kuṇḍalinī as curved (kuṭilākṛtiḥ), and 1.215 as Śakti in the heart in snake form. " +
+      "She reports Shaman Hatley's suggestion (2022:823) that this might be the first such snake-form " +
+      "description. Elsewhere in the thesis she identifies 1.216–217 as a sleeping-snake passage. The " +
+      "priority claim is therefore kept as a specialist suggestion, not promoted to certainty.",
+  },
 ];
 
 export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
+  {
+    slug: "tantrasadbhava-sleeping-serpent-kundali",
+    title: "Kuṇḍalī takes the form of a sleeping serpent",
+    summary:
+      "The eighth-century Tantrasadbhāva is an early witness to explicitly serpentine Kuṇḍalī: its first chapter describes Śakti as curved and snake-shaped, and directly describes Kuṇḍalī at the navel as having the appearance of a sleeping serpent.",
+    description:
+      "TEXTUAL DEVELOPMENT. This record is deliberately later and more specific than the Sārdhatriśatikālottara heart-Kuṇḍalinī witness. Junglan Bang's critical study cites Tantrasadbhāva 1.252cd: " +
+      "'nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ' — Kuṇḍalī is located at the navel/belly and has the " +
+      "appearance of a sleeping serpent. Bang explains this in a practice in which the yogin first awakens " +
+      "Śakti in the form of a sleeping serpent.\n\n" +
+      "OTHER EARLY SERPENT LANGUAGE. Ruth Westoby reports 1.56 describing Kuṇḍalinī as curved " +
+      "(kuṭilākṛtiḥ), 1.215 describing Śakti in the heart in snake form, and 1.216–217 as a sleeping-snake " +
+      "passage. She reports Shaman Hatley's suggestion that the 1.215 material may be the first explicit " +
+      "snake-form description. That is preserved as a suggestion, not converted into a proven superlative.\n\n" +
+      "STATUS. This securely advances the chain from an early Kuṇḍalinī witness to explicit serpent and " +
+      "sleep/dormancy imagery. It still does not establish the complete later Haṭhayoga system of a serpent " +
+      "coiled at Mūlādhāra rising through Suṣumṇā and seven cakras.",
+    category: "religion",
+    subcategory: "Tantric Śaivism",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "explicit_kundalini",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.kundalini,
+      SERPENT_THREADS.subtleBody,
+      "tantric-shaivism",
+      "tantrasadbhava",
+      "sleeping-serpent",
+      "navel",
+      "shakti",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "westoby_snake_woman_2024",
+        citations: [
+          {
+            sourceKey: "bang_tantrasadbhava_2022",
+            relation: "supports",
+            note:
+              "Bang supplies the directly checkable Sanskrit at Tantrasadbhāva 1.252cd and explains it as Kuṇḍalī in sleeping-serpent form.",
+          },
+        ],
+        startYear: 700,
+        endYear: 799,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The Tantrasadbhāva witness to explicitly serpentine and sleeping Kuṇḍalī",
+        originalDateText: "eighth century",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "Westoby dates the Tantrasadbhāva to the eighth century and identifies its early serpent-form " +
+          "Kuṇḍalinī material. Bang's critical study supplies a directly checkable sleeping-serpent verse " +
+          "from chapter 1. The century is an approximate textual date, not a precise composition year.",
+        notes:
+          "DIRECT PASSAGE: Tantrasadbhāva 1.252cd: nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ. " +
+          "This establishes sleeping-serpent imagery and a navel/belly locus. Westoby separately reports " +
+          "1.215 as Śakti in the heart in snake form and Hatley's suggestion that it may be the first such " +
+          "description; that relative-priority question remains open.",
+      },
+    ],
+    media: [],
+  },
+
   {
     slug: "sardhatrisatikalottara-primordial-kundalini",
     title: "A primordial Kuṇḍalinī in the heart",
