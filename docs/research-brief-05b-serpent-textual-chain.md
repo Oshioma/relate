@@ -407,3 +407,20 @@ The candidate rows remain unfilled deliberately: this pass found a stronger rout
 ### Image rule added during this pass
 
 For textual-development records, do not attach a later chakra painting merely to make an early record visual. Prefer **no image** until a directly relevant manuscript, edition page, historical diagram or object is available. Across the track, duplicate crops, thumbnails and alternate resolutions of the same object do not count as additional evidence. A few materially different images are preferred to many near-duplicates.
+
+
+### SOURCE PASS 02 — E1 promotion check: `kundalini-word`
+
+**Result: remains OPEN. Do not promote this row merely because the candidate is strong.**
+
+Candidate passage: *Sārdhatriśatikālottara* 12.1–2, beginning with the expression *ādyā kuṇḍalinī*. Critical-edition trail: N. R. Bhatt, *Sārdhatriśatikālottara* (Institut Français de Pondichéry, 1979). Specialist historical trail: Shaman Hatley's work on Kuṇḍalinī in early tantric Śaiva traditions.
+
+What this pass can safely preserve: this is a concrete early textual candidate; its Kuṇḍalinī is associated with the heart rather than silently assumed to be the familiar later serpent at the base of the spine; and the passage belongs in the search for the history of *amṛta* as well as the word Kuṇḍalinī.
+
+What is still missing for the project's FILLED contract: (1) the exact Sanskrit of 12.1–2 checked directly against the critical edition, (2) a published translation with translator and page, and (3) a specialist statement that supplies or argues the composition date used for the timeline and establishes the candidate's priority relative to other early occurrences.
+
+`whatWouldEstablishThis`: inspect Bhatt 1979 at 12.1–2 directly; attach the critically edited Sanskrit; locate a citable published translation; then attach Hatley or another specialist's explicit dating/priority discussion. If the specialist only calls it an early occurrence rather than the earliest, record exactly that and leave E1 open.
+
+`searched`: repository seed and research brief; Bhatt critical-edition bibliographic trail; Hatley specialist trail; modern historical discussions located in the preceding source pass. No repository source currently satisfies all three missing requirements together.
+
+**Decision:** no timeline `startYear` is added in this pass. A plausible 6th–7th-century axis position without the dating argument would violate the brief's most important rule.
