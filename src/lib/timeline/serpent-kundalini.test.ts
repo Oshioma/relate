@@ -139,7 +139,22 @@ test("the early Sārdhatriśatikālottara witness stays distinct from the later 
   );
 });
 
-test("Tantrasadbhava sleeping-serpent witness keeps its limits", () => {\n  const serpent = record("tantrasadbhava-sleeping-serpent-kundali");\n  assert.equal(serpent.kundaliniRelation, "explicit_kundalini");\n  assert.match(serpent.description, /sleeping serpent/i);\n  assert.match(serpent.description, /navel|belly/i);\n  assert.match(serpent.description, /proven superlative/i);\n  assert.match(serpent.description, /does not establish/i);\n  assert.equal(serpent.media?.length ?? 0, 0);\n  assert.ok(serpent.claims.some((claim) => claim.citations?.some((citation) => citation.sourceKey === "bang_tantrasadbhava_2022")));\n});\n\ntest("the Gudea vase holds a parallel and documented contact at the same time", () => {
+test("Tantrasadbhava sleeping-serpent witness keeps its limits", () => {
+  const serpent = record("tantrasadbhava-sleeping-serpent-kundali");
+  assert.equal(serpent.kundaliniRelation, "explicit_kundalini");
+  assert.match(serpent.description, /sleeping serpent/i);
+  assert.match(serpent.description, /navel|belly/i);
+  assert.match(serpent.description, /proven superlative/i);
+  assert.match(serpent.description, /does not establish/i);
+  assert.equal(serpent.media?.length ?? 0, 0);
+  assert.ok(
+    serpent.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "bang_tantrasadbhava_2022")
+    )
+  );
+});
+
+test("the Gudea vase holds a parallel and documented contact at the same time", () => {
   // The position this collection is usually in, and the one that needs two
   // fields to state: Mesopotamia and the Indus demonstrably traded, AND
   // nothing shows a doctrine about the body went with the pottery.
