@@ -553,6 +553,27 @@ export const EVENT_RELATIONS = [
     hint: "This record is where the other one's material comes from — a text, a testimony, an excavation.",
   },
   { key: "related", label: "Worth reading alongside", inverse: "Worth reading alongside", hint: "A pointer, in no particular direction." },
+  // KINSHIP AND MEMBERSHIP, added for the Okomilo / Avhianwu genealogy, which
+  // could not be stated with the keys above without either inflating
+  // "associated" into descent or losing the descent altogether.
+  //
+  // Neither key says the relationship is PROVEN. Whose claim it is lives on the
+  // edge's viewpoint — "community" for family testimony, "oral_tradition" for a
+  // community genealogy — and a gap in the documented line is a missing edge,
+  // never an edge marked uncertain.
+  {
+    key: "child_of",
+    label: "Child of, according to",
+    inverse: "Parent of, according to",
+    hint:
+      "A parent–child relationship as a named source states it — family testimony, a register, or a traditional genealogy. The viewpoint says which; an oral genealogy is not a birth record.",
+  },
+  {
+    key: "part_of",
+    label: "Part of",
+    inverse: "Includes",
+    hint: "A family within a quarter, a quarter within a village, a village within a clan — as the cited source describes the structure.",
+  },
 ] as const;
 
 export type EventRelationKey = (typeof EVENT_RELATIONS)[number]["key"];
@@ -2075,6 +2096,23 @@ export const GENEALOGY_STAGES = [
     hint:
       "A source from a later ancient culture describing the first — Plutarch on Egypt, a Greek writer on Persia. Evidence about the reporter as much as the reported.",
   },
+  // ORAL AND COLONIAL LINKS, added for the Avhianwu genealogy. A migration
+  // tradition does not start with an object: it starts with elders speaking,
+  // is first written down by an administrator, and only later reaches a book.
+  // Filing the administrator under "early scholarship" would hide that the
+  // evidence underneath the report is testimony, which is the whole point.
+  {
+    key: "oral_testimony",
+    label: "Oral testimony",
+    hint:
+      "What elders or family members said, as far as it can be reached — usually only through whoever recorded it. Its date is when it was recorded, not how old the tradition is.",
+  },
+  {
+    key: "colonial_record",
+    label: "Colonial or official record",
+    hint:
+      "An intelligence report, assessment, gazette, annual report or court record written by an administration. Frequently built on oral testimony it does not always name.",
+  },
   {
     key: "early_scholarship",
     label: "Early scholarly interpretation",
@@ -2086,6 +2124,12 @@ export const GENEALOGY_STAGES = [
     label: "Alternative or esoteric interpretation",
     hint:
       "A reading put forward outside the academic mainstream, usually with its own framework. Recorded with its author and date like any other link, because it is a real historical event that a claim happened here.",
+  },
+  {
+    key: "community_history",
+    label: "Community history",
+    hint:
+      "A history written by or for the community it describes — a clan history, a town union's book, a community website. Often the fullest written account and often the hardest to trace back to its own sources.",
   },
   {
     key: "popular_claim",
