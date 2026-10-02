@@ -24,7 +24,16 @@ import {
   SHOWCASE_SOURCES,
   showcaseNeedsPictures,
 } from "@/lib/timeline/showcase-event";
-import { PICTURE_BUDGET_PER_RUN, bringEventPicturesIn, pictureBudget, pictureTopUp } from "@/lib/timeline/bring-in-image";
+import {
+  PICTURE_BUDGET_PER_RUN,
+  bringEventPicturesIn,
+  bringImageIn,
+  hotlinkedPicturesToBringIn,
+  pictureBudget,
+  pictureName,
+  pictureTopUp,
+  withBroughtInPictures,
+} from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
 
 /**
@@ -2747,6 +2756,95 @@ export async function checkTimelinePictures(communitySlug: string): Promise<
   const records = (data ?? []).filter((record) => record.image_url || (record.media ?? []).length > 0);
   const results = await checkPictures(records);
   return { ok: true as const, checked: results.length, problems: results.filter((result) => result.outcome !== "ok") };
+}
+
+/**
+ * COPY THE PICTURES THAT ARE STILL HOTLINKED INTO THIS COMMUNITY'S STORAGE.
+ *
+ * Seeding copies every picture in, and a copy that fails keeps the original
+ * address — so a picture that could not be fetched on the day stays pointing
+ * at Wikimedia for good, and every reader's browser asks Wikimedia for it.
+ * This tries them again.
+ *
+ * Which pictures qualify, and how a record changes, is decided in
+ * bring-in-image.ts (hotlinkedPicturesToBringIn / withBroughtInPictures) where
+ * it is tested: listed sources only, provenance kept, the cover follows its
+ * gallery twin. Only addresses change; nothing is removed or reordered.
+ *
+ * Budgeted like the corrections pass: a fixed number of pictures and a
+ * deadline per press, with the remainder reported for the next press.
+ */
+export async function bringHotlinkedPicturesIn(communitySlug: string): Promise<
+  | { error: string }
+  | {
+      ok: true;
+      broughtIn: number;
+      recordsUpdated: number;
+      stillWaiting: number;
+      leftAlone: number;
+      failures: { slug: string; title: string; reason: string }[];
+    }
+> {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can bring pictures in." };
+
+  const { data, error } = await supabase
+    .from("timeline_events")
+    .select("id, slug, title, image_url, media")
+    .eq("community_id", community.id)
+    .order("slug");
+  if (error) return { error: error.message };
+
+  let broughtIn = 0;
+  let attempted = 0;
+  let recordsUpdated = 0;
+  let stillWaiting = 0;
+  let leftAlone = 0;
+  let clockStartedAt: number | null = null;
+  const failures: { slug: string; title: string; reason: string }[] = [];
+
+  for (const record of data ?? []) {
+    const media = (record.media ?? []) as StoredPicture[];
+    const plan = hotlinkedPicturesToBringIn({ image_url: record.image_url, media });
+    leftAlone += plan.leftAlone;
+    if (plan.urls.length === 0) continue;
+
+    const copied = new Map<string, string>();
+    for (const url of plan.urls) {
+      const budget = pictureBudget({ pictured: attempted, startedAt: clockStartedAt, now: Date.now() });
+      clockStartedAt = budget.startedAt;
+      if (budget.exhausted) {
+        stillWaiting++;
+        continue;
+      }
+      attempted++;
+      const result = await bringImageIn(supabase, { url, userId, name: pictureName(record.slug, url) });
+      if ("url" in result && result.url !== url) {
+        copied.set(url, result.url);
+        broughtIn++;
+      } else if ("reason" in result) {
+        failures.push({ slug: record.slug, title: record.title, reason: result.reason });
+      }
+    }
+    if (copied.size === 0) continue;
+
+    const next = withBroughtInPictures({ image_url: record.image_url, media }, copied);
+    const { error: updateError } = await supabase
+      .from("timeline_events")
+      .update({ image_url: next.image_url, media: next.media })
+      .eq("id", record.id);
+    if (updateError) {
+      failures.push({ slug: record.slug, title: record.title, reason: `the record could not be saved: ${updateError.message}` });
+      broughtIn -= copied.size;
+    } else {
+      recordsUpdated++;
+    }
+  }
+
+  if (recordsUpdated > 0) revalidatePath(timelinePath(community.slug));
+  return { ok: true as const, broughtIn, recordsUpdated, stillWaiting, leftAlone, failures };
 }
 
 /**
