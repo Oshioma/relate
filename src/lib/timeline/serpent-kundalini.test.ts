@@ -289,15 +289,15 @@ test("slugs are unique, claims are sourced, and evidence is not a stub", () => {
   }
 });
 
-test("the unread sources admit it, because none of them has been opened", () => {
-  // This collection was begun with no access to a museum catalogue, an
-  // excavation report or a journal. The flags are the record of that, and the
-  // assertion is not that the count is low.
+test("every source declares whether it has actually been read", () => {
+  // This collection began with placeholder sources that had not been opened.
+  // Verified source passes now add READ sources, so the invariant is disclosure,
+  // not permanent unread status.
   for (const source of SERPENT_KUNDALINI_SOURCES) {
     assert.match(
       source.notes,
-      /NOT READ|NEEDS SOURCE VERIFICATION/,
-      `${source.key}: an unopened source must say so`
+      /\bREAD\b|NOT READ|NEEDS SOURCE VERIFICATION/,
+      `${source.key}: source notes must disclose verification state`
     );
     assert.ok(source.notes.length > 40, `${source.key}: a note must say what it is cited FOR`);
   }
