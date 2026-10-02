@@ -155,8 +155,22 @@ function ancestors(start: string): Set<string> {
 
 test("3. no continuous genealogy runs from Sam back to Anwu", () => {
   const fromSam = ancestors(SAM);
-  for (const slug of ["okomilo-anwu", "okomilo-imhakhena-founds-ogbona", "okomilo-ogbona-genealogy", "okomilo-alokoko-ancestral-mother", "okomilo-asekomhe-dynasty-genealogy"]) {
+  for (const slug of ["okomilo-anwu", "okomilo-imhakhena-founds-ogbona", "okomilo-ogbona-genealogy", "okomilo-alokoko-ancestral-mother"]) {
     assert.ok(!fromSam.has(slug), `Sam's documented line reaches ${slug} by child_of edges`);
+  }
+  // The MATERNAL line does reach the Asekomhe dynasty (Pa Ereghi), because a
+  // named source — the Asekomhe family historian — names Sam's mother as Pa
+  // Asekomhe's daughter. It must stop there: Pa Ereghi's claimed descent from
+  // Imhakhena spans uncounted generations and may not be a parent–child edge.
+  assert.ok(fromSam.has("okomilo-asekomhe-dynasty-genealogy"), "the sourced maternal line has been lost");
+  const toImhakhena = OKOMILO_LINKS.find(
+    (link) => link.from === "okomilo-asekomhe-dynasty-genealogy" && link.to === "okomilo-imhakhena-founds-ogbona"
+  );
+  assert.ok(toImhakhena, "the claimed descent should still be recorded");
+  assert.notEqual(toImhakhena.relation, "child_of");
+  assert.match(toImhakhena.note, /UNCOUNTED GENERATIONS/);
+  for (const link of OKOMILO_LINKS.filter((l) => l.relation === "child_of" && ancestors(SAM).has(l.to))) {
+    assert.ok(link.sourceKey, `${link.from}→${link.to}: a documented-line edge must name its source`);
   }
   // The two kinds of descent never mix on one edge chain: every child_of edge
   // is either family testimony (community) or tradition (oral_tradition), and
@@ -299,7 +313,7 @@ test("11. source-dependent claims do not masquerade as independent confirmations
   assert.ok(chain, "the Ozolua dating should have its source genealogy");
   assert.deepEqual(
     chain.links.map((link) => link.sourceKey ?? null),
-    [null, "okhaishie_1999", "oe_major_events", "fugar_america"]
+    [null, "okhaishie_1999", "oe_major_events", "oe_clan_split", "fugar_america"]
   );
   assert.match(chain.links[2].adds ?? "", /Nothing/);
 });
@@ -316,4 +330,63 @@ test("12. unknown generations remain explicitly unknown", () => {
   // No family founder or founding date is invented.
   const family = get("okomilo-family-of-innih");
   assert.ok(family.claims.every((claim) => claim.whatIsDated?.includes("not the family's founding") || claim.startYear == null));
+});
+
+// ---------------------------------------------------------------------------
+// The second research pass (2 Oct 2026): findings that must not be undone
+// ---------------------------------------------------------------------------
+
+test("the 1983 burial of Sam's father is corroborated from OUTSIDE the family, and still unnamed", () => {
+  const father = get("okomilo-sam-father-unknown");
+  const independent = father.claims.find((claim) => claim.sourceKey === "oe_enegwea_bio");
+  assert.ok(independent, "the Enegwea biography's 1983 burial should be a claim");
+  assert.equal(independent.startYear, 1983);
+  assert.match(independent.evidence, /INDEPENDENT/);
+  assert.match(father.title, /not yet identified/);
+});
+
+test("Sam's maternal grandfather is identified only because a named source joins them", () => {
+  const grandfather = get("okomilo-pa-asekomhe-maternal-grandfather");
+  assert.equal(grandfather.identificationStatus, "probable");
+  const edge = OKOMILO_LINKS.find((link) => link.from === grandfather.slug && link.to === "okomilo-asekomhe-dynasty-genealogy");
+  assert.equal(edge?.sourceKey, "oe_asekomhe_dynasty");
+  assert.match(sourceByKey.get("oe_asekomhe_dynasty")!.notes, /mother of Samuel Okomilo/);
+  assert.equal(sourceByKey.get("oe_asekomhe_dynasty")!.sourceType, "oral_tradition");
+});
+
+test("both Okhe-dispute dates are kept, and both are traced to the one article that gives them", () => {
+  const dispute = get("okomilo-okhe-dispute-ogbhari-akenavhianwu");
+  const years = dispute.claims.map((claim) => claim.startYear);
+  assert.ok(years.includes(1851) && years.includes(1891), "a date has been dropped");
+  for (const claim of dispute.claims.filter((c) => c.startYear === 1851 || c.startYear === 1891)) {
+    assert.equal(claim.sourceKey, "oe_clan_split");
+  }
+});
+
+test("the python river-crossing is a single recent claim, not a tradition the track asserts", () => {
+  const crossing = get("okomilo-python-river-crossing-claim");
+  assert.equal(crossing.eventType, "disputed");
+  assert.equal(crossing.claims.length, 1);
+  assert.equal(crossing.claims[0].startYear, 2025);
+  assert.match(crossing.claims[0].whatIsDated ?? "", /not the age of the story/);
+});
+
+test("Alokoko's earliest written attestation is the one actually found, and her versions are kept apart", () => {
+  const alokoko = get("okomilo-alokoko-ancestral-mother");
+  const earliest = alokoko.claims.find((claim) => claim.temporalClaimType === "date_of_first_known_record");
+  assert.equal(earliest?.startYear, 2017);
+  for (const version of [/HUMAN MOTHER/, /ROYAL PYTHON/, /DEITY/, /A SECOND ALOKOKO, A MAN/]) {
+    assert.match(alokoko.description, version);
+  }
+});
+
+test("gerontocratic offices are never read as lines of descent", () => {
+  const offices = get("okomilo-ancestral-offices-oldest-man");
+  assert.match(offices.description, /GERONTOCRATIC/);
+  assert.ok(!OKOMILO_LINKS.some((link) => link.relation === "child_of" && (link.from === offices.slug || link.to === offices.slug)));
+});
+
+test("an Okomilo found in another family's lineage is not given a parent without a stated one", () => {
+  const ikpadelameka = get("okomilo-ikpadelameka-okomilo");
+  assert.ok(!OKOMILO_LINKS.some((link) => link.relation === "child_of" && link.from === ikpadelameka.slug));
 });
