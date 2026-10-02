@@ -65,6 +65,10 @@ export const GENEALOGY_LAYER_TAGS = {
   context: "genealogy:context-not-ancestry",
 } as const;
 
+const READ_FULL =
+  "READ IN FULL on 2 October 2026 (second research pass) through the site's own WordPress API; quotations from it " +
+  "are verbatim. The page is community-published and cites no sources of its own unless stated.";
+
 const SNIPPET =
   "READ AT SNIPPET LEVEL ONLY: the page itself could not be opened from the research environment (network " +
   "policy), so what is recorded here is what search-engine snippets of it said, which may be abridged or " +
@@ -115,8 +119,14 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "Okomilo and Ikhuenena both of Ivhiochie quarter'; St John's Primary School, Ogbona, taught by Chief Patrick O. " +
       "Oboarekpe under headmaster Chief M.C.K. Orbih; EDC Secondary Model School, Igbhe Road, Auchi, 1957; Blessed " +
       "Martins, Jattu, 1959; a Federal Ministry of Education job in Ibadan, the archive department, then UCH Ibadan " +
-      "medical-photography training 1960–1962; LUTH; London 1964; O and A levels; Edinburgh PPE 1970–1972. " +
-      SNIPPET,
+      "medical-photography training 1960–1962; LUTH, where his former boss became head of medical photography and he was " +
+      "'an assistant medical photographer'; London 1964; O and A levels; Edinburgh PPE 1970–1972. ALSO, on his father: 'When " +
+      "the father relocated to Ibadan, his father decided as the first son, he would go home to learn about Ogbona cum " +
+      "Avhianwu culture but before then, his father gave him Ikhenemo having survived the agony of the WW11 where he fought " +
+      "as part of the British West African Frontiers in Egypt and other parts of the world.' And that Sam later brought his " +
+      "own son home as a child 'to take the Okhei title… just like his father did for him'. Living family members named " +
+      "on the page are deliberately not recorded here. " +
+      READ_FULL,
   },
   {
     key: "oe_footprints",
@@ -131,7 +141,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "Catherine Ogbualo, Agbedebo Idode and Ashetu Idode. WARNING: a search summary merged a 1991 burial on this page " +
       "(of General Marshal Ileghieuma Sunday Bolivia Osigbemhe, a musician) into Sam's entry; that burial is NOT Sam's and " +
       "is not used. " +
-      SNIPPET,
+      READ_FULL,
   },
   {
     key: "oe_palace_villages",
@@ -144,7 +154,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "Innih; and for the quarter structure (Ivhiochie divided into quarters including Ivhiobore, Ivhiosano and Ivhitse; " +
       "Ivhitse containing villages including Akpheokhai, Enamino, Innih and Ototo). The date of the 3rd edition was not " +
       "visible. " +
-      SNIPPET,
+      READ_FULL,
   },
   {
     key: "oe_kindreds",
@@ -158,49 +168,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "Community list. Cited for 'Innih Village has the Okomilo Family as one of its nine kindred families' — Asekomhe, " +
       "Azoganokhai, Emoekpere, Idegbesor, Iniaru, Odogbo, Ogedegbe, Okomilo and Onokozi — and for Chief John Ogedegbe as " +
       "palace chief of Innih. It does NOT say how the nine families are related. " +
-      SNIPPET,
-  },
-  {
-    key: "oe_churches",
-    title: "Churches in Ogbona (tag page)",
-    publisher: "Ogbona Elites (ogbonaelites.org)",
-    url: "https://ogbonaelites.org/tag/churches-in-ogbona/",
-    sourceType: "website",
-    notes:
-      "Community history. Cited for St John the Baptist Catholic Church, Ogbona, 'established in the early 20s', its " +
-      "pioneer lay faithful including GEORGE OKOMILO, and seven members — Eramha David Agbiko Enamino, George Okomilo, " +
-      "Robert Odogbo, Cletus Anaweokhai, Nicholas Asekomhe, Martins Esi and Richard Asekomhe — 'found culpable', given " +
-      "'fourteen strokes of cane each with two months of imprisonment which were served at Auchi prison', in a related " +
-      "snippet dated 1931–1932, for opposing 'pagan practices like sacrifices to idols, okhei traditional rites'. " +
-      SNIPPET,
-  },
-  {
-    key: "oe_descendants",
-    title: "Descendants of Imhakhena (category pages)",
-    publisher: "Ogbona Elites (ogbonaelites.org)",
-    url: "https://ogbonaelites.org/category/descendants-of-imhakhena/",
-    sourceType: "website",
-    notes:
-      "Community genealogy. Cited for: 'Ogbona was the first born of Imhakhena who was the last born of Anwu… Ogbona later " +
-      "gave birth to two children, OKHUA and OMIERELE. Okhua later had OCHIE, OREVHOR, UDOKHAKOR while OMIERELE had " +
-      "OKHOTOR and ANAGA'; and for the Asekomhe dynasty text ('Pa Asekomhe was the first son of Pa Ekhaegbai, whose " +
-      "father, Pa Ereghi, was the patriarch of today's Asekomhe Dynasty'; Pa Ereghi 'believed to be a direct offspring of " +
-      "the great Imhakhena'; Imhakhena's ancestral home 'at the site of the present-day Asekomhe family compound'; the " +
-      "'Oghie Descendants (Apoghie, meaning origin)'). Attribution of the Asekomhe text to this exact page is probable, " +
-      "not certain. " +
-      SNIPPET,
-  },
-  {
-    key: "oe_history_tag",
-    title: "Ogbona History and Culture (tag page)",
-    publisher: "Ogbona Elites (ogbonaelites.org)",
-    url: "https://ogbonaelites.org/tag/ogbona-history-and-culture/",
-    sourceType: "website",
-    notes:
-      "Community history. Cited for the Imhakhena → Ogbona → Okhua/Omierele genealogy (same wording as oe_descendants — " +
-      "one text on two pages, not two confirmations), for Imhakhena settling at Utagbabor and moving to Ore Okhiye 'where " +
-      "his mother, Alokoko later joined him', and for the Alokoko python purification. " +
-      SNIPPET,
+      READ_FULL,
   },
   {
     key: "oe_major_events",
@@ -215,8 +183,12 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "introduced the system of each village giving 25 slaves to the Nupes every other year'; 1897 Nupe withdrawal; 1918 " +
       "divisional headquarters at Fugar; 1930 mass arrest of Christians; 1932 clan Native Administrations; 1937 Native " +
       "Clan Courts; 1939 'Hitler War'; 1945 returning soldiers 'inundated the Avhianwu clan with money demanding their " +
-      "wives'. " +
-      SNIPPET,
+      "wives'. ALSO: '1904 Native Court established at Fugar'; '1908 January 14, Fugar Native Court House opened'; '1936 " +
+      "Abolition of the 7 Districts in Kukuruku Division and Clans were established'; '1897 January 4, the Benin Massacre. " +
+      "1897 September 9, The British Force took Benin City'; a list of District Officers including '1936 H. C. B. Denton " +
+      "(Ag. D. O., K. D.)'; and the 'Avhianwu Titles', in which the offices Anwu, Unone, Arua, Iraokhor and Imhakhena are " +
+      "each held by the oldest man of the community concerned. The page names no sources. " +
+      READ_FULL,
   },
   {
     key: "oe_kukuruku",
@@ -228,8 +200,9 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "A reproduction of material from Okhaishie 1999. Cited for Kukuruku Division 'created in 1918 with its Headquarters " +
       "at Fugar', J. C. Walker as first District Officer, the Royal Niger Company's handover of Kukuruku to the British " +
       "government in 1899, renaming as Afenmai in 1956, and 'C. B. Denton, Esquire', Acting District Officer, dealing " +
-      "with the Avhianwu Clan Council over a Fugar Boys' Society petition. " +
-      SNIPPET,
+      "with the Avhianwu Clan Council over a Fugar Boys' Society petition — quoting his letter to the Resident, Benin " +
+      "Province, and giving a reply reference 'W.P. 14011/65', which is an archival file number worth requesting. " +
+      READ_FULL,
   },
   {
     key: "oe_iraokhor",
@@ -243,7 +216,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "reign of Oba Eware the Great', prompted by a three-year mourning decree forbidding childbirth; Anwu as 'the third " +
       "son of Azama'; the four sons and the communities they founded; first settlement at Afashio under Omoazekpe. NOTE: " +
       "this page's Ewuare dating and the same site's Okhaishie timeline (Ozolua, 1481–85) disagree. " +
-      SNIPPET,
+      READ_FULL,
   },
   {
     key: "oe_adl",
@@ -264,11 +237,10 @@ const COMMUNITY_SOURCES: SeedSource[] = [
     sourceType: "website",
     notes:
       "Community history. Cited for the Okphe-Ukpi title (Chief Akpabeghie of Ivhioverah, Akpabeghie village, Okotor, " +
-      "'once held the Ukpi title, known as Okphe-Ukpi') and for the 1891 dating of the Okhe incident: 'Following the " +
-      "assassination of Akhenavhianwu, a grandson of Omiawa by an Ogbona non-initiate (Ogbhari) in 1891, Ogbona was " +
-      "banned… until 1908 when Okoghor… and Arekameh from Iviukasa established… a separate Ogiamotsu at Utu-looko'. Which " +
-      "of the site's pages carries which dating was not always clear from the snippets. " +
-      SNIPPET,
+      "'once held the Ukpi title, known as Okphe-Ukpi') and for the list 'OGBONA RULERS OF THE TWENTIETH CENTURY FROM 1892 " +
+      "TO 2017': Aikpabeghie 1892–1904, Anyai 1904–1908, Ototo (Ivhitse) 1908–1914, then Warrant Chiefs Enakhumhe 1914–1917, " +
+      "Ikhumhetse 1917–1918 and Okozi 1920–1931, and Aleghe from the restoration of the Ukpi in 1931. " +
+      READ_FULL,
   },
   {
     key: "oe_clan_split",
@@ -278,11 +250,14 @@ const COMMUNITY_SOURCES: SeedSource[] = [
     sourceType: "website",
     publishedYear: 2024,
     notes:
-      "Community news. Cited for the 2024 split of Avianwu clan, the Ogieavianwu remaining head of Anwu clan, and — quoting " +
-      "'Akhigbe' — the 1851 dating of the Okhe incident: 'Fugar banned Ogbona from performing the Okhe title because in " +
-      "1851, an uninitiated man (Ogbhari) from Ogbona killed a title holder, a certain Akenavhianwu, the grandson of " +
-      "Omiawa… Ogbona set up its own Ogwa shrine'. Who 'Akhigbe' is, and where he wrote, was not established. " +
-      SNIPPET,
+      "Ogbona's reply to the 2024 creation of Fugar clan. Cited for BOTH datings of the Okhe incident, in one article: it " +
+      "reports that 'According to Akhigbe, Fugar banned Ogbona from performing the Okhe title because in 1851, an " +
+      "uninitiated man (Ogbhari) from Ogbona killed a title holder, a certain Akenavhianwu, the grandson of Omiawa', and " +
+      "gives its own account: 'Following the assassination of Akhenavhianwu, a grandson of Omiawa by an Ogbona non-initiate " +
+      "(Ogbhari) in 1891, Ogbona was banned… until 1908 when Okoghor, Igbadumeh's father and Arekameh from Iviukasa " +
+      "established… a separate Ogiamotsu at Utu-looko'. Also: 'the totemic Alokoko (Python) motherhood'; 'Fugar never hosts " +
+      "the Alokoko deity'; and Anwu's migration 'during the reign of Oba Ozolua in the years 1481 – 1504'. " +
+      READ_FULL,
   },
   {
     key: "oe_names",
@@ -294,7 +269,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
       "Community onomastics. Cited for 'Oshiomah means \"God makes the plans\"', names prefixed 'Osi, Esi and Osho are names " +
       "that reverence God', and 'Oshomah… means \"God decides\"'. NO entry for Okomilo, Ikhenemho or Innih was found. " +
       "Attribution of these glosses to this exact page is probable, not certain. " +
-      SNIPPET,
+      READ_FULL,
   },
   {
     key: "oe_chiefs",
@@ -304,9 +279,205 @@ const COMMUNITY_SOURCES: SeedSource[] = [
     sourceType: "website",
     notes:
       "Community list of chiefs. Cited for the village headship of Innih (Chief John Oshiomhogho Ogedegbe, title " +
-      "'Okhaemho') and for an Ogedegbe genealogy in which 'Okoko was the father of Imhomo, Innih, Esuka' — the only text " +
-      "found that treats INNIH as a personal name. Which page carried the Ogedegbe genealogy was not certain. " +
-      SNIPPET,
+      "'Okhaemho'), and for the Ogbona genealogy as ORAL TESTIMONY: Chief M.B. Ogbualo's 'late father told him that Ogbona " +
+      "was the first born of Imhakhena who was the last born of Anwu that migrated from Bini and settled at UTAGBABOR… And " +
+      "that Ogbona later gave birth to two children, namely, OKHUA and OMIERELE. Okhua later had, OCHIE, OREVHOR, UDOKHAKOR " +
+      "while OMIERELE had OKHOTOR and ANAGA'. The same text appears on the palace and approved-villages pages. " +
+      READ_FULL,
+  },
+  // --- Pages first read in full in the second research pass (2 Oct 2026) ---
+  {
+    key: "oe_enegwea_bio",
+    title: "Biography of Late Chief Gregory Kasimu Enegwea, the Olugbhekhai of Avianwu",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2025,
+    publishedDisplay: "23 July 2025",
+    url: "https://ogbonaelites.org/biography-of-late-chief-gregory-kasimu-enegwea-the-olugbhekhai-of-avianwu/",
+    sourceType: "website",
+    notes:
+      "A funeral biography of Sam Okomilo's school friend — written by Enegwea's family, NOT by the Okomilos, which is why it " +
+      "matters. Cited for: Blessed Martin's Secondary Modern School, Jattu, 1957–1959, principal Chief M.C.K. Orbih, with " +
+      "'Ikhenemho Sam Okomilo' among the classmates; the Class of 1959's 100 percent pass, with Sam 'passing with " +
+      "distinction'; Enegwea's London holiday with 'his friend, Ikhenemo Sam Okomilo, who had earlier relocated to settle " +
+      "and work there' (during his Ife degree, before June 1973); and — the single most useful sentence found — that he " +
+      "'drummed incredibly well… during the burial ceremony of the father of his friend, Ikhenemho Sam Okomilo, in 1983'. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_asekomhe_dynasty",
+    title: "History of Asekomhe Ekhaegbai Dynasty",
+    author: "Wilson Asekomhe",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2024,
+    publishedDisplay: "16 October 2024",
+    url: "https://ogbonaelites.org/history-of-asekomhe-ekhaegbai-dynasty-by-wilson-asekomhe/",
+    sourceType: "oral_tradition",
+    notes:
+      "'Written By Wilson Asekomhe Based On Oral Tradition/Findings' — a family historian of the Asekomhe dynasty of Innih. " +
+      "Cited for: Pa Asekomhe 'the first son of Pa Ekhaegbai, whose father, Pa Ereghi, was the patriarch'; 'Pa Ereghi, or " +
+      "his father, is believed to be a direct offspring of the great Imhakhena'; Pa Asekomhe's seven surviving children — " +
+      "Pa Itsisor (died 1968), Pa Ikhane, Pa Imhonikhe, Pa Apemheye, Pa Charlie, 'Uwomha Ikhuenena, mother of Samuel " +
+      "Okomilo', and Uwomha Ebepogwa (Nwanwa), who married the Oluwe royal father in Iraokhor; Pa Nicholas Apemheye's church " +
+      "wedding on 5 November 1932 and his '14 strokes of the Cain'; and the Azido covenant of stones and Imhakhena's burial " +
+      "of 'their mother, Aleukoko' at Ogbona. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_catholic_history",
+    title: "The History of Catholic Church and Primary School in Ogbona",
+    author: "Deacon John Odior Anaweokhai",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2017,
+    publishedDisplay: "10 April 2017",
+    url: "https://ogbonaelites.org/the-history-of-catholic-church-and-primary-school-in-ogbona/",
+    sourceType: "website",
+    notes:
+      "Cited for: 'Until 1927, there was neither church nor school in Ogbona'; Robert Odogbo catechist 1927–1948; the first " +
+      "Christian marriage in Ogbona, Nicholas Apemheyie Asekomhe and Regina Egbekhoze (née Odior), 15 November 1932; GEORGE " +
+      "OKOMILO among the pioneer faithful; and the 1931 case — a customary-court bailiff from Fugar refused 'his usual " +
+      "entitlements of four pence, a fowl and tubers of yam' and manhandled, the 'Auchi based British District Officer' " +
+      "presiding at Fugar, and seven men including George Okomilo given 'fourteen strokes of cane each with two month of " +
+      "imprisonment… at Auchi prison'. The author's uncle Pa James Anaweokhai (1904–1987) is named as an oral source for " +
+      "parts of the account. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_stjohn_godwin",
+    title: "St John the Baptist Catholic Church: Past, Present and Future",
+    author: "Godwin Asekomhe",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2022,
+    url: "https://ogbonaelites.org/st-john-the-baptist-catholic-church-past-present-and-future/",
+    sourceType: "website",
+    notes: "Gives the church as 'established in the early 20s' and lists George Okomilo among the pioneer lay faithful. Its author is a son of Nicholas Apemheye Asekomhe. " + READ_FULL,
+  },
+  {
+    key: "oe_okozi_ebeto",
+    title: "His Royal Highness, Okozi Ebeto",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2026,
+    publishedDisplay: "9 August 2026",
+    url: "https://ogbonaelites.org/his-royal-highness-okozi-ebeto/",
+    sourceType: "website",
+    notes:
+      "Cited for Okozi Ebeto ('born around the year 1876', of Ivhiulagwua, Ivhianaga), Warrant Chief of Ogbona 1920–1931, and " +
+      "his lineage: of the House of Eloghe (one of his eight wives) 'came Oboagah and Ikpadelameka Okomilo'. Also: Ukpi " +
+      "suspended under the Warrant Chief system 1914–1931; a District Head at Auchi named as 'Mr. E. V. Scalo'. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_ogedegbe_genealogy",
+    title: "Biographies of Some of the Great Ogbona Men and Women — Chief Imhana Andrew Ogedegbe",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2017,
+    url: "https://ogbonaelites.org/biographies-of-some-of-the-great-ogbona-men-and-women/",
+    sourceType: "website",
+    notes:
+      "Cited for the Innih genealogy in Chief Imhana Ogedegbe's funeral biography: 'IKEKU is of the lineage of Itse (Ivhitse) " +
+      "who was the father of Okoko, Iniaru, Itebalumhe, Enike…; OKOKO was the father of Imhomo, Innih, Esuka…; Imhomo had " +
+      "three sons and a daughter namely: Atogwe, Emoekpere, Igbenegwu (daughter) and… Oyarebu alias Ogedegbe; ATOGWE was the " +
+      "father of Azoganokhai…' — and Imhana Ogedegbe as 'head of the entire extended family of Innih (Apinnih)'. OKOMILO DOES " +
+      "NOT APPEAR in this genealogy. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_villages_2026",
+    title: "Ogbona Villages: Description and What They Are Known For",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2026,
+    url: "https://ogbonaelites.org/ogbona-villages-description-and-what-they-are-known-for/",
+    sourceType: "website",
+    notes: "'Ivhitse-Ivhioche, is composed of four villages: Akpeokhai, Enamino, Innih, and Ototo… Innih Village consists of the Asekomhe, Azoganokhai, Emoekpere, Idegbesor, Iniaru, Odogbo, Ogedegbe, Okomilo, and Onokozi families.' " + READ_FULL,
+  },
+  {
+    key: "oe_orbih_address",
+    title: "An Address at the Installation of Chief Jacob Orbih as Akpagi of Ivhido Village",
+    author: "Chief Hon. Jos Akhigbe Alemoh (JP), the Oghieanor of Avianwu",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2017,
+    url: "https://ogbonaelites.org/an-address-at-the-installation-of-chief-jacob-orbih-as-akpagi-of-ivhido-village/",
+    sourceType: "oral_tradition",
+    notes:
+      "A speech, so a record of oral tradition as delivered by a titled elder. Cited for: ALOKOKO as Imhakhena's mother, who " +
+      "chose to stay with him and 'was buried therein'; 'This is the reason why Ogbona has the authority to announce… when " +
+      "girls fit to be initiated into womanhood would start the process'; 'Avianwu by tradition do not eat python which " +
+      "represents Aloukoko our mother but, if by a mistake you eat it, you have to go to the shrine located at Ogbona built " +
+      "for our mother to appease her'. The speaker's name includes AKHIGBE — possibly, not demonstrably, the 'Akhigbe' " +
+      "whose 1851 Okhe date another article disputes. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_anaweokhai_veins",
+    title: "The Ogbona That Flows in My Veins",
+    author: "Deacon (Dr.) John Odior Anaweokhai",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2019,
+    url: "https://ogbonaelites.org/the-ogbona-that-flows-in-my-veins-by-deacon-john-odior-anaweokhai-2/",
+    sourceType: "website",
+    notes:
+      "A long serial memoir. Cited for: Ogbona 'according to oral tradition was the last son of his parents, Eramha Anwu and " +
+      "Uwomha Alokoko'; Anwu 'stayed briefly in Uzairue before migrating finally… to UTUAGBABOR, Fugar… circa the 13th " +
+      "century'; Alokoko buried at Ogbona 'with her symbol of authority and womanhood, UME'; and the eldest man as custodian " +
+      "of 'the Royal Python, ALOKOKO', the python's tracks deciding who is eldest, Eramha Ilokhor of the Esue compound dying " +
+      "'circa 1979'. Note the honorifics: Eramha for a man, Uwomha for a woman. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_burial_rites",
+    title: "Burial Processes and Traditional Rites in Ogbona/Avhianwu and Itekwi Sacred Performance for the Titled Eldest Man",
+    publisher: "Ogbona Elites (ogbonaelites.org), based on material by Dr. John Odior Anaweokhai",
+    publishedYear: 2026,
+    url: "https://ogbonaelites.org/burial-processes-and-traditional-rites-in-ogbona-avhianwu-and-itekwi-sacred-performance-for-the-titled-eldest-man/",
+    sourceType: "website",
+    notes: "A 2026 rewrite of the memoir's account: the eldest man as 'guardian of… the Royal Python known as ALOKOKO'; Eramha Ilokhor's death 'around 1979' and the ITEKWI rite. Same author, same account — not a second witness. " + READ_FULL,
+  },
+  {
+    key: "oe_iraokhor_comments",
+    title: "Reader comments under 'History of Iraokhor' (pasted chat messages, 18–19 January 2025)",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2025,
+    url: "https://ogbonaelites.org/history-of-iraokhor/",
+    sourceType: "oral_tradition",
+    notes:
+      "Messages appended to the article. Barr. Felix Osimerha (19 Jan 2025): 'I believe I have story of how the Oba of Bini " +
+      "subjected his subjects to Pharaoh type of treatment of the Israelites, hence Anwu moved out and on the way he and his " +
+      "family cross a river by the help of the python.' Archbishop Fidelis Itsuokor: 'There have been divergent views of how " +
+      "Avianwu came about, everyone is writing the history of Avianwu to justify themselves… let all the various writers… " +
+      "harmonize their claims.' The ONLY written trace of the python-assisted crossing found. " +
+      READ_FULL,
+  },
+  {
+    key: "oe_ore_okhiyie",
+    title: "Ore Okhiyie (Ore Okhiyie means I have come and I won't go back, immortality)",
+    publisher: "Ogbona Elites (ogbonaelites.org)",
+    publishedYear: 2017,
+    url: "https://ogbonaelites.org/ore-okhiyie-ore-okhiyie-means-i-have-come-and-i-wont-go-back-immortality/",
+    sourceType: "website",
+    notes: "Places Imhakhena's arrival at the Ore Okhiyie tree in the 14th century and glosses the name; Alokoko pressing him to return to Fugar. " + READ_FULL,
+  },
+  {
+    key: "strub_1915",
+    title: "Essai d'une grammaire de la langue Kukuruku (Nigeria, Afrique Occidentale)",
+    author: "Eugène Strub",
+    publisher: "Anthropos",
+    publishedYear: 1915,
+    publishedDisplay: "1915–16",
+    url: "https://archive.org/details/rosettaproject_ets_morsyn-2",
+    sourceType: "academic_paper",
+    notes:
+      "THE EARLIEST ETSAKO ('Kukuruku') GRAMMAR LOCATED — by a Catholic missionary, in Anthropos. Catalogued on archive.org; " +
+      "the scan itself could not be downloaded from the research environment. The first place to look for a gloss of " +
+      "Okomilo, Ikhenemho or Innih, and for the word for God.",
+  },
+  {
+    key: "elimelech_1978",
+    title: "A Tonal Grammar of Etsakọ",
+    author: "Baruch Elimelech",
+    publisher: "University of California Press",
+    publishedYear: 1978,
+    url: "https://archive.org/details/tonalgrammarofet00elim",
+    sourceType: "academic_book",
+    notes: "Standard modern grammar of Etsako, with a bibliography (pp. 137–141). Lending-restricted on archive.org; not read. The place to test a segmentation of Ikhenemho.",
   },
   // --- The 1999 book and its predecessors ------------------------------------
   {
@@ -345,7 +516,7 @@ const COMMUNITY_SOURCES: SeedSource[] = [
   {
     key: "denton_1936_etsako",
     title: "Political Intelligence Report on the Etsako Clans of the Kukuruku Division",
-    author: "N. Denton (as given in the brief; a 'C. B. Denton' and an 'H. C. B. Denton' appear in other sources)",
+    author: "H. C. B. Denton, Acting District Officer, Kukuruku Division (the brief's 'N. Denton' is unconfirmed)",
     publishedYear: 1936,
     reference: "National Archives of Nigeria, Ibadan — file number NOT located",
     sourceType: "government",
@@ -773,9 +944,10 @@ function undated(
 }
 
 const COMMONS_NOTE =
-  "File name taken from a search-result URL. The Commons file page could not be opened from the research environment " +
-  "(network policy), so creator and licence are fetched from the page at seed time and nothing here has been checked " +
-  "against it by hand.";
+  "File name taken from a search-result URL. On 2 October 2026 the name was confirmed to resolve to a real file on " +
+  "Wikimedia Commons (Special:Redirect returned the upload; a deliberately false name returned 404). The Commons API " +
+  "was rate-limiting the research environment, so creator and licence were NOT read by hand: they are fetched from the " +
+  "file page at seed time.";
 
 /** A Wikimedia Commons picture whose credit is fetched at seed time. */
 function commons(fileName: string, caption: string, shows: string, extra: Partial<SeedPicture> = {}): SeedPicture {
@@ -908,6 +1080,11 @@ const FAMILY_EVENTS: SeedEvent[] = [
     description:
       "Family testimony is precise about WHY: Sam was returned to Ogbona in 1948 specifically so he would grow up in " +
       "Ogbona and Avhianwu culture rather than in Jos.\n\n" +
+      "THE COMMUNITY PROFILE SAYS THE SAME, AND ADDS TWO THINGS: 'When the father relocated to Ibadan, his father decided " +
+      "as the first son, he would go home to learn about Ogbona cum Avhianwu culture' — so Sam was the FIRST SON, and the " +
+      "move home coincided with his father's move from Jos to Ibadan. And it says Sam later brought his own son home as a " +
+      "child 'to take the Okhei title… just like his father did for him' — the only text found that ties the Okhe title " +
+      "specifically to the Okomilo line, and that implies Sam himself was initiated as a boy in Ogbona.\n\n" +
       "NEW DETAIL FROM THE COMMUNITY PROFILE: at St John's Primary School, Ogbona, he 'was taught by Chief Patrick O " +
       "Oboarekpe under the Headship of Chief MCK Orbih'. St John's belongs to the Catholic mission whose Ogbona church, St " +
       "John the Baptist, had its first lay faithful in the 1920s — among them a George Okomilo (separate record).\n\n" +
@@ -945,7 +1122,9 @@ const FAMILY_EVENTS: SeedEvent[] = [
       "The Ogbona community profile is the only source found for Sam's secondary schooling: he 'proceeded to EDC " +
       "Secondary Model School at Igbhe Rd in Auchi in 1957 and finished at Blessed Martins in Jattu in 1959'. It adds that " +
       "he 'declined an offer to teach' and went to Ibadan.\n\n" +
-      "Not previously in the family brief, and worth chasing: both schools' registers would carry a parent's name.",
+      "Not previously in the family brief, and worth chasing: both schools' registers would carry a parent's name.\n\n" +
+      "INDEPENDENTLY CONFIRMED (new): the funeral biography of his classmate G.K. Enegwea lists 'Ikhenemho Sam Okomilo' in " +
+      "the Blessed Martin's Class of 1959 under principal M.C.K. Orbih, which passed 100 percent, Sam 'with distinction'.",
     category: "people",
     subcategory: OKOMILO_LANES.family,
     eventType: "historical",
@@ -964,7 +1143,24 @@ const FAMILY_EVENTS: SeedEvent[] = [
         originalDateText: "'EDC Secondary Model School… Auchi in 1957… Blessed Martins in Jattu in 1959'",
         datingMethod: "source_assertion",
         chronology: "community",
-        evidence: "Community profile, snippet level. No school record has been seen.",
+        evidence: "Community profile, read in full. No school record has been seen.",
+      },
+      {
+        sourceKey: "oe_enegwea_bio",
+        startYear: 1957,
+        endYear: 1959,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        originalDateText: "Blessed Martin's Secondary Modern School, Jattu, 1957–1959; 'Ikhenemho Sam Okomilo' passes with distinction",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "the class of 1959 at Blessed Martin's, Jattu",
+        evidence:
+          "AN INDEPENDENT WITNESS: the funeral biography of Sam's classmate Gregory Kasimu Enegwea, written by Enegwea's " +
+          "family. It names Sam among the classmates, says the Class of 1959 had a 100 percent pass and that Sam passed " +
+          "with distinction, and that the Ogbona boys walked home at weekends for food. It puts Enegwea — not necessarily " +
+          "Sam — at Jattu for all three years; the profile has Sam starting at Auchi in 1957. Both are kept.",
       },
     ],
   },
@@ -1017,8 +1213,13 @@ const FAMILY_EVENTS: SeedEvent[] = [
       "candidate — and still only a candidate.\n\n" +
       "WHAT IS NOT KNOWN: the document's title, issuing body, date, page and course; whether the training was UCH's or a " +
       "government photographic section's (for example the Ministry of Information); and whether M. U. Eriavbe can be " +
-      "traced. Searches for 'S. Okomilo', the phrase 'photographic trainee', 'Eriavbe', and Official Gazette issues of " +
-      "1960–62 returned nothing that named either man.\n\n" +
+      "traced.\n\n" +
+      "A SYSTEMATIC NEGATIVE (second pass): the full text of 195 weekly issues of the Federation of Nigeria Official " +
+      "Gazette, January 1959 – December 1962, was searched for 'Okomilo' (and OCR variants), 'Eriavbe' and 'photographic " +
+      "trainee'. Neither man appears. The OCR is good enough to find other appointments ('Photographic Assistant, Grade " +
+      "I' at the Ministry of Information appears repeatedly), so the absence is real for those issues. NOT searched: 14 " +
+      "weekly issues that could not be located, extraordinary issues and supplements, the Western Region gazette, and " +
+      "departmental annual reports — the last being the likeliest home of a list of trainees.\n\n" +
       "WHAT WOULD SETTLE IT: the document itself, or a later report giving the trainee's full name, posting (UCH or LUTH) " +
       "or ministry. Until then this record is NOT linked to Sam as the same person.",
     category: "people",
@@ -1053,7 +1254,10 @@ const FAMILY_EVENTS: SeedEvent[] = [
     title: "Sam Okomilo moves to LUTH, Lagos",
     summary: "After UCH, Sam worked at Lagos University Teaching Hospital, before leaving for London in 1964.",
     description:
-      "Both the family and the community profile say Sam moved from UCH Ibadan to LUTH. No year is given. The window can " +
+      "Both the family and the community profile say Sam moved from UCH Ibadan to LUTH. The profile explains how: 'Lagos " +
+      "University Teaching Hospital was opened and his immediate boss was employed there as the head of the medical " +
+      "photography unit. His boss persuaded him to join him in Lagos. In his 20s he was an assistant medical photographer " +
+      "with a big staff quarter and an official car', which he turned down for a Vespa. No year is given; the window can " +
       "only be bounded: after the 1960–62 training and before the 1964 move to London.\n\n" +
       "A CAUTION ON THE BOUNDS: LUTH as an institution dates from the early 1960s; whether its photographic department " +
       "existed before 1964 has not been checked. If it did not, the family's 'LUTH' may refer to a predecessor or to a " +
@@ -1198,6 +1402,11 @@ const FAMILY_EVENTS: SeedEvent[] = [
       "the Middle East between September 1945 and January 1946, waiting there for repatriation. That fits 'was in Egypt' " +
       "better than the usual East Africa / Burma story, in which no Suez transit of the 81st or 82nd Divisions is " +
       "documented. None of this identifies him or his unit.\n\n" +
+      "NEW CORROBORATION: the 1983 burial is independently remembered in the funeral biography of Sam's school friend " +
+      "G.K. Enegwea, who drummed at it — and the war service, Egypt and the naming of Ikhenemo appear in Sam's community " +
+      "profile (very probably from the family). The community profile also says the father 'relocated to Ibadan' and " +
+      "that Sam was his FIRST SON. A WWII veteran of Ogbona, Michael Idogho, is named in the community's 'firsts' list; " +
+      "comparing their service would be a lead, not an identification.\n\n" +
       "WHERE HIS NAME IS MOST LIKELY TO BE: the St John's Primary School register (1948); Sam's secondary-school registers " +
       "(Auchi 1957, Jattu 1959); UCH and Federal Ministry personnel files (1960); University of Edinburgh matriculation " +
       "records (1970); a 1983 Ogbona funeral programme or Catholic burial register; and NAI Ibadan / Benin Prof and " +
@@ -1233,6 +1442,37 @@ const FAMILY_EVENTS: SeedEvent[] = [
           "garrison companies, his time in Egypt may have run into 1946.",
       },
       {
+        sourceKey: "oe_profiles",
+        startYear: 1939,
+        endYear: 1945,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "date_range",
+        originalDateText: "'fought as part of the British West African Frontiers in Egypt and other parts of the world' (community profile)",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "his wartime service, as the community profile of Sam tells it",
+        evidence:
+          "Read in full. Agrees with the family account and almost certainly derives from it — a profile of a living man " +
+          "is written from what he and his family say — so it is the same testimony in print, not a second witness. It " +
+          "adds that the name Ikhenemo was given after 'the agony of the WW11'.",
+      },
+      {
+        sourceKey: "oe_enegwea_bio",
+        startYear: 1983,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "'the burial ceremony of the father of his friend, Ikhenemho Sam Okomilo, in 1983'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "his burial ceremony",
+        evidence:
+          "AN INDEPENDENT CORROBORATION. The funeral biography of Sam's school friend G.K. Enegwea, written by the Enegwea " +
+          "family, recalls that Enegwea drummed at this burial. It agrees with the family's 1983 and comes from outside the " +
+          "Okomilo family. It does not give the father's name.",
+      },
+      {
         sourceKey: "family_testimony",
         startYear: 1983,
         datePrecision: "year",
@@ -1250,43 +1490,136 @@ const FAMILY_EVENTS: SeedEvent[] = [
   },
   {
     slug: "okomilo-uwomha-ikhuenena",
-    title: "Uwomha Ikhuenena, Sam Okomilo's mother",
-    summary: "Mother of Sam Ikhenemho Okomilo; daughter of Pa Asekomhe. Of the Ikhuenena family of Ivhiochie quarter, Ogbona.",
+    title: "Uwomha Ikhuenena, Sam Okomilo's mother, daughter of Pa Asekomhe",
+    summary:
+      "Mother of Sam Ikhenemho Okomilo (family testimony), and named in the Asekomhe dynasty history as 'Uwomha Ikhuenena, " +
+      "mother of Samuel Okomilo', one of Pa Asekomhe's two daughters among seven surviving children.",
     description:
-      "Family testimony names Sam's mother as Uwomha Ikhuenena, daughter of Pa Asekomhe. The community profile says Sam was " +
-      "born to 'the families of Okomilo and Ikhuenena both of Ivhiochie quarter'.\n\n" +
-      "OPEN: her dates; her own village within Ivhiochie; and how a daughter of 'Pa Asekomhe' carries the name Ikhuenena. " +
-      "Whether that Pa Asekomhe belongs to the Asekomhe family of Innih is a separate, open question — same name is not " +
-      "same family.",
+      "TWO SOURCES, AND THEY AGREE: family testimony names Sam's mother as Uwomha Ikhuenena, daughter of Pa Asekomhe; " +
+      "Wilson Asekomhe's history of the Asekomhe Ekhaegbai dynasty (2024, 'based on oral tradition') lists among Pa " +
+      "Asekomhe's children 'Uwomha Ikhuenena, mother of Samuel Okomilo'. The second comes from the Asekomhe family, not the " +
+      "Okomilo family.\n\n" +
+      "HER SIBLINGS, per that history: Pa Itsisor (first son; herbalist and snakebite healer; died 1968), Pa Ikhane " +
+      "(railway civil engineer; died at 48), Pa Imhonikhe (railways), Pa (Nicholas) Apemheye (Catholic pioneer — separate " +
+      "record), Pa Charlie (Momodu), and her sister Uwomha Ebepogwa (Nwanwa), who married the Oluwe royal father in " +
+      "Iraokhor.\n\n" +
+      "'UWOMHA' IS VERY PROBABLY A TITLE, NOT HER GIVEN NAME. The same sources write 'Uwomha Alokoko', 'Uwomha Eladi', " +
+      "'Uwomha Aminetu', 'Uwomha Mary' for women and 'Eramha Anwu', 'Eramha Isaac' for men — Uwomha and Eramha behave as the " +
+      "honorifics for a senior woman and man. Her own name may therefore be Ikhuenena. That is an inference from usage; no " +
+      "source states it.\n\n" +
+      "STILL OPEN: her dates, and how she relates to the 'Ikhuenena family' of Ivhiochie named in Sam's profile.",
     category: "people",
     subcategory: OKOMILO_LANES.family,
     eventType: "historical",
-    tags: ["okomilo-specific", "ikhuenena", "asekomhe", "ivhiochie", "evidence:family-testimony", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
-    people: ["Uwomha Ikhuenena", "Pa Asekomhe", "Sam Ikhenemho Okomilo"],
+    tags: ["okomilo-specific", "ikhuenena", "asekomhe", "ivhiochie", "evidence:family-testimony", "evidence:community-history", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
+    people: ["Uwomha Ikhuenena", "Pa Asekomhe", "Sam Ikhenemho Okomilo", "Pa Itsisor", "Pa Ikhane", "Pa Imhonikhe", "Nicholas Apemheye Asekomhe", "Pa Charlie Momodu", "Uwomha Ebepogwa"],
     civilisations: [AVHIANWU],
     locationName: "Ivhiochie quarter, Ogbona",
-    claims: [undated("family_testimony", "Dates not known", "No date of birth, marriage or death has been supplied or found.")],
+    claims: [
+      undated("family_testimony", "Dates not known", "No date of birth, marriage or death has been supplied or found."),
+      undated("oe_asekomhe_dynasty", "Listed among Pa Asekomhe's children (no dates)", "The dynasty history gives the relationship and no dates for her; it dates only her brother Itsisor's death (1968)."),
+    ],
   },
   {
     slug: "okomilo-pa-asekomhe-maternal-grandfather",
-    title: "Pa Asekomhe, father of Uwomha Ikhuenena",
-    summary: "Sam Okomilo's maternal grandfather, per family testimony. His relationship to the Asekomhe family of Innih is NOT established.",
+    title: "Pa Asekomhe Ekhaegbai, Sam Okomilo's maternal grandfather",
+    summary:
+      "Father of Uwomha Ikhuenena (family testimony). The Asekomhe dynasty history makes him the first son of Pa Ekhaegbai " +
+      "and grandson of Pa Ereghi, and names 'Uwomha Ikhuenena, mother of Samuel Okomilo' among his seven children — so the " +
+      "identification left open in the first pass is now made by a named source.",
     description:
-      "Family testimony: Uwomha Ikhuenena was the daughter of Pa Asekomhe.\n\n" +
-      "A TEMPTING MATCH, NOT YET A MATCH. The Ogbona community site carries a genealogy of a 'Pa Asekomhe', first son of Pa " +
-      "Ekhaegbai, son of Pa Ereghi, patriarch of the Asekomhe dynasty of Innih — a hunter, trader, herbalist who healed " +
-      "snakebite, and a seer, 'feared… for his closeness to colonial slave masters'. Asekomhe is also one of the nine " +
-      "families of Innih, the village of the Okomilo family. If this is the same man, Sam's maternal line reaches into the " +
-      "community genealogy. But Asekomhe is a family name borne by many men, nothing yet connects THIS Pa Asekomhe to that " +
-      "one, and the two records are therefore kept apart.",
+      "RESOLVED SINCE THE FIRST PASS: family testimony said Sam's mother was a daughter of 'Pa Asekomhe'; the first pass " +
+      "refused to identify him with the Pa Asekomhe of the Asekomhe dynasty because nothing joined them. Wilson Asekomhe's " +
+      "dynasty history does: among the dynasty's Pa Asekomhe's children is 'Uwomha Ikhuenena, mother of Samuel Okomilo'. " +
+      "The identification rests on that named family historian, writing from oral tradition.\n\n" +
+      "WHO HE WAS, in that history: 'a prominent hunter and commodity trader, who was feared by his subjects for his " +
+      "closeness to colonial slave masters'; 'a great popular herbalist… prominent in healing people bitten by snakes and a " +
+      "Seer'; a power broker in the palace of the then Okphe-Ukpi, Pa Okozi (Warrant Chief 1920–1931) — which places his " +
+      "prime in the early colonial decades.\n\n" +
+      "This is the point at which Sam's MATERNAL line enters a community genealogy with names for three further " +
+      "generations: Pa Asekomhe ← Pa Ekhaegbai ← Pa Ereghi.",
     category: "people",
     subcategory: OKOMILO_LANES.family,
     eventType: "historical",
-    tags: ["okomilo-specific", "asekomhe", "evidence:family-testimony", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
-    people: ["Pa Asekomhe", "Uwomha Ikhuenena"],
+    identificationStatus: "probable",
+    tags: ["okomilo-specific", "asekomhe", "innih", "evidence:family-testimony", "evidence:community-history", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
+    people: ["Pa Asekomhe", "Uwomha Ikhuenena", "Pa Ekhaegbai", "Okozi Ebeto"],
     civilisations: [AVHIANWU],
-    locationName: "Ogbona",
-    claims: [undated("family_testimony", "Dates not known", "Family testimony gives the relationship and no dates.")],
+    locationName: "Asekomhe compound, Innih, Ogbona",
+    claims: [
+      undated("family_testimony", "Dates not known", "Family testimony gives the relationship and no dates."),
+      {
+        sourceKey: "oe_asekomhe_dynasty",
+        citations: [{ sourceKey: "oe_okozi_ebeto", relation: "context", note: "Okozi Ebeto, in whose palace Pa Asekomhe was influential, was Warrant Chief 1920–1931." }],
+        startYear: 1900,
+        endYear: 1931,
+        datePrecision: "decade",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        originalDateText: "Active in the palace of 'the then Okphe-Ukpi of Ogbona, the great Pa Okozi'",
+        datingMethod: "claimant_inference",
+        chronology: "community",
+        whatIsDated: "the period of his influence — inferred, not stated",
+        evidence:
+          "NOT A STATED DATE. The dynasty history ties him to Pa Okozi's palace and to 'colonial slave masters'; Okozi was " +
+          "Warrant Chief 1920–1931 (born c.1876). The range is an inference from those anchors and nothing more.",
+      },
+    ],
+  },
+  {
+    slug: "okomilo-nicholas-apemheye-asekomhe",
+    title: "Nicholas Apemheye Asekomhe: Sam's maternal uncle, Catholic pioneer, first church wedding in Ogbona",
+    summary:
+      "A son of Pa Asekomhe — so Uwomha Ikhuenena's brother and Sam Okomilo's maternal uncle. Jailed in 1931 with George " +
+      "Okomilo; married in Ogbona's first Christian wedding in November 1932.",
+    description:
+      "NEW, AND IT CONNECTS TWO LINES. The Asekomhe dynasty history lists 'Pa Apemheye' among Pa Asekomhe's sons and says " +
+      "he 'played a prominent role in the founding of St John the Baptist Catholic Church, Ogbona', had 'the first " +
+      "indigenous Ogbona Christian… Church wedding' with Uwomha Egbekhoze Regina, daughter of Pa Odior Okhoghiemhe, and was " +
+      "'allegedly punished with 14 strokes of the Cain'. The church histories name the same man, 'Nicholas Apemheye(i) " +
+      "Asekomhe', among the seven jailed at Auchi in 1931 — alongside GEORGE OKOMILO. So Sam's maternal uncle and an " +
+      "Okomilo of the previous generation were imprisoned together.\n\n" +
+      "THE WEDDING DATE DIFFERS: 5 November 1932 (dynasty history) and 15 November 1932 (church history). Both are kept.\n\n" +
+      "He was also Apoghie/Apodior's representative in the palace of Chief Patrick Ajayi Oboarekpe — the teacher who " +
+      "taught Sam at St John's.",
+    category: "people",
+    subcategory: OKOMILO_LANES.family,
+    eventType: "historical",
+    identificationStatus: "probable",
+    tags: ["asekomhe", "catholic", "mission", "okomilo-specific", "evidence:community-history", "evidence:missionary-record", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
+    people: ["Nicholas Apemheye Asekomhe", "Regina Egbekhoze Asekomhe", "Pa Asekomhe", "George Okomilo"],
+    civilisations: [AVHIANWU],
+    locationName: "Ogbona; Auchi prison",
+    claims: [
+      {
+        sourceKey: "oe_asekomhe_dynasty",
+        startYear: 1932,
+        startMonth: 11,
+        startDay: 5,
+        datePrecision: "day",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "Church wedding 'on 5th to November 1932'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "his church wedding",
+        evidence: "Dynasty history (Asekomhe family).",
+      },
+      {
+        sourceKey: "oe_catholic_history",
+        startYear: 1932,
+        startMonth: 11,
+        startDay: 15,
+        datePrecision: "day",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "'On the 15th of November, 1932, the first Christian marriage ever took place in Ogbona'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "his church wedding",
+        evidence: "Church history (Anaweokhai). Ten days from the other date; the parish marriage register would settle it.",
+      },
+    ],
   },
   {
     slug: "okomilo-veronica-early-schoolgirl",
@@ -1311,45 +1644,53 @@ const FAMILY_EVENTS: SeedEvent[] = [
   },
   {
     slug: "okomilo-george-catholic-pioneer-jailed",
-    title: "George Okomilo, Catholic pioneer, caned and jailed at Auchi — the earliest documented Okomilo found",
+    title: "George Okomilo, Catholic pioneer, caned and jailed at Auchi in 1931 — the earliest documented Okomilo found",
     summary:
-      "One of seven pioneer lay faithful of St John the Baptist Catholic Church, Ogbona, given fourteen strokes of the cane " +
-      "and two months' imprisonment at Auchi prison, dated 1931–1932, in a conflict over the new faith's teaching against " +
-      "sacrifice and Okhe rites.",
+      "One of the pioneer lay faithful of St John the Baptist Catholic Church, Ogbona (parish from 1927). In 1931 he and six " +
+      "others were tried by the British District Officer at Fugar after a customary-court bailiff was manhandled, and given " +
+      "fourteen strokes of the cane and two months in Auchi prison.",
     description:
-      "NEW, AND THE EARLIEST DATED OKOMILO FOUND. The Ogbona community history names George Okomilo among the pioneer lay " +
-      "faithful of the Catholic church 'established in the early 20s', and among seven men — Eramha David Agbiko Enamino, " +
-      "George Okomilo, Robert Odogbo, Cletus Anaweokhai, Nicholas Asekomhe, Martins Esi and Richard Asekomhe — 'found " +
-      "culpable' and given 'fourteen strokes of cane each with two months of imprisonment which were served at Auchi " +
-      "prison'. The stated background is the church's 'teaching against pagan practices like sacrifices to idols, okhei " +
-      "traditional rites'.\n\n" +
-      "TWO DATES, ONE EPISODE?: a related snippet says the seven 'were jailed for two months in Auchi prison in " +
-      "1931-1932'; the Okhaishie chronology lists '1930: mass arrest of Christians'. Both are on the same website and may " +
-      "share an origin; they are kept as separate claims.\n\n" +
-      "WHY IT MATTERS GENEALOGICALLY: Odogbo and Asekomhe — two of George's fellow prisoners' families — are, like Okomilo, " +
-      "among the nine families of Innih. George is a plausible senior relative of Sam's father's generation, and nothing " +
-      "yet says so. A conviction would have produced a Native Court or District Officer's record in the Kukuruku Division " +
-      "files — a colonial document with his full name.",
+      "THE EARLIEST DATED OKOMILO FOUND, now read in full in two church histories (Deacon John Odior Anaweokhai, 2017; " +
+      "Godwin Asekomhe, 2022) and a memoir.\n\n" +
+      "WHAT HAPPENED, as Anaweokhai tells it: 'Matters came to head in 1931 when Eramha Agbiko Enamino had an issue with " +
+      "one of the unbelievers.' Enamino was served a summons by the customary-court bailiff from Fugar; the Christians " +
+      "refused the bailiff 'his usual entitlements of four pence, a fowl and tubers of yam', and 'when the bailiff " +
+      "insisted with overt threats… he was manhandled'. 'The Auchi based British District Officer… personally came to " +
+      "Fugar to preside over the Case. All the seven culprits including, Eramha David Agbiko Enamino, George Okomilo, " +
+      "Robert Odogbo, Cletus Anaweokhai, Nicholas Asekomhe Martins Esi and Richard Asekomhe were found culpable and were " +
+      "summarily given fourteen strokes of cane each with two month of imprisonment which were served at Auchi prison.' On " +
+      "the last night, Nicholas Asekomhe is said to have found 'a strange bell' beside him, kept by his son to this day.\n\n" +
+      "WHY IT MATTERS GENEALOGICALLY: Nicholas Apemheye Asekomhe, jailed with George, was a son of Pa Asekomhe — SAM'S " +
+      "MATERNAL UNCLE. Odogbo and Asekomhe are, like Okomilo, families of Innih. George is a plausible senior relative of " +
+      "Sam's father's generation, and nothing yet says so.\n\n" +
+      "A COLONIAL RECORD SHOULD EXIST: a case tried by the District Officer at Fugar in 1931, with corporal punishment and " +
+      "imprisonment, would appear in the Kukuruku Division court and prison records and probably in the Benin Province " +
+      "files — with George's full name.",
     category: "people",
     subcategory: OKOMILO_LANES.family,
     eventType: "historical",
     tags: ["okomilo", "okomilo-specific", "earliest-documented-okomilo", "catholic", "mission", "auchi", "colonial-court", "evidence:community-history", "evidence:missionary-record", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
-    people: ["George Okomilo", "Eramha David Agbiko Enamino", "Robert Odogbo", "Cletus Anaweokhai", "Nicholas Asekomhe", "Martins Esi", "Richard Asekomhe"],
+    people: ["George Okomilo", "Eramha David Agbiko Enamino", "Robert Odogbo", "Cletus Anaweokhai", "Nicholas Apemheye Asekomhe", "Martins Esi", "Richard Asekomhe"],
     civilisations: [AVHIANWU],
-    locationName: "Ogbona; Auchi prison",
+    locationName: "Fugar (trial); Auchi prison",
     claims: [
       {
-        sourceKey: "oe_churches",
+        sourceKey: "oe_catholic_history",
+        citations: [
+          { sourceKey: "oe_stjohn_godwin", relation: "supports", note: "Names George Okomilo among the pioneer lay faithful; gives no year for the case." },
+          { sourceKey: "oe_asekomhe_dynasty", relation: "supports", note: "Nicholas Apemheye 'allegedly punished with 14 strokes of the Cain' — the same episode from the Asekomhe family." },
+        ],
         startYear: 1931,
-        endYear: 1932,
         datePrecision: "year",
         isApproximate: false,
-        temporalClaimType: "date_range",
-        originalDateText: "'jailed for two months in Auchi prison in 1931-1932'",
+        temporalClaimType: "explicit_date",
+        originalDateText: "'Matters came to head in 1931' — trial at Fugar, two months in Auchi prison",
         datingMethod: "source_assertion",
         chronology: "community",
-        whatIsDated: "the imprisonment of the seven Catholic pioneers",
-        evidence: "Community church history, snippet level. The underlying court record has not been seen.",
+        whatIsDated: "the trial and imprisonment of the seven Catholic pioneers",
+        evidence:
+          "Church history, read in full; the author names his uncle Pa James Anaweokhai (1904–1987) as a source for parts " +
+          "of the early account. The court record itself has not been seen.",
       },
       {
         sourceKey: "oe_major_events",
@@ -1360,10 +1701,10 @@ const FAMILY_EVENTS: SeedEvent[] = [
         originalDateText: "'1930: mass arrest of Christians'",
         datingMethod: "source_assertion",
         chronology: "community",
-        whatIsDated: "the arrests of Christians in Avhianwu (George is not named in this line)",
+        whatIsDated: "arrests of Christians in Avhianwu (George is not named in this line)",
         evidence:
-          "The Okhaishie chronology as reproduced online. It does not name George; it is recorded here because it may be " +
-          "the same episode a year earlier, and the difference should be visible rather than resolved by choosing.",
+          "The Okhaishie chronology. It does not name George; it may be the same episode dated a year earlier, and the " +
+          "difference is left visible rather than resolved by choosing.",
       },
     ],
   },
@@ -1388,6 +1729,97 @@ const FAMILY_EVENTS: SeedEvent[] = [
     civilisations: [AVHIANWU],
     locationName: "Innih, Ogbona",
     claims: [undated("oe_palace_villages", "Listed in the 3rd edition of the palace list (edition year not visible)", "The edition's year was not visible in the snippets.")],
+  },
+  {
+    slug: "okomilo-ikpadelameka-okomilo",
+    title: "Ikpadelameka Okomilo, in the lineage of Okozi Ebeto",
+    summary:
+      "Named in the 2026 lineage of Okozi Ebeto (born c.1876; Warrant Chief of Ogbona 1920–1931): of the House of Eloghe, " +
+      "one of Okozi's eight wives, 'came Oboagah and Ikpadelameka Okomilo'. How he — or she — connects to Sam's branch is " +
+      "not stated.",
+    description:
+      "NEW OKOMILO, FOUND ONLY BY READING THE FULL PAGE. The lineage of Okozi Ibeto/Ebeto lists eight 'houses', one per " +
+      "wife; the seventh, 'the House of Eloghe… From this line came Oboagah and Ikpadelameka Okomilo, whose families " +
+      "contribute to the richness of the wider Ibeto network.'\n\n" +
+      "WHAT IT DOES AND DOES NOT SAY: it places a person surnamed Okomilo among the descendants of Okozi through Eloghe, in " +
+      "the generation the page calls 'first-generation houses'. It does not say whether Ikpadelameka is Okozi's child or " +
+      "grandchild, a man or a woman, or whether the surname came by birth or by marriage. Okozi was of Ivhiulagwua in " +
+      "Ivhianaga — not Innih — so this is either a marriage link between the Okozi and Okomilo families or an Okomilo " +
+      "outside Innih. Neither is assumed.\n\n" +
+      "A further coincidence, recorded and not used: Pa Asekomhe, Sam's maternal grandfather, was influential in Okozi's " +
+      "palace.",
+    category: "people",
+    subcategory: OKOMILO_LANES.family,
+    eventType: "historical",
+    tags: ["okomilo", "okomilo-specific", "okozi", "evidence:community-history", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
+    people: ["Ikpadelameka Okomilo", "Okozi Ebeto", "Eloghe", "Oboagah"],
+    civilisations: [AVHIANWU],
+    locationName: "Ogbona",
+    claims: [undated("oe_okozi_ebeto", "Generation after Okozi Ebeto (b. c.1876); no date of his/her own", "The page gives a position in the lineage and no date.", "community", "genealogy")],
+  },
+  {
+    slug: "okomilo-okozi-ebeto-warrant-chief",
+    title: "Okozi Ebeto, Warrant Chief of Ogbona (1920–1931), and the suspension of the Ukpi",
+    summary:
+      "Born about 1876; appointed Warrant Chief in 1920 while the British suspended the traditional Ukpi (1914–1931); " +
+      "removed when the Ukpi was restored in 1931. Pa Asekomhe was a power in his palace; an Okomilo descends from one of " +
+      "his wives.",
+    description:
+      "From the 2026 biography and the palace list of 'Ogbona rulers… from 1892 to 2017': Okphe-Ukpi Aikpabeghie " +
+      "(1892–1904), Anyai (1904–1908, imprisoned for his part in the 'Dogbonoba war'), Ototo of Ivhitse (1908–1914); " +
+      "Warrant Chiefs Enakhumhe (1914–1917), Ikhumhetse (1917–1918) and Okozi (1920–1931); then Aleghe at the restoration " +
+      "of the Ukpi (1931–1938). The biography says Okozi refused to implement oppressive policies, reduced taxes, wanted " +
+      "a literate successor, and named the river Ekhabade about 1947.\n\n" +
+      "WHY IT IS HERE: it is the political world of George Okomilo's 1931 trial and of Pa Asekomhe's influence — and the " +
+      "1892 start of the ruler list is the likeliest source of the Guardian's otherwise baffling statement that Ogbona was " +
+      "'founded about 1892'.",
+    category: "history",
+    subcategory: OKOMILO_LANES.colonial,
+    eventType: "historical",
+    tags: ["warrant-chief", "ukpi", "okozi", "colonial", "avhianwu-context", "evidence:community-history", GENEALOGY_LAYER_TAGS.context, "nigeria"],
+    people: ["Okozi Ebeto", "Aikpabeghie", "Anyai", "Ototo", "Enakhumhe", "Ikhumhetse", "Aleghe", "E. V. Scalo"],
+    civilisations: [AVHIANWU, "British colonial Nigeria"],
+    locationName: "Ogbona",
+    claims: [
+      {
+        sourceKey: "oe_okhe_palace",
+        citations: [{ sourceKey: "oe_okozi_ebeto", relation: "supports", note: "Okozi 'ruled with distinction from 1920 to 1931 as the third and final Warrant Chief'." }],
+        startYear: 1920,
+        endYear: 1931,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        originalDateText: "Okozi (Warrant Chief) 1920 – 1931",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        evidence: "Palace ruler list and biography agree. Colonial appointment papers would confirm.",
+      },
+      {
+        sourceKey: "oe_okhe_palace",
+        startYear: 1892,
+        endYear: 1904,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_range",
+        originalDateText: "Aikpabeghie (Okphe Ukpi) 1892 – 1904 — first entry of the ruler list",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "the first reign in the list 'from 1892'",
+        evidence: "The list starts in 1892 because that is where the remembered sequence of named reigns begins, not because Ogbona began then.",
+      },
+      {
+        sourceKey: "oe_okozi_ebeto",
+        startYear: 1876,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "approximate_date",
+        originalDateText: "'born around the year 1876'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "Okozi's birth",
+        evidence: "Biography.",
+      },
+    ],
   },
   {
     slug: "okomilo-surname-sweep",
@@ -1432,6 +1864,9 @@ const BREAK_EVENT: SeedEvent = {
     "generation to the older genealogy of Innih, Ogbona and Avhianwu.\n\n" +
     "The timeline therefore changes evidence level:\n\n" +
     "DOCUMENTED / FAMILY-SUPPLIED OKOMILO GENEALOGY — Oshioma → Sam Ikhenemho → Sam's father (name not yet known)\n" +
+    "(and, on Sam's MOTHER'S side, since the second research pass: Sam → Uwomha Ikhuenena → Pa Asekomhe → Pa Ekhaegbai → " +
+    "Pa Ereghi, named by the Asekomhe family historian — after which the same break occurs: Pa Ereghi 'or his father' is " +
+    "'believed to be a direct offspring' of Imhakhena across uncounted generations)\n" +
     "↓\n" +
     "UNKNOWN GENERATIONS — Sam's paternal grandfather and every Okomilo before him back to the founder of the family; " +
     "George, Veronica and Simeon Okomilo are documented but not yet placed\n" +
@@ -1480,9 +1915,15 @@ const INNIH_EVENTS: SeedEvent[] = [
       "Ivhiochie section of Ogbona, under palace chief John Ogedegbe.\n\n" +
       "NOT ESTABLISHED: who founded the Okomilo family; when it became part of Innih; whether it branched from another " +
       "Innih family or arrived separately; its seniority; its ancestral compound, shrine, praise names, taboos and titles.\n\n" +
-      "CLUES WORTH FOLLOWING, NONE OF THEM ANSWERS: (1) an Ogedegbe genealogy names an INNIH as a son of Okoko, which would " +
-      "make Innih an eponymous ancestor and the nine families either his descendants or later attachments to his " +
-      "village; (2) the Asekomhe family claims descent from Imhakhena and says Imhakhena's house stood on its compound — " +
+      "NEW, AND THE CLOSEST THING TO AN ANSWER: the Ogedegbe genealogy (Chief Imhana Ogedegbe's funeral biography) makes " +
+      "ITSE — eponym of Ivhitse — the father of Okoko and Iniaru; OKOKO the father of Imhomo and INNIH; Imhomo the father " +
+      "of Atogwe, Emoekpere and Oyarebu alias Ogedegbe; Atogwe the father of Azoganokhai. Four of the nine families — " +
+      "Iniaru, Emoekpere, Azoganokhai, Ogedegbe — are thus placed in one Itse line, and Imhana Ogedegbe was 'head of the " +
+      "entire extended family of Innih (Apinnih)'. OKOMILO IS NOT IN THAT GENEALOGY, nor are Asekomhe, Idegbesor, Odogbo " +
+      "or Onokozi — and Asekomhe claims a separate descent from Imhakhena. So Okomilo looks like a family of Innih by " +
+      "residence or later attachment rather than by descent from Itse — but one family's genealogy leaving a name out is " +
+      "not proof of separate origin.\n\n" +
+      "OTHER CLUES, NONE OF THEM ANSWERS: (1) the same genealogy makes INNIH a son of Okoko, so the village is eponymous; (2) the Asekomhe family claims descent from Imhakhena and says Imhakhena's house stood on its compound — " +
       "a claim of seniority within Innih; (3) Okomilo, Odogbo and Asekomhe men were jailed together in 1931–32, a sign of " +
       "close association, not of kinship.\n\n" +
       "SHRINE, NOT TITLE. Village headship (Odionwere-type) in Etsako is generally by age, so lists of village heads are " +
@@ -1498,6 +1939,7 @@ const INNIH_EVENTS: SeedEvent[] = [
     claims: [
       {
         sourceKey: "oe_kindreds",
+        citations: [{ sourceKey: "oe_villages_2026", relation: "supports", note: "Same nine families, 2026." }],
         startYear: 2024,
         datePrecision: "month",
         startMonth: 11,
@@ -1521,9 +1963,10 @@ const INNIH_EVENTS: SeedEvent[] = [
     description:
       "Innih is one of the villages of Ivhitse (with Akpheokhai, Enamino and Ototo), itself a quarter of Ivhiochie. Its " +
       "palace chief and village head is Chief John Oshiomhogho Ogedegbe, title Okhaemho.\n\n" +
-      "WHAT INNIH MEANS is not settled. The only explanation found is genealogical: 'Okoko was the father of Imhomo, Innih, " +
-      "Esuka'. That makes Innih an ancestor's name in at least one family's account; it is not a linguistic gloss, and it " +
-      "is not known whether the other eight families accept it.",
+      "WHAT INNIH MEANS is not settled. The only explanation found is genealogical: 'IKEKU is of the lineage of Itse " +
+      "(Ivhitse) who was the father of Okoko… OKOKO was the father of Imhomo, Innih, Esuka'. That makes Innih a grandson " +
+      "of Itse, the eponym of Ivhitse, in the Ogedegbe family's account. It is not a linguistic gloss, and it is not known " +
+      "whether the other families accept it.",
     category: "history",
     subcategory: OKOMILO_LANES.innih,
     eventType: "traditional_account",
@@ -1531,7 +1974,7 @@ const INNIH_EVENTS: SeedEvent[] = [
     people: ["Okoko", "Innih", "Imhomo", "Esuka", "John Ogedegbe"],
     civilisations: [AVHIANWU],
     locationName: "Innih, Ogbona",
-    claims: [undated("oe_chiefs", "Eponym Innih, son of Okoko (undated genealogy)", "Genealogical tradition with no generation count or date.", "oral_tradition", "genealogy")],
+    claims: [undated("oe_ogedegbe_genealogy", "Eponym Innih, son of Okoko (undated genealogy)", "Genealogical tradition with no generation count or date.", "oral_tradition", "genealogy")],
   },
   {
     slug: "okomilo-ivhitse-quarter",
@@ -1540,8 +1983,8 @@ const INNIH_EVENTS: SeedEvent[] = [
     description:
       "From the palace list: 'Ivhiochie is divided into several quarters including Ivhiobore, Ivhiosano, and Ivhitse, with " +
       "Ivhitse containing villages such as Akpheokhai, Enamino, Innih, and Ototo.'\n\n" +
-      "How and when Ivhitse formed, and whether its name is 'children of' a founder (Ivhi- + name, as in Ivhiochie) is not " +
-      "documented. One snippet placed Ivhiochie in 'Etsako East LGA'; Ogbona is in Etsako Central, and that line is " +
+      "NAMED FOR ITSE: the Ogedegbe genealogy writes 'Itse (Ivhitse)', making Ivhitse 'children of Itse' — Itse being " +
+      "father of Okoko, grandfather of Innih. When Ivhitse formed is not documented. One snippet placed Ivhiochie in 'Etsako East LGA'; Ogbona is in Etsako Central, and that line is " +
       "treated as an error in the snippet.",
     category: "history",
     subcategory: OKOMILO_LANES.innih,
@@ -1570,7 +2013,7 @@ const INNIH_EVENTS: SeedEvent[] = [
     people: ["Ochie"],
     civilisations: [AVHIANWU],
     locationName: "Ivhiochie, Ogbona",
-    claims: [undated("oe_descendants", "Ochie, son of Okhua (genealogical position, undated)", "A genealogical position with no year.", "oral_tradition", "genealogy")],
+    claims: [undated("oe_chiefs", "Ochie, son of Okhua (genealogical position, undated)", "A genealogical position with no year.", "oral_tradition", "genealogy")],
   },
   {
     slug: "okomilo-ogbona-genealogy",
@@ -1589,8 +2032,10 @@ const INNIH_EVENTS: SeedEvent[] = [
       "ancestor without saying so.\n\n" +
       "A VARIANT EXISTS: 'Omiorele was the father of Osua and Anaga; Osua father of Oroke and Ozima; Anaga father of " +
       "Uluagwa and Overa.' It shares Anaga and replaces Okhotor. Both versions are kept.\n\n" +
-      "EARLIEST WRITTEN VERSION: the online text appears to derive from Okhaishie 1999; whether that book had an older " +
-      "source is unknown.",
+      "WHERE THE TEXT COMES FROM (corrected in the second pass): not from the 1999 book. It is ORAL TESTIMONY with a named " +
+      "chain — Chief M.B. Ogbualo's 'late father told him that Ogbona was the first born of Imhakhena…', printed in the " +
+      "2017 profile of Ogbona's traditional chiefs and repeated word for word on the palace pages. Father → son → web page " +
+      "is one testimony in three places.",
     category: "history",
     subcategory: OKOMILO_LANES.innih,
     eventType: "traditional_account",
@@ -1599,7 +2044,7 @@ const INNIH_EVENTS: SeedEvent[] = [
     civilisations: [AVHIANWU],
     locationName: "Ogbona",
     claims: [
-      undated("oe_descendants", "Genealogy without generation dates", "No source attaches years to these generations, and none are calculated here.", "oral_tradition", "genealogy"),
+      undated("oe_chiefs", "Genealogy without generation dates (Chief M.B. Ogbualo, from his father)", "No source attaches years to these generations, and none are calculated here.", "oral_tradition", "genealogy"),
     ],
   },
   {
@@ -1623,7 +2068,7 @@ const INNIH_EVENTS: SeedEvent[] = [
     civilisations: [AVHIANWU],
     locationName: "Utagbabor (Fugar) and Ore Okhiye (Ogbona)",
     claims: [
-      undated("oe_history_tag", "After the second migration; no year", "A narrative sequence with no date.", "oral_tradition", "oral_tradition"),
+      undated("oe_clan_split", "After the second migration; no year", "A narrative sequence with no date.", "oral_tradition", "oral_tradition"),
       {
         sourceKey: "guardian_ogbona",
         startYear: 1892,
@@ -1635,42 +2080,61 @@ const INNIH_EVENTS: SeedEvent[] = [
         chronology: "other",
         whatIsDated: "Ogbona's founding, as one newspaper summary puts it",
         evidence:
-          "RECORDED, NOT ADOPTED. Every other account puts Ogbona's founding centuries earlier. The figure may refer to a " +
-          "re-founding after the Nupe period, to a church or school, or be an error in the summary; the article was not " +
-          "readable to check.",
+          "RECORDED, NOT ADOPTED. Every other account puts Ogbona's founding centuries earlier. The likeliest explanation, " +
+          "found in the second pass: Ogbona's own list of rulers begins in 1892 ('Ogbona rulers… from 1892 to 2017', " +
+          "Aikpabeghie 1892–1904), and a reporter or summariser may have read the first date of that list as a founding " +
+          "date. A hypothesis about the error, not a finding.",
+      },
+      {
+        sourceKey: "oe_ore_okhiyie",
+        startYear: 1300,
+        endYear: 1399,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "traditional_date",
+        originalDateText: "Imhakhena takes shelter under the Ore Okhiyie tree, '14th century'",
+        datingMethod: "oral_tradition",
+        chronology: "oral_tradition",
+        whatIsDated: "Imhakhena's arrival at Ore Okhiyie, Ogbona",
+        evidence:
+          "A community page explaining the name of the tree ('I have come and I won't go back'). Consistent with the " +
+          "memoirist's 13th century for Anwu and inconsistent with the 15th–16th century king-based datings.",
       },
     ],
   },
   {
     slug: "okomilo-asekomhe-dynasty-genealogy",
-    title: "The Asekomhe dynasty genealogy: Pa Ereghi → Pa Ekhaegbai → Pa Asekomhe",
+    title: "Pa Ereghi and Pa Ekhaegbai: the Asekomhe dynasty above Sam's grandfather",
     summary:
-      "A community genealogy tracing the Asekomhe family of Innih to Imhakhena, through Pa Ereghi, 'patriarch of today's " +
-      "Asekomhe Dynasty', his son Pa Ekhaegbai and grandson Pa Asekomhe — the 'Oghie Descendants'.",
-    description:
       "'Pa Asekomhe was the first son of Pa Ekhaegbai, whose father, Pa Ereghi, was the patriarch of today's Asekomhe " +
-      "Dynasty'; Pa Ereghi 'is believed to be a direct offspring of the great Imhakhena'. Pa Asekomhe was 'a prominent " +
-      "hunter and commodity trader… feared by his subjects for his closeness to colonial slave masters' and 'a great " +
-      "popular herbalist… prominent in healing people bitten by snakes and a Seer'. The family and associated families are " +
-      "'known today in Ogbona as the Oghie Descendants (Apoghie, meaning origin)'.\n\n" +
-      "THE ONE NAMED INNIH GENEALOGY FOUND, and important for two reasons: it is the only text that links an Innih family " +
-      "to Imhakhena; and its Pa Asekomhe MAY be Sam's maternal grandfather. 'Believed to be a direct offspring' is the " +
-      "source's own hedge, and the gap between Pa Ereghi and Imhakhena is not counted in generations. The identification " +
-      "with Sam's grandfather is NOT made here.",
+      "Dynasty.' Pa Ereghi, 'or his father, is believed to be a direct offspring of the great Imhakhena' — across " +
+      "generations that are not counted.",
+    description:
+      "THE TWO NAMED GENERATIONS ABOVE SAM'S MATERNAL GRANDFATHER, from Wilson Asekomhe's dynasty history (2024, 'based on " +
+      "oral tradition/findings'): Pa Ekhaegbai, and his father Pa Ereghi, 'patriarch of today's Asekomhe Dynasty'. The " +
+      "family and its associated families are 'known today in Ogbona as the Oghie Descendants (Apoghie, meaning origin)'.\n\n" +
+      "WHERE THIS LINE BREAKS: 'Pa Ereghi, or his father, is believed to be a direct offspring of the great Imhakhena'. " +
+      "'Or his father' and 'believed' are the source's own hedges, and 'direct offspring' covers an uncounted span — if " +
+      "Imhakhena belongs to the 15th or 16th century and Pa Ereghi to the 19th, that is many generations. So Sam's maternal " +
+      "line is named back to Pa Ereghi and then joins the founder tradition across a gap, exactly as the paternal line does " +
+      "at Sam's father. The link to Imhakhena is recorded as a claimed descent, not as a parent–child edge.\n\n" +
+      "THE FAMILY'S EVIDENCE FOR THE LINK: Imhakhena 'settled in an ancestral home that he built at the site of the " +
+      "present-day Asekomhe family compound', and the Azido — a covenant of stones between Imhakhena and his brothers after " +
+      "he buried their mother at Ogbona — was performed in front of the compound, where the stones are 'still discernible " +
+      "till date'. A place, a ritual and a memory: real evidence of a tradition, not a pedigree.",
     category: "people",
     subcategory: OKOMILO_LANES.innih,
     eventType: "traditional_account",
-    tags: ["asekomhe", "innih", "oghie", "imhakhena", "avhianwu-context", "evidence:community-history", "evidence:oral-tradition", GENEALOGY_LAYER_TAGS.tradition, "nigeria"],
+    tags: ["asekomhe", "innih", "oghie", "imhakhena", "azido", "okomilo-specific", "evidence:community-history", "evidence:oral-tradition", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
     people: ["Pa Ereghi", "Pa Ekhaegbai", "Pa Asekomhe", "Imhakhena"],
     civilisations: [AVHIANWU],
     locationName: "Asekomhe compound, Innih, Ogbona",
     claims: [
       undated(
-        "oe_descendants",
-        "Pa Asekomhe's lifetime: 'closeness to colonial slave masters' (no years)",
-        "The reference to colonial-era dealings implies a late-19th- or early-20th-century life, but no year is given and " +
-          "none is assigned. It would be the obvious point of contact with Sam's maternal line if the two Pa Asekomhes are " +
-          "one man.",
+        "oe_asekomhe_dynasty",
+        "Pa Ereghi and Pa Ekhaegbai: no dates",
+        "No dates are given. Two generations above a man active in the 1910s–1920s would put Pa Ereghi in the mid-19th " +
+          "century, but that is arithmetic on assumed generation lengths and is not entered as a claim.",
         "oral_tradition",
         "genealogy"
       ),
@@ -1699,25 +2163,43 @@ const INNIH_EVENTS: SeedEvent[] = [
   {
     slug: "okomilo-st-john-baptist-church-ogbona",
     title: "St John the Baptist Catholic Church and St John's School, Ogbona",
-    summary: "Catholic mission 'established in the early 20s'; its school educated Sam Okomilo from 1948, and its first lay faithful included George Okomilo.",
+    summary:
+      "'Until 1927, there was neither church nor school in Ogbona.' The parish was granted in 1927 from the mission at " +
+      "Ivhianokpodi, Agenebode; its school educated Sam Okomilo from 1948, and its first lay faithful included George Okomilo.",
     description:
-      "The church's first lay faithful included Thomas Eragbe, Michael Idodo, Erumhire, Dominic Enamhino, Bernard Ozibe " +
-      "Ogboalo, Mathias Ekiegbmhe Atsegwosi and George Okomilo; seven were imprisoned in 1931–32. The mission's school, St " +
-      "John's, is where Sam was sent in 1948 and where the first Ogbona girls — Veronica Okomilo among them — are likeliest " +
-      "to have studied.\n\n" +
-      "MISSION REGISTERS (baptisms, marriages, burials, school admissions) for Ogbona are the single richest unexamined " +
-      "source for Okomilo genealogy. Their location — parish, the Auchi diocese, or the original missionary society's " +
-      "archive — has not been established.",
+      "HOW IT STARTED (Anaweokhai): three men — the trader Esi Martins Balogun, Cletus Eshiemhomoh Anaweokhai, who had worked " +
+      "for the Catholic mission at Lokoja, and Robert Odogbo, who had read to Standard IV at Fugar and worked for the council " +
+      "at Auchi — sought a school from the missionaries, which meant a church. The guest house between the Asekhauno and " +
+      "Odogbo families became church and school; Robert Odogbo was catechist 1927–1948 and Cletus Anaweokhai 1948–1976. " +
+      "Until 1961 Catholic marriages took place at Afashio, which became the mission headquarters in Etsako.\n\n" +
+      "THE PIONEER FAITHFUL included Robert Odogbo, Cletus Anaweokhai, Esi Martins Balogun, Richard Asekomhe, Nicholas " +
+      "Apemheye Asekomhe, GEORGE OKOMILO, David Agbiko Enamino, Thomas Eragbhe, Michael Idode Irumire, Dominic Emoabino, " +
+      "Bernard Ozibe Ogbualo and Matthias Ekiegbemhe Atsegwasi. Their persecution culminated in the 1931 trial.\n\n" +
+      "MISSION REGISTERS (baptisms, marriages, burials, school admissions from 1927) are the richest unexamined source for " +
+      "the Okomilo genealogy. They would sit with the parish, the Auchi diocese, or the mission archive behind Ivhianokpodi " +
+      "and Afashio.",
     category: "religion",
     subcategory: OKOMILO_LANES.colonial,
     eventType: "historical",
     tags: ["catholic", "mission", "ogbona", "education", "okomilo-specific", "evidence:community-history", "evidence:missionary-record", GENEALOGY_LAYER_TAGS.documented, "nigeria"],
-    people: ["George Okomilo", "Thomas Eragbe", "Michael Idodo", "Dominic Enamhino", "Bernard Ozibe Ogboalo", "Mathias Ekiegbmhe Atsegwosi"],
+    people: ["George Okomilo", "Robert Odogbo", "Cletus Eshiemhomoh Anaweokhai", "Esi Martins Balogun", "Nicholas Apemheye Asekomhe", "Thomas Eragbe", "Michael Idodo", "Dominic Enamhino", "Bernard Ozibe Ogboalo", "Mathias Ekiegbmhe Atsegwosi"],
     civilisations: [AVHIANWU],
     locationName: "Ogbona",
     claims: [
       {
-        sourceKey: "oe_churches",
+        sourceKey: "oe_catholic_history",
+        citations: [{ sourceKey: "oe_anaweokhai_veins", relation: "supports", note: "Same author: 'In 1927, the request was granted and a parish was inaugurated in Ogbona'." }],
+        startYear: 1927,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "'Until 1927, there was neither church nor school in Ogbona'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        evidence: "Church history, read in full.",
+      },
+      {
+        sourceKey: "oe_stjohn_godwin",
         startYear: 1920,
         endYear: 1925,
         datePrecision: "year",
@@ -1726,7 +2208,7 @@ const INNIH_EVENTS: SeedEvent[] = [
         originalDateText: "'established in the early 20s'",
         datingMethod: "source_assertion",
         chronology: "community",
-        evidence: "Community church history, snippet level; 'early 20s' rendered as 1920–25 and no narrower.",
+        evidence: "A second church history, rendered here as 1920–25 and no narrower. It may count from the first itinerant visits rather than the parish.",
       },
     ],
   },
@@ -1794,47 +2276,119 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
   },
   {
     slug: "okomilo-alokoko-ancestral-mother",
-    title: "Alokoko, ancestral mother of Avhianwu, and the python",
+    title: "Alokoko (Aleukoko, Aloukoko), ancestral mother of Avhianwu, and the Royal Python",
     summary:
-      "Alokoko is Anwu's wife and the mother who 'later joined' Imhakhena at Ore Okhiye, Ogbona. The python is her sacred " +
-      "totem: an Avhianwu indigene who kills or eats one must be cleansed at Alokoko's ancestral home at Ogbona.",
+      "Anwu's wife and Imhakhena's mother, who left Fugar to live with Imhakhena and was buried by him at Ogbona — against " +
+      "his brothers' wishes. The python 'represents Aloukoko our mother': an Avhianwu person who eats or kills one must be " +
+      "cleansed at her shrine at Ogbona. Different texts call her a mother, a totem, 'the Royal Python' and a deity.",
     description:
-      "WHAT THE SOURCES CALL HER: a HUMAN ancestral mother — Anwu's wife, Imhakhena's mother — in every text reached. The " +
-      "python is her 'sacred totemic python'; no source reached describes Alokoko herself as a python, a spirit or a " +
-      "deity.\n\n" +
-      "THE TABOO AND ITS REMEDY: 'Any bonafide indigene of Avhianwu who accidentally kills the python or eats its meat must " +
-      "be spiritually cleansed only at the ancestral home of Alokoko… at Ogbona.' This is a GENERAL AVHIANWU practice " +
-      "centred on Ogbona, not a specifically Okomilo one.\n\n" +
-      "SPELLINGS: Alokoko is the only form found. Aleukoko, Aleokoko, Aloukoko and Alukoko returned nothing.\n\n" +
-      "EARLIEST WRITTEN OCCURRENCE: no text earlier than the online reproductions of Okhaishie 1999 has been found. " +
-      "Whether Denton (1936) or Omo-Ananigie (1946) mentions her is unknown — neither has been opened.\n\n" +
-      "THE PYTHON-ASSISTS-THE-MIGRATION STORY (a python helping Anwu's party across a river) was NOT found in any source " +
-      "reached. It is not recorded here as a tradition until someone can cite it.",
+      "SHE IS DIFFERENT THINGS IN DIFFERENT VERSIONS, and every version is kept:\n" +
+      "• A HUMAN MOTHER — 'Uwomha Alokoko', wife of 'Eramha Anwu' (Anaweokhai 2019); 'their mother, Aleukoko', whom " +
+      "Imhakhena 'single-handedly buried… at Ogbona when she died, without their consent' (Wilson Asekomhe 2024); buried " +
+      "'with her symbol of authority and womanhood, UME' (Anaweokhai).\n" +
+      "• THE PYTHON AS HER REPRESENTATIVE — 'Avianwu by tradition do not eat python which represents Aloukoko our mother'; " +
+      "the remedy is 'the shrine located at Ogbona built for our mother' (Chief Jos Akhigbe Alemoh's installation address, " +
+      "2017).\n" +
+      "• THE ROYAL PYTHON ITSELF — 'the Royal Python, ALOKOKO', in the custody of Ogbona's oldest man; 'the snake would on " +
+      "its own visit the oldest person in the village at night', and its tracks settled disputes over who was eldest; " +
+      "Eramha Ilokhor of the Esue compound was its custodian until his death c.1979 (Anaweokhai 2019; 2026).\n" +
+      "• A DEITY — 'the totemic Alokoko (Python) motherhood'; 'Fugar never hosts the Alokoko deity' (clan-split reply, " +
+      "2024).\n\n" +
+      "WHY IT IS OGBONA'S: because she is buried there. The installation address draws a further consequence: 'This is the " +
+      "reason why Ogbona has the authority to announce to the other three brothers when girls fit to be initiated into " +
+      "womanhood would start the process.' The Azido — a covenant of stones between Imhakhena and his brothers after the " +
+      "burial — is remembered at the Asekomhe compound.\n\n" +
+      "A SECOND ALOKOKO, A MAN: the History of Iraokhor gives Uralokhor's son Eku 'two male children Alokoko and Anyioha', " +
+      "ancestors of the Avialokoko quarter of Iraokhor. Same name, different person, different community.\n\n" +
+      "SPELLINGS SEEN IN WRITING: Alokoko, Aleukoko, Aloukoko. Aleokoko and Alukoko were not found.\n\n" +
+      "GENERAL AVHIANWU PRACTICE, centred on Ogbona — not a specifically Okomilo one.\n\n" +
+      "EARLIEST WRITTEN OCCURRENCE FOUND: 2017 (the installation address, published April 2017). The online reproductions of Okhaishie 1999 that were read in full do NOT mention Alokoko, so " +
+      "the 1999 book is no longer counted as the earliest witness.",
     category: "religion",
     subcategory: OKOMILO_LANES.religion,
     eventType: "traditional_account",
     tags: ["alokoko", "python", "taboo", "ogbona", "avhianwu-context", "general-avhianwu-practice", "evidence:oral-tradition", "evidence:community-history", GENEALOGY_LAYER_TAGS.tradition, "nigeria"],
-    people: ["Alokoko", "Anwu", "Imhakhena"],
+    people: ["Alokoko", "Anwu", "Imhakhena", "Eramha Ilokhor", "Jos Akhigbe Alemoh"],
     civilisations: [AVHIANWU],
-    locationName: "Alokoko's ancestral home, Ogbona",
+    locationName: "Alokoko's shrine and burial place, Ogbona",
     claims: [
       {
-        sourceKey: "okhaishie_1999",
+        sourceKey: "oe_orbih_address",
         citations: [
-          { sourceKey: "oe_history_tag", relation: "supports", note: "The online text; probably reproduces or paraphrases the 1999 book — the same chain, not an independent witness." },
-          { sourceKey: "oe_iraokhor", relation: "supports", note: "Names Anwu and Alokoko as the migrating parents. Same website; same chain." },
+          { sourceKey: "oe_anaweokhai_veins", relation: "supports", note: "The memoir's Royal Python and burial accounts (page dated 2019)." },
+          { sourceKey: "oe_asekomhe_dynasty", relation: "supports", note: "'their mother, Aleukoko' buried at Ogbona — the Asekomhe family's version, 2024." },
+          { sourceKey: "oe_clan_split", relation: "supports", note: "'the totemic Alokoko (Python) motherhood'; 'the Alokoko deity' — 2024." },
         ],
-        startYear: 1999,
+        startYear: 2017,
         datePrecision: "year",
         isApproximate: false,
         temporalClaimType: "date_of_first_known_record",
-        originalDateText: "Earliest dated written attestation found: 1999",
+        originalDateText: "Earliest written attestation found: 2017",
         datingMethod: "source_assertion",
         chronology: "oral_tradition",
         whatIsDated: "the earliest written attestation located — NOT the age of the tradition",
         evidence:
-          "A FLOOR ON WHEN IT WAS WRITTEN, not on how old it is. The tradition may be centuries older; the written record " +
-          "found starts with the 1999 book as reproduced online, and even that attribution rests on the site's bylines.",
+          "A FLOOR ON WHEN IT WAS WRITTEN, not on how old it is. The four texts are by four different writers (a titled elder, " +
+          "a deacon-memoirist, a family historian, and the authors of a political reply) and disagree about what Alokoko is, " +
+          "which is itself evidence that they are not copying one another.",
+      },
+      {
+        sourceKey: "oe_anaweokhai_veins",
+        startYear: 1979,
+        datePrecision: "year",
+        isApproximate: true,
+        temporalClaimType: "approximate_date",
+        originalDateText: "Eramha Ilokhor, custodian of the Royal Python ALOKOKO, buried 'circa 1979'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "the death of a remembered custodian of the python",
+        evidence: "The memoirist's childhood recollection — the oldest dated moment in the python tradition that anyone describes from experience.",
+      },
+    ],
+  },
+  {
+    slug: "okomilo-python-river-crossing-claim",
+    title: "The python that carried Anwu's family across a river — a claim, found once",
+    summary:
+      "CLAIM. In a reader's message of 19 January 2025: the Oba of Benin treated his subjects like Pharaoh treated the " +
+      "Israelites, 'hence Anwu moved out and on the way he and his family cross a river by the help of the python'. No " +
+      "other written version was found.",
+    description:
+      "THE ONLY WRITTEN TRACE FOUND, and it is a comment, not an article: Barr. Felix Osimerha, replying beneath the " +
+      "'History of Iraokhor' page, offers 'the story of how the Oba of Bini subjected his subjects to Pharaoh type of " +
+      "treatment of the Israelites, hence Anwu moved out and on the way he and his family cross a river by the help of " +
+      "the python'.\n\n" +
+      "WHAT IT SAYS: a python helped the family cross a river during the migration. WHAT IT DOES NOT SAY: which river, " +
+      "who else was there, what Alokoko's role was, or that the python taboo is explained by the episode. The Exodus " +
+      "comparison is the commenter's own framing; whether it shaped the story or merely describes it cannot be told from " +
+      "one sentence.\n\n" +
+      "IN THE SAME THREAD, a pushback: Archbishop Fidelis Itsuokor — 'There have been divergent views of how Avianwu came " +
+      "about, everyone is writing the history of Avianwu to justify themselves… let all the various writers of Anvianwu " +
+      "history come together and harmonize their claims.' That disagreement is part of the record.\n\n" +
+      "None of the older or fuller texts read in this pass — the 1999 chronology as reproduced, the 2017 installation " +
+      "address, the memoir, the Asekomhe history — tells it.",
+    category: "religion",
+    subcategory: OKOMILO_LANES.avhianwu,
+    eventType: "disputed",
+    eventTypeNote: "A single, recent attestation of an oral story.",
+    evidenceStatus: "unresolved",
+    tags: ["python", "migration", "alokoko", "open-question", "avhianwu-context", "evidence:oral-tradition", "evidence:unverified-claim", GENEALOGY_LAYER_TAGS.tradition, "nigeria"],
+    people: ["Anwu", "Felix Osimerha", "Fidelis Itsuokor"],
+    civilisations: [AVHIANWU],
+    claims: [
+      {
+        sourceKey: "oe_iraokhor_comments",
+        startYear: 2025,
+        startMonth: 1,
+        startDay: 19,
+        datePrecision: "day",
+        isApproximate: false,
+        temporalClaimType: "date_of_first_known_record",
+        originalDateText: "Reader's message, 19 January 2025",
+        datingMethod: "source_assertion",
+        chronology: "oral_tradition",
+        whatIsDated: "the only written attestation found — not the age of the story",
+        evidence: "One person's statement of a story he says he has. The story may be much older; nothing written shows it.",
       },
     ],
   },
@@ -1856,6 +2410,9 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
       "C. BROADER ETSAKO — 'about the 13th and the 14th Century' (Rev. A. O. Anaemhomhe); 'between the 13th and 15th " +
       "centuries' (Fugar America Foundation); 'in stages during the reigns of Oba Ewuare and Oba Ozolua' (stanwilly).\n" +
       "D. THE SECOND MIGRATION from Afashio-Uzairue, c.1570, is a separate record.\n\n" +
+      "NEW IN THE SECOND PASS: an Ogbona memoirist (Anaweokhai, 2019) puts Anwu at Utuagbabor 'circa the 13th century', " +
+      "and Ogbona's 2024 clan reply gives Ozolua's whole reign, 1481–1504. Ogbona's own writers therefore hold all three " +
+      "positions — Ewuare, Ozolua and the 13th century — at once.\n\n" +
       "ARE A AND B INDEPENDENT TRADITIONS? Not demonstrably. The same website carries both, which suggests two family or " +
       "community versions coexisting rather than one copied from the other; but every online B-version traces to " +
       "Okhaishie 1999, and the A-version's source is not given. The 1946 Omo-Ananigie book is the obvious older witness " +
@@ -1926,6 +2483,37 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
           "not a second witness.",
       },
       {
+        sourceKey: "oe_clan_split",
+        startYear: 1481,
+        endYear: 1504,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "traditional_date",
+        originalDateText: "'during the reign of Oba Ozolua in the years 1481 – 1504'",
+        datingMethod: "regnal_chronology",
+        chronology: "traditional",
+        whatIsDated: "Anwu's departure from Benin (Ozolua-era, full reign)",
+        evidence:
+          "CLAIM B — OZOLUA, FULL REIGN, in Ogbona's 2024 reply to the creation of Fugar clan. Names the king and gives his " +
+          "whole reign rather than the 1481–85 window. Probably downstream of the same Okhaishie chronology.",
+      },
+      {
+        sourceKey: "oe_anaweokhai_veins",
+        startYear: 1200,
+        endYear: 1299,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "traditional_date",
+        originalDateText: "Anwu reaches Utuagbabor, Fugar, 'circa the 13th century'",
+        datingMethod: "oral_tradition",
+        chronology: "oral_tradition",
+        whatIsDated: "Anwu's settlement at Utuagbabor after leaving Benin",
+        evidence:
+          "CLAIM C, FOR ANWU HIMSELF. An Ogbona memoirist, introducing the founder story 'according to oral tradition'. " +
+          "Two to three centuries earlier than either king-based dating and incompatible with both; no reasoning is given. " +
+          "A sibling page puts Imhakhena's arrival at Ore Okhiyie in the 14th century.",
+      },
+      {
         sourceKey: "nuntiuspacis",
         startYear: 1200,
         endYear: 1399,
@@ -1973,9 +2561,18 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
             stage: "community_history",
             who: "Ogbona Elites, 'Major Events in Avhianwu History — by Aha Idokpesi Okhaishe n'Avhianwu'",
             sourceKey: "oe_major_events",
-            says: "Between 1481 and 1485 Anwu and family migrated from Benin (First Migration) (snippet)",
-            adds: "Nothing — it reproduces the book under the author's name.",
-            citationStatus: "unverified",
+            says: "Between 1481 and 1485 Anwu and family migrated from Benin (First Migration)",
+            adds: "Nothing — it reproduces the book under the author's name. Read in full: the page gives the dates and names no source for them.",
+            citationStatus: "verified",
+          },
+          {
+            stage: "community_history",
+            who: "Ogbona's reply to the creation of Fugar clan",
+            year: 2024,
+            sourceKey: "oe_clan_split",
+            says: "the fact that Anwu upon his migration from Benin during the reign of Oba Ozolua in the years 1481 – 1504",
+            adds: "Widens the window to the whole reign and uses it in a present-day argument about precedence.",
+            citationStatus: "no_citation_given",
           },
           {
             stage: "popular_claim",
@@ -2158,13 +2755,39 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
     claims: [undated("oe_okhe_palace", "Origin of Okhe: undated", "No source dates the institution's origin.", "oral_tradition", "oral_tradition")],
   },
   {
+    slug: "okomilo-ancestral-offices-oldest-man",
+    title: "The living ancestors: Anwu, Unone, Arua, Iraokhor and Imhakhena as offices held by the oldest man",
+    summary:
+      "In Avhianwu the founders' names are also titles. 'The Anwu is always the oldest man in Avhianwu', its chief priest; " +
+      "'The Imhakhena is always the oldest man in Ogbona'. Offices pass by AGE, not from father to son.",
+    description:
+      "FROM THE 'AVHIANWU TITLES' in the Okhaishie chronology (as reproduced online, read in full): 'Anwu: The earthly " +
+      "representative of Anwu: the Great Ancestral Father and Founder of Avhianwu. The Anwu is always the oldest man in " +
+      "Avhianwu… the Chief Priest and the visible Head of Avhianwu – the big Family', drawn from the eligible kindreds of " +
+      "the older villages, Ivhiarua and Ivhiunone. Unone, Arua, Iraokhor and Imhakhena are the same office for each " +
+      "community; an Unone or Arua 'can live to become the Anwu', an Iraokhor or Imhakhena cannot. Other hereditary roles " +
+      "are named — the Obho, 'Ancestral Makers', who install an Anwu and deliver the manhood initiation code; the Ikemanedio, " +
+      "descendants of Adoko son of Arua.\n\n" +
+      "WHY THIS MATTERS FOR GENEALOGY: these offices — like the custody of the Royal Python by Ogbona's eldest man — are " +
+      "GERONTOCRATIC. A list of their holders is a list of old men, not a line of descent, and must never be read as one. " +
+      "Family ancestral shrines are the institutions more likely to pass from eldest son to eldest son.\n\n" +
+      "GENERAL AVHIANWU PRACTICE.",
+    category: "religion",
+    subcategory: OKOMILO_LANES.religion,
+    eventType: "traditional_account",
+    tags: ["anwu", "imhakhena", "gerontocracy", "chief-priest", "avhianwu-context", "general-avhianwu-practice", "evidence:community-history", GENEALOGY_LAYER_TAGS.context, "nigeria"],
+    civilisations: [AVHIANWU],
+    claims: [undated("oe_major_events", "No date for the institution", "The titles are described in the present tense; their age is not given.", "oral_tradition", "oral_tradition")],
+  },
+  {
     slug: "okomilo-okhe-dispute-ogbhari-akenavhianwu",
     title: "The Okhe dispute: Ogbhari kills Akenavhianwu, and Fugar bans Ogbona from the title",
     summary:
       "CLAIM. An uninitiated Ogbona man, Ogbhari, killed Akenavhianwu, a title-holder and grandson of Omiawa; Fugar then " +
       "barred Ogbona from performing Okhe, and Ogbona set up its own shrine. Dated 1851 by one account and 1891 by another.",
     description:
-      "TWO VERSIONS OF THE DATE, BOTH ON OGBONA PAGES:\n" +
+      "TWO VERSIONS OF THE DATE, IN ONE ARTICLE (Ogbona's 2024 reply to the creation of Fugar clan): it quotes a Fugar-side " +
+      "writer, 'Akhigbe', for 1851, and gives 1891 as its own account.\n" +
       "• 1851, 'according to Akhigbe': Fugar banned Ogbona from the Okhe title because 'an uninitiated man (Ogbhari) from " +
       "Ogbona killed a title holder, a certain Akenavhianwu, the grandson of Omiawa'; Ogbona 'set up its own Ogwa shrine to " +
       "perform the title which he described as inferior'.\n" +
@@ -2198,7 +2821,7 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
         evidence: "As quoted from 'Akhigbe' on an Ogbona page. Chronologically strained against Omiawa's c.1886 activity.",
       },
       {
-        sourceKey: "oe_okhe_palace",
+        sourceKey: "oe_clan_split",
         startYear: 1891,
         datePrecision: "year",
         isApproximate: false,
@@ -2207,10 +2830,10 @@ const AVHIANWU_EVENTS: SeedEvent[] = [
         datingMethod: "source_assertion",
         chronology: "community",
         whatIsDated: "the killing of Akenavhianwu and the ban",
-        evidence: "Ogbona community page. Fits Omiawa's dates; uncorroborated by any record outside the community.",
+        evidence: "The SAME article that reports Akhigbe's 1851 gives 1891 as its own account. Fits Omiawa's dates; uncorroborated outside the community.",
       },
       {
-        sourceKey: "oe_okhe_palace",
+        sourceKey: "oe_clan_split",
         startYear: 1908,
         datePrecision: "year",
         isApproximate: false,
@@ -2268,9 +2891,12 @@ const RELIGION_EVENTS: SeedEvent[] = [
       "'God decides'. The only documented window found into the Avhianwu name for the supreme being.",
     description:
       "From an Ogbona community list of Etsako names and meanings. The glosses establish that an Osi-/Oshi- element " +
-      "meaning God is productive in Etsako naming. They do NOT establish the form of the high-god's name in Avhianwu " +
-      "worship; the terms Oghena, Osinegba, Adi, Esi and Ukpe given in the brief were not found in any source reached, " +
-      "and are therefore not recorded as attested.\n\n" +
+      "meaning God is productive in Etsako naming ('Osikhuemhe – God sanctified me', 'Osirenua – God is the giver').\n\n" +
+      "OGHENA IS ATTESTED TOO (second pass): 'Oghenakhoghie – God is the king', 'Uwaoghena – Wealth of God', and Oghena " +
+      "is a family name in Ogbona. So two words for God appear in Etsako names, Osi-/Oshi- and Oghena.\n\n" +
+      "ALSO ATTESTED IN RELIGIOUS USE: ADI — 'All these quarters have an Adi, a shrine where they worship their " +
+      "ancestors' (History of Iraokhor); ESI — the New Yam Festival, which Iraokhor proclaims first. NOT FOUND: Osinegba " +
+      "and Ukpe as religious terms.\n\n" +
       "GENERAL ETSAKO PRACTICE, not anything specific to the Okomilo family.",
     category: "religion",
     subcategory: OKOMILO_LANES.religion,
@@ -2286,7 +2912,8 @@ const RELIGION_EVENTS: SeedEvent[] = [
       "OPEN. The Edo (Bini) high god is OSANOBUA, well attested. No source found uses 'Otsanobua' for an Etsako or " +
       "Avhianwu deity. No cognate is created here.",
     description:
-      "Osanobua is documented in standard reference works on Edo religion as the supreme creator. 'Otsanobua' — the form " +
+      "Osanobua is documented in standard reference works on Edo religion as the supreme creator. In Etsako names the " +
+      "attested words for God are Osi-/Oshi- and Oghena (see the names record). 'Otsanobua' — the form " +
       "proposed for Avhianwu — was not found in any search result, dictionary snippet, ethnography or community page " +
       "reached. Etsako is a North-Central Edoid language and sound correspondences with Edo are real, but a form becomes " +
       "a cognate when a linguist documents it, not when it looks plausible.\n\n" +
@@ -2419,6 +3046,18 @@ const COLONIAL_EVENTS: SeedEvent[] = [
     locationName: "Avhianwu clan, Kukuruku Division",
     claims: [
       {
+        sourceKey: "oe_major_events",
+        startYear: 1904,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "'1904 Native Court established at Fugar'; '1908 January 14, Fugar Native Court House opened'",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        whatIsDated: "the first Native Court for Avhianwu",
+        evidence: "From 1904 the Fugar Native Court's civil records — land, marriage, debt — are the oldest likely documents naming Ogbona families.",
+      },
+      {
         sourceKey: "okhaishie_1999",
         citations: [{ sourceKey: "oe_major_events", relation: "supports", note: "Online reproduction — same source." }],
         startYear: 1932,
@@ -2441,7 +3080,13 @@ const COLONIAL_EVENTS: SeedEvent[] = [
       "Division', 1936, NAI Ibadan. No file number, microfilm or quotation was located. A 1936 Denton report on Ifeku " +
       "Island in the same division WAS found.",
     description:
-      "WHAT WAS FOUND: 'Mr H.C.B. Denton' wrote an 'Intelligence Report on Ifeku Island, Benin Province' (Kukuruku " +
+      "NEW IN THE SECOND PASS: the Okhaishie chronology's list of District Officers gives '1936 H. C. B. Denton (Ag. D. O., " +
+      "K. D.)', and its account of the Fugar headquarters dispute quotes Denton's letter to the Resident, Benin Province, " +
+      "with a reply under reference 'W.P. 14011/65' — a Western Provinces file number that can be requested from NAI " +
+      "Ibadan. 1936 is also the year the chronology gives for the 'Abolition of the 7 Districts in Kukuruku Division and " +
+      "Clans were established in place of Districts' — the reorganisation an Etsako clans intelligence report would have " +
+      "been written to justify. The 'N.' in the brief's 'N. Denton' is not supported by anything found.\n\n" +
+      "WHAT WAS FOUND IN THE FIRST PASS: 'Mr H.C.B. Denton' wrote an 'Intelligence Report on Ifeku Island, Benin Province' (Kukuruku " +
       "Division) in October 1936, catalogued in the Lagos National Museum archive; a 'C. B. Denton, Esquire', Acting " +
       "District Officer of Kukuruku Division, dealt with the Avhianwu Clan Council; D. P. Stanfield's 1937 Awain and Aviele " +
       "clan reports sit in the same archive; CRL holds a 16-reel microfilm of southern Nigerian intelligence reports, " +
@@ -2563,11 +3208,13 @@ const COLONIAL_EVENTS: SeedEvent[] = [
       "the Middle East by April 1945; eleven Nigerian garrison companies landed there between September 1945 and January " +
       "1946 and waited — 'stranded on foreign soils of India and North Africa' — for ships home; and from 1942 forced " +
       "labour drove tin output on the Jos plateau, where many Benin Province men lived and worked.\n\n" +
+      "ONE NAMED OGBONA VETERAN: the community 'firsts' list adds 'Mr. Michael Idogho took part in 2nd world war'.\n\n" +
       "None of this names Sam's father. It establishes that 'in Egypt' is historically plausible for a Nigerian " +
       "serviceman, and that a Kukuruku Division man in Jos in the 1940s is unremarkable.",
     category: "history",
     subcategory: OKOMILO_LANES.colonial,
     eventType: "historical",
+    people: ["Michael Idogho"],
     tags: ["ww2", "rwaff", "egypt", "jos", "avhianwu-context", "evidence:community-history", "evidence:modern-scholarship", GENEALOGY_LAYER_TAGS.context, "nigeria"],
     civilisations: [AVHIANWU, "British colonial Nigeria"],
     claims: [
@@ -2739,7 +3386,7 @@ const OPEN_QUESTIONS: SeedEvent[] = [
       "that was searched for and not found? (4) is Alokoko specifically Ogbona's, or all Avhianwu's? The purification is " +
       "located at Ogbona, which suggests the latter centred on the former.",
     tags: ["alokoko", "python"],
-    sourceKey: "oe_history_tag",
+    sourceKey: "oe_clan_split",
   }),
   openQuestion({
     slug: "okomilo-q-leopard-in-avhianwu",
@@ -3269,6 +3916,22 @@ const BENIN_EVENTS: SeedEvent[] = [
         chronology: "conventional",
         evidence: "Contemporary British military records, as summarised.",
       },
+      {
+        sourceKey: "oe_major_events",
+        startYear: 1897,
+        startMonth: 9,
+        startDay: 9,
+        datePrecision: "day",
+        isApproximate: false,
+        temporalClaimType: "explicit_date",
+        originalDateText: "'1897 September 9, The British Force took Benin City' (after '1897 January 4, the Benin Massacre')",
+        datingMethod: "source_assertion",
+        chronology: "community",
+        evidence:
+          "The Avhianwu chronology's date, seven months after the conventional one. Kept beside it, not corrected: it shows " +
+          "how the Benin events were remembered and written in Etsako, and is a caution against treating the same " +
+          "chronology's 15th-century dates as precise.",
+      },
     ],
   },
   {
@@ -3415,9 +4078,29 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
   {
     from: "okomilo-pa-asekomhe-maternal-grandfather",
     to: "okomilo-asekomhe-dynasty-genealogy",
-    relation: "relevant",
-    note: "OPEN — SAME NAME IS NOT SAME PERSON. Sam's maternal grandfather and the Pa Asekomhe of the Asekomhe dynasty text may be one man; nothing yet shows it.",
+    relation: "child_of",
+    viewpoint: FAMILY,
+    sourceKey: "oe_asekomhe_dynasty",
+    note: "COMMUNITY GENEALOGY (Asekomhe family historian, from oral tradition): Pa Asekomhe is the first son of Pa Ekhaegbai, son of Pa Ereghi. The same text names 'Uwomha Ikhuenena, mother of Samuel Okomilo' as Pa Asekomhe's daughter, which is what joins this line to Sam.",
   },
+  {
+    from: "okomilo-nicholas-apemheye-asekomhe",
+    to: "okomilo-pa-asekomhe-maternal-grandfather",
+    relation: "child_of",
+    viewpoint: FAMILY,
+    sourceKey: "oe_asekomhe_dynasty",
+    note: "COMMUNITY GENEALOGY: Pa (Nicholas) Apemheye is one of Pa Asekomhe's five sons — Sam's maternal uncle.",
+  },
+  { from: "okomilo-nicholas-apemheye-asekomhe", to: "okomilo-george-catholic-pioneer-jailed", relation: "relevant", sourceKey: "oe_catholic_history", note: "Tried together and jailed together at Auchi in 1931. Sam's maternal uncle and an Okomilo of the previous generation." },
+  { from: "okomilo-nicholas-apemheye-asekomhe", to: "okomilo-st-john-baptist-church-ogbona", relation: "relevant", sourceKey: "oe_catholic_history", note: "Pioneer of the church; first Christian wedding in Ogbona, November 1932." },
+  { from: "okomilo-ikpadelameka-okomilo", to: "okomilo-okozi-ebeto-warrant-chief", relation: "relevant", sourceKey: "oe_okozi_ebeto", note: "Of the House of Eloghe in Okozi Ebeto's lineage — generation and sex not stated, so no parent–child edge is drawn." },
+  { from: "okomilo-ikpadelameka-okomilo", to: "okomilo-family-of-innih", relation: "relevant", note: "Same surname; no connection to the Innih family documented." },
+  { from: "okomilo-pa-asekomhe-maternal-grandfather", to: "okomilo-okozi-ebeto-warrant-chief", relation: "relevant", sourceKey: "oe_asekomhe_dynasty", note: "'His legendary role in the palace of the then Okphe-Ukpi of Ogbona, the great Pa Okozi'." },
+  { from: "okomilo-okozi-ebeto-warrant-chief", to: "okomilo-george-catholic-pioneer-jailed", relation: "relevant", note: "The 1931 trial fell at the end of Okozi's Warrant Chiefship, as the Ukpi was being restored." },
+  { from: "okomilo-python-river-crossing-claim", to: ANWU_MIGRATION_SLUG, relation: "relevant", viewpoint: TRADITION, sourceKey: "oe_iraokhor_comments", note: "A claimed episode of the migration, attested once (2025)." },
+  { from: "okomilo-python-river-crossing-claim", to: "okomilo-alokoko-ancestral-mother", relation: "relevant", note: "The commenter does not connect the helpful python to Alokoko or to the taboo; nor is that connection made here." },
+  { from: "okomilo-ancestral-offices-oldest-man", to: "okomilo-anwu", relation: "relevant", sourceKey: "oe_major_events", note: "'The Anwu is always the oldest man in Avhianwu' — an office named for the founder, held by age." },
+  { from: "okomilo-ancestral-offices-oldest-man", to: "okomilo-alokoko-ancestral-mother", relation: "relevant", sourceKey: "oe_anaweokhai_veins", note: "Ogbona's oldest man is also custodian of the Royal Python." },
   // --- Sam's life, in order ---
   { from: "okomilo-sam-born-in-jos", to: "okomilo-sam-sent-home-to-ogbona-1948", relation: "precedes", viewpoint: FAMILY, sourceKey: "family_testimony", note: "Born in Jos; returned to Ogbona in 1948 to learn its culture." },
   { from: "okomilo-sam-sent-home-to-ogbona-1948", to: "okomilo-sam-secondary-auchi-jattu", relation: "precedes", viewpoint: FAMILY, sourceKey: "oe_profiles", note: "St John's, then secondary school in Auchi and Jattu." },
@@ -3474,8 +4157,8 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
   },
   { from: "okomilo-george-catholic-pioneer-jailed", to: "okomilo-family-of-innih", relation: "relevant", note: "Same surname and village; his branch and his relationship to Sam are not documented." },
   { from: "okomilo-veronica-early-schoolgirl", to: "okomilo-family-of-innih", relation: "relevant", note: "Same surname and village; her branch is not documented." },
-  { from: "okomilo-george-catholic-pioneer-jailed", to: "okomilo-st-john-baptist-church-ogbona", relation: "relevant", viewpoint: FAMILY, sourceKey: "oe_churches", note: "One of the church's pioneer lay faithful." },
-  { from: "okomilo-george-catholic-pioneer-jailed", to: "okomilo-okhe-title-institution", relation: "relevant", sourceKey: "oe_churches", note: "Imprisoned in a conflict over church teaching against 'okhei traditional rites'." },
+  { from: "okomilo-george-catholic-pioneer-jailed", to: "okomilo-st-john-baptist-church-ogbona", relation: "relevant", viewpoint: FAMILY, sourceKey: "oe_catholic_history", note: "One of the church's pioneer lay faithful." },
+  { from: "okomilo-george-catholic-pioneer-jailed", to: "okomilo-okhe-title-institution", relation: "relevant", sourceKey: "oe_catholic_history", note: "Imprisoned in a conflict over church teaching against 'okhei traditional rites'." },
   {
     from: "okomilo-family-of-innih",
     to: "okomilo-innih-village",
@@ -3487,7 +4170,7 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
   { from: "okomilo-asekomhe-dynasty-genealogy", to: "okomilo-innih-village", relation: "part_of", viewpoint: FAMILY, sourceKey: "oe_kindreds", note: "Asekomhe is another of the nine families of Innih." },
   { from: "okomilo-innih-village", to: "okomilo-ivhitse-quarter", relation: "part_of", viewpoint: FAMILY, sourceKey: "oe_palace_villages", note: "Innih is a village of Ivhitse." },
   { from: "okomilo-ivhitse-quarter", to: "okomilo-ivhiochie-children-of-ochie", relation: "part_of", viewpoint: FAMILY, sourceKey: "oe_palace_villages", note: "Ivhitse is a quarter of Ivhiochie." },
-  { from: "okomilo-ivhiochie-children-of-ochie", to: "okomilo-ogbona-genealogy", relation: "part_of", viewpoint: FAMILY, sourceKey: "oe_descendants", note: "Ivhiochie is a section of Ogbona, named for Ochie, Ogbona's grandson in tradition." },
+  { from: "okomilo-ivhiochie-children-of-ochie", to: "okomilo-ogbona-genealogy", relation: "part_of", viewpoint: FAMILY, sourceKey: "oe_chiefs", note: "Ivhiochie is a section of Ogbona, named for Ochie, Ogbona's grandson in tradition." },
   {
     from: GENEALOGY_BREAK_SLUG,
     to: "okomilo-family-of-innih",
@@ -3500,7 +4183,7 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
     to: "okomilo-ogbona-genealogy",
     relation: "child_of",
     viewpoint: TRADITION,
-    sourceKey: "oe_descendants",
+    sourceKey: "oe_chiefs",
     note: "TRADITIONAL GENEALOGY: Ochie, eponym of Ivhiochie, is a son of Okhua, son of Ogbona.",
   },
   {
@@ -3508,23 +4191,23 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
     to: "okomilo-imhakhena-founds-ogbona",
     relation: "child_of",
     viewpoint: TRADITION,
-    sourceKey: "oe_descendants",
+    sourceKey: "oe_chiefs",
     note: "TRADITIONAL DESCENT: Ogbona (a person) is the first-born of Imhakhena; the community bears his name.",
   },
   {
     from: "okomilo-asekomhe-dynasty-genealogy",
     to: "okomilo-imhakhena-founds-ogbona",
-    relation: "child_of",
+    relation: "relevant",
     viewpoint: TRADITION,
-    sourceKey: "oe_descendants",
-    note: "TRADITIONAL DESCENT, WITH THE SOURCE'S OWN HEDGE: Pa Ereghi 'is believed to be a direct offspring of the great Imhakhena'. Generations between are not counted.",
+    sourceKey: "oe_asekomhe_dynasty",
+    note: "CLAIMED DESCENT ACROSS UNCOUNTED GENERATIONS — deliberately not a parent–child edge. 'Pa Ereghi, or his father, is believed to be a direct offspring of the great Imhakhena.' The maternal line's break.",
   },
   {
     from: "okomilo-imhakhena-founds-ogbona",
     to: "okomilo-anwu",
     relation: "child_of",
     viewpoint: TRADITION,
-    sourceKey: "oe_descendants",
+    sourceKey: "oe_chiefs",
     note: "TRADITIONAL DESCENT: Imhakhena is the last-born son of Anwu.",
   },
   {
@@ -3532,7 +4215,7 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
     to: "okomilo-alokoko-ancestral-mother",
     relation: "child_of",
     viewpoint: TRADITION,
-    sourceKey: "oe_history_tag",
+    sourceKey: "oe_clan_split",
     note: "TRADITIONAL DESCENT: Alokoko is Imhakhena's mother, who 'later joined him' at Ore Okhiye.",
   },
   {
@@ -3547,7 +4230,7 @@ export const OKOMILO_LINKS: SeedEventLink[] = [
   { from: "okomilo-anwu", to: ANWU_MIGRATION_SLUG, relation: "relevant", viewpoint: TRADITION, sourceKey: "okhaishie_1999", note: "MIGRATION TRADITION: Anwu's departure from the Kingdom of Benin." },
   { from: ANWU_MIGRATION_SLUG, to: "okomilo-afashio-first-settlement", relation: "precedes", viewpoint: TRADITION, sourceKey: "oe_iraokhor", note: "First full settlement at Afashio." },
   { from: "okomilo-afashio-first-settlement", to: "okomilo-second-migration-afashio", relation: "precedes", viewpoint: TRADITION, sourceKey: "okhaishie_1999", note: "Then the second migration." },
-  { from: "okomilo-second-migration-afashio", to: "okomilo-imhakhena-founds-ogbona", relation: "precedes", viewpoint: TRADITION, sourceKey: "oe_history_tag", note: "Imhakhena to Utagbabor, then Ogbona." },
+  { from: "okomilo-second-migration-afashio", to: "okomilo-imhakhena-founds-ogbona", relation: "precedes", viewpoint: TRADITION, sourceKey: "oe_clan_split", note: "Imhakhena to Utagbabor, then Ogbona." },
   { from: "okomilo-anwu-four-sons", to: "okomilo-avhianwu-clan-split-2024", relation: "relevant", note: "The four communities of tradition are today divided between Fugar and Anwu clans." },
   // --- Migration date claims against the Benin king-list ---
   { from: ANWU_MIGRATION_SLUG, to: "okomilo-benin-ewuare-reign", relation: "relevant", viewpoint: TRADITION, sourceKey: "oe_iraokhor", note: "CLAIM A: the Ewuare-era dating places the departure in this reign." },
