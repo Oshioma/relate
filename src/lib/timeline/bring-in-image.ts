@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { PICTURE_FETCH_USER_AGENT } from "./check-pictures";
 import { creditFor, pictureSourceFor } from "./picture-sources";
 import type { SeedPicture } from "./seed-types";
+import { commonsFileName, commonsFilePageUrl } from "./check-pictures";
 
 // BRINGING A PICTURE IN, RATHER THAN POINTING AT SOMEBODY ELSE'S SERVER.
 //
@@ -117,7 +119,7 @@ export async function storeExternalImage(
       // A User-Agent that says who is calling and offers a way to get in touch —
       // Wikimedia's published condition for automated requests, and good manners
       // for scraping anyone else's photo too.
-      headers: { "User-Agent": "Relate/1.0 (community platform; +https://github.com/Oshioma/relate)" },
+      headers: { "User-Agent": PICTURE_FETCH_USER_AGENT },
     });
   } catch (error) {
     // Refused, blocked, timed out, DNS — the request never completed.
@@ -477,4 +479,84 @@ export function pictureBudget(
   const outOfRoom = PICTURE_BUDGET_PER_RUN - pictured <= 0;
   const outOfTime = now >= began + PICTURE_BUDGET_MS;
   return { startedAt: began, exhausted: outOfRoom || outOfTime };
+}
+
+// ---------------------------------------------------------------------------
+// PICTURES THAT ARE STILL POINTING AT SOMEBODY ELSE'S SERVER
+//
+// Seeding copies every picture in, but a copy that fails keeps the original
+// URL — the worst case is meant to be the behaviour it replaced. Nothing ever
+// came back for those. They sat hotlinked to Wikimedia until somebody noticed,
+// and the only way anyone noticed was the picture check listing them.
+//
+// These two functions decide what a later pass may copy in, and how the
+// record changes when it does. The rules fail closed, on purpose:
+//
+//   * LISTED SOURCES ONLY. A member can put any URL on a record they wrote.
+//     Fetching it from the server is the problem check-pictures.ts exists to
+//     guard against, and copying it is a licence question nobody has answered.
+//     A listed source has both answered: a public host, and known terms.
+//   * PROVENANCE OR NOTHING. Once the bytes are ours the URL no longer says
+//     where they came from. A picture with no credit and no source page — and
+//     none derivable — stays where it is rather than becoming a file of ours
+//     with no history.
+//   * THE COVER FOLLOWS ITS GALLERY TWIN. A cover has no caption to carry a
+//     credit, so it is copied only when the same picture in the gallery is.
+// ---------------------------------------------------------------------------
+
+type HotlinkCandidate = {
+  url?: string | null;
+  credit?: string | null;
+  sourcePageUrl?: string | null;
+};
+
+/** Can this one gallery picture be copied in now? */
+function canBringIn(item: HotlinkCandidate): item is HotlinkCandidate & { url: string } {
+  if (!item.url || !isHotlinked(item.url)) return false;
+  if (!pictureSourceFor(item.url)) return false;
+  return Boolean(item.credit?.trim() || item.sourcePageUrl?.trim() || commonsFileName(item.url));
+}
+
+/**
+ * Which addresses on a record may be copied into storage now, and how many
+ * hotlinked pictures must be left as they are (with the rules above for why).
+ */
+export function hotlinkedPicturesToBringIn(record: {
+  image_url: string | null;
+  media: HotlinkCandidate[] | null;
+}): { urls: string[]; leftAlone: number } {
+  const urls = new Set<string>();
+  let leftAlone = 0;
+  for (const item of record.media ?? []) {
+    if (!item?.url || !isHotlinked(item.url)) continue;
+    if (canBringIn(item)) urls.add(item.url);
+    else leftAlone++;
+  }
+  if (record.image_url && isHotlinked(record.image_url) && !urls.has(record.image_url)) {
+    const twin = (record.media ?? []).some((item) => item?.url === record.image_url);
+    // A cover whose twin was left alone is already counted with it.
+    if (!twin) leftAlone++;
+  }
+  return { urls: [...urls], leftAlone };
+}
+
+/**
+ * The record after the copies: each copied address swapped for ours, and a
+ * Commons picture given its file page if it had none, so the copy still says
+ * where it came from. Nothing else on a picture is touched, nothing is
+ * reordered, and anything that was not copied is left exactly as it was.
+ */
+export function withBroughtInPictures<T extends HotlinkCandidate>(
+  record: { image_url: string | null; media: T[] | null },
+  copied: Map<string, string>
+): { image_url: string | null; media: T[] } {
+  const media = (record.media ?? []).map((item) => {
+    const ours = item?.url ? copied.get(item.url) : undefined;
+    if (!item?.url || !ours) return item;
+    const fileName = commonsFileName(item.url);
+    const sourcePageUrl = item.sourcePageUrl || (fileName ? commonsFilePageUrl(fileName) : undefined);
+    return { ...item, url: ours, ...(sourcePageUrl ? { sourcePageUrl } : {}) };
+  });
+  const image_url = record.image_url ? (copied.get(record.image_url) ?? record.image_url) : null;
+  return { image_url, media };
 }

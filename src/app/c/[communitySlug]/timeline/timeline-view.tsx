@@ -79,6 +79,7 @@ import {
   seedSacredTreesDataset,
   seedOkomiloDataset,
   checkTimelinePictures,
+  bringHotlinkedPicturesIn,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -461,10 +462,27 @@ export function TimelineView({
     | null
     | { kind: "none" }
     | { kind: "all-good"; checked: number }
-    | { kind: "problems"; checked: number; problems: { slug: string; title: string; where: string; detail: string }[] }
+    | {
+        kind: "problems";
+        checked: number;
+        problems: { slug: string; title: string; where: string; outcome: string; detail: string }[];
+      }
     // The failure has to land in the same panel as the answer. Sending it to
     // seedError instead would put it back in the three places that withdraw.
     | { kind: "error"; message: string }
+  >(null);
+  // Its own panel for the same reason as the picture report above.
+  const [hotlinkReport, setHotlinkReport] = useState<
+    | null
+    | { kind: "error"; message: string }
+    | {
+        kind: "done";
+        broughtIn: number;
+        recordsUpdated: number;
+        stillWaiting: number;
+        leftAlone: number;
+        failures: { slug: string; title: string; reason: string }[];
+      }
   >(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
@@ -2742,50 +2760,177 @@ export function TimelineView({
             </p>
           )}
 
-          {pictureReport.kind === "problems" && (
+          {pictureReport.kind === "problems" &&
+            (() => {
+              // RATE-LIMITED IS NOT BROKEN. A 429 is the host asking us to
+              // slow down and says nothing about whether the file exists — so
+              // those are counted apart and never listed as pictures that
+              // failed. Listing them was how a report of 49 "broken" pictures
+              // turned out to be mostly healthy ones.
+              const broken = pictureReport.problems.filter((problem) => problem.outcome !== "rate-limited");
+              const unchecked = pictureReport.problems.length - broken.length;
+              return (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {broken.length === 0
+                        ? "Nothing failed."
+                        : `${broken.length} of ${pictureReport.checked} did not load.`}
+                    </span>{" "}
+                    Nothing has been changed — this is a report.
+                  </p>
+                  {unchecked > 0 && (
+                    <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {unchecked === 1 ? "One picture" : `${unchecked} pictures`} could not be checked.
+                      </span>{" "}
+                      The host asked us to slow down (429), which says nothing about whether{" "}
+                      {unchecked === 1 ? "it loads" : "they load"}. Run the check again in a few minutes.
+                    </p>
+                  )}
+
+                  {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
+                      THE PROBLEM. A server behind a proxy that refuses outbound
+                      requests answers 403 for every URL alike, and the honest
+                      report then names twelve healthy records as broken — which
+                      sends somebody editing good data to fix a network. Twelve
+                      files going bad at once in identical fashion is not what
+                      rot looks like; a blocked server is exactly what it looks
+                      like, so say so before the list rather than after it. */}
+                  {broken.length === pictureReport.checked &&
+                    pictureReport.checked > 2 &&
+                    new Set(broken.map((problem) => problem.detail)).size === 1 && (
+                      <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Read this before editing anything.</span> Every
+                        picture failed in the same way — {broken[0].detail}. That is what a server which cannot reach
+                        the internet looks like, not what {pictureReport.checked} separately broken addresses look
+                        like. Check whether this server is allowed to make outbound requests before changing any
+                        record below.
+                      </p>
+                    )}
+                  <ul className="mt-3 space-y-2">
+                    {broken.map((problem, index) => (
+                      <li key={`${problem.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${problem.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {problem.title}
+                        </a>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
+        </div>
+      )}
+
+      {/* PICTURES STILL POINTING AT SOMEBODY ELSE'S SERVER. A copy that
+          failed at seeding time keeps its original address for good, so a
+          reader's browser asks Wikimedia for it on every visit — and the
+          picture check keeps listing it. This tries the copy again. */}
+      {isStaff && (
+        <DatasetOffer
+          title="Bring hotlinked pictures in?"
+          busyLabel="Copying pictures in…"
+          label="Bring hotlinked pictures in"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                setHotlinkReport(null);
+                const result = await bringHotlinkedPicturesIn(communitySlug);
+                if (result && "error" in result) setHotlinkReport({ kind: "error", message: result.error });
+                else if (result) setHotlinkReport({ kind: "done", ...result });
+                resolve();
+              });
+            })
+          }
+        >
+          Copies pictures that still load from Wikimedia or another listed source into this community&apos;s own
+          storage, so they no longer depend on somebody else&apos;s server. Only the address changes — captions,
+          credits and order stay as they are, and nothing is removed. Pictures from hosts that are not on the list of
+          licensed sources, or with no record of where they came from, are left where they are. It works a batch at a
+          time: press it until nothing is left waiting.
+        </DatasetOffer>
+      )}
+
+      {isStaff && hotlinkReport && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Bringing pictures in
+            </h3>
+            <button
+              type="button"
+              onClick={() => setHotlinkReport(null)}
+              aria-label="Dismiss the report on bringing pictures in"
+              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {hotlinkReport.kind === "error" && (
+            <p className="mt-2 text-sm text-danger">
+              <span className="font-medium">Nothing was copied.</span> {hotlinkReport.message}
+            </p>
+          )}
+
+          {hotlinkReport.kind === "done" && (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">
-                  {pictureReport.problems.length} of {pictureReport.checked} did not load.
-                </span>{" "}
-                Nothing has been changed — this is a report.
-              </p>
-
-              {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
-                  THE PROBLEM. A server behind a proxy that refuses outbound
-                  requests answers 403 for every URL alike, and the honest
-                  report then names twelve healthy records as broken — which
-                  sends somebody editing good data to fix a network. Twelve
-                  files going bad at once in identical fashion is not what
-                  rot looks like; a blocked server is exactly what it looks
-                  like, so say so before the list rather than after it. */}
-              {pictureReport.problems.length === pictureReport.checked &&
-                pictureReport.checked > 2 &&
-                new Set(pictureReport.problems.map((problem) => problem.detail)).size === 1 && (
-                  <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Read this before editing anything.</span> Every
-                    picture failed in the same way — {pictureReport.problems[0].detail}. That is what a server which
-                    cannot reach the internet looks like, not what {pictureReport.checked} separately broken
-                    addresses look like. Check whether this server is allowed to make outbound requests before
-                    changing any record below.
-                  </p>
+                  {hotlinkReport.broughtIn === 0
+                    ? "No pictures were copied in."
+                    : `${hotlinkReport.broughtIn} ${hotlinkReport.broughtIn === 1 ? "picture" : "pictures"} copied in, on ${hotlinkReport.recordsUpdated} ${hotlinkReport.recordsUpdated === 1 ? "record" : "records"}.`}
+                </span>
+                {hotlinkReport.stillWaiting > 0 && (
+                  <>
+                    {" "}
+                    {hotlinkReport.stillWaiting} more {hotlinkReport.stillWaiting === 1 ? "is" : "are"} waiting —
+                    press the button again.
+                  </>
                 )}
-              <ul className="mt-3 space-y-2">
-                {pictureReport.problems.map((problem, index) => (
-                  <li key={`${problem.slug}-${index}`} className="text-sm">
-                    <a
-                      href={`/c/${communitySlug}/timeline/${problem.slug}`}
-                      className="font-medium text-foreground hover:text-accent hover:underline"
-                    >
-                      {problem.title}
-                    </a>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                {hotlinkReport.broughtIn === 0 &&
+                  hotlinkReport.stillWaiting === 0 &&
+                  hotlinkReport.failures.length === 0 &&
+                  " Every picture that can be copied in already has been."}
+              </p>
+              {hotlinkReport.leftAlone > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {hotlinkReport.leftAlone === 1 ? "One picture was" : `${hotlinkReport.leftAlone} pictures were`} left
+                  where {hotlinkReport.leftAlone === 1 ? "it is" : "they are"}: from a host that is not a listed
+                  source, or with no record of where {hotlinkReport.leftAlone === 1 ? "it" : "they"} came from.
+                </p>
+              )}
+              {hotlinkReport.failures.length > 0 && (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {hotlinkReport.failures.length} could not be copied
+                    </span>{" "}
+                    and still point where they did. Nothing was removed.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {hotlinkReport.failures.map((failure, index) => (
+                      <li key={`${failure.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${failure.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {failure.title}
+                        </a>
+                        <span className="text-muted-foreground"> — {failure.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           )}
         </div>
