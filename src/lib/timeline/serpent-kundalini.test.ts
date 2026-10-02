@@ -115,7 +115,7 @@ test("the retained serpent comparisons stay visible and explicitly labelled", ()
     "uraeus-kundalini-comparison",
     "djed-spine-kundalini-comparison",
   ]) {
-    assert.equal(record(slug).kundaliniRelation, "speculative_reading", `${slug}: speculative reading lost its status`);
+    assert.equal(record(slug).kundaliniRelation, "speculative_esoteric", `${slug}: speculative reading lost its status`);
   }
 
   assert.equal(record("double-serpent-dna-comparison").kundaliniRelation, "modern_development");
