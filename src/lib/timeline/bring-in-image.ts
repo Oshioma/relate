@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { PICTURE_FETCH_USER_AGENT } from "./check-pictures";
 import { creditFor, pictureSourceFor } from "./picture-sources";
 import type { SeedPicture } from "./seed-types";
 
@@ -117,7 +118,7 @@ export async function storeExternalImage(
       // A User-Agent that says who is calling and offers a way to get in touch —
       // Wikimedia's published condition for automated requests, and good manners
       // for scraping anyone else's photo too.
-      headers: { "User-Agent": "Relate/1.0 (community platform; +https://github.com/Oshioma/relate)" },
+      headers: { "User-Agent": PICTURE_FETCH_USER_AGENT },
     });
   } catch (error) {
     // Refused, blocked, timed out, DNS — the request never completed.
