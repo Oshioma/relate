@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { panWindow, zoomWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
 import { fingerDistance, pinchWindow, type PinchStart } from "@/lib/timeline/pinch";
-import { wheelIntent, type WheelAxis } from "@/lib/timeline/wheel-intent";
+import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
 
 // Moving through time: drag or swipe sideways to pan, pinch or Ctrl/Cmd+wheel
 // to zoom, Shift+wheel to pan, arrow keys for the keyboard. A plain vertical
@@ -16,8 +16,6 @@ import { wheelIntent, type WheelAxis } from "@/lib/timeline/wheel-intent";
 // Everything is computed in YEARS from the window it started with, never
 // accumulated in pixels, so a long drag doesn't drift and a pinch that starts
 // at 13 billion years wide behaves the same as one at ten years wide.
-
-const WHEEL_GESTURE_GAP_MS = 200;
 
 export function useTimeNavigation(
   containerRef: RefObject<HTMLElement | null>,
@@ -114,10 +112,11 @@ export function useTimeNavigation(
     };
   }, [containerRef, onWindowChange, scale]);
 
-  // The axis the current run of wheel events was first read on, and when the
-  // last one arrived. A trackpad swipe is a stream of events with momentum
-  // tail; a gap this long means the fingers lifted and a new gesture began.
-  const wheelAxis = useRef<{ axis: WheelAxis; at: number } | null>(null);
+  // The swipe in progress: which way it has turned out to go, and how far it
+  // has moved so far. A trackpad swipe is a stream of events with a momentum
+  // tail, and its first event is too small to judge it by — see
+  // readWheelGesture in wheel-intent.ts.
+  const wheelGesture = useRef<WheelGesture | null>(null);
 
   // React's synthetic wheel handler is passive, and a passive listener cannot
   // preventDefault — so this is attached natively. Only the gestures the strip
@@ -137,15 +136,14 @@ export function useTimeNavigation(
       // the strip AND the page with one swipe.
       if (!nativeEvent.cancelable) return;
 
-      const now = nativeEvent.timeStamp;
-      const locked = wheelAxis.current && now - wheelAxis.current.at < WHEEL_GESTURE_GAP_MS ? wheelAxis.current.axis : null;
-      const intent = wheelIntent(nativeEvent, nativeEvent.ctrlKey || nativeEvent.metaKey || nativeEvent.shiftKey ? null : locked);
-      if (!nativeEvent.ctrlKey && !nativeEvent.metaKey && !nativeEvent.shiftKey) {
-        wheelAxis.current = { axis: locked ?? (intent.kind === "pan" ? "x" : "y"), at: now };
-      }
+      const read = readWheelGesture(wheelGesture.current, nativeEvent, nativeEvent.timeStamp);
+      wheelGesture.current = read.gesture;
+      const intent = read.action;
 
       if (intent.kind === "page") return;
       nativeEvent.preventDefault();
+      // Claimed while its direction is still being read; see readWheelGesture.
+      if (intent.kind === "hold") return;
       const rect = el.getBoundingClientRect();
 
       if (intent.kind === "pan") {

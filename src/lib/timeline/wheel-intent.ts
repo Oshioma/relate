@@ -45,7 +45,7 @@ const PAGE_PIXELS = 800;
 const ZOOM_SENSITIVITY = 0.01;
 const ZOOM_DELTA_CLAMP = 50;
 
-function toPixels(delta: number, deltaMode: number): number {
+export function toPixels(delta: number, deltaMode: number): number {
   if (deltaMode === 1) return delta * LINE_PIXELS;
   if (deltaMode === 2) return delta * PAGE_PIXELS;
   return delta;
@@ -83,4 +83,63 @@ export function wheelIntent(event: WheelLike, lockedAxis: WheelAxis | null = nul
   const axis: WheelAxis = lockedAxis ?? (Math.abs(dx) > Math.abs(dy) ? "x" : "y");
   if (axis === "x" && dx !== 0) return { kind: "pan", pixels: dx };
   return { kind: "page" };
+}
+
+// --- A whole gesture, not one event ---------------------------------------------
+//
+// WHY ONE EVENT IS NOT ENOUGH TO DECIDE.
+//
+// A trackpad swipe is a stream of wheel events, and the first is the worst one
+// to judge it by: macOS often opens a swipe with an event that has no movement
+// at all, or a pixel of vertical drift before the fingers settle into their
+// sideways path. Reading that first event alone called the swipe vertical and
+// locked it there, so a two-finger swipe right never moved the strip.
+//
+// It is worse than a stutter, because of how browsers handle the stream. Once
+// the page lets the first event of a scroll through, the browser takes the
+// gesture for itself and every later event in it arrives uncancelable — the
+// strip can no longer claim it even when it turns plainly sideways.
+//
+// So the first few pixels of every gesture are HELD: claimed (the page stays
+// still) but not acted on, until enough movement has arrived to tell which way
+// it is going. Then it is committed — sideways travels through time, vertical
+// is handed back to the page for the rest of the gesture. A vertical scroll
+// loses its first few pixels, which nobody can see; a sideways swipe is never
+// lost.
+
+/** Events further apart than this belong to separate gestures (momentum keeps a swipe's events closer). */
+export const WHEEL_GESTURE_GAP_MS = 200;
+/** How much movement a gesture needs before its direction is trusted. */
+export const WHEEL_AXIS_DECIDE_PX = 6;
+
+export type WheelGesture = { axis: WheelAxis | null; at: number; sumX: number; sumY: number };
+
+/** What to do with one event: as wheelIntent, plus "hold" — claim it, do nothing yet. */
+export type WheelAction = WheelIntent | { kind: "hold" };
+
+export function readWheelGesture(
+  previous: WheelGesture | null,
+  event: WheelLike,
+  now: number
+): { gesture: WheelGesture | null; action: WheelAction } {
+  // Modifier gestures are unambiguous on every event; they neither start nor
+  // continue a plain swipe.
+  if (event.ctrlKey || event.metaKey || event.shiftKey) return { gesture: previous, action: wheelIntent(event) };
+
+  const dx = toPixels(event.deltaX, event.deltaMode);
+  const dy = toPixels(event.deltaY, event.deltaMode);
+  const fresh = !previous || now - previous.at >= WHEEL_GESTURE_GAP_MS;
+  const gesture: WheelGesture = fresh
+    ? { axis: null, at: now, sumX: Math.abs(dx), sumY: Math.abs(dy) }
+    : { ...previous, at: now, sumX: previous.sumX + Math.abs(dx), sumY: previous.sumY + Math.abs(dy) };
+
+  if (gesture.axis === null && gesture.sumX + gesture.sumY >= WHEEL_AXIS_DECIDE_PX) {
+    gesture.axis = gesture.sumX > gesture.sumY ? "x" : "y";
+  }
+
+  if (gesture.axis === "y") return { gesture, action: { kind: "page" } };
+  // Sideways, or not decided yet: sideways movement travels at once (so a
+  // swipe responds from its very first pixel); anything else is held.
+  if (dx !== 0 && (gesture.axis === "x" || Math.abs(dx) > Math.abs(dy))) return { gesture, action: { kind: "pan", pixels: dx } };
+  return { gesture, action: { kind: "hold" } };
 }

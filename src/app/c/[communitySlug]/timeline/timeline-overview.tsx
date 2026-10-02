@@ -14,7 +14,7 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
-import { wheelIntent } from "@/lib/timeline/wheel-intent";
+import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -135,14 +135,20 @@ export function TimelineOverview({
   useEffect(() => {
     latest.current = { view, onWindowChange, scale };
   }, [view, onWindowChange, scale]);
+  // The swipe in progress, read as a whole gesture rather than event by event
+  // (readWheelGesture), for the same reason as on the strip.
+  const gesture = useRef<WheelGesture | null>(null);
   useEffect(() => {
     const element = railRef.current;
     if (!element) return;
     function handleWheel(event: WheelEvent) {
       if (!event.cancelable) return;
-      const intent = wheelIntent(event);
+      const read = readWheelGesture(gesture.current, event, event.timeStamp);
+      gesture.current = read.gesture;
+      const intent = read.action;
       if (intent.kind === "page") return;
       event.preventDefault();
+      if (intent.kind === "hold") return;
       const { view: current, onWindowChange: change, scale: strip } = latest.current;
       const width = Math.max(1, element!.getBoundingClientRect().width);
       if (intent.kind === "pan") change(panWindow(current, intent.pixels / width, strip));
