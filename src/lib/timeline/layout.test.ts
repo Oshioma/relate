@@ -134,12 +134,17 @@ test("overflow chips are not all stacked on the last row", () => {
     titled(-3500, -900),
     titled(-3000, 500),
     ...Array.from({ length: 40 }, (_, index) => titled(-2500 + index * 90)),
-    ...Array.from({ length: 50 }, (_, index) => titled(1500 + index * 28)),
+    // Dense enough that even bare dots run out of room: once every record with
+    // room for its dot is drawn (semantic zoom), a crowd only overflows when it
+    // is a real pile-up.
+    ...Array.from({ length: 300 }, (_, index) => titled(1500 + index * 4)),
   ];
 
   for (const height of [280, 360]) {
     const layout = layoutTimeline(events, WINDOW, WIDTH, height, "linear");
-    const chips = layout.clusters.filter((cluster) => cluster.key.startsWith("overflow-"));
+    // Every kind of chip: what the height could not hold ("overflow-") and,
+    // under semantic zoom, what was left out for want of room ("hidden-").
+    const chips = layout.clusters;
     assert.ok(chips.length > 1, `height ${height}: fixture produced ${chips.length} chips, so it tests nothing`);
     assert.ok(layout.rows > 2, `height ${height}: only ${layout.rows} rows, so there is nowhere else to put them`);
     const lastRow = layout.rows - 1;
@@ -493,4 +498,18 @@ test("under semantic zoom, no marker is drawn on another record's caption", () =
       `${window.from}..${window.to}: the landmark lost its caption`
     );
   }
+});
+
+test("records are only hidden when their dots have no room, never just for want of a caption", () => {
+  // THE REGRESSION THIS GUARDS: the first semantic zoom hid any record whose
+  // dot would have landed on a caption, and a real community's last ten
+  // thousand years went from 85 records drawn to 33. A dot needs ~20px; these
+  // are 30px apart with long captions, so every one must be drawn, most of
+  // them as bare dots.
+  const events = Array.from({ length: 40 }, (_, index) =>
+    eventAt(-3000 + index * 145, { title: `A record with a long enough title to need a caption ${index}` })
+  );
+  const layout = layoutTimeline(events, WINDOW, WIDTH, 120, "linear");
+  assert.equal(layout.events.length, 40, `${40 - layout.events.length} records hidden although their dots fit`);
+  assert.ok(layout.events.some((item) => !item.showLabel), "fixture should be too tight for every caption");
 });
