@@ -50,6 +50,7 @@ import {
 } from "@/lib/timeline/early-sapiens-seed";
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { SACRED_TREES_EVENTS, SACRED_TREES_SOURCES, SACRED_TREES_TRACK } from "@/lib/timeline/sacred-trees-seed";
+import { OKOMILO_EVENTS, OKOMILO_LINKS, OKOMILO_SOURCES, OKOMILO_TRACK } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
@@ -2063,6 +2064,7 @@ type SeedDatasetSpec = {
 
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
+  { label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)", track: OKOMILO_TRACK, events: OKOMILO_EVENTS, sources: OKOMILO_SOURCES, links: OKOMILO_LINKS },
   { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
@@ -3204,6 +3206,29 @@ export async function seedSetSutekhDataset(communitySlug: string) {
  * resemblance between cultures that demonstrably met is an honest position and
  * needs both fields to state. See serpent-kundalini-seed.ts.
  */
+/**
+ * The Okomilo family of Innih, Ogbona and Avhianwu, and the Kingdom of Benin
+ * (NIGERIA — not the Republic of Benin) from which Avhianwu tradition derives
+ * its founder. Family testimony and community oral tradition are kept in one
+ * track and never joined: a record states where the documented line stops.
+ * See okomilo-avhianwu-benin-seed.ts and docs/okomilo-avhianwu-research-report.md.
+ */
+export async function seedOkomiloDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const result = await seedDataset(supabase, community, userId, {
+    events: OKOMILO_EVENTS,
+    sources: OKOMILO_SOURCES,
+    track: OKOMILO_TRACK,
+    links: OKOMILO_LINKS,
+    label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
 export async function seedSacredTreesDataset(communitySlug: string) {
   const context = await requireTimelineWriter(communitySlug);
   if ("error" in context) return context;
