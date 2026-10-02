@@ -77,6 +77,7 @@ import {
   seedBrutusAlbionDataset,
   seedSetSutekhDataset,
   seedSacredTreesDataset,
+  seedOkomiloDataset,
   checkTimelinePictures,
   seedShowcaseEvent,
   seedStarterTracks,
@@ -303,6 +304,7 @@ export function TimelineView({
   hasBrutusAlbion,
   hasSetSutekh,
   hasSacredTrees,
+  hasOkomilo,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -372,6 +374,7 @@ export function TimelineView({
   hasBrutusAlbion: boolean;
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
+  hasOkomilo: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -2075,6 +2078,25 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+
+      {isStaff && !hasOkomilo && (
+        <DatasetOffer
+          title="Add the Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)?"
+          busyLabel="Adding the records…"
+          label="Add the family and community history"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedOkomiloDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
 
       {isStaff && !hasSacredTrees && (
         <DatasetOffer

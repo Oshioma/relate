@@ -51,6 +51,7 @@ import { GIANTS_MESOPOTAMIA_ANCHOR_SLUG } from "@/lib/timeline/giants-mesopotami
 import { THIRTY_THREE_VEDIC_ANCHOR_SLUG } from "@/lib/timeline/thirty-three-vedic-seed";
 import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
 import { SACRED_TREES_ANCHOR_SLUG } from "@/lib/timeline/sacred-trees-seed";
+import { OKOMILO_ANCHOR_SLUG } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { clampWindow, TIMELINE_JUMPS, type TimeWindow } from "@/lib/timeline/time";
@@ -148,6 +149,7 @@ export default async function TimelinePage({
     hasBrutusAlbion,
     hasSetSutekh,
     hasSacredTrees,
+    hasOkomilo,
     hannibalNeedsPictures,
     // Which seeded datasets are only PARTLY here. A dataset's card hides as
     // soon as its anchor exists, so a seeding run that failed halfway leaves a
@@ -207,6 +209,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, BRUTUS_ALBION_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SET_SUTEKH_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SACRED_TREES_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, OKOMILO_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
     // else could act on the answer.
     isStaff
@@ -290,6 +293,7 @@ export default async function TimelinePage({
         hasBrutusAlbion={hasBrutusAlbion}
         hasSetSutekh={hasSetSutekh}
         hasSacredTrees={hasSacredTrees}
+        hasOkomilo={hasOkomilo}
         hannibalNeedsPictures={hannibalNeedsPictures}
         datasetGaps={datasetGaps.datasets}
         recordsMissingPictures={datasetGaps.recordsMissingPictures}
