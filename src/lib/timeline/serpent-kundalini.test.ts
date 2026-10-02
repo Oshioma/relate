@@ -122,6 +122,23 @@ test("the retained serpent comparisons stay visible and explicitly labelled", ()
   assert.equal(record("primordial-serpent-energy-doctrine").kundaliniRelation, "modern_development");
 });
 
+test("the early Sārdhatriśatikālottara witness stays distinct from the later serpent-at-the-base model", () => {
+  const early = record("sardhatrisatikalottara-primordial-kundalini");
+  assert.equal(early.kundaliniRelation, "explicit_kundalini");
+  assert.match(early.description, /heart/i);
+  assert.match(early.description, /potentially very early/i);
+  assert.match(early.description, /does not call 12\.1–2 the proven first occurrence/i);
+  assert.match(early.description, /does not turn.*explicit serpent/is);
+  assert.equal(early.media?.length ?? 0, 0, "do not decorate the early textual witness with later chakra imagery");
+  assert.ok(early.claims.some((claim) => claim.sourceKey === "westoby_body_2024"));
+  assert.ok(
+    early.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "williams_cosmogenesis_2023")
+    ),
+    "the Sanskrit/translation source must stay attached to the dating claim"
+  );
+});
+
 test("the Gudea vase holds a parallel and documented contact at the same time", () => {
   // The position this collection is usually in, and the one that needs two
   // fields to state: Mesopotamia and the Indus demonstrably traded, AND
