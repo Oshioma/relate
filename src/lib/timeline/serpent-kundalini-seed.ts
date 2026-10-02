@@ -332,7 +332,7 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         ],
         startYear: -700,
         endYear: -300,
-        datePrecision: "range",
+        datePrecision: "century",
         isApproximate: true,
         temporalClaimType: "estimated_range",
         whatIsDated: "The early Upaniṣadic channel-and-upward-ascent textual layer",
