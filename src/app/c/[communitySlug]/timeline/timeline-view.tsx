@@ -1342,11 +1342,10 @@ export function TimelineView({
         ))}
       </div>
 
-      {/* ---- How much time is on screen ------------------------------------
-          Above the strip in both windowed modes, and absent from "whole",
-          where the answer is "all of it" and a measurement of the view would
-          be measuring nothing. */}
-      <SpanRuler window={view} scale={scale} />
+      {/* ---- When the middle of the view is, and a picture of it ----------
+          Above the strip: the middle date, large, with one picture from the
+          record nearest it among those shown. Clicking the picture opens it. */}
+      <SpanRuler window={view} scale={scale} events={displayed} onOpen={setSelected} />
 
       {/* ---- The scrollbar -------------------------------------------------
           Where everything is, and where you are in it. Above the strip, under
