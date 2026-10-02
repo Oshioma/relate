@@ -435,3 +435,14 @@ Shaman Hatley's **“Kuṇḍalinī”** states that Kuṇḍalinī first comes 
 **Repository action:** an `explicit_kundalini` timeline record has now been added for this textual witness, dated only to Westoby's approximate sixth-to-seventh-century range. It has no image: a later chakra painting would be anachronistic evidence dressing.
 
 **E1 status:** still OPEN only in its strongest wording — *earliest securely dated occurrence*. To close that superlative, the research needs a firmer relative chronology across the competing early Śaiva witnesses. This caution is supported independently by current scholarship on the Sārdhatriśatikālottara's chronology: its relative position is early, but firm absolute dating remains difficult.
+
+
+#### SOURCE PASS 04 — Tantrasadbhāva: explicit serpent and sleep/dormancy
+
+A stronger primary-text route is now available through Junglan Bang, *Selected Chapters from the Tantrasadbhāva* (University of Hamburg dissertation, 2022). Bang describes the practice as first awakening Śakti in the form of a sleeping serpent, Kuṇḍalī, and cites Tantrasadbhāva 1.252cd directly: `nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ`. This gives a directly checkable textual basis for Kuṇḍalī at the navel/belly with the appearance of a sleeping serpent.
+
+Ruth Westoby's 2024 historical synthesis dates the Tantrasadbhāva to the eighth century and reports a developmental sequence inside chapter 1: Kuṇḍalinī as curved (`kuṭilākṛtiḥ`, 1.56), Śakti in the heart in snake form (1.215), and sleeping-snake material at 1.216–217. Westoby reports Shaman Hatley's suggestion that the snake-form description may be the first such occurrence. That wording remains a **candidate priority claim**, not a settled superlative.
+
+**Traceback effect:** `kundalini-as-serpent` now has strong early textual evidence; `dormant`/sleeping has a directly recoverable Sanskrit witness; `shakti` is supported in the same textual complex. `awakening` is strongly described by Bang's analysis and by Padoux's published translation trail, but its exact Sanskrit verse should still be attached before treating that row as independently complete under the strictest fill contract.
+
+**Repository action:** added a distinct eighth-century Tantrasadbhāva timeline record and a regression test that prevents it from being silently expanded into the later complete base/channel/seven-cakra model. No later chakra painting is attached as evidence.
