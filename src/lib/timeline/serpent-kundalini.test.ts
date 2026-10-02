@@ -122,6 +122,22 @@ test("the retained serpent comparisons stay visible and explicitly labelled", ()
   assert.equal(record("primordial-serpent-energy-doctrine").kundaliniRelation, "modern_development");
 });
 
+test("the Upanishadic ascent precursor does not get silently renamed sushumna or Kundalini", () => {
+  const precursor = record("upanishadic-heart-nadis-upward-immortality");
+  assert.equal(precursor.kundaliniRelation, "historical_precursor");
+  assert.match(precursor.description, /one hundred and one nāḍīs/i);
+  assert.match(precursor.description, /upward/i);
+  assert.match(precursor.description, /immortality/i);
+  assert.match(precursor.description, /Neither verse names this channel Suṣumṇā/i);
+  assert.match(precursor.description, /later commentary/i);
+  assert.equal(precursor.media?.length ?? 0, 0);
+  assert.ok(
+    precursor.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "sankara_katha_2_3_16")
+    )
+  );
+});
+
 test("the early Sārdhatriśatikālottara witness stays distinct from the later serpent-at-the-base model", () => {
   const early = record("sardhatrisatikalottara-primordial-kundalini");
   assert.equal(early.kundaliniRelation, "explicit_kundalini");
