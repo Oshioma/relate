@@ -244,8 +244,10 @@ no, and a well-evidenced no is a finding I will record**, not a wasted search.
 
 # PART D — THE TRADITIONS THIS COLLECTION HAS NOT TOUCHED
 
-Four records is not a cross-cultural collection. But the gap must not be filled
-by scraping serpents from everywhere — that would build the exact pile the
+Seventeen records is still not a cross-cultural collection — and nine of the
+seventeen are the comparison records described under the retention rule at the
+end of this brief, which carry a status and no passage. The gap must not be
+filled by scraping serpents from everywhere — that would build the exact pile the
 collection exists to resist.
 
 **So the question for each tradition below is deliberately narrow:**
@@ -253,13 +255,13 @@ collection exists to resist.
 > What does the serpent **do** in this tradition, according to specialists in it,
 > and does any specialist connect it to energy, ascent, or the human body?
 
-| tradition | the obvious starting point |
-| --- | --- |
-| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body |
-| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing |
-| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil |
-| West Africa | Dan / Damballa and the serpent-and-rainbow complex |
-| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 |
+| tradition | the obvious starting point | record so far |
+| --- | --- | --- |
+| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body | **none** |
+| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing | `quetzalcoatl-kundalini-comparison`, no passage |
+| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil | `jormungandr-kundalini-comparison`, no passage; Níðhöggr untouched |
+| West Africa | Dan / Damballa and the serpent-and-rainbow complex | **none** |
+| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 | `nehushtan-kundalini-comparison`, no passage; Genesis 3 untouched |
 
 **Two rules for this section, and the first one matters more than the research.**
 
