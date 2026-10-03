@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   Globe2,
+  Hash,
   Layers,
   List,
   MapPin,
@@ -46,6 +47,7 @@ import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
   loadTimelineWindow,
+  loadTagExtent,
   markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
@@ -500,6 +502,10 @@ export function TimelineView({
   const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
   const [person, setPerson] = useState(initialUrlState.person);
   const [civilisation, setCivilisation] = useState(initialUrlState.civilisation);
+  const [tag, setTag] = useState(initialUrlState.tag);
+  // How many records carry the tag, and where they sit in time — fetched when
+  // the tag changes, so the chip can say "12 records" and frame all of them.
+  const [tagExtent, setTagExtent] = useState<{ tag: string; from: number; to: number; count: number } | null>(null);
   const [disputedOnly, setDisputedOnly] = useState(initialUrlState.disputedOnly);
   const [pendingOnly, setPendingOnly] = useState(initialUrlState.pendingOnly);
 
@@ -534,10 +540,11 @@ export function TimelineView({
       sourceType: sourceType || null,
       person: person || null,
       civilisation: civilisation || null,
+      tag: tag || null,
       disputedOnly,
       includePending: pendingOnly || isStaff,
     }),
-    [category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly, isStaff]
+    [category, trackId, chronology, sourceType, person, civilisation, tag, disputedOnly, pendingOnly, isStaff]
   );
 
   // --- The address follows the reader --------------------------------------
@@ -568,10 +575,11 @@ export function TimelineView({
       sourceType,
       person,
       civilisation,
+      tag,
       disputedOnly,
       pendingOnly,
     }),
-    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly]
+    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, tag, disputedOnly, pendingOnly]
   );
   const openedWith = useRef<TimelineUrlState | null>(null);
   useEffect(() => {
@@ -696,6 +704,43 @@ export function TimelineView({
     setView(clampWindow({ from: extent.from - pad, to: extent.to + pad }));
     setMode("timeline");
   }, [extent]);
+
+  // A TAG IS "EVERYTHING FILED WITH THIS", and that is usually spread far
+  // wider than the window it was clicked from. The extent is asked for once
+  // per tag; framing on it is then the same arithmetic as fitEverything.
+  useEffect(() => {
+    // A stale extent is harmless: the chip only reads one whose tag matches.
+    if (!tag) return;
+    let cancelled = false;
+    loadTagExtent(communitySlug, tag)
+      .then((found) => {
+        if (!cancelled) setTagExtent(found ? { tag, ...found } : null);
+      })
+      .catch(() => {
+        if (!cancelled) setTagExtent(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [communitySlug, tag]);
+
+  const frameWindow = useCallback((found: { from: number; to: number }) => {
+    const span = Math.max(50, found.to - found.from);
+    const pad = span * 0.08;
+    setView(clampWindow({ from: found.from - pad, to: found.to + pad }));
+    setMode("timeline");
+  }, []);
+
+  // From a tag on a record: filter to it and frame every record carrying it,
+  // keeping the record that was clicked open.
+  const showTag = useCallback(
+    async (next: string) => {
+      setTag(next);
+      const found = await loadTagExtent(communitySlug, next).catch(() => null);
+      if (found) frameWindow(found);
+    },
+    [communitySlug, frameWindow]
+  );
 
   // Bring the panel into view when the selection changes — but only when it
   // changes, so scrolling away from an open panel doesn't yank you back on
@@ -885,13 +930,14 @@ export function TimelineView({
       if (trackId && !event.trackIds.includes(trackId)) return false;
       if (person && !event.people.includes(person)) return false;
       if (civilisation && !event.civilisations.includes(civilisation)) return false;
+      if (tag && !event.tags.includes(tag)) return false;
       if (chronology && !event.claims.some((claim) => claim.chronology === chronology)) return false;
       if (sourceIdsOfType && !event.claims.some((claim) => claim.source_id && sourceIdsOfType.has(claim.source_id)))
         return false;
       if (disputedOnly && !claimsDisagree(event.claims)) return false;
       return true;
     },
-    [category, trackId, person, civilisation, chronology, sourceIdsOfType, disputedOnly]
+    [category, trackId, person, civilisation, tag, chronology, sourceIdsOfType, disputedOnly]
   );
 
   // Loaded is wider than shown (see the loader above), so the list is filtered
@@ -979,7 +1025,7 @@ export function TimelineView({
     return showingOnly.map((event) => latest.get(event.id) ?? event);
   }, [showingOnly, events]);
   const displayed = activeResults ?? pinned ?? visible;
-  const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
+  const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation, tag].filter(Boolean).length +
     (disputedOnly ? 1 : 0) + (pendingOnly ? 1 : 0);
 
   // Nothing at all, ever — as opposed to nothing in this window, which the
@@ -1236,6 +1282,43 @@ export function TimelineView({
         </div>
       </div>
 
+      {/* ---- The tag being followed -------------------------------------
+          Outside the filter drawer, because it is usually set from a record
+          rather than from the drawer, and a filter the reader cannot see is a
+          timeline that has silently gone quiet. */}
+      {tag && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            Records tagged {tag}
+          </span>
+          {tagExtent?.tag === tag && (
+            <span className="text-muted-foreground">
+              {tagExtent.count} {tagExtent.count === 1 ? "record" : "records"}
+            </span>
+          )}
+          {tagExtent?.tag === tag && (
+            <button
+              type="button"
+              onClick={() => frameWindow(tagExtent)}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              Show all of them
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setTag("")}
+            aria-label={`Stop filtering by ${tag}`}
+            className="ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+            Clear
+          </button>
+        </div>
+      )}
+
       {showFilters && (
         <div className="mb-3 flex flex-wrap gap-2 rounded-xl border border-border bg-card p-3">
           {tracks.length > 0 && (
@@ -1280,6 +1363,7 @@ export function TimelineView({
                 setSourceType("");
                 setPerson("");
                 setCivilisation("");
+                setTag("");
                 setDisputedOnly(false);
                 setPendingOnly(false);
               }}
@@ -1580,6 +1664,8 @@ export function TimelineView({
             // timeline rather than over it, jumping to "what else was happening
             // then" no longer has to close what you were reading.
             onShowContext={(from, to) => setView({ from, to })}
+            onSelectTag={showTag}
+            activeTag={tag}
           // A save writes to the database and refreshes the server components;
           // this is what tells the client-side copy of the timeline to go and
           // look again, so a renamed event is renamed on the strip too.

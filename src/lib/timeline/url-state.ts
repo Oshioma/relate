@@ -19,6 +19,8 @@ export type TimelineFiltersState = {
   sourceType: string;
   person: string;
   civilisation: string;
+  /** One of the record tags, e.g. "benin-kingdom-context" — the "everything filed with this" view. */
+  tag: string;
   disputedOnly: boolean;
   pendingOnly: boolean;
 };
@@ -39,6 +41,7 @@ export const EMPTY_TIMELINE_FILTERS: TimelineFiltersState = {
   sourceType: "",
   person: "",
   civilisation: "",
+  tag: "",
   disputedOnly: false,
   pendingOnly: false,
 };
@@ -51,6 +54,7 @@ const TEXT_PARAMS = [
   ["sourceType", "source"],
   ["person", "person"],
   ["civilisation", "civilisation"],
+  ["tag", "tag"],
 ] as const satisfies readonly (readonly [keyof TimelineFiltersState, string])[];
 
 const FLAG_PARAMS = [

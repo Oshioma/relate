@@ -89,6 +89,8 @@ export function EventDetail({
   canContribute,
   isStaff,
   onShowContext,
+  onSelectTag,
+  activeTag = "",
   onClose,
   onSaved,
 }: {
@@ -131,6 +133,10 @@ export function EventDetail({
   isStaff: boolean;
   /** Jump the timeline to this event's own stretch of time. Absent on the standalone page, which links instead. */
   onShowContext?: (from: number, to: number) => void;
+  /** Filter the timeline to one of this record's tags. Absent on the standalone page, which links instead. */
+  onSelectTag?: (tag: string) => void;
+  /** The tag the timeline is filtered to, so its chip can show as on. */
+  activeTag?: string;
   onClose?: () => void;
   /** An edit was saved. The standalone page needs nothing; the timeline reloads. */
   onSaved?: () => void;
@@ -496,13 +502,43 @@ export function EventDetail({
         </div>
       )}
 
+      {/* A TAG IS A WAY IN TO EVERYTHING FILED WITH IT. Pressing one filters
+          the timeline to the records that carry it and frames all of them; on
+          the standalone page it is a link to the same view. The record being
+          read stays selected either way, so the reader does not lose their
+          place. */}
       {event.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
-          {event.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-              #{tag}
-            </span>
-          ))}
+          {event.tags.map((tag) => {
+            const chipClass = cn(
+              "rounded-full px-2.5 py-1 text-xs transition-colors",
+              tag === activeTag
+                ? "bg-foreground text-background"
+                : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+            );
+            const title = `Show every record tagged ${tag}`;
+            return onSelectTag ? (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onSelectTag(tag)}
+                aria-pressed={tag === activeTag}
+                title={title}
+                className={chipClass}
+              >
+                #{tag}
+              </button>
+            ) : (
+              <a
+                key={tag}
+                href={`/c/${communitySlug}/timeline?tag=${encodeURIComponent(tag)}&focus=${encodeURIComponent(event.slug)}`}
+                title={title}
+                className={chipClass}
+              >
+                #{tag}
+              </a>
+            );
+          })}
         </div>
       )}
 
