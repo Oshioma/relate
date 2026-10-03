@@ -41,6 +41,7 @@ import {
   titleFromFileName,
 } from "@/lib/school/lesson-media";
 import { findOwnUpload, pruneOldVideoJobs } from "@/lib/school/lesson-media-storage";
+import { findLessonsFromLink, linkLessonsResponse } from "@/lib/school/lesson-from-link";
 import type { Database, LessonVideoJob } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -189,6 +190,21 @@ export async function POST(request: NextRequest) {
     }
     if (found.size !== null && found.size > MAX_KEPT_MEDIA_BYTES) {
       return NextResponse.json({ error: "That upload is too big to keep." }, { status: 400, headers: NO_STORE });
+    }
+  }
+
+  // A video already made into a lesson is answered before the transcription
+  // is paid for. In this community that's a hard stop; in another it's a
+  // warning the author can go past, which comes back with acknowledgedElsewhere.
+  if (requested.kind === "link") {
+    const found = await findLessonsFromLink(supabase, {
+      communityId: auth.space.community_id,
+      userId: auth.userId,
+      url: requested.url,
+      includeElsewhere: payload.acknowledgedElsewhere !== true,
+    });
+    if (found.here || found.elsewhere.length > 0) {
+      return NextResponse.json(linkLessonsResponse(found), { status: 409, headers: NO_STORE });
     }
   }
 
