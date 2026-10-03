@@ -41,6 +41,14 @@ export const OKOMILO_TRACK: SeedTrack = {
 
 export const OKOMILO_ANCHOR_SLUG = "okomilo-oshioma-son-of-sam";
 
+/**
+ * The span the "open this track on its own" link opens on: from the earliest
+ * dated claim (cal. AD 1180, the base of a Benin earthwork) to the present, with
+ * a margin either side. A test holds every dated claim inside it, so a new
+ * record that falls outside fails rather than opening off-screen.
+ */
+export const OKOMILO_TRACK_WINDOW = { from: 1150, to: 2035 } as const;
+
 /** The lanes, as subcategories. Exported so tests and the UI agree on spelling. */
 export const OKOMILO_LANES = {
   family: "Okomilo family",
