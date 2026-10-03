@@ -1066,6 +1066,58 @@ export function TimelineView({
         )}
       </div>
 
+      {(() => {
+        // ONE TRACK, ON ITS OWN. With every dataset showing, the Okomilo
+        // records sit between unrelated ones and "See all" on a cluster only
+        // lists that cluster. This opens the whole track: filtered to it, over
+        // the span its dated records cover, with the list open for the
+        // records that deliberately have no date. It sits at the top, under
+        // the heading, because at the foot of the page nobody found it.
+        const track = tracks.find((candidate) => candidate.slug === OKOMILO_TRACK.slug);
+        if (!track || trackId === track.id) return null;
+        return (
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5">
+            <p className="min-w-0 flex-1 text-sm text-foreground">
+              <span className="font-medium">{track.name}</span>
+              <span className="text-muted-foreground"> — see the whole track together, without the other datasets in between.</span>
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setShowingOnly(null);
+                setTrackId(track.id);
+                setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
+                setShowList(true);
+                listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Open this track on its own
+            </Button>
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              onClick={(event) => {
+                // A link, not a navigation: the same page keeps its state on
+                // a client-side route change, so following it from here would
+                // not re-apply the filter. Copy it for sharing instead.
+                // The page's own address, so it works on a community's custom domain
+                // as well as under /c/<slug>.
+                const url = `${window.location.origin}${window.location.pathname}${trackLinkSearch(track.slug, OKOMILO_TRACK_WINDOW)}`;
+                const button = event.currentTarget;
+                navigator.clipboard?.writeText(url).then(
+                  () => (button.textContent = "Link copied"),
+                  () => window.prompt("Copy this link", url)
+                );
+              }}
+            >
+              Copy link
+            </button>
+          </div>
+        );
+      })()}
+
       {isStaff && pendingCount > 0 && (
         <button
           type="button"
@@ -2212,59 +2264,6 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
-
-      {(() => {
-        // ONE TRACK, ON ITS OWN. With every dataset showing, the Okomilo
-        // records sit between unrelated ones and "See all" on a cluster only
-        // lists that cluster. This opens the whole track: filtered to it, over
-        // the span its dated records cover, with the list open for the
-        // records that deliberately have no date.
-        const track = tracks.find((candidate) => candidate.slug === OKOMILO_TRACK.slug);
-        if (!track || trackId === track.id) return null;
-        return (
-          <div className="mt-8 rounded-xl border border-border bg-muted/30 p-5">
-            <p className="text-sm font-semibold text-foreground">{track.name}</p>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              See the whole track together — the family records, Innih and Ogbona, Avhianwu tradition and the Kingdom of
-              Benin context — without the other datasets in between. Records with no date are listed first.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setShowingOnly(null);
-                  setTrackId(track.id);
-                  setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
-                  setShowList(true);
-                  listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                Open this track on its own
-              </Button>
-              <button
-                type="button"
-                className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                onClick={(event) => {
-                  // A link, not a navigation: the same page keeps its state on
-                  // a client-side route change, so following it from here would
-                  // not re-apply the filter. Copy it for sharing instead.
-                  // The page's own address, so it works on a community's custom domain
-                  // as well as under /c/<slug>.
-                  const url = `${window.location.origin}${window.location.pathname}${trackLinkSearch(track.slug, OKOMILO_TRACK_WINDOW)}`;
-                  const button = event.currentTarget;
-                  navigator.clipboard?.writeText(url).then(
-                    () => (button.textContent = "Link copied"),
-                    () => window.prompt("Copy this link", url)
-                  );
-                }}
-              >
-                Copy link to this track
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {isStaff && !hasOkomilo && (
         <DatasetOffer
