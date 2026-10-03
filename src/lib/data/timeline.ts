@@ -1040,7 +1040,43 @@ export async function getEventGenealogies(
 }
 
 /** The far end of an edge, in the few fields a link needs to name and reach it. */
-export type TimelineLinkedRecord = { id: string; title: string; slug: string; category: string | null };
+/** One of a linked record's pictures, trimmed to what a thumbnail needs. */
+export type TimelineLinkedPicture = { url: string; caption?: string; shows?: string };
+
+export type TimelineLinkedRecord = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string | null;
+  /** The record's own pictures, cover first, duplicates dropped, at most LINKED_PICTURE_LIMIT. */
+  pictures: TimelineLinkedPicture[];
+};
+
+// Enough to recognise the record at a glance; the rest are one click away.
+// Capped here rather than in the panel because this list covers every linked
+// record in the community and is sent with the page.
+const LINKED_PICTURE_LIMIT = 4;
+
+function linkedPictures(
+  imageUrl: string | null,
+  media: { url: string; caption?: string; shows?: string }[] | null
+): TimelineLinkedPicture[] {
+  const out: TimelineLinkedPicture[] = [];
+  const seen = new Set<string>();
+  const items = media ?? [];
+  // The cover is usually also the first gallery item; when it is, the gallery
+  // copy wins because it carries the caption (and so the UNVERIFIED marker).
+  if (imageUrl && !items.some((item) => item.url === imageUrl)) {
+    out.push({ url: imageUrl });
+    seen.add(imageUrl);
+  }
+  for (const item of items) {
+    if (!item.url || seen.has(item.url)) continue;
+    seen.add(item.url);
+    out.push({ url: item.url, caption: item.caption, shows: item.shows });
+  }
+  return out.slice(0, LINKED_PICTURE_LIMIT);
+}
 
 /**
  * The records at the ends of these edges.
@@ -1059,11 +1095,17 @@ export async function getLinkedRecords(
   if (ids.length === 0) return [];
   const { data, error } = await supabase
     .from("timeline_events")
-    .select("id, title, slug, category")
+    .select("id, title, slug, category, image_url, media")
     .eq("community_id", communityId)
     .in("id", ids);
   if (error) throw error;
-  return (data ?? []) as TimelineLinkedRecord[];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    category: row.category,
+    pictures: linkedPictures(row.image_url, row.media),
+  }));
 }
 
 // ---------------------------------------------------------------------------
