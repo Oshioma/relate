@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { SaveUnsavedLesson } from "./save-unsaved-lesson";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { FileUp, Film, Link2, Loader2, Music, Sparkles, Trash2, Upload, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Check, FileUp, Film, Link2, Loader2, Music, Sparkles, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Linkify } from "@/components/ui/linkify";
@@ -26,6 +26,9 @@ import {
 } from "@/lib/school/transcript-text";
 import { VIDEO_PLATFORM_NAMES, formatDuration, parseVideoLink } from "@/lib/school/video-links";
 import type { PublicVideoJob } from "@/lib/school/video-worker";
+import type { LessonElsewhere, LessonHere } from "@/lib/school/lesson-from-link";
+import { joinCommunity } from "@/app/dashboard/actions";
+import { requestToJoinCommunity } from "@/app/c/[communitySlug]/join-request-actions";
 import {
   MAX_DIRECT_MEDIA_BYTES,
   MAX_KEPT_MEDIA_BYTES,
@@ -173,10 +176,10 @@ export function LessonComposer({
   // somebody edits the text by hand: once the words are no longer the ones
   // that page served, crediting it would be a claim we can't stand behind.
   const [source, setSource] = useState<{ url: string; title: string | null } | null>(null);
-  // Set when the link pasted has already been made into a lesson in this
-  // space. Shown with the error, linking to that lesson and offering to make
-  // another anyway (a different age band, say).
-  const [existingLesson, setExistingLesson] = useState<{ id: string; title: string } | null>(null);
+  // Set when the link pasted has already been made into a lesson. In this
+  // community it's a hard stop, shown with a link to that lesson; in another
+  // it's a warning, with a way into that community and a way past it.
+  const [linkConflict, setLinkConflict] = useState<LinkConflict | null>(null);
 
   // The video a transcript came from, to show at the top of the lesson. Kept
   // through hand edits, unlike `source`: trimming a transcript is the whole
@@ -240,7 +243,7 @@ export function LessonComposer({
     setVideo(topMediaOf(job));
     setEmbedVideo(true);
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     usedJobIdsRef.current.add(job.id);
 
     const length = formatDuration(job.durationSeconds);
@@ -317,24 +320,24 @@ export function LessonComposer({
     };
   }, [pendingIds, insertTranscript]);
 
-  async function startVideo(allowDuplicate = false) {
+  async function startVideo(acknowledgedElsewhere = false) {
     if (!url.trim() || starting || busy) return;
     setStarting(true);
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setReadNote(null);
     try {
       const response = await fetch("/api/lessons/video-jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url, allowDuplicate }),
+        body: JSON.stringify({ spaceId, url, acknowledgedElsewhere }),
       });
       const body = (await response.json().catch(() => null)) as
-        | { job?: PublicVideoJob; error?: string; existingLesson?: { id: string; title: string } }
+        | ({ job?: PublicVideoJob; error?: string } & LinkConflict)
         | null;
-      if (response.status === 409 && body?.existingLesson) {
-        setError(body.error ?? "You've already made a lesson from this link.");
-        setExistingLesson(body.existingLesson);
+      if (response.status === 409 && (body?.existingLesson || body?.elsewhere)) {
+        setError(body.error ?? "A lesson has already been made from this link.");
+        setLinkConflict({ existingLesson: body.existingLesson, elsewhere: body.elsewhere });
         return;
       }
       if (!response.ok || !body?.job) {
@@ -357,7 +360,7 @@ export function LessonComposer({
 
   async function loadFinishedJob(job: PublicVideoJob) {
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     try {
       const response = await fetch(`/api/lessons/video-jobs/${job.id}`, { cache: "no-store" });
       const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob; error?: string } | null;
@@ -467,7 +470,7 @@ export function LessonComposer({
   async function uploadMedia(file: File) {
     if (busy || upload) return;
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setReadNote(null);
 
     if (file.type && !isMediaContentType(file.type)) {
@@ -505,7 +508,7 @@ export function LessonComposer({
   async function addFile(file: File) {
     if (busy) return;
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setReadNote(null);
 
     // A recording dropped on the box means "transcribe this", so it goes the
@@ -556,39 +559,34 @@ export function LessonComposer({
     );
   }
 
-  // allowDuplicate is the "make it again anyway" answer to a link this space
-  // already has a lesson from.
-  async function readFromUrl(allowDuplicate = false) {
+  // acknowledgedElsewhere is the "make our own anyway" answer to a link
+  // another community already has a lesson from. A lesson in this community
+  // has no such answer: the server refuses it whatever this says.
+  async function readFromUrl(acknowledgedElsewhere = false) {
     if (!url.trim() || reading || busy) return;
     // One box for every kind of link: a video goes to the transcriber, and
     // everything else is read as a page.
     if (urlIsVideo) {
-      await startVideo(allowDuplicate);
+      await startVideo(acknowledgedElsewhere);
       return;
     }
     setReading(true);
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setReadNote(null);
     try {
       const response = await fetch("/api/lessons/read-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url, allowDuplicate }),
+        body: JSON.stringify({ spaceId, url, acknowledgedElsewhere }),
       });
       const body = (await response.json().catch(() => null)) as
-        | {
-            text?: string;
-            title?: string | null;
-            truncated?: boolean;
-            error?: string;
-            existingLesson?: { id: string; title: string };
-          }
+        | ({ text?: string; title?: string | null; truncated?: boolean; error?: string } & LinkConflict)
         | null;
 
-      if (response.status === 409 && body?.existingLesson) {
-        setError(body.error ?? "You've already made a lesson from this link.");
-        setExistingLesson(body.existingLesson);
+      if (response.status === 409 && (body?.existingLesson || body?.elsewhere)) {
+        setError(body.error ?? "A lesson has already been made from this link.");
+        setLinkConflict({ existingLesson: body.existingLesson, elsewhere: body.elsewhere });
         return;
       }
 
@@ -655,7 +653,7 @@ export function LessonComposer({
     setSource(null);
     setReadNote(null);
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setUnsavedId(null);
     setSavedLesson(saved);
     // The library is a server component; pull the new lesson into it.
@@ -665,7 +663,7 @@ export function LessonComposer({
   async function submit() {
     setPhase("writing");
     setError(null);
-    setExistingLesson(null);
+    setLinkConflict(null);
     setSavedLesson(null);
     setUnsavedId(null);
     setCharsWritten(0);
@@ -829,10 +827,10 @@ export function LessonComposer({
               onChange={(e) => {
                 setUrl(e.target.value);
                 // A different link: the warning was about the old one.
-                if (existingLesson) {
-                  setExistingLesson(null);
+                if (linkConflict) {
+                  setLinkConflict(null);
                   setError(null);
-                  setExistingLesson(null);
+                  setLinkConflict(null);
                 }
               }}
               onKeyDown={(e) => {
@@ -1021,20 +1019,27 @@ export function LessonComposer({
       {error && (
         <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           <Linkify text={error} />
-          {existingLesson && (
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              {lessonHref && (
-                <a href={lessonHref(existingLesson.id)} className="font-medium text-accent hover:underline">
-                  Open that lesson
-                </a>
-              )}
+          {linkConflict?.existingLesson && (
+            <div className="mt-2">
+              <a href={linkConflict.existingLesson.href} className="font-medium text-accent hover:underline">
+                Open &ldquo;{linkConflict.existingLesson.title}&rdquo;
+              </a>
+            </div>
+          )}
+          {linkConflict?.elsewhere && linkConflict.elsewhere.length > 0 && (
+            <div className="mt-2 space-y-2 text-foreground">
+              <ul className="space-y-1.5">
+                {linkConflict.elsewhere.map((community) => (
+                  <ElsewhereCommunity key={community.communityId} community={community} />
+                ))}
+              </ul>
               <button
                 type="button"
                 onClick={() => void readFromUrl(true)}
                 disabled={busy || linkBusy || !url.trim()}
-                className="font-medium text-foreground underline-offset-2 hover:underline disabled:opacity-50"
+                className="font-medium underline-offset-2 hover:underline disabled:opacity-50"
               >
-                Make it again anyway
+                Make our own anyway
               </button>
             </div>
           )}
@@ -1186,6 +1191,68 @@ function VideoJobRow({
           </button>
         </div>
       </div>
+    </li>
+  );
+}
+
+// What a read answers when its link is already a lesson somewhere.
+type LinkConflict = { existingLesson?: LessonHere; elsewhere?: LessonElsewhere[] };
+
+// One other community that has a lesson from this link, with the way in that
+// fits: join an open one, ask to join a private one, or nothing to press for
+// an invite-only one (which isn't named either).
+function ElsewhereCommunity({ community }: { community: LessonElsewhere }) {
+  const [membership, setMembership] = useState(community.membership);
+  const [pending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  function run(action: () => Promise<{ error: string | null }>, next: LessonElsewhere["membership"]) {
+    setActionError(null);
+    startTransition(async () => {
+      const result = await action();
+      if (result.error) setActionError(result.error);
+      else setMembership(next);
+    });
+  }
+
+  const name = community.name ?? "An invite-only community";
+  const href = community.slug ? `/c/${community.slug}` : null;
+  const action =
+    membership === "active" ? (
+      <span className="text-muted-foreground">You&apos;re a member</span>
+    ) : membership === "requested" ? (
+      <span className="inline-flex items-center gap-1 text-muted-foreground">
+        <Check className="h-3.5 w-3.5" />
+        Request sent
+      </span>
+    ) : community.privacy === "public" ? (
+      <Button size="sm" variant="secondary" disabled={pending} onClick={() => run(() => joinCommunity(community.communityId), "active")}>
+        {pending ? "Joining…" : "Join"}
+      </Button>
+    ) : community.privacy === "private" ? (
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending}
+        onClick={() => run(() => requestToJoinCommunity(community.communityId), "requested")}
+      >
+        {pending ? "Sending…" : "Request to join"}
+      </Button>
+    ) : (
+      <span className="text-muted-foreground">Joins by invite only</span>
+    );
+
+  return (
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      {href ? (
+        <a href={href} className="font-medium text-accent hover:underline">
+          {name}
+        </a>
+      ) : (
+        <span className="font-medium">{name}</span>
+      )}
+      {action}
+      {actionError && <span className="w-full text-xs">{actionError}</span>}
     </li>
   );
 }

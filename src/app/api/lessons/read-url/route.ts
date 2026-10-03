@@ -15,7 +15,7 @@ import { readUrl } from "@/lib/ai/read-url";
 import { MAX_SOURCE_CHARS } from "@/lib/school/lesson-types";
 import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { meteredFor } from "@/lib/usage/ai-meter";
-import { findLessonFromLink, lessonExistsError } from "@/lib/school/lesson-from-link";
+import { findLessonsFromLink, linkLessonsResponse } from "@/lib/school/lesson-from-link";
 
 export const maxDuration = 90;
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected a JSON body." }, { status: 400, headers: NO_STORE });
   }
 
-  const payload = body as { spaceId?: unknown; url?: unknown; allowDuplicate?: unknown };
+  const payload = body as { spaceId?: unknown; url?: unknown; acknowledgedElsewhere?: unknown };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   const url = typeof payload.url === "string" ? payload.url : "";
 
@@ -48,14 +48,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: auth.error }, { status: auth.status, headers: NO_STORE });
   }
 
-  // A page this space already has a lesson from is answered with that lesson,
-  // before the read is paid for. The composer offers to go ahead anyway,
-  // which comes back with allowDuplicate.
-  if (payload.allowDuplicate !== true) {
-    const existing = await findLessonFromLink(supabase, auth.space.id, url);
-    if (existing) {
-      return NextResponse.json(lessonExistsError(existing), { status: 409, headers: NO_STORE });
-    }
+  // A page already made into a lesson is answered before the read is paid
+  // for. In this community that's a hard stop; in another it's a warning the
+  // author can go past, which comes back with acknowledgedElsewhere.
+  const found = await findLessonsFromLink(supabase, {
+    communityId: auth.space.community_id,
+    userId: auth.userId,
+    url,
+    includeElsewhere: payload.acknowledgedElsewhere !== true,
+  });
+  if (found.here || found.elsewhere.length > 0) {
+    return NextResponse.json(linkLessonsResponse(found), { status: 409, headers: NO_STORE });
   }
 
   // Shares the daily lesson allowance rather than having one of its own. A
