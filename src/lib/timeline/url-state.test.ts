@@ -26,6 +26,7 @@ test("a written state reads back as the same state", () => {
     sourceType: "primary",
     person: "Khufu",
     civilisation: "Egypt",
+    tag: "benin-kingdom-context",
     disputedOnly: true,
     pendingOnly: true,
   };

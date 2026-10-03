@@ -58,6 +58,8 @@ export type TimelineFilters = {
   sourceType?: string | null;
   person?: string | null;
   civilisation?: string | null;
+  /** Only events carrying this tag. */
+  tag?: string | null;
   /** Only events whose sources place them at different points in time. */
   disputedOnly?: boolean;
   /** Include the viewer's own pending contributions and, for staff, everyone's. */
@@ -181,6 +183,7 @@ export async function getTimelineWindow(
   if (filters.chronology) query = query.eq("chronology", filters.chronology);
   if (filters.person) query = query.contains("event.people", [filters.person]);
   if (filters.civilisation) query = query.contains("event.civilisations", [filters.civilisation]);
+  if (filters.tag) query = query.contains("event.tags", [filters.tag]);
 
   const [{ data, error }, total] = await Promise.all([
     query,
@@ -342,6 +345,47 @@ export async function getTimelineExtent(
   if (from == null || last == null) return null;
   const to = Math.max(last, from + 1);
   return { from, to };
+}
+
+/**
+ * Where the records carrying one tag sit in time, and how many there are.
+ *
+ * A tag is the "everything filed with this" question, and its answers are
+ * usually spread far wider than the window the reader clicked it from — the
+ * Benin court records run from the Ogiso to the palace today. Without this the
+ * filter would show the two or three that happen to be on screen and read as
+ * though that were all of them. Claims rather than events, for the same reason
+ * the window query uses claims: an event is wherever its dates put it.
+ */
+export async function getTagExtent(
+  supabase: Client,
+  communityId: string,
+  tag: string,
+  includePending = false
+): Promise<{ from: number; to: number; count: number } | null> {
+  let query = supabase
+    .from("timeline_date_claims")
+    .select("event_id, start_position, end_position, event:event_id!inner (id)")
+    .eq("community_id", communityId)
+    .not("start_position", "is", null)
+    .contains("event.tags", [tag])
+    .limit(5000);
+  if (!includePending) query = query.eq("event.status", "published");
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  let from = Infinity;
+  let to = -Infinity;
+  const events = new Set<string>();
+  for (const row of data ?? []) {
+    if (row.start_position == null || !row.event_id) continue;
+    events.add(row.event_id);
+    from = Math.min(from, row.start_position);
+    to = Math.max(to, row.end_position ?? row.start_position);
+  }
+  if (events.size === 0) return null;
+  return { from, to: Math.max(to, from + 1), count: events.size };
 }
 
 export async function countTimelineEvents(supabase: Client, communityId: string): Promise<number> {
