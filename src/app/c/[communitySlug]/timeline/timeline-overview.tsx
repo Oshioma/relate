@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  formatYear,
   fractionOf,
   panWindow,
-  positionAt,
   presentPosition,
   TIMELINE_JUMPS,
   timelineExtentWindow,
@@ -14,8 +12,8 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { PULL_PX_PER_DOUBLING, thumbCentre, windowAfterPull, windowWithThumbAt } from "@/lib/timeline/scrollbar-grip";
 import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
-import { thumbFor, windowAtThumb, windowForThumb } from "@/lib/timeline/thumb";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
 // WHERE EVERYTHING IS, AND WHERE YOU ARE.
@@ -28,8 +26,8 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // nothing at all.
 //
 // This is the answer: the whole span, always, in one bar. A mark wherever
-// an event actually sits, and a box showing the stretch you are looking at.
-// Drag the box to move, click anywhere to go there.
+// an event actually sits, and a thumb marking the middle of what you are looking at.
+// Drag the thumb to move, click anywhere to go there.
 //
 // IT IS THE TIMELINE'S SCROLLBAR. Drawn directly above the strip as a track
 // and a thumb, because that is the control everyone already knows how to use
@@ -42,26 +40,17 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // no need for one — the question it answers is "is there anything over there?",
 // and a tick answers that completely.
 
-// Never thinner than this, whatever the maths says. A century out of 13.9
-// billion years is a millionth of a pixel wide, and a handle you cannot see is
-// a handle you cannot grab. Wide enough for two edge grips and a middle.
-const MIN_BOX_PX = 30;
+// THE THUMB IS ONE SIZE EVERYWHERE, centred on the strip's middle date (see
+// scrollbar-grip.ts for why it no longer stretches to the window's edges).
+// Wide enough for two edge grips and a middle to take hold of.
+const THUMB_PX = 56;
 
-// How close to an edge counts as grabbing that edge rather than the box.
+// How close to an edge counts as grabbing that edge rather than the thumb.
 const EDGE_GRAB_PX = 9;
 
-// ...but an edge grip may never eat more than this share of the box. THIS IS
-// WHAT MAKES DRAGGING THE BOX MOVE IT.
-//
-// The grips were a flat nine pixels from each edge, measured against the box's
-// TRUE width. A zoomed-in window is a couple of pixels wide by that measure
-// even though it is drawn MIN_BOX_PX wide — so every press anywhere inside the
-// visible box landed within nine pixels of an edge, and every drag resized
-// instead of moving. Dragging right stretched the window rather than travelling
-// through time, which is exactly the complaint.
-//
-// Capping the grips at a third of the DRAWN box leaves a middle that is always
-// there to take hold of, at every zoom.
+// ...but an edge grip may never eat more than this share of the thumb, so
+// there is always a middle to take hold of: taking hold of the body MOVES,
+// which is the gesture that travels through time.
 const EDGE_GRAB_SHARE = 1 / 3;
 
 type DragMode = "move" | "from" | "to";
@@ -102,21 +91,19 @@ export function TimelineOverview({
   className?: string;
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
-  // `startFraction`/`startFrom`: where on the bar a drag took hold, and where
-  // the drawn thumb's left edge was then. A move-drag puts the thumb's edge at
-  // startFrom plus however far the pointer has travelled, and asks for the view
-  // that draws it there (windowAtThumb) — so the thumb stays under the pointer
-  // even while it is easing against an end of the bar.
-  const drag = useRef<{ mode: DragMode; startFraction: number; startFrom: number } | null>(null);
+  // A drag remembers the window it started from, so neither a move nor a pull
+  // can drift. A move also keeps how far from the thumb's centre it took hold
+  // (so that spot stays under the pointer); a pull keeps where it started.
+  const drag = useRef<{ mode: DragMode; anchor: number; base: TimeWindow } | null>(null);
   // What a press here WOULD do, so the cursor can say so before the press:
   // a hand over the thumb, a resize arrow over its ends, a pointer elsewhere.
   const [hover, setHover] = useState<DragMode | "jump" | null>(null);
   const [dragging, setDragging] = useState<DragMode | null>(null);
 
-  // The rail's width is measured rather than assumed, because the DRAWN box and
-  // the TRUE box are different things (see MIN_BOX_PX) and both the hit-testing
-  // and the grips have to agree on which one is on screen. Doing that in pixels
-  // needs the width during render, not only during a pointer event.
+  // The rail's width is measured rather than assumed: the thumb is a fixed
+  // number of pixels wide, and the hit-testing and the grips have to agree on
+  // where it is on screen. That needs the width during render, not only during
+  // a pointer event.
   const [railWidth, setRailWidth] = useState(0);
   useEffect(() => {
     const element = railRef.current;
@@ -184,55 +171,18 @@ export function TimelineOverview({
   // strip below honours whichever scale the reader chose.
   const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
 
-  // THE THUMB'S SIZE MEANS ZOOM AND NOTHING ELSE (thumb.ts). Drawn as the
-  // window's true extent on this log bar, it ballooned near the present and
-  // shrank in the deep past as the reader swiped. Now its width comes only from
-  // how much time is on screen and its centre from the strip's centre date, so
-  // swiping slides it and only zooming resizes it.
-  const thumb = thumbFor(view, scale);
-  const boxFrom = thumb.from;
-  const boxTo = thumb.to;
+  // THE MIDDLE DATE IS NOT WRITTEN HERE. It is the headline of the ruler just
+  // above (span-ruler.tsx), with a picture of that time beside it; a second
+  // copy on this bar was the same date twice. The bar marks WHERE it is: the
+  // thumb's centre, with a line down it.
 
-  // ---- THE CENTRE DATE ------------------------------------------------------
-  //
-  // ONE SPECIFIC DATE, rather than a range: the date exactly halfway across
-  // what the strip is showing. Drag left and it reads earlier, drag right and
-  // it reads later, so there is always a definite answer to "when am I?".
-  //
-  // Taken from the STRIP's own midpoint — positionAt(view, 0.5, scale) — and
-  // not from the arithmetic mean of the window's ends, because on the
-  // spaced-by-magnitude scale those are different years. This way the line
-  // written here and the line down the middle of the strip mark the same date,
-  // which is the whole point of drawing both.
-  //
-  // WHERE IT IS DRAWN: the middle of the bar, always. Not where that date falls
-  // on this bar, which is what it did first and which looked wrong for a good
-  // reason. This bar spans all of time on a log scale while the strip spans the
-  // window, so at a wide zoom the view's centre date lands far over to the left
-  // of the bar — a line and a label pinned near the left edge, claiming to mark
-  // the middle of what you are looking at.
-  //
-  // So the mark is a FIXED PLAYHEAD. The bar's centre is the reading position,
-  // the date beside it is the date at the middle of the strip above, and the
-  // events slide under it as you drag. It is a label rather than a pointer: it
-  // says WHAT the centre date is, and does not claim to show where that date
-  // sits among the marks on this bar.
-  const CENTRE_FRACTION = 0.5;
-  const centreYear = positionAt(view, 0.5, scale);
-  const centreLabel = formatYear(centreYear, { compact: true });
-
-  // WHAT IS ACTUALLY ON SCREEN, which is not always what the maths says.
-  //
-  // A narrow window is drawn MIN_BOX_PX wide so it can be seen and grabbed. Every
-  // decision about the pointer has to be made against THAT box — the one under
-  // the reader's finger — or the control answers gestures aimed at a box nobody
-  // can see. The box is nudged back inside the rail when widening it would push
-  // it off the right-hand end.
-  const minBox = railWidth > 0 ? MIN_BOX_PX / railWidth : 0.02;
-  const drawnWidth = Math.max(minBox, Math.min(1, boxTo - boxFrom));
-  const drawnFrom = Math.max(0, Math.min(1 - drawnWidth, boxFrom));
-  const drawnTo = drawnFrom + drawnWidth;
-
+  // THE THUMB, in bar fractions. It may hang half off either end of the rail
+  // when the middle date is at an end of time; the rail clips it, rather than
+  // the thumb being nudged inwards to a place that marks a different date.
+  const thumbWidth = railWidth > 0 ? THUMB_PX / railWidth : 0.04;
+  const centre = thumbCentre(view, scale);
+  const drawnFrom = centre - thumbWidth / 2;
+  const drawnTo = centre + thumbWidth / 2;
   // Within a few pixels of either end, snap to the actual end of the timeline.
   // Without this the last pixel is still worth millions of years and "drag it
   // all the way over" never quite arrives — you stop just short of the present
@@ -246,59 +196,59 @@ export function TimelineOverview({
     return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   }, []);
 
-  /** The narrowest the window may get, expressed as a fraction of the whole bar. */
-  const minFraction = useCallback(() => minBox, [minBox]);
-
   /**
-   * DRAG AN EDGE, AND THE WINDOW STRETCHES.
+   * PULL AN END, AND THE ZOOM CHANGES.
    *
-   * The other half of what this bar is for. Sliding the box moves you through
-   * time at a fixed zoom; pulling its edges changes how much time you are
-   * looking at — drag the left grip to the far left and the whole early
-   * timeline comes into view, drag the right grip out and the late end does.
-   * It is the same gesture as widening a window, which is what this is.
-   *
-   * Each edge moves alone. The opposite edge stays exactly where it is, so
-   * stretching never shifts the end you were using as your reference.
+   * The other half of what this bar is for. Sliding the thumb moves you through
+   * time at a fixed zoom; pulling either end outwards shows more time and
+   * pushing it in shows less, about the middle date, so the date you are
+   * reading stays put. The thumb itself stays the same size: it marks the
+   * middle, not the edges.
    */
-  const resizeTo = useCallback(
-    (edge: "from" | "to", fraction: number) => {
-      // The other edge stays where it is on the bar; the thumb's new width is
-      // the new zoom and its new middle the new centre date.
-      const gap = minFraction();
-      const lo = edge === "from" ? Math.max(0, Math.min(fraction, boxTo - gap)) : boxFrom;
-      const hi = edge === "to" ? Math.min(1, Math.max(fraction, boxFrom + gap)) : boxTo;
-      onWindowChange(windowForThumb((lo + hi) / 2, hi - lo, scale));
+  const pullTo = useCallback(
+    (edge: "from" | "to", fraction: number, start: number, base: TimeWindow) => {
+      const outwardPx = (fraction - start) * railWidth * (edge === "to" ? 1 : -1);
+      onWindowChange(windowAfterPull(base, outwardPx, scale));
     },
-    [boxFrom, boxTo, minFraction, onWindowChange, scale]
+    [onWindowChange, railWidth, scale]
   );
 
   /**
-   * Which part of the box a press at this fraction is reaching for.
-   *
-   * Measured against the DRAWN box, and never letting the two grips meet in the
-   * middle. Taking hold of the body of the box means MOVE — that is the gesture
-   * that travels through time, and it has to be the one you get by default.
-   * Only the outer third at each end stretches.
+   * Which part of the thumb a press at this fraction is reaching for. Taking
+   * hold of its body means MOVE, the default; only the outer third at each end
+   * zooms.
    */
   const modeAt = useCallback(
     (fraction: number): DragMode => {
       if (railWidth === 0) return "move";
-      const edge = Math.min(EDGE_GRAB_PX / railWidth, drawnWidth * EDGE_GRAB_SHARE);
+      const edge = Math.min(EDGE_GRAB_PX / railWidth, thumbWidth * EDGE_GRAB_SHARE);
       if (Math.abs(fraction - drawnFrom) <= edge) return "from";
       if (Math.abs(fraction - drawnTo) <= edge) return "to";
       return "move";
     },
-    [drawnFrom, drawnTo, drawnWidth, railWidth]
+    [drawnFrom, drawnTo, railWidth, thumbWidth]
   );
 
-  /** Keyboard equivalents, so the control is not mouse-only. */
+  /**
+   * Slide the thumb so the spot you took hold of stays under the pointer, at
+   * the zoom the drag started with. The thumb is the same size everywhere, so
+   * this is the same on both sides of the bar. Dragged past either end, the
+   * window stops at that end of time.
+   */
+  const moveTo = useCallback(
+    (fraction: number, offset: number, base: TimeWindow) => {
+      onWindowChange(windowWithThumbAt(base, fraction - offset, scale));
+    },
+    [onWindowChange, scale]
+  );
+
+  /** Keyboard equivalents of a pull, so the control is not mouse-only: half a doubling per press. */
   const nudge = useCallback(
     (edge: "from" | "to", direction: -1 | 1) => {
-      const step = Math.max(0.01, (boxTo - boxFrom) * 0.1) * direction;
-      resizeTo(edge, edge === "from" ? boxFrom + step : boxTo + step);
+      const outward = edge === "to" ? direction : -direction;
+      onWindowChange(windowAfterPull(view, (outward * PULL_PX_PER_DOUBLING) / 2, scale));
     },
-    [boxFrom, boxTo, resizeTo]
+    [onWindowChange, scale, view]
   );
 
   // Where each era label goes, dropping any that would run into the one
@@ -374,23 +324,15 @@ export function TimelineOverview({
           setDragging(mode);
 
           if (mode === "move") {
-            // Grabbing inside the box moves it from where you took hold;
-            // clicking outside it jumps, centring on where you clicked. Both
-            // measured on the drawn box, which is the one that was grabbed.
+            // Grabbing the thumb moves it from where you took hold; clicking
+            // the track outside it jumps, centring there.
             const inside = fraction >= drawnFrom && fraction <= drawnTo;
-            if (inside) {
-              drag.current = { mode, startFraction: fraction, startFrom: thumb.from };
-            } else {
-              // A click on the track centres the thumb there, and the drag
-              // carries on from it.
-              const startFrom = fraction - thumb.width / 2;
-              onWindowChange(windowAtThumb(startFrom, thumb.width, scale));
-              drag.current = { mode, startFraction: fraction, startFrom };
-            }
+            const offset = inside ? fraction - centre : 0;
+            drag.current = { mode, anchor: offset, base: view };
+            if (!inside) moveTo(fraction, offset, view);
             return;
           }
-          drag.current = { mode, startFraction: fraction, startFrom: thumb.from };
-          resizeTo(mode, fraction);
+          drag.current = { mode, anchor: fraction, base: view };
         }}
         onPointerMove={(event) => {
           const fraction = fractionAtClientX(event.clientX);
@@ -400,10 +342,8 @@ export function TimelineOverview({
             if (next !== hover) setHover(next);
             return;
           }
-          if (drag.current.mode === "move") {
-            const { startFraction, startFrom } = drag.current;
-            onWindowChange(windowAtThumb(startFrom + (fraction - startFraction), thumb.width, scale));
-          } else resizeTo(drag.current.mode, fraction);
+          if (drag.current.mode === "move") moveTo(fraction, drag.current.anchor, drag.current.base);
+          else pullTo(drag.current.mode, fraction, drag.current.anchor, drag.current.base);
         }}
         onPointerUp={(event) => {
           drag.current = null;
@@ -431,7 +371,7 @@ export function TimelineOverview({
           );
         })}
 
-        {/* THE THUMB: the stretch on screen. A solid pill rather than an
+        {/* THE THUMB: the middle of what is on screen. A solid pill rather than an
             outline, so it reads as a thing to take hold of; darker while held.
             Its ends carry grips because, unlike a native thumb, pulling them
             changes how much time is shown. */}
@@ -440,47 +380,20 @@ export function TimelineOverview({
             "pointer-events-none absolute inset-y-[3px] rounded-full border border-accent/80 shadow-sm transition-colors",
             dragging ? "bg-accent/45" : hover === "move" || hover === "from" || hover === "to" ? "bg-accent/35" : "bg-accent/25"
           )}
-          style={{ left: `${drawnFrom * 100}%`, width: `${drawnWidth * 100}%` }}
+          style={{ left: `${drawnFrom * 100}%`, width: `${thumbWidth * 100}%` }}
         >
           {/* Drawn inside the thumb so they cannot drift away from its edges. */}
           <span className="absolute inset-y-1.5 left-1 w-1 rounded-full bg-accent" />
           <span className="absolute inset-y-1.5 right-1 w-1 rounded-full bg-accent" />
         </span>
 
-        {/* THE CENTRE DATE, WRITTEN. White, at the height the bar allows, sitting
-            BESIDE its line rather than on it — both are white, and a white rule
-            through white letters is unreadable. No flip is needed now that the
-            line is fixed at the middle: there is always half a bar to write in.
-
-            Deliberately NOT clipped to the window box, which may not even
-            contain the bar's centre at a tight zoom. The date belongs to the
-            strip above, not to the box.
-
-            Not interactive and not announced: the same date is on the strip's
-            ruler, and a screen reader being told the midpoint of the view on
-            every drag is noise. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 z-10 flex items-center"
-          style={{ left: `${CENTRE_FRACTION * 100}%`, paddingLeft: 8 }}
-        >
-          {/* ON A DARK CHIP, BECAUSE PLAIN WHITE IS NOT READABLE HERE. The bar
-              is pale and the window box paler still; white letters on it came
-              out as a grey blur, shadow or no shadow — checked by rendering it
-              rather than by eye. The chip fills the bar's height, so the date
-              is still written in white inside the scroll bar, and it can now
-              actually be read. */}
-          <span
-            className="whitespace-nowrap rounded-full bg-accent px-2 py-1 text-[13px] font-semibold leading-none tracking-tight text-white tabular-nums shadow-sm"
-          >
-            {centreLabel}
-          </span>
-        </span>
+        {/* THE MIDDLE DATE'S LINE, down the centre of the thumb: the exact spot
+            on this bar of the date the chip names. */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-y-0 z-10"
           style={{
-            left: `${CENTRE_FRACTION * 100}%`,
+            left: `${centre * 100}%`,
             width: 3,
             marginLeft: -1.5,
             background: "rgba(255,255,255,0.95)",
@@ -531,8 +444,8 @@ export function TimelineOverview({
       </div>
 
       <p className="mt-1 text-xs text-muted-foreground">
-        All of time, spaced by order of magnitude. Drag the bar to travel through time, pull either end to zoom, or
-        click anywhere on the track to go there.
+        All of time, spaced by order of magnitude. The bar marks the middle of your view: drag it to travel through
+        time, pull either end to zoom, or click anywhere on the track to go there.
       </p>
     </div>
   );

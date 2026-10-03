@@ -5,6 +5,60 @@ Research pass: 2026-10-02.
 
 **Kingdom of Benin = Benin City, Edo State, Nigeria.** Nothing here concerns the Republic of Benin (Dahomey). The `benin-dahomey`, `benin-vodun` and `benin-atlantic` datasets the brief mentions are **not in this repository** (no file, branch or commit contains them), so there was nothing to keep apart in code. Test 5 guards the separation anyway.
 
+## Second research pass — 2 October 2026 (pages read in full)
+
+The network policy was widened. After that, ogbonaelites.org, Wikimedia Commons (file existence only), archive.org (catalogue only) and archive.gazettes.africa were reachable. All 33 ogbonaelites.org pages that mention Okomilo, Ikhenemo/Ikhenemho, Ikhuenena, Alokoko, Denton or Innih were downloaded through the site's WordPress API and read in full.
+
+### What changed
+
+| Finding | Source (published) | Effect on the track |
+|---|---|---|
+| Sam's father's **1983 burial** is recalled by someone **outside the Okomilo family**: Sam's school friend G.K. Enegwea drummed at it | Enegwea funeral biography (23 Jul 2025) | First independent corroboration of the family testimony. The father is still unnamed. |
+| Enegwea's biography also puts "Ikhenemho Sam Okomilo" in the Blessed Martin's, Jattu, Class of 1959 (100% pass, Sam "with distinction"), and says he was settled in London before 1973 | Same | Sam's schooling corroborated |
+| Sam's profile: the father "relocated to Ibadan"; Sam was **the first son**; the father "fought as part of the British West African Frontiers in Egypt"; the name Ikhenemo was given after "the agony of the WW11"; Sam later brought his own son home "to take the Okhei title… just like his father did for him" | Profiles page (2017) | War account now also in community print (probably family-derived). The Okhei title is tied to the Okomilo line. |
+| **"Uwomha Ikhuenena, mother of Samuel Okomilo"** is a daughter of Pa Asekomhe, first son of Pa Ekhaegbai, son of Pa Ereghi | Wilson Asekomhe, *History of Asekomhe Ekhaegbai Dynasty* (16 Oct 2024, "based on oral tradition") | Sam's maternal grandfather is now identified. The maternal line is named back to **Pa Ereghi**, then breaks before Imhakhena. |
+| **Nicholas Apemheye Asekomhe**, a son of Pa Asekomhe and so **Sam's maternal uncle**, was jailed with **George Okomilo** in 1931 | Asekomhe dynasty history; church histories | Two of Sam's families appear in one colonial court case |
+| George Okomilo's case is dated **1931**: a customary-court bailiff from Fugar was manhandled; the Auchi District Officer tried the case at Fugar; 14 strokes of the cane and two months in Auchi prison | Anaweokhai, church history (10 Apr 2017) | The earliest documented Okomilo now has a year and a court. A colonial record should exist. |
+| Ogbona parish founded **1927**; Ogbona's first church wedding was Nicholas Asekomhe's, **5 or 15 November 1932** | Church histories; Asekomhe history | Competing dates kept |
+| **Ikpadelameka Okomilo** appears in the lineage of Okozi Ebeto (born c.1876, Warrant Chief 1920–31), in the "House of Eloghe" | *HRH Okozi Ebeto* (9 Aug 2026) | A new Okomilo. No relationship to Sam is stated. |
+| Innih genealogy: **Itse** (eponym of Ivhitse) → Okoko → **Innih**. Four Innih families (Iniaru, Emoekpere, Azoganokhai, Ogedegbe) descend from Itse. **Okomilo is not in it.** | Funeral biography of Chief Imhana Ogedegbe (2017) | Best evidence yet on Okomilo's place in Innih: not shown to descend from Itse |
+| The Okhua/Omierele genealogy is **Chief M.B. Ogbualo's oral testimony from his father**, not the 1999 book | Traditional chiefs profile (2017) | Source chain corrected |
+| **Both** Okhe dates (1851 and 1891) come from **one** 2024 article: 1851 is attributed to "Akhigbe", 1891 is the article's own | Clan-split reply (14 Mar 2024) | Sources corrected |
+| Alokoko is described as a **human mother**, a **python that represents her**, **"the Royal Python ALOKOKO"** in the eldest man's custody, and a **deity**. Spellings: Alokoko, **Aleukoko**, **Aloukoko**. Iraokhor also has a **male** Alokoko (grandson of Uralokhor). | Installation address (2017), Anaweokhai memoir (2019), Asekomhe history (2024), clan reply (2024), History of Iraokhor (2025) | Versions kept apart |
+| Earliest written Alokoko found: **2017**. The reproductions of the 1999 chronology that were read do **not** mention her. | — | The 1999 book is no longer counted as the earliest Alokoko witness |
+| **Python river-crossing story found once**: a reader's message of 19 Jan 2025 under "History of Iraokhor", framed with a Pharaoh comparison and contested in the same thread | Comment by Barr. Felix Osimerha | Recorded as a single, recent claim |
+| New migration date claims: Anwu at Utuagbabor "circa the 13th century" (Anaweokhai 2019); Imhakhena "14th century" (Ore Okhiyie page); Ozolua "1481 – 1504" (clan reply 2024) | — | Added as competing claims |
+| Denton is **H.C.B. Denton**, Acting District Officer, Kukuruku Division, **1936**. His letter to the Resident is quoted with reply file **W.P. 14011/65**. 1936 is also when the 7 districts were abolished and clans set up. | Okhaishie chronology (as reproduced) | Gives a file reference to request from NAI Ibadan |
+| "Avhianwu Titles": **Anwu** and **Imhakhena** are offices held by the **oldest man**; the Royal Python's custodian is also the eldest | Okhaishie chronology; Anaweokhai | Gerontocratic offices are not lineages |
+| **Oghena** ("God") is attested in Etsako names ("Oghenakhoghie – God is the king"); **Adi** is the quarter ancestor shrine; **Esi** is the New Yam Festival. **Otsanobua** is still unattested. | Names page; Iraokhor | Religion records updated |
+| Okhaishie dates the British capture of Benin City to **9 September 1897**, against the standard 9–18 February | Okhaishie chronology | Added as a competing claim on the 1897 record |
+| Michael Idogho is named as an Ogbona WWII veteran | "Firsts" list | A lead only |
+| Earliest Etsako grammar: **Strub, *Essai d'une grammaire de la langue Kukuruku*, Anthropos 1915–16**. Also Elimelech, *A Tonal Grammar of Etsakọ* (1978). | archive.org catalogue (scans blocked) | Next places to look for name meanings |
+
+### Systematic negative: Federation of Nigeria Official Gazette, 1959–1962
+
+- **Coverage:** 195 weekly issues, read in full text (1959: 47, 1960: 51, 1961: 48, 1962: 49).
+- **Searched for:** `okomil`, `okomlo`, `okomi1o`, `eriavbe`, `photographic trainee`, `photographic assistant`.
+- **Result:** no Okomilo and no Eriavbe. 15 "photographic assistant" entries matched, all other people, which shows the OCR is good enough to find this kind of entry.
+- **Weekly issues not located (14):**
+  - 1959-05-28, 06-04, 10-29, 11-12, 11-26, 12-03
+  - 1960-12-29
+  - 1961-05-04, 05-18, 05-25, 08-24
+  - 1962-03-01, 07-19, 11-01
+- **Not searched:** extraordinary issues and supplements, the Western Region gazette, and departmental annual reports.
+
+### Still blocked in the second pass
+
+- Hoover Institution PDF (403)
+- OAC finding aid (bot challenge)
+- archive.org scan downloads (403 at the storage servers)
+- Commons and Wikipedia APIs (429, rate-limited)
+- lagosmuseum.ng and digitalbenin.org (503)
+- britishmuseum.org (403)
+- metmuseum.org (blocked)
+
+Living family members named on the pages (Sam's wife and son) are deliberately **not** recorded in the track.
+
 ## How this was researched, and the limits that follow from it
 
 The environment's network policy blocked direct access to every host the material lives on. That included ogbonaelites.org, Wikimedia Commons, Wikipedia, the Met, the British Museum, archive.org, Google Books, JSTOR, WorldCat, HathiTrust, TNA Discovery and Companies House.

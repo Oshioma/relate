@@ -65,6 +65,7 @@ export function TimelineCanvas({
   selectedId,
   selectedPeriodId = null,
   onSelect,
+  onShowOnly,
   onSelectPeriod,
   className,
   loading = false,
@@ -82,6 +83,8 @@ export function TimelineCanvas({
   selectedId: string | null;
   selectedPeriodId?: string | null;
   onSelect: (event: TimelineEventWithClaims) => void;
+  /** "See all" on a cluster's list: show only these records, fitted to their dates. */
+  onShowOnly?: (events: TimelineEventWithClaims[], window: TimeWindow) => void;
   onSelectPeriod?: (period: PeriodWithClaims) => void;
   /** Height comes from a class rather than a number, so one canvas can be short on a phone and tall on a desktop. */
   className?: string;
@@ -894,6 +897,20 @@ export function TimelineCanvas({
               >
                 Zoom in
               </button>
+              {/* SEE ALL: just these records, on the strip and in the list,
+                  with everything else cleared away until "Show everything". */}
+              {onShowOnly && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onShowOnly(cluster.events, clampWindow({ from: cluster.from, to: cluster.to }));
+                    setOpenCluster(null);
+                  }}
+                  className="shrink-0 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                >
+                  See all
+                </button>
+              )}
             </div>
             <ul className="max-h-72 overflow-y-auto py-1">
               {ranked.map((event) => {

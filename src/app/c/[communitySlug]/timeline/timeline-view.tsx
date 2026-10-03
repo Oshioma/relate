@@ -79,6 +79,7 @@ import {
   seedSacredTreesDataset,
   seedOkomiloDataset,
   checkTimelinePictures,
+  bringHotlinkedPicturesIn,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -461,13 +462,35 @@ export function TimelineView({
     | null
     | { kind: "none" }
     | { kind: "all-good"; checked: number }
-    | { kind: "problems"; checked: number; problems: { slug: string; title: string; where: string; detail: string }[] }
+    | {
+        kind: "problems";
+        checked: number;
+        problems: { slug: string; title: string; where: string; outcome: string; detail: string }[];
+      }
     // The failure has to land in the same panel as the answer. Sending it to
     // seedError instead would put it back in the three places that withdraw.
     | { kind: "error"; message: string }
   >(null);
+  // Its own panel for the same reason as the picture report above.
+  const [hotlinkReport, setHotlinkReport] = useState<
+    | null
+    | { kind: "error"; message: string }
+    | {
+        kind: "done";
+        broughtIn: number;
+        recordsUpdated: number;
+        stillWaiting: number;
+        leftAlone: number;
+        failures: { slug: string; title: string; reason: string }[];
+      }
+  >(null);
   const [, startSeed] = useTransition();
   const [showList, setShowList] = useState(false);
+  // "SEE ALL" FROM A CLUSTER: the strip and the list show only these records
+  // until the reader asks for everything back. Kept as the records themselves,
+  // not a filter on the loaded window, so panning away never empties it.
+  const [showingOnly, setShowingOnly] = useState<TimelineEventWithClaims[] | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
@@ -948,7 +971,14 @@ export function TimelineView({
 
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
-  const displayed = activeResults ?? visible;
+  // A pinned set reads its records' latest copies where the window has them,
+  // so an edit made while it is showing is shown too.
+  const pinned = useMemo(() => {
+    if (!showingOnly) return null;
+    const latest = new Map(events.map((event) => [event.id, event]));
+    return showingOnly.map((event) => latest.get(event.id) ?? event);
+  }, [showingOnly, events]);
+  const displayed = activeResults ?? pinned ?? visible;
   const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
     (disputedOnly ? 1 : 0) + (pendingOnly ? 1 : 0);
 
@@ -1342,11 +1372,10 @@ export function TimelineView({
         ))}
       </div>
 
-      {/* ---- How much time is on screen ------------------------------------
-          Above the strip in both windowed modes, and absent from "whole",
-          where the answer is "all of it" and a measurement of the view would
-          be measuring nothing. */}
-      <SpanRuler window={view} scale={scale} />
+      {/* ---- When the middle of the view is, and a picture of it ----------
+          Above the strip: the middle date, large, with one picture from the
+          record nearest it among those shown. Clicking the picture opens it. */}
+      <SpanRuler window={view} scale={scale} events={displayed} onOpen={setSelected} />
 
       {/* ---- The scrollbar -------------------------------------------------
           Where everything is, and where you are in it. Above the strip, under
@@ -1363,6 +1392,10 @@ export function TimelineView({
         className="mt-3"
       />
 
+      {/* "See all" from a cluster: say so, and how to undo it. */}
+      {pinned && (
+        <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} />
+      )}
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1383,6 +1416,13 @@ export function TimelineView({
           loading={loading}
           truncated={truncated}
           seenIds={seen}
+          onShowOnly={(records, window) => {
+            setShowingOnly(records);
+            setView(window);
+            setShowList(true);
+            // After the list has rendered with them in it.
+            requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
@@ -1552,10 +1592,11 @@ export function TimelineView({
           Also one list, not two. Always on a phone, where it is the primary way
           in; on a desktop only when asked for, because there the strip is doing
           that job. */}
-      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
+      <div ref={listRef} className={cn("mt-4 scroll-mt-4", showList ? "block" : "block sm:hidden")}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
           In order
         </h2>
+        {pinned && <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} className="mb-2" />}
         <TimelineList
           events={displayed}
           onSelect={setSelected}
@@ -2719,50 +2760,177 @@ export function TimelineView({
             </p>
           )}
 
-          {pictureReport.kind === "problems" && (
+          {pictureReport.kind === "problems" &&
+            (() => {
+              // RATE-LIMITED IS NOT BROKEN. A 429 is the host asking us to
+              // slow down and says nothing about whether the file exists — so
+              // those are counted apart and never listed as pictures that
+              // failed. Listing them was how a report of 49 "broken" pictures
+              // turned out to be mostly healthy ones.
+              const broken = pictureReport.problems.filter((problem) => problem.outcome !== "rate-limited");
+              const unchecked = pictureReport.problems.length - broken.length;
+              return (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {broken.length === 0
+                        ? "Nothing failed."
+                        : `${broken.length} of ${pictureReport.checked} did not load.`}
+                    </span>{" "}
+                    Nothing has been changed — this is a report.
+                  </p>
+                  {unchecked > 0 && (
+                    <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {unchecked === 1 ? "One picture" : `${unchecked} pictures`} could not be checked.
+                      </span>{" "}
+                      The host asked us to slow down (429), which says nothing about whether{" "}
+                      {unchecked === 1 ? "it loads" : "they load"}. Run the check again in a few minutes.
+                    </p>
+                  )}
+
+                  {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
+                      THE PROBLEM. A server behind a proxy that refuses outbound
+                      requests answers 403 for every URL alike, and the honest
+                      report then names twelve healthy records as broken — which
+                      sends somebody editing good data to fix a network. Twelve
+                      files going bad at once in identical fashion is not what
+                      rot looks like; a blocked server is exactly what it looks
+                      like, so say so before the list rather than after it. */}
+                  {broken.length === pictureReport.checked &&
+                    pictureReport.checked > 2 &&
+                    new Set(broken.map((problem) => problem.detail)).size === 1 && (
+                      <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Read this before editing anything.</span> Every
+                        picture failed in the same way — {broken[0].detail}. That is what a server which cannot reach
+                        the internet looks like, not what {pictureReport.checked} separately broken addresses look
+                        like. Check whether this server is allowed to make outbound requests before changing any
+                        record below.
+                      </p>
+                    )}
+                  <ul className="mt-3 space-y-2">
+                    {broken.map((problem, index) => (
+                      <li key={`${problem.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${problem.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {problem.title}
+                        </a>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
+        </div>
+      )}
+
+      {/* PICTURES STILL POINTING AT SOMEBODY ELSE'S SERVER. A copy that
+          failed at seeding time keeps its original address for good, so a
+          reader's browser asks Wikimedia for it on every visit — and the
+          picture check keeps listing it. This tries the copy again. */}
+      {isStaff && (
+        <DatasetOffer
+          title="Bring hotlinked pictures in?"
+          busyLabel="Copying pictures in…"
+          label="Bring hotlinked pictures in"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                setHotlinkReport(null);
+                const result = await bringHotlinkedPicturesIn(communitySlug);
+                if (result && "error" in result) setHotlinkReport({ kind: "error", message: result.error });
+                else if (result) setHotlinkReport({ kind: "done", ...result });
+                resolve();
+              });
+            })
+          }
+        >
+          Copies pictures that still load from Wikimedia or another listed source into this community&apos;s own
+          storage, so they no longer depend on somebody else&apos;s server. Only the address changes — captions,
+          credits and order stay as they are, and nothing is removed. Pictures from hosts that are not on the list of
+          licensed sources, or with no record of where they came from, are left where they are. It works a batch at a
+          time: press it until nothing is left waiting.
+        </DatasetOffer>
+      )}
+
+      {isStaff && hotlinkReport && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Bringing pictures in
+            </h3>
+            <button
+              type="button"
+              onClick={() => setHotlinkReport(null)}
+              aria-label="Dismiss the report on bringing pictures in"
+              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {hotlinkReport.kind === "error" && (
+            <p className="mt-2 text-sm text-danger">
+              <span className="font-medium">Nothing was copied.</span> {hotlinkReport.message}
+            </p>
+          )}
+
+          {hotlinkReport.kind === "done" && (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">
-                  {pictureReport.problems.length} of {pictureReport.checked} did not load.
-                </span>{" "}
-                Nothing has been changed — this is a report.
-              </p>
-
-              {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
-                  THE PROBLEM. A server behind a proxy that refuses outbound
-                  requests answers 403 for every URL alike, and the honest
-                  report then names twelve healthy records as broken — which
-                  sends somebody editing good data to fix a network. Twelve
-                  files going bad at once in identical fashion is not what
-                  rot looks like; a blocked server is exactly what it looks
-                  like, so say so before the list rather than after it. */}
-              {pictureReport.problems.length === pictureReport.checked &&
-                pictureReport.checked > 2 &&
-                new Set(pictureReport.problems.map((problem) => problem.detail)).size === 1 && (
-                  <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Read this before editing anything.</span> Every
-                    picture failed in the same way — {pictureReport.problems[0].detail}. That is what a server which
-                    cannot reach the internet looks like, not what {pictureReport.checked} separately broken
-                    addresses look like. Check whether this server is allowed to make outbound requests before
-                    changing any record below.
-                  </p>
+                  {hotlinkReport.broughtIn === 0
+                    ? "No pictures were copied in."
+                    : `${hotlinkReport.broughtIn} ${hotlinkReport.broughtIn === 1 ? "picture" : "pictures"} copied in, on ${hotlinkReport.recordsUpdated} ${hotlinkReport.recordsUpdated === 1 ? "record" : "records"}.`}
+                </span>
+                {hotlinkReport.stillWaiting > 0 && (
+                  <>
+                    {" "}
+                    {hotlinkReport.stillWaiting} more {hotlinkReport.stillWaiting === 1 ? "is" : "are"} waiting —
+                    press the button again.
+                  </>
                 )}
-              <ul className="mt-3 space-y-2">
-                {pictureReport.problems.map((problem, index) => (
-                  <li key={`${problem.slug}-${index}`} className="text-sm">
-                    <a
-                      href={`/c/${communitySlug}/timeline/${problem.slug}`}
-                      className="font-medium text-foreground hover:text-accent hover:underline"
-                    >
-                      {problem.title}
-                    </a>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                {hotlinkReport.broughtIn === 0 &&
+                  hotlinkReport.stillWaiting === 0 &&
+                  hotlinkReport.failures.length === 0 &&
+                  " Every picture that can be copied in already has been."}
+              </p>
+              {hotlinkReport.leftAlone > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {hotlinkReport.leftAlone === 1 ? "One picture was" : `${hotlinkReport.leftAlone} pictures were`} left
+                  where {hotlinkReport.leftAlone === 1 ? "it is" : "they are"}: from a host that is not a listed
+                  source, or with no record of where {hotlinkReport.leftAlone === 1 ? "it" : "they"} came from.
+                </p>
+              )}
+              {hotlinkReport.failures.length > 0 && (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {hotlinkReport.failures.length} could not be copied
+                    </span>{" "}
+                    and still point where they did. Nothing was removed.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {hotlinkReport.failures.map((failure, index) => (
+                      <li key={`${failure.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${failure.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {failure.title}
+                        </a>
+                        <span className="text-muted-foreground"> — {failure.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           )}
         </div>
@@ -2948,6 +3116,33 @@ export function TimelineView({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * The bar shown while "See all" has narrowed the timeline to one cluster's
+ * records: how many, and the one button that brings everything back.
+ */
+function ShowingOnlyBar({ count, onClear, className }: { count: number; onClear: () => void; className?: string }) {
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm text-foreground",
+        className
+      )}
+    >
+      <span className="min-w-0 flex-1">
+        Showing only these <span className="font-semibold tabular-nums">{count}</span> {count === 1 ? "record" : "records"}.
+      </span>
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+      >
+        Show everything
+      </button>
     </div>
   );
 }
