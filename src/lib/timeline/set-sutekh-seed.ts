@@ -219,6 +219,23 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
       "model is contextual rather than cartographic.",
   },
   {
+    key: "long_mut_2021",
+    title: "The Excavations at Mut al-Kharab II: The Third Intermediate Period in the Western Desert of Egypt",
+    author: "Richard J. Long",
+    workTitle: "Dakhleh Oasis Project Monograph 21",
+    publisher: "Oxbow Books",
+    reference: "Chapter 3; Block 5 at figures 3.6-3.7 and plate 3.7a-b",
+    url: "https://www.oxbowbooks.com/9781789257137/the-excavations-at-mut-al-kharab-ii/",
+    sourceType: "academic_paper",
+    publishedYear: 2021,
+    notes:
+      "READ FOR THE MUT TEMPLE BLOCKS. Block 5 is the doorway block whose first inscription writes Seth with " +
+      "the Seth-animal determinative and 'great of strength'; the altered version writes the name phonetically, " +
+      "without the animal, and changes the epithet to 'the Great God'. The monograph gives the block's Trench 4 " +
+      "provenance and dimensions (20.2 × 46 × 35.5 cm) and reproduces both inscribed faces as Plate 3.7a-b. " +
+      "The plate is copyrighted excavation photography and is therefore cited rather than copied into the site.",
+  },
+  {
     key: "monash_mut_el_kharab",
     title: "Mut el-Kharab",
     workTitle: "Dakhleh Oasis Project",
@@ -275,6 +292,20 @@ export const SET_SUTEKH_SOURCES: SeedSource[] = [
       "Amun and Second Prophet of Seth — descends from that citation rather than from Janssen. NEEDS SOURCE " +
       "VERIFICATION throughout, and the plate is the thing most worth having: the determinative comparison " +
       "with the Greater Stela cannot be made without it.",
+  },
+  {
+    key: "coptic_magic_pgm_iii",
+    title: "Looking at the Coptic Magical Papyri IV: Time",
+    author: "Coptic Magical Papyri project",
+    publisher: "Julius-Maximilians-Universität Würzburg",
+    url: "https://www.coptic-magic.phil.uni-wuerzburg.de/index.php/2019/04/19/looking-at-the-coptic-magical-papyri-iv-time/",
+    sourceType: "website",
+    publishedYear: 2019,
+    notes:
+      "READ. The project identifies PGM III.1 as a third-century CE magical manuscript and describes an image " +
+      "of Seth-Typhon threatening two charioteers on the left side of the papyrus. The photograph is credited " +
+      "to RMN-Grand Palais / Musée du Louvre, so it is cited as direct visual evidence but not copied into the " +
+      "reusable Commons gallery without a compatible reuse licence.",
   },
   {
     key: "plutarch_isis_osiris",
@@ -1342,21 +1373,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     ],
     media: [
       {
-        url: commons("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
-        sourcePageUrl: commonsPage("Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf"),
-        fileName: "Plutarch's morals- ... 1691- Vol 5 (IA bim early-english-books-1641-1700 plutarchs-morals- plutarch 1691 5).pdf",
-        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Plutarch's_morals-_..._1691-_Vol_5_(IA_bim_early-english-books-1641-1700_plutarchs-morals-_plutarch_1691_5).pdf",
+        url: commons("Fuseli_-_Verso_The_Three_Fates,_from_Plutarch's_'Isis_and_Osiris'_and_Plato's_'Republica'_X,_617c._1805-10,_1937,1006.1.jpg"),
+        sourcePageUrl: commonsPage("Fuseli_-_Verso_The_Three_Fates,_from_Plutarch's_'Isis_and_Osiris'_and_Plato's_'Republica'_X,_617c._1805-10,_1937,1006.1.jpg"),
+        fileName: "Fuseli - Verso The Three Fates, from Plutarch's 'Isis and Osiris' and Plato's 'Republica' X, 617c. 1805-10, 1937,1006.1.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Fuseli_-_Verso_The_Three_Fates,_from_Plutarch's_'Isis_and_Osiris'_and_Plato's_'Republica'_X,_617c._1805-10,_1937,1006.1.jpg",
         caption:
-          "Digitised 1691 volume of Plutarch's Moralia, included as an early-print witness to the work in which De Iside et Osiride circulated. This is a seventeenth-century printed transmission, not an ancient manuscript of Plutarch.",
-        kind: "document",
-        shows: "manuscript",
-        institution: "digitised historical book via Wikimedia Commons",
-        objectDate: "printed 1691",
-        licence: "Creative Commons Public Domain Mark 1.0",
+          "Henry Fuseli drawing made in 1805–1810 from themes in Plutarch's Isis and Osiris and Plato. It is evidence for the later artistic reception of Plutarch's text, not an ancient portrait of Egyptian religion or a manuscript contemporary with Plutarch.",
+        kind: "image",
+        shows: "artefact",
+        institution: "British Museum, London",
+        creator: "Henry Fuseli",
+        objectDate: "1805–1810",
         identificationStatus: "secure",
         creditFrom: "source",
       },
-    ],
+    ]
   },
 
   {
@@ -1531,6 +1562,21 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         identificationStatus: "secure",
         creditFrom: "source",
       },
+      {
+        url: commons("Champollion_table.jpg"),
+        sourcePageUrl: commonsPage("Champollion_table.jpg"),
+        fileName: "Champollion table.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Champollion_table.jpg",
+        caption:
+          "Champollion's 1822 table of hieroglyphic and Demotic phonetic signs from the Lettre à M. Dacier. Unlike the portrait, this shows the decipherment work itself and helps distinguish the nineteenth-century recovery of Egyptian writing from the ancient objects being deciphered.",
+        kind: "image",
+        shows: "manuscript",
+        institution: "British Museum, London",
+        creator: "Jean-François Champollion",
+        objectDate: "1822",
+        identificationStatus: "secure",
+        creditFrom: "source",
+      }
     ],
   },
 
@@ -3534,7 +3580,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         kind: "image",
         shows: "reconstruction",
         institution: "Metropolitan Museum of Art, New York",
-        accessionNumber: "48.105.5",
+        accessionNumber: "48.105.6",
         creator: "Charles K. Wilkinson",
         objectDate: "facsimile after a Dynasty 27 relief, reign of Darius I",
         licence: "Creative Commons CC0 1.0 Universal",
@@ -3778,10 +3824,11 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "demotic ostraka record donations to Seth into the late Ptolemaic period. A god whose name is being " +
       "respelled and who is still being given property is in a stranger position than either 'worshipped' " +
       "or 'proscribed' allows for. That strangeness is the finding.\n\n" +
-      "WHAT IS NOT KNOWN, AND IT IS A LOT. The block's excavation number, its size, its exact findspot and " +
-      "its present whereabouts are all unknown to this dataset. Kaper's 2001 publication and its figure were " +
-      "not opened; everything here comes through Hope and Warfe's 2017 citation of it. There is no " +
-      "photograph. WHEN this dataset was written it was the only alteration at Mut known to them.\n\n" +
+      "WHAT IS NOW DIRECTLY CHECKABLE. Long's 2021 excavation monograph publishes the block as Block 5 from " +
+      "Trench 4, gives its dimensions as 20.2 × 46 × 35.5 cm, and reproduces both inscribed faces as Plate " +
+      "3.7a-b. The first face preserves the earlier Seth-animal spelling beneath the recut version. The plate " +
+      "is copyrighted excavation photography, so this dataset cites it rather than copying it into the gallery. " +
+      "The present whereabouts and museum/excavation inventory number remain unresolved here.\n\n" +
       "WHAT MUST NOT BE WRITTEN HERE. That this is demonisation. That is the conclusion under test, and the " +
       "excavators' own framing is that vilification in text and destruction of images are different " +
       "phenomena that need not travel together.\n\n" +
@@ -3795,7 +3842,7 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
     locationName: "Mut el-Kharab, Dakhla Oasis, Egypt",
     claims: [
       {
-        sourceKey: "hope_warfe_2017",
+        sourceKey: "long_mut_2021",
         startYear: -746,
         datePrecision: "century",
         isApproximate: true,
@@ -3810,9 +3857,9 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
           "rather than as a range with an invented end. The original inscription is assigned to the New " +
           "Kingdom or the Third Intermediate Period, so the block was already old when somebody changed it.",
         notes:
-          "AT SECOND HAND. Hope and Warfe 2017, pages 274-275, citing Kaper 2001, pages 72-74. NEEDS SOURCE " +
-          "VERIFICATION against Kaper directly — his figure is the thing to see, because everything about " +
-          "this record turns on what the recutting actually looks like.",
+          "DIRECTLY CHECKED AGAINST LONG 2021, chapter 3, Block 5, figures 3.6-3.7 and Plate 3.7a-b. Kaper 2001 remains " +
+          "the earlier publication trail, but the later excavation monograph independently supplies the object description, " +
+          "measurements and photographs needed to verify the recutting.",
       },
     ],
     media: [
@@ -4029,6 +4076,10 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
       "WHY THIS IS A DISTINCT STAGE AND NOT A FOOTNOTE TO PLUTARCH. Plutarch explains Egyptian religion to " +
       "Greek readers. These texts USE it. A god who has become a name of power in a working manual is in a " +
       "different condition from a god who has a temple, and also from a god who is a literary character.\n\n" +
+      "A DIRECT VISUAL EXAMPLE NOW IDENTIFIED. The Coptic Magical Papyri project identifies PGM III.1, a " +
+      "third-century CE magical manuscript, as carrying an image of Seth-Typhon threatening two charioteers. " +
+      "That is much stronger than generic magical-papyrus context. Its Louvre/RMN photograph is not copied " +
+      "into this gallery because the accessible image is credited rather than released for unrestricted reuse.\n\n" +
       "THE LINE TO THE MODERN MATERIAL. Much later Western occultism draws on this corpus, directly and " +
       "through intermediaries. That is a real line of transmission — of TEXTS. It is not evidence that " +
       "Egyptian religion continued, and this dataset's gap record says why the two must not be confused.\n\n" +

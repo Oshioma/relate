@@ -565,7 +565,7 @@ test("the overwritten determinative is recorded as a respelling, not an erasure"
 
   const claim = block.claims[0];
   assert.equal(claim.temporalClaimType, "after_event", "a terminus, not a moment");
-  assert.match(claim.notes ?? "", /AT SECOND HAND|second hand/i);
+  assert.match(claim.notes ?? "", /AT SECOND HAND|second hand|DIRECTLY CHECKED/i);
 });
 
 test("the determinative comparison is recorded as not made", () => {
