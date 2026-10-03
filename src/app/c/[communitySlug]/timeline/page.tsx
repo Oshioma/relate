@@ -9,6 +9,7 @@ import {
   getTimelineSources,
   getTimelineFacets,
   getTimelineExtent,
+  getTagExtent,
   getPendingTimelineEvents,
   getEventMarkers,
   getTimelineEventBySlug,
@@ -106,7 +107,12 @@ export default async function TimelinePage({
   const canContribute = isCommunityMember(community, membership, user?.id);
 
   const extent = await getTimelineExtent(supabase, community.id);
-  const view = openingWindow(query, extent);
+  // A tag link with no window of its own ("show me everything filed with
+  // this") opens framed on those records rather than on the whole timeline,
+  // where a few centuries of Benin would be a single pixel.
+  const tagParam = readTimelineUrlState(query).tag;
+  const tagExtent = tagParam && !readWindow(query) ? await getTagExtent(supabase, community.id, tagParam, Boolean(user)) : null;
+  const view = openingWindow(query, tagExtent ?? extent);
 
   const [
     initial,

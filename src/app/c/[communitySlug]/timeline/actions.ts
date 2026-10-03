@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getMembership, isCommunityStaff, isCommunityMember } from "@/lib/data/community";
 import {
   getTimelineWindow,
+  getTagExtent,
   getTimelineEventBySlug,
   searchTimelineEvents,
   searchTimelineSources,
@@ -3600,6 +3601,24 @@ export async function loadTimelineWindow(
     // else's query returns published rows either way.
     includePending: Boolean(user),
   });
+}
+
+/** Where the records carrying a tag sit in time, for framing the timeline on all of them. */
+export async function loadTagExtent(
+  communitySlug: string,
+  tag: string
+): Promise<{ from: number; to: number; count: number } | null> {
+  const trimmed = tag.trim();
+  if (!trimmed) return null;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community || !communityHasTimeline(community)) return null;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  // The same widening as the window: RLS, not this flag, decides what is visible.
+  return getTagExtent(supabase, community.id, trimmed, Boolean(user));
 }
 
 /** One event by slug, for framing the timeline on something just added or shared. */

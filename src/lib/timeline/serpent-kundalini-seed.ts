@@ -278,9 +278,121 @@ export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
       "kept separate from the older verse because importing the commentary's name into the Upaniṣadic text " +
       "would erase the chronology the timeline is trying to show.",
   },
+  {
+    key: "mallinson_goraksasataka_2011",
+    title: "The Original Gorakṣaśataka",
+    author: "James Mallinson",
+    workTitle: "Yoga in Practice",
+    publisher: "Princeton University Press",
+    reference: "2011, pp. 257–272; Sanskrit witness discussed alongside Mallinson's translation and textual study",
+    sourceType: "academic_book",
+    publishedYear: 2011,
+    notes:
+      "READ FOR THE TEXTUAL-HISTORICAL CLAIM. Mallinson's study presents the original Gorakṣaśataka as an " +
+      "early source for Haṭhayoga techniques and Kuṇḍalinī practice. The text names iḍā, piṅgalā and suṣumṇā, " +
+      "locates them left, right and centre, and describes awakened Kuṇḍalī rising through suṣumṇā. Dating of " +
+      "the text is not exact; later scholarship treats its core as medieval, around the thirteenth/fourteenth century.",
+  },
+  {
+    key: "gretil_goraksasataka",
+    title: "Gorakṣaśataka Sanskrit e-text",
+    publisher: "Göttingen Register of Electronic Texts in Indian Languages, SUB Göttingen",
+    reference: "GorS 18, 20, 23, 30–31; based on Kuvalayananda and Shukla's critical edition",
+    sourceType: "historical_document",
+    notes:
+      "READ FOR THE SANSKRIT PASSAGES. GorS 18 names iḍā, piṅgalā and suṣumṇā; GorS 20 places iḍā on the " +
+      "left, piṅgalā on the right and suṣumṇā in the middle; GorS 23 associates the triad with moon, sun and " +
+      "fire; GorS 30–31 describes coiled Kuṇḍalī-śakti and her upward movement through suṣumṇā after awakening.",
+  },
+  {
+    key: "westoby_goraksasataka_date_2024",
+    title: "The body in early haṭha yoga",
+    author: "Ruth Westoby",
+    publisher: "SOAS University of London",
+    reference: "PhD thesis, 2024; discussion of the Gorakṣaśataka and Vivekamārtaṇḍa",
+    sourceType: "academic_book",
+    publishedYear: 2024,
+    notes:
+      "READ FOR DATING CAUTION. Westoby reports Mallinson's tentative dating of the central core of the " +
+      "Gorakṣaśataka to around 1400 and stresses the manuscript and recension problems. This record therefore " +
+      "uses a broad medieval range rather than presenting an exact composition year.",
+  },
 ];
 
 export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
+  {
+    slug: "goraksasataka-ida-pingala-sushumna-kundalini",
+    title: "Iḍā, Piṅgalā and Suṣumṇā become an explicit Kundalini route",
+    summary:
+      "The medieval Gorakṣaśataka explicitly names Iḍā, Piṅgalā and Suṣumṇā, places them left, right and centre, and describes awakened Kuṇḍalī rising through Suṣumṇā.",
+    description:
+      "THE NAMED-CHANNEL STAGE. Gorakṣaśataka 18 names iḍā, piṅgalā and suṣumṇā among the principal nāḍīs. " +
+      "Verse 20 places iḍā on the left, piṅgalā on the right and suṣumṇā in the middle; verse 23 associates " +
+      "the three with moon, sun and fire. Verses 30–31 then describe Kuṇḍalī-śakti as coiled and, once " +
+      "awakened, moving upward through suṣumṇā.\n\n" +
+      "WHY THIS IS A DIFFERENT RECORD FROM THE UPANIṢADIC PRECURSOR. Chāndogya 8.6.6 and Kaṭha 2.3.16 " +
+      "already supplied an unnamed privileged upward channel from the heart to the head. Here the channels " +
+      "are explicitly named and differentiated, and Kuṇḍalī's ascent is explicitly routed through suṣumṇā.\n\n" +
+      "WHAT THIS DOES NOT CLAIM. The verses do not by themselves establish that the familiar modern image " +
+      "of Iḍā and Piṅgalā repeatedly crossing around Suṣumṇā like a caduceus or DNA double helix was intended. " +
+      "Named left/right/central channels are direct textual evidence; the modern graphic geometry requires " +
+      "its own source history.",
+    category: "religion",
+    subcategory: "Haṭhayoga",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "explicit_kundalini",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.subtleBody,
+      SERPENT_THREADS.ascent,
+      SERPENT_THREADS.kundalini,
+      SERPENT_THREADS.yoga,
+      "nadi",
+      "ida",
+      "pingala",
+      "sushumna",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "mallinson_goraksasataka_2011",
+        citations: [
+          {
+            sourceKey: "gretil_goraksasataka",
+            relation: "supports",
+            note:
+              "Sanskrit witness: GorS 18, 20 and 23 name and position the triad; GorS 30–31 describes awakened Kuṇḍalī rising through suṣumṇā.",
+          },
+          {
+            sourceKey: "westoby_goraksasataka_date_2024",
+            relation: "context",
+            note:
+              "Dating remains approximate: Westoby reports Mallinson's tentative dating of the central core to around 1400.",
+          },
+        ],
+        startYear: 1200,
+        endYear: 1400,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The medieval textual layer represented by the Gorakṣaśataka",
+        originalDateText: "medieval; approximately thirteenth to fourteenth century, with the central core tentatively placed around 1400",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "The dating is deliberately broad because the textual and manuscript history is difficult. The " +
+          "doctrinal content is direct: the Sanskrit names iḍā, piṅgalā and suṣumṇā, locates them left/right/centre, " +
+          "and describes awakened Kuṇḍalī moving upward through suṣumṇā.",
+        notes:
+          "KEY PASSAGES: GorS 18 iḍā ca piṅgalā caiva suṣumṇā ca tṛtīyakā; GorS 20 iḍā vāme ... piṅgalā " +
+          "dakṣiṇe ... suṣumṇā madhya-deśe; GorS 31 vrajaty ūrdhvaṃ suṣumṇayā. This fills the named-channel " +
+          "evidence without projecting later double-helix imagery backward.",
+      },
+    ],
+    media: [],
+  },
+
   {
     slug: "upanishadic-heart-nadis-upward-immortality",
     title: "One heart-channel rises to the head",
