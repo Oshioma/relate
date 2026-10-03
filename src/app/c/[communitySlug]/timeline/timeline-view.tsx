@@ -80,6 +80,8 @@ import {
   seedSetSutekhDataset,
   seedSacredTreesDataset,
   seedOkomiloDataset,
+  seedSerpentKundaliniDataset,
+  seedHorusClaimsDataset,
   checkTimelinePictures,
   bringHotlinkedPicturesIn,
   seedShowcaseEvent,
@@ -310,6 +312,8 @@ export function TimelineView({
   hasSetSutekh,
   hasSacredTrees,
   hasOkomilo,
+  hasSerpentKundalini,
+  hasHorusClaims,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -380,6 +384,8 @@ export function TimelineView({
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
   hasOkomilo: boolean;
+  hasSerpentKundalini: boolean;
+  hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -2281,6 +2287,44 @@ export function TimelineView({
           })}
         >
           The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasSerpentKundalini && (
+        <DatasetOffer
+          title="Add the serpent, Kundalini and sacred ascent?"
+          busyLabel="Adding the records…"
+          label="Add the serpent collection"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedSerpentKundaliniDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Serpents, staffs, inner fire and ascent across five thousand years and four continents — from the Indus seals to Tantric and Tibetan practice. Each record says what it claims about Kundalini and whether anything is shown to have travelled between cultures; resemblance is never presented as descent.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasHorusClaims && (
+        <DatasetOffer
+          title="Add four claims about Horus, and where they came from?"
+          busyLabel="Adding the records…"
+          label="Add the Horus claims"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedHorusClaimsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Virgin birth, December 25, twelve disciples, crucifixion — each claim traced backwards through the people who made it until the chain reaches an Egyptian source or stops.
         </DatasetOffer>
       )}
 
