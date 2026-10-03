@@ -244,10 +244,10 @@ no, and a well-evidenced no is a finding I will record**, not a wasted search.
 
 # PART D — THE TRADITIONS THIS COLLECTION HAS NOT TOUCHED
 
-Sixteen records is still not a cross-cultural collection — and nine of the
-sixteen are the comparison records described under the retention rule at the end
-of this brief, which carry a status and no passage. The gap must not be filled
-by scraping serpents from everywhere — that would build the exact pile the
+Seventeen records is still not a cross-cultural collection — and nine of the
+seventeen are the comparison records described under the retention rule at the
+end of this brief, which carry a status and no passage. The gap must not be
+filled by scraping serpents from everywhere — that would build the exact pile the
 collection exists to resist.
 
 **So the question for each tradition below is deliberately narrow:**
