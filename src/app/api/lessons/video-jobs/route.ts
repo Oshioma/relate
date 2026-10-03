@@ -41,6 +41,7 @@ import {
   titleFromFileName,
 } from "@/lib/school/lesson-media";
 import { findOwnUpload, pruneOldVideoJobs } from "@/lib/school/lesson-media-storage";
+import { findLessonFromLink, lessonExistsError } from "@/lib/school/lesson-from-link";
 import type { Database, LessonVideoJob } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -189,6 +190,16 @@ export async function POST(request: NextRequest) {
     }
     if (found.size !== null && found.size > MAX_KEPT_MEDIA_BYTES) {
       return NextResponse.json({ error: "That upload is too big to keep." }, { status: 400, headers: NO_STORE });
+    }
+  }
+
+  // A video this space already has a lesson from is answered with that
+  // lesson, before the transcription is paid for. The composer offers to go
+  // ahead anyway, which comes back with allowDuplicate.
+  if (requested.kind === "link" && payload.allowDuplicate !== true) {
+    const existing = await findLessonFromLink(supabase, auth.space.id, requested.url);
+    if (existing) {
+      return NextResponse.json(lessonExistsError(existing), { status: 409, headers: NO_STORE });
     }
   }
 

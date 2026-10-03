@@ -173,6 +173,10 @@ export function LessonComposer({
   // somebody edits the text by hand: once the words are no longer the ones
   // that page served, crediting it would be a claim we can't stand behind.
   const [source, setSource] = useState<{ url: string; title: string | null } | null>(null);
+  // Set when the link pasted has already been made into a lesson in this
+  // space. Shown with the error, linking to that lesson and offering to make
+  // another anyway (a different age band, say).
+  const [existingLesson, setExistingLesson] = useState<{ id: string; title: string } | null>(null);
 
   // The video a transcript came from, to show at the top of the lesson. Kept
   // through hand edits, unlike `source`: trimming a transcript is the whole
@@ -236,6 +240,7 @@ export function LessonComposer({
     setVideo(topMediaOf(job));
     setEmbedVideo(true);
     setError(null);
+    setExistingLesson(null);
     usedJobIdsRef.current.add(job.id);
 
     const length = formatDuration(job.durationSeconds);
@@ -312,18 +317,26 @@ export function LessonComposer({
     };
   }, [pendingIds, insertTranscript]);
 
-  async function startVideo() {
+  async function startVideo(allowDuplicate = false) {
     if (!url.trim() || starting || busy) return;
     setStarting(true);
     setError(null);
+    setExistingLesson(null);
     setReadNote(null);
     try {
       const response = await fetch("/api/lessons/video-jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url }),
+        body: JSON.stringify({ spaceId, url, allowDuplicate }),
       });
-      const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob; error?: string } | null;
+      const body = (await response.json().catch(() => null)) as
+        | { job?: PublicVideoJob; error?: string; existingLesson?: { id: string; title: string } }
+        | null;
+      if (response.status === 409 && body?.existingLesson) {
+        setError(body.error ?? "You've already made a lesson from this link.");
+        setExistingLesson(body.existingLesson);
+        return;
+      }
       if (!response.ok || !body?.job) {
         setError(body?.error ?? "Couldn't start transcribing that video.");
         return;
@@ -344,6 +357,7 @@ export function LessonComposer({
 
   async function loadFinishedJob(job: PublicVideoJob) {
     setError(null);
+    setExistingLesson(null);
     try {
       const response = await fetch(`/api/lessons/video-jobs/${job.id}`, { cache: "no-store" });
       const body = (await response.json().catch(() => null)) as { job?: PublicVideoJob; error?: string } | null;
@@ -453,6 +467,7 @@ export function LessonComposer({
   async function uploadMedia(file: File) {
     if (busy || upload) return;
     setError(null);
+    setExistingLesson(null);
     setReadNote(null);
 
     if (file.type && !isMediaContentType(file.type)) {
@@ -490,6 +505,7 @@ export function LessonComposer({
   async function addFile(file: File) {
     if (busy) return;
     setError(null);
+    setExistingLesson(null);
     setReadNote(null);
 
     // A recording dropped on the box means "transcribe this", so it goes the
@@ -540,26 +556,41 @@ export function LessonComposer({
     );
   }
 
-  async function readFromUrl() {
+  // allowDuplicate is the "make it again anyway" answer to a link this space
+  // already has a lesson from.
+  async function readFromUrl(allowDuplicate = false) {
     if (!url.trim() || reading || busy) return;
     // One box for every kind of link: a video goes to the transcriber, and
     // everything else is read as a page.
     if (urlIsVideo) {
-      await startVideo();
+      await startVideo(allowDuplicate);
       return;
     }
     setReading(true);
     setError(null);
+    setExistingLesson(null);
     setReadNote(null);
     try {
       const response = await fetch("/api/lessons/read-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url }),
+        body: JSON.stringify({ spaceId, url, allowDuplicate }),
       });
       const body = (await response.json().catch(() => null)) as
-        | { text?: string; title?: string | null; truncated?: boolean; error?: string }
+        | {
+            text?: string;
+            title?: string | null;
+            truncated?: boolean;
+            error?: string;
+            existingLesson?: { id: string; title: string };
+          }
         | null;
+
+      if (response.status === 409 && body?.existingLesson) {
+        setError(body.error ?? "You've already made a lesson from this link.");
+        setExistingLesson(body.existingLesson);
+        return;
+      }
 
       if (!response.ok || !body?.text) {
         setError(body?.error ?? "Couldn't read that page.");
@@ -624,6 +655,7 @@ export function LessonComposer({
     setSource(null);
     setReadNote(null);
     setError(null);
+    setExistingLesson(null);
     setUnsavedId(null);
     setSavedLesson(saved);
     // The library is a server component; pull the new lesson into it.
@@ -633,6 +665,7 @@ export function LessonComposer({
   async function submit() {
     setPhase("writing");
     setError(null);
+    setExistingLesson(null);
     setSavedLesson(null);
     setUnsavedId(null);
     setCharsWritten(0);
@@ -793,7 +826,15 @@ export function LessonComposer({
               type="url"
               inputMode="url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                // A different link: the warning was about the old one.
+                if (existingLesson) {
+                  setExistingLesson(null);
+                  setError(null);
+                  setExistingLesson(null);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -809,7 +850,7 @@ export function LessonComposer({
               className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             />
           </div>
-          <Button variant="secondary" onClick={readFromUrl} disabled={busy || linkBusy || !url.trim()}>
+          <Button variant="secondary" onClick={() => void readFromUrl()} disabled={busy || linkBusy || !url.trim()}>
             {linkBusy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : urlIsVideo ? (
@@ -980,6 +1021,23 @@ export function LessonComposer({
       {error && (
         <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
           <Linkify text={error} />
+          {existingLesson && (
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              {lessonHref && (
+                <a href={lessonHref(existingLesson.id)} className="font-medium text-accent hover:underline">
+                  Open that lesson
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => void readFromUrl(true)}
+                disabled={busy || linkBusy || !url.trim()}
+                className="font-medium text-foreground underline-offset-2 hover:underline disabled:opacity-50"
+              >
+                Make it again anyway
+              </button>
+            </div>
+          )}
           {unsavedId && (
             <SaveUnsavedLesson
               unsavedId={unsavedId}
