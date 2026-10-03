@@ -92,17 +92,33 @@ export async function findLessonsFromLink(
   const ownRows = (await candidates(supabase, pattern, opts.communityId)).filter(matches);
   let here: LessonHere | null = null;
   if (ownRows[0]) {
-    const [{ data: space }, { data: community }] = await Promise.all([
-      supabase.from("spaces").select("slug").eq("id", ownRows[0].space_id).maybeSingle(),
-      supabase.from("communities").select("slug").eq("id", opts.communityId).maybeSingle(),
-    ]);
+    // The lesson page lives under its space, which may not be this one. Read
+    // as the author first; if that comes back empty, the lesson is in their
+    // own community and already visible to them, so the slugs are safe to
+    // read past RLS. A link to the community's front page is no answer to
+    // "where is it?", so it is only the very last resort.
+    const slugsFor = async (client: SupabaseClient<Database>) => {
+      const [{ data: space }, { data: community }] = await Promise.all([
+        client.from("spaces").select("slug").eq("id", ownRows[0].space_id).maybeSingle(),
+        client.from("communities").select("slug").eq("id", opts.communityId).maybeSingle(),
+      ]);
+      return { space: space?.slug ?? null, community: community?.slug ?? null };
+    };
+    let slugs = await slugsFor(supabase);
+    if (!slugs.space || !slugs.community) {
+      try {
+        slugs = await slugsFor(createAdminClient());
+      } catch {
+        // No service key: keep what the author's read found.
+      }
+    }
     here = {
       id: ownRows[0].id,
       title: ownRows[0].title,
       href:
-        space && community
-          ? `/c/${community.slug}/spaces/${space.slug}/lessons/${ownRows[0].id}`
-          : `/c/${community?.slug ?? ""}`,
+        slugs.space && slugs.community
+          ? `/c/${slugs.community}/spaces/${slugs.space}/lessons/${ownRows[0].id}`
+          : `/c/${slugs.community ?? ""}`,
     };
   }
   // A block needs nothing more; the author can't go ahead either way.

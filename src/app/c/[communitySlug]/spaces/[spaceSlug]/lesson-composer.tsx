@@ -1018,13 +1018,21 @@ export function LessonComposer({
 
       {error && (
         <div className="mt-3 rounded-md bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
-          <Linkify text={error} />
-          {linkConflict?.existingLesson && (
-            <div className="mt-2">
-              <a href={linkConflict.existingLesson.href} className="font-medium text-accent hover:underline">
-                Open &ldquo;{linkConflict.existingLesson.title}&rdquo;
+          {linkConflict?.existingLesson ? (
+            // Said here rather than taken from the server's sentence, so the
+            // lesson's title is itself the link to it.
+            <p>
+              This community already has a lesson from this link:{" "}
+              <a
+                href={linkConflict.existingLesson.href}
+                className="font-medium text-accent underline underline-offset-2 hover:no-underline"
+              >
+                {linkConflict.existingLesson.title}
               </a>
-            </div>
+              . Open it instead of making it again.
+            </p>
+          ) : (
+            <Linkify text={error} />
           )}
           {linkConflict?.elsewhere && linkConflict.elsewhere.length > 0 && (
             <div className="mt-2 space-y-2 text-foreground">
