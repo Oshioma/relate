@@ -80,6 +80,8 @@ import {
   seedSetSutekhDataset,
   seedSacredTreesDataset,
   seedOkomiloDataset,
+  seedSerpentKundaliniDataset,
+  seedHorusClaimsDataset,
   checkTimelinePictures,
   bringHotlinkedPicturesIn,
   seedShowcaseEvent,
@@ -112,6 +114,8 @@ import {
   type TimeWindow,
 } from "@/lib/timeline/time";
 import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
+import { resolveTrackParam, trackLinkSearch } from "@/lib/timeline/track-link";
+import { OKOMILO_TRACK, OKOMILO_TRACK_WINDOW } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 
 // The timeline page.
 //
@@ -308,6 +312,8 @@ export function TimelineView({
   hasSetSutekh,
   hasSacredTrees,
   hasOkomilo,
+  hasSerpentKundalini,
+  hasHorusClaims,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -378,6 +384,8 @@ export function TimelineView({
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
   hasOkomilo: boolean;
+  hasSerpentKundalini: boolean;
+  hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -487,7 +495,12 @@ export function TimelineView({
       }
   >(null);
   const [, startSeed] = useTransition();
-  const [showList, setShowList] = useState(false);
+  // ?track= may name the track by slug as well as by id, so a hand-written or
+  // in-code link works in every community. Resolved once, before anything
+  // filters on it; arriving on a track opens the list too, because a track's
+  // undated records live there and nowhere on the strip.
+  const [initialTrackId] = useState(() => resolveTrackParam(initialUrlState.trackId, tracks));
+  const [showList, setShowList] = useState(Boolean(initialTrackId));
   // "SEE ALL" FROM A CLUSTER: the strip and the list show only these records
   // until the reader asks for everything back. Kept as the records themselves,
   // not a filter on the loaded window, so panning away never empties it.
@@ -497,7 +510,7 @@ export function TimelineView({
   const [adding, setAdding] = useState(false);
 
   const [category, setCategory] = useState(initialUrlState.category);
-  const [trackId, setTrackId] = useState(initialUrlState.trackId);
+  const [trackId, setTrackId] = useState(initialTrackId);
   const [chronology, setChronology] = useState(initialUrlState.chronology);
   const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
   const [person, setPerson] = useState(initialUrlState.person);
@@ -1058,6 +1071,58 @@ export function TimelineView({
           </Button>
         )}
       </div>
+
+      {(() => {
+        // ONE TRACK, ON ITS OWN. With every dataset showing, the Okomilo
+        // records sit between unrelated ones and "See all" on a cluster only
+        // lists that cluster. This opens the whole track: filtered to it, over
+        // the span its dated records cover, with the list open for the
+        // records that deliberately have no date. It sits at the top, under
+        // the heading, because at the foot of the page nobody found it.
+        const track = tracks.find((candidate) => candidate.slug === OKOMILO_TRACK.slug);
+        if (!track || trackId === track.id) return null;
+        return (
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5">
+            <p className="min-w-0 flex-1 text-sm text-foreground">
+              <span className="font-medium">{track.name}</span>
+              <span className="text-muted-foreground"> — see the whole track together, without the other datasets in between.</span>
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setShowingOnly(null);
+                setTrackId(track.id);
+                setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
+                setShowList(true);
+                listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Open this track on its own
+            </Button>
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              onClick={(event) => {
+                // A link, not a navigation: the same page keeps its state on
+                // a client-side route change, so following it from here would
+                // not re-apply the filter. Copy it for sharing instead.
+                // The page's own address, so it works on a community's custom domain
+                // as well as under /c/<slug>.
+                const url = `${window.location.origin}${window.location.pathname}${trackLinkSearch(track.slug, OKOMILO_TRACK_WINDOW)}`;
+                const button = event.currentTarget;
+                navigator.clipboard?.writeText(url).then(
+                  () => (button.textContent = "Link copied"),
+                  () => window.prompt("Copy this link", url)
+                );
+              }}
+            >
+              Copy link
+            </button>
+          </div>
+        );
+      })()}
 
       {isStaff && pendingCount > 0 && (
         <button
@@ -2222,6 +2287,44 @@ export function TimelineView({
           })}
         >
           The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasSerpentKundalini && (
+        <DatasetOffer
+          title="Add the serpent, Kundalini and sacred ascent?"
+          busyLabel="Adding the records…"
+          label="Add the serpent collection"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedSerpentKundaliniDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Serpents, staffs, inner fire and ascent across five thousand years and four continents — from the Indus seals to Tantric and Tibetan practice. Each record says what it claims about Kundalini and whether anything is shown to have travelled between cultures; resemblance is never presented as descent.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasHorusClaims && (
+        <DatasetOffer
+          title="Add four claims about Horus, and where they came from?"
+          busyLabel="Adding the records…"
+          label="Add the Horus claims"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedHorusClaimsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Virgin birth, December 25, twelve disciples, crucifixion — each claim traced backwards through the people who made it until the chain reaches an Egyptian source or stops.
         </DatasetOffer>
       )}
 
