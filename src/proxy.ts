@@ -154,8 +154,17 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // icon$ excludes the app/icon.tsx route (served at /icon, with no file
-    // extension, so it isn't caught by the image-extension pattern below).
-    "/((?!_next/static|_next/image|favicon.ico|icon$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // icon$ and apple-icon$ exclude the app/icon.tsx and app/apple-icon.tsx
+    // routes (served at /icon and /apple-icon, with no file extension, so
+    // they aren't caught by the image-extension pattern below). Both are
+    // listed because the lookahead anchors at the start of the path: icon$
+    // does not match "apple-icon".
+    //
+    // apple-icon must be reachable while signed out. iOS fetches the
+    // apple-touch-icon when someone adds the site to their Home Screen, and
+    // that fetch carries no session — bouncing it to /login returned a
+    // redirect instead of a PNG, so iOS installed a thumbnail of the page
+    // rather than the app mark.
+    "/((?!_next/static|_next/image|favicon.ico|icon$|apple-icon$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
