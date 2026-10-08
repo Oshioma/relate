@@ -6,7 +6,7 @@ import { Input, Label } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Avatar } from "@/components/ui/avatar";
-import { readDraftRaw, removeDraft, writeDraft } from "@/lib/use-form-draft";
+import { clearFormDraft, readJsonDraft, writeJsonDraft } from "@/lib/use-form-draft";
 import { MAX_POST_TAGS } from "@/lib/post-media";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "./post-image-picker";
 
@@ -63,7 +63,7 @@ export function NewPostForm({
   // One draft per space, kept as it's typed and put back after a refresh.
   // Read as an external store: nothing on the server or during hydration,
   // the saved draft afterwards — so there's no mismatch and no effect.
-  const savedRaw = useSyncExternalStore(noSubscription, () => readDraftRaw(draftKey), () => "");
+  const savedRaw = useSyncExternalStore(noSubscription, () => readJsonDraft(draftKey), () => "");
   const saved = useMemo(() => parseDraft(savedRaw), [savedRaw]);
   // The feed's composer bar links here with #new-post: arriving that way, or
   // with a draft waiting, opens the composer straight away.
@@ -82,14 +82,14 @@ export function NewPostForm({
   function update(patch: Partial<PostDraft>) {
     const next = { ...draft, ...patch };
     setEdited(next);
-    if (isEmpty(next)) removeDraft(draftKey);
-    else writeDraft(draftKey, next);
+    if (isEmpty(next)) clearFormDraft(draftKey);
+    else writeJsonDraft(draftKey, next);
   }
 
   function reset() {
     setEdited(EMPTY);
     setEditorKey((k) => k + 1);
-    removeDraft(draftKey);
+    clearFormDraft(draftKey);
   }
 
   async function handleSubmit(formData: FormData) {

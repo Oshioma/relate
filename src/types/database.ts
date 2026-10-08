@@ -42,7 +42,8 @@ export type SpaceType =
   | "plant_id"
   | "live"
   | "meetups"
-  | "lessons";
+  | "lessons"
+  | "guided_journey";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -1602,7 +1603,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join" | "journey_request" | "journey_request_response" | "journey_update" | "journey_completed" | "journey_report";
 
 export type Notification = {
   id: string;
@@ -2619,6 +2620,221 @@ export type TimelineEventTrack = {
   created_at: string;
 };
 
+
+// --- Guided Journey spaces ("Adopt a Beginner") ------------------------------
+// See supabase/migrations/20261008191453_guided_journey_tables.sql and
+// src/lib/guided-journey/. One reusable space type: everything that makes a
+// space about gardening, sailing or cooking lives in its config, not in code.
+export type GuidedJourneySpace = {
+  space_id: string;
+  preset_key: string;
+  // Partial overrides of the preset; validated by parseConfigOverrides.
+  config: Record<string, unknown>;
+  accepting_mentors: boolean;
+  accepting_beginners: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyMilestoneSeed = { title: string; description?: string | null };
+
+export type JourneyTemplate = {
+  id: string;
+  space_id: string;
+  title: string;
+  subject: string | null;
+  summary: string | null;
+  cover_image_url: string | null;
+  duration_label: string | null;
+  expected_weeks: number | null;
+  milestones: JourneyMilestoneSeed[];
+  is_active: boolean;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyHelpMode = "online" | "local" | "either";
+export type MentorLevel = "experienced" | "community" | "first_harvest";
+
+export type JourneyMentorProfile = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  level: MentorLevel;
+  is_verified: boolean;
+  verified_note: string | null;
+  experience: string[];
+  preferred_topics: string[];
+  country: string | null;
+  region: string | null;
+  climate: string | null;
+  years_experience: number | null;
+  languages: string[];
+  help_mode: JourneyHelpMode;
+  capacity: number;
+  group_mentoring: boolean;
+  availability: string | null;
+  intro: string | null;
+  photos: string[];
+  is_paused: boolean;
+  status: "active" | "suspended";
+  adult_confirmed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyBeginnerProfile = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  country: string | null;
+  region: string | null;
+  approx_location: string | null;
+  setting: string[];
+  interests: string[];
+  experience: string | null;
+  help_mode: JourneyHelpMode;
+  languages: string[];
+  space_photo_url: string | null;
+  notes: string | null;
+  adult_confirmed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MentorshipRequestStatus = "pending" | "accepted" | "declined" | "withdrawn";
+
+export type MentorshipRequest = {
+  id: string;
+  space_id: string;
+  beginner_id: string;
+  mentor_id: string;
+  template_id: string | null;
+  requested_journey_id: string | null;
+  message: string | null;
+  status: MentorshipRequestStatus;
+  response_message: string | null;
+  journey_id: string | null;
+  created_at: string;
+  responded_at: string | null;
+};
+
+export type JourneyStatus = "active" | "completed" | "ended";
+
+export type Journey = {
+  id: string;
+  space_id: string;
+  template_id: string | null;
+  mentor_id: string;
+  title: string;
+  subject: string | null;
+  cover_image_url: string | null;
+  duration_label: string | null;
+  expected_weeks: number | null;
+  update_frequency: string;
+  is_group: boolean;
+  max_beginners: number | null;
+  status: JourneyStatus;
+  mentor_acknowledgement: string | null;
+  started_at: string;
+  completed_at: string | null;
+  ended_at: string | null;
+  ended_by: string | null;
+  end_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyParticipant = {
+  id: string;
+  journey_id: string;
+  user_id: string;
+  role: "mentor" | "beginner";
+  joined_at: string;
+  left_at: string | null;
+  in_person_ok: boolean;
+  reflection: string | null;
+};
+
+export type JourneyMilestone = {
+  id: string;
+  journey_id: string;
+  position: number;
+  title: string;
+  description: string | null;
+  status: "pending" | "done";
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+};
+
+export type JourneyUpdate = {
+  id: string;
+  journey_id: string;
+  author_id: string;
+  parent_id: string | null;
+  body: string | null;
+  question: string | null;
+  problems: string | null;
+  milestone_id: string | null;
+  photos: string[];
+  is_hidden: boolean;
+  created_at: string;
+  edited_at: string | null;
+};
+
+export type JourneyStoryStatus = "draft" | "published" | "hidden";
+
+export type JourneyStory = {
+  id: string;
+  journey_id: string;
+  space_id: string;
+  author_id: string;
+  mentor_id: string | null;
+  title: string;
+  subject: string | null;
+  region: string | null;
+  climate: string | null;
+  method: string | null;
+  conditions: string | null;
+  problems: string | null;
+  solutions: string | null;
+  lessons: string | null;
+  results: string | null;
+  before_photo_url: string | null;
+  after_photo_url: string | null;
+  photos: string[];
+  duration_weeks: number | null;
+  show_mentor: boolean;
+  mentor_acknowledgement: string | null;
+  status: JourneyStoryStatus;
+  hidden_reason: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyReportReason = "harassment" | "unsafe" | "inappropriate" | "spam" | "misleading_advice" | "other";
+
+export type JourneyReport = {
+  id: string;
+  space_id: string;
+  reporter_id: string;
+  reported_user_id: string | null;
+  journey_id: string | null;
+  update_id: string | null;
+  story_id: string | null;
+  reason: JourneyReportReason;
+  details: string | null;
+  status: "open" | "resolved" | "dismissed";
+  staff_note: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
 type FKey<Col extends string, Referenced extends string> = {
   foreignKeyName: string;
   columns: [Col];
@@ -3504,9 +3720,116 @@ export type Database = {
         Update: Partial<TimelineEventTrack>;
         Relationships: [FKey<"track_id", "timeline_tracks">, FKey<"event_id", "timeline_events">];
       };
+      guided_journey_spaces: {
+        Row: GuidedJourneySpace;
+        Insert: Partial<GuidedJourneySpace> & { space_id: string };
+        Update: Partial<GuidedJourneySpace>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      journey_templates: {
+        Row: JourneyTemplate;
+        Insert: Partial<JourneyTemplate> & { space_id: string; title: string };
+        Update: Partial<JourneyTemplate>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      journey_mentor_profiles: {
+        Row: JourneyMentorProfile;
+        Insert: Partial<JourneyMentorProfile> & { space_id: string; user_id: string; adult_confirmed_at: string };
+        Update: Partial<JourneyMentorProfile>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"space_id", "spaces">];
+      };
+      journey_beginner_profiles: {
+        Row: JourneyBeginnerProfile;
+        Insert: Partial<JourneyBeginnerProfile> & { space_id: string; user_id: string; adult_confirmed_at: string };
+        Update: Partial<JourneyBeginnerProfile>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"space_id", "spaces">];
+      };
+      mentorship_requests: {
+        Row: MentorshipRequest;
+        Insert: Partial<MentorshipRequest> & { space_id: string; beginner_id: string; mentor_id: string };
+        Update: Partial<MentorshipRequest>;
+        Relationships: [
+          FKey<"beginner_id", "profiles">,
+          FKey<"mentor_id", "profiles">,
+          FKey<"template_id", "journey_templates">,
+          FKey<"journey_id", "journeys">,
+          FKey<"requested_journey_id", "journeys">,
+        ];
+      };
+      journeys: {
+        Row: Journey;
+        Insert: Partial<Journey> & { space_id: string; mentor_id: string; title: string };
+        Update: Partial<Journey>;
+        Relationships: [FKey<"mentor_id", "profiles">, FKey<"space_id", "spaces">, FKey<"template_id", "journey_templates">];
+      };
+      journey_participants: {
+        Row: JourneyParticipant;
+        Insert: Partial<JourneyParticipant> & { journey_id: string; user_id: string; role: "mentor" | "beginner" };
+        Update: Partial<JourneyParticipant>;
+        Relationships: [FKey<"journey_id", "journeys">, FKey<"user_id", "profiles">];
+      };
+      journey_milestones: {
+        Row: JourneyMilestone;
+        Insert: Partial<JourneyMilestone> & { journey_id: string; title: string };
+        Update: Partial<JourneyMilestone>;
+        Relationships: [FKey<"journey_id", "journeys">];
+      };
+      journey_updates: {
+        Row: JourneyUpdate;
+        Insert: Partial<JourneyUpdate> & { journey_id: string; author_id: string };
+        Update: Partial<JourneyUpdate>;
+        Relationships: [FKey<"journey_id", "journeys">, FKey<"author_id", "profiles">, FKey<"milestone_id", "journey_milestones">];
+      };
+      journey_stories: {
+        Row: JourneyStory;
+        Insert: Partial<JourneyStory> & { journey_id: string; space_id: string; author_id: string; title: string };
+        Update: Partial<JourneyStory>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"mentor_id", "profiles">, FKey<"journey_id", "journeys">];
+      };
+      journey_reports: {
+        Row: JourneyReport;
+        Insert: Partial<JourneyReport> & { space_id: string; reporter_id: string; reason: JourneyReportReason };
+        Update: Partial<JourneyReport>;
+        Relationships: [FKey<"reporter_id", "profiles">, FKey<"reported_user_id", "profiles">, FKey<"journey_id", "journeys">];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      respond_to_mentorship_request: {
+        Args: {
+          p_request_id: string;
+          p_accept: boolean;
+          p_message?: string | null;
+          p_group_journey_id?: string | null;
+          p_milestones?: JourneyMilestoneSeed[] | null;
+          p_default_title?: string | null;
+        };
+        Returns: string | null;
+      };
+      withdraw_mentorship_request: {
+        Args: { p_request_id: string };
+        Returns: void;
+      };
+      create_group_journey: {
+        Args: { p_space_id: string; p_template_id: string | null; p_title: string; p_max_beginners: number; p_milestones?: JourneyMilestoneSeed[] | null };
+        Returns: string;
+      };
+      complete_journey: {
+        Args: { p_journey_id: string; p_acknowledgement?: string | null };
+        Returns: void;
+      };
+      end_journey: {
+        Args: { p_journey_id: string; p_reason?: string | null };
+        Returns: void;
+      };
+      mentor_journey_stats: {
+        Args: { p_space_id: string };
+        Returns: { mentor_id: string; active_beginners: number; completed_journeys: number }[];
+      };
+      mentor_active_beginner_count: {
+        Args: { p_space_id: string; p_mentor_id: string };
+        Returns: number;
+      };
       lesson_usage_rows: {
         Args: { p_since: string | null; p_limit: number };
         Returns: {
