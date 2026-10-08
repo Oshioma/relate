@@ -63,6 +63,19 @@ export function EventFormFields({ idPrefix, event }: { idPrefix: string; event?:
       </div>
 
       <div>
+        <Label htmlFor={`${idPrefix}_capacity`}>Places (optional)</Label>
+        <Input
+          id={`${idPrefix}_capacity`}
+          name="capacity"
+          type="number"
+          min={1}
+          step={1}
+          placeholder="Leave blank for no limit"
+          defaultValue={event?.capacity ?? ""}
+        />
+      </div>
+
+      <div>
         <Label htmlFor={`${idPrefix}_image_url`}>Image URL (optional)</Label>
         <Input
           id={`${idPrefix}_image_url`}

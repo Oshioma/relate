@@ -41,7 +41,7 @@ import { getCommunityPosts } from "@/lib/data/posts";
 import { getFeedInteractions, feedInteractionFor } from "@/lib/data/feed-interactions";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
-import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
+import { getCommunityEvents, getCommunityRecentEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
 import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
 import { getCommunityRecentJobListings } from "@/lib/data/jobs";
@@ -493,8 +493,9 @@ export default async function CommunityFeedPage({
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
+  const sidebarEvents = upcoming.slice(0, 4);
   const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
-  const [feedInteractions, viewerProfile, weekly, locations] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -515,6 +516,7 @@ export default async function CommunityFeedPage({
           ...recentMembers.map((m) => m.user_id),
         ])
       : Promise.resolve(new Map<string, { full: string; short: string }>()),
+    getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -700,7 +702,7 @@ export default async function CommunityFeedPage({
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
             <div className="min-w-0 space-y-6">
-              <UpcomingEventsCard events={upcoming.slice(0, 4)} href={`${base}/events`} />
+              <UpcomingEventsCard events={sidebarEvents} href={`${base}/events`} going={eventGoing} />
               <NewMembersCard
                 members={recentMembers}
                 href={`${base}/members`}
