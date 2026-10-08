@@ -537,6 +537,9 @@ export type Event = {
   lng: number | null;
   location_label: string | null;
   image_url: string | null;
+  // Places available; null = unlimited. RSVPs past it are refused by a
+  // trigger (see the event_capacity migration).
+  capacity: number | null;
   created_by: string;
   created_at: string;
 };
@@ -3905,6 +3908,10 @@ export type Database = {
           user_id: string;
           confirmed: boolean;
         }[];
+      };
+      event_rsvp_counts: {
+        Args: { p_event_ids: string[] };
+        Returns: { event_id: string; going: number }[];
       };
       community_slug_for_domain: {
         Args: { p_domain: string };
