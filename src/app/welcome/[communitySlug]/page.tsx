@@ -15,6 +15,11 @@ import { coverPositionClass } from "@/lib/cover-position";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
+import { getPublicTiers } from "@/lib/data/public-tiers";
+import { NaturesGardenersLanding } from "./natures-gardeners-landing";
+
+// Communities with their own designed front page instead of the generic one.
+const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
 
 // A community's front door for signed-out visitors. On a community's own host
 // (its <slug> subdomain or verified custom domain) the proxy rewrites "/" here
@@ -34,6 +39,13 @@ export async function generateMetadata({
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
+  if (BESPOKE_LANDINGS.has(community.slug)) {
+    const title = "Nature's Gardeners: where organic gardeners learn and grow together";
+    const description =
+      "Crop guides, live lessons and a friendly community of organic growers, from balcony gardeners to seasoned farmers. Free to join.";
+    const images = ["/communities/naturesgardeners/hero.webp"];
+    return { title: { absolute: title }, description, openGraph: { title, description, images } };
+  }
   const description =
     community.description?.trim() || `${community.name} — its spaces, events, members and local businesses, all in one place.`;
   const cover = community.cover_image_url;
@@ -86,6 +98,21 @@ export default async function CommunityWelcomePage({
     { label: "events", value: stats.events },
     { label: "local businesses", value: stats.businesses },
   ].filter((item) => item.value > 0);
+
+  if (BESPOKE_LANDINGS.has(community.slug)) {
+    return (
+      <NaturesGardenersLanding
+        community={community}
+        spaces={spaces}
+        tiers={await getPublicTiers(community.id)}
+        members={stats.members}
+        posts={stats.posts}
+        signupHref={signupHref}
+        loginHref={loginHref}
+        lookAroundHref={lookAroundHref}
+      />
+    );
+  }
 
   const accentStyle = communityAccentStyle(community.accent_color);
 
