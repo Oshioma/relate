@@ -4,6 +4,21 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { PostType } from "@/types/database";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
+import { parseTags, splitPostMedia } from "@/lib/post-media";
+
+// The composer sends its photos as a JSON list under media_urls (lead first);
+// an older client may still send a single media_url.
+function readPostMedia(formData: FormData) {
+  let urls: string[] = [];
+  try {
+    const parsed: unknown = JSON.parse(String(formData.get("media_urls") ?? "[]"));
+    if (Array.isArray(parsed)) urls = parsed.filter((u): u is string => typeof u === "string");
+  } catch {
+    // Malformed list — fall back to the single field below.
+  }
+  if (urls.length === 0) urls = [String(formData.get("media_url") ?? "")];
+  return splitPostMedia(urls);
+}
 
 export type PostFormState = { error: string } | undefined;
 
@@ -16,8 +31,8 @@ export async function createPost(_prevState: PostFormState, formData: FormData):
   const spaceSlug = String(formData.get("space_slug") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
-  const mediaUrlRaw = String(formData.get("media_url") ?? "").trim();
-  const mediaUrl = /^https?:\/\//.test(mediaUrlRaw) ? mediaUrlRaw : null;
+  const { mediaUrl, extraMediaUrls } = readPostMedia(formData);
+  const tags = parseTags(String(formData.get("tags") ?? ""));
   const postTypeRaw = String(formData.get("post_type") ?? "discussion");
   const postType = POST_TYPES.includes(postTypeRaw as PostType) ? (postTypeRaw as PostType) : "discussion";
 
@@ -41,6 +56,8 @@ export async function createPost(_prevState: PostFormState, formData: FormData):
     title,
     body: body || null,
     media_url: mediaUrl,
+    extra_media_urls: extraMediaUrls,
+    tags,
     post_type: postType,
   });
 
@@ -90,8 +107,8 @@ export async function updatePost(
 ): Promise<PostFormState> {
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
-  const mediaUrlRaw = String(formData.get("media_url") ?? "").trim();
-  const mediaUrl = /^https?:\/\//.test(mediaUrlRaw) ? mediaUrlRaw : null;
+  const { mediaUrl, extraMediaUrls } = readPostMedia(formData);
+  const tags = parseTags(String(formData.get("tags") ?? ""));
 
   if (!title) {
     return { error: "Give your post a title." };
@@ -100,7 +117,7 @@ export async function updatePost(
   const supabase = await createClient();
   const { error } = await supabase
     .from("posts")
-    .update({ title, body: body || null, media_url: mediaUrl })
+    .update({ title, body: body || null, media_url: mediaUrl, extra_media_urls: extraMediaUrls, tags })
     .eq("id", postId);
 
   if (error) return { error: error.message };

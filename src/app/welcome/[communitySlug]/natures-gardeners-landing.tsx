@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Check, Leaf, Sprout } from "lucide-react";
-import type { Community, Space } from "@/types/database";
+import { ArrowRight, CalendarDays, Check, Clock, Leaf, Sprout } from "lucide-react";
+import type { Community, Event, Space } from "@/types/database";
 import type { PublicTier } from "@/lib/data/public-tiers";
+import type { PublicCrop } from "@/lib/data/public-crops";
+import type { PostWithAuthorAndSpace } from "@/lib/data/posts";
+import { formatDateTime } from "@/lib/utils";
 import { SPACE_TYPES } from "@/lib/space-types";
 
 // Nature's Gardeners' own front door at naturesgardeners.net: the old
@@ -36,6 +39,14 @@ const SPACE_COPY: Record<string, { title: string; text: string }> = {
 };
 
 const COPY_ORDER = Object.keys(SPACE_COPY);
+
+// Counts this small read as "empty" to a stranger, so the hero only shows
+// them once the community is visibly busy.
+const MIN_SHOWN_MEMBERS = 50;
+const MIN_SHOWN_POSTS = 100;
+// The activity strip only appears when there's something recent to show.
+const RECENT_DAYS = 60;
+const MIN_RECENT_POSTS = 2;
 
 const FOR_YOU = [
   "Serious about growing organic food",
@@ -82,10 +93,22 @@ function formatPrice(cents: number, currency: string): string {
   }
 }
 
+function timeAgo(iso: string, now: number): string {
+  const days = Math.floor((now - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days / 7);
+  return weeks === 1 ? "last week" : `${weeks} weeks ago`;
+}
+
 export function NaturesGardenersLanding({
   community,
   spaces,
   tiers,
+  crops,
+  recentPosts,
+  upcomingEvents,
   members,
   posts,
   signupHref,
@@ -95,6 +118,9 @@ export function NaturesGardenersLanding({
   community: Community;
   spaces: Space[];
   tiers: PublicTier[];
+  crops: PublicCrop[];
+  recentPosts: PostWithAuthorAndSpace[];
+  upcomingEvents: Event[];
   members: number;
   posts: number;
   signupHref: string;
@@ -121,6 +147,22 @@ export function NaturesGardenersLanding({
     // Spaces with landing copy first, in the order above.
     .sort((a, b) => a.rank - b.rank)
     .slice(0, 6);
+
+  // Crop guides are for members; a preview card leads through sign-up to it.
+  const cropSpace = spaces.find((space) => space.space_type === "crop_guides");
+  const cropHref = (slug: string) =>
+    cropSpace
+      ? `/signup?next=${encodeURIComponent(`${base}/spaces/${cropSpace.slug}/crop-guides/${slug}`)}`
+      : signupHref;
+
+  // eslint-disable-next-line react-hooks/purity -- server component, rendered per request
+  const now = Date.now();
+  const freshPosts = recentPosts
+    .filter((post) => now - new Date(post.created_at).getTime() < RECENT_DAYS * 86_400_000)
+    .slice(0, 3);
+  const showActivity = freshPosts.length >= MIN_RECENT_POSTS || upcomingEvents.length > 0;
+  const showMembers = members >= MIN_SHOWN_MEMBERS;
+  const showPosts = posts >= MIN_SHOWN_POSTS;
 
   return (
     <div className="min-h-screen bg-[#f6f3ea] text-[#1c2a17] [color-scheme:light]">
@@ -180,15 +222,15 @@ export function NaturesGardenersLanding({
               Take a look around
             </Link>
           </div>
-          {(members > 0 || posts > 0) && (
+          {(showMembers || showPosts) && (
             <dl className="mt-12 flex gap-10 text-white">
-              {members > 0 && (
+              {showMembers && (
                 <div className="flex flex-col-reverse">
                   <dt className="text-sm text-white/75">{members === 1 ? "grower" : "growers"}</dt>
                   <dd className="text-3xl font-semibold">{members.toLocaleString("en-US")}</dd>
                 </div>
               )}
-              {posts > 0 && (
+              {showPosts && (
                 <div className="flex flex-col-reverse">
                   <dt className="text-sm text-white/75">{posts === 1 ? "post" : "posts"} shared</dt>
                   <dd className="text-3xl font-semibold">{posts.toLocaleString("en-US")}</dd>
@@ -249,6 +291,139 @@ export function NaturesGardenersLanding({
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+      )}
+
+      {/* CROP GUIDES — real guides from the library, photos and all */}
+      {crops.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-28">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#3f8a1f]">Crop guides</p>
+              <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight md:text-5xl">
+                Start with these.
+              </h2>
+              <p className="mt-4 text-lg text-[#56624f]">
+                Organic, step-by-step guides from sowing to harvest. Join free to read them in full.
+              </p>
+            </div>
+            <Link
+              href={cropSpace ? `/signup?next=${encodeURIComponent(`${base}/spaces/${cropSpace.slug}`)}` : signupHref}
+              className="inline-flex shrink-0 items-center gap-1.5 font-semibold text-[#2f6b16] hover:underline"
+            >
+              All crop guides
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {crops.map((crop) => (
+              <li key={crop.slug}>
+                <Link
+                  href={cropHref(crop.slug)}
+                  className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[#e2e8d8] bg-white transition hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#e6f5d6]">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- crop library photo */}
+                    <img
+                      src={crop.imageUrl}
+                      alt={crop.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    {crop.beginnerFriendly && (
+                      <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-[#2f6b16] shadow-sm">
+                        Beginner friendly
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <span className="text-lg font-semibold group-hover:text-[#2f6b16]">{crop.name}</span>
+                    {crop.overview && (
+                      <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-[#56624f]">{crop.overview}</span>
+                    )}
+                    {(crop.daysToHarvest || (crop.difficulty && !crop.beginnerFriendly)) && (
+                      <span className="mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-4 text-xs font-medium text-[#3f8a1f]">
+                        {crop.daysToHarvest ? (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" />
+                            ~{crop.daysToHarvest} days to harvest
+                          </span>
+                        ) : null}
+                        {crop.difficulty && !crop.beginnerFriendly && <span className="capitalize">{crop.difficulty}</span>}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* LATELY IN THE GARDEN — only when there's recent activity to show */}
+      {showActivity && (
+        <section className="bg-white py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-4 md:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#3f8a1f]">Lately in the garden</p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight tracking-tight md:text-5xl">
+              What growers are sharing.
+            </h2>
+            {upcomingEvents.length > 0 && (
+              <ul className="mt-10 grid gap-4 md:grid-cols-3">
+                {upcomingEvents.map((event) => (
+                  <li key={event.id}>
+                    <Link
+                      href={`${base}/events`}
+                      className="flex h-full items-start gap-4 rounded-2xl bg-[#1f3d17] p-5 text-white hover:bg-[#2c5421]"
+                    >
+                      <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-[#9be15d]" />
+                      <span>
+                        <span className="block text-xs font-semibold uppercase tracking-wide text-[#c5f29b]">
+                          {formatDateTime(event.start_time)}
+                        </span>
+                        <span className="mt-1 block font-semibold">{event.title}</span>
+                        {(event.location_label || event.location) && (
+                          <span className="mt-0.5 block truncate text-sm text-white/75">
+                            {event.location_label || event.location}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {freshPosts.length >= MIN_RECENT_POSTS && (
+              <ul className="mt-6 grid gap-5 md:grid-cols-3">
+                {freshPosts.map((post) => {
+                  const author = post.author?.full_name || post.author?.username || "A grower";
+                  return (
+                    <li key={post.id}>
+                      <Link
+                        href={`${base}/spaces/${post.space.slug}/posts/${post.id}`}
+                        className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[#e2e8d8] bg-[#fbfaf5] transition hover:-translate-y-0.5 hover:shadow-lg"
+                      >
+                        {post.media_url && /^https?:\/\//.test(post.media_url) && (
+                          // eslint-disable-next-line @next/next/no-img-element -- member upload
+                          <img src={post.media_url} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                        )}
+                        <div className="flex flex-1 flex-col p-5">
+                          <span className="text-xs font-semibold text-[#3f8a1f]">{post.space.name}</span>
+                          <span className="mt-1 line-clamp-2 font-semibold group-hover:text-[#2f6b16]">{post.title}</span>
+                          {post.body && (
+                            <span className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-[#56624f]">{post.body}</span>
+                          )}
+                          <span className="mt-auto pt-4 text-xs text-[#56624f]">
+                            {author} · {timeAgo(post.created_at, now)}
+                          </span>
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </section>
       )}
