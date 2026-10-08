@@ -16,6 +16,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
 import { getPublicTiers } from "@/lib/data/public-tiers";
+import { getPublicCrops } from "@/lib/data/public-crops";
+import { getCommunityPosts } from "@/lib/data/posts";
 import { NaturesGardenersLanding } from "./natures-gardeners-landing";
 
 // Communities with their own designed front page instead of the generic one.
@@ -100,11 +102,20 @@ export default async function CommunityWelcomePage({
   ].filter((item) => item.value > 0);
 
   if (BESPOKE_LANDINGS.has(community.slug)) {
+    const [tiers, crops, posts] = await Promise.all([
+      getPublicTiers(community.id),
+      getPublicCrops(),
+      // RLS gives a guest only posts from spaces marked public.
+      getCommunityPosts(supabase, community.id, 12).catch(() => []),
+    ]);
     return (
       <NaturesGardenersLanding
         community={community}
         spaces={spaces}
-        tiers={await getPublicTiers(community.id)}
+        tiers={tiers}
+        crops={crops}
+        recentPosts={posts}
+        upcomingEvents={upcoming}
         members={stats.members}
         posts={stats.posts}
         signupHref={signupHref}
