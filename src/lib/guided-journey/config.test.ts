@@ -64,3 +64,13 @@ test("every preset has five stages, capacity options and milestones", () => {
 test("unknown preset key falls back to gardening", () => {
   assert.equal(getPreset("nope").key, "gardening");
 });
+
+test("help mode: tick one or both, stored as a single value", async () => {
+  const { helpModeFromChoices, helpModeToChoices } = await import("./config");
+  assert.equal(helpModeFromChoices(["online", "local"]), "either");
+  assert.equal(helpModeFromChoices(["local"]), "local");
+  assert.equal(helpModeFromChoices(["online"]), "online");
+  assert.equal(helpModeFromChoices([]), null);
+  assert.deepEqual(helpModeToChoices("either"), ["online", "local"]);
+  assert.deepEqual(helpModeToChoices("local"), ["local"]);
+});

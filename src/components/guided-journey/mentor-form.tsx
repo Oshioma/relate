@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { saveMentorProfile } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/journey-actions";
-import { HELP_MODE_OPTIONS, MENTOR_LEVELS, mentorLevelLabel, type GuidedJourneyConfig } from "@/lib/guided-journey/config";
+import { HELP_MODE_CHOICES, helpModeToChoices, MENTOR_LEVELS, mentorLevelLabel, type GuidedJourneyConfig } from "@/lib/guided-journey/config";
 import type { JourneyMentorProfile, MentorLevel } from "@/types/database";
 import { Input, Textarea } from "@/components/ui/input";
 import { ChoiceChips, DraftForm, Field } from "./draft-form";
@@ -97,7 +97,7 @@ export function MentorOnboardingForm({
       </div>
 
       <Field label="How can you help?">
-        <ChoiceChips name="help_mode" type="radio" options={HELP_MODE_OPTIONS} defaultValue={[existing?.help_mode ?? "online"]} />
+        <ChoiceChips name="help_mode" options={HELP_MODE_CHOICES} defaultValue={helpModeToChoices(existing?.help_mode ?? "online")} />
       </Field>
 
       <Field label={`How many ${config.terms.beginners} can you support at once?`} help="You can change this, or pause, any time.">

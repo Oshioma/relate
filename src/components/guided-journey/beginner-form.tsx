@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { saveBeginnerProfile } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/journey-actions";
-import { HELP_MODE_OPTIONS, type GuidedJourneyConfig } from "@/lib/guided-journey/config";
+import { HELP_MODE_CHOICES, helpModeToChoices, type GuidedJourneyConfig } from "@/lib/guided-journey/config";
 import type { JourneyBeginnerProfile } from "@/types/database";
 import { Input, Textarea } from "@/components/ui/input";
 import { ChoiceChips, DraftForm, Field } from "./draft-form";
@@ -79,7 +79,7 @@ export function BeginnerOnboardingForm({
 
       <Step n={5}>
         <Field label={q.helpMode.label} help={q.helpMode.help}>
-          <ChoiceChips name="help_mode" type="radio" options={HELP_MODE_OPTIONS} defaultValue={[existing?.help_mode ?? "either"]} />
+          <ChoiceChips name="help_mode" options={HELP_MODE_CHOICES} defaultValue={helpModeToChoices(existing?.help_mode ?? "either")} />
         </Field>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="Languages you're comfortable in" htmlFor="gj-languages">
