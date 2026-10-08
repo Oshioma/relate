@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { Space } from "@/types/database";
 import { SPACE_TYPES } from "@/lib/space-types";
+import { toPlainText } from "@/components/ui/rich-text";
 
 // The row of photo cards under the feed hero: the community's headline spaces,
 // each a one-click way in. It's the desktop twin of the mobile DiscoverStrip —
@@ -18,6 +19,10 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
     <div className="hidden gap-4 md:grid md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
+        // A custom page's description *is* the page (HTML, often with its own
+        // <style>), so it never makes a blurb. Everything else is rich text,
+        // shown as a plain excerpt.
+        const blurb = space.space_type === "custom" || !space.description ? null : toPlainText(space.description);
         return (
           <Link
             key={space.id}
@@ -43,9 +48,9 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
                 </span>
                 <span className="min-w-0 truncate text-sm font-semibold text-foreground">{space.name}</span>
               </span>
-              {space.description && (
+              {blurb && (
                 <span className="mt-2 line-clamp-3 break-words text-xs leading-relaxed text-muted-foreground">
-                  {space.description}
+                  {blurb}
                 </span>
               )}
               <span className="mt-auto flex justify-end pt-3">
