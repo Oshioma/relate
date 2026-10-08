@@ -338,3 +338,27 @@ export async function getCommunityRecentMembers(
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];
 }
+
+// Where each of these people says they are ("Pemba, Tanzania"), for bylines
+// on the feed. Only locations their owner made visible, and RLS only returns
+// them to signed-in viewers — guests get an empty map. One query for the lot.
+export async function getMemberLocationLabels(
+  supabase: Client,
+  profileIds: string[]
+): Promise<Map<string, { full: string; short: string }>> {
+  const labels = new Map<string, { full: string; short: string }>();
+  const ids = [...new Set(profileIds)];
+  if (ids.length === 0) return labels;
+  const { data } = await supabase
+    .from("member_locations")
+    .select("profile_id, city, region, country, is_visible")
+    .in("profile_id", ids)
+    .eq("is_visible", true);
+  for (const row of data ?? []) {
+    const place = row.city || row.region;
+    const full = [place, row.country].filter(Boolean).join(", ");
+    const short = row.country || place;
+    if (full && short) labels.set(row.profile_id, { full, short });
+  }
+  return labels;
+}
