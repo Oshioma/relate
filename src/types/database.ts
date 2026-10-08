@@ -468,6 +468,10 @@ export type Post = {
   title: string;
   body: string | null;
   media_url: string | null;
+  // Photos after the first (media_url stays the lead item), at most 3.
+  extra_media_urls: string[];
+  // Short topic tags shown as chips, at most 5.
+  tags: string[];
   post_type: PostType;
   is_pinned: boolean;
   lat: number | null;
