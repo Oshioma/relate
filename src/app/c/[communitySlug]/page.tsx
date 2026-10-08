@@ -589,6 +589,7 @@ export default async function CommunityFeedPage({
     <CoverCropProvider position={community.cover_position} mobilePosition={community.cover_position_mobile}>
       <FeedHero
         headline={community.tagline || community.name}
+        name={community.tagline ? community.name : null}
         description={community.description}
         cover={community.cover_image_url ? <CommunityCoverImage src={community.cover_image_url} /> : null}
         stats={statItems}
