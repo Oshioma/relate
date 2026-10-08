@@ -18,6 +18,11 @@ const TOGGLES: { type: NotificationType; label: string; description: string }[] 
   { type: "member_message", label: "Messages from community hosts", description: "When a community host emails a message to you and other members. You'll always see these in the app." },
   { type: "meetup", label: "Meetups posted", description: "When a member posts a meetup in one of your communities — a walk, a ride, a game — so you can join before it starts." },
   { type: "meetup_join", label: "Someone joins your meetup", description: "When a member says they're coming to a meetup you posted." },
+  { type: "journey_request", label: "Mentoring requests", description: "When a beginner asks you to guide them on a journey (Adopt a Beginner and similar spaces)." },
+  { type: "journey_request_response", label: "Answers to your requests", description: "When a mentor accepts or declines your request." },
+  { type: "journey_update", label: "Journey updates", description: "When someone on your journey posts an update, asks a question or replies." },
+  { type: "journey_completed", label: "Journey completions", description: "When a journey you're on is marked complete." },
+  { type: "journey_report", label: "Reports to review", description: "Staff only: when a member reports something in a guided-journey space." },
   { type: "direct_message", label: "Direct messages", description: "When another member sends you a direct message. The email includes the message and a link straight to the conversation." },
 ];
 

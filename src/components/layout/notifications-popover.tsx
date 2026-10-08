@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints } from "lucide-react";
+import { Bell, MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints, HeartHandshake, Sprout, PartyPopper, Flag } from "lucide-react";
 import { IconPopover } from "@/components/layout/icon-popover";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -24,6 +24,11 @@ const typeIcon = {
   direct_message: <MessageSquare className="h-4 w-4" />,
   meetup: <Footprints className="h-4 w-4" />,
   meetup_join: <Footprints className="h-4 w-4" />,
+  journey_request: <HeartHandshake className="h-4 w-4" />,
+  journey_request_response: <HeartHandshake className="h-4 w-4" />,
+  journey_update: <Sprout className="h-4 w-4" />,
+  journey_completed: <PartyPopper className="h-4 w-4" />,
+  journey_report: <Flag className="h-4 w-4" />,
 };
 
 function BellIcon({ count }: { count: number }) {
