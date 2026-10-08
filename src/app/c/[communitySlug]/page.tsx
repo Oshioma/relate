@@ -16,6 +16,9 @@ import {
   MessageSquareQuote,
   GraduationCap,
   BookOpen,
+  Sprout,
+  Compass,
+  Play,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -24,6 +27,7 @@ import {
   getMembership,
   getCommunityRecentMembers,
   getCommunityStats,
+  getCommunityWeeklyActivity,
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
@@ -53,7 +57,6 @@ import { getCommunityRecentClubs } from "@/lib/data/clubs";
 import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
 import { formatMeetupCountdown, meetupPhase } from "@/lib/meetups";
 import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
-import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CommunityJoinCta } from "./community-join-cta";
 import { CommunityGate } from "./community-gate";
@@ -63,6 +66,13 @@ import { ShareJourneyCard } from "./share-journey-card";
 import { DiscoverStrip, type DiscoverShortcut } from "./discover-strip";
 import { CoverQuickEdit } from "./cover-quick-edit";
 import { CoverCropProvider, CommunityCoverImage } from "./cover-crop";
+import { FeedHero, HeroLink, type HeroStat } from "./feed-hero";
+import { SpaceCards } from "./space-cards";
+import { FeedComposer } from "./feed-composer";
+import { UpcomingEventsCard } from "./upcoming-events-card";
+import { NewMembersCard } from "./new-members-card";
+import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
+import { FeaturedSpaceCard } from "./featured-space-card";
 import { formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
@@ -466,10 +476,19 @@ export default async function CommunityFeedPage({
   const rest = items.filter((i) => !i.isPinned).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const activity = [...pinned, ...rest].slice(0, 40);
 
+  // Spaces a member can post into from the feed's composer bar: the
+  // discussion-shaped ones (they're the only ones with a #new-post composer),
+  // minus broadcast spaces unless the viewer is staff.
+  const postableSpaces = isMember
+    ? navSpaces.filter(
+        (s) => ["discussion", "qa", "gallery"].includes(s.space_type) && (!s.staff_post_only || isStaff)
+      )
+    : [];
+
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
-  const [feedInteractions, viewerProfile] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -479,195 +498,133 @@ export default async function CommunityFeedPage({
     // The viewer's own face, so their smile joins the avatar stack the instant
     // they click instead of only after the refresh lands.
     user ? getProfile(supabase, user.id) : Promise.resolve(null),
+    community.show_stats
+      ? getCommunityWeeklyActivity(supabase, community.id, growingJourney?.id ?? null)
+      : Promise.resolve(null),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
     : null;
 
-  // Counts are opt-in per community (show_stats, default off). A stat strip
+  // Counts are opt-in per community (show_stats, default off). A stat panel
   // exists to argue the place is busy, and small numbers argue the opposite —
   // so a community only shows them once its owner decides they help. Zero
-  // values stay filtered out regardless.
-  const statItems = community.show_stats
+  // values stay filtered out regardless. The same switch governs the weekly
+  // "Community activity" card.
+  const statItems: HeroStat[] = community.show_stats
     ? [
-        { label: "Members", value: stats.members },
-        { label: "Events", value: stats.events },
-        { label: "Businesses", value: stats.businesses },
-        { label: "Posts", value: stats.posts },
+        { icon: UsersRound, label: "Members", value: stats.members },
+        { icon: MessageSquare, label: "Posts", value: stats.posts },
+        { icon: CalendarDays, label: "Events", value: stats.events },
+        { icon: Store, label: "Businesses", value: stats.businesses },
+      ].filter((s) => s.value > 0)
+    : [];
+  const activityStats: ActivityStat[] = weekly
+    ? [
+        { icon: MessageSquare, value: weekly.posts, label: "new posts this week" },
+        { icon: Sprout, value: weekly.journeyUpdates, label: `${growingJourney?.name ?? "journey"} updates this week` },
+        { icon: UserPlus, value: weekly.members, label: "new members this week" },
+        { icon: CalendarDays, value: upcoming.length, label: "events coming up" },
       ].filter((s) => s.value > 0)
     : [];
 
-  return (
-    <div>
-      {/* Hero: with a cover image the name, description and stats sit *on* the
-          photo — the community reads as the place it's about rather than as a
-          banner glued above a document.
+  const onPhoto = Boolean(community.cover_image_url);
+  const composerHref = postableSpaces[0] ? `${base}/spaces/${postableSpaces[0].slug}#new-post` : null;
 
-          The darkening is confined to a band at the foot of the image instead
-          of covering the whole thing: the top of the photo stays as shot, and
-          only the strip actually carrying text gets a backing dark enough to
-          keep white type legible over an unknown image.
-
-          The band's own contents sit in the same centred column the feed below
-          uses, so the page keeps one left margin all the way down rather than
-          stepping in once past the header.
-
-          With no cover, the original accent-gradient header and its own stats
-          strip still apply. */}
-      {community.cover_image_url ? (
-        // The wrapper exists for the cover control alone. The hero clips its
-        // own overflow (the photo is bigger than the band it fills), and a
-        // popover anchored inside it is clipped too — on a phone that cut the
-        // crop controls off at the foot of the header, leaving a panel with no
-        // visible bottom. Anchoring the control to a wrapper outside the clip
-        // lets its popover hang over the page below.
-        <CoverCropProvider
-          position={community.cover_position}
-          mobilePosition={community.cover_position_mobile}
-        >
-          <div className="relative">
-            <section className="relative isolate flex min-h-[340px] flex-col justify-end overflow-hidden border-b border-border sm:min-h-[420px]">
-              {/* The crop keeps whichever part of the photo the community chose —
-                  the band covers the foot of the image, so a subject sitting low in
-                  the frame disappears behind the text unless it's pushed up. The
-                  provider above shares that choice with the staff picker, so the
-                  header re-crops as it's picked rather than a refresh later. */}
-              <CommunityCoverImage src={community.cover_image_url} />
-
-              {/* The backing is a flat tint plus a blur, not a see-through
-                  gradient. A gradient lets the photo through, so the band reads
-                  dark where something dark sits behind it and washes out over open
-                  sky — it changes tone across its own width and stops looking like
-                  a deliberate element. A uniform panel with one crisp top edge
-                  reads the same left to right whatever the photo is doing.
-
-                  The blur is desaturated as well: blurring alone preserves hue, so
-                  the panel still picked up the green of shallow water at one end
-                  and stayed neutral at the other. Draining the colour on the way
-                  through gives one tone across the width while keeping the sense
-                  that the photograph continues behind the text, which a fully
-                  opaque panel loses. */}
-              <div className="bg-black/50 backdrop-blur-md backdrop-saturate-[.3]">
-                <div className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 sm:py-6">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-                    <div className="min-w-0 flex-1">
-                      {/* The counts ride on the title's line rather than taking one
-                          of their own. A community name rarely fills the width, so
-                          they sit in space that was already empty — and every line
-                          the band doesn't need is a line of the photograph it
-                          doesn't cover. */}
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1">
-                        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                          {community.name}
-                        </h1>
-                        {statItems.length > 0 && (
-                          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-                            {statItems.map((stat) => (
-                              <div key={stat.label} className="flex items-baseline gap-1.5">
-                                <span className="text-base font-semibold text-white">
-                                  {stat.value.toLocaleString()}
-                                </span>
-                                <span className="text-xs text-white/70">{stat.label}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      {community.description && (
-                        <p className="mt-2 text-base leading-relaxed text-white/85 sm:text-lg">
-                          {community.description}
-                        </p>
-                      )}
-                    </div>
-                    {user && !isMember && (
-                      <div className="shrink-0">
-                        <CommunityJoinCta
-                          communityId={community.id}
-                          privacy={community.privacy}
-                          membershipStatus={membership?.status ?? null}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {isStaff && <CoverQuickEdit communityId={community.id} coverUrl={community.cover_image_url} />}
-          </div>
-        </CoverCropProvider>
-      ) : (
-        <>
-          <section className="border-b border-border">
-            <div className="bg-gradient-to-br from-accent/10 via-background to-background">
-              <div className="mx-auto flex max-w-4xl flex-col gap-5 px-4 py-8 sm:flex-row sm:items-start sm:justify-between sm:px-6 sm:py-10">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{community.name}</h1>
-                  {community.description && (
-                    <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/80 sm:text-xl">
-                      {community.description}
-                    </p>
-                  )}
-                </div>
-                {user && !isMember && (
-                  <div className="shrink-0">
-                    <CommunityJoinCta
-                      communityId={community.id}
-                      privacy={community.privacy}
-                      membershipStatus={membership?.status ?? null}
-                    />
-                  </div>
-                )}
-                {isStaff && (
-                  <div className="shrink-0">
-                    {/* No cover, so nothing to crop — but the control shares
-                        the picker's state, so it still needs the provider. */}
-                    <CoverCropProvider
-                      position={community.cover_position}
-                      mobilePosition={community.cover_position_mobile}
-                    >
-                      <CoverQuickEdit
-                        communityId={community.id}
-                        coverUrl={community.cover_image_url}
-                        hasCover={false}
-                      />
-                    </CoverCropProvider>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Stats strip: at-a-glance signals that the community is active. */}
-          {statItems.length > 0 && (
-            <div className="border-b border-border bg-muted/30">
-              <div className="mx-auto flex max-w-4xl flex-wrap gap-x-10 gap-y-3 px-4 py-4 sm:px-6">
-                {statItems.map((stat) => (
-                  <div key={stat.label} className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-foreground">{stat.value.toLocaleString()}</span>
-                    <span className="text-sm text-muted-foreground">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+  // The hero's calls to action change with who's looking: a stranger is asked
+  // to join (via signup), a signed-in non-member gets the join/request button
+  // their community's privacy allows, and a member is pointed at posting.
+  const heroActions = !user ? (
+    <>
+      <HeroLink href={`/signup?next=${encodeURIComponent(base)}`} onPhoto={onPhoto}>
+        Join the community
+      </HeroLink>
+      <HeroLink href={`/login?next=${encodeURIComponent(base)}`} variant="glass" onPhoto={onPhoto}>
+        Log in
+      </HeroLink>
+    </>
+  ) : !isMember ? (
+    <CommunityJoinCta
+      communityId={community.id}
+      privacy={community.privacy}
+      membershipStatus={membership?.status ?? null}
+      size="lg"
+    />
+  ) : (
+    <>
+      {composerHref && (
+        <HeroLink href={composerHref} onPhoto={onPhoto}>
+          Share something
+        </HeroLink>
       )}
+      <HeroLink href={`${base}/spaces`} variant={composerHref ? "glass" : "solid"} onPhoto={onPhoto}>
+        <Compass className="h-4 w-4" />
+        Explore spaces
+      </HeroLink>
+    </>
+  );
+  // The admin's optional "Watch video" link rides after whichever buttons the
+  // viewer got.
+  const heroActionsWithVideo = (
+    <>
+      {heroActions}
+      {community.hero_video_url && (
+        <HeroLink href={community.hero_video_url} variant="glass" onPhoto={onPhoto} external>
+          <Play className="h-4 w-4 fill-current" />
+          Watch video
+        </HeroLink>
+      )}
+    </>
+  );
+  // The space promoted in the sidebar photo card (Admin → Landing page). Read
+  // from the viewer's own space list, so one they can't see never shows.
+  const featuredSpace = community.featured_space_id
+    ? spaces.find((s) => s.id === community.featured_space_id) ?? null
+    : null;
+
+  return (
+    // The provider shares the cover crop between the header photo and the
+    // staff picker, so the hero re-crops as it's picked rather than a refresh
+    // later. It's needed even without a cover — the picker reads it.
+    <CoverCropProvider position={community.cover_position} mobilePosition={community.cover_position_mobile}>
+      <FeedHero
+        headline={community.tagline || community.name}
+        description={community.description}
+        cover={community.cover_image_url ? <CommunityCoverImage src={community.cover_image_url} /> : null}
+        stats={statItems}
+        actions={heroActionsWithVideo}
+        coverControl={
+          isStaff &&
+          (onPhoto ? (
+            <CoverQuickEdit communityId={community.id} coverUrl={community.cover_image_url} />
+          ) : (
+            <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
+              <CoverQuickEdit communityId={community.id} coverUrl={community.cover_image_url} hasCover={false} />
+            </div>
+          ))
+        }
+      />
 
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
-        {/* `min-w-0` on both columns is load-bearing, not decoration. A grid
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <SpaceCards spaces={navSpaces} base={base} />
+
+        {/* `min-w-0` on every column is load-bearing, not decoration. A grid
             item defaults to `min-width: auto`, so its track can't shrink below
             the item's min-content width — and min-content here is the longest
             unbreakable run of text in the column (a URL, an email, a long
-            business name). On mobile both columns stack into the one track, so
-            a single long token in either the feed or the sidebar widens the
-            track past the viewport. Everything full-bleed (header, hero) stays
-            at viewport width while the cards run off the right edge, which
-            reads as the two sitting on different margins. */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="min-w-0 lg:col-span-2">
+            business name). On mobile the columns stack into one track, so a
+            single long token anywhere widens the track past the viewport.
+
+            Three columns on a wide screen (feed · events & members · journey &
+            activity); below 2xl the two side columns stack into one sidebar,
+            and on a phone everything stacks under the feed. */}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_600px]">
+          <div className="min-w-0 space-y-5">
+            {isMember && viewer && (
+              <FeedComposer base={base} spaces={postableSpaces} viewerName={viewer.name} viewerAvatar={viewer.avatarUrl} />
+            )}
             {activity.length === 0 ? (
               // An empty feed means two different things. For a member the
               // community really is quiet. For a signed-out visitor it means
@@ -703,76 +660,55 @@ export default async function CommunityFeedPage({
                 }
               />
             ) : (
-              <div className="space-y-5">
-                {activity.map((item) => (
-                  <FeedItemCard
-                    key={item.key}
-                    item={{
-                      ...item,
-                      actions: {
-                        communitySlug: community.slug,
-                        communityId: community.id,
-                        itemType: item.itemType,
-                        itemId: item.itemId,
-                        canInteract: isMember,
-                        viewerId: user?.id ?? null,
-                        viewer,
-                        isStaff,
-                        ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
-                      },
-                    }}
-                  />
-                ))}
-              </div>
+              activity.map((item) => (
+                <FeedItemCard
+                  key={item.key}
+                  item={{
+                    ...item,
+                    actions: {
+                      communitySlug: community.slug,
+                      communityId: community.id,
+                      itemType: item.itemType,
+                      itemId: item.itemId,
+                      canInteract: isMember,
+                      viewerId: user?.id ?? null,
+                      viewer,
+                      isStaff,
+                      ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
+                    },
+                  }}
+                />
+              ))
             )}
           </div>
 
-          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-            {growingJourney && (
-              <ShareJourneyCard
-                communityId={community.id}
-                communitySlug={community.slug}
-                spaceSlug={growingJourney.slug}
-                spaceName={growingJourney.name}
-                isLoggedIn={Boolean(user)}
-                isMember={isMember}
-              />
-            )}
-
-            <Suspense fallback={null}>
-              <WeatherTidesCard community={community} />
-            </Suspense>
-
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              Upcoming events
-            </h2>
-            {upcoming.length === 0 ? (
-              <EmptyState
-                icon={<CalendarDays className="h-6 w-6" />}
-                title="Nothing scheduled"
-                description="Check back soon."
-              />
-            ) : (
-              <div className="space-y-3">
-                {upcoming.slice(0, 4).map((event) => (
-                  <Card key={event.id}>
-                    <CardContent className="pt-5">
-                      <p className="break-words text-sm font-semibold text-foreground">{event.title}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.start_time)}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-                <Link
-                  href={`/c/${community.slug}/events`}
-                  className="block text-center text-sm font-medium text-accent hover:underline"
-                >
-                  View all events
-                </Link>
-              </div>
-            )}
+          <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="min-w-0 space-y-6">
+              <UpcomingEventsCard events={upcoming.slice(0, 4)} href={`${base}/events`} />
+              <NewMembersCard members={recentMembers} href={`${base}/members`} />
+            </div>
+            <div className="min-w-0 space-y-6">
+              {growingJourney && (
+                <ShareJourneyCard
+                  communityId={community.id}
+                  communitySlug={community.slug}
+                  spaceSlug={growingJourney.slug}
+                  spaceName={growingJourney.name}
+                  isLoggedIn={Boolean(user)}
+                  isMember={isMember}
+                />
+              )}
+              <CommunityActivityCard stats={activityStats} />
+              <Suspense fallback={null}>
+                <WeatherTidesCard community={community} />
+              </Suspense>
+              {featuredSpace && (
+                <FeaturedSpaceCard space={featuredSpace} href={`${base}/spaces/${featuredSpace.slug}`} />
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </CoverCropProvider>
   );
 }

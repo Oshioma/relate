@@ -471,6 +471,61 @@ export async function updateCommunityDetails(
   return undefined;
 }
 
+export type CommunityHeroState = { error: string } | { ok: true } | undefined;
+
+// Save the feed's landing hero: the headline over the cover, the optional
+// "Watch video" link, and which space the sidebar promo card features. Blank
+// fields clear back to the defaults (the community name, no video, no promo).
+export async function updateCommunityHero(
+  _prevState: CommunityHeroState,
+  formData: FormData
+): Promise<CommunityHeroState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const tagline = String(formData.get("tagline") ?? "").trim();
+  const videoUrl = String(formData.get("hero_video_url") ?? "").trim();
+  const featuredSpaceId = String(formData.get("featured_space_id") ?? "").trim();
+
+  if (tagline.length > 140) {
+    return { error: "Keep the headline to 140 characters or fewer." };
+  }
+  if (videoUrl && !/^https?:\/\/\S+$/i.test(videoUrl)) {
+    return { error: "The video link should be a full web address starting with https://." };
+  }
+
+  const supabase = await createClient();
+
+  // The featured space must belong to this community — a forged id from
+  // another community would otherwise put its name and photo on this feed.
+  if (featuredSpaceId) {
+    const { data: space } = await supabase
+      .from("spaces")
+      .select("id")
+      .eq("id", featuredSpaceId)
+      .eq("community_id", communityId)
+      .maybeSingle();
+    if (!space) return { error: "That space isn't part of this community." };
+  }
+
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({
+        tagline: tagline || null,
+        hero_video_url: videoUrl || null,
+        featured_space_id: featuredSpaceId || null,
+      })
+      .eq("id", communityId)
+      .select("id"),
+    "the landing page"
+  );
+  if (failure) return failure;
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`);
+  return { ok: true };
+}
+
 export type CommunityGuidelinesState = { error: string } | { ok: true } | undefined;
 
 // Save a community's guidelines (house rules / code of conduct). Stored as the
