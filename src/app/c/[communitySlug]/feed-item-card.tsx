@@ -21,6 +21,8 @@ export interface FeedItem {
   detail: string | null;
   authorName: string | null;
   authorAvatar: string | null;
+  // Where the author says they are, shown after their name.
+  authorLocation?: string | null;
   spaceName: string | null;
   href: string;
   // Identifies the row behind this card, so its smiles and comments can be
@@ -38,7 +40,9 @@ export interface FeedItem {
 
 export function FeedItemCard({ item }: { item: FeedItem }) {
   const Icon = item.icon;
-  const meta = [item.authorName, formatRelativeTime(item.createdAt), item.spaceName].filter(Boolean).join(" · ");
+  const meta = [item.authorName, item.authorLocation, formatRelativeTime(item.createdAt), item.spaceName]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div>
