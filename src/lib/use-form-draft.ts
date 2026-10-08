@@ -214,3 +214,27 @@ export function useFormDraft(key: string) {
   const { clear } = useFormDraftRef(formRef, key);
   return { formRef, clearDraft: clear };
 }
+
+// For forms whose state lives in React (a rich editor, a photo list) rather
+// than in named fields: a whole JSON draft under the same prefix, so signing
+// out sweeps it with the rest. Clear it with clearFormDraft.
+//
+// readJsonDraft hands back the stored string ("" when there's none) — a
+// stable value, so it can be a useSyncExternalStore snapshot; parse it with
+// useMemo.
+export function readJsonDraft(key: string): string {
+  try {
+    return storage()?.getItem(PREFIX + key) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function writeJsonDraft(key: string, value: unknown) {
+  if (Date.now() < suppressSavesUntil) return; // just signed out
+  try {
+    storage()?.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    // Quota exceeded or blocked: drafts are a convenience, never an error.
+  }
+}
