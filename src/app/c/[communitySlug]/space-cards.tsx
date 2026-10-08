@@ -12,7 +12,10 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
   if (shown.length === 0) return null;
 
   return (
-    <div className="hidden gap-4 md:grid md:grid-cols-3 xl:grid-cols-5">
+    // auto-fill rather than fixed counts: the content column's width depends
+    // on the sidebar as well as the screen, and a fixed three-up left a laptop
+    // with three oversized cards and the other two pushed to a second row.
+    <div className="hidden gap-4 md:grid md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
         return (
@@ -21,20 +24,18 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
             href={`${base}/spaces/${space.slug}`}
             className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
           >
-            <span className="relative block aspect-[2/1] w-full overflow-hidden bg-accent-soft">
-              {space.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {/* Only a real photo earns the tall band — an icon on an empty
+                block just reads as a missing image. */}
+            {space.image_url && (
+              <span className="relative block aspect-[2/1] w-full overflow-hidden bg-accent-soft">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={space.image_url}
                   alt=""
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-accent">
-                  <Icon className="h-10 w-10 opacity-60" />
-                </span>
-              )}
-            </span>
+              </span>
+            )}
             <span className="flex flex-1 flex-col p-4">
               <span className="flex items-center gap-2">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
