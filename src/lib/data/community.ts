@@ -339,6 +339,13 @@ export async function getCommunityRecentMembers(
   return (data ?? []) as unknown as MemberRow[];
 }
 
+// How many members are sharing a growing journey: distinct authors in the
+// community's Growing Journey space. For the hero's stats panel.
+export async function getGrowingJourneyCount(supabase: Client, spaceId: string): Promise<number> {
+  const { data } = await supabase.from("posts").select("author_id").eq("space_id", spaceId).limit(5000);
+  return new Set((data ?? []).map((row) => row.author_id)).size;
+}
+
 // Where each of these people says they are ("Pemba, Tanzania"), for bylines
 // on the feed. Only locations their owner made visible, and RLS only returns
 // them to signed-in viewers — guests get an empty map. One query for the lot.

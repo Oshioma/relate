@@ -28,6 +28,7 @@ import {
   getCommunityRecentMembers,
   getCommunityStats,
   getCommunityWeeklyActivity,
+  getGrowingJourneyCount,
   getMemberLocationLabels,
   isCommunityAdmin,
   isCommunityMember,
@@ -495,7 +496,7 @@ export default async function CommunityFeedPage({
   // one per card. Guests get the tallies but no controls.
   const sidebarEvents = upcoming.slice(0, 4);
   const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
-  const [feedInteractions, viewerProfile, weekly, locations, eventGoing] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -517,6 +518,7 @@ export default async function CommunityFeedPage({
         ])
       : Promise.resolve(new Map<string, { full: string; short: string }>()),
     getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
+    community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -533,6 +535,7 @@ export default async function CommunityFeedPage({
         { icon: MessageSquare, label: "Posts", value: stats.posts },
         { icon: CalendarDays, label: "Events", value: stats.events },
         { icon: Store, label: "Businesses", value: stats.businesses },
+        { icon: Sprout, label: growingJourney ? `${growingJourney.name}s` : "Growing Journeys", value: journeyCount },
       ].filter((s) => s.value > 0)
     : [];
   const activityStats: ActivityStat[] = weekly
