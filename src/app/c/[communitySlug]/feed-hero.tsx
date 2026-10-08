@@ -49,18 +49,21 @@ export function FeedHero({
       >
         {cover}
         {onPhoto && (
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/45 to-black/10 lg:bg-gradient-to-r lg:from-black/75 lg:via-black/40 lg:to-black/0" />
+          // Heavier than a typical scrim on purpose: covers are often banners
+          // with their own lettering baked in, and that has to recede behind
+          // the headline rather than compete with it.
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/60 to-black/30 xl:bg-gradient-to-r xl:from-black/85 xl:via-black/60 xl:to-black/25" />
         )}
         <div
           className={cn(
-            "mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between",
-            onPhoto ? "min-h-[380px] justify-end py-10 sm:min-h-[460px] lg:py-14" : "py-10 sm:py-14"
+            "mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between xl:gap-10",
+            onPhoto ? "min-h-[340px] justify-end py-8 sm:min-h-[400px] sm:py-10 xl:py-12" : "py-8 sm:py-12"
           )}
         >
-          <div className="min-w-0 max-w-2xl">
+          <div className="min-w-0 max-w-3xl">
             <h1
               className={cn(
-                "break-words text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl",
+                "break-words text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl",
                 onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
               )}
             >
@@ -69,7 +72,7 @@ export function FeedHero({
             {description && (
               <p
                 className={cn(
-                  "mt-4 max-w-xl text-base leading-relaxed sm:text-lg",
+                  "mt-4 line-clamp-4 max-w-2xl text-base leading-relaxed sm:text-lg",
                   onPhoto ? "text-white/90" : "text-foreground/80"
                 )}
               >
@@ -82,7 +85,7 @@ export function FeedHero({
           {stats.length > 0 && (
             <div
               className={cn(
-                "grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 rounded-2xl p-5 sm:grid-cols-4 lg:w-60 lg:grid-cols-1 lg:gap-5 lg:p-6",
+                "flex w-fit shrink-0 flex-wrap gap-x-8 gap-y-3 rounded-2xl px-5 py-4 xl:w-56 xl:flex-col xl:gap-5 xl:p-6",
                 onPhoto
                   ? "border border-white/15 bg-black/45 text-white backdrop-blur-md"
                   : "border border-border bg-card text-foreground shadow-sm"
