@@ -29,6 +29,13 @@ async function geocodeEventLocation(
   return hit ? { lat: hit.lat, lng: hit.lng } : null;
 }
 
+// "Places" on the event form: a whole number of at least 1, or blank for no
+// limit. Anything else is treated as no limit rather than an error.
+function parseCapacity(raw: FormDataEntryValue | null): number | null {
+  const n = Number(String(raw ?? "").trim());
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 export async function createEvent(_prevState: EventFormState, formData: FormData): Promise<EventFormState> {
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
@@ -39,6 +46,7 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
   const location = String(formData.get("location") ?? "").trim();
   const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
   const imageUrl = parseImageUrl(formData.get("image_url"));
+  const capacity = parseCapacity(formData.get("capacity"));
   const communityLocationName = String(formData.get("community_location_name") ?? "").trim() || null;
 
   if (!title || !startTime) {
@@ -65,6 +73,7 @@ export async function createEvent(_prevState: EventFormState, formData: FormData
     location: location || null,
     online_url: onlineUrl || null,
     image_url: imageUrl,
+    capacity,
     lat: geocoded?.lat ?? null,
     lng: geocoded?.lng ?? null,
     created_by: user.id,
@@ -90,6 +99,7 @@ export async function updateEvent(_prevState: EventFormState, formData: FormData
   const location = String(formData.get("location") ?? "").trim();
   const onlineUrl = normalizeUrl(String(formData.get("online_url") ?? ""));
   const imageUrl = parseImageUrl(formData.get("image_url"));
+  const capacity = parseCapacity(formData.get("capacity"));
   const communityLocationName = String(formData.get("community_location_name") ?? "").trim() || null;
 
   if (!title || !startTime) {
@@ -117,6 +127,7 @@ export async function updateEvent(_prevState: EventFormState, formData: FormData
       location: location || null,
       online_url: onlineUrl || null,
       image_url: imageUrl,
+      capacity,
       lat: geocoded?.lat ?? null,
       lng: geocoded?.lng ?? null,
     })
@@ -162,7 +173,8 @@ export async function rsvpToEvent(eventId: string, communitySlug: string) {
   const { error } = await supabase.from("event_rsvps").insert({ event_id: eventId, user_id: user.id });
 
   if (error) {
-    return { error: error.message };
+    // The capacity trigger's message is already the sentence to show.
+    return { error: error.message.includes("This event is full") ? "Sorry — this event is full." : error.message };
   }
 
   revalidatePath(`/c/${communitySlug}/events`);
