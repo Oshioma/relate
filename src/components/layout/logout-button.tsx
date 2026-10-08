@@ -7,9 +7,8 @@ import { cn } from "@/lib/utils";
 
 export function LogoutButton({ className }: { className?: string }) {
   return (
-    // Saved form drafts belong to whoever was signed in; a shared computer must
-    // not hand them to the next person (see src/lib/use-form-draft.ts).
-    <form action={logout} onSubmit={() => clearAllFormDrafts()}>
+    // Saved form drafts belong to whoever was signed in, so they go first.
+    <form action={logout} onSubmit={clearAllFormDrafts}>
       <button
         type="submit"
         className={cn(

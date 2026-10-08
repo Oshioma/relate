@@ -30,7 +30,7 @@ insert into public.community_memberships (user_id, community_id, role, status) v
  ('00000000-0000-0000-0000-00000000000c','11111111-1111-1111-1111-111111111111','member','active'),
  ('00000000-0000-0000-0000-00000000000e','11111111-1111-1111-1111-111111111111','member','active')
 on conflict do nothing;
-\ir ../migrations/20261008181812_adopt_a_beginner_natures_gardeners.sql
+\ir ../migrations/20261008191455_adopt_a_beginner_natures_gardeners.sql
 select s.id as space_id from public.spaces s where slug='adopt-a-beginner' \gset
 select count(*) as templates from public.journey_templates where space_id=:'space_id';
 select id as tpl_id from public.journey_templates where space_id=:'space_id' and sort_order=0 \gset

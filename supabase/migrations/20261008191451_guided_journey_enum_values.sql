@@ -5,7 +5,7 @@
 -- beginner for one shared journey: a first crop, a first sail, a first five
 -- meals. The space type is generic; each space carries its own terminology,
 -- imagery, onboarding questions and milestones (see
--- 20261008181810_guided_journey_tables.sql and src/lib/guided-journey/).
+-- 20261008191453_guided_journey_tables.sql and src/lib/guided-journey/).
 --
 -- Only enum values live here — Postgres refuses to use a value added in the
 -- same transaction, so the CHECK rebuild, tables and triggers that reference

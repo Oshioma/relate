@@ -22,11 +22,27 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 // Cleared: by calling the returned `clear()` after a successful submit, and
 // for every form at once by clearAllFormDrafts(), which the Log out button
 // calls (see src/components/layout/logout-button.tsx).
+//
+// Two entry points share this engine: useFormDraft(key) hands back a formRef
+// to attach (simple uncontrolled forms), and useFormDraftRef(formRef, key,
+// options) works with a ref the caller already owns and adds onRestore /
+// saveNow for controlled fields.
 
-const PREFIX = "relate-draft:";
+// Every draft lives under this prefix so signing out can sweep them all.
+const PREFIX = "form-draft:";
 const SENSITIVE = /(pass(word)?|card|cc-|cvc|cvv|csc|iban|sort.?code|account.?number|security.?code|expiry|exp-?date)/i;
 
-type DraftValues = Record<string, string | string[]>;
+// Signing out must win against a save that's already queued: clicking "Log
+// out" blurs the field being typed in, which fires `change` and schedules a
+// save that would otherwise land after the sweep and put the draft back.
+// Every pending save is tracked here, and saves are ignored briefly after a
+// sweep (the page is navigating away by then).
+const pendingSaves = new Set<ReturnType<typeof setTimeout>>();
+let suppressSavesUntil = 0;
+
+// Checkbox groups are saved as the list of checked values; single values as
+// strings. Booleans are an older per-field checkbox format, still restored.
+type DraftValues = Record<string, string | string[] | boolean>;
 
 function storage(): Storage | null {
   try {
@@ -61,18 +77,31 @@ export function readFormDraft(key: string): DraftValues | null {
 }
 
 export function clearFormDraft(key: string) {
-  storage()?.removeItem(PREFIX + key);
+  try {
+    storage()?.removeItem(PREFIX + key);
+  } catch {
+    // Nothing to clear.
+  }
 }
 
+// Drops every saved form draft — called on sign-out so the next person on this
+// browser doesn't find someone else's half-typed text.
 export function clearAllFormDrafts() {
+  pendingSaves.forEach((t) => clearTimeout(t));
+  pendingSaves.clear();
+  suppressSavesUntil = Date.now() + 3000;
   const store = storage();
   if (!store) return;
-  const keys: string[] = [];
-  for (let i = 0; i < store.length; i++) {
-    const k = store.key(i);
-    if (k?.startsWith(PREFIX)) keys.push(k);
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < store.length; i++) {
+      const k = store.key(i);
+      if (k?.startsWith(PREFIX)) keys.push(k);
+    }
+    keys.forEach((k) => store.removeItem(k));
+  } catch {
+    // Storage unavailable — there were no drafts to leave behind.
   }
-  keys.forEach((k) => store.removeItem(k));
 }
 
 function collect(form: HTMLFormElement): DraftValues {
@@ -92,12 +121,21 @@ function collect(form: HTMLFormElement): DraftValues {
   return values;
 }
 
+function writeDraft(key: string, form: HTMLFormElement) {
+  if (Date.now() < suppressSavesUntil) return; // just signed out
+  try {
+    storage()?.setItem(PREFIX + key, JSON.stringify(collect(form)));
+  } catch {
+    // Quota exceeded or blocked: drafts are a convenience, never an error.
+  }
+}
+
 function apply(form: HTMLFormElement, values: DraftValues) {
   for (const el of Array.from(form.elements)) {
     if (!isSavable(el) || !(el.name in values)) continue;
     const saved = values[el.name];
     if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) {
-      el.checked = Array.isArray(saved) ? saved.includes(el.value) : saved === el.value;
+      el.checked = typeof saved === "boolean" ? saved : Array.isArray(saved) ? saved.includes(el.value) : saved === el.value;
     } else if (el instanceof HTMLSelectElement && el.multiple && Array.isArray(saved)) {
       for (const option of Array.from(el.options)) option.selected = saved.includes(option.value);
     } else if (typeof saved === "string" && !(el instanceof HTMLInputElement && el.type === "hidden")) {
@@ -106,10 +144,10 @@ function apply(form: HTMLFormElement, values: DraftValues) {
   }
 }
 
-export function useFormDraft(
+export function useFormDraftRef(
   formRef: RefObject<HTMLFormElement | null>,
   key: string,
-  options: { onRestore?: (values: DraftValues) => void; enabled?: boolean } = {}
+  options: { onRestore?: (values: Record<string, string | string[]>) => void; enabled?: boolean } = {}
 ) {
   const { onRestore, enabled = true } = options;
   const onRestoreRef = useRef(onRestore);
@@ -128,18 +166,22 @@ export function useFormDraft(
     const saved = readFormDraft(key);
     if (saved) {
       apply(form, saved);
-      onRestoreRef.current?.(saved);
+      // Controlled fields are always saved as strings (their hidden input), so
+      // the legacy boolean checkbox values never reach onRestore callers.
+      onRestoreRef.current?.(saved as Record<string, string | string[]>);
     }
 
     const save = () => {
-      clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        try {
-          storage()?.setItem(PREFIX + key, JSON.stringify(collect(form)));
-        } catch {
-          // Quota exceeded or blocked: drafts are a convenience, never an error.
-        }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        pendingSaves.delete(timerRef.current);
+      }
+      const timer = setTimeout(() => {
+        pendingSaves.delete(timer);
+        writeDraft(key, form);
       }, 300);
+      timerRef.current = timer;
+      pendingSaves.add(timer);
     };
     form.addEventListener("input", save);
     form.addEventListener("change", save);
@@ -154,12 +196,7 @@ export function useFormDraft(
   // no event — they call this to save straight away.
   const saveNow = useCallback(() => {
     const form = formRef.current;
-    if (!form) return;
-    try {
-      storage()?.setItem(PREFIX + key, JSON.stringify(collect(form)));
-    } catch {
-      // ignore
-    }
+    if (form) writeDraft(key, form);
   }, [formRef, key]);
 
   const clear = useCallback(() => {
@@ -167,4 +204,13 @@ export function useFormDraft(
     clearFormDraft(key);
   }, [key]);
   return { clear, saveNow };
+}
+
+// Auto-saves an uncontrolled form's fields as they're typed and puts them back
+// after a refresh. Attach `formRef` to the <form>, and call `clearDraft` once
+// the submit has succeeded.
+export function useFormDraft(key: string) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const { clear } = useFormDraftRef(formRef, key);
+  return { formRef, clearDraft: clear };
 }

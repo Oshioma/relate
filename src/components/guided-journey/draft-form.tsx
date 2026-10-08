@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useFormDraft } from "@/lib/use-form-draft";
+import { useFormDraftRef } from "@/lib/use-form-draft";
 import type { JourneyFormState } from "@/app/c/[communitySlug]/spaces/[spaceSlug]/journey-actions";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ export function DraftForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(action, undefined);
-  const { clear, saveNow } = useFormDraft(formRef, draftKey, { onRestore });
+  const { clear, saveNow } = useFormDraftRef(formRef, draftKey, { onRestore });
   const lastState = useRef<JourneyFormState>(undefined);
 
   useEffect(() => {

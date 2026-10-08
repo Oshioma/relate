@@ -202,6 +202,12 @@ export type Community = {
   // Defaults false — a small community is usually better off not advertising
   // its size.
   show_stats: boolean;
+  // Feed hero (see the community_landing_hero migration): the big headline
+  // over the cover (null = show the name), an optional "Watch video" link, and
+  // a space promoted in the feed sidebar's photo card.
+  tagline: string | null;
+  hero_video_url: string | null;
+  featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
@@ -2612,7 +2618,7 @@ export type TimelineEventTrack = {
 
 
 // --- Guided Journey spaces ("Adopt a Beginner") ------------------------------
-// See supabase/migrations/20261008181810_guided_journey_tables.sql and
+// See supabase/migrations/20261008191453_guided_journey_tables.sql and
 // src/lib/guided-journey/. One reusable space type: everything that makes a
 // space about gardening, sailing or cooking lives in its config, not in code.
 export type GuidedJourneySpace = {

@@ -14,7 +14,7 @@ import type { JourneyHelpMode, JourneyReportReason, MentorLevel } from "@/types/
 // Server actions for guided-journey spaces ("Adopt a Beginner").
 //
 // Authorisation lives in RLS and the SECURITY DEFINER functions of
-// 20261008181810_guided_journey_tables.sql; these actions validate input,
+// 20261008191453_guided_journey_tables.sql; these actions validate input,
 // translate database errors into friendly sentences and revalidate the pages.
 // Every form posts community_slug + space_slug so the action can load the
 // same context the page used.

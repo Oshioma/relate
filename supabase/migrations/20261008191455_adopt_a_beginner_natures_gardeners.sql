@@ -11,7 +11,7 @@
 -- and on re-run. The space is public so the landing page and the community
 -- gallery can be read by visitors; onboarding, mentor profiles, requests and
 -- journeys stay members-only through the RLS in
--- 20261008181810_guided_journey_tables.sql.
+-- 20261008191453_guided_journey_tables.sql.
 -- =============================================================================
 
 do $$

@@ -33,6 +33,7 @@ import { NewSpaceForm } from "./new-space-form";
 import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-manager";
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
+import { CommunityHeroForm } from "./community-hero-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
 import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
@@ -196,6 +197,7 @@ export default async function AdminPage({
     { id: "overview", label: "Overview" },
     { id: "members", label: "Members" },
     { id: "details", label: "Details" },
+    { id: "landing", label: "Landing page" },
     { id: "guidelines", label: "Guidelines" },
     { id: "contact", label: "Contact" },
     { id: "public-access", label: "Public access" },
@@ -258,6 +260,11 @@ export default async function AdminPage({
       <div className="mb-8 space-y-4">
         <CommunityDetailsForm community={community} />
         <CommunityBrandingForm community={community} />
+      </div>
+
+      <h2 id="landing" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feed landing page</h2>
+      <div className="mb-8">
+        <CommunityHeroForm community={community} spaces={spaces} />
       </div>
 
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
