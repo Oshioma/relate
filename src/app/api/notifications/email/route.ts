@@ -28,6 +28,11 @@ const CTA_LABEL: Record<string, string> = {
   direct_message: "Open the conversation",
   meetup: "See who's going",
   meetup_join: "See who's going",
+  journey_request: "Review the request",
+  journey_request_response: "Open your journey",
+  journey_update: "Open the journey",
+  journey_completed: "Celebrate together",
+  journey_report: "Review the report",
 };
 
 export async function POST(request: NextRequest) {

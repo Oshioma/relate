@@ -76,6 +76,7 @@ const DEFAULTS: Record<string, NavGroup> = {
   accommodation: "connect",
   recommendations: "connect",
   volunteer_hub: "connect",
+  guided_journey: "connect",
   map: "connect",
 };
 
