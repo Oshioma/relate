@@ -28,6 +28,7 @@ import {
   getCommunityRecentMembers,
   getCommunityStats,
   getCommunityWeeklyActivity,
+  getMemberLocationLabels,
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
@@ -492,7 +493,8 @@ export default async function CommunityFeedPage({
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
-  const [feedInteractions, viewerProfile, weekly] = await Promise.all([
+  const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
+  const [feedInteractions, viewerProfile, weekly, locations] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -505,6 +507,14 @@ export default async function CommunityFeedPage({
     community.show_stats
       ? getCommunityWeeklyActivity(supabase, community.id, growingJourney?.id ?? null)
       : Promise.resolve(null),
+    // Bylines for the posts on screen and the new-member faces. Locations are
+    // members-only, so guests skip the query.
+    user
+      ? getMemberLocationLabels(supabase, [
+          ...activity.flatMap((i) => postAuthorIds.get(i.key) ?? []),
+          ...recentMembers.map((m) => m.user_id),
+        ])
+      : Promise.resolve(new Map<string, { full: string; short: string }>()),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -670,6 +680,7 @@ export default async function CommunityFeedPage({
                   key={item.key}
                   item={{
                     ...item,
+                    authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
                     actions: {
                       communitySlug: community.slug,
                       communityId: community.id,
@@ -690,7 +701,11 @@ export default async function CommunityFeedPage({
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
             <div className="min-w-0 space-y-6">
               <UpcomingEventsCard events={upcoming.slice(0, 4)} href={`${base}/events`} />
-              <NewMembersCard members={recentMembers} href={`${base}/members`} />
+              <NewMembersCard
+                members={recentMembers}
+                href={`${base}/members`}
+                locations={Object.fromEntries([...locations].map(([id, l]) => [id, l.short]))}
+              />
             </div>
             <div className="min-w-0 space-y-6">
               {growingJourney && (
