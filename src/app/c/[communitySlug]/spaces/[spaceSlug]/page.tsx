@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { RichText, toPlainText } from "@/components/ui/rich-text";
+import { RichText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
@@ -910,68 +910,71 @@ export default async function SpaceDetailPage({
                 // The default "discussion" type is noise on every card, so only
                 // announcements and resources earn a labelled pill.
                 const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
+                const postHref = `/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`;
+                // The whole post reads here — formatted body and all — so a
+                // member doesn't have to open each one. That body can carry its
+                // own links, so the card isn't one big link any more: the
+                // photo, the title and the comment count go to the post page.
                 return (
-                  <Link key={post.id} href={`/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`}>
-                    <Card
-                      className={cn(
-                        "group overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-accent/35 motion-reduce:transform-none motion-reduce:transition-none",
-                        post.is_pinned && "border-accent/40"
-                      )}
-                    >
-                      {bannerUrl && (
-                        <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-                          {isVideoUrl(bannerUrl) ? (
-                            <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={bannerUrl} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
-                          )}
-                        </div>
-                      )}
-                      <CardContent className="pt-4">
-                        {post.is_pinned && (
-                          <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
-                            <Pin className="h-3.5 w-3.5" />
-                            Pinned
-                          </div>
+                  <Card
+                    key={post.id}
+                    className={cn("group overflow-hidden transition-shadow duration-200 hover:shadow-md", post.is_pinned && "border-accent/40")}
+                  >
+                    {bannerUrl && (
+                      <Link href={postHref} className="block aspect-[16/10] w-full overflow-hidden bg-muted">
+                        {isVideoUrl(bannerUrl) ? (
+                          <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
                         )}
-                        <div className="flex items-center gap-2.5">
-                          <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-foreground">{post.author?.full_name || post.author?.username}</p>
-                            <p className="text-xs text-muted-foreground">{formatRelativeTime(post.created_at)}</p>
-                          </div>
-                          {post.post_type !== "discussion" && <Badge tone={typeTone}>{post.post_type}</Badge>}
+                      </Link>
+                    )}
+                    <CardContent className="pt-4">
+                      {post.is_pinned && (
+                        <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                          <Pin className="h-3.5 w-3.5" />
+                          Pinned
                         </div>
+                      )}
+                      <div className="flex items-center gap-2.5">
+                        <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground">{post.author?.full_name || post.author?.username}</p>
+                          <p className="text-xs text-muted-foreground">{formatRelativeTime(post.created_at)}</p>
+                        </div>
+                        {post.post_type !== "discussion" && <Badge tone={typeTone}>{post.post_type}</Badge>}
+                      </div>
 
-                        <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent">
+                      <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground">
+                        <Link href={postHref} className="transition-colors hover:text-accent">
                           {post.title}
-                        </h3>
-                        {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(post.body)}</p>}
-                        {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
-                        {documentUrl && (
-                          <div className="mt-3">
-                            <MediaAttachment url={documentUrl} />
-                          </div>
-                        )}
-                        <TagChips tags={post.tags ?? []} className="mt-3" />
-
-                        <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <MessageSquare className="h-4 w-4" />
-                            {post.comment_count}
-                            <span className="sr-only"> comments</span>
-                          </span>
-                          <span className={cn("inline-flex items-center gap-1.5", post.viewer_reacted && "text-accent")}>
-                            <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
-                            {post.reaction_count}
-                            <span className="sr-only"> smiles</span>
-                          </span>
-                          <SmileStack reactors={post.reactors} count={post.reaction_count} size={20} />
+                        </Link>
+                      </h3>
+                      {post.body && <RichText content={post.body} className="mt-1.5 text-sm text-foreground" />}
+                      {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
+                      {documentUrl && (
+                        <div className="mt-3">
+                          <MediaAttachment url={documentUrl} />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      )}
+                      <TagChips tags={post.tags ?? []} className="mt-3" />
+
+                      <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
+                        <Link href={postHref} className="inline-flex items-center gap-1.5 transition-colors hover:text-accent">
+                          <MessageSquare className="h-4 w-4" />
+                          {post.comment_count > 0 ? post.comment_count : "Comment"}
+                          {post.comment_count > 0 && <span className="sr-only"> comments</span>}
+                        </Link>
+                        <span className={cn("inline-flex items-center gap-1.5", post.viewer_reacted && "text-accent")}>
+                          <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
+                          {post.reaction_count}
+                          <span className="sr-only"> smiles</span>
+                        </span>
+                        <SmileStack reactors={post.reactors} count={post.reaction_count} size={20} />
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
