@@ -28,6 +28,7 @@ import {
   getCommunityRecentMembers,
   getCommunityStats,
   getCommunityWeeklyActivity,
+  getGrowingJourneyCount,
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
@@ -488,7 +489,7 @@ export default async function CommunityFeedPage({
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
-  const [feedInteractions, viewerProfile, weekly] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, journeyCount] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -501,6 +502,7 @@ export default async function CommunityFeedPage({
     community.show_stats
       ? getCommunityWeeklyActivity(supabase, community.id, growingJourney?.id ?? null)
       : Promise.resolve(null),
+    community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -517,6 +519,7 @@ export default async function CommunityFeedPage({
         { icon: MessageSquare, label: "Posts", value: stats.posts },
         { icon: CalendarDays, label: "Events", value: stats.events },
         { icon: Store, label: "Businesses", value: stats.businesses },
+        { icon: Sprout, label: growingJourney ? `${growingJourney.name}s` : "Growing Journeys", value: journeyCount },
       ].filter((s) => s.value > 0)
     : [];
   const activityStats: ActivityStat[] = weekly

@@ -29,6 +29,7 @@ import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messa
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
+import { isRecent } from "@/lib/recency";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
@@ -194,8 +195,12 @@ export default async function CommunityLayout({
   type NavUnit = {
     sort: number;
     group: NavGroup | null;
-    items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[];
+    items: { href: string; label: string; icon: React.ReactNode; sub?: boolean; isNew?: boolean }[];
   };
+
+  const newBadge = (
+    <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">New</span>
+  );
 
   const orderedUnits: NavUnit[] = [
     // Featured business categories render as indented sub-links right under
@@ -209,6 +214,8 @@ export default async function CommunityLayout({
           href: `${base}/spaces/${space.slug}`,
           label: space.name,
           icon: <Layers className="h-4 w-4" />,
+          // Flag a space added in the last fortnight, so members notice it.
+          isNew: isRecent(space.created_at),
         },
         ...featuredCategories
           .filter((f) => f.space_id === space.id)
@@ -324,6 +331,7 @@ export default async function CommunityLayout({
                   icon={item.icon}
                   exact={item.href === base}
                   className={"sub" in item && item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                  badge={"isNew" in item && item.isNew ? newBadge : undefined}
                 >
                   {item.label}
                 </NavLink>
@@ -351,6 +359,7 @@ export default async function CommunityLayout({
                         href={item.href}
                         icon={item.icon}
                         className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                        badge={item.isNew ? newBadge : undefined}
                       >
                         {item.label}
                       </NavLink>
@@ -370,6 +379,7 @@ export default async function CommunityLayout({
                         href={item.href}
                         icon={item.icon}
                         className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                        badge={item.isNew ? newBadge : undefined}
                       >
                         {item.label}
                       </NavLink>

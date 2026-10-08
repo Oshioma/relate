@@ -338,3 +338,10 @@ export async function getCommunityRecentMembers(
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];
 }
+
+// How many members are sharing a growing journey: distinct authors in the
+// community's Growing Journey space. For the hero's stats panel.
+export async function getGrowingJourneyCount(supabase: Client, spaceId: string): Promise<number> {
+  const { data } = await supabase.from("posts").select("author_id").eq("space_id", spaceId).limit(5000);
+  return new Set((data ?? []).map((row) => row.author_id)).size;
+}
