@@ -6,6 +6,7 @@ import { Input, Label } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
+import { GUIDED_JOURNEY_PRESETS } from "@/lib/guided-journey/presets";
 import type { SpaceType } from "@/types/database";
 
 export function NewSpaceForm({
@@ -78,6 +79,27 @@ export function NewSpaceForm({
           ))}
         </select>
       </div>
+
+      {type === "guided_journey" && (
+        <div>
+          <Label htmlFor="journey_preset">Start from</Label>
+          <select
+            id="journey_preset"
+            name="journey_preset"
+            defaultValue="gardening"
+            className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {GUIDED_JOURNEY_PRESETS.map((preset) => (
+              <option key={preset.key} value={preset.key}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sets the starting wording, stages and milestones. Change any of it later from the space&apos;s Manage page.
+          </p>
+        </div>
+      )}
 
       {type !== "business_directory" && (
         <div>

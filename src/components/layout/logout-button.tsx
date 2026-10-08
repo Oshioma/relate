@@ -2,8 +2,8 @@
 
 import { LogOut } from "lucide-react";
 import { logout } from "@/app/auth/actions";
-import { cn } from "@/lib/utils";
 import { clearAllFormDrafts } from "@/lib/use-form-draft";
+import { cn } from "@/lib/utils";
 
 export function LogoutButton({ className }: { className?: string }) {
   return (

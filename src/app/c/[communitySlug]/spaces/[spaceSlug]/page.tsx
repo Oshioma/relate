@@ -64,6 +64,8 @@ import { cn, formatRelativeTime, isImageUrl, isVideoUrl, isAudioUrl } from "@/li
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { ExternalAudioPlayer, getExternalAudioEmbed } from "@/components/ui/external-audio-player";
 import { NewPostForm } from "./new-post-form";
+import { PostGallery, TagChips } from "@/components/ui/post-gallery";
+import { postGallery } from "@/lib/post-media";
 import { SpaceResourceForm } from "./space-resource-form";
 import { TidesWeatherPanel } from "./tides-weather-panel";
 import { JournalEntryForm } from "./journal-entry-form";
@@ -87,6 +89,7 @@ import { LessonsView } from "./lessons-view";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
 import { PlantIdPanel } from "./plant-id-panel";
+import { GuidedJourneySpaceView } from "@/components/guided-journey/space-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
@@ -96,10 +99,10 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[] }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed, import: rawImport } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport, ended } = await searchParams;
   // A link handed over from the directory's add form when what was pasted turned
   // out to be a place to stay — see the `handoff` on an import result.
   const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
@@ -186,6 +189,9 @@ export default async function SpaceDetailPage({
   const isLiveSpace = space.space_type === "live";
   const isMeetupsSpace = space.space_type === "meetups";
   const isLessonsSpace = space.space_type === "lessons";
+  // Adopt a Beginner and its siblings: a landing page with its own hero, and
+  // sub-pages under ./join, ./mentors, ./requests, ./journeys, ./stories, ./manage.
+  const isGuidedJourneySpace = space.space_type === "guided_journey";
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
@@ -212,7 +218,8 @@ export default async function SpaceDetailPage({
     !isPlantIdSpace &&
     !isLiveSpace &&
     !isMeetupsSpace &&
-    !isLessonsSpace;
+    !isLessonsSpace &&
+    !isGuidedJourneySpace;
 
   const [
     membership,
@@ -400,14 +407,14 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : "max-w-3xl",
-        isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace ? "max-w-6xl" : "max-w-3xl",
+        isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
-      ) : isBusinessDirectorySpace || isLessonsSpace ? null : (
+      ) : isBusinessDirectorySpace || isLessonsSpace || isGuidedJourneySpace ? null : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
               description *is* the whole page. Every other space keeps the title
@@ -764,6 +771,8 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           isStaff={Boolean(isStaff)}
         />
+      ) : isGuidedJourneySpace ? (
+        <GuidedJourneySpaceView communitySlug={community.slug} spaceSlug={space.slug} justEnded={ended === "1"} />
       ) : isLessonsSpace ? (
         <LessonsView
           lessons={lessons}
@@ -892,9 +901,12 @@ export default async function SpaceDetailPage({
           ) : (
             <div className="space-y-5">
               {posts.map((post) => {
-                // Photos and videos become a full-width banner atop the card so
-                // the imagery leads; documents stay an inline link in the body.
-                const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+                // One photo or video becomes a full-width banner atop the card
+                // so the imagery leads; several sit as a gallery row under the
+                // text; a document stays an inline link in the body.
+                const gallery = postGallery(post);
+                const bannerUrl = gallery.length === 1 ? gallery[0] : null;
+                const documentUrl = post.media_url && !gallery.includes(post.media_url) ? post.media_url : null;
                 // The default "discussion" type is noise on every card, so only
                 // announcements and resources earn a labelled pill.
                 const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
@@ -936,11 +948,13 @@ export default async function SpaceDetailPage({
                           {post.title}
                         </h3>
                         {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(post.body)}</p>}
-                        {post.media_url && !bannerUrl && (
+                        {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
+                        {documentUrl && (
                           <div className="mt-3">
-                            <MediaAttachment url={post.media_url} />
+                            <MediaAttachment url={documentUrl} />
                           </div>
                         )}
+                        <TagChips tags={post.tags ?? []} className="mt-3" />
 
                         <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">
