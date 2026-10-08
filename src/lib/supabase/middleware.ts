@@ -125,6 +125,22 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // The sign-in page itself is public, so the detour above never fires for it
+  // — yet "Log in" on a custom domain's welcome page is exactly where someone
+  // who is already signed in on the platform lands. Send that GET through the
+  // bridge too, carrying the page they were headed for. Same once-per-window
+  // cookie, so a visitor with no platform session comes straight back to this
+  // host's own form (the finish route sets it) instead of looping.
+  if (!user && pathname === "/login" && request.method === "GET") {
+    const host = request.headers.get("host") ?? "";
+    if (!isPlatformHost(host) && !request.cookies.has(BRIDGE_CHECKED_COOKIE)) {
+      const requested = request.nextUrl.searchParams.get("next");
+      const next = requested && requested.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+      const bridge = platformBridgeUrl(host, next);
+      if (bridge) return NextResponse.redirect(bridge);
+    }
+  }
+
   if (user && (pathname === "/login" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
