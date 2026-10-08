@@ -98,3 +98,32 @@ export function clearAllFormDrafts() {
     // Storage unavailable — there were no drafts to leave behind.
   }
 }
+
+// For forms whose fields live in React state (a rich editor, a photo list)
+// rather than plain named inputs: read, write and drop a JSON draft under the
+// same prefix, so signing out sweeps these too. Best-effort, like the hook.
+// The stored JSON as a string ("" when there's none) — a stable value, so it
+// can be a useSyncExternalStore snapshot; parse it with useMemo.
+export function readDraftRaw(key: string): string {
+  try {
+    return window.localStorage.getItem(PREFIX + key) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function writeDraft(key: string, value: unknown) {
+  try {
+    window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    // Out of quota or blocked — the form still works, just without a draft.
+  }
+}
+
+export function removeDraft(key: string) {
+  try {
+    window.localStorage.removeItem(PREFIX + key);
+  } catch {
+    // Nothing to clear.
+  }
+}

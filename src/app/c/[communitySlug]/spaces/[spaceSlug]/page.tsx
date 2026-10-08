@@ -64,6 +64,8 @@ import { cn, formatRelativeTime, isImageUrl, isVideoUrl, isAudioUrl } from "@/li
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { ExternalAudioPlayer, getExternalAudioEmbed } from "@/components/ui/external-audio-player";
 import { NewPostForm } from "./new-post-form";
+import { PostGallery, TagChips } from "@/components/ui/post-gallery";
+import { postGallery } from "@/lib/post-media";
 import { SpaceResourceForm } from "./space-resource-form";
 import { TidesWeatherPanel } from "./tides-weather-panel";
 import { JournalEntryForm } from "./journal-entry-form";
@@ -892,9 +894,12 @@ export default async function SpaceDetailPage({
           ) : (
             <div className="space-y-5">
               {posts.map((post) => {
-                // Photos and videos become a full-width banner atop the card so
-                // the imagery leads; documents stay an inline link in the body.
-                const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+                // One photo or video becomes a full-width banner atop the card
+                // so the imagery leads; several sit as a gallery row under the
+                // text; a document stays an inline link in the body.
+                const gallery = postGallery(post);
+                const bannerUrl = gallery.length === 1 ? gallery[0] : null;
+                const documentUrl = post.media_url && !gallery.includes(post.media_url) ? post.media_url : null;
                 // The default "discussion" type is noise on every card, so only
                 // announcements and resources earn a labelled pill.
                 const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
@@ -936,11 +941,13 @@ export default async function SpaceDetailPage({
                           {post.title}
                         </h3>
                         {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(post.body)}</p>}
-                        {post.media_url && !bannerUrl && (
+                        {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
+                        {documentUrl && (
                           <div className="mt-3">
-                            <MediaAttachment url={post.media_url} />
+                            <MediaAttachment url={documentUrl} />
                           </div>
                         )}
+                        <TagChips tags={post.tags ?? []} className="mt-3" />
 
                         <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">

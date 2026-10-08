@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { createPost } from "./actions";
 import { Input, Label } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Avatar } from "@/components/ui/avatar";
+import { readDraftRaw, removeDraft, writeDraft } from "@/lib/use-form-draft";
+import { MAX_POST_TAGS } from "@/lib/post-media";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "./post-image-picker";
 
 interface NewPostFormProps {
@@ -22,6 +24,31 @@ interface NewPostFormProps {
   authorName?: string | null;
 }
 
+interface PostDraft {
+  title: string;
+  body: string;
+  tags: string;
+  postType: string;
+  mediaUrls: string[];
+}
+
+const EMPTY: PostDraft = { title: "", body: "", tags: "", postType: "discussion", mediaUrls: [] };
+
+const isEmpty = (d: PostDraft) => !d.title && !d.body && !d.tags && d.mediaUrls.length === 0;
+
+// Nothing else writes this key mid-visit, so there's nothing to subscribe to.
+const noSubscription = () => () => {};
+
+function parseDraft(raw: string): PostDraft | null {
+  if (!raw) return null;
+  try {
+    const draft = { ...EMPTY, ...(JSON.parse(raw) as Partial<PostDraft>) };
+    return isEmpty(draft) ? null : draft;
+  } catch {
+    return null;
+  }
+}
+
 export function NewPostForm({
   communityId,
   spaceId,
@@ -32,10 +59,38 @@ export function NewPostForm({
   avatarUrl = null,
   authorName = null,
 }: NewPostFormProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const draftKey = `post:${spaceId}`;
+  // One draft per space, kept as it's typed and put back after a refresh.
+  // Read as an external store: nothing on the server or during hydration,
+  // the saved draft afterwards — so there's no mismatch and no effect.
+  const savedRaw = useSyncExternalStore(noSubscription, () => readDraftRaw(draftKey), () => "");
+  const saved = useMemo(() => parseDraft(savedRaw), [savedRaw]);
+  // The feed's composer bar links here with #new-post: arriving that way, or
+  // with a draft waiting, opens the composer straight away.
+  const cameForComposer = useSyncExternalStore(noSubscription, () => window.location.hash === "#new-post", () => false);
+
+  // What's been typed this visit; until then, the saved draft.
+  const [edited, setEdited] = useState<PostDraft | null>(null);
+  const draft = edited ?? saved ?? EMPTY;
+  const [expandedChoice, setExpandedChoice] = useState<boolean | null>(null);
+  const expanded = expandedChoice ?? (Boolean(saved) || cameForComposer);
+  // Bumped when the draft is cleared, so the rich editor — which keeps its
+  // own copy of the text — remounts empty.
+  const [editorKey, setEditorKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const formRef = useRef<HTMLFormElement>(null);
+
+  function update(patch: Partial<PostDraft>) {
+    const next = { ...draft, ...patch };
+    setEdited(next);
+    if (isEmpty(next)) removeDraft(draftKey);
+    else writeDraft(draftKey, next);
+  }
+
+  function reset() {
+    setEdited(EMPTY);
+    setEditorKey((k) => k + 1);
+    removeDraft(draftKey);
+  }
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -43,9 +98,9 @@ export function NewPostForm({
     if (result?.error) {
       setError(result.error);
     } else {
-      formRef.current?.reset();
-      setMediaUrl(null);
-      setExpanded(false);
+      // Posted, so the draft has done its job.
+      reset();
+      setExpandedChoice(false);
     }
   }
 
@@ -57,7 +112,7 @@ export function NewPostForm({
         <Avatar src={avatarUrl} name={authorName} size={36} />
         <button
           type="button"
-          onClick={() => setExpanded(true)}
+          onClick={() => setExpandedChoice(true)}
           className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
         >
           Share something with the community…
@@ -67,12 +122,12 @@ export function NewPostForm({
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <form action={handleSubmit} className="space-y-3 rounded-lg border border-border bg-card p-4">
       <input type="hidden" name="community_id" value={communityId} />
       <input type="hidden" name="space_id" value={spaceId} />
       <input type="hidden" name="community_slug" value={communitySlug} />
       <input type="hidden" name="space_slug" value={spaceSlug} />
-      <input type="hidden" name="media_url" value={mediaUrl ?? ""} />
+      <input type="hidden" name="media_urls" value={JSON.stringify(draft.mediaUrls)} />
 
       <div className="flex items-start gap-3">
         <Avatar src={avatarUrl} name={authorName} size={36} className="mt-0.5" />
@@ -80,22 +135,57 @@ export function NewPostForm({
           <div>
             <Label htmlFor="title">Title</Label>
             {/* Autofocus on expand so the member can start typing straight away. */}
-            <Input id="title" name="title" placeholder="What's on your mind?" required autoFocus />
+            <Input
+              id="title"
+              name="title"
+              placeholder="What's on your mind?"
+              required
+              autoFocus
+              value={draft.title}
+              onChange={(e) => update({ title: e.target.value })}
+            />
           </div>
 
           <div>
             <Label htmlFor="body">Details (optional)</Label>
-            <RichEditor id="body" name="body" rows={3} placeholder="Say more…" />
+            <RichEditor
+              key={editorKey}
+              id="body"
+              name="body"
+              rows={3}
+              placeholder="Say more…"
+              defaultValue={draft.body}
+              onChange={(body) => update({ body })}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="tags">Tags (optional)</Label>
+            <Input
+              id="tags"
+              name="tags"
+              placeholder="e.g. Chillies, First harvest"
+              value={draft.tags}
+              onChange={(e) => update({ tags: e.target.value })}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Separate with commas — up to {MAX_POST_TAGS}.</p>
           </div>
         </div>
       </div>
 
-      <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} myCrops={myCrops} avatarUrl={avatarUrl} />
+      <PostImagePicker
+        mediaUrls={draft.mediaUrls}
+        onChange={(mediaUrls) => update({ mediaUrls })}
+        crops={crops}
+        myCrops={myCrops}
+        avatarUrl={avatarUrl}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <select
           name="post_type"
-          defaultValue="discussion"
+          value={draft.postType}
+          onChange={(e) => update({ postType: e.target.value })}
           className="rounded-md border border-border bg-card px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="discussion">Discussion</option>
@@ -106,8 +196,9 @@ export function NewPostForm({
           <button
             type="button"
             onClick={() => {
-              setExpanded(false);
-              setMediaUrl(null);
+              // Cancel means "I don't want this" — the draft goes with it.
+              reset();
+              setExpandedChoice(false);
               setError(null);
             }}
             className="rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
