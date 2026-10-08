@@ -69,7 +69,7 @@ export function FeedHero({
             {name && (
               <p
                 className={cn(
-                  "mb-3 break-words text-2xl font-bold leading-tight tracking-tight sm:text-3xl xl:hidden",
+                  "mb-4 break-words text-4xl font-bold leading-none tracking-tight sm:text-5xl xl:hidden",
                   onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
                 )}
               >
@@ -98,11 +98,11 @@ export function FeedHero({
           </div>
 
           {(name || stats.length > 0) && (
-            <div className="flex shrink-0 flex-col gap-5 xl:max-w-sm xl:items-end">
+            <div className="flex shrink-0 flex-col gap-6 xl:max-w-md xl:items-end">
               {name && (
                 <p
                   className={cn(
-                    "hidden break-words text-right text-5xl font-bold leading-[1.05] tracking-tight xl:block",
+                    "hidden break-words text-right text-7xl font-bold leading-[0.95] tracking-tight xl:block 2xl:text-8xl",
                     onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
                   )}
                 >
