@@ -20,6 +20,7 @@ export interface HeroStat {
 // colours.
 export function FeedHero({
   headline,
+  name = null,
   description,
   cover,
   stats,
@@ -27,6 +28,10 @@ export function FeedHero({
   coverControl,
 }: {
   headline: string;
+  // The community's name, when the headline is a tagline rather than the name
+  // itself: set in the headline's type on the right of the cover (above the
+  // headline on narrower screens, where there's no right side to use).
+  name?: string | null;
   description: string | null;
   // The cover <img>, already cropped; null for the no-cover header.
   cover: ReactNode | null;
@@ -52,7 +57,7 @@ export function FeedHero({
           // Heavier than a typical scrim on purpose: covers are often banners
           // with their own lettering baked in, and that has to recede behind
           // the headline rather than compete with it.
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/60 to-black/30 xl:bg-gradient-to-r xl:from-black/85 xl:via-black/60 xl:to-black/25" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/60 to-black/30 xl:bg-gradient-to-r xl:from-black/85 xl:via-black/45 xl:to-black/70" />
         )}
         <div
           className={cn(
@@ -61,6 +66,16 @@ export function FeedHero({
           )}
         >
           <div className="min-w-0 max-w-3xl">
+            {name && (
+              <p
+                className={cn(
+                  "mb-4 break-words text-4xl font-bold leading-none tracking-tight sm:text-5xl xl:hidden",
+                  onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
+                )}
+              >
+                {name}
+              </p>
+            )}
             <h1
               className={cn(
                 "break-words text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl",
@@ -82,24 +97,38 @@ export function FeedHero({
             <div className="mt-6 flex flex-wrap items-center gap-3">{actions}</div>
           </div>
 
-          {stats.length > 0 && (
-            <div
-              className={cn(
-                "flex w-fit shrink-0 flex-wrap gap-x-8 gap-y-3 rounded-2xl px-5 py-4 xl:w-56 xl:flex-col xl:gap-5 xl:p-6",
-                onPhoto
-                  ? "border border-white/15 bg-black/45 text-white backdrop-blur-md"
-                  : "border border-border bg-card text-foreground shadow-sm"
+          {(name || stats.length > 0) && (
+            <div className="flex shrink-0 flex-col gap-6 xl:max-w-md xl:items-end">
+              {name && (
+                <p
+                  className={cn(
+                    "hidden break-words text-right text-7xl font-bold leading-[0.95] tracking-tight xl:block 2xl:text-8xl",
+                    onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
+                  )}
+                >
+                  {name}
+                </p>
               )}
-            >
-              {stats.map(({ icon: Icon, value, label }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <Icon className={cn("h-5 w-5 shrink-0", onPhoto ? "text-white/90" : "text-accent")} />
-                  <div className="min-w-0 leading-tight">
-                    <p className="text-lg font-semibold">{value.toLocaleString()}</p>
-                    <p className={cn("text-xs", onPhoto ? "text-white/70" : "text-muted-foreground")}>{label}</p>
-                  </div>
+              {stats.length > 0 && (
+                <div
+                  className={cn(
+                    "flex w-fit shrink-0 flex-wrap gap-x-8 gap-y-3 rounded-2xl px-5 py-4 xl:w-56 xl:flex-col xl:gap-5 xl:p-6",
+                    onPhoto
+                      ? "border border-white/15 bg-black/45 text-white backdrop-blur-md"
+                      : "border border-border bg-card text-foreground shadow-sm"
+                  )}
+                >
+                  {stats.map(({ icon: Icon, value, label }) => (
+                    <div key={label} className="flex items-center gap-3">
+                      <Icon className={cn("h-5 w-5 shrink-0", onPhoto ? "text-white/90" : "text-accent")} />
+                      <div className="min-w-0 leading-tight">
+                        <p className="text-lg font-semibold">{value.toLocaleString()}</p>
+                        <p className={cn("text-xs", onPhoto ? "text-white/70" : "text-muted-foreground")}>{label}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
