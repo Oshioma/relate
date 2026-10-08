@@ -245,6 +245,50 @@ export async function getCommunityStats(supabase: Client, communityId: string): 
   };
 }
 
+export interface CommunityWeeklyActivity {
+  posts: number;
+  members: number;
+  // Posts in the community's Growing Journey space, when it has one.
+  journeyUpdates: number;
+}
+
+// What happened in the last seven days, for the feed's "Community activity"
+// card. Head-only counts, same as getCommunityStats, so RLS decides what a
+// viewer can count and no rows come back over the wire.
+export async function getCommunityWeeklyActivity(
+  supabase: Client,
+  communityId: string,
+  journeySpaceId: string | null
+): Promise<CommunityWeeklyActivity> {
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [posts, members, journey] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .gte("created_at", since),
+    supabase
+      .from("community_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .eq("status", "active")
+      .gte("created_at", since),
+    journeySpaceId
+      ? supabase
+          .from("posts")
+          .select("id", { count: "exact", head: true })
+          .eq("space_id", journeySpaceId)
+          .gte("created_at", since)
+      : Promise.resolve({ count: 0 }),
+  ]);
+
+  return {
+    posts: posts.count ?? 0,
+    members: members.count ?? 0,
+    journeyUpdates: journey.count ?? 0,
+  };
+}
+
 export type MemberRow = CommunityMembership & { profile: Profile };
 
 export async function getCommunityMembers(supabase: Client, communityId: string): Promise<MemberRow[]> {
