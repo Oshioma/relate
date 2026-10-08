@@ -201,6 +201,12 @@ export type Community = {
   // Defaults false — a small community is usually better off not advertising
   // its size.
   show_stats: boolean;
+  // Feed hero (see the community_landing_hero migration): the big headline
+  // over the cover (null = show the name), an optional "Watch video" link, and
+  // a space promoted in the feed sidebar's photo card.
+  tagline: string | null;
+  hero_video_url: string | null;
+  featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.

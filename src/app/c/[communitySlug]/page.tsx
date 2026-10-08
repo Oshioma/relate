@@ -18,6 +18,7 @@ import {
   BookOpen,
   Sprout,
   Compass,
+  Play,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -71,6 +72,7 @@ import { FeedComposer } from "./feed-composer";
 import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
+import { FeaturedSpaceCard } from "./featured-space-card";
 import { formatDateTime, isImageUrl } from "@/lib/utils";
 
 export default async function CommunityFeedPage({
@@ -561,6 +563,24 @@ export default async function CommunityFeedPage({
       </HeroLink>
     </>
   );
+  // The admin's optional "Watch video" link rides after whichever buttons the
+  // viewer got.
+  const heroActionsWithVideo = (
+    <>
+      {heroActions}
+      {community.hero_video_url && (
+        <HeroLink href={community.hero_video_url} variant="glass" onPhoto={onPhoto} external>
+          <Play className="h-4 w-4 fill-current" />
+          Watch video
+        </HeroLink>
+      )}
+    </>
+  );
+  // The space promoted in the sidebar photo card (Admin → Landing page). Read
+  // from the viewer's own space list, so one they can't see never shows.
+  const featuredSpace = community.featured_space_id
+    ? spaces.find((s) => s.id === community.featured_space_id) ?? null
+    : null;
 
   return (
     // The provider shares the cover crop between the header photo and the
@@ -568,11 +588,11 @@ export default async function CommunityFeedPage({
     // later. It's needed even without a cover — the picker reads it.
     <CoverCropProvider position={community.cover_position} mobilePosition={community.cover_position_mobile}>
       <FeedHero
-        name={community.name}
+        headline={community.tagline || community.name}
         description={community.description}
         cover={community.cover_image_url ? <CommunityCoverImage src={community.cover_image_url} /> : null}
         stats={statItems}
-        actions={heroActions}
+        actions={heroActionsWithVideo}
         coverControl={
           isStaff &&
           (onPhoto ? (
@@ -682,6 +702,9 @@ export default async function CommunityFeedPage({
               <Suspense fallback={null}>
                 <WeatherTidesCard community={community} />
               </Suspense>
+              {featuredSpace && (
+                <FeaturedSpaceCard space={featuredSpace} href={`${base}/spaces/${featuredSpace.slug}`} />
+              )}
             </div>
           </div>
         </div>

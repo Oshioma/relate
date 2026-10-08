@@ -19,14 +19,14 @@ export interface HeroStat {
 // Without a cover the same layout sits on a soft accent wash in the page's own
 // colours.
 export function FeedHero({
-  name,
+  headline,
   description,
   cover,
   stats,
   actions,
   coverControl,
 }: {
-  name: string;
+  headline: string;
   description: string | null;
   // The cover <img>, already cropped; null for the no-cover header.
   cover: ReactNode | null;
@@ -64,7 +64,7 @@ export function FeedHero({
                 onPhoto ? "text-white drop-shadow-sm" : "text-foreground"
               )}
             >
-              {name}
+              {headline}
             </h1>
             {description && (
               <p
@@ -113,15 +113,19 @@ export function HeroLink({
   children,
   variant = "solid",
   onPhoto = true,
+  external = false,
 }: {
   href: string;
   children: ReactNode;
   variant?: "solid" | "glass";
   onPhoto?: boolean;
+  // Off-site links (a video) open in a new tab.
+  external?: boolean;
 }) {
   return (
     <Link
       href={href}
+      {...(external && { target: "_blank", rel: "noopener noreferrer" })}
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition sm:text-base",
         variant === "solid"
