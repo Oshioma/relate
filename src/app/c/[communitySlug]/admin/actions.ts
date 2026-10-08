@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-types";
 import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
+import { seedGuidedJourneySpace, copyGuidedJourneySpace } from "@/lib/data/guided-journey-seed";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
@@ -150,6 +151,21 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   if (error) {
     return { error: error.message };
+  }
+
+  // A guided-journey space ("Adopt a Beginner", "Adopt a New Sailor"…) starts
+  // from the preset the admin picked: its wording, stages and starter journeys.
+  // The new row is read back by slug rather than with insert().select():
+  // spaces_select runs can_see_space_shell(), which can't see a row inside the
+  // statement that inserts it, so RETURNING is refused by RLS.
+  if (spaceType === "guided_journey") {
+    const { data: created } = await supabase.from("spaces").select("id").eq("community_id", communityId).eq("slug", slug).single();
+    const seeded = created
+      ? await seedGuidedJourneySpace(supabase, created.id, String(formData.get("journey_preset") ?? ""))
+      : { error: "the new space couldn't be read back" };
+    if (seeded.error) {
+      return { error: `The space was created, but its starting setup failed: ${seeded.error}` };
+    }
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);
@@ -308,6 +324,17 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
 
   if (error) {
     return { error: error.message };
+  }
+
+  // A guided-journey space's wording, stages and templates live in their own
+  // tables; carry them over so the copy works straight away.
+  // Read back by slug, not insert().select() — see createSpace.
+  if (original.space_type === "guided_journey") {
+    const { data: copy } = await supabase.from("spaces").select("id").eq("community_id", original.community_id).eq("slug", slug).single();
+    const copied = copy ? await copyGuidedJourneySpace(supabase, original.id, copy.id) : { error: "the copy couldn't be read back" };
+    if (copied.error) {
+      return { error: `The space was copied, but its journey setup wasn't: ${copied.error}` };
+    }
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);

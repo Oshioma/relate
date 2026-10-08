@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints } from "lucide-react";
+import { MessageSquare, Megaphone, Users, Store, Radio, Mail, Reply, Footprints, HeartHandshake, Sprout, PartyPopper, Flag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,6 +25,11 @@ const typeIcon = {
   direct_message: <MessageSquare className="h-4 w-4" />,
   meetup: <Footprints className="h-4 w-4" />,
   meetup_join: <Footprints className="h-4 w-4" />,
+  journey_request: <HeartHandshake className="h-4 w-4" />,
+  journey_request_response: <HeartHandshake className="h-4 w-4" />,
+  journey_update: <Sprout className="h-4 w-4" />,
+  journey_completed: <PartyPopper className="h-4 w-4" />,
+  journey_report: <Flag className="h-4 w-4" />,
 };
 
 /**

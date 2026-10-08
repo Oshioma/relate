@@ -1,10 +1,15 @@
+"use client";
+
 import { LogOut } from "lucide-react";
 import { logout } from "@/app/auth/actions";
+import { clearAllFormDrafts } from "@/lib/use-form-draft";
 import { cn } from "@/lib/utils";
 
 export function LogoutButton({ className }: { className?: string }) {
   return (
-    <form action={logout}>
+    // Saved form drafts belong to whoever was signed in; a shared computer must
+    // not hand them to the next person (see src/lib/use-form-draft.ts).
+    <form action={logout} onSubmit={() => clearAllFormDrafts()}>
       <button
         type="submit"
         className={cn(
