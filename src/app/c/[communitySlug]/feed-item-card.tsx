@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { FeedItemImage } from "./feed-item-image";
+import { PostGallery, TagChips } from "@/components/ui/post-gallery";
 import { FeedItemActions, type FeedItemActionsProps } from "./feed-item-actions";
 import type { FeedRefType } from "@/lib/data/feed-interactions";
 
@@ -17,6 +18,10 @@ export interface FeedItem {
   description: string | null;
   imageUrl: string | null;
   imagePosition?: string | null;
+  // A post with several photos: shown as a gallery row under the text in
+  // place of the single banner.
+  imageUrls?: string[];
+  tags?: string[];
   typeBadge: string | null;
   detail: string | null;
   authorName: string | null;
@@ -40,6 +45,7 @@ export interface FeedItem {
 
 export function FeedItemCard({ item }: { item: FeedItem }) {
   const Icon = item.icon;
+  const hasGallery = (item.imageUrls?.length ?? 0) > 1;
   const meta = [item.authorName, item.authorLocation, formatRelativeTime(item.createdAt), item.spaceName]
     .filter(Boolean)
     .join(" · ");
@@ -61,7 +67,9 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
             footer outside the anchor — a button nested in a link is invalid
             markup, and tapping one would navigate away mid-interaction. */}
         <Link href={item.href} className="block">
-          {item.imageUrl && <FeedItemImage src={item.imageUrl} alt={item.title} position={item.imagePosition} />}
+          {item.imageUrl && !hasGallery && (
+            <FeedItemImage src={item.imageUrl} alt={item.title} position={item.imagePosition} />
+          )}
           <CardContent className="pt-5">
             <div className="flex items-start gap-3">
               {item.authorName !== null ? (
@@ -87,6 +95,8 @@ export function FeedItemCard({ item }: { item: FeedItem }) {
                   <p className="mt-2 line-clamp-2 break-words text-sm text-foreground">{item.description}</p>
                 )}
                 {item.detail && <p className="mt-1 break-words text-xs text-muted-foreground">{item.detail}</p>}
+                {hasGallery && <PostGallery urls={item.imageUrls!} className="mt-3" />}
+                <TagChips tags={item.tags ?? []} className="mt-3" />
               </div>
             </div>
           </CardContent>

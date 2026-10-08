@@ -74,7 +74,8 @@ import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
 import { FeaturedSpaceCard } from "./featured-space-card";
-import { formatDateTime, isImageUrl } from "@/lib/utils";
+import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { postGallery } from "@/lib/post-media";
 
 export default async function CommunityFeedPage({
   params,
@@ -234,6 +235,9 @@ export default async function CommunityFeedPage({
       // Lead with the post's own photo when it has one — media_url can also be
       // a video or document, which this thumbnail can't show, so gate on image.
       imageUrl: p.media_url && isImageUrl(p.media_url) ? p.media_url : null,
+      // Several photos show as a gallery row instead of the single banner.
+      imageUrls: postGallery(p).filter((u) => !isVideoUrl(u)),
+      tags: p.tags ?? [],
       typeBadge: `${p.post_type} posted`,
       detail: null,
       authorName: p.author?.full_name || p.author?.username || null,

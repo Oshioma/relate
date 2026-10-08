@@ -11,7 +11,9 @@ import { Input, Label } from "@/components/ui/input";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { RichText } from "@/components/ui/rich-text";
 import { MediaAttachment } from "@/components/ui/media-attachment";
-import { formatRelativeTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/utils";
+import { PostGallery, TagChips } from "@/components/ui/post-gallery";
+import { postGallery } from "@/lib/post-media";
 import { updatePost, deletePost, togglePostReaction } from "../../actions";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
 import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
@@ -54,7 +56,9 @@ export function PostCard({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(post.title);
   const [body, setBody] = useState(post.body ?? "");
-  const [mediaUrl, setMediaUrl] = useState<string | null>(post.media_url);
+  const initialMedia = [...(post.media_url ? [post.media_url] : []), ...(post.extra_media_urls ?? [])];
+  const [mediaUrls, setMediaUrls] = useState<string[]>(initialMedia);
+  const [tags, setTags] = useState((post.tags ?? []).join(", "));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   // Optimistic reaction state so the smile toggles instantly.
@@ -88,7 +92,8 @@ export function PostCard({
     const formData = new FormData();
     formData.set("title", title);
     formData.set("body", body);
-    formData.set("media_url", mediaUrl ?? "");
+    formData.set("media_urls", JSON.stringify(mediaUrls));
+    formData.set("tags", tags);
 
     startTransition(async () => {
       const result = await updatePost(post.id, communitySlug, spaceSlug, undefined, formData);
@@ -127,8 +132,12 @@ export function PostCard({
             <RichEditor id="edit_body" name="edit_body" rows={4} defaultValue={post.body ?? ""} onChange={setBody} />
           </div>
           <div>
-            <Label>Photo</Label>
-            <PostImagePicker mediaUrl={mediaUrl} onChange={setMediaUrl} crops={crops} myCrops={myCrops} avatarUrl={avatarUrl} />
+            <Label htmlFor="edit_tags">Tags</Label>
+            <Input id="edit_tags" value={tags} onChange={(event) => setTags(event.target.value)} placeholder="e.g. Chillies, First harvest" />
+          </div>
+          <div>
+            <Label>Photos</Label>
+            <PostImagePicker mediaUrls={mediaUrls} onChange={setMediaUrls} crops={crops} myCrops={myCrops} avatarUrl={avatarUrl} />
           </div>
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex gap-2">
@@ -142,7 +151,8 @@ export function PostCard({
               onClick={() => {
                 setTitle(post.title);
                 setBody(post.body ?? "");
-                setMediaUrl(post.media_url);
+                setMediaUrls(initialMedia);
+                setTags((post.tags ?? []).join(", "));
                 setError(null);
                 setIsEditing(false);
               }}
@@ -155,22 +165,14 @@ export function PostCard({
     );
   }
 
-  // Photos and videos lead as a full-width banner; documents stay an inline
-  // download link within the body.
-  const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+  // Photos and videos lead: one as a full-width banner, several as a gallery
+  // row. A document lead stays an inline download link within the body.
+  const gallery = postGallery(post);
+  const documentUrl = post.media_url && !gallery.includes(post.media_url) ? post.media_url : null;
 
   return (
     <Card className="mb-6 overflow-hidden">
-      {bannerUrl && (
-        <div className="aspect-[16/9] w-full bg-muted">
-          {isVideoUrl(bannerUrl) ? (
-            <video controls preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
-          )}
-        </div>
-      )}
+      {gallery.length === 1 && <PostGallery urls={gallery} singleAspect="aspect-[16/9]" interactive />}
       <CardContent className="pt-6">
         <div className="flex items-start gap-3">
           <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={36} />
@@ -184,11 +186,13 @@ export function PostCard({
               {post.author?.full_name || post.author?.username} · {formatRelativeTime(post.created_at)}
             </p>
             {post.body && <RichText content={post.body} className="mt-3 text-foreground" />}
-            {post.media_url && !bannerUrl && (
+            {gallery.length > 1 && <PostGallery urls={gallery} className="mt-4" interactive />}
+            {documentUrl && (
               <div className="mt-3">
-                <MediaAttachment url={post.media_url} />
+                <MediaAttachment url={documentUrl} />
               </div>
             )}
+            <TagChips tags={post.tags ?? []} className="mt-3" />
 
             <div className="mt-4 flex items-center gap-2">
               {canReact ? (
