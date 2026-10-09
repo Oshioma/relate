@@ -21,7 +21,17 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
     // auto-fit rather than fixed counts: the content column's width depends
     // on the sidebar as well as the screen, and a fixed three-up left a laptop
     // with three oversized cards and the other two pushed to a second row.
-    <div className="hidden gap-4 md:grid md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]">
+    //
+    // With only a few spaces, though, auto-fit stretches each card to fill the
+    // row — one space became a single card the width of the page. So a short
+    // row uses auto-fill, which keeps the empty columns and the cards card-sized.
+    <div
+      className={
+        shown.length >= 4
+          ? "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]"
+          : "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fill,minmax(185px,1fr))] xl:grid-cols-5"
+      }
+    >
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
         // A custom page's description *is* the page (HTML, often with its own
