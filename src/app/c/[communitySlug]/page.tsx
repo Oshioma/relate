@@ -41,7 +41,7 @@ import { SPACE_TYPES } from "@/lib/space-types";
 import { Tag, Search } from "lucide-react";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { getFeedInteractions, feedInteractionFor } from "@/lib/data/feed-interactions";
-import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
+import { getFeaturedCategoryPreviews, getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityEvents, getCommunityRecentEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
@@ -71,6 +71,7 @@ import { CoverQuickEdit } from "./cover-quick-edit";
 import { CoverCropProvider, CommunityCoverImage } from "./cover-crop";
 import { FeedHero, HeroLink, type HeroStat } from "./feed-hero";
 import { SpaceCards } from "./space-cards";
+import type { CategorySlide } from "./category-carousel-card";
 import { FeedComposer } from "./feed-composer";
 import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
@@ -497,7 +498,7 @@ export default async function CommunityFeedPage({
   // one per card. Guests get the tallies but no controls.
   const sidebarEvents = upcoming.slice(0, 4);
   const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
-  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount, categoryPreviews] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -520,6 +521,7 @@ export default async function CommunityFeedPage({
       : Promise.resolve(new Map<string, { full: string; short: string }>()),
     getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
     community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
+    getFeaturedCategoryPreviews(supabase, featuredCategories.filter((f) => navSpaces.some((sp) => sp.id === f.space_id))),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -547,6 +549,29 @@ export default async function CommunityFeedPage({
         { icon: CalendarDays, value: upcoming.length, label: "events coming up" },
       ].filter((s) => s.value > 0)
     : [];
+
+  // A directory's featured categories (Taxis, Restaurants, Fundis…) become a
+  // slideshow card on the feed, each slide led by its newest listing's photo.
+  const categoryCarousels: Record<string, CategorySlide[]> = Object.fromEntries(
+    navSpaces.map((space) => {
+      const overrides = labelOverrides.filter((o) => o.space_id === space.id);
+      const slides = featuredCategories
+        .filter((f) => f.space_id === space.id)
+        .map((f): CategorySlide => {
+          const label = businessCategoryPluralLabel(f.category, customCategories, overrides);
+          const preview = categoryPreviews.get(`${space.id}:${f.category}`);
+          const count = preview?.count ?? 0;
+          return {
+            href: `${base}/spaces/${space.slug}?category=${f.category}`,
+            title: label,
+            subtitle: count > 0 ? `${count} ${count === 1 ? "listing" : "listings"} in ${space.name}` : `Browse ${label.toLowerCase()} in ${space.name}`,
+            imageUrl: preview?.imageUrl ?? spaceImage(space),
+            imagePosition: preview?.imagePosition ?? null,
+          };
+        });
+      return [space.id, slides];
+    })
+  );
 
   const onPhoto = Boolean(community.cover_image_url);
   const composerHref = postableSpaces[0] ? `${base}/spaces/${postableSpaces[0].slug}#new-post` : null;
@@ -629,7 +654,7 @@ export default async function CommunityFeedPage({
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={navSpaces} base={base} />
+        <SpaceCards spaces={navSpaces} base={base} carousels={categoryCarousels} />
 
         {/* `min-w-0` on every column is load-bearing, not decoration. A grid
             item defaults to `min-width: auto`, so its track can't shrink below

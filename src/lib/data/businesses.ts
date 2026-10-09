@@ -297,3 +297,38 @@ export async function getCommunityFeaturedBusinessCategories(
   if (error) throw error;
   return data ?? [];
 }
+
+export interface CategoryPreview {
+  count: number;
+  imageUrl: string | null;
+  imagePosition: string | null;
+}
+
+// For the feed's directory card: how many listings each featured category has
+// and the newest listing photo to show for it, keyed "spaceId:category". One
+// query for every featured category at once.
+export async function getFeaturedCategoryPreviews(
+  supabase: Client,
+  featured: { space_id: string; category: string }[]
+): Promise<Map<string, CategoryPreview>> {
+  const previews = new Map<string, CategoryPreview>();
+  if (featured.length === 0) return previews;
+  const { data } = await supabase
+    .from("businesses")
+    .select("space_id, category, image_url, image_position")
+    .in("space_id", [...new Set(featured.map((f) => f.space_id))])
+    .in("category", [...new Set(featured.map((f) => f.category))])
+    .order("created_at", { ascending: false })
+    .limit(2000);
+  for (const row of data ?? []) {
+    const key = `${row.space_id}:${row.category}`;
+    const preview = previews.get(key) ?? { count: 0, imageUrl: null, imagePosition: null };
+    preview.count += 1;
+    if (!preview.imageUrl && row.image_url) {
+      preview.imageUrl = row.image_url;
+      preview.imagePosition = row.image_position;
+    }
+    previews.set(key, preview);
+  }
+  return previews;
+}
