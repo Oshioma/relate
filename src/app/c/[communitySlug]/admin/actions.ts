@@ -511,6 +511,7 @@ export async function updateCommunityHero(
   const communitySlug = String(formData.get("community_slug") ?? "");
   const tagline = String(formData.get("tagline") ?? "").trim();
   const videoUrl = String(formData.get("hero_video_url") ?? "").trim();
+  const backgroundVideoUrl = String(formData.get("hero_background_video_url") ?? "").trim();
   const featuredSpaceId = String(formData.get("featured_space_id") ?? "").trim();
 
   if (tagline.length > 140) {
@@ -518,6 +519,9 @@ export async function updateCommunityHero(
   }
   if (videoUrl && !/^https?:\/\/\S+$/i.test(videoUrl)) {
     return { error: "The video link should be a full web address starting with https://." };
+  }
+  if (backgroundVideoUrl && !/^https?:\/\/\S+$/i.test(backgroundVideoUrl)) {
+    return { error: "The background video should be a full web address starting with https://." };
   }
 
   const supabase = await createClient();
@@ -540,6 +544,7 @@ export async function updateCommunityHero(
       .update({
         tagline: tagline || null,
         hero_video_url: videoUrl || null,
+        hero_background_video_url: backgroundVideoUrl || null,
         featured_space_id: featuredSpaceId || null,
       })
       .eq("id", communityId)

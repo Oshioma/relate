@@ -640,6 +640,11 @@ export default async function CommunityFeedPage({
         name={community.tagline ? community.name : null}
         description={community.description}
         cover={community.cover_image_url ? <CommunityCoverImage src={community.cover_image_url} /> : null}
+        backgroundVideo={
+          community.hero_background_video_url
+            ? { src: community.hero_background_video_url, poster: community.cover_image_url }
+            : null
+        }
         stats={statItems}
         actions={heroActionsWithVideo}
         coverControl={
