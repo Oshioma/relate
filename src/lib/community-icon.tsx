@@ -20,17 +20,17 @@ const BESPOKE_ICONS: Record<string, () => ReactElement> = {
       <circle cx="13" cy="8" r="2.6" fill="#4f7a22" />
     </svg>
   ),
-  // Mzungu Zanzibar: a solid palm on a sandbank, in the community's teal,
+  // Mzungu Zanzibar: a solid, broad-leaved palm on a sandbank, in the community's teal,
   // inside a teal ring on white.
   mzunguzanzibar: () => (
     <svg width="32" height="32" viewBox="0 0 32 32">
       <circle cx="16" cy="16" r="16" fill="#ffffff" />
       <circle cx="16" cy="16" r="14.9" fill="none" stroke="#0a7477" strokeWidth="2.2" />
-      <path d="M13.8 26.5 C14 21 14.9 16.2 16.7 12.4 L20 13.5 C18.5 17.3 17.7 21.6 17.6 26.5 Z" fill="#0a7477" />
-      <path d="M18.4 12.6 C15 8.4 10 8.2 6 11.4 C9.6 10.9 12.8 11.6 15.4 12.9 C11.6 13.6 8.8 16 7.6 19.6 C11 16.4 14.6 14.2 18.4 12.6 Z" fill="#0a7477" />
-      <path d="M18.4 12.6 C19.8 8 23.8 5.8 27.6 6.8 C24.6 7.6 22.6 9.2 21.4 11 C24.6 10.6 27.4 12.6 28 16.6 C25.2 13.8 22 12.7 18.4 12.6 Z" fill="#0a7477" />
-      <path d="M18.4 12.6 C18 8.6 15.6 5.6 11.8 4.6 C14.2 6.8 15.6 9.2 16.2 11.6 Z" fill="#0a7477" />
-      <path d="M8 26.6 C11 25 21 25 24 26.6 Z" fill="#0a7477" />
+      <path d="M13.6 26.5 C13.8 21 14.7 16.4 16.4 12.6 L20.2 13.8 C18.7 17.5 17.9 21.6 17.8 26.5 Z" fill="#0a7477" />
+      <path d="M18.4 12.4 C15.6 6.6 9.4 6.2 5.2 10.4 C6.6 12.2 9 13.2 11.6 13 C9 14.6 7.2 17.4 7 20.8 C11.4 19.4 15.4 16.4 18.4 12.4 Z" fill="#0a7477" />
+      <path d="M18.4 12.4 C20.4 6.4 26.2 4.8 29.4 7.8 C28.2 9.8 26.2 11 23.8 11.2 C26.4 12.6 28.2 15.4 28.2 18.8 C24 18 20.6 15.6 18.4 12.4 Z" fill="#0a7477" />
+      <path d="M18.4 12.4 C18.6 7.6 16.2 4.2 11.6 3.6 C11.4 6.4 12.6 9 14.6 10.6 Z" fill="#0a7477" />
+      <path d="M7.6 26.6 C10.6 24.6 21.4 24.6 24.4 26.6 Z" fill="#0a7477" />
       <path d="M7.4 26.4h17.2" stroke="#0a7477" strokeWidth="2.4" strokeLinecap="round" />
     </svg>
   ),
