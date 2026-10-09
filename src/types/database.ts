@@ -213,6 +213,8 @@ export type Community = {
   // Muted looping clip behind the hero headline (desktop only; the cover is
   // its poster and fallback).
   hero_background_video_url: string | null;
+  // The same, for the signed-out landing page (/welcome/<slug>).
+  landing_background_video_url: string | null;
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;

@@ -13,6 +13,7 @@ import { defaultSpaceImage } from "@/lib/space-images";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { coverPositionClass } from "@/lib/cover-position";
+import { HeroBackgroundVideo } from "@/app/c/[communitySlug]/hero-background-video";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
@@ -158,6 +159,13 @@ export default async function CommunityWelcomePage({
               alt=""
               className={`absolute inset-0 h-full w-full object-cover ${coverPositionClass(community.cover_position, community.cover_position_mobile)}`}
             />
+            {community.landing_background_video_url && (
+              <HeroBackgroundVideo
+                src={community.landing_background_video_url}
+                poster={community.cover_image_url}
+                layerClassName=""
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
           </>
         )}
