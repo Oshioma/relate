@@ -313,7 +313,15 @@ export default async function CommunityLayout({
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={140} />
+            {/* A thin ring in the community's colour frames the logo, so a logo on a
+                white background doesn't dissolve into the white sidebar. */}
+            <Avatar
+              src={community.logo_url}
+              name={community.name}
+              initials={community.logo_initials}
+              size={140}
+              className="ring-[3px] ring-accent"
+            />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
             </span>
