@@ -115,3 +115,14 @@ export function splitUpcomingPast(events: Event[]) {
     .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
   return { upcoming, past };
 }
+
+// How many are going to each event, by id — numbers only, through a
+// security-definer function so viewers who can't read the attendee list
+// still see an honest "places left".
+export async function getEventRsvpCounts(supabase: Client, eventIds: string[]): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (eventIds.length === 0) return counts;
+  const { data } = await supabase.rpc("event_rsvp_counts", { p_event_ids: eventIds });
+  for (const row of data ?? []) counts.set(row.event_id, row.going);
+  return counts;
+}

@@ -28,6 +28,8 @@ import {
   getCommunityRecentMembers,
   getCommunityStats,
   getCommunityWeeklyActivity,
+  getGrowingJourneyCount,
+  getMemberLocationLabels,
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
@@ -40,7 +42,7 @@ import { getCommunityPosts } from "@/lib/data/posts";
 import { getFeedInteractions, feedInteractionFor } from "@/lib/data/feed-interactions";
 import { getCommunityRecentBusinesses, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides, getCommunityFeaturedBusinessCategories } from "@/lib/data/businesses";
 import { businessCategoryLabel, businessCategoryPluralLabel } from "@/lib/business-categories";
-import { getCommunityEvents, getCommunityRecentEvents, splitUpcomingPast } from "@/lib/data/events";
+import { getCommunityEvents, getCommunityRecentEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityRecentMarketplaceListings } from "@/lib/data/marketplace";
 import { marketplaceCategoryLabel } from "@/lib/marketplace-categories";
 import { getCommunityRecentJobListings } from "@/lib/data/jobs";
@@ -73,7 +75,8 @@ import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
 import { FeaturedSpaceCard } from "./featured-space-card";
-import { formatDateTime, isImageUrl } from "@/lib/utils";
+import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { postGallery } from "@/lib/post-media";
 
 export default async function CommunityFeedPage({
   params,
@@ -233,6 +236,9 @@ export default async function CommunityFeedPage({
       // Lead with the post's own photo when it has one — media_url can also be
       // a video or document, which this thumbnail can't show, so gate on image.
       imageUrl: p.media_url && isImageUrl(p.media_url) ? p.media_url : null,
+      // Several photos show as a gallery row instead of the single banner.
+      imageUrls: postGallery(p).filter((u) => !isVideoUrl(u)),
+      tags: p.tags ?? [],
       typeBadge: `${p.post_type} posted`,
       detail: null,
       authorName: p.author?.full_name || p.author?.username || null,
@@ -488,7 +494,9 @@ export default async function CommunityFeedPage({
   // Smiles and comments for the cards actually on screen — `activity` is
   // already capped, so this is a fixed handful of batched queries rather than
   // one per card. Guests get the tallies but no controls.
-  const [feedInteractions, viewerProfile, weekly] = await Promise.all([
+  const sidebarEvents = upcoming.slice(0, 4);
+  const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -501,6 +509,16 @@ export default async function CommunityFeedPage({
     community.show_stats
       ? getCommunityWeeklyActivity(supabase, community.id, growingJourney?.id ?? null)
       : Promise.resolve(null),
+    // Bylines for the posts on screen and the new-member faces. Locations are
+    // members-only, so guests skip the query.
+    user
+      ? getMemberLocationLabels(supabase, [
+          ...activity.flatMap((i) => postAuthorIds.get(i.key) ?? []),
+          ...recentMembers.map((m) => m.user_id),
+        ])
+      : Promise.resolve(new Map<string, { full: string; short: string }>()),
+    getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
+    community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -517,6 +535,7 @@ export default async function CommunityFeedPage({
         { icon: MessageSquare, label: "Posts", value: stats.posts },
         { icon: CalendarDays, label: "Events", value: stats.events },
         { icon: Store, label: "Businesses", value: stats.businesses },
+        { icon: Sprout, label: growingJourney ? `${growingJourney.name}s` : "Growing Journeys", value: journeyCount },
       ].filter((s) => s.value > 0)
     : [];
   const activityStats: ActivityStat[] = weekly
@@ -589,6 +608,7 @@ export default async function CommunityFeedPage({
     <CoverCropProvider position={community.cover_position} mobilePosition={community.cover_position_mobile}>
       <FeedHero
         headline={community.tagline || community.name}
+        name={community.tagline ? community.name : null}
         description={community.description}
         cover={community.cover_image_url ? <CommunityCoverImage src={community.cover_image_url} /> : null}
         stats={statItems}
@@ -665,6 +685,7 @@ export default async function CommunityFeedPage({
                   key={item.key}
                   item={{
                     ...item,
+                    authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
                     actions: {
                       communitySlug: community.slug,
                       communityId: community.id,
@@ -684,8 +705,12 @@ export default async function CommunityFeedPage({
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
             <div className="min-w-0 space-y-6">
-              <UpcomingEventsCard events={upcoming.slice(0, 4)} href={`${base}/events`} />
-              <NewMembersCard members={recentMembers} href={`${base}/members`} />
+              <UpcomingEventsCard events={sidebarEvents} href={`${base}/events`} going={eventGoing} />
+              <NewMembersCard
+                members={recentMembers}
+                href={`${base}/members`}
+                locations={Object.fromEntries([...locations].map(([id, l]) => [id, l.short]))}
+              />
             </div>
             <div className="min-w-0 space-y-6">
               {growingJourney && (

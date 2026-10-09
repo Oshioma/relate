@@ -2,6 +2,7 @@
 
 import { useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 import { SpaceCard } from "./space-card";
 import { BuiltinNavRow } from "./builtin-nav-row";
 import { reorderNavItems } from "./actions";
@@ -70,6 +71,12 @@ export function SpacesManager({
 
   return (
     <div className="space-y-2">
+      {/* There's no Save button for the list itself, so say up front that
+          ticking a box or dragging a row is already stored. */}
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Check className="h-3.5 w-3.5 text-accent" />
+        Changes here save automatically — tick a box or drag a row and it&apos;s done.
+      </p>
       {items.map((item, i) => {
         const dragHandlers = {
           draggable: true,

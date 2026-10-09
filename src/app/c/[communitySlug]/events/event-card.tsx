@@ -14,6 +14,7 @@ import { EditEventForm } from "./edit-event-form";
 import { EventImageQuickActions } from "./event-image-quick-actions";
 import type { Event } from "@/types/database";
 import type { EventRsvpWithAttendee } from "@/lib/data/events";
+import { placesLeftLabel } from "@/lib/event-places";
 
 export function EventCard({
   event,
@@ -37,6 +38,10 @@ export function EventCard({
   featured?: boolean;
 }) {
   const isGoing = rsvps.some((r) => r.user_id === currentUserId);
+  const places = placesLeftLabel(event.capacity, rsvps.length);
+  // A full event takes no new RSVPs (the database refuses them too), but
+  // someone already going can still cancel.
+  const isFull = places === "Full";
   const visibleAttendees = rsvps.slice(0, 5);
   const [imageBroken, setImageBroken] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -139,8 +144,13 @@ export function EventCard({
           <div className="min-w-0">
             <h3 className={cn("font-semibold text-foreground", featured ? "text-xl" : "text-sm")}>{event.title}</h3>
             <p className={cn("mt-1 text-muted-foreground", featured ? "text-sm" : "text-xs")}>{formatDateTime(event.start_time)}</p>
+            {places && (
+              <p className={cn("mt-0.5 font-medium", isFull ? "text-danger" : "text-accent", featured ? "text-sm" : "text-xs")}>
+                {places}
+              </p>
+            )}
           </div>
-          {canRsvp && (
+          {canRsvp && (!isFull || isGoing) && (
             <div className="shrink-0">
               <EventRsvpButton eventId={event.id} communitySlug={communitySlug} initialGoing={isGoing} />
             </div>

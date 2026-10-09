@@ -2,10 +2,20 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import type { Event } from "@/types/database";
 import { Card } from "@/components/ui/card";
+import { placesLeftLabel } from "@/lib/event-places";
 
 // Sidebar list of the next few events, each with a calendar-page date badge
 // and its photo when it has one.
-export function UpcomingEventsCard({ events, href }: { events: Event[]; href: string }) {
+export function UpcomingEventsCard({
+  events,
+  href,
+  going = new Map(),
+}: {
+  events: Event[];
+  href: string;
+  // event id → how many are going, for "12 places left".
+  going?: Map<string, number>;
+}) {
   return (
     <Card className="p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -44,6 +54,12 @@ export function UpcomingEventsCard({ events, href }: { events: Event[]; href: st
                       {event.title}
                     </span>
                     {place && <span className="mt-0.5 block truncate text-xs text-muted-foreground">{place}</span>}
+                    {(() => {
+                      const left = placesLeftLabel(event.capacity, going.get(event.id) ?? 0);
+                      return left ? (
+                        <span className={`block text-xs ${left === "Full" ? "text-danger" : "text-muted-foreground"}`}>{left}</span>
+                      ) : null;
+                    })()}
                   </span>
                 </Link>
               </li>
