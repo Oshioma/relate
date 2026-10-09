@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import type { SpaceType } from "@/types/database";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { coverPath, coversForTemplate } from "@/lib/community-covers";
+import { headlineSuggestions } from "@/lib/headline-suggestions";
 import { reorder, nextId } from "./types";
 import type { WizardState } from "./types";
 
@@ -60,6 +61,41 @@ export function StepCustomize({
         <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Customize your community</h1>
         <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">Choose what your members can do. You can change these anytime.</p>
       </div>
+
+      {/* Headline: the big line over the cover on the feed, with the community's
+          name beside it. Pre-filled from the template; the chips swap in the
+          other suggestions. Blank means the name itself is the headline. */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Headline</h2>
+          <span className="text-xs text-muted-foreground">Shown big over your cover photo</span>
+        </div>
+        <Input
+          aria-label="Headline"
+          maxLength={140}
+          value={state.tagline}
+          onChange={(e) => update({ tagline: e.target.value, taglineTouched: true })}
+          placeholder={`Leave blank to show "${state.name || "your community name"}"`}
+          className="h-11 bg-card text-base font-semibold"
+        />
+        <div className="mt-2 flex flex-wrap gap-2">
+          {headlineSuggestions(state.templateKey).map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => update({ tagline: suggestion, taglineTouched: true })}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                state.tagline === suggestion
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-border bg-card text-muted-foreground hover:border-accent/40 hover:text-foreground"
+              )}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Cover photo: the big image at the top of the community's feed. The
           covers that suit the chosen template lead; until one is clicked, the

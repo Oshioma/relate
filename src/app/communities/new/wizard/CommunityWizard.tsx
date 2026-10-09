@@ -8,6 +8,7 @@ import { StepBasics } from "./StepBasics";
 import { StepTemplate } from "./StepTemplate";
 import { StepCustomize } from "./StepCustomize";
 import { StepLaunch } from "./StepLaunch";
+import { headlineSuggestions } from "@/lib/headline-suggestions";
 import { INITIAL_WIZARD_STATE, type WizardState } from "./types";
 import type { TemplateSpace } from "@/lib/community-templates";
 import type { SpaceType } from "@/types/database";
@@ -27,6 +28,13 @@ export function CommunityWizard({
     setState((prev) => ({ ...prev, ...patch }));
   }
 
+  function next() {
+    // Entering Customize: pre-fill the headline from the chosen template, unless
+    // the owner has already written their own.
+    if (step === 2 && !state.taglineTouched) update({ tagline: headlineSuggestions(state.templateKey)[0] });
+    setStep((s) => Math.min(4, s + 1));
+  }
+
   const canAdvance = step === 1 ? Boolean(state.name.trim() && state.slug) : step === 2 ? Boolean(state.templateKey) : true;
 
   return (
@@ -44,7 +52,7 @@ export function CommunityWizard({
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button className="h-11 rounded-lg px-5 sm:min-w-48" onClick={() => setStep((s) => Math.min(4, s + 1))} disabled={!canAdvance}>
+          <Button className="h-11 rounded-lg px-5 sm:min-w-48" onClick={next} disabled={!canAdvance}>
             {step === 3 ? "Continue to launch" : "Next"}
             <ArrowRight className="h-4 w-4" />
           </Button>

@@ -4,9 +4,23 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { discoverAndAddEvents, backfillEventImages, type AddedEvent } from "./discover-actions";
+import { AutoSaveCheckbox } from "@/components/ui/auto-save-checkbox";
+// AddedEvent comes from the lib, not the actions file: a "use server" module
+// may only export async functions, and re-exporting a type from one broke
+// every action in it at runtime.
+import type { AddedEvent } from "@/lib/events/run-discovery";
+import { discoverAndAddEvents, backfillEventImages, setWeeklyEventDiscovery } from "./discover-actions";
 
-export function DiscoverEventsPanel({ communitySlug, locationName }: { communitySlug: string; locationName: string }) {
+export function DiscoverEventsPanel({
+  communitySlug,
+  locationName,
+  weeklyOn,
+}: {
+  communitySlug: string;
+  locationName: string;
+  // Whether the weekly Supabase cron run is adding events for this community.
+  weeklyOn: boolean;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [added, setAdded] = useState<AddedEvent[] | null>(null);
@@ -89,6 +103,16 @@ export function DiscoverEventsPanel({ communitySlug, locationName }: { community
             {isSearching ? "Searching the web…" : "Discover events"}
           </Button>
         </div>
+      </div>
+
+      {/* In a row of its own so the checkbox (which right-aligns its status
+          line) sits at the panel's left edge. */}
+      <div className="mt-3 flex">
+        <AutoSaveCheckbox
+          label="Add new events automatically every Monday"
+          defaultChecked={weeklyOn}
+          onSave={(on) => setWeeklyEventDiscovery(communitySlug, on)}
+        />
       </div>
 
       {isSearching && (

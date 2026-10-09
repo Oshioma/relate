@@ -37,6 +37,9 @@ export interface WizardPayload {
   // that isn't one of those keys (including "") falls back to the template's
   // best match, so every new community launches with a cover photo.
   coverKey?: string;
+  // The feed's big headline (communities.tagline); "" leaves the name as the
+  // headline. Capped at 140, matching the column's check constraint.
+  tagline?: string;
   name: string;
   slug: string;
   description: string;
@@ -157,6 +160,7 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       name,
       slug,
       description: payload.description.trim() || null,
+      tagline: (payload.tagline ?? "").trim().slice(0, 140) || null,
       owner_id: user.id,
       privacy,
       template_key: templateKey,

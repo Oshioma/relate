@@ -45,6 +45,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       mapLayers: state.templateKey === "place" || state.templateKey === "activity" ? state.mapLayers : [],
       spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only, visibility: s.visibility })),
       coverKey: state.coverKey,
+      tagline: state.tagline,
       ownerAgreementAccepted: agreed,
     });
     // Only reached on error — success redirects server-side.
@@ -75,6 +76,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
                 {locationType ? ` · ${locationType.label}` : ""}
               </p>
             )}
+            {state.tagline.trim() && <p className="mt-1 text-sm font-semibold text-foreground">{state.tagline.trim()}</p>}
             {state.description && <p className="mt-1 text-sm text-foreground">{state.description}</p>}
           </div>
         </div>

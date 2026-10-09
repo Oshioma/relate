@@ -309,11 +309,21 @@ export default async function CommunityLayout({
             and no tint reads well behind every possible logo. The cover earns
             its place on the feed header, where it's large enough to be the
             photograph it is. */}
-        <div className="border-b border-border px-5 py-5">
+        {/* pt-[49px]: the 48px main header plus the logo ring's 1px, so the top
+            of the ring sits level with the top of the cover photo beside it. */}
+        <div className="border-b border-border px-5 pb-5 pt-[49px]">
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={140} />
+            {/* A thin ring in the community's colour frames the logo, so a logo on a
+                white background doesn't dissolve into the white sidebar. */}
+            <Avatar
+              src={community.logo_url}
+              name={community.name}
+              initials={community.logo_initials}
+              size={140}
+              className="ring-1 ring-accent"
+            />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
             </span>
@@ -462,7 +472,10 @@ export default async function CommunityLayout({
           Found by the motif comparison table, whose own overflow-x-auto could
           not work until this was set. */}
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6">
+        {/* A fixed 48px (border included) rather than padding around whatever it
+            holds, so the cover below always starts at the same height — the
+            sidebar logo's ring is lined up with it. */}
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
           {/* The left of the header is deliberately not part of the cluster on
               the right: everything on the right is what a community owner sees,
               so a super admin browsing a community sees the same header they

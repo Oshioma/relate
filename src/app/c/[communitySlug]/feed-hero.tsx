@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { HeroBackgroundVideo } from "./hero-background-video";
 
 export interface HeroStat {
   icon: LucideIcon;
@@ -26,6 +27,7 @@ export function FeedHero({
   stats,
   actions,
   coverControl,
+  backgroundVideo = null,
 }: {
   headline: string;
   // The community's name, when the headline is a tagline rather than the name
@@ -39,6 +41,9 @@ export function FeedHero({
   actions: ReactNode;
   // Staff-only cover picker, pinned to the hero's top-right corner.
   coverControl?: ReactNode;
+  // A muted clip looping over the cover on wide screens (HeroBackgroundVideo).
+  // Needs a cover: the photo is its poster and its fallback everywhere else.
+  backgroundVideo?: { src: string; poster: string | null } | null;
 }) {
   const onPhoto = cover !== null;
 
@@ -53,6 +58,7 @@ export function FeedHero({
         )}
       >
         {cover}
+        {onPhoto && backgroundVideo && <HeroBackgroundVideo src={backgroundVideo.src} poster={backgroundVideo.poster} />}
         {onPhoto && (
           // Heavier than a typical scrim on purpose: covers are often banners
           // with their own lettering baked in, and that has to recede behind
