@@ -81,7 +81,8 @@ export default async function FindMentorPage({
           <Users className="mx-auto h-8 w-8 text-accent" />
           <p className="mt-3 font-semibold text-foreground">No {config.terms.mentors} have free places right now</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            New {config.terms.mentors} join regularly. Your profile is saved — check back soon, or ask in the community if anyone can help.
+            You&apos;re on the waiting list: {config.terms.mentors} can see you&apos;re looking and offer to help, and we&apos;ll notify you
+            when a {config.terms.mentor} who suits you joins. Nothing starts unless you accept.
           </p>
         </div>
       ) : (

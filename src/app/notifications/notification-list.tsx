@@ -30,6 +30,7 @@ const typeIcon = {
   journey_update: <Sprout className="h-4 w-4" />,
   journey_completed: <PartyPopper className="h-4 w-4" />,
   journey_report: <Flag className="h-4 w-4" />,
+  journey_mentor_available: <HeartHandshake className="h-4 w-4" />,
 };
 
 /**

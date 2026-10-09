@@ -91,6 +91,21 @@ export function BeginnerOnboardingForm({
         </div>
       </Step>
 
+      <label className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-foreground">
+        <input
+          type="checkbox"
+          name="listed_for_offers"
+          defaultChecked={existing?.listed_for_offers ?? true}
+          className="mt-0.5 h-4 w-4 accent-[var(--accent)]"
+        />
+        <span>
+          Let {config.terms.mentors} see I&apos;m looking and offer to help.{" "}
+          <span className="text-muted-foreground">
+            They&apos;ll see your name, region and the answers above — never your approximate area or notes — and nothing starts unless you accept.
+          </span>
+        </span>
+      </label>
+
       <label className="flex items-start gap-3 rounded-2xl bg-accent-soft p-4 text-sm text-foreground">
         <input type="checkbox" name="adult" required defaultChecked={Boolean(existing)} className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
         <span>I&apos;m 18 or over. Direct mentoring is for adults only for now.</span>

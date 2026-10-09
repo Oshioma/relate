@@ -116,42 +116,40 @@ export function MentorCard({
               <ChevronDown className={cn("h-4 w-4 transition-transform motion-reduce:transition-none", open && "rotate-180")} />
             </button>
           )}
-          <div className={cn("grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none", open && !sent ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-            <div className="overflow-hidden">
-              <div className="pt-4">
-                <DraftForm
-                  action={requestAdoption}
-                  draftKey={`journey-request:${spaceId}:${mentor.user_id}`}
-                  hidden={{ community_slug: communitySlug, space_slug: spaceSlug, mentor_id: mentor.user_id }}
-                  submitLabel="Send request"
-                  pendingLabel="Sending…"
-                  submitClassName="w-full"
-                  className="space-y-3"
-                  onSuccess={() => setSent(true)}
-                >
-                  {templates.length > 0 && (
-                    <Field label={`What would you like to ${config.category === "Gardening" ? "grow" : "start with"}?`} htmlFor={`tpl-${mentor.id}`}>
-                      <select
-                        id={`tpl-${mentor.id}`}
-                        name="template_id"
-                        defaultValue=""
-                        className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="">Decide together</option>
-                        {templates.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.title}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  )}
-                  <Textarea name="message" rows={3} placeholder={`Say hello — what you'd like to do and why you chose ${name}.`} aria-label="Message" />
-                  <p className="text-xs text-muted-foreground">They&apos;ll see your answers to the onboarding questions. Nothing starts unless they accept.</p>
-                </DraftForm>
-              </div>
+          {open && !sent && (
+            <div className="pt-4 animate-[gj-rise_300ms_ease-out] motion-reduce:animate-none">
+              <DraftForm
+                action={requestAdoption}
+                draftKey={`journey-request:${spaceId}:${mentor.user_id}`}
+                hidden={{ community_slug: communitySlug, space_slug: spaceSlug, mentor_id: mentor.user_id }}
+                submitLabel="Send request"
+                pendingLabel="Sending…"
+                submitClassName="w-full"
+                className="space-y-3"
+                onSuccess={() => setSent(true)}
+              >
+                {templates.length > 0 && (
+                  <Field label={`What would you like to ${config.category === "Gardening" ? "grow" : "start with"}?`} htmlFor={`tpl-${mentor.id}`}>
+                    <select
+                      id={`tpl-${mentor.id}`}
+                      name="template_id"
+                      defaultValue=""
+                      className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">Decide together</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
+                <Textarea name="message" rows={3} placeholder={`Say hello — what you'd like to do and why you chose ${name}.`} aria-label="Message" />
+                <p className="text-xs text-muted-foreground">They&apos;ll see your answers to the onboarding questions. Nothing starts unless they accept.</p>
+              </DraftForm>
             </div>
-          </div>
+          )}
           <SafetyMenu communitySlug={communitySlug} spaceSlug={spaceSlug} spaceId={spaceId} personId={mentor.user_id} personName={name} className="mt-4" />
         </div>
       </div>

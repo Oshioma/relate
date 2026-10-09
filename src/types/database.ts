@@ -1606,7 +1606,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join" | "journey_request" | "journey_request_response" | "journey_update" | "journey_completed" | "journey_report";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join" | "journey_request" | "journey_request_response" | "journey_update" | "journey_completed" | "journey_report" | "journey_mentor_available";
 
 export type Notification = {
   id: string;
@@ -2702,6 +2702,8 @@ export type JourneyBeginnerProfile = {
   languages: string[];
   space_photo_url: string | null;
   notes: string | null;
+  // Opt-in to the waiting list mentors and staff see (and can offer from).
+  listed_for_offers: boolean;
   adult_confirmed_at: string;
   created_at: string;
   updated_at: string;
@@ -2716,6 +2718,9 @@ export type MentorshipRequest = {
   mentor_id: string;
   template_id: string | null;
   requested_journey_id: string | null;
+  // Who started it: a beginner asking, or a mentor offering. The other
+  // person is always the one who accepts or declines.
+  initiated_by: "beginner" | "mentor";
   message: string | null;
   status: MentorshipRequestStatus;
   response_message: string | null;
@@ -3824,6 +3829,23 @@ export type Database = {
       end_journey: {
         Args: { p_journey_id: string; p_reason?: string | null };
         Returns: void;
+      };
+      waiting_beginners: {
+        Args: { p_space_id: string };
+        Returns: {
+          user_id: string;
+          full_name: string | null;
+          username: string;
+          avatar_url: string | null;
+          country: string | null;
+          region: string | null;
+          setting: string[];
+          interests: string[];
+          experience: string | null;
+          help_mode: string;
+          languages: string[];
+          waiting_since: string;
+        }[];
       };
       mentor_journey_stats: {
         Args: { p_space_id: string };

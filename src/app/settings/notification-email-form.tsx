@@ -22,6 +22,7 @@ const TOGGLES: { type: NotificationType; label: string; description: string }[] 
   { type: "journey_request_response", label: "Answers to your requests", description: "When a mentor accepts or declines your request." },
   { type: "journey_update", label: "Journey updates", description: "When someone on your journey posts an update, asks a question or replies." },
   { type: "journey_completed", label: "Journey completions", description: "When a journey you're on is marked complete." },
+  { type: "journey_mentor_available", label: "A mentor who suits you joins", description: "While you're waiting for a mentor, when someone joins who knows what you'd like to learn." },
   { type: "journey_report", label: "Reports to review", description: "Staff only: when a member reports something in a guided-journey space." },
   { type: "direct_message", label: "Direct messages", description: "When another member sends you a direct message. The email includes the message and a link straight to the conversation." },
 ];

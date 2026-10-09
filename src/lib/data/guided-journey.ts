@@ -159,10 +159,23 @@ export async function getRequestsForUser(supabase: Client, spaceId: string, user
     .order("created_at", { ascending: false });
   if (error) throw error;
   const rows = (data ?? []) as unknown as RequestWithPeople[];
+  // Incoming = waiting on this person's answer; outgoing = started by them.
+  const startedBy = (r: RequestWithPeople) => (r.initiated_by === "mentor" ? r.mentor_id : r.beginner_id);
   return {
-    incoming: rows.filter((r) => r.mentor_id === userId),
-    outgoing: rows.filter((r) => r.beginner_id === userId),
+    incoming: rows.filter((r) => startedBy(r) !== userId),
+    outgoing: rows.filter((r) => startedBy(r) === userId),
   };
+}
+
+export type WaitingBeginner = Database["public"]["Functions"]["waiting_beginners"]["Returns"][number];
+
+// The waiting list: beginners who opted in and have no mentor or pending
+// request yet. Only active mentors and staff get rows (enforced in SQL), and
+// only non-identifying answers.
+export async function getWaitingBeginners(supabase: Client, spaceId: string): Promise<WaitingBeginner[]> {
+  const { data, error } = await supabase.rpc("waiting_beginners", { p_space_id: spaceId });
+  if (error) throw error;
+  return data ?? [];
 }
 
 // Beginner profiles of the people who asked this mentor for help (RLS only
@@ -271,6 +284,7 @@ export async function getSpaceAdminData(supabase: Client, spaceId: string) {
     getSpaceMentors(supabase, spaceId),
     getJourneyTemplates(supabase, spaceId, true),
   ]);
+  const waiting = await getWaitingBeginners(supabase, spaceId);
   return {
     requests: (requests.data ?? []) as unknown as RequestWithPeople[],
     journeys: (journeys.data ?? []) as unknown as JourneyWithMentor[],
@@ -278,6 +292,7 @@ export async function getSpaceAdminData(supabase: Client, spaceId: string) {
     stories: (stories.data ?? []) as unknown as StoryWithPeople[],
     mentors,
     templates,
+    waiting,
   };
 }
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, HeartHandshake, Sprout, Inbox, Clock, Settings2, ShieldCheck } from "lucide-react";
+import { ArrowRight, HeartHandshake, Sprout, Inbox, Clock, Settings2, ShieldCheck, Hourglass } from "lucide-react";
 import type { GuidedJourneyContext, JourneySummary, StoryWithPeople } from "@/lib/data/guided-journey";
 import type { JourneyBeginnerProfile, JourneyMentorProfile, JourneyTemplate } from "@/types/database";
 import { capitalise } from "@/lib/guided-journey/config";
@@ -22,6 +22,7 @@ export function GuidedJourneyLanding({
   stories,
   templates,
   justEnded,
+  waitingForMentor,
 }: {
   ctx: GuidedJourneyContext;
   beginner: JourneyBeginnerProfile | null;
@@ -32,12 +33,13 @@ export function GuidedJourneyLanding({
   stories: StoryWithPeople[];
   templates: JourneyTemplate[];
   justEnded: boolean;
+  waitingForMentor: boolean;
 }) {
   const { config, basePath } = ctx;
   const active = journeys.filter((j) => j.status === "active");
   const beginnerHref = beginner ? `${basePath}/mentors` : `${basePath}/join/beginner`;
   const mentorHref = mentor ? `${basePath}/requests` : `${basePath}/join/mentor`;
-  const hasStatus = active.length > 0 || pendingIncoming > 0 || pendingOutgoing > 0 || Boolean(mentor);
+  const hasStatus = active.length > 0 || pendingIncoming > 0 || pendingOutgoing > 0 || Boolean(mentor) || waitingForMentor;
 
   return (
     <div className="-mx-4 sm:-mx-6">
@@ -114,11 +116,19 @@ export function GuidedJourneyLanding({
                 <ProgressBar done={j.progress.done} total={j.progress.total} className="mt-3" />
               </Link>
             ))}
+            {waitingForMentor && (
+              <Link href={`${basePath}/requests`} className="flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent-soft p-4 transition hover:shadow-md">
+                <Hourglass className="h-5 w-5 shrink-0 text-accent" />
+                <span className="text-sm text-foreground">
+                  <span className="font-semibold">You&apos;re on the list</span> — waiting for a {config.terms.mentor}. We&apos;ll let you know when someone can help.
+                </span>
+              </Link>
+            )}
             {pendingIncoming > 0 && (
               <Link href={`${basePath}/requests`} className="flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent-soft p-4 transition hover:shadow-md">
                 <Inbox className="h-5 w-5 text-accent" />
                 <span className="text-sm font-semibold text-foreground">
-                  {pendingIncoming === 1 ? "1 request waiting for your answer" : `${pendingIncoming} requests waiting for your answer`}
+                  {pendingIncoming === 1 ? "1 request or offer waiting for your answer" : `${pendingIncoming} requests or offers waiting for your answer`}
                 </span>
               </Link>
             )}

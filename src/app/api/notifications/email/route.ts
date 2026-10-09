@@ -33,6 +33,7 @@ const CTA_LABEL: Record<string, string> = {
   journey_update: "Open the journey",
   journey_completed: "Celebrate together",
   journey_report: "Review the report",
+  journey_mentor_available: "See who could help",
 };
 
 export async function POST(request: NextRequest) {
