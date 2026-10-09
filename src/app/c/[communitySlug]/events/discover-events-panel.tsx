@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { Sparkles, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AutoSaveCheckbox } from "@/components/ui/auto-save-checkbox";
-import { discoverAndAddEvents, backfillEventImages, setWeeklyEventDiscovery, type AddedEvent } from "./discover-actions";
+// AddedEvent comes from the lib, not the actions file: a "use server" module
+// may only export async functions, and re-exporting a type from one broke
+// every action in it at runtime.
+import type { AddedEvent } from "@/lib/events/run-discovery";
+import { discoverAndAddEvents, backfillEventImages, setWeeklyEventDiscovery } from "./discover-actions";
 
 export function DiscoverEventsPanel({
   communitySlug,

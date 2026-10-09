@@ -89,8 +89,6 @@ export async function backfillEventImages(
   return { updated, checked: events?.length ?? 0 };
 }
 
-export type { AddedEvent };
-
 // The "Discover events" button. RLS (events_insert_staff) enforces the staff
 // requirement on the insert too.
 export async function discoverAndAddEvents(
