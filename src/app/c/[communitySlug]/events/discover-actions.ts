@@ -4,21 +4,11 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { buildDiscoveredEventRows, type DiscoveredEventWithImage } from "@/lib/data/events";
-import { discoverEventsWithAI, type DiscoveredEvent } from "@/lib/ai/discover-events";
 import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Community, Database } from "@/types/database";
-import { checkAiAllowance } from "@/lib/usage/ai-spend";
-import { meteredFor } from "@/lib/usage/ai-meter";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { runEventDiscovery, SOURCE_LINE, type AddedEvent } from "@/lib/events/run-discovery";
 
-const DISCOVERY_ERRORS: Record<string, string> = {
-  unconfigured: "AI discovery isn't configured — set a valid ANTHROPIC_API_KEY, then try again.",
-  billing:
-    "Your Anthropic account is out of API credit. Add funds at console.anthropic.com (Plans & Billing), then try again.",
-  search_limited:
-    "Anthropic rejected the web searches (rate limit on your account tier). Wait 5-10 minutes and try once — repeated rapid attempts keep the limit tripped.",
-  error: "AI discovery hit a temporary error. Wait a minute and try again.",
-};
 
 type StaffContext = {
   supabase: SupabaseClient<Database>;
@@ -51,34 +41,6 @@ async function requireStaff(communitySlug: string): Promise<StaffContext | { err
 
   return { supabase, user, community };
 }
-
-// Best-effort: try to find a cover image for each discovered event from its
-// source listing page, so events found by AI discovery show up with a photo
-// instead of a blank placeholder. Never throws — a failed scrape just leaves
-// that event without an image.
-//
-// Many listing sites share one og:image (a site logo or banner) across every
-// page, so naively taking the first candidate gives every event from that
-// site the same picture. `usedImages` is shared across the whole batch (and
-// seeded with the community's existing image_urls) so each event gets the
-// first candidate that isn't already claimed, falling back to no image
-// rather than a duplicate.
-async function attachImages(events: DiscoveredEvent[], usedImages: Set<string>): Promise<DiscoveredEventWithImage[]> {
-  const candidateLists = await Promise.all(
-    events.map((event) => (event.source_url ? scrapeWebsiteImages(event.source_url) : Promise.resolve([]))),
-  );
-
-  return events.map((event, i) => {
-    const unique = candidateLists[i].find((img) => !usedImages.has(img)) ?? null;
-    if (unique) usedImages.add(unique);
-    return { ...event, image_url: unique };
-  });
-}
-
-// buildDiscoveredEventRows appends "Source: <url>" to the description, so
-// events imported before image_url existed can still be traced back to a
-// page worth scraping.
-const SOURCE_LINE = /Source:\s*(https?:\/\/\S+)/i;
 
 function candidateImageUrl(event: { description: string | null; online_url: string | null }): string | null {
   const fromDescription = event.description?.match(SOURCE_LINE)?.[1];
@@ -127,11 +89,10 @@ export async function backfillEventImages(
   return { updated, checked: events?.length ?? 0 };
 }
 
-export type AddedEvent = { title: string; source_url: string | null };
+export type { AddedEvent };
 
-// Searches the web for upcoming events near the community's location and
-// adds every new one straight to the calendar — no staff review step. RLS
-// (events_insert_staff) enforces the staff requirement on the insert too.
+// The "Discover events" button. RLS (events_insert_staff) enforces the staff
+// requirement on the insert too.
 export async function discoverAndAddEvents(
   communitySlug: string,
 ): Promise<{ imported: number; added: AddedEvent[] } | { error: string }> {
@@ -139,51 +100,19 @@ export async function discoverAndAddEvents(
   if ("error" in ctx) return { error: ctx.error };
   const { supabase, user, community } = ctx;
 
-  const [{ data: upcoming, error }, { data: imaged, error: imagedError }] = await Promise.all([
-    supabase
-      .from("events")
-      .select("title")
-      .eq("community_id", community.id)
-      .gte("start_time", new Date().toISOString()),
-    supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
-  ]);
-  if (error) return { error: error.message };
-  if (imagedError) return { error: imagedError.message };
+  const result = await runEventDiscovery(supabase, community, user.id);
+  if ("imported" in result && result.imported > 0) revalidatePath(`/c/${communitySlug}/events`);
+  return result;
+}
 
-  const existingTitles = (upcoming ?? []).map((e) => e.title);
-  const locationName = community.location_name || community.name;
-
-  const allowance = await checkAiAllowance(community.id, user.id);
-  if (!allowance.allowed) return { error: allowance.message };
-
-  const result = await meteredFor({ communityId: community.id, userId: user.id }, () =>
-    discoverEventsWithAI({ locationName, existingTitles })
-  );
-  if (result.status !== "ok") {
-    // This panel is staff-only, so include the raw diagnostic — it saves a
-    // round-trip through the hosting provider's logs.
-    const detail = result.detail ? ` (detail: ${result.detail})` : "";
-    return { error: DISCOVERY_ERRORS[result.status] + detail };
-  }
-
-  // Belt-and-braces dedupe in case the model ignored the skip list.
-  const seen = new Set(existingTitles.map((t) => t.toLowerCase()));
-  const found = result.events.filter((e) => !seen.has(e.title.toLowerCase()));
-  if (found.length === 0) return { imported: 0, added: [] };
-
-  // Seeded with images already on this community's calendar so a freshly
-  // discovered event never duplicates a picture another event already has.
-  const usedImages = new Set((imaged ?? []).map((e) => e.image_url).filter((url): url is string => url !== null));
-  const withImages = await attachImages(found, usedImages);
-  const rows = buildDiscoveredEventRows(withImages, { communityId: community.id, createdBy: user.id });
-  if (rows.length === 0) return { imported: 0, added: [] };
-
-  const { error: insertError } = await supabase.from("events").insert(rows);
-  if (insertError) return { error: insertError.message };
-
-  revalidatePath(`/c/${communitySlug}/events`);
-  return {
-    imported: rows.length,
-    added: rows.map((r) => ({ title: r.title, source_url: r.description?.match(SOURCE_LINE)?.[1] ?? null })),
-  };
+// The "Add new events every week" switch: whether the weekly Supabase cron
+// run searches for this community.
+export async function setWeeklyEventDiscovery(communitySlug: string, on: boolean): Promise<string | null> {
+  const ctx = await requireStaff(communitySlug);
+  if ("error" in ctx) return ctx.error;
+  const { error } = await createAdminClient()
+    .from("communities")
+    .update({ weekly_event_discovery: on })
+    .eq("id", ctx.community.id);
+  return error ? error.message : null;
 }
