@@ -322,7 +322,7 @@ export default async function CommunityLayout({
               name={community.name}
               initials={community.logo_initials}
               size={140}
-              className="ring-2 ring-accent/50"
+              className="ring-2 ring-accent"
             />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
