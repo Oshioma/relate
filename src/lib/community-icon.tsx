@@ -20,6 +20,20 @@ const BESPOKE_ICONS: Record<string, () => ReactElement> = {
       <circle cx="13" cy="8" r="2.6" fill="#4f7a22" />
     </svg>
   ),
+  // Mzungu Zanzibar: a solid, broad-leaved palm on a sandbank, in the community's teal,
+  // inside a teal ring on white.
+  mzunguzanzibar: () => (
+    <svg width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="16" fill="#ffffff" />
+      <circle cx="16" cy="16" r="14.9" fill="none" stroke="#0a7477" strokeWidth="2.2" />
+      <path d="M13.7 26.5 C13.9 21 14.8 16.3 16.55 12.5 L20.1 13.65 C18.6 17.4 17.8 21.6 17.7 26.5 Z" fill="#0a7477" />
+      <path d="M18.4 12.5 C15.3 7.5 9.7 7.2 5.6 10.9 C8.1 11.55 10.9 12.4 13.5 12.95 C10.3 14.1 8 16.7 7.3 20.2 C11.2 17.9 15 15.3 18.4 12.5 Z" fill="#0a7477" />
+      <path d="M18.4 12.5 C20.1 7.2 25 5.3 28.5 7.3 C26.4 8.7 24.4 10.1 22.6 11.1 C25.5 11.6 27.8 14 28.1 17.7 C24.6 15.9 21.3 14.15 18.4 12.5 Z" fill="#0a7477" />
+      <path d="M18.4 12.5 C18.3 8.1 15.9 4.9 11.7 4.1 C12.8 6.6 14.1 9.1 15.4 11.1 Z" fill="#0a7477" />
+      <path d="M7.8 26.6 C10.8 24.8 21.2 24.8 24.2 26.6 Z" fill="#0a7477" />
+      <path d="M7.4 26.4h17.2" stroke="#0a7477" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  ),
 };
 
 function frame(child: ReactElement, fontSize?: number) {
