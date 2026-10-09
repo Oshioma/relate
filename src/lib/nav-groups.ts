@@ -19,22 +19,39 @@
 //    their own unlabelled section, so assigning groups can be done a few at a
 //    time without anything disappearing in the meantime.
 
-export const NAV_GROUPS = [
+//
+// WHICH SECTIONS EXIST
+// Each community has its own, in community_nav_groups, which admins add to,
+// rename and reorder in Admin. Every community starts with the three below; a
+// growing community may add "My growing", a school "Projects". A space points
+// at a section by key, and keys never change — only labels do — so renaming a
+// section moves nothing.
+
+export type NavGroupOption = { key: string; label: string };
+
+// What every community starts with (the migration seeds these as rows), and
+// what the nav falls back to if the community's sections cannot be read.
+export const DEFAULT_NAV_GROUPS: NavGroupOption[] = [
   { key: "home", label: "Home" },
   { key: "learn", label: "Learn" },
   { key: "connect", label: "Connect" },
-] as const;
+];
 
-export type NavGroup = (typeof NAV_GROUPS)[number]["key"];
+export type NavGroup = string;
 
-export const NAV_GROUP_KEYS = NAV_GROUPS.map((g) => g.key) as NavGroup[];
-
-export function isNavGroup(value: string | null | undefined): value is NavGroup {
-  return Boolean(value) && (NAV_GROUP_KEYS as string[]).includes(value as string);
-}
-
-export function navGroupLabel(key: string | null | undefined): string | null {
-  return NAV_GROUPS.find((g) => g.key === key)?.label ?? null;
+// A stable key for a new section, from its label: "My growing" → my_growing.
+// Taken keys get a numeric suffix so two sections may share a label.
+export function navGroupKeyFor(label: string, takenKeys: string[]): string {
+  const base =
+    label
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 32) || "section";
+  let key = base;
+  for (let n = 2; takenKeys.includes(key); n++) key = `${base}_${n}`;
+  return key;
 }
 
 // The group a space type falls into when nobody has said otherwise. Used to
@@ -45,6 +62,9 @@ export function navGroupLabel(key: string | null | undefined): string | null {
 // is Learn because you go there to find something out; a club is Connect
 // because you go there to be with people. Anything genuinely ambiguous is left
 // out and defaults to ungrouped rather than guessed at.
+//
+// It only names one of the three starting keys. If a community has removed
+// that section, there is simply no suggestion.
 const DEFAULTS: Record<string, NavGroup> = {
   // Home — the community talking to itself.
   discussion: "home",

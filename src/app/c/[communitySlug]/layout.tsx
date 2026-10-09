@@ -21,7 +21,8 @@ import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { homeLabelForCommunity } from "@/lib/community-templates";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
-import { NAV_GROUPS, isNavGroup, type NavGroup } from "@/lib/nav-groups";
+import { DEFAULT_NAV_GROUPS, type NavGroup } from "@/lib/nav-groups";
+import { getCommunityNavGroups } from "@/lib/data/nav-groups";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -126,7 +127,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession, savedNavGroups] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -136,7 +137,15 @@ export default async function CommunityLayout({
     getCommunityFeatures(supabase, community.id),
     countActiveTiers(supabase, community.id),
     getCommunityLiveSession(supabase, community.id),
+    getCommunityNavGroups(supabase, community.id),
   ]);
+
+  // This community's sidebar sections, in the admin's order. A key that is
+  // not among them (a section since removed, or a built-in link's section the
+  // admin deleted) counts as ungrouped.
+  const navGroups = savedNavGroups ?? DEFAULT_NAV_GROUPS;
+  const sectionFor = (key: string | null | undefined): NavGroup | null =>
+    key && navGroups.some((group) => group.key === key) ? key : null;
 
   // Personal chrome (profile, membership, notifications, messages) only exists
   // for a signed-in visitor.
@@ -208,7 +217,7 @@ export default async function CommunityLayout({
     // they travel with their space as one unit.
     ...navSpaces.map((space) => ({
       sort: space.sort_order,
-      group: isNavGroup(space.nav_group) ? space.nav_group : null,
+      group: sectionFor(space.nav_group),
       items: [
         {
           href: `${base}/spaces/${space.slug}`,
@@ -233,10 +242,10 @@ export default async function CommunityLayout({
     // the front page rather than under one section of it. Both keep their
     // admin-set sort position within that section.
     ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false
-      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), group: "connect" as NavGroup, items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), group: sectionFor("connect"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
       : []),
     ...(features.concierge && navItemOrder.concierge?.showInNav !== false
-      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: "home" as NavGroup, items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: sectionFor("home"), items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
       : []),
     // The Timeline, for the community types that have it (homeschool today —
     // see src/lib/timeline/availability.ts, which the database agrees with).
@@ -250,7 +259,7 @@ export default async function CommunityLayout({
     ...(communityHasTimeline(community)
       ? [{
           sort: TIMELINE_NAV_SORT,
-          group: navSpaces.some((space) => isNavGroup(space.nav_group)) ? ("learn" as NavGroup) : null,
+          group: navSpaces.some((space) => sectionFor(space.nav_group)) ? sectionFor("learn") : null,
           items: [{ href: timelinePath(community.slug), label: "Timeline", icon: <History className="h-4 w-4" /> }],
         }]
       : []),
@@ -273,7 +282,7 @@ export default async function CommunityLayout({
   // The sections actually in use. Empty when nothing in this community has been
   // grouped, which is the signal to render the flat list — a single heading
   // over the whole nav labels nothing.
-  const usedGroups = NAV_GROUPS.filter((group) =>
+  const usedGroups = navGroups.filter((group) =>
     orderedUnits.some((unit) => unit.group === group.key)
   );
   // Ungrouped units fall to the end, in their own order, with no heading. A
