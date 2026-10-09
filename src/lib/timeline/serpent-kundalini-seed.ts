@@ -317,6 +317,34 @@ export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
       "Gorakṣaśataka to around 1400 and stresses the manuscript and recension problems. This record therefore " +
       "uses a broad medieval range rather than presenting an exact composition year.",
   },
+  {
+    key: "leadbeater_chakras_1927",
+    title: "The Chakras",
+    author: "C. W. Leadbeater",
+    reference: "1927; Fig. 4, The Spinal Channels",
+    url: "https://www.theosophy.world/sites/default/files/ebooks/Chakras-CWL.pdf",
+    sourceType: "historical_document",
+    publishedYear: 1927,
+    notes:
+      "READ FOR THE MODERN VISUAL-GENEALOGY CLAIM. Leadbeater's Fig. 4 explicitly diagrams Iḍā, Piṅgalā and " +
+      "Suṣumṇā and then presents a caduceus-like figure. His text says the spine/Brahmadanda is the original " +
+      "of Mercury's caduceus and interprets its two snakes as Kundalini or serpent-fire moving in the channels. " +
+      "This is direct evidence for a twentieth-century esoteric caduceus comparison, not evidence that ancient " +
+      "Greek caduceus imagery historically derived from Indian subtle-body doctrine.",
+  },
+  {
+    key: "modern_nadi_geometry_caution",
+    title: "Iḍā and Piṅgalā: modern crossing-channel description and textual caution",
+    publisher: "YinYoga.com",
+    reference: "Modern overview noting that the crossing pattern is widely taught but not detailed in the yogic texts it surveys",
+    url: "https://yinyoga.com/yinsights/ida-and-pingala/",
+    sourceType: "website",
+    notes:
+      "READ AS A MODERN SECONDARY CAUTION, not as an authority for ancient chronology. The page describes the " +
+      "familiar modern pattern in which Iḍā and Piṅgalā switch sides at cakras and form a caduceus-like geometry, " +
+      "while also reporting that the yogic texts surveyed do not describe the channels crossing at the cakras. " +
+      "It therefore helps separate a modern visual convention from the medieval named-channel evidence.",
+  },
 ];
 
 export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
@@ -1213,6 +1241,54 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
         ],
       },
     ],
+  },
+
+  {
+    slug: "leadbeater-caduceus-nadi-diagram",
+    title: "Leadbeater explicitly maps the spinal channels onto Mercury's caduceus",
+    summary:
+      "In 1927 C. W. Leadbeater published an illustrated spinal-channel scheme and explicitly identified its caduceus-like form with Mercury's caduceus.",
+    description:
+      "A SECURE MODERN VISUAL MILESTONE, NOT AN ANCIENT LINEAGE CLAIM. In The Chakras, Fig. 4, Leadbeater " +
+      "illustrates spinal-channel flows and then a caduceus-like figure. His accompanying text explicitly argues " +
+      "that the Brahmadanda/spine is the original of Mercury's caduceus and interprets the two snakes through " +
+      "Kundalini or serpent-fire. This securely dates one influential printed caduceus/Kundalini comparison to " +
+      "1927. It does not establish that ancient Greek users of the caduceus knew Iḍā, Piṅgalā or Suṣumṇā.\n\n" +
+      "THE EARLIER VISUAL QUESTION REMAINS OPEN. Modern teachers commonly draw Iḍā and Piṅgalā repeatedly crossing " +
+      "the central Suṣumṇā, but the medieval Gorakṣaśataka evidence in this track only establishes named " +
+      "left/right/central channels and Kundalini ascent through Suṣumṇā. Until an earlier securely provenanced " +
+      "Indian diagram is identified, the first historical appearance of the repeated crossing geometry is not " +
+      "assigned a date here.",
+    category: "religion",
+    subcategory: "Modern esotericism",
+    eventType: "historical_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "modern_development",
+    transmissionStatus: "not_applicable",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, SERPENT_THREADS.subtleBody, SERPENT_THREADS.kundalini, "ida", "pingala", "sushumna", "caduceus", "theosophy"],
+    civilisations: [],
+    people: ["C. W. Leadbeater"],
+    claims: [{
+      sourceKey: "leadbeater_chakras_1927",
+      citations: [{ sourceKey: "modern_nadi_geometry_caution", relation: "context", note: "Modern crossing-channel convention is kept distinct from what older texts explicitly say." }],
+      startYear: 1927,
+      endYear: 1927,
+      datePrecision: "year",
+      isApproximate: false,
+      temporalClaimType: "exact",
+      whatIsDated: "Publication of Leadbeater's illustrated caduceus/spinal-channel comparison",
+      originalDateText: "1927",
+      datingMethod: "historical_record",
+      chronology: "conventional",
+      evidence:
+        "Leadbeater's Fig. 4 and accompanying prose explicitly place the spinal-channel diagrams beside a " +
+        "caduceus-like figure and state the caduceus interpretation. The publication itself is the evidence " +
+        "for the modern comparison.",
+      notes:
+        "This is presently the earliest securely sourced visual milestone entered in this dataset for the " +
+        "caduceus-like nāḍī geometry. It is not claimed to be the first such image ever made.",
+    }],
+    media: [],
   },
 
   {
