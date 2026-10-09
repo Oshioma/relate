@@ -32,6 +32,12 @@ export async function GuidedJourneySpaceView({ communitySlug, spaceSlug, justEnd
       mentor={profiles.mentor}
       journeys={journeys}
       pendingIncoming={requests.incoming.filter((r) => r.status === "pending").length}
+      waitingForMentor={
+        Boolean(profiles.beginner) &&
+        !journeys.some((j) => j.role === "beginner" && j.status === "active") &&
+        !requests.incoming.some((r) => r.status === "pending") &&
+        !requests.outgoing.some((r) => r.status === "pending")
+      }
       pendingOutgoing={requests.outgoing.filter((r) => r.status === "pending").length}
       stories={stories}
       templates={templates}

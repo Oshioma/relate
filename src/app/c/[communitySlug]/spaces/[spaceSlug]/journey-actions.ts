@@ -84,6 +84,7 @@ export async function saveBeginnerProfile(_prev: JourneyFormState, fd: FormData)
       languages: parseList(text(fd, "languages", 300), 8),
       space_photo_url: photoList(fd, "space_photo", 1)[0] ?? null,
       notes: nullable(fd, "notes", 2000),
+      listed_for_offers: fd.get("listed_for_offers") === "on",
       adult_confirmed_at: new Date().toISOString(),
     },
     { onConflict: "space_id,user_id" }
@@ -170,6 +171,32 @@ export async function requestAdoption(_prev: JourneyFormState, fd: FormData): Pr
   if (error) return { error: friendly(error.message) };
   refresh(ctx);
   return { ok: "Request sent. They'll be notified and can accept or decline — nothing happens without their yes." };
+}
+
+// A mentor offers to guide a beginner from the waiting list. The beginner
+// accepts or declines — the offer alone pairs nobody.
+export async function offerHelp(_prev: JourneyFormState, fd: FormData): Promise<JourneyFormState> {
+  const ctx = await load(fd);
+  if (!ctx?.userId) return { error: "Please sign in first." };
+  const beginnerId = text(fd, "beginner_id", 64);
+  if (!beginnerId) return { error: "Choose someone to offer to." };
+  const { error } = await ctx.supabase.from("mentorship_requests").insert({
+    space_id: ctx.space.id,
+    beginner_id: beginnerId,
+    mentor_id: ctx.userId,
+    initiated_by: "mentor",
+    template_id: nullable(fd, "template_id", 64),
+    message: nullable(fd, "message", 2000),
+  });
+  if (error) {
+    return {
+      error: /row-level security/i.test(error.message)
+        ? "That offer couldn't be sent — they may have just been matched, or your mentor profile is paused."
+        : friendly(error.message),
+    };
+  }
+  refresh(ctx);
+  return { ok: "Offer sent. They'll be notified and can accept or decline." };
 }
 
 export async function withdrawRequest(fd: FormData): Promise<void> {

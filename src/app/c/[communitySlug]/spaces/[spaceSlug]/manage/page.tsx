@@ -8,6 +8,7 @@ import { GUIDED_JOURNEY_PRESETS } from "@/lib/guided-journey/presets";
 import { deleteTemplate, moderateStory, resetSpaceToPreset, reviewReport, staffEndJourney, staffUpdateMentor } from "../journey-actions";
 import { JourneyShell } from "@/components/guided-journey/journey-shell";
 import { DuplicateSpaceForm, SpaceSettingsForm, TemplateForm } from "@/components/guided-journey/manage-forms";
+import { WaitingBeginnerCard } from "@/components/guided-journey/waiting-list";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ const TABS = [
   { key: "settings", label: "Settings" },
   { key: "templates", label: "Templates" },
   { key: "mentors", label: "Mentors" },
+  { key: "waiting", label: "Waiting" },
   { key: "requests", label: "Requests" },
   { key: "journeys", label: "Journeys" },
   { key: "reports", label: "Reports" },
@@ -75,6 +77,7 @@ export default async function ManagePage({
                 className={cn("inline-block rounded-full px-3.5 py-1.5 text-sm font-medium transition", tab === t.key ? "bg-accent text-accent-foreground" : "bg-muted text-foreground hover:bg-border")}
               >
                 {t.label}
+                {t.key === "waiting" && data.waiting.length > 0 && <span className="ml-1.5 rounded-full bg-accent-soft px-1.5 text-[10px] text-accent">{data.waiting.length}</span>}
                 {t.key === "reports" && openReports.length > 0 && <span className="ml-1.5 rounded-full bg-danger px-1.5 text-[10px] text-danger-foreground">{openReports.length}</span>}
               </Link>
             </li>
@@ -85,6 +88,7 @@ export default async function ManagePage({
       {tab === "overview" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label={`Available ${config.terms.mentors}`} value={availableMentors.length} sub={`${data.mentors.length} in total`} />
+          <Stat label={`${config.terms.beginners.charAt(0).toUpperCase()}${config.terms.beginners.slice(1)} waiting`} value={data.waiting.length} warn={data.waiting.length > 0 && availableMentors.length === 0} sub={data.waiting.length > 0 && availableMentors.length === 0 ? `No ${config.terms.mentors} with free places` : undefined} />
           <Stat label="Pending requests" value={pendingRequests.length} />
           <Stat label="Active journeys" value={activeJourneys.length} />
           <Stat label="Completed journeys" value={completedJourneys.length} />
@@ -208,13 +212,47 @@ export default async function ManagePage({
         </div>
       )}
 
+      {tab === "waiting" && (
+        <div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {config.terms.beginners.charAt(0).toUpperCase() + config.terms.beginners.slice(1)} who signed up, opted in to being seen, and don&apos;t have a {config.terms.mentor} or a pending request yet.
+            {availableMentors.length === 0 ? ` There are no ${config.terms.mentors} with free places — inviting experienced members to sign up will help most.` : ""}
+          </p>
+          {data.waiting.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground">Nobody is waiting.</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {data.waiting.map((b) => (
+                <WaitingBeginnerCard
+                  key={b.user_id}
+                  beginner={b}
+                  config={config}
+                  templates={data.templates.filter((t) => t.is_active)}
+                  communitySlug={ctx.community.slug}
+                  spaceSlug={ctx.space.slug}
+                  canOffer={Boolean(data.mentors.find((m) => m.user_id === ctx.userId && m.status === "active" && !m.is_paused))}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {tab === "requests" && (
         <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
           {data.requests.length === 0 && <li className="p-5 text-sm text-muted-foreground">No requests yet.</li>}
           {data.requests.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
               <span>
-                <strong className="text-foreground">{displayName(r.beginner)}</strong> → <strong className="text-foreground">{displayName(r.mentor)}</strong>
+                {r.initiated_by === "mentor" ? (
+                  <>
+                    <strong className="text-foreground">{displayName(r.mentor)}</strong> offered to help <strong className="text-foreground">{displayName(r.beginner)}</strong>
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-foreground">{displayName(r.beginner)}</strong> asked <strong className="text-foreground">{displayName(r.mentor)}</strong>
+                  </>
+                )}
                 {r.template ? <span className="text-muted-foreground"> · {r.template.title}</span> : null}
               </span>
               <span className="text-xs text-muted-foreground">
