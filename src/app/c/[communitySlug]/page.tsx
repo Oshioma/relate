@@ -176,6 +176,9 @@ export default async function CommunityFeedPage({
   // right where the visitor lands. Featured categories deep-link to the
   // pre-filtered directory, matching the desktop sidebar's sub-links.
   const navSpaces = spaces.filter((s) => s.show_in_nav);
+  // The feed's photo cards are chosen separately from the sidebar (Admin →
+  // Spaces → "Show as card on feed"), so tidying one doesn't empty the other.
+  const cardSpaces = spaces.filter((s) => s.show_as_card);
   const discoverShortcuts: DiscoverShortcut[] = navSpaces.flatMap((space) => {
     const SpaceIcon = SPACE_TYPES[space.space_type].icon;
     const spaceLabelOverrides = labelOverrides.filter((o) => o.space_id === space.id);
@@ -521,7 +524,7 @@ export default async function CommunityFeedPage({
       : Promise.resolve(new Map<string, { full: string; short: string }>()),
     getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
     community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
-    getFeaturedCategoryPreviews(supabase, featuredCategories.filter((f) => navSpaces.some((sp) => sp.id === f.space_id))),
+    getFeaturedCategoryPreviews(supabase, featuredCategories.filter((f) => cardSpaces.some((sp) => sp.id === f.space_id))),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -553,7 +556,7 @@ export default async function CommunityFeedPage({
   // A directory's featured categories (Taxis, Restaurants, Fundis…) become a
   // slideshow card on the feed, each slide led by its newest listing's photo.
   const categoryCarousels: Record<string, CategorySlide[]> = Object.fromEntries(
-    navSpaces.map((space) => {
+    cardSpaces.map((space) => {
       const overrides = labelOverrides.filter((o) => o.space_id === space.id);
       const slides = featuredCategories
         .filter((f) => f.space_id === space.id)
@@ -654,7 +657,7 @@ export default async function CommunityFeedPage({
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={navSpaces} base={base} carousels={categoryCarousels} />
+        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} />
 
         {/* `min-w-0` on every column is load-bearing, not decoration. A grid
             item defaults to `min-width: auto`, so its track can't shrink below

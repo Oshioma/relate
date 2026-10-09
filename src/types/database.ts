@@ -425,6 +425,9 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
+  // Whether the space gets a photo card on the community feed — set
+  // separately from show_in_nav (see the space_show_as_card migration).
+  show_as_card: boolean;
   // Sidebar section: 'home' | 'learn' | 'connect', or null for ungrouped.
   // A community where every space is null renders the flat nav it always had.
   // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
