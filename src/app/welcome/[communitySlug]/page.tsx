@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarDays, Lock, MapPin } from "lucide-react";
+import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
-import { getCommunityEvents, splitUpcomingPast } from "@/lib/data/events";
+import { getCommunityEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
+import {
+  getCommunityBusinessCategoryLabelOverrides,
+  getCommunityBusinessCustomCategories,
+  getCommunityFeaturedBusinessCategories,
+  getFeaturedCategoryPreviews,
+} from "@/lib/data/businesses";
+import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getCommunityFeatures } from "@/lib/data/features";
-import { getSpaceContentPhotos } from "@/lib/data/space-covers";
-import { pickSpaceCovers } from "@/lib/space-covers";
-import { defaultSpaceImage } from "@/lib/space-images";
-import { SPACE_TYPES } from "@/lib/space-types";
+import { spaceImage } from "@/lib/space-images";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { coverPositionClass } from "@/lib/cover-position";
-import { HeroBackgroundVideo } from "@/app/c/[communitySlug]/hero-background-video";
+import { FeedHero, HeroLink, type HeroStat } from "@/app/c/[communitySlug]/feed-hero";
+import { SpaceCards } from "@/app/c/[communitySlug]/space-cards";
+import { UpcomingEventsCard } from "@/app/c/[communitySlug]/upcoming-events-card";
+import type { CategorySlide } from "@/app/c/[communitySlug]/category-carousel-card";
+import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
-import { formatDateTime } from "@/lib/utils";
 import { getPublicTiers } from "@/lib/data/public-tiers";
 import { getPublicCrops } from "@/lib/data/public-crops";
 import { getCommunityPosts } from "@/lib/data/posts";
@@ -74,12 +81,11 @@ export default async function CommunityWelcomePage({
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) notFound();
 
-  const [spaces, events, features, stats, contentPhotos] = await Promise.all([
+  const [spaces, events, features, stats] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     community.events_public ? getCommunityEvents(supabase, community.id) : Promise.resolve([]),
     getCommunityFeatures(supabase, community.id),
     getCommunityStats(supabase, community.id),
-    getSpaceContentPhotos(supabase, community.id),
   ]);
 
   const base = `/c/${community.slug}`;
@@ -89,20 +95,7 @@ export default async function CommunityWelcomePage({
   const lookAroundHref = guestsMayRead ? `${base}?view=feed` : `${base}/spaces`;
   const joinLabel = community.privacy === "public" ? `Join ${community.name}` : "Request to join";
 
-  // RLS already narrows spaces to the ones a guest may see.
-  const featuredSpaces = spaces.filter((space) => space.show_in_nav).slice(0, 6);
-  // A real photo on every card where one exists: the admin's cover, else one
-  // from the space's own content, else the community cover (src/lib/space-covers.ts).
-  const spaceCovers = pickSpaceCovers(featuredSpaces, contentPhotos, community.cover_image_url);
-  const upcoming = features.events ? splitUpcomingPast(events).upcoming.slice(0, 3) : [];
-  // Counts a guest can't read (RLS) come back as 0 — show only what's real.
-  const statItems = [
-    { label: "members", value: stats.members },
-    { label: "posts", value: stats.posts },
-    { label: "events", value: stats.events },
-    { label: "local businesses", value: stats.businesses },
-  ].filter((item) => item.value > 0);
-
+  const upcoming = features.events ? splitUpcomingPast(events).upcoming.slice(0, 4) : [];
   if (BESPOKE_LANDINGS.has(community.slug)) {
     const [tiers, crops, posts] = await Promise.all([
       getPublicTiers(community.id),
@@ -127,21 +120,75 @@ export default async function CommunityWelcomePage({
     );
   }
 
+  // The rest of this page is built from the same parts as the signed-in feed —
+  // the hero with the headline and big name, the photo space cards (with the
+  // directory slideshow), the upcoming-events card — so a visitor sees what
+  // members see, with Join / Log in in place of the composer.
+  const cardSpaces = spaces.filter((space) => space.show_as_card);
+  const [customCategories, labelOverrides, featuredCategories, eventGoing] = await Promise.all([
+    getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
+    getCommunityFeaturedBusinessCategories(supabase, community.id),
+    getEventRsvpCounts(supabase, upcoming.filter((e) => e.capacity !== null).map((e) => e.id)),
+  ]);
+  const categoryPreviews = await getFeaturedCategoryPreviews(
+    supabase,
+    featuredCategories.filter((f) => cardSpaces.some((sp) => sp.id === f.space_id))
+  );
+  const categoryCarousels: Record<string, CategorySlide[]> = Object.fromEntries(
+    cardSpaces.map((space) => {
+      const overrides = labelOverrides.filter((o) => o.space_id === space.id);
+      const slides = featuredCategories
+        .filter((f) => f.space_id === space.id)
+        .map((f): CategorySlide => {
+          const label = businessCategoryPluralLabel(f.category, customCategories, overrides);
+          const preview = categoryPreviews.get(`${space.id}:${f.category}`);
+          const count = preview?.count ?? 0;
+          return {
+            href: `${base}/spaces/${space.slug}?category=${f.category}`,
+            title: label,
+            subtitle:
+              count > 0
+                ? `${count} ${count === 1 ? "listing" : "listings"} in ${space.name}`
+                : `Browse ${label.toLowerCase()} in ${space.name}`,
+            imageUrl: preview?.imageUrl ?? spaceImage(space),
+            imagePosition: preview?.imagePosition ?? null,
+          };
+        });
+      return [space.id, slides];
+    })
+  );
+
+  // Same opt-in as the feed: counts only once the owner has turned stats on.
+  const heroStats: HeroStat[] = community.show_stats
+    ? [
+        { icon: UsersRound, label: "Members", value: stats.members },
+        { icon: MessageSquare, label: "Posts", value: stats.posts },
+        { icon: CalendarDays, label: "Events", value: stats.events },
+        { icon: Store, label: "Businesses", value: stats.businesses },
+      ].filter((item) => item.value > 0)
+    : [];
+
+  const onPhoto = Boolean(community.cover_image_url);
   const accentStyle = communityAccentStyle(community.accent_color);
 
   return (
     <div className="min-h-screen bg-background" style={accentStyle} {...(accentStyle ? { "data-community-accent": "" } : {})}>
-      <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4 md:px-8">
+      {/* The signed-in header's twin: logo and name on the left, the way in on
+          the right, in the same white bar above the cover. */}
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur md:px-6">
         <Link href={base} className="flex min-w-0 items-center gap-2.5">
-          <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={36} />
-          <span
-            className={`truncate text-sm font-semibold ${community.cover_image_url ? "text-white drop-shadow" : "text-foreground"}`}
-          >
-            {community.name}
-          </span>
+          <Avatar
+            src={community.logo_url}
+            name={community.name}
+            initials={community.logo_initials}
+            size={36}
+            className="ring-1 ring-accent"
+          />
+          <span className="truncate text-sm font-semibold text-foreground">{community.name}</span>
         </Link>
         <div className="flex shrink-0 items-center gap-2">
-          <LinkButton href={loginHref} variant="secondary" size="sm">
+          <LinkButton href={loginHref} variant="ghost" size="sm">
             Log in
           </LinkButton>
           <LinkButton href={signupHref} size="sm">
@@ -150,179 +197,79 @@ export default async function CommunityWelcomePage({
         </div>
       </header>
 
-      <section className="relative flex min-h-[70vh] items-end overflow-hidden bg-accent-soft">
-        {community.cover_image_url && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element -- remote community upload, same as the feed cover */}
+      <FeedHero
+        headline={community.tagline || community.name}
+        name={community.tagline ? community.name : null}
+        description={community.description}
+        cover={
+          community.cover_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- remote community upload, same as the feed cover
             <img
               src={community.cover_image_url}
               alt=""
-              className={`absolute inset-0 h-full w-full object-cover ${coverPositionClass(community.cover_position, community.cover_position_mobile)}`}
+              className={`absolute inset-0 -z-20 h-full w-full object-cover ${coverPositionClass(community.cover_position, community.cover_position_mobile)}`}
             />
-            {community.landing_background_video_url && (
-              <HeroBackgroundVideo
-                src={community.landing_background_video_url}
-                poster={community.cover_image_url}
-                layerClassName=""
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/20" />
-          </>
-        )}
-        <div className="relative mx-auto w-full max-w-5xl px-4 pb-14 pt-28 md:px-8 md:pb-20">
-          <div className={community.cover_image_url ? "text-white" : "text-foreground"}>
-            {community.location_name && (
-              <p className="mb-3 flex items-center gap-1.5 text-sm font-medium opacity-90">
-                <MapPin className="h-4 w-4" />
-                {community.location_name}
-              </p>
-            )}
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">{community.name}</h1>
-            {community.description && (
-              <p className="mt-4 max-w-2xl text-lg leading-relaxed opacity-90">{community.description}</p>
-            )}
-          </div>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <LinkButton href={signupHref} size="lg">
+          ) : null
+        }
+        backgroundVideo={
+          community.landing_background_video_url
+            ? { src: community.landing_background_video_url, poster: community.cover_image_url }
+            : null
+        }
+        stats={heroStats}
+        actions={
+          <>
+            <HeroLink href={signupHref} onPhoto={onPhoto}>
               {joinLabel}
-            </LinkButton>
-            <LinkButton href={lookAroundHref} size="lg" variant="secondary">
+            </HeroLink>
+            <HeroLink href={lookAroundHref} variant="glass" onPhoto={onPhoto}>
               Take a look around
               <ArrowRight className="h-4 w-4" />
-            </LinkButton>
-          </div>
-          {community.privacy !== "public" && (
-            <p
-              className={`mt-4 flex items-center gap-1.5 text-sm ${community.cover_image_url ? "text-white/85" : "text-muted-foreground"}`}
-            >
-              <Lock className="h-4 w-4" />
-              Members-only community — an admin reviews each request.
-            </p>
+            </HeroLink>
+            {community.privacy !== "public" && (
+              <p className={`flex w-full items-center gap-1.5 text-sm ${onPhoto ? "text-white/85" : "text-muted-foreground"}`}>
+                <Lock className="h-4 w-4" />
+                Members-only community — an admin reviews each request.
+              </p>
+            )}
+          </>
+        }
+      />
+
+      <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
+        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} showOnMobile />
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <Card className="flex flex-col justify-center gap-5 bg-accent-soft p-6 sm:p-8">
+            <div>
+              {community.location_name && (
+                <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-accent">
+                  <MapPin className="h-4 w-4" />
+                  {community.location_name}
+                </p>
+              )}
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                Be part of {community.name}
+              </h2>
+              <p className="mt-2 max-w-xl text-muted-foreground">
+                Sign up to post, ask questions, join events and meet the people who make {community.name} what it is.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <LinkButton href={signupHref} size="lg">
+                {joinLabel}
+              </LinkButton>
+              <LinkButton href={loginHref} size="lg" variant="secondary">
+                I already have an account
+              </LinkButton>
+            </div>
+          </Card>
+
+          {features.events && community.events_public && (
+            <UpcomingEventsCard events={upcoming} href={`${base}/events`} going={eventGoing} />
           )}
         </div>
-      </section>
-
-      {statItems.length > 0 && (
-        <section className="border-b border-border bg-card">
-          <dl className="mx-auto flex max-w-5xl flex-wrap justify-center gap-x-12 gap-y-4 px-4 py-6 md:px-8">
-            {statItems.map((item) => (
-              <div key={item.label} className="text-center">
-                <dt className="sr-only">{item.label}</dt>
-                <dd className="text-2xl font-semibold text-foreground">{item.value.toLocaleString("en-US")}</dd>
-                <dd className="text-sm text-muted-foreground">{item.label}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
-
-      <div className="mx-auto max-w-5xl space-y-16 px-4 py-14 md:px-8">
-        {featuredSpaces.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">What&apos;s inside</h2>
-            <p className="mt-1 text-muted-foreground">A few of the places you&apos;ll find in {community.name}.</p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredSpaces.map((space) => {
-                const meta = SPACE_TYPES[space.space_type];
-                const Icon = meta?.icon;
-                // A photo from the space itself first; failing that, its type's default.
-                const cover = spaceCovers.get(space.id) ?? defaultSpaceImage(space.space_type);
-                return (
-                  <Link
-                    key={space.id}
-                    href={`${base}/spaces/${space.slug}`}
-                    className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
-                  >
-                    {cover ? (
-                      <div className="relative h-44 overflow-hidden bg-accent-soft">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- remote community upload */}
-                        <img
-                          src={cover}
-                          alt=""
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                        {Icon && (
-                          <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-card/90 text-accent shadow-sm backdrop-blur">
-                            <Icon className="h-5 w-5" />
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex h-44 items-center justify-center bg-accent-soft text-accent">
-                        {Icon && <Icon className="h-10 w-10" />}
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <p className="font-semibold text-foreground group-hover:text-accent">{space.name}</p>
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                        {space.description || meta?.description}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {upcoming.length > 0 && (
-          <section>
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Coming up</h2>
-                <p className="mt-1 text-muted-foreground">What&apos;s happening next.</p>
-              </div>
-              <Link href={`${base}/events`} className="shrink-0 text-sm font-medium text-accent hover:underline">
-                All events
-              </Link>
-            </div>
-            <ul className="mt-6 grid gap-4 md:grid-cols-3">
-              {upcoming.map((event) => (
-                <li key={event.id}>
-                  <Link
-                    href={`${base}/events`}
-                    className="block h-full overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
-                  >
-                    {event.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element -- remote community upload
-                      <img src={event.image_url} alt="" className="h-32 w-full object-cover" />
-                    )}
-                    <div className="p-4">
-                      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-accent">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {formatDateTime(event.start_time)}
-                      </p>
-                      <p className="mt-1.5 font-semibold text-foreground">{event.title}</p>
-                      {(event.location_label || event.location) && (
-                        <p className="mt-1 truncate text-sm text-muted-foreground">
-                          {event.location_label || event.location}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className="rounded-2xl bg-accent-soft px-6 py-10 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Be part of {community.name}</h2>
-          <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
-            Sign up to post, ask questions, join events and meet the people who make {community.name} what it is.
-          </p>
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <LinkButton href={signupHref} size="lg">
-              {joinLabel}
-            </LinkButton>
-            <LinkButton href={loginHref} size="lg" variant="secondary">
-              I already have an account
-            </LinkButton>
-          </div>
-        </section>
-      </div>
+      </main>
     </div>
   );
 }

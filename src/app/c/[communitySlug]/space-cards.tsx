@@ -19,12 +19,16 @@ export function SpaceCards({
   spaces,
   base,
   carousels = {},
+  showOnMobile = false,
 }: {
   spaces: Space[];
   base: string;
   // space id → its featured-category slides. A space with two or more shows
   // them one at a time (CategoryCarouselCard) instead of a single card.
   carousels?: Record<string, CategorySlide[]>;
+  // The feed hides this row on phones (the DiscoverStrip does the job there);
+  // the signed-out landing page has no strip, so it shows the cards stacked.
+  showOnMobile?: boolean;
 }) {
   const shown = spaces.slice(0, 5);
   if (shown.length === 0) return null;
@@ -38,11 +42,11 @@ export function SpaceCards({
     // row — one space became a single card the width of the page. So a short
     // row uses auto-fill, which keeps the empty columns and the cards card-sized.
     <div
-      className={
+      className={`${showOnMobile ? "grid sm:grid-cols-2" : "hidden md:grid"} gap-4 ${
         shown.length >= 4
-          ? "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]"
-          : "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fill,minmax(185px,1fr))] xl:grid-cols-5"
-      }
+          ? "md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]"
+          : "md:grid-cols-[repeat(auto-fill,minmax(185px,1fr))] xl:grid-cols-5"
+      }`}
     >
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
