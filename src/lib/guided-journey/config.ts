@@ -201,11 +201,29 @@ export function capitalise(text: string): string {
 }
 
 // Help-mode wording is the same everywhere; only the question label varies.
+// Stored as one value; "either" means the person picked both.
 export const HELP_MODE_OPTIONS: ChoiceOption[] = [
   { value: "online", label: "Online" },
   { value: "local", label: "Local, in person" },
-  { value: "either", label: "Either" },
+  { value: "either", label: "Online and local" },
 ];
+
+// What the forms offer: two chips people can tick one or both of.
+export const HELP_MODE_CHOICES: ChoiceOption[] = HELP_MODE_OPTIONS.filter((o) => o.value !== "either");
+
+export function helpModeFromChoices(values: string[]): "online" | "local" | "either" | null {
+  const online = values.includes("online");
+  const local = values.includes("local");
+  if (online && local) return "either";
+  if (online) return "online";
+  if (local) return "local";
+  return null;
+}
+
+export function helpModeToChoices(mode: string | null | undefined): string[] {
+  if (mode === "online" || mode === "local") return [mode];
+  return ["online", "local"];
+}
 
 export const MENTOR_LEVELS: { value: "experienced" | "community" | "first_harvest"; label: string; description: string }[] = [
   { value: "experienced", label: "Experienced mentor", description: "Several seasons of hands-on practice to share." },

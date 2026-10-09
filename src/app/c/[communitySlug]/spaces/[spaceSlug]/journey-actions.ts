@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getGuidedJourneyContext, type GuidedJourneyContext } from "@/lib/data/guided-journey";
 import { copyGuidedJourneySpace, seedGuidedJourneySpace } from "@/lib/data/guided-journey-seed";
 import { configFromForm, diffConfig, textToMilestones } from "@/lib/guided-journey/config-form";
-import { HELP_MODE_OPTIONS, MENTOR_LEVELS, REPORT_REASONS } from "@/lib/guided-journey/config";
+import { helpModeFromChoices, MENTOR_LEVELS, REPORT_REASONS } from "@/lib/guided-journey/config";
 import { parseList } from "@/lib/guided-journey/matching";
 import { slugify } from "@/lib/utils";
 import type { JourneyHelpMode, JourneyReportReason, MentorLevel } from "@/types/database";
@@ -35,9 +35,10 @@ function photoList(fd: FormData, name: string, max = 10): string[] {
   }
 }
 
-function helpMode(raw: FormDataEntryValue | null): JourneyHelpMode {
-  const value = String(raw ?? "either");
-  return HELP_MODE_OPTIONS.some((o) => o.value === value) ? (value as JourneyHelpMode) : "either";
+// The form offers Online and Local as chips you can tick one or both of;
+// both is stored as "either". Null when neither was ticked.
+function helpMode(fd: FormData): JourneyHelpMode | null {
+  return helpModeFromChoices(fd.getAll("help_mode").map(String));
 }
 
 function friendly(message: string): string {
@@ -65,6 +66,8 @@ export async function saveBeginnerProfile(_prev: JourneyFormState, fd: FormData)
   if (!ctx.userId) return { error: "Please sign in first." };
   if (!ctx.isMember) return { error: "Join the community first, then come back to start." };
   if (fd.get("adult") !== "on") return { error: "Direct mentoring is for adults (18+) for now. Please confirm to continue." };
+  const beginnerHelpMode = helpMode(fd);
+  if (!beginnerHelpMode) return { error: "Choose online, local, or both." };
 
   const allowed = (values: string[], options: { value: string }[]) => values.filter((v) => options.some((o) => o.value === v));
   const { error } = await ctx.supabase.from("journey_beginner_profiles").upsert(
@@ -77,7 +80,7 @@ export async function saveBeginnerProfile(_prev: JourneyFormState, fd: FormData)
       setting: allowed(fd.getAll("setting").map(String), ctx.config.questions.setting.options),
       interests: allowed(fd.getAll("interests").map(String), ctx.config.questions.interests.options),
       experience: allowed([text(fd, "experience", 60)], ctx.config.questions.experience.options)[0] ?? null,
-      help_mode: helpMode(fd.get("help_mode")),
+      help_mode: beginnerHelpMode,
       languages: parseList(text(fd, "languages", 300), 8),
       space_photo_url: photoList(fd, "space_photo", 1)[0] ?? null,
       notes: nullable(fd, "notes", 2000),
@@ -96,6 +99,8 @@ export async function saveMentorProfile(_prev: JourneyFormState, fd: FormData): 
   if (!ctx.userId) return { error: "Please sign in first." };
   if (!ctx.isMember) return { error: "Join the community first, then come back to start." };
   if (fd.get("adult") !== "on") return { error: "Mentors need to be adults (18+). Please confirm to continue." };
+  const mentorHelpMode = helpMode(fd);
+  if (!mentorHelpMode) return { error: "Choose online, local, or both." };
 
   const capacity = Number(fd.get("capacity"));
   if (!Number.isInteger(capacity) || capacity < 1 || capacity > 20) return { error: "Choose how many people you can support." };
@@ -121,7 +126,7 @@ export async function saveMentorProfile(_prev: JourneyFormState, fd: FormData): 
       climate: nullable(fd, "climate", 120),
       years_experience: years && Number.isInteger(Number(years)) ? Math.min(90, Math.max(0, Number(years))) : null,
       languages: parseList(text(fd, "languages", 300), 8),
-      help_mode: helpMode(fd.get("help_mode")),
+      help_mode: mentorHelpMode,
       capacity,
       group_mentoring: fd.get("group_mentoring") === "on",
       availability: nullable(fd, "availability", 300),

@@ -98,7 +98,7 @@ const GARDENING: GuidedJourneyConfig = {
         { value: "some", label: "Some experience" },
       ],
     },
-    helpMode: { label: "How would you like help?", help: "Online works anywhere. Meeting in person always needs both of you to agree first." },
+    helpMode: { label: "How would you like help?", help: "Pick one or both. Online works anywhere. Meeting in person always needs both of you to agree first." },
   },
   mentorQuestions: {
     experienceLabel: "What do you have experience growing?",
