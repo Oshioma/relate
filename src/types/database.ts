@@ -210,6 +210,9 @@ export type Community = {
   // found by AI discovery (migration weekly_event_discovery).
   weekly_event_discovery: boolean;
   hero_video_url: string | null;
+  // Muted looping clip behind the hero headline (desktop only; the cover is
+  // its poster and fallback).
+  hero_background_video_url: string | null;
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
