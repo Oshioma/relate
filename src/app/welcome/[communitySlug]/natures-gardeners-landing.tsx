@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroBackgroundVideo } from "@/app/c/[communitySlug]/hero-background-video";
 import { ArrowRight, CalendarDays, Check, Clock, Leaf, Sprout } from "lucide-react";
 import type { Community, Event, Space } from "@/types/database";
 import type { PublicTier } from "@/lib/data/public-tiers";
@@ -194,6 +195,9 @@ export function NaturesGardenersLanding({
       <section className="relative flex min-h-[86vh] items-center overflow-hidden bg-[#1f3d17]">
         {/* eslint-disable-next-line @next/next/no-img-element -- static hero photo */}
         <img src={`${IMG}/hero.webp`} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        {community.landing_background_video_url && (
+          <HeroBackgroundVideo src={community.landing_background_video_url} poster={`${IMG}/hero.webp`} layerClassName="" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-[#14240f]/90" />
         <div className="relative mx-auto w-full max-w-6xl px-4 pb-20 pt-32 text-white md:px-8">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#c5f29b]">
@@ -526,7 +530,12 @@ export function NaturesGardenersLanding({
 
       {/* CLOSING CTA */}
       <section className="mx-auto max-w-6xl px-4 py-20 md:px-8 md:py-24">
-        <div className="rounded-[2rem] bg-[#1f3d17] px-6 py-14 text-center text-white md:px-16">
+        {/* The hero photo lives on here: on desktop the top of the page can be a
+            video, so this is where the picture is always seen. */}
+        <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#1f3d17] px-6 py-14 text-center text-white md:px-16 md:py-20">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static photo */}
+          <img src={`${IMG}/hero.webp`} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#14240f]/80 via-[#1f3d17]/75 to-[#14240f]/90" />
           <h2 className="mx-auto max-w-2xl text-3xl font-semibold leading-tight tracking-tight md:text-5xl">
             Ready to grow with us?
           </h2>

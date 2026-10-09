@@ -20,7 +20,18 @@ function subscribe(onChange: () => void) {
   return () => media.removeEventListener("change", onChange);
 }
 
-export function HeroBackgroundVideo({ src, poster }: { src: string; poster: string | null }) {
+export function HeroBackgroundVideo({
+  src,
+  poster,
+  layerClassName = "-z-20",
+}: {
+  src: string;
+  poster: string | null;
+  // Where the video sits in the hero's stack. The feed hero layers by z-index
+  // (cover at -z-20, scrim at -z-10); the landing pages stack by DOM order, so
+  // they pass "" and place it between the photo and the gradient.
+  layerClassName?: string;
+}) {
   const show = useSyncExternalStore(
     subscribe,
     () => window.matchMedia(QUERY).matches,
@@ -55,7 +66,7 @@ export function HeroBackgroundVideo({ src, poster }: { src: string; poster: stri
         playsInline
         preload="auto"
         aria-hidden="true"
-        className="absolute inset-0 -z-20 h-full w-full object-cover"
+        className={`absolute inset-0 h-full w-full object-cover ${layerClassName}`}
       />
       <button
         type="button"

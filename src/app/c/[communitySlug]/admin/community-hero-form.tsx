@@ -49,7 +49,22 @@ export function CommunityHeroForm({ community, spaces }: { community: Community;
         <p className="mt-1 text-xs text-muted-foreground">Adds a “Watch video” button to the header.</p>
       </div>
 
-      <BackgroundVideoField communityId={community.id} defaultValue={community.hero_background_video_url} />
+      <BackgroundVideoField
+        communityId={community.id}
+        name="hero_background_video_url"
+        label="Feed background video"
+        fileStem="hero-video"
+        defaultValue={community.hero_background_video_url}
+        hint="Loops behind the headline on your community's home feed."
+      />
+      <BackgroundVideoField
+        communityId={community.id}
+        name="landing_background_video_url"
+        label="Landing page background video"
+        fileStem="landing-video"
+        defaultValue={community.landing_background_video_url}
+        hint="Loops behind the headline on the page visitors see before they sign in."
+      />
 
       <div>
         <Label htmlFor="community_featured_space">Featured space</Label>
@@ -84,12 +99,28 @@ export function CommunityHeroForm({ community, spaces }: { community: Community;
 const VIDEO_TYPES = ["video/mp4", "video/webm"];
 const VIDEO_MAX_BYTES = 30 * 1024 * 1024;
 
-// The clip that loops behind the headline. Upload one (stored with the logo
+// A clip that loops behind a hero headline (the feed's or the landing page's). Upload one (stored with the logo
 // and cover) or paste a direct link to an .mp4/.webm file — not a YouTube page,
 // which a <video> can't play. Uploading fills the field; Save stores it. The
 // field stays uncontrolled so the form's draft restore can fill it like any
 // other input, and an upload fires an input event so the draft picks it up.
-function BackgroundVideoField({ communityId, defaultValue }: { communityId: string; defaultValue: string | null }) {
+function BackgroundVideoField({
+  communityId,
+  name,
+  label,
+  fileStem,
+  defaultValue,
+  hint,
+}: {
+  communityId: string;
+  // The form field (and communities column) this sets.
+  name: string;
+  label: string;
+  // Storage file name, so the feed and landing clips don't overwrite each other.
+  fileStem: string;
+  defaultValue: string | null;
+  hint: string;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<{ kind: "idle" | "uploading" | "done" | "error"; message?: string }>({
     kind: "idle",
@@ -114,7 +145,7 @@ function BackgroundVideoField({ communityId, defaultValue }: { communityId: stri
     setStatus({ kind: "uploading" });
     const supabase = createClient();
     const ext = file.type === "video/webm" ? "webm" : "mp4";
-    const path = `${communityId}/hero-video.${ext}`;
+    const path = `${communityId}/${fileStem}.${ext}`;
     const { error } = await supabase.storage
       .from("community-assets")
       .upload(path, file, { upsert: true, contentType: file.type });
@@ -129,12 +160,12 @@ function BackgroundVideoField({ communityId, defaultValue }: { communityId: stri
 
   return (
     <div>
-      <Label htmlFor="community_hero_background_video">Background video</Label>
+      <Label htmlFor={`community_${name}`}>{label}</Label>
       <div className="flex flex-wrap items-center gap-2">
         <Input
           ref={inputRef}
-          id="community_hero_background_video"
-          name="hero_background_video_url"
+          id={`community_${name}`}
+          name={name}
           type="url"
           defaultValue={defaultValue ?? ""}
           placeholder="Upload a clip, or paste a link to an .mp4"
@@ -168,8 +199,8 @@ function BackgroundVideoField({ communityId, defaultValue }: { communityId: stri
       {status.kind === "done" && <p className="mt-1 text-xs text-accent">Uploaded — press Save to use it.</p>}
       {status.kind === "error" && <p className="mt-1 text-xs text-danger">{status.message}</p>}
       <p className="mt-1 text-xs text-muted-foreground">
-        A short, muted clip (10–15 seconds, MP4, up to 30MB) that loops behind the headline on laptops and desktops.
-        Phones, and anyone who has turned off motion, still see the cover photo. Needs a cover photo.
+        {hint} A short, muted clip (10–15 seconds, MP4, up to 30MB), shown on laptops and desktops; phones, and
+        anyone who has turned off motion, still see the cover photo.
       </p>
     </div>
   );
