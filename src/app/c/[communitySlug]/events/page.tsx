@@ -89,7 +89,11 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
           <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Add an event</h2>
           <NewEventForm communityId={community.id} communitySlug={community.slug} communityLocationName={community.location_name} />
           {isStaff && community.template_key === "place" && (
-            <DiscoverEventsPanel communitySlug={community.slug} locationName={community.location_name || community.name} />
+            <DiscoverEventsPanel
+              communitySlug={community.slug}
+              locationName={community.location_name || community.name}
+              weeklyOn={community.weekly_event_discovery ?? true}
+            />
           )}
         </div>
       )}
