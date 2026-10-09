@@ -309,9 +309,9 @@ export default async function CommunityLayout({
             and no tint reads well behind every possible logo. The cover earns
             its place on the feed header, where it's large enough to be the
             photograph it is. */}
-        {/* pt-[50px]: the 48px main header plus the logo ring's 2px, so the top
+        {/* pt-[49px]: the 48px main header plus the logo ring's 1px, so the top
             of the ring sits level with the top of the cover photo beside it. */}
-        <div className="border-b border-border px-5 pb-5 pt-[50px]">
+        <div className="border-b border-border px-5 pb-5 pt-[49px]">
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
@@ -322,7 +322,7 @@ export default async function CommunityLayout({
               name={community.name}
               initials={community.logo_initials}
               size={140}
-              className="ring-2 ring-accent"
+              className="ring-1 ring-accent"
             />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
