@@ -1,3 +1,4 @@
+import { spaceImage } from "@/lib/space-images";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { History, Layers, Lock, Users as UsersIcon, Globe } from "lucide-react";
@@ -84,12 +85,11 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
             return (
               <Link key={space.id} href={`/c/${community.slug}/spaces/${space.slug}`} className="group">
                 <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-sm">
-                  {space.image_url && (
-                    <div className="aspect-[5/2] w-full overflow-hidden bg-muted">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={space.image_url} alt="" className="h-full w-full object-cover" />
-                    </div>
-                  )}
+                  <div className="aspect-[5/2] w-full overflow-hidden bg-muted">
+                    {/* The space's own photo, or its type's default. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={spaceImage(space)} alt="" className="h-full w-full object-cover" />
+                  </div>
                   <CardContent className="pt-5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 min-w-0">
