@@ -21,6 +21,8 @@ import { StaffManagementToggle } from "./staff-management-toggle";
 import { getCommunityProfileFields } from "@/lib/data/community-profile-fields";
 import { getJournalFieldsBySpaceIds } from "@/lib/data/journal";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityNavGroups } from "@/lib/data/nav-groups";
+import { DEFAULT_NAV_GROUPS } from "@/lib/nav-groups";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeatureControls, getCommunityFeatures } from "@/lib/data/features";
 import { getAllowedSpaceTypes } from "@/lib/data/space-type-pool";
@@ -41,6 +43,7 @@ import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
+import { NavGroupsSection } from "./nav-groups-section";
 import { CustomDomainSection } from "./custom-domain-section";
 import { isVercelDomainAutomationConfigured } from "@/lib/vercel-domains";
 import { DeleteCommunitySection } from "./delete-community-section";
@@ -82,7 +85,7 @@ export default async function AdminPage({
 
   const isOwner = isCommunityOwner(community, user.id) || membership?.role === "owner";
 
-  const [spaces, members, joinRequests, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes] =
+  const [spaces, members, joinRequests, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes, savedNavGroups] =
     await Promise.all([
       getCommunitySpaces(supabase, community.id),
       getCommunityMembers(supabase, community.id),
@@ -97,7 +100,18 @@ export default async function AdminPage({
       getCommunityBusinessCustomCategories(supabase, community.id),
       getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
       getAllowedSpaceTypes(supabase, community.id),
+      getCommunityNavGroups(supabase, community.id),
     ]);
+
+  // Sidebar sections. If they could not be read, the dropdowns still offer the
+  // three every community starts with, and the manager below shows nothing to
+  // edit rather than an error.
+  const navGroups = savedNavGroups ?? [];
+  const navGroupOptions = savedNavGroups ?? DEFAULT_NAV_GROUPS;
+  const spaceCountsByNavGroup: Record<string, number> = {};
+  for (const space of spaces) {
+    if (space.nav_group) spaceCountsByNavGroup[space.nav_group] = (spaceCountsByNavGroup[space.nav_group] ?? 0) + 1;
+  }
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
   const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
@@ -202,6 +216,7 @@ export default async function AdminPage({
     { id: "contact", label: "Contact" },
     { id: "public-access", label: "Public access" },
     { id: "spaces", label: "Spaces" },
+    { id: "sidebar-sections", label: "Sidebar sections" },
     { id: "profile-fields", label: "Profile fields" },
     { id: "sidebar-links", label: "Sidebar links" },
     { id: "more", label: "More" },
@@ -321,11 +336,26 @@ export default async function AdminPage({
             journalFieldsBySpaceId={journalFieldsBySpaceId}
             allowedTypes={allowedTypes}
             paymentsEnabled={canCharge && community.stripe_charges_enabled}
+            navGroups={navGroupOptions}
           />
         </div>
       )}
       <div className="mb-8">
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} allowedTypes={allowedTypes} />
+      </div>
+
+      <h2 id="sidebar-sections" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Sidebar sections</h2>
+      <p className="mb-3 text-sm text-muted-foreground">
+        Headings that group your spaces in the sidebar. File a space under one with its Section dropdown above. A section
+        with no spaces in it shows no heading.
+      </p>
+      <div className="mb-8">
+        <NavGroupsSection
+          communityId={community.id}
+          communitySlug={community.slug}
+          groups={navGroups}
+          spaceCounts={spaceCountsByNavGroup}
+        />
       </div>
 
       <h2 id="profile-fields" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Custom profile fields</h2>

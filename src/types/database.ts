@@ -436,9 +436,9 @@ export type Space = {
   // Whether the space gets a photo card on the community feed — set
   // separately from show_in_nav (see the space_show_as_card migration).
   show_as_card: boolean;
-  // Sidebar section: 'home' | 'learn' | 'connect', or null for ungrouped.
-  // A community where every space is null renders the flat nav it always had.
-  // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
+  // Sidebar section: a key from this community's community_nav_groups, or
+  // null for ungrouped. A community where every space is null renders the
+  // flat nav it always had. See src/lib/nav-groups.ts.
   nav_group: string | null;
   // Optional cover image (community-assets bucket URL), surfaced on the mobile
   // Explore strip and the Spaces grid. Null = fall back to the type icon.
@@ -579,6 +579,18 @@ export type CommunityInvite = {
   created_by: string;
   created_at: string;
   email: string | null;
+};
+
+// A sidebar section in one community. spaces.nav_group holds its key. See
+// src/lib/nav-groups.ts and 20261009143443_community_nav_groups.sql.
+export type CommunityNavGroup = {
+  id: string;
+  community_id: string;
+  key: string;
+  label: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type CommunityNavLink = {
@@ -2991,6 +3003,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_nav_groups: {
+        Row: CommunityNavGroup;
+        Insert: Partial<CommunityNavGroup> & { community_id: string; key: string; label: string };
+        Update: Partial<CommunityNavGroup>;
       } & NoRel;
       community_nav_links: {
         Row: CommunityNavLink;

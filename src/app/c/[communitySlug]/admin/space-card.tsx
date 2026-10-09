@@ -6,6 +6,7 @@ import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ListTree, ChevronDown,
 import { updateSpace, deleteSpace, duplicateSpace, type SpaceFormState } from "./actions";
 import { SpaceNavToggle, SpaceCardToggle } from "./space-nav-toggle";
 import { SpaceNavGroup } from "./space-nav-group";
+import type { NavGroupOption } from "@/lib/nav-groups";
 import { JournalFieldsSection } from "./journal-fields-section";
 import { SpaceSubNavList } from "./space-subnav-list";
 import type { NavSubItem } from "./spaces-manager";
@@ -33,6 +34,7 @@ export function SpaceCard({
   subItems,
   allowedTypes,
   paymentsEnabled,
+  navGroups,
   dragHandlers,
   isDragging,
 }: {
@@ -48,6 +50,8 @@ export function SpaceCard({
   // Whether the community can take charges (Stripe connected). Gates the
   // per-space monthly-price control.
   paymentsEnabled: boolean;
+  // This community's sidebar sections, for the Section dropdown.
+  navGroups: NavGroupOption[];
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -346,7 +350,7 @@ export function SpaceCard({
           <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
           <SpaceCardToggle spaceId={space.id} defaultChecked={space.show_as_card} />
         </div>
-        <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} />
+        <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} groups={navGroups} />
         {subItems.length > 0 && (
           <button type="button" onClick={() => setShowSubNav((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Nav sub-links">
             <ListTree className="h-4 w-4" />
