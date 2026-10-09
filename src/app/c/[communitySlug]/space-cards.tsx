@@ -4,6 +4,7 @@ import type { Space } from "@/types/database";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { toPlainText } from "@/components/ui/rich-text";
 import { spaceImage } from "@/lib/space-images";
+import { CategoryCarouselCard, type CategorySlide } from "./category-carousel-card";
 
 // The row of photo cards under the feed hero: the community's headline spaces,
 // each a one-click way in. It's the desktop twin of the mobile DiscoverStrip —
@@ -14,7 +15,17 @@ import { spaceImage } from "@/lib/space-images";
 // overlaps the photo's foot with rounded corners, a solid accent circle
 // carrying the type icon beside a bold title, the blurb indented under the
 // title, and a soft round arrow button in the bottom-right corner.
-export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) {
+export function SpaceCards({
+  spaces,
+  base,
+  carousels = {},
+}: {
+  spaces: Space[];
+  base: string;
+  // space id → its featured-category slides. A space with two or more shows
+  // them one at a time (CategoryCarouselCard) instead of a single card.
+  carousels?: Record<string, CategorySlide[]>;
+}) {
   const shown = spaces.slice(0, 5);
   if (shown.length === 0) return null;
 
@@ -35,6 +46,10 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
     >
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
+        const slides = carousels[space.id] ?? [];
+        if (slides.length >= 2) {
+          return <CategoryCarouselCard key={space.id} slides={slides} icon={<Icon />} />;
+        }
         // A custom page's description *is* the page (HTML, often with its own
         // <style>), so it never makes a blurb. Everything else is rich text,
         // shown as a plain excerpt.
