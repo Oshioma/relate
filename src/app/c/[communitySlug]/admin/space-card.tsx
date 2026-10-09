@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState, type DragEventHandler } fr
 import { useRouter } from "next/navigation";
 import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ListTree, ChevronDown, ChevronUp } from "lucide-react";
 import { updateSpace, deleteSpace, duplicateSpace, type SpaceFormState } from "./actions";
-import { SpaceNavToggle } from "./space-nav-toggle";
+import { SpaceNavToggle, SpaceCardToggle } from "./space-nav-toggle";
 import { SpaceNavGroup } from "./space-nav-group";
 import { JournalFieldsSection } from "./journal-fields-section";
 import { SpaceSubNavList } from "./space-subnav-list";
@@ -342,7 +342,10 @@ export function SpaceCard({
           </div>
           <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
         </div>
-        <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
+          <SpaceCardToggle spaceId={space.id} defaultChecked={space.show_as_card} />
+        </div>
         <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} />
         {subItems.length > 0 && (
           <button type="button" onClick={() => setShowSubNav((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Nav sub-links">
