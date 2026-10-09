@@ -206,6 +206,9 @@ export type Community = {
   // over the cover (null = show the name), an optional "Watch video" link, and
   // a space promoted in the feed sidebar's photo card.
   tagline: string | null;
+  // Place communities: whether the weekly Supabase cron run adds new events
+  // found by AI discovery (migration weekly_event_discovery).
+  weekly_event_discovery: boolean;
   hero_video_url: string | null;
   featured_space_id: string | null;
   owner_id: string;
