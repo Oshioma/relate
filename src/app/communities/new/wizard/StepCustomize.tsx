@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Trash2, Plus, Lock, MoreHorizontal } from "lucide-react";
+import { GripVertical, Trash2, Plus, Lock, MoreHorizontal, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SpaceType } from "@/types/database";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
+import { coverPath, coversForTemplate } from "@/lib/community-covers";
 import { reorder, nextId } from "./types";
 import type { WizardState } from "./types";
 
@@ -59,6 +60,45 @@ export function StepCustomize({
         <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Customize your community</h1>
         <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">Choose what your members can do. You can change these anytime.</p>
       </div>
+
+      {/* Cover photo: the big image at the top of the community's feed. The
+          covers that suit the chosen template lead; until one is clicked, the
+          first is what the community launches with. Owners can upload their
+          own afterwards from the cover's edit button on the feed. */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Cover photo</h2>
+          <span className="text-xs text-muted-foreground">You can upload your own later</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          {coversForTemplate(state.templateKey).slice(0, 8).map((cover, i) => {
+            const selected = state.coverKey ? state.coverKey === cover.key : i === 0;
+            return (
+              <button
+                key={cover.key}
+                type="button"
+                onClick={() => update({ coverKey: cover.key })}
+                aria-pressed={selected}
+                className={cn(
+                  "group relative aspect-[16/9] overflow-hidden rounded-lg ring-offset-2 ring-offset-background transition",
+                  selected ? "ring-2 ring-accent" : "ring-1 ring-border hover:ring-accent/50"
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={coverPath(cover.key)} alt="" className="h-full w-full object-cover" />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4 text-left text-[11px] font-medium text-white">
+                  {cover.label}
+                </span>
+                {selected && (
+                  <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <section>
         <div className="mb-3 flex items-center justify-between">
