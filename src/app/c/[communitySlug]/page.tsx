@@ -1,3 +1,4 @@
+import { spaceImage } from "@/lib/space-images";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -182,7 +183,7 @@ export default async function CommunityFeedPage({
         href: `${base}/spaces/${space.slug}`,
         label: space.name,
         icon: <SpaceIcon className="h-5 w-5" />,
-        imageUrl: space.image_url,
+        imageUrl: spaceImage(space),
       },
       ...featuredCategories
         .filter((f) => f.space_id === space.id)
