@@ -9,6 +9,7 @@ import { getCommunityEvents, splitUpcomingPast } from "@/lib/data/events";
 import { getCommunityFeatures } from "@/lib/data/features";
 import { getSpaceContentPhotos } from "@/lib/data/space-covers";
 import { pickSpaceCovers } from "@/lib/space-covers";
+import { defaultSpaceImage } from "@/lib/space-images";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { coverPositionClass } from "@/lib/cover-position";
@@ -216,7 +217,8 @@ export default async function CommunityWelcomePage({
               {featuredSpaces.map((space) => {
                 const meta = SPACE_TYPES[space.space_type];
                 const Icon = meta?.icon;
-                const cover = spaceCovers.get(space.id);
+                // A photo from the space itself first; failing that, its type's default.
+                const cover = spaceCovers.get(space.id) ?? defaultSpaceImage(space.space_type);
                 return (
                   <Link
                     key={space.id}

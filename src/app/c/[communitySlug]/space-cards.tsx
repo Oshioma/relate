@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { Space } from "@/types/database";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { toPlainText } from "@/components/ui/rich-text";
+import { spaceImage } from "@/lib/space-images";
 
 // The row of photo cards under the feed hero: the community's headline spaces,
 // each a one-click way in. It's the desktop twin of the mobile DiscoverStrip —
@@ -21,7 +22,17 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
     // auto-fit rather than fixed counts: the content column's width depends
     // on the sidebar as well as the screen, and a fixed three-up left a laptop
     // with three oversized cards and the other two pushed to a second row.
-    <div className="hidden gap-4 md:grid md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]">
+    //
+    // With only a few spaces, though, auto-fit stretches each card to fill the
+    // row — one space became a single card the width of the page. So a short
+    // row uses auto-fill, which keeps the empty columns and the cards card-sized.
+    <div
+      className={
+        shown.length >= 4
+          ? "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fit,minmax(185px,1fr))]"
+          : "hidden gap-4 md:grid md:grid-cols-[repeat(auto-fill,minmax(185px,1fr))] xl:grid-cols-5"
+      }
+    >
       {shown.map((space) => {
         const Icon = SPACE_TYPES[space.space_type].icon;
         // A custom page's description *is* the page (HTML, often with its own
@@ -35,18 +46,13 @@ export function SpaceCards({ spaces, base }: { spaces: Space[]; base: string }) 
             className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_24px_-12px_rgba(0,0,0,0.18)] ring-1 ring-black/5 transition-shadow hover:shadow-[0_2px_6px_rgba(0,0,0,0.08),0_16px_32px_-12px_rgba(0,0,0,0.25)]"
           >
             <span className="relative block aspect-[4/3] w-full overflow-hidden bg-accent-soft">
-              {space.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={space.image_url}
-                  alt=""
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-accent/50">
-                  <Icon className="h-10 w-10" />
-                </span>
-              )}
+              {/* The space's own photo, or its type's default — never a blank. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={spaceImage(space)}
+                alt=""
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             </span>
 
             {/* The panel rides up over the photo's foot, so the card reads as

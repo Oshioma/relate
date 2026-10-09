@@ -44,6 +44,7 @@ export function StepLaunch({ state }: { state: WizardState }) {
       // one from the kind of place, the other from the activity.
       mapLayers: state.templateKey === "place" || state.templateKey === "activity" ? state.mapLayers : [],
       spaces: state.spaces.map((s) => ({ name: s.name, description: s.description, show_in_nav: s.show_in_nav, space_type: s.space_type, staff_post_only: s.staff_post_only, visibility: s.visibility })),
+      coverKey: state.coverKey,
       ownerAgreementAccepted: agreed,
     });
     // Only reached on error — success redirects server-side.

@@ -18,7 +18,7 @@ export function StepBasics({ state, update }: { state: WizardState; update: (pat
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Let&apos;s set up your community</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Start with the basics. Logo and cover image can be added afterward from the community&apos;s Admin page.
+          Start with the basics. You&apos;ll pick a cover photo in a moment; a logo can be added afterward from the community&apos;s Admin page.
         </p>
       </div>
 
