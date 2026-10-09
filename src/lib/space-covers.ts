@@ -29,6 +29,16 @@ function isHttpUrl(url: string | null | undefined): url is string {
   return Boolean(url) && /^https?:\/\//i.test(url as string);
 }
 
+// Businesses imported from their websites often carry a logo or a social share
+// card rather than a photo, which reads badly as a full-bleed card image.
+const NOT_A_PHOTO = /logo|og[-_]?image|favicon|icon|avatar|\.svg(\?|$)/i;
+// PNGs and GIFs are more often graphics than photos, so they go last.
+const LIKELY_GRAPHIC = /\.(png|gif)(\?|$)/i;
+
+function isLikelyPhoto(url: string): boolean {
+  return !NOT_A_PHOTO.test(url);
+}
+
 export function pickSpaceCovers(
   spaces: CoverSpace[],
   photos: CoverPhoto[],
@@ -36,7 +46,10 @@ export function pickSpaceCovers(
 ): Map<string, string | null> {
   const used = new Set<string>();
   const covers = new Map<string, string | null>();
-  const usable = photos.filter((photo) => isHttpUrl(photo.url));
+  // Stable sort: real photos keep their order, likely graphics move to the end.
+  const usable = photos
+    .filter((photo) => isHttpUrl(photo.url) && isLikelyPhoto(photo.url))
+    .sort((a, b) => Number(LIKELY_GRAPHIC.test(a.url)) - Number(LIKELY_GRAPHIC.test(b.url)));
 
   // Admin-set covers first, so a fallback never takes a picture an admin chose.
   for (const space of spaces) {
