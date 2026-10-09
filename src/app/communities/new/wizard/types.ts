@@ -48,6 +48,9 @@ export interface WizardState {
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
+  // The suggested cover picked in Customize (COMMUNITY_COVERS key), or "" to
+  // let the server choose the best match for the template.
+  coverKey: string;
 }
 
 export const INITIAL_WIZARD_STATE: WizardState = {
@@ -68,6 +71,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   mapLayers: [],
   rationale: [],
   spaces: [],
+  coverKey: "",
 };
 
 let counter = 0;
