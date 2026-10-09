@@ -1,5 +1,6 @@
 "use server";
 
+import { coverPath, defaultCoverKey, isCoverKey } from "@/lib/community-covers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, slugifyCommunity } from "@/lib/utils";
@@ -32,6 +33,10 @@ export interface WizardSpaceInput {
 }
 
 export interface WizardPayload {
+  // A suggested cover from COMMUNITY_COVERS, chosen in the wizard. Anything
+  // that isn't one of those keys (including "") falls back to the template's
+  // best match, so every new community launches with a cover photo.
+  coverKey?: string;
   name: string;
   slug: string;
   description: string;
@@ -84,6 +89,17 @@ function uniqueSlugs(names: string[]): string[] {
     used.add(candidate);
     return candidate;
   });
+}
+
+// A site path made absolute against the platform origin. Without a configured
+// origin it stays relative — still fine in the page, just no preview image.
+function siteAbsolute(path: string): string {
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  try {
+    return site ? new URL(path, site).toString() : path;
+  } catch {
+    return path;
+  }
 }
 
 export async function createCommunityFromWizard(payload: WizardPayload): Promise<WizardResult> {
@@ -150,6 +166,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       activity_kind: activityKind,
       school_kind: schoolKind,
       craft_kind: craftKind,
+      // An absolute URL, because the cover also becomes the link-preview
+      // (OG) image, which must be absolute — see the community layout.
+      cover_image_url: siteAbsolute(coverPath(isCoverKey(payload.coverKey) ? payload.coverKey : defaultCoverKey(templateKey ?? ""))),
       owner_agreement_accepted_at: new Date().toISOString(),
       owner_agreement_version: OWNER_AGREEMENT_VERSION,
     })
