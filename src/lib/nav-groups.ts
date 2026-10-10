@@ -74,6 +74,7 @@ const DEFAULTS: Record<string, NavGroup> = {
 
   // Learn — you came here to find something out or to be taught it.
   lessons: "learn",
+  books_media: "learn",
   course: "learn",
   guides: "learn",
   resources: "learn",

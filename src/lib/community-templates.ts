@@ -986,6 +986,10 @@ export const SCHOOL_KINDS: SchoolKind[] = [
       { name: "Family Chat", description: "General conversation between the families teaching together." },
       { name: "Curriculum Planning", description: "What we're covering this term, and what worked last." },
       { name: "Reading & Resources", description: "Reading lists, worksheets and materials worth keeping.", space_type: "resources" },
+      // The reviewed shelf: what we have actually read and watched, and what we
+      // decided about it. Distinct from Reading & Resources, which is where the
+      // worksheets live.
+      { name: "Books & Media", description: "Books, videos and shows we've checked for our children — what's good, what isn't, and why.", space_type: "books_media" },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
       { name: "Swap Shelf", description: "Books, kit and materials to pass on when you're done.", space_type: "marketplace" },
       { name: "Live Lessons", description: "One parent teaches a subject on video and every family's children sit in.", space_type: "live" },
@@ -1002,6 +1006,7 @@ export const SCHOOL_KINDS: SchoolKind[] = [
     extraSpaces: [
       { name: "Teaching Rota", description: "Who is teaching what, and when." },
       { name: "Shared Costs", description: "Materials, venue hire and who has paid what." },
+      { name: "Books & Media", description: "Books, videos and shows we've checked for our children — what's good, what isn't, and why.", space_type: "books_media" },
       { name: "Live Lessons", description: "Whoever is teaching this week takes it on video, so nobody has to travel for it.", space_type: "live" },
       { name: "Field Trips", description: "Post a trip, others tap “I'm in” and come along.", space_type: "meetups" },
     ],

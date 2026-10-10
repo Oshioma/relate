@@ -86,6 +86,9 @@ import { CoursesView } from "./courses-view";
 import { LiveEventsView } from "./live-events-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { LessonsView } from "./lessons-view";
+import { BooksMediaView } from "./books-media-view";
+import { getSpaceMediaItems } from "@/lib/data/media-items";
+import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
 import { PlantIdPanel } from "./plant-id-panel";
@@ -189,6 +192,8 @@ export default async function SpaceDetailPage({
   const isLiveSpace = space.space_type === "live";
   const isMeetupsSpace = space.space_type === "meetups";
   const isLessonsSpace = space.space_type === "lessons";
+  // The family media shelf: reviewed books, videos and shows.
+  const isBooksMediaSpace = space.space_type === "books_media";
   // Adopt a Beginner and its siblings: a landing page with its own hero, and
   // sub-pages under ./join, ./mentors, ./requests, ./journeys, ./stories, ./manage.
   const isGuidedJourneySpace = space.space_type === "guided_journey";
@@ -219,6 +224,7 @@ export default async function SpaceDetailPage({
     !isLiveSpace &&
     !isMeetupsSpace &&
     !isLessonsSpace &&
+    !isBooksMediaSpace &&
     !isGuidedJourneySpace;
 
   const [
@@ -304,6 +310,10 @@ export default async function SpaceDetailPage({
     ? await getSavedLessonIds(supabase, user.id, allLessons.map((l) => l.id))
     : new Set<string>();
   const lessons = isLessonsSpace ? withSavedState(allLessons, savedLessonIds) : [];
+
+  // The shelf of a Books & Media space. RLS scopes it to what the viewer may
+  // see, so a guest on a public homeschool gets the same list.
+  const mediaItems = isBooksMediaSpace ? await getSpaceMediaItems(supabase, space.id) : [];
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -407,7 +417,7 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace ? "max-w-6xl" : "max-w-3xl",
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace ? "max-w-6xl" : "max-w-3xl",
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
@@ -773,6 +783,18 @@ export default async function SpaceDetailPage({
         />
       ) : isGuidedJourneySpace ? (
         <GuidedJourneySpaceView communitySlug={community.slug} spaceSlug={space.slug} justEnded={ended === "1"} />
+      ) : isBooksMediaSpace ? (
+        <BooksMediaView
+          items={mediaItems}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={viewerId}
+          aiConfigured={isMediaReviewConfigured()}
+        />
       ) : isLessonsSpace ? (
         <LessonsView
           lessons={lessons}

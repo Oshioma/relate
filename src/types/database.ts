@@ -43,7 +43,8 @@ export type SpaceType =
   | "live"
   | "meetups"
   | "lessons"
-  | "guided_journey";
+  | "guided_journey"
+  | "books_media";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -1235,6 +1236,42 @@ export type SpaceLesson = {
   ai_batch: boolean;
   ai_input_tokens: number | null;
   ai_output_tokens: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A Books & Media space's shelf: one row per reviewed book, video or other
+// piece of media. See 20261010113029_space_media_items.sql and
+// src/lib/media/media-types.ts for the vocabularies the text columns use.
+export type MediaKind = "book" | "video" | "audio" | "game" | "app" | "website" | "other";
+export type MediaVerdict = "suitable" | "caution" | "not_suitable";
+export type MediaProfanity = "none" | "mild" | "moderate" | "strong" | "unknown";
+export type MediaConcern = { category: string; level: "none" | "mild" | "moderate" | "strong"; note: string };
+export type SpaceMediaItem = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  url: string;
+  link_key: string;
+  kind: MediaKind;
+  title: string;
+  creator: string | null;
+  description: string;
+  image_url: string | null;
+  age_min: number | null;
+  age_max: number | null;
+  verdict: MediaVerdict;
+  reason: string | null;
+  profanity: MediaProfanity;
+  concerns: MediaConcern[];
+  themes: string[];
+  ai_analysis: unknown;
+  ai_model: string | null;
+  ai_input_tokens: number | null;
+  ai_output_tokens: number | null;
+  share_with_other_communities: boolean;
+  imported_from: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -3246,6 +3283,12 @@ export type Database = {
         Update: Partial<SpaceLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
+      space_media_items: {
+        Row: SpaceMediaItem;
+        Insert: Partial<SpaceMediaItem> & { space_id: string; community_id: string; created_by: string; url: string; link_key: string; title: string };
+        Update: Partial<SpaceMediaItem>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
       lesson_video_jobs: {
         Row: LessonVideoJob;
         Insert: Partial<LessonVideoJob> & {
@@ -3922,6 +3965,29 @@ export type Database = {
       community_purchased_space_types: {
         Args: { p_community_id: string };
         Returns: string[];
+      };
+      shared_media_items_from_other_communities: {
+        Args: { p_community_id: string; p_limit?: number };
+        Returns: {
+          id: string;
+          community_id: string;
+          community_name: string | null;
+          community_slug: string | null;
+          url: string;
+          kind: string;
+          title: string;
+          creator: string | null;
+          description: string;
+          image_url: string | null;
+          age_min: number | null;
+          age_max: number | null;
+          verdict: string;
+          reason: string | null;
+          profanity: string;
+          concerns: unknown;
+          themes: string[];
+          created_at: string;
+        }[];
       };
       consume_ai_quota: {
         Args: { p_bucket: string; p_identity: string; p_limit: number };
