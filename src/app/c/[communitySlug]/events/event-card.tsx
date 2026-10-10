@@ -15,6 +15,7 @@ import { EventImageQuickActions } from "./event-image-quick-actions";
 import type { Event } from "@/types/database";
 import type { EventRsvpWithAttendee } from "@/lib/data/events";
 import { placesLeftLabel } from "@/lib/event-places";
+import { DEFAULT_EVENT_IMAGE_URL } from "@/lib/events/default-image";
 
 export function EventCard({
   event,
@@ -44,11 +45,12 @@ export function EventCard({
   const isFull = places === "Full";
   const visibleAttendees = rsvps.slice(0, 5);
   const [imageBroken, setImageBroken] = useState(false);
+  const [defaultImageBroken, setDefaultImageBroken] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
   // Scraped image URLs sometimes 404 or reject hotlinking once loaded in a
   // browser even though the server-side scrape found them — fall back to
-  // the placeholder instead of showing a broken-image icon.
+  // the default photo instead of showing a broken-image icon.
   const showImage = Boolean(event.image_url) && !imageBroken;
   // Events have no page of their own, so share a deep link to this card in the
   // community's events list (the anchor id below). On the community's host the
@@ -86,6 +88,14 @@ export function EventCard({
             alt={event.title}
             className="h-full w-full object-cover"
             onError={() => setImageBroken(true)}
+          />
+        ) : !defaultImageBroken ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={DEFAULT_EVENT_IMAGE_URL}
+            alt=""
+            className="h-full w-full object-cover"
+            onError={() => setDefaultImageBroken(true)}
           />
         ) : (
           <div className={cn("flex h-full items-center justify-center bg-gradient-to-br from-accent-soft to-muted text-foreground", featured ? "gap-5" : "gap-3")}>
