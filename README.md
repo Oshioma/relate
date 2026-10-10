@@ -283,6 +283,36 @@ The Admin page's Spaces section is now a real builder: rename,
 change type/visibility, duplicate, delete, drag to reorder, or hide
 from navigation.
 
+## Books & Media spaces
+
+Migrations `*_books_media_space_type.sql`, `*_books_media_space_type_check.sql`
+and `*_space_media_items.sql`. A `books_media`-type space is a family's
+reviewed shelf of books, videos, shows, podcasts, games and apps — the
+Homeschool and Co-op school kinds seed one as "Books & Media". Any
+active member pastes a link; **Review with AI** (needs
+`ANTHROPIC_API_KEY`) reads the page and searches for ratings, reviews and
+parent guides, then fills in the title, who made it, a description, a
+suggested age range, how much bad language there is and anything a
+parent should know first (violence, scary scenes, romance, substances,
+mature themes…). The parent checks every field, picks a verdict — good
+for kids, good with a note, or not suitable with the reason why — and
+adds it. The not-suitable shelf is its own tab so the reason is as easy
+to find as the recommendation.
+
+Reviews are per link per space (`space_media_items.link_key`), readable
+by anyone who can see the space, and editable by whoever added them or
+community staff. Each AI review is charged to the community's AI
+allowance and capped per person per day (`MEDIA_REVIEWS_PER_DAY`).
+
+Every community's shelf starts empty. Items are shared with other
+communities by default (per item, `share_with_other_communities`), and
+**Bring in from other communities** lists what other shelves have shared
+— read through the `SECURITY DEFINER` function
+`shared_media_items_from_other_communities()`, which returns only shared
+rows and names the source community unless it is invite-only. "Add to
+our shelf" copies one onto this community's shelf as the member's own
+row (`imported_from` records where it came from).
+
 ## Journal spaces
 
 Run `supabase/space-journal.sql` too, after `space-types.sql` and
