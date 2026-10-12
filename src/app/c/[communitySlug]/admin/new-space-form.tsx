@@ -52,7 +52,7 @@ export function NewSpaceForm({
 
       <div>
         <Label htmlFor="space_name">Name</Label>
-        <Input id="space_name" name="name" placeholder="Announcements" required />
+        <Input id="space_name" name="name" placeholder="e.g. Announcements" required />
       </div>
 
       {/* Type comes before description now: a directory shows no description
