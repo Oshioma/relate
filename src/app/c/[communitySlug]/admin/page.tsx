@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, ListTree, Inbox } from "lucide-react";
+import { CalendarDays, Sparkles, ListTree, Inbox, BarChart3, Eye } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
   getCommunityBySlug,
   getMembership,
@@ -14,6 +15,7 @@ import {
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
 import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
+import { ViewAsMemberButton } from "./view-as-member-button";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { MembersSection } from "./members-section";
 import { JoinRequestsSection } from "./join-requests-section";
@@ -78,29 +80,40 @@ export default async function AdminPage({
   // community's admin page — and every other surface that could have told them
   // why is behind the same check. communities.owner_id is the authority.
   const isAdmin = isCommunityAdmin(community, membership, user.id);
+  // Platform view: the super admin may open any community's admin page and see
+  // exactly what its owner sees (plan, payments, tiers included) — read-only.
+  // Every control below sits in a disabled fieldset, and the server actions
+  // behind them still check community admin rights, so nothing can be changed
+  // from here.
+  const viewerProfile = isAdmin ? null : await getProfile(supabase, user.id);
+  const platformView = !isAdmin && Boolean(viewerProfile?.is_super_admin);
 
-  if (!isAdmin) {
+  if (!isAdmin && !platformView) {
     redirect(`/c/${community.slug}`);
   }
 
-  const isOwner = isCommunityOwner(community, user.id) || membership?.role === "owner";
+  const isOwner = platformView || isCommunityOwner(community, user.id) || membership?.role === "owner";
+  // In platform view the super admin usually isn't a member, so RLS would hide
+  // a private community's members, spaces and the rest. Their reads go through
+  // the service-role client instead — only after the super-admin check above.
+  const db = platformView ? createAdminClient() : supabase;
 
   const [spaces, members, joinRequests, events, profileFields, navLinks, navItemOrder, features, featureControls, featuredCategories, customCategories, labelOverrides, allowedTypes, savedNavGroups] =
     await Promise.all([
-      getCommunitySpaces(supabase, community.id),
-      getCommunityMembers(supabase, community.id),
-      getPendingJoinRequests(supabase, community.id),
-      getCommunityEvents(supabase, community.id),
-      getCommunityProfileFields(supabase, community.id),
-      getCommunityNavLinks(supabase, community.id),
-      getCommunityNavItemOrder(supabase, community.id),
-      getCommunityFeatures(supabase, community.id),
-      isOwner ? getCommunityFeatureControls(supabase, community.id) : Promise.resolve([]),
-      getCommunityFeaturedBusinessCategories(supabase, community.id),
-      getCommunityBusinessCustomCategories(supabase, community.id),
-      getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
-      getAllowedSpaceTypes(supabase, community.id),
-      getCommunityNavGroups(supabase, community.id),
+      getCommunitySpaces(db, community.id),
+      getCommunityMembers(db, community.id),
+      getPendingJoinRequests(db, community.id),
+      getCommunityEvents(db, community.id),
+      getCommunityProfileFields(db, community.id),
+      getCommunityNavLinks(db, community.id),
+      getCommunityNavItemOrder(db, community.id),
+      getCommunityFeatures(db, community.id),
+      isOwner ? getCommunityFeatureControls(db, community.id) : Promise.resolve([]),
+      getCommunityFeaturedBusinessCategories(db, community.id),
+      getCommunityBusinessCustomCategories(db, community.id),
+      getCommunityBusinessCategoryLabelOverrides(db, community.id),
+      getAllowedSpaceTypes(db, community.id),
+      getCommunityNavGroups(db, community.id),
     ]);
 
   // Sidebar sections. If they could not be read, the dropdowns still offer the
@@ -114,10 +127,10 @@ export default async function AdminPage({
   }
 
   const journalSpaceIds = spaces.filter((s) => s.space_type === "journal").map((s) => s.id);
-  const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(supabase, journalSpaceIds);
+  const journalFieldsBySpaceId = await getJournalFieldsBySpaceIds(db, journalSpaceIds);
 
   // Just the open count — the messages themselves live on the Inbox page.
-  const openMessageCount = await countUnhandledCommunityContactMessages(supabase, community.id);
+  const openMessageCount = await countUnhandledCommunityContactMessages(db, community.id);
 
   // Overview stats. Members are already active-only (see getCommunityMembers);
   // "new this week" counts them by join date so the header reflects momentum,
@@ -144,10 +157,10 @@ export default async function AdminPage({
   // 'white_label' is what a plan calls running the community on your own
   // domain. Only the owner sees that section at all.
   const planAllowsCustomDomain = isOwner
-    ? await communityHasFeature(supabase, community.id, "white_label")
+    ? await communityHasFeature(db, community.id, "white_label")
     : false;
 
-  const platformPlans = isOwner ? await getActivePlatformPlans(supabase) : [];
+  const platformPlans = isOwner ? await getActivePlatformPlans(db) : [];
   const currentPlan = platformPlans.find((p) => p.id === community.plan_id) ?? null;
   const planIsLive =
     community.plan_status === "active" || community.plan_status === "trialing" || community.plan_status === "comped";
@@ -155,15 +168,15 @@ export default async function AdminPage({
 
   // Feature marketplace (owner-only): available packs + which this community has
   // actively installed.
-  const featurePacks = isOwner ? await getActiveFeaturePacks(supabase) : [];
-  const communityAddons = isOwner ? await getCommunityAddons(supabase, community.id) : [];
+  const featurePacks = isOwner ? await getActiveFeaturePacks(db) : [];
+  const communityAddons = isOwner ? await getCommunityAddons(db, community.id) : [];
   const installedPackIds = communityAddons
     .filter((a) => a.status === "active" || a.status === "trialing")
     .map((a) => a.pack_id);
 
   // Membership tiers (owner-only section, shown once payments are connected).
   // Public spaces are always free, so they can't be assigned to a tier.
-  const tiers = isOwner && canCharge ? await getCommunityTiers(supabase, community.id) : [];
+  const tiers = isOwner && canCharge ? await getCommunityTiers(db, community.id) : [];
   const tierAssignableSpaces = spaces.filter((s) => s.visibility !== "public").map((s) => ({ id: s.id, name: s.name }));
 
   // A space's nav sub-links, grouped by space and kept in nav order (the query
@@ -204,43 +217,69 @@ export default async function AdminPage({
     { label: "Bundle a membership tier", hint: "Group spaces into one recurring price.", done: tiers.length > 0, href: "#tiers" },
   ];
 
-  // Sections shown in the sticky jump-nav, in page order. Owner-only sections
-  // are appended only when they actually render below, so a chip never points
-  // at a missing anchor.
+  // Sections shown in the admin nav, in page order and grouped under headings.
+  // Owner-only sections are appended only when they actually render below, so
+  // a link never points at a missing anchor.
   const sections: AdminNavSection[] = [
-    { id: "overview", label: "Overview" },
-    { id: "members", label: "Members" },
-    { id: "details", label: "Details" },
-    { id: "landing", label: "Landing page" },
-    { id: "guidelines", label: "Guidelines" },
-    { id: "contact", label: "Contact" },
-    { id: "public-access", label: "Public access" },
-    { id: "spaces", label: "Spaces" },
-    { id: "sidebar-sections", label: "Sidebar sections" },
-    { id: "profile-fields", label: "Profile fields" },
-    { id: "sidebar-links", label: "Sidebar links" },
-    { id: "more", label: "More" },
+    { id: "overview", label: "Overview", group: "Community" },
+    { id: "members", label: "Members", group: "Community" },
+    { id: "details", label: "Details", group: "Profile & pages" },
+    { id: "landing", label: "Landing page", group: "Profile & pages" },
+    { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
+    { id: "contact", label: "Contact", group: "Profile & pages" },
+    { id: "public-access", label: "Public access", group: "Profile & pages" },
+    { id: "spaces", label: "Spaces", group: "Spaces & sidebar" },
+    { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
+    { id: "profile-fields", label: "Profile fields", group: "Spaces & sidebar" },
+    { id: "sidebar-links", label: "Sidebar links", group: "Spaces & sidebar" },
+    { id: "more", label: "More", group: "Spaces & sidebar" },
   ];
-  if (isOwner && featureControls.length > 0) sections.push({ id: "features", label: "Features" });
+  if (isOwner && featureControls.length > 0) {
+    sections.push({ id: "features", label: "Features", group: "Spaces & sidebar" });
+  }
   if (isOwner) {
     sections.push(
-      { id: "plan", label: "Plan" },
-      { id: "marketplace", label: "Marketplace" },
-      { id: "payments", label: "Payments" },
-      { id: "tiers", label: "Tiers" },
-      { id: "domain", label: "Custom domain" },
-      { id: "danger", label: "Danger zone" },
+      { id: "plan", label: "Plan", group: "Plan & payments" },
+      { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
+      { id: "payments", label: "Payments", group: "Plan & payments" },
+      { id: "tiers", label: "Tiers", group: "Plan & payments" },
+      { id: "domain", label: "Custom domain", group: "Settings" },
+      { id: "danger", label: "Danger zone", group: "Settings" },
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10">
       <AdminSectionNav sections={sections} />
 
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
-      <p className="mb-8 text-sm text-muted-foreground">Manage {community.name}.</p>
+      {/* A disabled fieldset turns off every input and button inside it in one
+          go — the platform view's read-only switch. Links still work. */}
+      <fieldset disabled={platformView} className="m-0 min-w-0 border-0 p-0 lg:max-w-3xl">
+      {platformView && (
+        <div className="mb-6 flex items-start gap-3 rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+          <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <p>
+            <span className="font-medium">Platform view — read-only.</span> You&apos;re seeing {community.name}&apos;s admin
+            exactly as its owner does, including plan and payments. Controls are switched off; to grant or remove a
+            complimentary plan, use{" "}
+            <Link href="/platform-admin/communities" className="font-medium underline">
+              Platform admin → Communities
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
+          <p className="text-sm text-muted-foreground">Manage {community.name}.</p>
+        </div>
+        {/* Hidden in platform view: a super admin who isn't staff here has
+            nothing to step down from. */}
+        {!platformView && <ViewAsMemberButton communityId={community.id} communitySlug={community.slug} />}
+      </div>
 
-      <div id="overview" className="mb-8 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
+      <div id="overview" className="mb-3 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="pt-5">
@@ -251,6 +290,14 @@ export default async function AdminPage({
           </Card>
         ))}
       </div>
+
+      <Link
+        href={`/c/${community.slug}/admin/analytics`}
+        className="mb-8 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+      >
+        <BarChart3 className="h-4 w-4" />
+        View full analytics — active members, joins, posts and top members
+      </Link>
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
       <div className="mb-8 space-y-4">
@@ -501,6 +548,7 @@ export default async function AdminPage({
           <DeleteCommunitySection community={community} />
         </>
       )}
+      </fieldset>
     </div>
   );
 }

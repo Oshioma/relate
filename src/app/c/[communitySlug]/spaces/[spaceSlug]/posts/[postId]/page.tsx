@@ -62,6 +62,7 @@ export default async function PostDetailPage({
         post={post}
         canEdit={isPostAuthor || isStaff}
         canDelete={isPostAuthor || isStaff}
+        canPin={isStaff}
         communitySlug={community.slug}
         spaceSlug={space.slug}
         crops={crops}

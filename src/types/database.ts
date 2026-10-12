@@ -3999,6 +3999,11 @@ export type Database = {
         Args: { p_community_id: string };
         Returns: boolean;
       };
+      community_analytics: {
+        Args: { p_community_id: string; p_days?: number };
+        // jsonb — parsed and typed in src/lib/data/community-analytics.ts.
+        Returns: unknown;
+      };
       community_has_feature: {
         Args: { p_community_id: string; p_feature: string };
         Returns: boolean;

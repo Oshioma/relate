@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Community, CommunityMembership, Profile } from "@/types/database";
+import { previewingAsMember } from "@/lib/view-as-member";
 
 type Client = SupabaseClient<Database>;
 
-type CommunityOwner = Pick<Community, "owner_id">;
+// view_as_member is app-only, never a column: getCommunityBySlug sets it while
+// the viewer is previewing the community as a member (src/lib/view-as-member.ts).
+type CommunityOwner = Pick<Community, "owner_id"> & { view_as_member?: boolean };
 type ViewerMembership = Pick<CommunityMembership, "role" | "status"> | null;
 
 // The viewer predicates below all take the community as well as the membership
@@ -16,6 +19,7 @@ type ViewerMembership = Pick<CommunityMembership, "role" | "status"> | null;
 // mirror is_community_owner / _admin / _staff / _member in the database, which
 // answer the same way for the same reason.
 export function isCommunityOwner(community: CommunityOwner, viewerId: string | null | undefined): boolean {
+  if (community.view_as_member) return false;
   return Boolean(viewerId) && community.owner_id === viewerId;
 }
 
@@ -112,6 +116,7 @@ export async function getAllCommunities(supabase: Client): Promise<Community[]> 
 export async function getCommunityBySlug(supabase: Client, slug: string): Promise<Community | null> {
   const { data, error } = await supabase.from("communities").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
+  if (data && (await previewingAsMember(data.id))) return Object.assign(data, { view_as_member: true });
   return data;
 }
 
@@ -127,6 +132,10 @@ export async function getMembership(
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
+  // Previewing as a member: staff roles read as a plain member.
+  if (data && data.role !== "member" && (await previewingAsMember(communityId))) {
+    return { ...data, role: "member" };
+  }
   return data;
 }
 

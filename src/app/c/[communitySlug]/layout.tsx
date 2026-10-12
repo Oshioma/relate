@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Compass } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
+import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -179,6 +180,9 @@ export default async function CommunityLayout({
   // community — no Admin link here, and the guest banner below — with nothing
   // on screen offering a way back in.
   const isStaff = isCommunityAdmin(community, membership, user?.id);
+  // Set when an owner/admin is previewing as a member — the helpers above
+  // already read them as one; this only drives the "Exit preview" bar.
+  const previewingMember = Boolean(user) && (community as { view_as_member?: boolean }).view_as_member === true;
   const isMember = isCommunityMember(community, membership, user?.id);
   // Contact-form messages waiting on staff. Only staff can read them (RLS says
   // so too), so only staff pay for the count query.
@@ -557,7 +561,9 @@ export default async function CommunityLayout({
                 )}
               </Link>
             )}
-            {isStaff && (
+            {/* The super admin gets it too: the admin page opens read-only for them
+                (platform view), so they can see any community the way its owner does. */}
+            {(isStaff || (profile?.is_super_admin && !previewingMember)) && (
               <Link
                 href={`${base}/admin`}
                 title="Community admin"
@@ -566,6 +572,20 @@ export default async function CommunityLayout({
                 <Shield className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin</span>
               </Link>
+            )}
+            {isStaff && (
+              <form action={startViewAsMember}>
+                <input type="hidden" name="community_id" value={community.id} />
+                <input type="hidden" name="community_slug" value={community.slug} />
+                <button
+                  type="submit"
+                  title="See this community as a regular member does"
+                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <Eye className="h-5 w-5" />
+                  <span className="hidden lg:inline">View as member</span>
+                </button>
+              </form>
             )}
             {showMembersLink && (
               <Link href={`${base}/members`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -596,6 +616,25 @@ export default async function CommunityLayout({
         </header>
 
         <main className="flex-1">
+          {previewingMember && (
+            <form
+              action={exitViewAsMember}
+              className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-foreground px-4 py-2 text-center text-sm text-background"
+            >
+              <input type="hidden" name="community_slug" value={community.slug} />
+              <Eye className="h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                <span className="font-medium">Viewing as a member.</span> This is {community.name} as a regular member
+                sees it — no admin tools.
+              </span>
+              <button
+                type="submit"
+                className="rounded-md bg-background px-3 py-1 text-xs font-medium text-foreground transition-opacity hover:opacity-90"
+              >
+                Exit preview
+              </button>
+            </form>
+          )}
           {!user ? (
             <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               You&apos;re viewing the public parts of {community.name}.{" "}

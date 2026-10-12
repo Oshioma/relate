@@ -60,7 +60,6 @@ import { getCommunityRecentClubs } from "@/lib/data/clubs";
 import { getCommunityUpcomingMeetups } from "@/lib/data/meetups";
 import { formatMeetupCountdown, meetupPhase } from "@/lib/meetups";
 import { getCommunityRecentVolunteerProjects } from "@/lib/data/volunteer-hub";
-import { EmptyState } from "@/components/ui/empty-state";
 import { CommunityJoinCta } from "./community-join-cta";
 import { CommunityGate } from "./community-gate";
 import { WeatherTidesCard } from "./weather-tides-card";
@@ -77,6 +76,8 @@ import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
 import { FeaturedSpaceCard } from "./featured-space-card";
+import { ExampleFeed } from "./example-feed";
+import { exampleFeedPosts } from "@/lib/feed-examples";
 import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { postGallery } from "@/lib/post-media";
 
@@ -530,6 +531,25 @@ export default async function CommunityFeedPage({
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
     : null;
 
+  // A feed holding nothing but "New Member" cards still reads as empty: joining
+  // isn't sharing, and a new community with a few members would otherwise lose
+  // its example posts before anyone has posted a thing. Examples show until a
+  // real item of any other kind arrives.
+  const showExampleFeed = !activity.some((item) => item.itemType !== "member");
+
+  // Byline for the example posts. Only fetched when they show, and reused when
+  // the viewer is the owner. If the owner's profile can't be read (e.g. a
+  // signed-out visitor), the examples fall back to the community's own name
+  // and logo.
+  const exampleFeedOwner =
+    !showExampleFeed
+      ? null
+      : viewer && viewer.id === community.owner_id
+        ? { name: viewer.name, avatarUrl: viewer.avatarUrl }
+        : await getProfile(supabase, community.owner_id)
+            .then((p) => (p ? { name: p.full_name || p.username, avatarUrl: p.avatar_url } : null))
+            .catch(() => null);
+
   // Counts are opt-in per community (show_stats, default off). A stat panel
   // exists to argue the place is busy, and small numbers argue the opposite —
   // so a community only shows them once its owner decides they help. Zero
@@ -679,21 +699,24 @@ export default async function CommunityFeedPage({
             {isMember && viewer && (
               <FeedComposer base={base} spaces={postableSpaces} viewerName={viewer.name} viewerAvatar={viewer.avatarUrl} />
             )}
-            {activity.length === 0 ? (
-              // An empty feed means two different things. For a member the
-              // community really is quiet. For a signed-out visitor it means
-              // nothing here is public — which is a rule to state, not a
-              // diagnosis to guess at: it could be that every space is
-              // members-only, or that the public ones hold the kinds of thing
-              // the feed doesn't carry. Either way "be the first to share
-              // something" is the wrong thing to say to someone who can't.
-              <EmptyState
-                icon={<MessageSquare className="h-6 w-6" />}
-                title={user ? "No activity yet" : "Nothing public here yet"}
-                description={
-                  user
-                    ? "Be the first to share something — start a post, add a business, or list an event."
-                    : `Signed-out visitors only see activity from spaces set to Public. Log in or join to see what's happening in ${community.name}.`
+            {showExampleFeed && (
+              // An empty feed shows example posts in the owner's voice instead
+              // of a blank page — never stored, clearly labelled, and gone the
+              // moment anything real is posted. The notice still says what an
+              // empty feed means for this viewer: for staff, that the examples
+              // are temporary; for a member, that the place really is quiet;
+              // for a signed-out visitor, that nothing here is public — a rule
+              // to state, since "be the first to share" is wrong to say to
+              // someone who can't.
+              <ExampleFeed
+                posts={exampleFeedPosts(community)}
+                owner={exampleFeedOwner ?? { name: community.name, avatarUrl: community.logo_url }}
+                notice={
+                  isStaff
+                    ? "These example posts show until something is shared here (new-member cards don't count) — members see them too, labelled as examples. They disappear as soon as the first real post goes up."
+                    : user
+                      ? "Nothing's been shared yet, so here are a few example posts. Be the first to share something — start a post, add a business, or list an event."
+                      : `These are example posts. Signed-out visitors only see activity from spaces set to Public — log in or join to see what's happening in ${community.name}.`
                 }
                 action={
                   user ? (
@@ -713,28 +736,29 @@ export default async function CommunityFeedPage({
                   )
                 }
               />
-            ) : (
-              activity.map((item) => (
-                <FeedItemCard
-                  key={item.key}
-                  item={{
-                    ...item,
-                    authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
-                    actions: {
-                      communitySlug: community.slug,
-                      communityId: community.id,
-                      itemType: item.itemType,
-                      itemId: item.itemId,
-                      canInteract: isMember,
-                      viewerId: user?.id ?? null,
-                      viewer,
-                      isStaff,
-                      ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
-                    },
-                  }}
-                />
-              ))
             )}
+            {/* Real activity — after the examples when they show, so any New
+                Member cards follow them. */}
+            {activity.map((item) => (
+              <FeedItemCard
+                key={item.key}
+                item={{
+                  ...item,
+                  authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
+                  actions: {
+                    communitySlug: community.slug,
+                    communityId: community.id,
+                    itemType: item.itemType,
+                    itemId: item.itemId,
+                    canInteract: isMember,
+                    viewerId: user?.id ?? null,
+                    viewer,
+                    isStaff,
+                    ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
+                  },
+                }}
+              />
+            ))}
           </div>
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
