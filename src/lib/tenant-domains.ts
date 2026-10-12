@@ -59,3 +59,50 @@ export async function resolveCommunitySlugForHost(host: string): Promise<string 
 
   return slug;
 }
+
+// The reverse lookup: a community's verified custom domain from its slug, or
+// null when it has none. The proxy uses it to move signed-out visitors from
+// <slug>.<platform-apex> onto the community's own domain. Same caching and
+// failure rules as above: any error reads as "no custom domain", which just
+// leaves the visitor where they are.
+const domainCache = new Map<string, { domain: string | null; expiresAt: number }>();
+
+async function fetchDomainForSlug(slug: string): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/community_domain_for_slug`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+      },
+      body: JSON.stringify({ p_slug: slug }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const domain = (await res.json()) as unknown;
+    return typeof domain === "string" && domain.length > 0 ? domain.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveCustomDomainForSlug(slug: string): Promise<string | null> {
+  const key = slug.toLowerCase();
+  const cached = domainCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.domain;
+
+  const domain = await fetchDomainForSlug(key);
+
+  if (domainCache.size >= MAX_CACHE_ENTRIES) {
+    const oldest = domainCache.keys().next().value;
+    if (oldest !== undefined) domainCache.delete(oldest);
+  }
+  domainCache.set(key, { domain, expiresAt: Date.now() + (domain ? FOUND_TTL_MS : MISS_TTL_MS) });
+
+  return domain;
+}

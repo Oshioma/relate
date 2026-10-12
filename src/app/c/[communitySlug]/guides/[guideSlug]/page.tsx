@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
 import { getEditorialGuide, getGuideDirectory } from "@/lib/data/editorial-guides";
+import { communityShareOrigin } from "@/lib/custom-domain";
 import { WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
 import { communityLinksFor, guideUrl, loadGuide } from "@/lib/guides/where-to-stay/page-data";
 import { TAG_LABELS, SWIMMING_LABELS, ATMOSPHERE_LABELS } from "@/lib/guides/where-to-stay/labels";
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!guide) return {};
   const { heroPhoto } = resolveGuideContent(parseOverrides(guide.content));
   const host = (await headers()).get("host");
-  const { absolute } = guideUrl(host, community.slug);
+  const { absolute } = guideUrl(host, community.slug, undefined, communityShareOrigin(community));
   const title = "Where to Stay in Zanzibar: The Complete Guide to 14 Best Beach Destinations";
   return {
     title,
@@ -108,7 +109,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
   const canEdit = isCommunityAdmin(community, membership, user?.id);
 
   const host = (await headers()).get("host");
-  const { absolute: pageUrl } = guideUrl(host, community.slug);
+  const { absolute: pageUrl } = guideUrl(host, community.slug, undefined, communityShareOrigin(community));
 
   const { destinations, heroPhoto, editorsNote } = content;
   const summaries = destinations.map(summarise);

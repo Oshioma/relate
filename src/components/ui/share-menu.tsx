@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Share2, Copy, Check, MessageCircle, Mail, Send } from "lucide-react";
+import { useShareOrigin } from "./share-origin";
+import { toShareUrl } from "@/lib/share-url";
 
 const MENU_WIDTH = 224; // w-56
 
@@ -11,7 +13,8 @@ const MENU_WIDTH = 224; // w-56
 // X, Telegram and email. It's deliberately generic — hand it whatever page it
 // sits on and it shares that. When `url` isn't given it shares the current
 // page (window.location.href), which is already the clean, canonical link on a
-// community's own host because the proxy strips the /c/<slug> prefix there.
+// community's own host because the proxy strips the /c/<slug> prefix there,
+// moved onto the community's custom domain when it has one.
 //
 // The dropdown is rendered in a portal with fixed positioning so it's never
 // clipped by an `overflow-hidden` ancestor (e.g. a directory card). Channels
@@ -54,8 +57,12 @@ export function ShareMenu({
   // window/navigator rather than held in effect-set state: they're only used
   // once the menu is open, which can only happen after a client-side click, so
   // there's no SSR/hydration mismatch and window.location.href is always the
-  // live, canonical URL of this page.
-  const shareUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
+  // live, canonical URL of this page. On a community with its own domain the
+  // link is moved onto that domain (see share-origin.tsx), so a member on the
+  // platform subdomain still shares the community's own address.
+  const shareOrigin = useShareOrigin();
+  const rawUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
+  const shareUrl = typeof window !== "undefined" && rawUrl ? toShareUrl(rawUrl, window.location.origin, shareOrigin) : rawUrl;
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   // Position the fixed dropdown just under the trigger, aligned to the chosen
