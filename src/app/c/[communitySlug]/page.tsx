@@ -531,12 +531,18 @@ export default async function CommunityFeedPage({
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
     : null;
 
-  // Byline for the example posts an empty feed shows. Only fetched when the
-  // feed is actually empty, and reused when the viewer is the owner. If the
-  // owner's profile can't be read (e.g. a signed-out visitor), the examples
-  // fall back to the community's own name and logo.
+  // A feed holding nothing but "New Member" cards still reads as empty: joining
+  // isn't sharing, and a new community with a few members would otherwise lose
+  // its example posts before anyone has posted a thing. Examples show until a
+  // real item of any other kind arrives.
+  const showExampleFeed = !activity.some((item) => item.itemType !== "member");
+
+  // Byline for the example posts. Only fetched when they show, and reused when
+  // the viewer is the owner. If the owner's profile can't be read (e.g. a
+  // signed-out visitor), the examples fall back to the community's own name
+  // and logo.
   const exampleFeedOwner =
-    activity.length > 0
+    !showExampleFeed
       ? null
       : viewer && viewer.id === community.owner_id
         ? { name: viewer.name, avatarUrl: viewer.avatarUrl }
@@ -693,7 +699,7 @@ export default async function CommunityFeedPage({
             {isMember && viewer && (
               <FeedComposer base={base} spaces={postableSpaces} viewerName={viewer.name} viewerAvatar={viewer.avatarUrl} />
             )}
-            {activity.length === 0 ? (
+            {showExampleFeed && (
               // An empty feed shows example posts in the owner's voice instead
               // of a blank page — never stored, clearly labelled, and gone the
               // moment anything real is posted. The notice still says what an
@@ -707,7 +713,7 @@ export default async function CommunityFeedPage({
                 owner={exampleFeedOwner ?? { name: community.name, avatarUrl: community.logo_url }}
                 notice={
                   isStaff
-                    ? "These example posts only show while your feed is empty — members see them too, labelled as examples. They disappear as soon as the first real post goes up."
+                    ? "These example posts show until something is shared here (new-member cards don't count) — members see them too, labelled as examples. They disappear as soon as the first real post goes up."
                     : user
                       ? "Nothing's been shared yet, so here are a few example posts. Be the first to share something — start a post, add a business, or list an event."
                       : `These are example posts. Signed-out visitors only see activity from spaces set to Public — log in or join to see what's happening in ${community.name}.`
@@ -730,28 +736,29 @@ export default async function CommunityFeedPage({
                   )
                 }
               />
-            ) : (
-              activity.map((item) => (
-                <FeedItemCard
-                  key={item.key}
-                  item={{
-                    ...item,
-                    authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
-                    actions: {
-                      communitySlug: community.slug,
-                      communityId: community.id,
-                      itemType: item.itemType,
-                      itemId: item.itemId,
-                      canInteract: isMember,
-                      viewerId: user?.id ?? null,
-                      viewer,
-                      isStaff,
-                      ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
-                    },
-                  }}
-                />
-              ))
             )}
+            {/* Real activity — after the examples when they show, so any New
+                Member cards follow them. */}
+            {activity.map((item) => (
+              <FeedItemCard
+                key={item.key}
+                item={{
+                  ...item,
+                  authorLocation: locations.get(postAuthorIds.get(item.key) ?? "")?.full ?? null,
+                  actions: {
+                    communitySlug: community.slug,
+                    communityId: community.id,
+                    itemType: item.itemType,
+                    itemId: item.itemId,
+                    canInteract: isMember,
+                    viewerId: user?.id ?? null,
+                    viewer,
+                    isStaff,
+                    ...feedInteractionFor(feedInteractions, item.itemType, item.itemId),
+                  },
+                }}
+              />
+            ))}
           </div>
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
