@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import {
@@ -81,11 +82,12 @@ export default async function CommunityWelcomePage({
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) notFound();
 
-  const [spaces, events, features, stats] = await Promise.all([
+  const [spaces, events, features, stats, editorialGuides] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     community.events_public ? getCommunityEvents(supabase, community.id) : Promise.resolve([]),
     getCommunityFeatures(supabase, community.id),
     getCommunityStats(supabase, community.id),
+    getCommunityEditorialGuides(supabase, community.id),
   ]);
 
   const base = `/c/${community.slug}`;
@@ -226,6 +228,14 @@ export default async function CommunityWelcomePage({
               Take a look around
               <ArrowRight className="h-4 w-4" />
             </HeroLink>
+            {/* A curated guide is the best first read for a visitor, and it is
+                public whatever the feed's visibility. */}
+            {editorialGuides[0] && (
+              <HeroLink href={`${base}/guides/${editorialGuides[0].slug}`} variant="glass" onPhoto={onPhoto}>
+                {editorialGuides[0].title}
+                <ArrowRight className="h-4 w-4" />
+              </HeroLink>
+            )}
             {community.privacy !== "public" && (
               <p className={`flex w-full items-center gap-1.5 text-sm ${onPhoto ? "text-white/85" : "text-muted-foreground"}`}>
                 <Lock className="h-4 w-4" />
