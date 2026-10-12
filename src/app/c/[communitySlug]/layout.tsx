@@ -539,7 +539,9 @@ export default async function CommunityLayout({
                 )}
               </Link>
             )}
-            {isStaff && (
+            {/* The super admin gets it too: the admin page opens read-only for them
+                (platform view), so they can see any community the way its owner does. */}
+            {(isStaff || profile?.is_super_admin) && (
               <Link
                 href={`${base}/admin`}
                 title="Community admin"
