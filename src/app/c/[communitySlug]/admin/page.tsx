@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, ListTree, Inbox } from "lucide-react";
+import { CalendarDays, Sparkles, ListTree, Inbox, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import {
@@ -243,7 +243,7 @@ export default async function AdminPage({
       <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
       <p className="mb-8 text-sm text-muted-foreground">Manage {community.name}.</p>
 
-      <div id="overview" className="mb-8 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
+      <div id="overview" className="mb-3 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="pt-5">
@@ -254,6 +254,14 @@ export default async function AdminPage({
           </Card>
         ))}
       </div>
+
+      <Link
+        href={`/c/${community.slug}/admin/analytics`}
+        className="mb-8 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+      >
+        <BarChart3 className="h-4 w-4" />
+        View full analytics — active members, joins, posts and top members
+      </Link>
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
       <div className="mb-8 space-y-4">
