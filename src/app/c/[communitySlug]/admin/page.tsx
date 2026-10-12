@@ -15,6 +15,7 @@ import {
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
 import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
+import { ViewAsMemberButton } from "./view-as-member-button";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { MembersSection } from "./members-section";
 import { JoinRequestsSection } from "./join-requests-section";
@@ -268,8 +269,15 @@ export default async function AdminPage({
           </p>
         </div>
       )}
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
-      <p className="mb-8 text-sm text-muted-foreground">Manage {community.name}.</p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
+          <p className="text-sm text-muted-foreground">Manage {community.name}.</p>
+        </div>
+        {/* Hidden in platform view: a super admin who isn't staff here has
+            nothing to step down from. */}
+        {!platformView && <ViewAsMemberButton communityId={community.id} communitySlug={community.slug} />}
+      </div>
 
       <div id="overview" className="mb-3 grid scroll-mt-20 grid-cols-2 gap-4 sm:grid-cols-4">
         {stats.map((stat) => (
