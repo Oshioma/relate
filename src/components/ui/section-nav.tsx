@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-export type AdminNavSection = { id: string; label: string; group: string };
+export type NavSection = { id: string; label: string; group: string };
 
-// Navigation for the (very long) admin page. The old version was a single row
+// Section navigation for long pages (the community admin page, editorial
+// guides). On admin, the old version was a single row
 // of chips that scrolled sideways with a hidden scrollbar, so most sections sat
 // off-screen and nobody knew they existed. Now every section is always listed:
 //
@@ -16,7 +17,7 @@ export type AdminNavSection = { id: string; label: string; group: string };
 // Both highlight the section currently in view via an IntersectionObserver
 // scroll-spy. Renders as two siblings so the page can drop the sidebar into a
 // grid column (the mobile bar is display:none there and takes no cell).
-export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
+export function SectionNav({ sections, label = "Sections" }: { sections: NavSection[]; label?: string }) {
   const [active, setActive] = useState<string>(sections[0]?.id ?? "");
   const [menuOpen, setMenuOpen] = useState(false);
   const mobileRef = useRef<HTMLDivElement>(null);
@@ -75,7 +76,7 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
   if (sections.length <= 1) return null;
 
   // Groups in first-appearance order, so the page decides the order.
-  const groups: { name: string; items: AdminNavSection[] }[] = [];
+  const groups: { name: string; items: NavSection[] }[] = [];
   for (const section of sections) {
     const group = groups.find((g) => g.name === section.group);
     if (group) group.items.push(section);
@@ -145,7 +146,7 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
           aria-expanded={menuOpen}
-          aria-controls="admin-section-menu"
+          aria-controls="section-nav-menu"
           className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left"
         >
           <span className="min-w-0">
@@ -161,8 +162,8 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
         </button>
         {menuOpen && (
           <nav
-            id="admin-section-menu"
-            aria-label="Admin sections"
+            id="section-nav-menu"
+            aria-label={label}
             className="absolute inset-x-4 top-full mt-1 max-h-[70vh] overflow-y-auto rounded-md border border-border bg-card p-3 shadow-lg sm:inset-x-6"
           >
             {groupedList}
@@ -173,7 +174,7 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
       {/* Desktop: every section always visible in a sticky sidebar. */}
       <aside className="hidden lg:block">
         <nav
-          aria-label="Admin sections"
+          aria-label={label}
           className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-6"
         >
           {groupedList}

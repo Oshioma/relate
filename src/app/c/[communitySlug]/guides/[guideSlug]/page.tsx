@@ -19,6 +19,7 @@ import {
   WEATHER_CAVEAT,
   WHEN_TO_VISIT,
 } from "@/lib/guides/where-to-stay/visitor-info";
+import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { DestinationComparison } from "@/components/editorial-guide/destination-comparison";
 import { FindYourZanzibar } from "@/components/editorial-guide/find-your-zanzibar";
@@ -140,17 +141,18 @@ export default async function EditorialGuidePage({ params }: { params: Params })
     },
   ];
 
-  const toc = [
-    { href: "#which-part", label: "Which part of Zanzibar is right for you?" },
-    { href: "#destinations", label: "The 14 destinations" },
-    { href: "#find-your-zanzibar", label: "Find your Zanzibar" },
-    { href: "#map", label: "Map" },
-    ...destinations.map((d) => ({ href: `#${d.key}`, label: `${d.rank}. ${d.name}` })),
-    { href: "#tides", label: "Understanding Zanzibar's tides" },
-    { href: "#when-to-visit", label: "When to visit" },
-    { href: "#before-you-book", label: "Seven things to know before booking" },
-    { href: "#itineraries", label: "Suggested itineraries" },
-    { href: "#faq", label: "Frequently asked questions" },
+  // The left-hand section nav (same component as the admin page's).
+  const sections: NavSection[] = [
+    { id: "which-part", label: "Which part is right for you?", group: "Start here" },
+    { id: "destinations", label: "The 14 destinations", group: "Start here" },
+    { id: "find-your-zanzibar", label: "Find your Zanzibar", group: "Start here" },
+    { id: "map", label: "Map", group: "Start here" },
+    ...destinations.map((d) => ({ id: d.key, label: `${d.rank}. ${d.name}`, group: "Destinations" })),
+    { id: "tides", label: "Tides", group: "Plan your trip" },
+    { id: "when-to-visit", label: "When to visit", group: "Plan your trip" },
+    { id: "before-you-book", label: "Before you book", group: "Plan your trip" },
+    { id: "itineraries", label: "Suggested itineraries", group: "Plan your trip" },
+    { id: "faq", label: "FAQs", group: "Plan your trip" },
   ];
 
   return (
@@ -195,7 +197,10 @@ export default async function EditorialGuidePage({ params }: { params: Params })
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 pt-6 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
+        <SectionNav sections={sections} label="Guide sections" />
+
+        <div className="min-w-0">
         {/* Editorial bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4 text-sm text-muted-foreground">
           <p className="flex items-center gap-1.5">
@@ -212,8 +217,8 @@ export default async function EditorialGuidePage({ params }: { params: Params })
           </div>
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
-          <div className="space-y-4 text-[17px] leading-relaxed text-foreground">
+        <div className="mt-8">
+          <div className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-foreground">
             <p>
               The single biggest decision in planning a Zanzibar holiday is not which hotel to book — it is which part of the island to stay in. The north-west has easy, all-day swimming and sunsets; the east coast has dramatic tides, wide lagoons and village life; Stone Town is history, food and culture.
             </p>
@@ -230,18 +235,6 @@ export default async function EditorialGuidePage({ params }: { params: Params })
               </p>
             )}
           </div>
-          <nav aria-label="Table of contents" className="rounded-lg border border-border bg-card p-4 text-sm lg:sticky lg:top-6 lg:max-h-[80vh] lg:self-start lg:overflow-y-auto">
-            <p className="font-semibold text-foreground">In this guide</p>
-            <ol className="mt-2 space-y-1">
-              {toc.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href} className="text-muted-foreground hover:text-accent hover:underline">
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
         </div>
 
         {/* Comparison */}
@@ -467,6 +460,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
             Destination photographs ({photoCount}) come from Wikimedia Commons under the free licences credited beneath each one; restaurant and hotel photos come from their {community.name} listings. Captions beginning &ldquo;UNVERIFIED&rdquo; show something relevant whose exact location we could not confirm.
           </p>
         </section>
+        </div>
       </div>
     </article>
   );
