@@ -54,6 +54,8 @@ import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { getCommunityRecentReviews, ratingStars } from "@/lib/data/reviews";
 import { getCommunityRecentCourses } from "@/lib/data/courses";
 import { getCommunityRecentGuides } from "@/lib/data/guides";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
+import { guideCardImage, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
 import { toPlainText } from "@/components/ui/rich-text";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
@@ -132,6 +134,7 @@ export default async function CommunityFeedPage({
     recentReviews,
     recentCourses,
     recentGuides,
+    editorialGuides,
     recentClubs,
     upcomingMeetups,
     recentVolunteerProjects,
@@ -156,6 +159,7 @@ export default async function CommunityFeedPage({
     getCommunityRecentReviews(supabase, community.id, 12),
     getCommunityRecentCourses(supabase, community.id, 12),
     getCommunityRecentGuides(supabase, community.id, 12),
+    getCommunityEditorialGuides(supabase, community.id),
     getCommunityRecentClubs(supabase, community.id, 12),
     getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
@@ -412,6 +416,27 @@ export default async function CommunityFeedPage({
       spaceName: g.space?.name ?? null,
       href: g.space ? `${base}/spaces/${g.space.slug}/guides/${g.id}` : base,
     })),
+    // Editorial guides (e.g. "Where to Stay in Zanzibar") join the feed when
+    // published, led by their hero photo. RLS already hides drafts from
+    // non-staff; the status check keeps staff's own feed free of drafts too.
+    ...editorialGuides
+      .filter((g) => g.status === "published")
+      .map((g): FeedItem => ({
+        key: `editorial_guide-${g.id}`,
+        itemType: "editorial_guide" as const,
+        itemId: g.id,
+        createdAt: g.created_at,
+        icon: Compass,
+        title: g.title,
+        description: g.slug === WHERE_TO_STAY_SLUG ? "Compare Zanzibar's 14 best beach destinations — swimming, tides, atmosphere, restaurants and places to stay — and find the right one for your holiday." : null,
+        imageUrl: guideCardImage(g.content),
+        typeBadge: "New guide",
+        detail: null,
+        authorName: null,
+        authorAvatar: null,
+        spaceName: "Guides",
+        href: `${base}/guides/${g.slug}`,
+      })),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,
       itemType: "club" as const,
