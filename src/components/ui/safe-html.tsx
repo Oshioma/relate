@@ -560,7 +560,10 @@ export function looksLikeHtml(source: string): boolean {
 
 // Strip HTML tags/entities for plain-text contexts (list previews, meta tags).
 export function htmlToPlainText(source: string): string {
-  return decodeEntities(source.replace(/<[^>]+>/g, " "))
+  // A pasted <style> or <script> block's contents are code, not prose — drop
+  // them whole before stripping the remaining tags.
+  const withoutCode = source.replace(/<(style|script)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ");
+  return decodeEntities(withoutCode.replace(/<[^>]+>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }

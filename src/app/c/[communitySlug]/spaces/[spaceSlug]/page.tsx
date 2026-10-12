@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { RichText } from "@/components/ui/rich-text";
+import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
@@ -96,6 +96,10 @@ import { GuidedJourneySpaceView } from "@/components/guided-journey/space-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
+
+// Posts longer than this (as plain text) show an excerpt in the feed rather
+// than their whole body.
+const LONG_POST_CHARS = 1200;
 
 export default async function SpaceDetailPage({
   params,
@@ -933,6 +937,10 @@ export default async function SpaceDetailPage({
                 // announcements and resources earn a labelled pill.
                 const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
                 const postHref = `/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`;
+                // A long-form post (a guide, an article) would fill the whole
+                // feed, so its card shows a short excerpt and a link instead.
+                const plainBody = post.body ? toPlainText(post.body) : "";
+                const isLongPost = plainBody.length > LONG_POST_CHARS;
                 // The whole post reads here — formatted body and all — so a
                 // member doesn't have to open each one. That body can carry its
                 // own links, so the card isn't one big link any more: the
@@ -973,7 +981,17 @@ export default async function SpaceDetailPage({
                           {post.title}
                         </Link>
                       </h3>
-                      {post.body && <RichText content={post.body} className="mt-1.5 text-sm text-foreground" />}
+                      {post.body &&
+                        (isLongPost ? (
+                          <>
+                            <p className="mt-1.5 line-clamp-3 text-sm text-foreground">{plainBody.slice(0, 400)}</p>
+                            <Link href={postHref} className="mt-1.5 inline-block text-sm font-medium text-accent hover:underline">
+                              Read the full post
+                            </Link>
+                          </>
+                        ) : (
+                          <RichText content={post.body} className="mt-1.5 text-sm text-foreground" />
+                        ))}
                       {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
                       {documentUrl && (
                         <div className="mt-3">
