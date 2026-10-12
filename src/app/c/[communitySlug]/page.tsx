@@ -54,6 +54,9 @@ import { getCommunityRecentRecommendations } from "@/lib/data/recommendations";
 import { getCommunityRecentReviews, ratingStars } from "@/lib/data/reviews";
 import { getCommunityRecentCourses } from "@/lib/data/courses";
 import { getCommunityRecentGuides } from "@/lib/data/guides";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
+import { WHERE_TO_STAY_DESCRIPTION, WHERE_TO_STAY_SLUG, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
+import { commonsSrcSet } from "@/lib/guides/commons-image";
 import { toPlainText } from "@/components/ui/rich-text";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { getCommunityRecentClubs } from "@/lib/data/clubs";
@@ -132,6 +135,7 @@ export default async function CommunityFeedPage({
     recentReviews,
     recentCourses,
     recentGuides,
+    editorialGuides,
     recentClubs,
     upcomingMeetups,
     recentVolunteerProjects,
@@ -156,6 +160,7 @@ export default async function CommunityFeedPage({
     getCommunityRecentReviews(supabase, community.id, 12),
     getCommunityRecentCourses(supabase, community.id, 12),
     getCommunityRecentGuides(supabase, community.id, 12),
+    getCommunityEditorialGuides(supabase, community.id),
     getCommunityRecentClubs(supabase, community.id, 12),
     getCommunityUpcomingMeetups(supabase, community.id, 12),
     getCommunityRecentVolunteerProjects(supabase, community.id, 12),
@@ -412,6 +417,30 @@ export default async function CommunityFeedPage({
       spaceName: g.space?.name ?? null,
       href: g.space ? `${base}/spaces/${g.space.slug}/guides/${g.id}` : base,
     })),
+    // A published editorial guide (e.g. "Where to Stay in Zanzibar") is the
+    // community's own long-form piece, so it gets a card like a member's
+    // guide, credited to the community, with its hero photo.
+    ...editorialGuides
+      .filter((g) => g.status === "published")
+      .map((g): FeedItem => {
+        const hero = g.slug === WHERE_TO_STAY_SLUG ? resolveGuideContent(parseOverrides(g.content)).heroPhoto : null;
+        return {
+          key: `editorial_guide-${g.id}`,
+          itemType: "editorial_guide" as const,
+          itemId: g.id,
+          createdAt: g.created_at,
+          icon: Compass,
+          title: g.title,
+          description: g.slug === WHERE_TO_STAY_SLUG ? WHERE_TO_STAY_DESCRIPTION : null,
+          imageUrl: hero ? commonsSrcSet(hero.src, hero.width ?? undefined).src : null,
+          typeBadge: "New guide",
+          detail: null,
+          authorName: community.name,
+          authorAvatar: community.logo_url ?? null,
+          spaceName: null,
+          href: `${base}/guides/${g.slug}`,
+        };
+      }),
     ...recentClubs.map((c): FeedItem => ({
       key: `club-${c.id}`,
       itemType: "club" as const,

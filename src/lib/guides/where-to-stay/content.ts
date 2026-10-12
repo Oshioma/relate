@@ -13,6 +13,9 @@ import { ALL_TAGS } from "./labels";
 
 export const WHERE_TO_STAY_SLUG = "where-to-stay-in-zanzibar";
 export const WHERE_TO_STAY_TITLE = "Where to Stay in Zanzibar";
+// Used for the page's meta description and its card on the community feed.
+export const WHERE_TO_STAY_DESCRIPTION =
+  "Where to stay in Zanzibar: compare Kendwa, Nungwi, Paje, Jambiani, Stone Town and nine more beach destinations for swimming, tides, atmosphere, restaurants and accommodation — with local recommendations.";
 
 const url = z.string().trim().url().max(2000);
 const optionalUrl = url.nullish().or(z.literal("").transform(() => null));

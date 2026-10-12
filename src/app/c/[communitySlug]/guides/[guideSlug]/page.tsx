@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
 import { getEditorialGuide, getGuideDirectory } from "@/lib/data/editorial-guides";
-import { WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
+import { WHERE_TO_STAY_DESCRIPTION, WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
 import { communityLinksFor, guideUrl, loadGuide } from "@/lib/guides/where-to-stay/page-data";
 import { TAG_LABELS, SWIMMING_LABELS, ATMOSPHERE_LABELS } from "@/lib/guides/where-to-stay/labels";
 import {
@@ -38,8 +38,7 @@ import { summarise } from "@/components/editorial-guide/types";
 
 type Params = Promise<{ communitySlug: string; guideSlug: string }>;
 
-const DESCRIPTION =
-  "Where to stay in Zanzibar: compare Kendwa, Nungwi, Paje, Jambiani, Stone Town and nine more beach destinations for swimming, tides, atmosphere, restaurants and accommodation — with local recommendations.";
+const DESCRIPTION = WHERE_TO_STAY_DESCRIPTION;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { communitySlug, guideSlug } = await params;

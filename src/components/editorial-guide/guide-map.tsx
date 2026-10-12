@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from "react-leaflet";
 import type { DestinationSummary } from "./types";
-import { commonsSrcSet } from "./guide-image";
+import { commonsSrcSet } from "@/lib/guides/commons-image";
 
 // The overview map of all 14 destinations, on the same OpenStreetMap tiles
 // and Leaflet stack as the community's Explore Map. Pins sit at each area's
