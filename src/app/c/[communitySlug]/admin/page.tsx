@@ -204,39 +204,42 @@ export default async function AdminPage({
     { label: "Bundle a membership tier", hint: "Group spaces into one recurring price.", done: tiers.length > 0, href: "#tiers" },
   ];
 
-  // Sections shown in the sticky jump-nav, in page order. Owner-only sections
-  // are appended only when they actually render below, so a chip never points
-  // at a missing anchor.
+  // Sections shown in the admin nav, in page order and grouped under headings.
+  // Owner-only sections are appended only when they actually render below, so
+  // a link never points at a missing anchor.
   const sections: AdminNavSection[] = [
-    { id: "overview", label: "Overview" },
-    { id: "members", label: "Members" },
-    { id: "details", label: "Details" },
-    { id: "landing", label: "Landing page" },
-    { id: "guidelines", label: "Guidelines" },
-    { id: "contact", label: "Contact" },
-    { id: "public-access", label: "Public access" },
-    { id: "spaces", label: "Spaces" },
-    { id: "sidebar-sections", label: "Sidebar sections" },
-    { id: "profile-fields", label: "Profile fields" },
-    { id: "sidebar-links", label: "Sidebar links" },
-    { id: "more", label: "More" },
+    { id: "overview", label: "Overview", group: "Community" },
+    { id: "members", label: "Members", group: "Community" },
+    { id: "details", label: "Details", group: "Profile & pages" },
+    { id: "landing", label: "Landing page", group: "Profile & pages" },
+    { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
+    { id: "contact", label: "Contact", group: "Profile & pages" },
+    { id: "public-access", label: "Public access", group: "Profile & pages" },
+    { id: "spaces", label: "Spaces", group: "Spaces & sidebar" },
+    { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
+    { id: "profile-fields", label: "Profile fields", group: "Spaces & sidebar" },
+    { id: "sidebar-links", label: "Sidebar links", group: "Spaces & sidebar" },
+    { id: "more", label: "More", group: "Spaces & sidebar" },
   ];
-  if (isOwner && featureControls.length > 0) sections.push({ id: "features", label: "Features" });
+  if (isOwner && featureControls.length > 0) {
+    sections.push({ id: "features", label: "Features", group: "Spaces & sidebar" });
+  }
   if (isOwner) {
     sections.push(
-      { id: "plan", label: "Plan" },
-      { id: "marketplace", label: "Marketplace" },
-      { id: "payments", label: "Payments" },
-      { id: "tiers", label: "Tiers" },
-      { id: "domain", label: "Custom domain" },
-      { id: "danger", label: "Danger zone" },
+      { id: "plan", label: "Plan", group: "Plan & payments" },
+      { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
+      { id: "payments", label: "Payments", group: "Plan & payments" },
+      { id: "tiers", label: "Tiers", group: "Plan & payments" },
+      { id: "domain", label: "Custom domain", group: "Settings" },
+      { id: "danger", label: "Danger zone", group: "Settings" },
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10">
       <AdminSectionNav sections={sections} />
 
+      <div className="min-w-0 lg:max-w-3xl">
       <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">Admin</h1>
       <p className="mb-8 text-sm text-muted-foreground">Manage {community.name}.</p>
 
@@ -501,6 +504,7 @@ export default async function AdminPage({
           <DeleteCommunitySection community={community} />
         </>
       )}
+      </div>
     </div>
   );
 }
