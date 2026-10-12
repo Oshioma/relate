@@ -15,7 +15,11 @@ import { cn } from "@/lib/utils";
 // calm placeholder rather than a broken-image icon.
 
 const COMMONS_PREFIX = "https://upload.wikimedia.org/wikipedia/commons/";
-const COMMONS_WIDTHS = [500, 960, 1280, 1920];
+// Commons renders 1920px thumbnails on demand too, but uncached 1920px renders
+// and original files are rate-limited (HTTP 429) for hot-linked traffic, which
+// leaves a broken hero on large screens. 1280 is the largest size it reliably
+// serves, so the srcset stops there and never offers the original.
+const COMMONS_WIDTHS = [500, 960, 1280];
 
 function commonsThumb(src: string, width: number): string {
   // .../commons/a/ab/File.jpg -> .../commons/thumb/a/ab/File.jpg/960px-File.jpg
@@ -30,7 +34,7 @@ export function commonsSrcSet(src: string, originalWidth?: number): { src: strin
   if (widths.length === 0) return { src };
   return {
     src: commonsThumb(src, widths[Math.min(1, widths.length - 1)]),
-    srcSet: [...widths.map((w) => `${commonsThumb(src, w)} ${w}w`), ...(originalWidth && originalWidth <= 2400 ? [`${src} ${originalWidth}w`] : [])].join(", "),
+    srcSet: widths.map((w) => `${commonsThumb(src, w)} ${w}w`).join(", "),
   };
 }
 
