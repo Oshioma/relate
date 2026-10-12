@@ -202,3 +202,39 @@ export function missingLayers(layers: ChainLayer[]): string[] {
     .filter((key) => !present.has(key))
     .sort((a, b) => evidenceLayerOrder(a) - evidenceLayerOrder(b));
 }
+
+// ---------------------------------------------------------------------------
+// EVIDENCE FETCHED PER SELECTION, AND THE ONE WAY THAT GOES WRONG
+//
+// On the record page the passages arrive with the page, so they cannot belong
+// to anything else. In the drawer they are fetched when a reader opens a
+// record, and a reader opens records faster than the network answers: click
+// Atlantis, click the Contendings, and the Atlantis response lands second.
+//
+// The failure that produces is not a flicker. It is Plato's text rendered under
+// the Contendings' title, sourced and captioned and completely wrong — and
+// every warning this panel prints would be printed about the wrong passage. Of
+// all the ways this feature could mislead, serving one record's evidence as
+// another's is the worst, because it looks exactly like the thing working.
+//
+// So what was fetched is remembered WITH the id it was fetched for, and the
+// panel is handed passages only when the two still agree. A request-id guard in
+// the component would usually be enough; this is cheap, and it is the check
+// that holds when the guard is refactored by somebody who has not read this.
+// ---------------------------------------------------------------------------
+
+/** Passages, and the record they were fetched for. */
+export type LoadedPassages<T> = { eventId: string; passages: T[] } | null;
+
+/**
+ * The passages safe to draw under the record now open.
+ *
+ * Empty whenever there is nothing loaded, nothing open, or the two disagree —
+ * which during a fetch means the panel draws nothing rather than drawing the
+ * record the reader just left. Showing nothing for a moment is honest; showing
+ * the wrong evidence is not, and no spinner undoes it once it has been read.
+ */
+export function passagesForOpenRecord<T>(loaded: LoadedPassages<T>, openEventId: string | null | undefined): T[] {
+  if (!loaded || !openEventId) return [];
+  return loaded.eventId === openEventId ? loaded.passages : [];
+}

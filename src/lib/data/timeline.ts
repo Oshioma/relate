@@ -964,12 +964,22 @@ export type TimelinePassageWithLayers = TimelineTextPassage & { layers: Timeline
  */
 export async function getEventPassages(
   supabase: Client,
-  eventId: string
+  eventId: string,
+  communityId: string
 ): Promise<TimelinePassageWithLayers[]> {
   const { data: passages, error: passageError } = await supabase
     .from("timeline_text_passages")
     .select("*")
     .eq("event_id", eventId)
+    // SCOPED BY COMMUNITY, not only by event.
+    //
+    // The row carries community_id already, so this costs nothing — and it is
+    // the difference between an event id being a lookup key and an event id
+    // being a capability. The select policy on these tables asks only whether
+    // the event exists, which is the right posture for a timeline that is
+    // largely public and the wrong thing to lean on alone once an event id
+    // arrives from a browser rather than from a page that resolved it.
+    .eq("community_id", communityId)
     .order("sort_order", { ascending: true });
   if (passageError) throw passageError;
   if (!passages?.length) return [];

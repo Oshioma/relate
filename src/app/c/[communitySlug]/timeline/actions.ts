@@ -12,8 +12,10 @@ import {
   countClaimsPerSource,
   getEventRevisions,
   markTimelineEventSeen,
+  getEventPassages,
   type TimelineFilters,
   type TimelineEventWithClaims,
+  type TimelinePassageWithLayers,
 } from "@/lib/data/timeline";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 
@@ -3630,6 +3632,40 @@ export async function loadTimelineEvent(
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community || !communityHasTimeline(community)) return null;
   return getTimelineEventBySlug(supabase, community.id, slug);
+}
+
+/**
+ * The evidence under one record, for the drawer.
+ *
+ * WHY THIS EXISTS, having been argued against. The chain panel was built for
+ * the standalone record page only, on the reasoning that the drawer's event
+ * arrives with the windowed query and fetching per selection would be a second
+ * code path. That reasoning has not survived contact with the datasets: Set,
+ * Atlantis, the Horus claims and the Vedic records all carry passages now, and
+ * the drawer is where most people meet them. "Go to the full record to find out
+ * how we know this" is the wrong answer from a timeline built to make exactly
+ * that question askable.
+ *
+ * It is also no longer a second code path. The drawer already loads a window, a
+ * tag extent and a single event through actions of this shape; this is a fourth
+ * of a kind rather than a first.
+ *
+ * SOURCES ARE NOT RETURNED. The timeline page hands the client every source the
+ * community has, so the translator behind a rendering is already in hand — and
+ * that matters here, because a layer's source is usually not one the record's
+ * dates cite. Returning them again would be bytes spent re-sending what the
+ * page already sent.
+ */
+export async function loadEventPassages(
+  communitySlug: string,
+  eventId: string
+): Promise<TimelinePassageWithLayers[]> {
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community || !communityHasTimeline(community)) return [];
+  // The community is resolved here and passed down, so an event id arriving
+  // from a browser cannot reach another community's evidence.
+  return getEventPassages(supabase, eventId, community.id);
 }
 
 /**

@@ -105,16 +105,22 @@ export function EventDetail({
   /**
    * The evidence under this record: passages, each with its interpretive chain.
    *
-   * SUPPLIED BY THE STANDALONE PAGE AND NOT BY THE TIMELINE DRAWER, and that
-   * is a deliberate limit rather than an oversight. The drawer's event comes
-   * down with the windowed query, so showing the chain there would mean
-   * fetching per selection — a second code path with its own way to be slow,
-   * to answer a question the full record answers better. The drawer stays the
-   * fast way to read an event; the record page is where you go back to the
-   * papyrus.
+   * SUPPLIED BY BOTH SURFACES NOW. The record page has them with the page; the
+   * drawer fetches them when a record is opened and holds them against the id
+   * they were fetched for, because a reader clicks faster than the network
+   * answers and one record's evidence shown under another's title would be the
+   * worst thing this panel could do.
+   *
+   * It was the record page only, on the reasoning that fetching per selection
+   * would be a second code path to keep fast. What changed is that records
+   * acquired passages: Set, Atlantis, the Horus claims and the Vedic material
+   * all carry them, and the drawer is where most readers meet a record. A
+   * timeline built to make "how do we know that?" askable should not answer it
+   * with "open the other page".
    *
    * Defaults to empty, and the panel draws nothing at all when it is — which
-   * is also the normal state of every record written before passages existed.
+   * is still the normal state of most records, and is what the drawer shows
+   * for the moment between opening a record and its evidence arriving.
    */
   passages?: TimelinePassageWithLayers[];
   /**

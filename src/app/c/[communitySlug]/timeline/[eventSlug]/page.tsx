@@ -98,7 +98,7 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   // Two independent fetches: the evidence under the record, and the chains
   // that carried any claims attached to it. Both are empty for most records.
   const [passages, genealogies] = await Promise.all([
-    getEventPassages(supabase, event.id),
+    getEventPassages(supabase, event.id, community.id),
     getEventGenealogies(supabase, event.id),
   ]);
   const chainSourceIds = [

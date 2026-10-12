@@ -11,6 +11,7 @@ import {
   reachesTheEvidence,
   toggleForLayer,
   translationCount,
+  passagesForOpenRecord,
   visibleChainLayers,
   type ChainLayer,
 } from "./evidence-chain";
@@ -205,4 +206,48 @@ test("an unrecognised layer is not reported as a missing one", () => {
   // recorded" would tell a reader the opposite of the truth.
   const reported = missingLayers([...FULL_CHAIN, layer("marginal_gloss")]);
   assert.deepEqual(reported, []);
+});
+
+// ---------------------------------------------------------------------------
+// ONE RECORD'S EVIDENCE MUST NEVER APPEAR UNDER ANOTHER'S TITLE
+//
+// The drawer fetches passages when a record is opened, and a reader opens
+// records faster than the network answers. These pin the one failure that
+// matters: a response for a record already left, landing after one for the
+// record in front of the reader. It would not look like a bug — it would look
+// like the feature working, on the wrong text.
+// ---------------------------------------------------------------------------
+
+test("passages are drawn only under the record they were fetched for", () => {
+  const loaded = { eventId: "contendings", passages: [{ id: "p1" }] };
+  assert.deepEqual(passagesForOpenRecord(loaded, "contendings"), [{ id: "p1" }]);
+});
+
+test("a late response for the record the reader has left draws nothing", () => {
+  // Click Atlantis, click the Contendings, Atlantis answers second. Showing
+  // Plato's text under the Contendings' title is worse than showing nothing.
+  const atlantis = { eventId: "atlantis", passages: [{ id: "timaeus" }] };
+  assert.deepEqual(passagesForOpenRecord(atlantis, "contendings"), []);
+});
+
+test("nothing loaded and nothing open both draw nothing", () => {
+  assert.deepEqual(passagesForOpenRecord(null, "contendings"), []);
+  assert.deepEqual(passagesForOpenRecord({ eventId: "a", passages: [{ id: "p" }] }, null), []);
+  assert.deepEqual(passagesForOpenRecord({ eventId: "a", passages: [{ id: "p" }] }, undefined), []);
+  assert.deepEqual(passagesForOpenRecord(null, null), []);
+});
+
+test("a record that genuinely has no evidence is not confused with one still loading", () => {
+  // Both draw nothing, and they are different states: this one is an answer.
+  // The distinction matters to the caller, which is why the id is kept beside
+  // the payload rather than the payload being emptied on every selection.
+  const answered = { eventId: "set-sutekh", passages: [] };
+  assert.deepEqual(passagesForOpenRecord(answered, "set-sutekh"), []);
+  assert.equal(answered.eventId, "set-sutekh");
+});
+
+test("an empty id is never treated as a match", () => {
+  // Defends against the id arriving as "" from a half-initialised selection,
+  // which would otherwise match a payload fetched for "".
+  assert.deepEqual(passagesForOpenRecord({ eventId: "", passages: [{ id: "p" }] }, ""), []);
 });

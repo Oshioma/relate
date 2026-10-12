@@ -30,8 +30,14 @@ import type {
   TimelineSource,
   TimelineTrack,
 } from "@/types/database";
-import type { TimelineEventWithClaims, TimelineFilters, TimelineLinkedRecord } from "@/lib/data/timeline";
+import type {
+  TimelineEventWithClaims,
+  TimelineFilters,
+  TimelineLinkedRecord,
+  TimelinePassageWithLayers,
+} from "@/lib/data/timeline";
 import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
+import { passagesForOpenRecord, type LoadedPassages } from "@/lib/timeline/evidence-chain";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
@@ -48,6 +54,7 @@ import {
   loadTimelineEvent,
   loadTimelineWindow,
   loadTagExtent,
+  loadEventPassages,
   markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
@@ -695,6 +702,53 @@ export function TimelineView({
     }, REFETCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [communitySlug, view.from, view.to, serverFilters, loadKey, total]);
+
+  // THE EVIDENCE UNDER THE OPEN RECORD.
+  //
+  // Fetched per selection, which the chain panel was originally built to avoid.
+  // That call was right when nothing carried passages and wrong now that Set,
+  // Atlantis, the Horus claims and the Vedic records all do: the drawer is
+  // where most readers meet a record, and "open the full page to find out how
+  // we know this" is the wrong answer from a timeline built to make exactly
+  // that question askable.
+  //
+  // WHAT IS REMEMBERED IS THE PAYLOAD AND THE ID IT CAME FOR, together. A
+  // reader clicks faster than the network answers, so a response for a record
+  // they have already left can land after one for the record they are in — and
+  // the result would not be a flicker but Plato's text under the Contendings'
+  // title, captioned and sourced and wholly wrong. The request id below
+  // discards the stale response; passagesForOpenRecord refuses to draw it even
+  // if one slips through. Two checks, because of the two this is the one that
+  // survives somebody refactoring the other.
+  const [loadedPassages, setLoadedPassages] = useState<LoadedPassages<TimelinePassageWithLayers>>(null);
+  const passageRequest = useRef(0);
+  const openEventId = selected?.id ?? null;
+
+  useEffect(() => {
+    // Bumped first, so any response still in flight for the record just left is
+    // discarded even when this pass has nothing to fetch.
+    const id = ++passageRequest.current;
+    // NOTHING IS CLEARED HERE, and no state is set on this path at all.
+    // passagesForOpenRecord already draws nothing while no record is open or
+    // while what is held belongs to another one, so emptying the payload would
+    // buy nothing and would throw away evidence the reader is still looking at
+    // when an edit elsewhere re-renders this panel.
+    if (!openEventId) return;
+    loadEventPassages(communitySlug, openEventId)
+      .then((passages) => {
+        if (id !== passageRequest.current) return;
+        setLoadedPassages({ eventId: openEventId, passages });
+      })
+      // A record that keeps its dates and loses its evidence panel is a far
+      // better failure than a drawer that will not open, so this is swallowed
+      // the way the tag extent's is.
+      .catch(() => {
+        if (id !== passageRequest.current) return;
+        setLoadedPassages({ eventId: openEventId, passages: [] });
+      });
+  }, [communitySlug, openEventId]);
+
+  const openPassages = passagesForOpenRecord(loadedPassages, openEventId);
 
   // WHOLE TIMELINE — everything this community has, in one frame.
   //
@@ -1729,6 +1783,7 @@ export function TimelineView({
             // timeline rather than over it, jumping to "what else was happening
             // then" no longer has to close what you were reading.
             onShowContext={(from, to) => setView({ from, to })}
+            passages={openPassages}
             onSelectTag={showTag}
             activeTag={tag}
           // A save writes to the database and refreshes the server components;
