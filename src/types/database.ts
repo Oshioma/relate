@@ -1392,6 +1392,39 @@ export type MeetupParticipant = {
 // what "contributors" (GuideContributor) means: everyone who's ever saved
 // an edit. GuideRevision snapshots the previous title/body before each
 // edit, so there's a real revision history.
+export type EditorialGuideStatus = "draft" | "published";
+
+// A community's curated long-form guide (src/lib/guides/…). `content` holds
+// the admins' overrides of the guide's built-in copy; see
+// src/lib/guides/where-to-stay/content.ts for its shape.
+export type EditorialGuide = {
+  id: string;
+  community_id: string;
+  slug: string;
+  title: string;
+  status: EditorialGuideStatus;
+  content: unknown;
+  last_reviewed_on: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EditorialGuideUpdateKind = "restaurant" | "beach_access" | "accommodation" | "seasonal" | "event" | "road" | "other";
+
+export type EditorialGuideUpdate = {
+  id: string;
+  guide_id: string;
+  community_id: string;
+  destination_key: string | null;
+  kind: EditorialGuideUpdateKind;
+  body: string;
+  noted_on: string;
+  expires_on: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
 export type Guide = {
   id: string;
   space_id: string;
@@ -3331,6 +3364,18 @@ export type Database = {
         Insert: Partial<MeetupParticipant> & { meetup_id: string; user_id: string };
         Update: Partial<MeetupParticipant>;
         Relationships: [FKey<"meetup_id", "meetups">, FKey<"user_id", "profiles">];
+      };
+      editorial_guides: {
+        Row: EditorialGuide;
+        Insert: Partial<EditorialGuide> & { community_id: string; slug: string; title: string };
+        Update: Partial<EditorialGuide>;
+        Relationships: [FKey<"community_id", "communities">, FKey<"updated_by", "profiles">];
+      };
+      editorial_guide_updates: {
+        Row: EditorialGuideUpdate;
+        Insert: Partial<EditorialGuideUpdate> & { guide_id: string; community_id: string; body: string };
+        Update: Partial<EditorialGuideUpdate>;
+        Relationships: [FKey<"guide_id", "editorial_guides">, FKey<"created_by", "profiles">];
       };
       guides: {
         Row: Guide;

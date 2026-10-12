@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -14,6 +14,7 @@ import {
 } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
@@ -98,6 +99,7 @@ export async function generateMetadata({
 // Just under the built-in nav items' base (see defaultNavItemSort), so the
 // Timeline lands after a community's own spaces but ahead of Events and Search.
 const TIMELINE_NAV_SORT = 99_000;
+const GUIDES_NAV_SORT = 98_000;
 
 export default async function CommunityLayout({
   children,
@@ -128,7 +130,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession, savedNavGroups] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession, savedNavGroups, editorialGuides] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -139,6 +141,7 @@ export default async function CommunityLayout({
     countActiveTiers(supabase, community.id),
     getCommunityLiveSession(supabase, community.id),
     getCommunityNavGroups(supabase, community.id),
+    getCommunityEditorialGuides(supabase, community.id),
   ]);
 
   // This community's sidebar sections, in the admin's order. A key that is
@@ -265,6 +268,21 @@ export default async function CommunityLayout({
           sort: TIMELINE_NAV_SORT,
           group: navSpaces.some((space) => sectionFor(space.nav_group)) ? sectionFor("learn") : null,
           items: [{ href: timelinePath(community.slug), label: "Timeline", icon: <History className="h-4 w-4" /> }],
+        }]
+      : []),
+    // Editorial guides ("Where to Stay in Zanzibar"), for a community that has
+    // one. A single guide links straight to itself; several go to /guides.
+    // Placed with the Timeline, after the spaces and before Events/Search, and
+    // grouped under Learn only where this community already uses sections.
+    ...(editorialGuides.length > 0
+      ? [{
+          sort: GUIDES_NAV_SORT,
+          group: navSpaces.some((space) => sectionFor(space.nav_group)) ? sectionFor("learn") : null,
+          items: [{
+            href: editorialGuides.length === 1 ? `${base}/guides/${editorialGuides[0].slug}` : `${base}/guides`,
+            label: editorialGuides.length === 1 ? editorialGuides[0].title : "Guides",
+            icon: <Compass className="h-4 w-4" />,
+          }],
         }]
       : []),
   ].sort((a, b) => a.sort - b.sort);
