@@ -14,7 +14,7 @@ import {
 } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEvents } from "@/lib/data/events";
-import { AdminSectionNav, type AdminNavSection } from "./admin-section-nav";
+import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { ViewAsMemberButton } from "./view-as-member-button";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
 import { MembersSection } from "./members-section";
@@ -220,7 +220,7 @@ export default async function AdminPage({
   // Sections shown in the admin nav, in page order and grouped under headings.
   // Owner-only sections are appended only when they actually render below, so
   // a link never points at a missing anchor.
-  const sections: AdminNavSection[] = [
+  const sections: NavSection[] = [
     { id: "overview", label: "Overview", group: "Community" },
     { id: "members", label: "Members", group: "Community" },
     { id: "details", label: "Details", group: "Profile & pages" },
@@ -250,7 +250,7 @@ export default async function AdminPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10">
-      <AdminSectionNav sections={sections} />
+      <SectionNav sections={sections} label="Admin sections" />
 
       {/* A disabled fieldset turns off every input and button inside it in one
           go — the platform view's read-only switch. Links still work. */}

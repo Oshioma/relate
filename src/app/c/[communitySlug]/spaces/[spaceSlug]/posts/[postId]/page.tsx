@@ -7,6 +7,8 @@ import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getPostById, getPostComments, getPostReactionSummary } from "@/lib/data/posts";
 import { getCrops } from "@/lib/data/crop-guides";
 import { getMyFarmCrops } from "@/lib/farm-bridge";
+import { postSections } from "@/lib/post-sections";
+import { SectionNav } from "@/components/ui/section-nav";
 import { CommentForm } from "./comment-form";
 import { PostCard } from "./post-card";
 import { CommentItem } from "./comment-item";
@@ -50,66 +52,80 @@ export default async function PostDetailPage({
   const canComment =
     isActiveMember && (!space.staff_post_only || space.allow_member_comments || Boolean(isStaff));
 
+  // Long-form posts (guides) whose <h2> headings carry ids get the same
+  // section sidebar as the admin page. Short posts keep the single column.
+  const sections = postSections(post.body ?? "");
+  const hasSectionNav = sections.length >= 3;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        <Link href={`/c/${community.slug}/spaces/${space.slug}`} className="hover:underline">
-          {space.name}
-        </Link>
-      </p>
+    <div
+      className={`mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 ${
+        hasSectionNav ? "lg:grid lg:max-w-6xl lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-10" : ""
+      }`}
+    >
+      {hasSectionNav && <SectionNav sections={sections.map((s) => ({ ...s, group: "Contents" }))} label="Article sections" />}
 
-      <PostCard
-        post={post}
-        canEdit={isPostAuthor || isStaff}
-        canDelete={isPostAuthor || isStaff}
-        canPin={isStaff}
-        communitySlug={community.slug}
-        spaceSlug={space.slug}
-        crops={crops}
-        myCrops={editorFarmCrops}
-        avatarUrl={editorProfile?.avatar_url}
-        reactionCount={reactions.count}
-        viewerReacted={reactions.viewerReacted}
-        reactors={reactions.reactors}
-        viewer={
-          editorProfile
-            ? { id: editorProfile.id, name: editorProfile.full_name || editorProfile.username, avatarUrl: editorProfile.avatar_url }
-            : null
-        }
-        canReact={isActiveMember}
-      />
+      {/* scroll-mt keeps a jumped-to heading clear of the sticky mobile bar. */}
+      <div className="min-w-0 lg:max-w-3xl [&_h2[id]]:scroll-mt-20">
+        <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <Link href={`/c/${community.slug}/spaces/${space.slug}`} className="hover:underline">
+            {space.name}
+          </Link>
+        </p>
 
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-        Comments {comments.length > 0 && `(${comments.length})`}
-      </h2>
+        <PostCard
+          post={post}
+          canEdit={isPostAuthor || isStaff}
+          canDelete={isPostAuthor || isStaff}
+          canPin={isStaff}
+          communitySlug={community.slug}
+          spaceSlug={space.slug}
+          crops={crops}
+          myCrops={editorFarmCrops}
+          avatarUrl={editorProfile?.avatar_url}
+          reactionCount={reactions.count}
+          viewerReacted={reactions.viewerReacted}
+          reactors={reactions.reactors}
+          viewer={
+            editorProfile
+              ? { id: editorProfile.id, name: editorProfile.full_name || editorProfile.username, avatarUrl: editorProfile.avatar_url }
+              : null
+          }
+          canReact={isActiveMember}
+        />
 
-      <div className="mb-4 space-y-3">
-        {comments.map((comment) => {
-          const isCommentAuthor = comment.author_id === user?.id;
-          return (
-            <CommentItem
-              key={comment.id}
-              comment={comment}
-              canEdit={isCommentAuthor}
-              canDelete={isCommentAuthor || isStaff}
-              communitySlug={community.slug}
-              spaceSlug={space.slug}
-              postId={post.id}
-            />
-          );
-        })}
-        {comments.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
+        <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+          Comments {comments.length > 0 && `(${comments.length})`}
+        </h2>
+
+        <div className="mb-4 space-y-3">
+          {comments.map((comment) => {
+            const isCommentAuthor = comment.author_id === user?.id;
+            return (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                canEdit={isCommentAuthor}
+                canDelete={isCommentAuthor || isStaff}
+                communitySlug={community.slug}
+                spaceSlug={space.slug}
+                postId={post.id}
+              />
+            );
+          })}
+          {comments.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
+        </div>
+
+        {canComment ? (
+          <CommentForm postId={post.id} communitySlug={community.slug} spaceSlug={space.slug} />
+        ) : (
+          isActiveMember && (
+            <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+              Comments are turned off in this one-way space. You can still react to posts.
+            </p>
+          )
+        )}
       </div>
-
-      {canComment ? (
-        <CommentForm postId={post.id} communitySlug={community.slug} spaceSlug={space.slug} />
-      ) : (
-        isActiveMember && (
-          <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-            Comments are turned off in this one-way space. You can still react to posts.
-          </p>
-        )
-      )}
     </div>
   );
 }
