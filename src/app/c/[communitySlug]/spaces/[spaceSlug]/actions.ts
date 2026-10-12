@@ -190,3 +190,19 @@ export async function togglePostReaction(postId: string, communitySlug: string, 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
   return { error: null };
 }
+
+// Pin or unpin a post so it stays at the top of its space. Staff only: the
+// update policy also lets authors edit their own posts, so a trigger on posts
+// rejects is_pinned changes from anyone who isn't community staff. Revalidates
+// the space feed (sorted pinned-first), the post page and the community home.
+export async function setPostPinned(postId: string, communitySlug: string, spaceSlug: string, pinned: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("posts").update({ is_pinned: pinned }).eq("id", postId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`);
+  return { error: null };
+}
