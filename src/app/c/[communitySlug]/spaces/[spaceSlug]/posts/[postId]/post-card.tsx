@@ -14,7 +14,7 @@ import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime } from "@/lib/utils";
 import { PostGallery, TagChips } from "@/components/ui/post-gallery";
 import { postGallery } from "@/lib/post-media";
-import { updatePost, deletePost, togglePostReaction } from "../../actions";
+import { updatePost, deletePost, setPostPinned, togglePostReaction } from "../../actions";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
 import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
@@ -25,6 +25,7 @@ export function PostCard({
   post,
   canEdit,
   canDelete,
+  canPin = false,
   communitySlug,
   spaceSlug,
   crops = [],
@@ -39,6 +40,8 @@ export function PostCard({
   post: PostWithAuthor;
   canEdit: boolean;
   canDelete: boolean;
+  // Staff only: keeps the post at the top of its space.
+  canPin?: boolean;
   communitySlug: string;
   spaceSlug: string;
   crops?: CropPhotoOption[];
@@ -101,6 +104,18 @@ export function PostCard({
         setError(result.error);
       } else {
         setIsEditing(false);
+        router.refresh();
+      }
+    });
+  }
+
+  function handleTogglePin() {
+    setError(null);
+    startTransition(async () => {
+      const result = await setPostPinned(post.id, communitySlug, spaceSlug, !post.is_pinned);
+      if (result?.error) {
+        setError(result.error);
+      } else {
         router.refresh();
       }
     });
@@ -222,8 +237,18 @@ export function PostCard({
               <SmileStack reactors={stack} count={reactions} />
             </div>
 
-            {(canEdit || canDelete) && (
+            {(canEdit || canDelete || canPin) && (
               <div className="mt-3 flex gap-3">
+                {canPin && (
+                  <button
+                    type="button"
+                    onClick={handleTogglePin}
+                    disabled={isPending}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-60"
+                  >
+                    {post.is_pinned ? "Unpin" : "Pin to top"}
+                  </button>
+                )}
                 {canEdit && (
                   <button type="button" onClick={() => setIsEditing(true)} className="text-xs font-medium text-muted-foreground hover:text-foreground">
                     Edit
