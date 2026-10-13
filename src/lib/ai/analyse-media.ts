@@ -4,6 +4,7 @@ import { z } from "zod";
 import { fetchPageContent, parsePublicUrl } from "@/lib/page-content";
 import { normaliseUrl } from "@/lib/ai/read-url";
 import { parseVideoLink } from "@/lib/school/video-links";
+import { isbnFromUrl } from "@/lib/media/isbn";
 import { meterClaude } from "@/lib/usage/ai-meter";
 import { CONCERN_CATEGORIES, CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS, PROFANITY_LEVELS } from "@/lib/media/media-types";
 
@@ -22,6 +23,19 @@ import { CONCERN_CATEGORIES, CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS
 //    swear word in it, and that is the question being asked.
 // 3. The answer is validated and handed back as a DRAFT: the form shows every
 //    field and the parent decides. Nothing is written to the database here.
+//
+// BOOKS FROM A SHOP LINK
+// Amazon and most other shops answer a server-side read with a bot check, so
+// the page gives nothing — not even the cover. The ISBN in the link does:
+// Google Books and Open Library know the book by it, cover included, with no
+// key and no scraping (see src/lib/media/isbn.ts). Those facts go to the
+// model in place of the page, and the cover comes from the catalogue.
+//
+// THE COVER PICTURE
+// Never taken on the model's word alone. The page's own og:image, a video's
+// oEmbed thumbnail or a catalogue cover is used as found; a cover link the
+// model reports from its searching is fetched and kept only if it really is
+// an image. A plausible-looking URL to nothing is worse than no picture.
 //
 // WHAT IT WILL NOT DO
 // Invent certainty. The model is told to say "unknown" for language it could
@@ -67,6 +81,7 @@ export const MediaAnalysisSchema = z.object({
   summary_for_parents: z.string().trim().max(2000),
   confidence: z.enum(["low", "medium", "high"]),
   sources: z.array(z.string().max(500)).max(12),
+  cover_image_url: z.string().max(1000).nullable(),
 });
 
 export type MediaAnalysis = z.infer<typeof MediaAnalysisSchema> & {
@@ -86,7 +101,10 @@ export type AnalyseMediaResult =
 
 type PageFacts = {
   url: string;
-  kindHint: "video" | null;
+  kindHint: "video" | "book" | null;
+  isbn: string | null;
+  // What a book catalogue said, as lines for the prompt.
+  catalogue: string[];
   title: string | null;
   creator: string | null;
   description: string | null;
@@ -109,8 +127,130 @@ async function oEmbed(endpoint: string): Promise<{ title?: string; author_name?:
   }
 }
 
+// A link that claims to be a picture is only believed once it has answered as
+// one. HEAD first; a host that refuses HEAD gets a GET whose body is dropped.
+const IMAGE_TIMEOUT_MS = 8000;
+
+export async function verifyImageUrl(candidate: string | null | undefined): Promise<string | null> {
+  if (!candidate) return null;
+  const url = parsePublicUrl(candidate);
+  if (!url) return null;
+  for (const method of ["HEAD", "GET"] as const) {
+    try {
+      const response = await fetch(url, { method, signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS), redirect: "follow", cache: "no-store" });
+      const type = response.headers.get("content-type") ?? "";
+      if (method === "GET" || response.ok || response.status === 405) {
+        await response.body?.cancel().catch(() => undefined);
+        if (response.ok && type.startsWith("image/")) return url.toString().slice(0, 1000);
+        if (method === "GET" || response.status !== 405) return null;
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+type BookRecord = {
+  title: string | null;
+  authors: string[];
+  description: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  categories: string[];
+  maturityRating: string | null;
+  cover: string | null;
+};
+
+async function fetchJson(url: string): Promise<unknown> {
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000), cache: "no-store", headers: { accept: "application/json" } });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+function str(value: unknown, max = 2000): string | null {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+}
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim().length > 0).map((v) => v.trim()) : [];
+}
+
+// Google Books knows most books in print and carries a description and a
+// cover; Open Library fills in what it lacks. Either failing costs nothing but
+// that source.
+async function lookupBook(isbn: string): Promise<BookRecord | null> {
+  const [google, openLibrary, openLibraryCover] = await Promise.allSettled([
+    fetchJson(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}`),
+    fetchJson(`https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`),
+    verifyImageUrl(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg?default=false`),
+  ]);
+
+  const record: BookRecord = { title: null, authors: [], description: null, publisher: null, publishedDate: null, categories: [], maturityRating: null, cover: null };
+  let found = false;
+
+  if (google.status === "fulfilled" && google.value && typeof google.value === "object") {
+    const items = (google.value as { items?: unknown }).items;
+    const info = Array.isArray(items) && items[0] && typeof items[0] === "object" ? (items[0] as { volumeInfo?: Record<string, unknown> }).volumeInfo : null;
+    if (info) {
+      found = true;
+      record.title = str(info.title, 200);
+      record.authors = strings(info.authors);
+      record.description = str(info.description);
+      record.publisher = str(info.publisher, 200);
+      record.publishedDate = str(info.publishedDate, 40);
+      record.categories = strings(info.categories);
+      record.maturityRating = str(info.maturityRating, 40);
+      const links = info.imageLinks && typeof info.imageLinks === "object" ? (info.imageLinks as Record<string, unknown>) : null;
+      const thumb = str(links?.thumbnail, 1000) ?? str(links?.smallThumbnail, 1000);
+      // Google serves these over http and with a page-curl effect; neither
+      // belongs on a card.
+      if (thumb) record.cover = thumb.replace(/^http:\/\//i, "https://").replace(/&edge=curl/g, "");
+    }
+  }
+
+  if (openLibrary.status === "fulfilled" && openLibrary.value && typeof openLibrary.value === "object") {
+    const ol = openLibrary.value as Record<string, unknown>;
+    found = true;
+    record.title ??= str(ol.title, 200);
+    record.publisher ??= strings(ol.publishers)[0] ?? null;
+    record.publishedDate ??= str(ol.publish_date, 40);
+    if (record.authors.length === 0) record.authors = strings(ol.by_statement ? [ol.by_statement] : []);
+  }
+
+  if (openLibraryCover.status === "fulfilled" && openLibraryCover.value) {
+    found = true;
+    record.cover ??= openLibraryCover.value;
+  }
+
+  return found ? record : null;
+}
+
 async function gatherFacts(url: string): Promise<PageFacts> {
-  const facts: PageFacts = { url, kindHint: null, title: null, creator: null, description: null, image: null, jsonLd: [], text: "" };
+  const facts: PageFacts = { url, kindHint: null, isbn: null, catalogue: [], title: null, creator: null, description: null, image: null, jsonLd: [], text: "" };
+
+  // A book by its ISBN, before the page: the catalogue answers even when the
+  // shop will not, and its cover is the real cover.
+  const isbn = isbnFromUrl(url);
+  if (isbn) {
+    facts.isbn = isbn;
+    facts.kindHint = "book";
+    const book = await lookupBook(isbn);
+    if (book) {
+      facts.title = book.title;
+      facts.creator = book.authors.join(", ") || null;
+      facts.description = book.description;
+      facts.image = book.cover;
+      facts.catalogue = [
+        book.title && `Title: ${book.title}`,
+        book.authors.length > 0 && `Authors: ${book.authors.join(", ")}`,
+        book.publisher && `Publisher: ${book.publisher}${book.publishedDate ? ` (${book.publishedDate})` : ""}`,
+        book.categories.length > 0 && `Categories: ${book.categories.join("; ")}`,
+        book.maturityRating && `Maturity rating: ${book.maturityRating}`,
+        book.description && `Description: ${book.description}`,
+      ].filter((line): line is string => typeof line === "string");
+    }
+  }
 
   const video = parseVideoLink(url);
   if (video) {
@@ -138,7 +278,7 @@ async function gatherFacts(url: string): Promise<PageFacts> {
   if (!page) return facts;
 
   facts.title ??= page.title;
-  facts.description = page.description;
+  facts.description ??= page.description;
   facts.image ??= page.meta["og:image"] ?? page.meta["twitter:image"] ?? page.images[0] ?? null;
   facts.creator ??= page.meta["author"] ?? page.meta["book:author"] ?? null;
   facts.jsonLd = page.jsonLd;
@@ -176,7 +316,7 @@ const REVIEW_TOOL: Anthropic.Tool = {
   input_schema: {
     type: "object",
     additionalProperties: false,
-    required: ["kind", "title", "creator", "description", "age_min", "age_max", "verdict", "reason", "profanity", "concerns", "themes", "summary_for_parents", "confidence", "sources"],
+    required: ["kind", "title", "creator", "description", "age_min", "age_max", "verdict", "reason", "profanity", "concerns", "themes", "summary_for_parents", "confidence", "sources", "cover_image_url"],
     properties: {
       kind: { type: "string", enum: MEDIA_KIND_KEYS, description: "What kind of thing it is." },
       title: { type: "string", description: "The work's own title, without the site's suffixes." },
@@ -205,6 +345,11 @@ const REVIEW_TOOL: Anthropic.Tool = {
       summary_for_parents: { type: "string", description: "One paragraph for a parent: what it is, what is good, what to know." },
       confidence: { type: "string", enum: ["low", "medium", "high"] },
       sources: { type: "array", items: { type: "string" }, description: "URLs of the pages you actually used." },
+      cover_image_url: {
+        type: ["string", "null"],
+        description:
+          "A direct link to the cover or thumbnail image file (ending .jpg/.png or served as an image), only if you saw one on the publisher's, platform's or a catalogue page. Null otherwise. Never guess a URL.",
+      },
     },
   },
 };
@@ -212,13 +357,18 @@ const REVIEW_TOOL: Anthropic.Tool = {
 function buildPrompt(facts: PageFacts): string {
   const parts = [`The link the parent pasted: ${facts.url}`];
   if (facts.kindHint === "video") parts.push("This is a video link.");
-  if (facts.title) parts.push(`Page title: ${facts.title}`);
-  if (facts.creator) parts.push(`Page author/channel: ${facts.creator}`);
-  if (facts.description) parts.push(`Page description: ${facts.description}`);
+  if (facts.isbn) parts.push(`This is a book link; the ISBN in it is ${facts.isbn}.`);
+  if (facts.catalogue.length > 0) parts.push("", "What the book catalogue (Google Books / Open Library) says about this ISBN:", ...facts.catalogue);
+  if (facts.title && facts.catalogue.length === 0) parts.push(`Page title: ${facts.title}`);
+  if (facts.creator && facts.catalogue.length === 0) parts.push(`Page author/channel: ${facts.creator}`);
+  if (facts.description && facts.catalogue.length === 0) parts.push(`Page description: ${facts.description}`);
   if (facts.jsonLd.length > 0) parts.push("", "Structured data (schema.org JSON-LD) from the page:", ...facts.jsonLd);
   if (facts.text) parts.push("", "Visible page text (may be partial):", facts.text);
   if (!facts.title && !facts.description && !facts.text) {
-    parts.push("", "The page itself could not be read, so identify the work from the link and from what you can find about it.");
+    parts.push(
+      "",
+      "The page itself could not be read (shops often refuse automated readers), so identify the work from the link and from what you can find about it."
+    );
   }
   return parts.join("\n");
 }
@@ -309,6 +459,9 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
     // A verdict with no reason is a verdict nobody can act on. Keep the
     // parent's rule rather than the model's: suitable needs no reason.
     const reason = data.reason?.trim() || null;
+    // The page's or catalogue's own picture first; the model's find only once
+    // it has answered as an image.
+    const image = facts.image && /^https?:\/\//i.test(facts.image) ? facts.image.slice(0, 1000) : await verifyImageUrl(data.cover_image_url);
     return {
       ok: true,
       analysis: {
@@ -318,7 +471,7 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
         themes: [...new Set(data.themes.map((t) => t.trim()).filter(Boolean))],
         sources: data.sources.filter((s) => /^https?:\/\//i.test(s)),
         url: facts.url,
-        image_url: facts.image && /^https?:\/\//i.test(facts.image) ? facts.image.slice(0, 1000) : null,
+        image_url: image,
       },
       usage: usageOf(responses),
     };

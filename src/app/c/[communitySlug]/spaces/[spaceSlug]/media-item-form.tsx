@@ -220,7 +220,6 @@ export function MediaItemForm({
       <input type="hidden" name="space_slug" value={spaceSlug} />
       {item && <input type="hidden" name="item_id" value={item.id} />}
       <input type="hidden" name="concerns" value={JSON.stringify(concerns)} data-draft />
-      <input type="hidden" name="image_url" value={imageUrl} data-draft />
       <input type="hidden" name="ai_meta" value={aiMeta ? JSON.stringify(aiMeta) : ""} data-draft />
       <input type="hidden" name="ai_analysis" value={aiMeta ? JSON.stringify(aiMeta.analysis) : ""} />
       <input type="hidden" name="ai_model" value={aiMeta?.usage.model ?? ""} />
@@ -281,12 +280,36 @@ export function MediaItemForm({
         </div>
         {imageUrl && (
           <div className="flex flex-col items-center gap-1">
-            <SafeImage srcs={[imageUrl]} alt="" className="h-28 w-20 rounded-md object-cover" fallback={null} />
+            <SafeImage
+              srcs={[imageUrl]}
+              alt=""
+              className="h-28 w-20 rounded-md object-cover"
+              fallback={<div className="flex h-28 w-20 items-center justify-center rounded-md bg-muted text-center text-[11px] text-muted-foreground">No picture at that link</div>}
+            />
             <button type="button" onClick={() => setImageUrl("")} className="text-xs text-muted-foreground hover:text-danger" disabled={busy}>
               Remove picture
             </button>
           </div>
         )}
+      </div>
+
+      <div>
+        <Label htmlFor="media_image_url">Cover or thumbnail picture (link, optional)</Label>
+        <Input
+          id="media_image_url"
+          name="image_url"
+          type="url"
+          inputMode="url"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          placeholder="https://…/cover.jpg"
+          maxLength={1000}
+          disabled={busy}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Filled in when the page, the book catalogue or the review finds one. Shops like Amazon block automated readers, so
+          paste a picture link here if it comes back empty — right-click the cover and copy the image address.
+        </p>
       </div>
 
       <div>
