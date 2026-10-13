@@ -3703,7 +3703,11 @@ export type Database = {
       timeline_events: {
         Row: TimelineEvent;
         Insert: Partial<TimelineEvent> & { community_id: string; created_by: string; slug: string; title: string };
-        Update: Partial<TimelineEvent>;
+        // seed_synced_at is WRITE-ONLY: the seeded-dataset refresh sets it so its
+        // revisions can be told apart from a person's, and nothing reads it. It is
+        // kept off the Row so no page ever selects it — see
+        // 20261013200025_event_seed_sync_marker.sql.
+        Update: Partial<TimelineEvent> & { seed_synced_at?: string | null };
         Relationships: [FKey<"created_by", "profiles">];
       };
       timeline_date_claims: {
