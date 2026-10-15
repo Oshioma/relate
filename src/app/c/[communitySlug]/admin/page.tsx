@@ -255,13 +255,18 @@ export default async function AdminPage({
       {/* A disabled fieldset turns off every input and button inside it in one
           go — the platform view's read-only switch. Links still work. */}
       <fieldset disabled={platformView} className="m-0 min-w-0 border-0 p-0 lg:max-w-3xl">
+      {/* Sticky, so it stays in view however far down the page somebody
+          scrolls: a disabled form half-way down with no explanation beside it
+          reads as a broken form, not a read-only one. */}
       {platformView && (
-        <div className="mb-6 flex items-start gap-3 rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+        <div className="sticky top-0 z-30 mb-6 flex items-start gap-3 rounded-md border border-accent/40 bg-accent-soft px-4 py-3 text-sm text-accent shadow-sm">
           <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <p>
-            <span className="font-medium">Platform view — read-only.</span> You&apos;re seeing {community.name}&apos;s admin
-            exactly as its owner does, including plan and payments. Controls are switched off; to grant or remove a
-            complimentary plan, use{" "}
+            <span className="font-medium">Read-only: you&apos;re signed in as the platform admin ({user.email}), not as an
+            owner or admin of {community.name}.</span>{" "}
+            Every control on this page is switched off. To make changes here, sign in with this community&apos;s owner
+            or admin account. You&apos;re seeing exactly what its owner does, including plan and payments; to grant or
+            remove a complimentary plan, use{" "}
             <Link href="/platform-admin/communities" className="font-medium underline">
               Platform admin → Communities
             </Link>
@@ -387,6 +392,12 @@ export default async function AdminPage({
           />
         </div>
       )}
+      <h3 id="add-space" className="mb-1 scroll-mt-20 text-base font-semibold text-foreground">Add a space</h3>
+      <p className="mb-3 text-sm text-muted-foreground">
+        {platformView
+          ? "Switched off in platform view — sign in as this community's owner or admin to add one."
+          : "Give it a name, pick what kind of space it is, and it appears in the list above and in the sidebar."}
+      </p>
       <div className="mb-8">
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} allowedTypes={allowedTypes} />
       </div>
