@@ -141,3 +141,17 @@ export function resolveGuideContent(overrides: GuideOverrides): ResolvedGuide {
 export function defaultDestination(key: string): Destination | undefined {
   return DEFAULT_DESTINATIONS.find((d) => d.key === key);
 }
+
+// The guide's hero photo sized for a card (the community feed): a 960px
+// Commons thumbnail, or the photo as-is when it isn't a Commons original.
+// Lives here rather than beside GuideImage because that file is a client
+// module, whose exports a server page can't call.
+export function guideCardImage(content: unknown): string | null {
+  const hero = resolveGuideContent(parseOverrides(content)).heroPhoto;
+  if (!hero) return null;
+  const prefix = "https://upload.wikimedia.org/wikipedia/commons/";
+  if (!hero.src.startsWith(prefix) || hero.src.includes("/thumb/") || /\.(svg|tiff?)$/i.test(hero.src)) return hero.src;
+  if (hero.width && hero.width <= 960) return hero.src;
+  const rest = hero.src.slice(prefix.length);
+  return `${prefix}thumb/${rest}/960px-${rest.split("/").pop()}`;
+}

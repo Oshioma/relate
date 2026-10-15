@@ -62,7 +62,8 @@ export type FeedItemType =
   | "meetup"
   | "review"
   | "course"
-  | "guide";
+  | "guide"
+  | "editorial_guide";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
