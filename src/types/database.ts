@@ -62,7 +62,8 @@ export type FeedItemType =
   | "meetup"
   | "review"
   | "course"
-  | "guide";
+  | "guide"
+  | "editorial_guide";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -3702,7 +3703,11 @@ export type Database = {
       timeline_events: {
         Row: TimelineEvent;
         Insert: Partial<TimelineEvent> & { community_id: string; created_by: string; slug: string; title: string };
-        Update: Partial<TimelineEvent>;
+        // seed_synced_at is WRITE-ONLY: the seeded-dataset refresh sets it so its
+        // revisions can be told apart from a person's, and nothing reads it. It is
+        // kept off the Row so no page ever selects it — see
+        // 20261013200025_event_seed_sync_marker.sql.
+        Update: Partial<TimelineEvent> & { seed_synced_at?: string | null };
         Relationships: [FKey<"created_by", "profiles">];
       };
       timeline_date_claims: {
