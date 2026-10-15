@@ -260,3 +260,66 @@ export async function importSharedMediaItem(
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { error: null };
 }
+
+// Everything one community has shared, onto this shelf in one go. Items whose
+// link is already here are skipped rather than refused, so the button is safe
+// to press again later when that community has shared more.
+export async function importSharedShelf(
+  sourceCommunityId: string,
+  spaceId: string,
+  communitySlug: string,
+  spaceSlug: string
+): Promise<{ added: number; skipped: number; error: string | null }> {
+  const supabase = await createClient();
+  const auth = await authorizeMediaMember(supabase, spaceId);
+  if (!auth.ok) return { added: 0, skipped: 0, error: auth.error };
+
+  const shared = (await getSharedMediaItemsFromOtherCommunities(supabase, auth.space.community_id)).filter(
+    (s) => s.community_id === sourceCommunityId
+  );
+  if (shared.length === 0) return { added: 0, skipped: 0, error: "That community hasn't shared anything." };
+
+  // What's here already, by link. Checked up front so the insert can be one
+  // statement; the unique index is the backstop for a race.
+  const { data: existing, error: readError } = await supabase.from("space_media_items").select("link_key").eq("space_id", auth.space.id);
+  if (readError) return { added: 0, skipped: 0, error: readError.message };
+  const have = new Set((existing ?? []).map((row) => row.link_key));
+
+  const seen = new Set<string>();
+  const rows = shared.flatMap((item) => {
+    const linkKey = lessonLinkKey(item.url);
+    if (!linkKey || have.has(linkKey) || seen.has(linkKey)) return [];
+    seen.add(linkKey);
+    return [
+      {
+        space_id: auth.space.id,
+        community_id: auth.space.community_id,
+        created_by: auth.userId,
+        url: item.url,
+        link_key: linkKey,
+        kind: item.kind,
+        title: item.title,
+        creator: item.creator,
+        description: item.description,
+        image_url: item.image_url,
+        age_min: item.age_min,
+        age_max: item.age_max,
+        verdict: item.verdict,
+        reason: item.reason,
+        profanity: item.profanity,
+        concerns: item.concerns,
+        themes: item.themes,
+        share_with_other_communities: true,
+        imported_from: item.id,
+      },
+    ];
+  });
+  const skipped = shared.length - rows.length;
+  if (rows.length === 0) return { added: 0, skipped, error: null };
+
+  const { error } = await supabase.from("space_media_items").insert(rows);
+  if (error) return { added: 0, skipped, error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { added: rows.length, skipped, error: null };
+}

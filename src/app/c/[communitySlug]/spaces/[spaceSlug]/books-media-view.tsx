@@ -12,7 +12,7 @@ import { lessonLinkKey } from "@/lib/school/lesson-link-key";
 import type { MediaKind } from "@/types/database";
 import { MediaItemForm } from "./media-item-form";
 import { MediaCard } from "./media-item-card";
-import { deleteMediaItem, importSharedMediaItem, loadSharedMediaItems } from "./books-media-actions";
+import { deleteMediaItem, importSharedMediaItem, importSharedShelf, loadSharedMediaItems } from "./books-media-actions";
 
 // The family media shelf.
 //
@@ -66,6 +66,10 @@ export function BooksMediaView({
   const [loadingShared, startLoadingShared] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  // The card whose review is open beneath it. One at a time: the shelf is for
+  // comparing, and two open reviews push everything else off the screen.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
   const age = childAge.trim() === "" ? null : Number(childAge);
@@ -98,6 +102,26 @@ export function BooksMediaView({
       setShared(result.items);
       setSharedError(result.error);
     });
+  }
+
+  // Everything one community has shared that isn't on our shelf yet, in one
+  // go. The server skips duplicates by link, so pressing it twice is safe.
+  async function copyInShelf(communityId: string, label: string) {
+    setActionError(null);
+    setImportNotice(null);
+    setBusyId(`shelf:${communityId}`);
+    const result = await importSharedShelf(communityId, spaceId, communitySlug, spaceSlug);
+    setBusyId(null);
+    if (result.error) {
+      setActionError(result.error);
+      return;
+    }
+    setImportNotice(
+      result.added === 0
+        ? `Nothing new from ${label} — everything they've shared is already here.`
+        : `Brought in ${result.added} ${result.added === 1 ? "item" : "items"} from ${label}${result.skipped > 0 ? `, skipped ${result.skipped} already here` : ""}.`
+    );
+    router.refresh();
   }
 
   async function copyIn(item: SharedMediaItem) {
@@ -244,6 +268,9 @@ export function BooksMediaView({
                 key={item.id}
                 data={item}
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/media/${item.id}`}
+                expanded={expandedId === item.id}
+                onToggle={() => setExpandedId((current) => (current === item.id ? null : item.id))}
+                details={<AiWriteUp analysis={item.ai_analysis} />}
                 byline={
                   <span className="flex items-center gap-2">
                     <Avatar src={item.creatorProfile?.avatar_url} name={item.creatorProfile?.full_name || item.creatorProfile?.username} size={20} />
@@ -286,43 +313,114 @@ export function BooksMediaView({
             Reviews other communities chose to share. {canPost ? "Add any to your own shelf — it becomes yours to edit." : "Join this community to add them to its shelf."}
           </p>
           {sharedError && <p className="mt-2 text-sm text-danger">{sharedError}</p>}
+          {importNotice && <p className="mt-2 text-sm text-accent">{importNotice}</p>}
           {sharedVisible.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">
               {shared.length === 0 ? "No other community has shared anything yet." : "Nothing more on this shelf from other communities."}
             </p>
           ) : (
-            <div className="mt-4 space-y-3">
-              {sharedVisible.map((item) => (
-                <MediaCard
-                  key={item.id}
-                  data={item}
-                  byline={
-                    item.community_name ? (
-                      item.community_slug ? (
-                        <a href={`/c/${item.community_slug}`} className="hover:underline">
-                          From {item.community_name}
+            <div className="mt-4 space-y-6">
+              {groupByCommunity(sharedVisible).map((group) => (
+                <div key={group.communityId}>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {group.slug ? (
+                        <a href={`/c/${group.slug}`} className="hover:underline">
+                          {group.label}
                         </a>
                       ) : (
-                        <span>From {item.community_name}</span>
-                      )
-                    ) : (
-                      <span>From another community</span>
-                    )
-                  }
-                  footer={
-                    canPost && (
-                      <Button type="button" size="sm" variant="secondary" onClick={() => copyIn(item)} disabled={busyId === item.id} className="w-auto">
-                        {busyId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                        Add to our shelf
+                        group.label
+                      )}
+                      <span className="ml-2 font-normal text-muted-foreground">
+                        {group.items.length} not yet on your shelf
+                      </span>
+                    </h3>
+                    {canPost && group.items.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => copyInShelf(group.communityId, group.label)}
+                        disabled={busyId === `shelf:${group.communityId}`}
+                        className="w-auto"
+                      >
+                        {busyId === `shelf:${group.communityId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                        Bring in everything from {group.label}
                       </Button>
-                    )
-                  }
-                />
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {group.items.map((item) => (
+                      <MediaCard
+                        key={item.id}
+                        data={item}
+                        expanded={expandedId === item.id}
+                        onToggle={() => setExpandedId((current) => (current === item.id ? null : item.id))}
+                        byline={<span>From {group.label}</span>}
+                        footer={
+                          canPost && (
+                            <Button type="button" size="sm" variant="secondary" onClick={() => copyIn(item)} disabled={busyId === item.id} className="w-auto">
+                              {busyId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                              Add to our shelf
+                            </Button>
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </section>
       )}
     </div>
+  );
+}
+
+// Shared items by the community that shared them, in the order they first
+// appear (newest sharer first, since the list is newest-first). An
+// invite-only community is unlisted, so its rows carry no name or slug and
+// are shown as "another community".
+function groupByCommunity(items: SharedMediaItem[]): { communityId: string; label: string; slug: string | null; items: SharedMediaItem[] }[] {
+  const groups = new Map<string, { communityId: string; label: string; slug: string | null; items: SharedMediaItem[] }>();
+  for (const item of items) {
+    const group = groups.get(item.community_id) ?? {
+      communityId: item.community_id,
+      label: item.community_name ?? "another community",
+      slug: item.community_slug,
+      items: [],
+    };
+    group.items.push(item);
+    groups.set(item.community_id, group);
+  }
+  return [...groups.values()];
+}
+
+// The full write-up Claude gave when the item was reviewed, if it was.
+function AiWriteUp({ analysis }: { analysis: unknown }) {
+  if (!analysis || typeof analysis !== "object") return null;
+  const a = analysis as { summary_for_parents?: unknown; sources?: unknown; confidence?: unknown };
+  const summary = typeof a.summary_for_parents === "string" ? a.summary_for_parents : null;
+  const sources = Array.isArray(a.sources) ? a.sources.filter((s): s is string => typeof s === "string") : [];
+  if (!summary && sources.length === 0) return null;
+  return (
+    <section className="rounded-md bg-muted/40 px-3 py-2">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        The AI review{typeof a.confidence === "string" ? ` · ${a.confidence} confidence` : ""}
+      </h4>
+      {summary && <p className="mt-1 text-sm text-foreground">{summary}</p>}
+      {sources.length > 0 && (
+        <ul className="mt-1 space-y-0.5 text-xs">
+          {sources.map((s) => (
+            <li key={s} className="truncate">
+              <a href={s} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                {s}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
