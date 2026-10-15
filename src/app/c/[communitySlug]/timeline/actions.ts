@@ -36,6 +36,12 @@ import {
   withBroughtInPictures,
 } from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
+import {
+  fieldsEditedByAPerson,
+  reconcileEventText,
+  reconcileSeededPictures,
+  type EventRevision,
+} from "@/lib/timeline/reconcile-seeded-event";
 
 /**
  * A picture as it comes back out of `timeline_events.media`, which is a jsonb
@@ -2380,6 +2386,16 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // again: nothing was wrong with them, they simply predate the field — the
   // same shape of gap the relationship backfill closed.
   let classified = 0;
+  // Records whose title, summary or description was brought into line, and
+  // those left alone because a person here had written over the seed's text.
+  let retexted = 0;
+  let textKeptBecauseEdited = 0;
+  // Pictures the dataset dropped or replaced, and pictures whose details
+  // (caption, accession number, provenance) it corrected. Records whose
+  // pictures a person has edited are left alone and counted.
+  let picturesRemoved = 0;
+  let picturesCorrected = 0;
+  let picturesKeptBecauseEdited = 0;
   // RECORDS THIS COMMUNITY ONCE HAD AND NO LONGER DOES.
   //
   // The per-dataset offers ("Add the Chinese flood records") are gated on ONE
@@ -2432,7 +2448,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
     // work happens, and it is why this button could appear to hang.
     const { data: presentRows } = await supabase
       .from("timeline_events")
-      .select("id, slug, image_url, media")
+      .select("id, slug, title, summary, description, image_url, media")
       .eq("community_id", community.id)
       .in("slug", dataset.events.map((event) => event.slug));
     const present = presentRows ?? [];
@@ -2553,6 +2569,81 @@ export async function refreshSeededDatasets(communitySlug: string) {
           .eq("id", match.id);
         if (error) continue;
         updated++;
+        if (!changed.includes(seed.title)) changed.push(seed.title);
+      }
+    }
+
+    // THE TEXT AND PICTURES A LATER CORRECTION CHANGED.
+    //
+    // Everything above fixes dates; the top-up below only ever ADDS pictures.
+    // So a dataset change that rewrote a description, dropped a picture or
+    // corrected a caption reached a community only halfway, and the rest had to
+    // be done by hand in the database.
+    //
+    // Here the record is brought into line — but only the fields no person
+    // here has edited, read from the record's own history. The rules, and how
+    // a person's edit is told apart from the machine's, are in
+    // reconcile-seeded-event.ts, where they are tested.
+    {
+      const ids = present.map((row) => row.id);
+      const { data: revisionRows } = await supabase
+        .from("timeline_revisions")
+        .select("event_id, actor_id, changes")
+        .eq("community_id", community.id)
+        .eq("entity", "event")
+        .eq("action", "updated")
+        .in("event_id", ids);
+      const revisionsByEvent = new Map<string, EventRevision[]>();
+      for (const row of revisionRows ?? []) {
+        if (!row.event_id) continue;
+        const list = revisionsByEvent.get(row.event_id) ?? [];
+        list.push({ actor_id: row.actor_id, changes: row.changes as EventRevision["changes"] });
+        revisionsByEvent.set(row.event_id, list);
+      }
+
+      for (const seed of dataset.events) {
+        const row = storedBySlug.get(seed.slug);
+        if (!row) continue;
+        const edited = fieldsEditedByAPerson(revisionsByEvent.get(row.id) ?? [], seed.slug);
+
+        const { patch, kept } = reconcileEventText(row, seed, edited);
+        if (kept.length > 0) textKeptBecauseEdited++;
+
+        const pictures = reconcileSeededPictures({
+          slug: seed.slug,
+          stored: { image_url: row.image_url, media: (row.media ?? []) as StoredPicture[] },
+          seed: { imageUrl: seed.imageUrl, media: seed.media },
+        });
+        // A person has arranged these pictures themselves: say so, touch nothing.
+        const picturesEdited = edited.has("media") || edited.has("image_url");
+        if (picturesEdited && pictures.changed) picturesKeptBecauseEdited++;
+
+        const textChanged = Object.keys(patch).length > 0;
+        const picturesChanged = pictures.changed && !picturesEdited;
+        if (!textChanged && !picturesChanged) continue;
+
+        // seed_synced_at rides along in the SAME update, so the revision the
+        // trigger writes carries the key that marks this as the refresh's work.
+        const { error } = await supabase
+          .from("timeline_events")
+          .update({
+            ...patch,
+            ...(picturesChanged
+              ? { image_url: pictures.image_url, media: pictures.media as StoredPicture[] }
+              : {}),
+            seed_synced_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        if (error) continue;
+
+        if (textChanged) retexted++;
+        if (picturesChanged) {
+          picturesRemoved += pictures.removed;
+          picturesCorrected += pictures.corrected;
+          // The top-up and the classifier below read this snapshot.
+          row.image_url = pictures.image_url;
+          row.media = pictures.media as StoredPicture[];
+        }
         if (!changed.includes(seed.title)) changed.push(seed.title);
       }
     }
@@ -2699,6 +2790,11 @@ export async function refreshSeededDatasets(communitySlug: string) {
     skippedAmbiguous,
     linked,
     classified,
+    retexted,
+    textKeptBecauseEdited,
+    picturesRemoved,
+    picturesCorrected,
+    picturesKeptBecauseEdited,
     pictured,
     picturesStillMissing,
     restored,
