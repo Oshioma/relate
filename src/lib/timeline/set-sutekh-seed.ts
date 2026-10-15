@@ -1859,6 +1859,24 @@ export const SET_SUTEKH_EVENTS: SeedEvent[] = [
         duplicateOf: "Inner facing of the coffin of Iqer, wood - Museo Egizio, Turin S 15744 01 p02.jpg",
         creditFrom: "source",
       },
+      // Kept as context after the Iqer coffin replaced it as the main picture:
+      // a securely dated coffin of the period, but no Set spell is shown on it.
+      {
+        url: commons("Coffin_of_Wah_MET_EG156.jpg"),
+        sourcePageUrl: commonsPage("Coffin_of_Wah_MET_EG156.jpg"),
+        fileName: "Coffin of Wah MET EG156.jpg",
+        originalFileUrl: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Coffin_of_Wah_MET_EG156.jpg",
+        caption:
+          "UNVERIFIED — Middle Kingdom coffin of Wah, Metropolitan Museum 20.3.202a-b. Included as a securely dated example of the coffin medium in which Middle Kingdom funerary texts circulated; this particular view is contextual and does not identify a visible Set spell.",
+        kind: "image",
+        shows: "artefact",
+        institution: "Metropolitan Museum of Art, New York",
+        accessionNumber: "20.3.202a, b",
+        objectDate: "about 1981-1975 BCE, Dynasty 12",
+        licence: "Creative Commons CC0 License",
+        identificationStatus: "unverified",
+        creditFrom: "source",
+      },
     ]
   },
 
