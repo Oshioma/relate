@@ -1248,6 +1248,18 @@ export type MediaKind = "book" | "video" | "audio" | "game" | "app" | "website" 
 export type MediaVerdict = "suitable" | "caution" | "not_suitable";
 export type MediaProfanity = "none" | "mild" | "moderate" | "strong" | "unknown";
 export type MediaConcern = { category: string; level: "none" | "mild" | "moderate" | "strong"; note: string };
+// One family's tick and note on a shelf item. See the media_item_marks
+// migration: visible to whoever can see the item, written only by its own
+// family.
+export type MediaItemMark = {
+  id: string;
+  item_id: string;
+  user_id: string;
+  done: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
 export type SpaceMediaItem = {
   id: string;
   space_id: string;
@@ -3322,6 +3334,12 @@ export type Database = {
         Insert: Partial<SpaceMediaItem> & { space_id: string; community_id: string; created_by: string; url: string; link_key: string; title: string };
         Update: Partial<SpaceMediaItem>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      media_item_marks: {
+        Row: MediaItemMark;
+        Insert: Partial<MediaItemMark> & { item_id: string; user_id: string };
+        Update: Partial<MediaItemMark>;
+        Relationships: [FKey<"item_id", "space_media_items">, FKey<"user_id", "profiles">];
       };
       lesson_video_jobs: {
         Row: LessonVideoJob;

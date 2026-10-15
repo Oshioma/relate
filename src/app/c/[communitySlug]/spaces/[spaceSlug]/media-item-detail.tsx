@@ -16,8 +16,10 @@ import {
   mediaVerdictLabel,
   profanityLabel,
   type MediaItemRow,
+  type MediaMarks,
 } from "@/lib/media/media-types";
 import { MediaItemForm } from "./media-item-form";
+import { FamilyNotes, MarkToggle } from "./media-marks";
 import { linkHost } from "./media-item-card";
 import { deleteMediaItem } from "./books-media-actions";
 
@@ -31,6 +33,8 @@ export function MediaItemDetail({
   spaceSlug,
   spaceName,
   canManage,
+  canMark,
+  marks,
   aiConfigured,
 }: {
   item: MediaItemRow;
@@ -38,6 +42,9 @@ export function MediaItemDetail({
   spaceSlug: string;
   spaceName: string;
   canManage: boolean;
+  // An active member: may tick it and leave a note.
+  canMark: boolean;
+  marks: MediaMarks;
   aiConfigured: boolean;
 }) {
   const router = useRouter();
@@ -143,6 +150,9 @@ export function MediaItemDetail({
                 )}
               </div>
               {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+              <div className="mt-3 text-xs text-muted-foreground">
+                <MarkToggle itemId={item.id} kind={item.kind} marks={marks} canMark={canMark} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+              </div>
             </div>
           </div>
 
@@ -185,6 +195,10 @@ export function MediaItemDetail({
               </div>
             </section>
           )}
+
+          <div className="mt-6">
+            <FamilyNotes itemId={item.id} kind={item.kind} marks={marks} canMark={canMark} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+          </div>
 
           {(summary || sources.length > 0) && (
             <section className="mt-6 rounded-lg border border-border bg-muted/40 px-4 py-3">
