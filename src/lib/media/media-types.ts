@@ -162,3 +162,35 @@ export type SharedMediaItem = {
 export function mediaSearchText(item: { title: string; creator: string | null; description: string; themes: string[]; reason: string | null }): string {
   return [item.title, item.creator ?? "", item.description, item.themes.join(" "), item.reason ?? ""].join(" ").toLowerCase();
 }
+
+// What the families here have said about one item: the viewer's own tick and
+// note, how many have ticked it, and everyone's notes with a name beside each.
+export type FamilyNote = { userId: string; name: string | null; avatarUrl: string | null; done: boolean; note: string | null; updatedAt: string };
+export type MediaMarks = {
+  mine: { done: boolean; note: string | null } | null;
+  doneCount: number;
+  notes: FamilyNote[];
+};
+
+export const EMPTY_MARKS: MediaMarks = { mine: null, doneCount: 0, notes: [] };
+
+// "Read it" for a book, "Watched it" for a film — the verb a family would use.
+export function doneVerb(kind: MediaKind): { done: string; notDone: string; past: string } {
+  switch (kind) {
+    case "video":
+      return { done: "Watched it", notDone: "Watched it?", past: "watched" };
+    case "audio":
+      return { done: "Listened to it", notDone: "Listened to it?", past: "listened to" };
+    case "game":
+    case "app":
+    case "website":
+      return { done: "Tried it", notDone: "Tried it?", past: "tried" };
+    default:
+      return { done: "Read it", notDone: "Read it?", past: "read" };
+  }
+}
+
+export function familiesLine(count: number, past: string): string | null {
+  if (count === 0) return null;
+  return count === 1 ? `1 family has ${past} it` : `${count} families have ${past} it`;
+}

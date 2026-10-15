@@ -87,7 +87,7 @@ import { LiveEventsView } from "./live-events-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { LessonsView } from "./lessons-view";
 import { BooksMediaView } from "./books-media-view";
-import { getSpaceMediaItems } from "@/lib/data/media-items";
+import { getSpaceMediaItems, getMediaMarks } from "@/lib/data/media-items";
 import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
@@ -318,6 +318,8 @@ export default async function SpaceDetailPage({
   // The shelf of a Books & Media space. RLS scopes it to what the viewer may
   // see, so a guest on a public homeschool gets the same list.
   const mediaItems = isBooksMediaSpace ? await getSpaceMediaItems(supabase, space.id) : [];
+  // Every family's "read it" and note on those items (see media_item_marks).
+  const mediaMarks = isBooksMediaSpace ? await getMediaMarks(supabase, mediaItems.map((m) => m.id), user?.id ?? null) : {};
 
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
@@ -790,6 +792,7 @@ export default async function SpaceDetailPage({
       ) : isBooksMediaSpace ? (
         <BooksMediaView
           items={mediaItems}
+          marks={mediaMarks}
           communityId={community.id}
           communitySlug={community.slug}
           spaceId={space.id}

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, MediaConcern, SpaceMediaItem } from "@/types/database";
-import { MediaConcernSchema, isMediaKind, isMediaVerdict, isProfanityLevel, type MediaItemRow, type SharedMediaItem } from "@/lib/media/media-types";
+import { MediaConcernSchema, isMediaKind, isMediaVerdict, isProfanityLevel, type MediaItemRow, type MediaMarks, type SharedMediaItem } from "@/lib/media/media-types";
 
 type Client = SupabaseClient<Database>;
 
@@ -79,4 +79,46 @@ export async function getSharedMediaItemsFromOtherCommunities(supabase: Client, 
     themes: row.themes ?? [],
     created_at: row.created_at,
   }));
+}
+
+// Every family's tick and note on these items, folded per item. RLS already
+// limits the read to items the viewer can see; viewerId only decides which
+// row is "mine".
+export async function getMediaMarks(supabase: Client, itemIds: string[], viewerId: string | null): Promise<Record<string, MediaMarks>> {
+  const marks: Record<string, MediaMarks> = {};
+  if (itemIds.length === 0) return marks;
+
+  const { data, error } = await supabase
+    .from("media_item_marks")
+    .select("item_id, user_id, done, note, updated_at, family:user_id (full_name, username, avatar_url)")
+    .in("item_id", itemIds)
+    .order("updated_at", { ascending: false });
+
+  // A failure here costs the ticks, not the shelf.
+  if (error) {
+    console.error("Could not read media marks", error);
+    return marks;
+  }
+
+  for (const row of (data ?? []) as unknown as {
+    item_id: string;
+    user_id: string;
+    done: boolean;
+    note: string | null;
+    updated_at: string;
+    family: { full_name: string | null; username: string | null; avatar_url: string | null } | null;
+  }[]) {
+    const entry = (marks[row.item_id] ??= { mine: null, doneCount: 0, notes: [] });
+    if (row.done) entry.doneCount += 1;
+    if (viewerId && row.user_id === viewerId) entry.mine = { done: row.done, note: row.note };
+    entry.notes.push({
+      userId: row.user_id,
+      name: row.family?.full_name || row.family?.username || null,
+      avatarUrl: row.family?.avatar_url ?? null,
+      done: row.done,
+      note: row.note,
+      updatedAt: row.updated_at,
+    });
+  }
+  return marks;
 }

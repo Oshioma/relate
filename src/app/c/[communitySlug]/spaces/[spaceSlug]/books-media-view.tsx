@@ -7,7 +7,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { MEDIA_KINDS, mediaSearchText, suitsAge, type MediaItemRow, type SharedMediaItem } from "@/lib/media/media-types";
+import { EMPTY_MARKS, MEDIA_KINDS, mediaSearchText, suitsAge, type MediaItemRow, type MediaMarks, type SharedMediaItem } from "@/lib/media/media-types";
+import { FamilyNotes, MarkToggle } from "./media-marks";
 import { lessonLinkKey } from "@/lib/school/lesson-link-key";
 import type { MediaKind } from "@/types/database";
 import { MediaItemForm } from "./media-item-form";
@@ -34,6 +35,7 @@ const CHIP_OFF = "border-border text-muted-foreground hover:border-muted-foregro
 
 export function BooksMediaView({
   items,
+  marks,
   communityId,
   communitySlug,
   spaceId,
@@ -44,6 +46,8 @@ export function BooksMediaView({
   aiConfigured,
 }: {
   items: MediaItemRow[];
+  // Every family's tick and note, per item id.
+  marks: Record<string, MediaMarks>;
   communityId: string;
   communitySlug: string;
   spaceId: string;
@@ -270,7 +274,15 @@ export function BooksMediaView({
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/media/${item.id}`}
                 expanded={expandedId === item.id}
                 onToggle={() => setExpandedId((current) => (current === item.id ? null : item.id))}
-                details={<AiWriteUp analysis={item.ai_analysis} />}
+                marksLine={
+                  <MarkToggle itemId={item.id} kind={item.kind} marks={marks[item.id] ?? EMPTY_MARKS} canMark={canPost} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+                }
+                details={
+                  <>
+                    <AiWriteUp analysis={item.ai_analysis} />
+                    <FamilyNotes itemId={item.id} kind={item.kind} marks={marks[item.id] ?? EMPTY_MARKS} canMark={canPost} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+                  </>
+                }
                 byline={
                   <span className="flex items-center gap-2">
                     <Avatar src={item.creatorProfile?.avatar_url} name={item.creatorProfile?.full_name || item.creatorProfile?.username} size={20} />

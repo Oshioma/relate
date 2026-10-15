@@ -76,6 +76,7 @@ export function MediaCard({
   expanded = false,
   onToggle,
   details,
+  marksLine,
 }: {
   data: MediaCardData;
   // The item's own page in this app. When given, the title and picture open
@@ -93,6 +94,9 @@ export function MediaCard({
   onToggle?: () => void;
   // Extra content for the open panel (the AI write-up, the family's notes).
   details?: ReactNode;
+  // The family's tick and the "3 families have read it" line, for the
+  // bottom row.
+  marksLine?: ReactNode;
 }) {
   const KindIcon = KIND_ICONS[data.kind] ?? Package;
   const verdict = VERDICT_STYLE[data.verdict] ?? VERDICT_STYLE.suitable;
@@ -189,6 +193,7 @@ export function MediaCard({
 
         <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 pt-3 text-xs text-muted-foreground">
           <span>{profanityLabel(data.profanity)}</span>
+          {marksLine && <span onClick={stop}>{marksLine}</span>}
           {href && (
             <Link href={href} className="inline-flex items-center gap-1 font-medium text-accent hover:underline" onClick={stop}>
               Full review

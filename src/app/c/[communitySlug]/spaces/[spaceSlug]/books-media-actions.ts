@@ -323,3 +323,35 @@ export async function importSharedShelf(
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
   return { added: rows.length, skipped, error: null };
 }
+
+// A family's tick and note on one item: one row per family, written over.
+// A cleared tick with no note removes the row rather than leaving an empty
+// one behind.
+export async function setMediaMark(
+  itemId: string,
+  mark: { done: boolean; note: string },
+  communitySlug: string,
+  spaceSlug: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const item = await getMediaItem(supabase, itemId);
+  if (!item) return { error: "Item not found." };
+  const auth = await authorizeMediaMember(supabase, item.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const note = mark.note.trim().slice(0, 600) || null;
+  const { error } =
+    !mark.done && !note
+      ? await supabase.from("media_item_marks").delete().eq("item_id", itemId).eq("user_id", user.id)
+      : await supabase.from("media_item_marks").upsert({ item_id: itemId, user_id: user.id, done: mark.done, note }, { onConflict: "item_id,user_id" });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/media/${itemId}`);
+  return { error: null };
+}

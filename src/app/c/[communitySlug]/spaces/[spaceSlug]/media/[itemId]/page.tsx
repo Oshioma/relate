@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getMediaItem } from "@/lib/data/media-items";
+import { getMediaItem, getMediaMarks } from "@/lib/data/media-items";
+import { EMPTY_MARKS } from "@/lib/media/media-types";
 import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
 import { MediaItemDetail } from "../../media-item-detail";
 
@@ -35,6 +36,8 @@ export default async function MediaItemPage({
     membership?.status === "active" &&
     (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   const canManage = Boolean(isStaff) || (Boolean(user) && item.created_by === user?.id);
+  const isMember = membership?.status === "active";
+  const marks = (await getMediaMarks(supabase, [item.id], user?.id ?? null))[item.id] ?? EMPTY_MARKS;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -44,6 +47,8 @@ export default async function MediaItemPage({
         spaceSlug={space.slug}
         spaceName={space.name}
         canManage={canManage}
+        canMark={isMember}
+        marks={marks}
         aiConfigured={isMediaReviewConfigured()}
       />
     </div>
