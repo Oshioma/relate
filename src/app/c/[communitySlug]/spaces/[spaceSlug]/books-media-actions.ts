@@ -48,7 +48,9 @@ function json(fd: FormData, name: string): unknown {
 function parseInput(fd: FormData): { ok: true; input: MediaItemInput } | { ok: false; error: string } {
   const themes = str(fd, "themes")
     .split(/[,\n]/)
-    .map((t) => t.trim())
+    // Clipped rather than refused: a long phrase is not a reason to lose
+    // the form.
+    .map((t) => t.trim().slice(0, 80))
     .filter(Boolean)
     .slice(0, 20);
   const concerns = cleanConcerns(json(fd, "concerns"));

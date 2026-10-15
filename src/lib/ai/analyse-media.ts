@@ -1,12 +1,12 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { z } from "zod";
 import { fetchPageContent, parsePublicUrl } from "@/lib/page-content";
 import { normaliseUrl } from "@/lib/ai/read-url";
 import { parseVideoLink } from "@/lib/school/video-links";
 import { isbnFromUrl } from "@/lib/media/isbn";
 import { meterClaude } from "@/lib/usage/ai-meter";
-import { CONCERN_CATEGORIES, CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS, PROFANITY_LEVELS } from "@/lib/media/media-types";
+import { CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS, PROFANITY_LEVELS } from "@/lib/media/media-types";
+import { CONCERN_KEYS, MediaAnalysisSchema, type MediaAnalysisShape } from "@/lib/media/media-analysis-schema";
 
 // Reviews a book, video or other piece of media from a pasted link, for a
 // parent deciding whether to hand it to a child.
@@ -58,33 +58,9 @@ export function isMediaReviewConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-const CONCERN_KEYS = CONCERN_CATEGORIES.map((c) => c.key);
-
-export const MediaAnalysisSchema = z.object({
-  kind: z.enum(MEDIA_KIND_KEYS as [string, ...string[]]),
-  title: z.string().trim().min(1).max(200),
-  creator: z.string().trim().max(200).nullable(),
-  description: z.string().trim().max(2000),
-  age_min: z.number().int().min(0).max(21).nullable(),
-  age_max: z.number().int().min(0).max(21).nullable(),
-  verdict: z.enum(MEDIA_VERDICT_KEYS as [string, ...string[]]),
-  reason: z.string().trim().max(1000).nullable(),
-  profanity: z.enum(PROFANITY_LEVELS.map((p) => p.value) as [string, ...string[]]),
-  concerns: z.array(
-    z.object({
-      category: z.enum(CONCERN_KEYS as [string, ...string[]]),
-      level: z.enum(CONCERN_LEVELS),
-      note: z.string().trim().max(400),
-    })
-  ).max(20),
-  themes: z.array(z.string().trim().min(1).max(60)).max(20),
-  summary_for_parents: z.string().trim().max(2000),
-  confidence: z.enum(["low", "medium", "high"]),
-  sources: z.array(z.string().max(500)).max(12),
-  cover_image_url: z.string().max(1000).nullable(),
-});
-
-export type MediaAnalysis = z.infer<typeof MediaAnalysisSchema> & {
+// The shape of an answer, and how it is tidied, live in a pure module so the
+// tidying can be unit-tested without a server context.
+export type MediaAnalysis = MediaAnalysisShape & {
   // Canonical form of the pasted link.
   url: string;
   // A cover or thumbnail the page offered, if any. Never from the model.
@@ -298,7 +274,7 @@ A parent pasted one link. You are given what the page itself says. Then:
 4. Suggest an age range as whole years, from what the publisher, platform and reviewers say, tempered by what you found. Prefer a range (e.g. 8 to 12) to a single age.
 5. Give a verdict for a typical family with children in that range: "suitable" (nothing to worry about), "caution" (fine, but a parent should know something first — say what in reason), or "not_suitable" (you would not give this to children in the suggested range — say why in reason, plainly). Reason is required for caution and not_suitable.
 6. Write the description as two to four sentences on what the work is about, in neutral language a parent can read aloud. Write summary_for_parents as the paragraph you would say to a parent at the door: what it is, what is good about it, what to know.
-7. List themes: the good things in it — subjects, values, skills, what a child would get from it.
+7. List themes: the good things in it — subjects, values, skills, what a child would get from it. Each one a short phrase of two to five words ("courage under pressure", "ancient Egypt", "sharing"), never a sentence.
 
 Honesty rules, which outrank everything above:
 - profanity is "unknown" unless you found something that actually says what the language is like. Never report "none" because you found nothing.
@@ -341,7 +317,7 @@ const REVIEW_TOOL: Anthropic.Tool = {
           },
         },
       },
-      themes: { type: "array", items: { type: "string" }, description: "Subjects, values and skills a child would get from it. Short phrases." },
+      themes: { type: "array", items: { type: "string" }, description: "Subjects, values and skills a child would get from it. Each a phrase of two to five words, never a sentence." },
       summary_for_parents: { type: "string", description: "One paragraph for a parent: what it is, what is good, what to know." },
       confidence: { type: "string", enum: ["low", "medium", "high"] },
       sources: { type: "array", items: { type: "string" }, description: "URLs of the pages you actually used." },
@@ -467,9 +443,6 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
       analysis: {
         ...data,
         reason,
-        // Themes and sources are tidied rather than trusted.
-        themes: [...new Set(data.themes.map((t) => t.trim()).filter(Boolean))],
-        sources: data.sources.filter((s) => /^https?:\/\//i.test(s)),
         url: facts.url,
         image_url: image,
       },

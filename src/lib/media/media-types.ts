@@ -102,7 +102,7 @@ export const MediaItemInputSchema = z.object({
   reason: z.string().trim().max(1000).nullable(),
   profanity: z.enum(PROFANITY_LEVELS.map((p) => p.value) as [MediaProfanity, ...MediaProfanity[]]),
   concerns: z.array(MediaConcernSchema).max(20),
-  themes: z.array(z.string().trim().min(1).max(60)).max(20),
+  themes: z.array(z.string().trim().min(1).max(80)).max(20),
   share_with_other_communities: z.boolean(),
 });
 
