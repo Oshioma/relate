@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DEFAULT_DESTINATIONS } from "./destinations";
 import { compareDestinations, matchesFilter, recommendDestinations, type QuizAnswers } from "./scoring";
-import { parseOverrides, resolveGuideContent, destinationOverrideSchema, restaurantSchema, staySchema, photoSchema } from "./content";
+import { parseOverrides, resolveGuideContent, destinationOverrideSchema, restaurantSchema, staySchema, photoSchema, guideCardImage } from "./content";
 import { RESTAURANTS } from "./restaurants";
 import { STAYS } from "./stays";
 import { DESTINATION_PHOTOS } from "./photos";
@@ -121,4 +121,21 @@ test("admin overrides replace fields per destination; a bad override is ignored"
   assert.equal(paje.panel.swimming, "tide-dependent");
   assert.equal(destinations.find((d) => d.key === "kendwa")!.rank, 1);
   assert.deepEqual(parseOverrides("garbage"), {});
+});
+
+test("feed card image is a 960px Commons thumbnail of the hero, honouring an admin override", () => {
+  const img = guideCardImage({});
+  assert.match(img ?? "", /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/thumb\/.+\/960px-[^/]+$/);
+  const custom = "https://example.supabase.co/storage/v1/object/public/hero.jpg";
+  const overridden = guideCardImage({
+    heroPhoto: { src: custom, alt: "Beach", caption: "Beach", credit: "Me", licence: "All rights reserved", sourceUrl: custom, identificationStatus: "secure" },
+  });
+  assert.equal(overridden, custom);
+});
+
+test("renamed and dropped stays stay corrected", () => {
+  const names = Object.values(STAYS).flat().map((s) => s.name);
+  assert.ok(names.includes("Matemwe Attitude"));
+  assert.ok(names.includes("Jaz Adonia Beach Resort"));
+  for (const gone of ["Matemwe Lodge", "Uroa Bay Beach Resort", "Paje Blu Boutique Hotel"]) assert.ok(!names.includes(gone), gone);
 });

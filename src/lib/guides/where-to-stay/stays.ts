@@ -97,13 +97,16 @@ export const STAYS: Record<string, StayRecommendation[]> = {
       position: "beachfront",
     },
     {
-      name: "Paje Blu Boutique Hotel",
-      type: "Boutique hotel",
+      // Replaces Paje Blu Boutique Hotel, dropped after recent reviews
+      // reported security incidents (rooms entered, theft).
+      name: "Paje by Night",
+      type: "Garden bungalow hotel",
       price: "$$",
-      suits: "Couples and kitesurfers wanting a small, friendly hotel near the beach",
-      why: "Consistently highly rated, with reviewers praising the staff, varied breakfast, pool and value.",
+      suits: "Kitesurfers, yoga travellers and budget-conscious couples",
+      why: "A long-established bungalow hotel in a jungle-like garden with a pool, yoga classes and a sister kite school on the beach; its pizza nights and Swahili dinners are frequently praised.",
       position: "short-walk",
-      positionNote: "About two minutes' walk from Paje beach.",
+      positionNote: "Around 70–100 m from Paje beach.",
+      verificationNote: "Recent reviews flag unreliable wi-fi — not ideal for remote work.",
     },
     {
       name: "Aluna Paje",
@@ -154,14 +157,15 @@ export const STAYS: Record<string, StayRecommendation[]> = {
   ],
   matemwe: [
     {
-      name: "Matemwe Lodge",
-      type: "Lodge",
+      name: "Matemwe Attitude",
+      type: "Adults-only boutique resort",
       price: "$$$",
-      suits: "Couples wanting a quiet, upmarket lodge facing Mnemba",
-      why: "A lodge of rustic villas looking out towards Mnemba, with half-board rates that include guided reef and village walks and kayaking.",
+      suits: "Couples and adults wanting a quiet, eco-minded stay facing Mnemba",
+      why: "The former Matemwe Lodge, sold by Asilia and relaunched in November 2025 as an adults-only villa resort with a sustainability focus (no minibar, a bulk shop, screen-free rooms), overlooking the lagoon towards Mnemba Atoll.",
       position: "cliff",
-      positionNote: "Villas sit on a coral-rag cliff above the shore.",
-      verificationNote: "Closes each year from early April to the end of May.",
+      positionNote: "The original lodge sat on coral rag above the lagoon; some new villa categories are described as seafront.",
+      website: "https://hotels-attitude.com/en/matemwe-attitude",
+      verificationNote: "Reopened under its new name in November 2025, so independent reviews are still few. Older guides and reviews call it Matemwe Lodge.",
     },
     {
       name: "Villa Kiva Boutique Hotel",
@@ -376,12 +380,13 @@ export const STAYS: Record<string, StayRecommendation[]> = {
       verificationNote: "Not the original Dream of Zanzibar in Kiwengwa, which is now TUI BLUE Bahari.",
     },
     {
-      name: "Uroa Bay Beach Resort",
-      type: "Resort",
+      name: "Jaz Adonia Beach Resort",
+      type: "All-inclusive resort",
       price: "$$",
       suits: "Families and value-seeking couples",
-      why: "A beachfront resort with two pools; reviewers like the value, with some complaints about service and food variety.",
+      why: "The long-running resort formerly called Uroa Bay Beach Resort, now operated by Jaz. Recent reviews praise the restaurants, pools and large rooms; billing and service consistency are the recurring complaints.",
       position: "beachfront",
+      verificationNote: "Older sites still list it as Uroa Bay Beach Resort. Strong currents and sea grass have been reported on this stretch.",
     },
   ],
   "stone-town": [
