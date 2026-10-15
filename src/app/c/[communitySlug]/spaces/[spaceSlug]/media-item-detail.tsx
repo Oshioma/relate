@@ -107,7 +107,11 @@ export function MediaItemDetail({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", verdictTone)}>{mediaVerdictLabel(item.verdict)}</span>
-                {age && <Badge tone="neutral">{age}</Badge>}
+                {age && (
+                <Badge tone="neutral" className="normal-case">
+                  {age}
+                </Badge>
+              )}
                 <Badge tone="neutral" className="normal-case">
                   {mediaKindLabel(item.kind)}
                 </Badge>
