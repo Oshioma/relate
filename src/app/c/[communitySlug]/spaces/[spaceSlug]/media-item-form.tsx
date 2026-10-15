@@ -151,7 +151,9 @@ export function MediaItemForm({
       const response = await fetch("/api/media/analyse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url }),
+        // Editing: tell the route which item this is, so the shelf's own copy
+        // of the link isn't reported as a duplicate of itself.
+        body: JSON.stringify({ spaceId, url, itemId: item?.id ?? null }),
       });
       const body = (await response.json().catch(() => ({}))) as { error?: string; analysis?: Analysis; usage?: AiMeta["usage"] };
       if (!response.ok || !body.analysis || !body.usage) {
