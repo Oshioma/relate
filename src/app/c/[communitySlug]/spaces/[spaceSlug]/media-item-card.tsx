@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { BookOpen, Clapperboard, ExternalLink, Gamepad2, Globe, Headphones, Smartphone, Package, ShieldAlert, ShieldCheck, ShieldQuestion, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SafeImage } from "@/components/ui/safe-image";
@@ -44,13 +45,30 @@ const VERDICT_STYLE: Record<MediaVerdict, { icon: LucideIcon; className: string 
   not_suitable: { icon: ShieldAlert, className: "bg-danger/10 text-danger" },
 };
 
+// Where the link a review is about actually lives: "amazon.co.uk",
+// "youtube.com". Shown beside the external link so a parent knows before
+// tapping.
+export function linkHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^(www|m)\./, "");
+  } catch {
+    return "the link";
+  }
+}
+
 export function MediaCard({
   data,
+  href,
   byline,
   footer,
   details,
 }: {
   data: MediaCardData;
+  // The item's own page in this app. When given, the title and picture open
+  // it and the outside link is a smaller, labelled affair underneath; when
+  // absent (another community's shelf, which has no page here) they open the
+  // outside link directly.
+  href?: string;
   // "Added by Sam · 2 days ago", or "From Riverside Homeschool".
   byline?: ReactNode;
   // Buttons for the bottom-right corner.
@@ -65,21 +83,30 @@ export function MediaCard({
   const age = ageRangeLabel(data.age_min, data.age_max);
   const concerns = notableConcerns(data.concerns);
   const hasMore = concerns.length > 0 || Boolean(details) || data.themes.length > 0;
+  const picture = (
+    <SafeImage
+      srcs={[data.image_url]}
+      alt=""
+      className="h-28 w-20 rounded-md bg-muted object-cover"
+      fallback={
+        <div className="flex h-28 w-20 items-center justify-center rounded-md bg-muted text-muted-foreground">
+          <KindIcon className="h-7 w-7" />
+        </div>
+      }
+    />
+  );
 
   return (
     <article className="flex gap-4 rounded-xl border border-border bg-card p-4">
-      <a href={data.url} target="_blank" rel="noreferrer" className="shrink-0" tabIndex={-1} aria-hidden>
-        <SafeImage
-          srcs={[data.image_url]}
-          alt=""
-          className="h-28 w-20 rounded-md bg-muted object-cover"
-          fallback={
-            <div className="flex h-28 w-20 items-center justify-center rounded-md bg-muted text-muted-foreground">
-              <KindIcon className="h-7 w-7" />
-            </div>
-          }
-        />
-      </a>
+      {href ? (
+        <Link href={href} className="shrink-0" tabIndex={-1} aria-hidden>
+          {picture}
+        </Link>
+      ) : (
+        <a href={data.url} target="_blank" rel="noreferrer" className="shrink-0" tabIndex={-1} aria-hidden>
+          {picture}
+        </a>
+      )}
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -94,12 +121,29 @@ export function MediaCard({
         </div>
 
         <h3 className="mt-2 text-base font-semibold leading-snug text-foreground">
-          <a href={data.url} target="_blank" rel="noreferrer" className="hover:underline">
-            {data.title}
-            <ExternalLink className="ml-1 inline h-3.5 w-3.5 text-muted-foreground" />
-          </a>
+          {href ? (
+            <Link href={href} className="hover:underline">
+              {data.title}
+            </Link>
+          ) : (
+            <a href={data.url} target="_blank" rel="noreferrer" className="hover:underline">
+              {data.title}
+              <ExternalLink className="ml-1 inline h-3.5 w-3.5 text-muted-foreground" />
+            </a>
+          )}
         </h3>
         {data.creator && <p className="text-sm text-muted-foreground">{data.creator}</p>}
+        {href && (
+          <a
+            href={data.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-accent hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Open on {linkHost(data.url)}
+          </a>
+        )}
 
         {data.description && <p className="mt-2 text-sm text-foreground">{data.description}</p>}
 

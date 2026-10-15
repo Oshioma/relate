@@ -222,6 +222,7 @@ export function BooksMediaView({
               <MediaCard
                 key={item.id}
                 data={item}
+                href={`/c/${communitySlug}/spaces/${spaceSlug}/media/${item.id}`}
                 byline={
                   <span className="flex items-center gap-2">
                     <Avatar src={item.creatorProfile?.avatar_url} name={item.creatorProfile?.full_name || item.creatorProfile?.username} size={20} />

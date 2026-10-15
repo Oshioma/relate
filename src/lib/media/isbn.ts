@@ -49,3 +49,17 @@ export function isbnFromUrl(raw: string): string | null {
   }
   return null;
 }
+
+// The ISBN-10 form of an ISBN, when it has one: a 978- ISBN-13 is an ISBN-10
+// with a different check digit; 979- ISBNs have no ISBN-10 at all. Amazon's
+// cover-by-ISBN image service only knows the ten-digit form.
+export function isbn10Of(isbn: string): string | null {
+  const value = isbn.toUpperCase();
+  if (isValidIsbn10(value)) return value;
+  if (!isValidIsbn13(value) || !value.startsWith("978")) return null;
+  const core = value.slice(3, 12);
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += (10 - i) * Number(core[i]);
+  const check = (11 - (sum % 11)) % 11;
+  return core + (check === 10 ? "X" : String(check));
+}

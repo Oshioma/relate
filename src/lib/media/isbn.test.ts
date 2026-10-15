@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isbnFromUrl, isValidIsbn10, isValidIsbn13 } from "./isbn";
+import { isbn10Of, isbnFromUrl, isValidIsbn10, isValidIsbn13 } from "./isbn";
 
 test("an Amazon book link carries its ISBN-10 as the ASIN", () => {
   assert.equal(isbnFromUrl("https://www.amazon.com/dp/1842706470?lv=shuf&channelId=500"), "1842706470");
@@ -26,4 +26,12 @@ test("checksums", () => {
   assert.equal(isValidIsbn10("0306406153"), false);
   assert.ok(isValidIsbn13("9780306406157"));
   assert.equal(isValidIsbn13("9780306406158"), false);
+});
+
+test("an ISBN-13 converts to its ISBN-10 when it has one", () => {
+  assert.equal(isbn10Of("9780306406157"), "0306406152");
+  assert.equal(isbn10Of("9780064400558"), "0064400557");
+  assert.equal(isbn10Of("0306406152"), "0306406152");
+  assert.equal(isbn10Of("9791234567896"), null);
+  assert.equal(isbn10Of("nonsense"), null);
 });

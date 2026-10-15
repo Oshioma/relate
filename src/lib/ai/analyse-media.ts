@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { fetchPageContent, parsePublicUrl } from "@/lib/page-content";
 import { normaliseUrl } from "@/lib/ai/read-url";
 import { parseVideoLink } from "@/lib/school/video-links";
-import { isbnFromUrl } from "@/lib/media/isbn";
+import { isbn10Of, isbnFromUrl } from "@/lib/media/isbn";
 import { meterClaude } from "@/lib/usage/ai-meter";
 import { CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS, PROFANITY_LEVELS } from "@/lib/media/media-types";
 import { CONCERN_KEYS, MediaAnalysisSchema, type MediaAnalysisShape } from "@/lib/media/media-analysis-schema";
@@ -117,7 +117,11 @@ export async function verifyImageUrl(candidate: string | null | undefined): Prom
       const type = response.headers.get("content-type") ?? "";
       if (method === "GET" || response.ok || response.status === 405) {
         await response.body?.cancel().catch(() => undefined);
-        if (response.ok && type.startsWith("image/")) return url.toString().slice(0, 1000);
+        // A "missing cover" answer from a catalogue is a 1×1 placeholder, not
+        // a 404 — Amazon's is a 43-byte GIF. Anything that small is no picture.
+        const length = Number(response.headers.get("content-length"));
+        const placeholder = Number.isFinite(length) && length > 0 && length < 1000;
+        if (response.ok && type.startsWith("image/") && !placeholder) return url.toString().slice(0, 1000);
         if (method === "GET" || response.status !== 405) return null;
       }
     } catch {
@@ -197,6 +201,18 @@ async function lookupBook(isbn: string): Promise<BookRecord | null> {
   if (openLibraryCover.status === "fulfilled" && openLibraryCover.value) {
     found = true;
     record.cover ??= openLibraryCover.value;
+  }
+
+  // A self-published book is often in no catalogue's picture library but is
+  // on sale, and Amazon serves covers by ISBN-10 from its image host — a
+  // long-standing, keyless address. Last, because the catalogues' covers are
+  // the better files when they exist.
+  if (!record.cover) {
+    const isbn10 = isbn10Of(isbn);
+    if (isbn10) {
+      record.cover = await verifyImageUrl(`https://images-na.ssl-images-amazon.com/images/P/${isbn10}.01.LZZZZZZZ.jpg`);
+      if (record.cover) found = true;
+    }
   }
 
   return found ? record : null;
@@ -438,6 +454,13 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
     // The page's or catalogue's own picture first; the model's find only once
     // it has answered as an image.
     const image = facts.image && /^https?:\/\//i.test(facts.image) ? facts.image.slice(0, 1000) : await verifyImageUrl(data.cover_image_url);
+    // A line in the logs for the day a cover doesn't show up: which way it
+    // came, or that every way came up empty.
+    console.log(
+      `[analyse-media] ${facts.isbn ? `isbn ${facts.isbn}` : facts.kindHint ?? "page"}: cover ${
+        image ? (facts.image ? "from page/catalogue" : "from the model, verified") : `none (model offered ${data.cover_image_url ? "one that failed verification" : "none"})`
+      }`
+    );
     return {
       ok: true,
       analysis: {
