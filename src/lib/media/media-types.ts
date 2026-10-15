@@ -108,12 +108,20 @@ export const MediaItemInputSchema = z.object({
 
 export type MediaItemInput = z.infer<typeof MediaItemInputSchema>;
 
-// Ages 6–9, 10+, Under 5, or nothing at all.
+// "Ages 6–9", "From age 10", "Up to age 4", or nothing at all. The "from"
+// age is said in words: a parent reads it off the shelf, and "10+" was being
+// read as a rating rather than a starting age.
 export function ageRangeLabel(min: number | null | undefined, max: number | null | undefined): string | null {
   if (min == null && max == null) return null;
   if (min != null && max != null) return min === max ? `Age ${min}` : `Ages ${min}–${max}`;
-  if (min != null) return `Ages ${min}+`;
-  return `Under ${max! + 1}`;
+  if (min != null) return `From age ${min}`;
+  return `Up to age ${max}`;
+}
+
+// Whether something reviewed for a range suits a child of this age. An open
+// end is open: "from age 10" suits a fourteen-year-old.
+export function suitsAge(item: { age_min: number | null; age_max: number | null }, age: number): boolean {
+  return (item.age_min == null || item.age_min <= age) && (item.age_max == null || item.age_max >= age);
 }
 
 // Only the concerns that actually say something: "none" is the model

@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { MEDIA_KINDS, mediaSearchText, type MediaItemRow, type SharedMediaItem } from "@/lib/media/media-types";
+import { MEDIA_KINDS, mediaSearchText, suitsAge, type MediaItemRow, type SharedMediaItem } from "@/lib/media/media-types";
 import { lessonLinkKey } from "@/lib/school/lesson-link-key";
 import type { MediaKind } from "@/types/database";
 import { MediaItemForm } from "./media-item-form";
@@ -57,6 +57,8 @@ export function BooksMediaView({
   const [shelf, setShelf] = useState<Shelf>("good");
   const [kind, setKind] = useState<MediaKind | "all">("all");
   const [query, setQuery] = useState("");
+  // A child's age, to narrow the shelf to what was reviewed as suiting them.
+  const [childAge, setChildAge] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [shared, setShared] = useState<SharedMediaItem[] | null>(null);
@@ -66,8 +68,11 @@ export function BooksMediaView({
   const [actionError, setActionError] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
-  const matches = (item: { kind: MediaKind; title: string; creator: string | null; description: string; themes: string[]; reason: string | null }) =>
-    (kind === "all" || item.kind === kind) && (!q || mediaSearchText(item).includes(q));
+  const age = childAge.trim() === "" ? null : Number(childAge);
+  const matches = (item: { kind: MediaKind; title: string; creator: string | null; description: string; themes: string[]; reason: string | null; age_min: number | null; age_max: number | null }) =>
+    (kind === "all" || item.kind === kind) &&
+    (!q || mediaSearchText(item).includes(q)) &&
+    (age == null || !Number.isFinite(age) || suitsAge(item, age));
 
   const good = useMemo(() => items.filter((i) => i.verdict !== "not_suitable"), [items]);
   const notSuitable = useMemo(() => items.filter((i) => i.verdict === "not_suitable"), [items]);
@@ -117,14 +122,30 @@ export function BooksMediaView({
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search the shelf…"
-            className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="relative min-w-[12rem] max-w-xs flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search the shelf…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="whitespace-nowrap">For a child aged</span>
+            <input
+              type="number"
+              min={0}
+              max={21}
+              inputMode="numeric"
+              value={childAge}
+              onChange={(e) => setChildAge(e.target.value)}
+              placeholder="any"
+              aria-label="Child's age"
+              className="w-16 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </label>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary" onClick={bringIn} disabled={loadingShared} className="w-auto shrink-0">
@@ -201,10 +222,10 @@ export function BooksMediaView({
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-3">
           {visible.map((item) =>
             editingId === item.id ? (
-              <div key={item.id} className="md:col-span-2">
+              <div key={item.id}>
                 <MediaItemForm
                   communitySlug={communitySlug}
                   spaceId={spaceId}
@@ -232,7 +253,6 @@ export function BooksMediaView({
                     </span>
                   </span>
                 }
-                details={<AiWriteUp analysis={item.ai_analysis} />}
                 footer={
                   (isStaff || item.created_by === userId) && (
                     <>
@@ -271,7 +291,7 @@ export function BooksMediaView({
               {shared.length === 0 ? "No other community has shared anything yet." : "Nothing more on this shelf from other communities."}
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 space-y-3">
               {sharedVisible.map((item) => (
                 <MediaCard
                   key={item.id}
@@ -302,34 +322,6 @@ export function BooksMediaView({
             </div>
           )}
         </section>
-      )}
-    </div>
-  );
-}
-
-// The full write-up Claude gave when the item was reviewed, if it was.
-function AiWriteUp({ analysis }: { analysis: unknown }) {
-  if (!analysis || typeof analysis !== "object") return null;
-  const a = analysis as { summary_for_parents?: unknown; sources?: unknown; confidence?: unknown };
-  const summary = typeof a.summary_for_parents === "string" ? a.summary_for_parents : null;
-  const sources = Array.isArray(a.sources) ? a.sources.filter((s): s is string => typeof s === "string") : [];
-  if (!summary && sources.length === 0) return null;
-  return (
-    <div className="rounded-md bg-muted/40 px-3 py-2">
-      <p className="text-xs font-medium text-muted-foreground">
-        AI review{typeof a.confidence === "string" ? ` · ${a.confidence} confidence` : ""}
-      </p>
-      {summary && <p className="mt-1 text-sm text-foreground">{summary}</p>}
-      {sources.length > 0 && (
-        <ul className="mt-1 space-y-0.5 text-xs">
-          {sources.map((s) => (
-            <li key={s} className="truncate">
-              <a href={s} target="_blank" rel="noreferrer" className="text-accent hover:underline">
-                {s}
-              </a>
-            </li>
-          ))}
-        </ul>
       )}
     </div>
   );
