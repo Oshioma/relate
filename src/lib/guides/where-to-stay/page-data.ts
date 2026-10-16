@@ -13,9 +13,18 @@ type Client = SupabaseClient<Database>;
 // live under /c/<slug>. Canonical URLs and share links use whichever host the
 // visitor is actually on — Vercel has already sent apex visitors to www, so
 // that host is the canonical one.
-export function guideUrl(host: string | null, communitySlug: string, guideSlug = WHERE_TO_STAY_SLUG): { path: string; absolute: string | null } {
+// The absolute URL (canonical, Open Graph, share links) prefers the
+// community's verified custom domain, so every shared link carries its brand
+// whichever host the page was rendered on.
+export function guideUrl(
+  host: string | null,
+  communitySlug: string,
+  guideSlug = WHERE_TO_STAY_SLUG,
+  shareOrigin: string | null = null
+): { path: string; absolute: string | null } {
   const onCommunityHost = Boolean(host) && (Boolean(platformSubdomainSlug(host!)) || !isPlatformHost(host!));
   const path = onCommunityHost ? `/guides/${guideSlug}` : `/c/${communitySlug}/guides/${guideSlug}`;
+  if (shareOrigin) return { path, absolute: `${shareOrigin}/guides/${guideSlug}` };
   const isLocal = !host || /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) || host.endsWith(".localhost");
   return { path, absolute: host && !isLocal ? `https://${host}${path}` : null };
 }

@@ -7,7 +7,7 @@ import {
   RESERVED_SUBDOMAIN_LABELS,
   wwwCounterpart,
 } from "@/lib/custom-domain";
-import { resolveCommunitySlugForHost } from "@/lib/tenant-domains";
+import { resolveCommunitySlugForHost, resolveCustomDomainForSlug } from "@/lib/tenant-domains";
 
 // Routes that keep their platform meaning even when served on a community's
 // host: auth has to work wherever the visitor is (auth cookies span the apex
@@ -60,6 +60,27 @@ function hasSessionCookie(request: NextRequest) {
   return request.cookies.getAll().some((cookie) => /^sb-.+-auth-token(\.\d+)?$/.test(cookie.name));
 }
 
+// Where a signed-out visitor to this community's pages should be instead: its
+// verified custom domain, when it has one. Only for plain page loads (GET or
+// HEAD) without a session cookie. Members stay on the platform subdomain,
+// where their session lives (auth cookies span the platform apex only), and
+// form posts are never redirected. The redirect is temporary (307), never
+// permanent: a browser caches a 308 for good, and the same visitor may sign
+// in later and need the subdomain again.
+async function customDomainRedirect(request: NextRequest, slug: string, pathname: string): Promise<NextResponse | null> {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+  if (hasSessionCookie(request)) return null;
+  const domain = await resolveCustomDomainForSlug(slug);
+  // Already there (or on its www/bare counterpart, which the domain's host
+  // redirects between itself): never bounce between the two.
+  const host = (request.headers.get("host") ?? "").toLowerCase().replace(/:\d+$/, "");
+  if (!domain || domain === host || wwwCounterpart(host) === domain) return null;
+  const url = new URL(`https://${domain}`);
+  url.pathname = pathname;
+  url.search = request.nextUrl.search;
+  return NextResponse.redirect(url, 307);
+}
+
 function isPlatformPath(pathname: string) {
   return PLATFORM_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
@@ -95,6 +116,17 @@ export async function proxy(request: NextRequest) {
   if (slug) {
     const { pathname } = request.nextUrl;
     const base = `/c/${slug}`;
+
+    // On the automatic subdomain, a signed-out visitor to a community page
+    // moves to the community's own domain, so the links people copy and pass
+    // on carry the community's brand rather than the platform's.
+    if (platformSubdomainSlug(host) && !isPlatformPath(pathname)) {
+      const rest = pathname === base || pathname.startsWith(`${base}/`) ? pathname.slice(base.length) || "/" : pathname;
+      if (!/^\/(icon|apple-icon)(\/|$)/.test(rest)) {
+        const toDomain = await customDomainRedirect(request, slug, rest);
+        if (toDomain) return toDomain;
+      }
+    }
 
     // Internal links are still written as /c/<slug>/… — canonicalize them
     // to the bare path so the community host has one URL per page.
@@ -138,6 +170,12 @@ export async function proxy(request: NextRequest) {
   // communitySubdomainUrl returns null there.
   const canonical = request.nextUrl.pathname.match(/^\/c\/([a-z0-9-]{2,60})(\/.*)?$/);
   if (canonical && !RESERVED_SUBDOMAIN_LABELS.has(canonical[1])) {
+    // A signed-out visitor goes straight to the community's own domain when
+    // it has one; everyone else to its subdomain, as before.
+    if (!/^\/(icon|apple-icon)(\/|$)/.test(canonical[2] ?? "")) {
+      const toDomain = await customDomainRedirect(request, canonical[1], canonical[2] ?? "/");
+      if (toDomain) return toDomain;
+    }
     const subdomainUrl = communitySubdomainUrl(canonical[1]);
     if (subdomainUrl) {
       const url = new URL(subdomainUrl);

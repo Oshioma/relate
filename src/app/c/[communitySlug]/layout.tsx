@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
+import { ShareOriginProvider } from "@/components/ui/share-origin";
+import { communityShareOrigin } from "@/lib/custom-domain";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -670,7 +672,7 @@ export default async function CommunityLayout({
           {planLapse && (
             <PlanLapseBanner notice={planLapse} communityName={community.name} communitySlug={community.slug} />
           )}
-          {children}
+          <ShareOriginProvider origin={communityShareOrigin(community)}>{children}</ShareOriginProvider>
         </main>
       </div>
 
