@@ -1270,6 +1270,11 @@ export type ArtsBoardMark = {
   art_number: number;
   done: boolean;
   note: string | null;
+  // Up to four photos of what the family made (see the
+  // arts_board_marks_photos_and_share migration).
+  photo_urls: string[];
+  // The community post made when the family shared this square, if any.
+  shared_post_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -3358,7 +3363,7 @@ export type Database = {
         Row: ArtsBoardMark;
         Insert: Partial<ArtsBoardMark> & { space_id: string; user_id: string; art_number: number };
         Update: Partial<ArtsBoardMark>;
-        Relationships: [FKey<"space_id", "spaces">, FKey<"user_id", "profiles">];
+        Relationships: [FKey<"space_id", "spaces">, FKey<"user_id", "profiles">, FKey<"shared_post_id", "posts">];
       };
       lesson_video_jobs: {
         Row: LessonVideoJob;

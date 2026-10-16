@@ -88,7 +88,7 @@ import { CropGuidesView } from "./crop-guides-view";
 import { LessonsView } from "./lessons-view";
 import { BooksMediaView } from "./books-media-view";
 import { ArtsBoardView } from "./arts-board-view";
-import { getArtsBoardMarks } from "@/lib/data/arts-board";
+import { getArtsBoardMarks, getArtsShareTarget } from "@/lib/data/arts-board";
 import { getSpaceMediaItems, getMediaMarks } from "@/lib/data/media-items";
 import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
 import { PlantScannerPanel } from "./plant-scanner-panel";
@@ -389,6 +389,8 @@ export default async function SpaceDetailPage({
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // Where a family's "Share" on a 64 Arts square posts to.
+  const artsShareTarget = isArtsBoardSpace && canPost ? await getArtsShareTarget(supabase, community.id, Boolean(isStaff)) : null;
   // The member list that powers the "invite members" picker in a live space.
   // Staff-only (only staff can invite), so members aren't loaded otherwise.
   const liveInviteMembers = isLiveSpace && isStaff ? (await getCommunityMembers(supabase, community.id)).map((m) => m.profile) : [];
@@ -807,6 +809,8 @@ export default async function SpaceDetailPage({
           communitySlug={community.slug}
           spaceSlug={space.slug}
           canMark={canPost}
+          userId={viewerId}
+          shareTarget={artsShareTarget}
         />
       ) : isBooksMediaSpace ? (
         <BooksMediaView

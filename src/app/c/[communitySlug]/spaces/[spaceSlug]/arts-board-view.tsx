@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, X } from "lucide-react";
+import { Camera, Check, Loader2, Share2, X } from "lucide-react";
+import { PhotoPicker } from "@/components/guided-journey/photo-picker";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { clearFormDraft, readJsonDraft, writeJsonDraft } from "@/lib/use-form-draft";
 import { ART_COUNT, ART_THEMES, SIXTY_FOUR_ARTS, type Art, type ArtTheme } from "@/lib/arts/sixty-four-arts";
-import type { ArtsBoardMarks } from "@/lib/data/arts-board";
-import { setArtMark } from "./arts-board-actions";
+import type { ArtMark, ArtsBoardMarks, ArtsShareTarget } from "@/lib/data/arts-board";
+import { setArtMark, shareArtMark } from "./arts-board-actions";
 
 // The 64 Arts board: an 8×8 grid of the classical arts (4×16 on a phone).
 // Tapping a square flips it open to say what the art was and what to try; a
@@ -89,6 +91,8 @@ export function ArtsBoardView({
   communitySlug,
   spaceSlug,
   canMark,
+  userId,
+  shareTarget,
 }: {
   marks: ArtsBoardMarks;
   spaceId: string;
@@ -97,6 +101,9 @@ export function ArtsBoardView({
   communitySlug: string;
   spaceSlug: string;
   canMark: boolean;
+  userId: string;
+  // Where "Share" posts a done square, or null when there's nowhere to post.
+  shareTarget: ArtsShareTarget | null;
 }) {
   const [kids, setKids] = useUnder15s();
   const [filter, setFilter] = useState<Filter>("all");
@@ -210,8 +217,9 @@ export function ArtsBoardView({
             >
               <span className="absolute inset-x-0 top-0 h-1" style={{ background: colour }} aria-hidden />
               {done && <DoneCircle />}
-              <span className="relative text-[10px] font-semibold sm:text-[11px]" style={{ color: colour }}>
+              <span className="relative flex items-center gap-1 text-[10px] font-semibold sm:text-[11px]" style={{ color: colour }}>
                 {art.n}
+                {(marks[art.n]?.photoUrls.length ?? 0) > 0 && <Camera className="h-3 w-3 text-muted-foreground" aria-label="has photos" />}
               </span>
               <span className="relative">
                 <span className="block text-[11px] font-semibold leading-tight text-foreground [overflow-wrap:anywhere] sm:text-[13px]">
@@ -236,6 +244,8 @@ export function ArtsBoardView({
           kids={kids}
           mark={marks[open.n] ?? null}
           canMark={canMark}
+          userId={userId}
+          shareTarget={shareTarget}
           spaceId={spaceId}
           communitySlug={communitySlug}
           spaceSlug={spaceSlug}
@@ -303,6 +313,8 @@ function ArtCard({
   kids,
   mark,
   canMark,
+  userId,
+  shareTarget,
   spaceId,
   communitySlug,
   spaceSlug,
@@ -311,13 +323,15 @@ function ArtCard({
 }: {
   art: Art;
   kids: boolean;
-  mark: { done: boolean; note: string | null } | null;
+  mark: ArtMark | null;
   canMark: boolean;
+  userId: string;
+  shareTarget: ArtsShareTarget | null;
   spaceId: string;
   communitySlug: string;
   spaceSlug: string;
   onClose: () => void;
-  onMarked: (mark: { done: boolean; note: string | null }) => void;
+  onMarked: (mark: ArtMark) => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -337,6 +351,8 @@ function ArtCard({
     }
   });
   const done = mark?.done ?? false;
+  const [photos, setPhotos] = useState<string[]>(mark?.photoUrls ?? []);
+  const sharedPostId = mark?.sharedPostId ?? null;
   const colour = THEME_COLOURS[art.theme];
   const noteChanged = note.trim() !== savedNote.trim();
 
@@ -351,13 +367,44 @@ function ArtCard({
   function save(nextDone: boolean) {
     setError(null);
     start(async () => {
-      const result = await setArtMark(spaceId, art.n, { done: nextDone, note }, communitySlug, spaceSlug);
+      const result = await setArtMark(spaceId, art.n, { done: nextDone, note, photoUrls: photos }, communitySlug, spaceSlug);
       if (result.error) {
         setError(result.error);
         return;
       }
       clearFormDraft(draftKey);
-      onMarked({ done: nextDone, note: note.trim() || null });
+      onMarked({ done: nextDone, note: note.trim() || null, photoUrls: photos, sharedPostId });
+      router.refresh();
+    });
+  }
+
+  // Photos are already uploaded by the time they reach here, so they're saved
+  // straight away; the note keeps its saved value (a half-typed one stays a
+  // draft until the family saves it).
+  function savePhotos(next: string[]) {
+    setPhotos(next);
+    setError(null);
+    start(async () => {
+      const result = await setArtMark(spaceId, art.n, { done, note: savedNote, photoUrls: next }, communitySlug, spaceSlug);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      onMarked({ done, note: savedNote || null, photoUrls: next, sharedPostId });
+      router.refresh();
+    });
+  }
+
+  function share() {
+    setError(null);
+    start(async () => {
+      const result = await shareArtMark(spaceId, art.n, kids, communitySlug, spaceSlug);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      const postId = result.postPath?.split("/").pop() ?? null;
+      onMarked({ done, note: savedNote || null, photoUrls: photos, sharedPostId: postId });
       router.refresh();
     });
   }
@@ -443,6 +490,20 @@ function ArtCard({
                   className="mt-1.5"
                   data-no-draft
                 />
+                <div className="mt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Our photos (optional)</p>
+                  <div className="mt-1.5">
+                    <PhotoPicker
+                      name={`art-${art.n}-photos`}
+                      userId={userId}
+                      max={4}
+                      value={photos}
+                      onChange={savePhotos}
+                      label="Add a photo of what you made"
+                      compact
+                    />
+                  </div>
+                </div>
                 {noteChanged && (
                   <div className="mt-1.5 flex items-center justify-between gap-2">
                     <span className="text-xs text-muted-foreground">Draft kept on this device</span>
@@ -450,6 +511,28 @@ function ArtCard({
                       Save note
                     </Button>
                   </div>
+                )}
+              </div>
+            )}
+
+            {canMark && done && shareTarget && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-4 py-3">
+                {sharedPostId ? (
+                  <>
+                    <span className="text-sm text-foreground">Shared on {shareTarget.name}</span>
+                    <Link href={`/c/${communitySlug}/spaces/${shareTarget.slug}/posts/${sharedPostId}`} className="text-sm font-medium text-accent hover:underline">
+                      View post
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-muted-foreground">Show other families what you made</span>
+                    <Button type="button" size="sm" variant="secondary" onClick={share} disabled={pending || noteChanged} className="w-auto">
+                      <Share2 className="h-3.5 w-3.5" />
+                      Share to {shareTarget.name}
+                    </Button>
+                    {noteChanged && <span className="w-full text-xs text-muted-foreground">Save your note first so it goes in the post.</span>}
+                  </>
                 )}
               </div>
             )}
