@@ -20,6 +20,8 @@ const CLAUDE_LIST_PRICES: Record<string, ClaudeRate> = {
   "claude-sonnet-5-5": { inputPerMTok: 2, outputPerMTok: 10 },
   "claude-sonnet-5": { inputPerMTok: 2, outputPerMTok: 10 },
   "claude-haiku-4-5": { inputPerMTok: 1, outputPerMTok: 5 },
+  // Prompts up to 100K tokens; a media review is well under.
+  "claude-haiku-5-5": { inputPerMTok: 0.1, outputPerMTok: 0.5 },
 };
 
 // Groq's price for whisper-large-v3-turbo, billed per hour of audio.

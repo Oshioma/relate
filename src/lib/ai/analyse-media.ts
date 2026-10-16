@@ -43,11 +43,28 @@ import { CONCERN_KEYS, MediaAnalysisSchema, type MediaAnalysisShape } from "@/li
 // quietly guessed "no bad language" is worse than one that says it didn't
 // look.
 
-// Opus by default: this is a judgement about what children should see, and
-// a web-search run on a weaker model misses things. Overridable for cost.
-const DEFAULT_MODEL = "claude-opus-5-5";
+// Haiku by default. The first month ran on Opus: nineteen reviews cost $6.23,
+// about 33¢ each, most of it the model re-reading its own search results on
+// every continuation. The same run on Haiku 5.5 is roughly 40× cheaper on
+// tokens, and the web searches (a cent each) become the main cost — so three
+// rather than five, which is still enough for a publisher page, a parent
+// guide and a review. The result is a review for a few cents. Set
+// MEDIA_REVIEW_MODEL to claude-sonnet-5-5 or claude-opus-5-5 when a shelf
+// wants more judgement than that and will pay for it.
+const DEFAULT_MODEL = "claude-haiku-5-5";
 const MODEL = process.env.MEDIA_REVIEW_MODEL || DEFAULT_MODEL;
-const MAX_WEB_SEARCHES = 5;
+const MAX_WEB_SEARCHES = 3;
+
+// The web search tool comes in two shapes. The 2026 variant (with built-in
+// result filtering) is for the Opus and Sonnet lines from 4.6 on; Haiku and
+// older models take the basic one. Chosen from the model name so the
+// MEDIA_REVIEW_MODEL override stays safe either way.
+function webSearchTool(): Anthropic.ToolUnion {
+  const modern = /^claude-(opus|sonnet)-(4-[6-9]|5(-\d+)?)$/.test(MODEL);
+  return modern
+    ? { type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES }
+    : { type: "web_search_20250305", name: "web_search", max_uses: MAX_WEB_SEARCHES };
+}
 const MAX_TOKENS = 8000;
 // A search run can pause and resume; this is how many resumes we allow.
 const MAX_CONTINUATIONS = 3;
@@ -417,7 +434,7 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
       // run inside the route's time limit.
       output_config: { effort: "medium" },
       system: SYSTEM_PROMPT,
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: MAX_WEB_SEARCHES }, REVIEW_TOOL],
+      tools: [webSearchTool(), REVIEW_TOOL],
       tool_choice: { type: "auto" },
       messages,
     });
