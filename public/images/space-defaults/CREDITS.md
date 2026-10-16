@@ -32,3 +32,4 @@ The photo a space shows until its admin uploads one (see src/lib/space-images.ts
 | `lessons.webp` | https://images.unsplash.com/photo-1509062522246-3755977927d7 |
 | `guided_journey.webp` | https://images.unsplash.com/photo-1585320806297-9794b3e4eeae |
 | `books_media.webp` | https://images.unsplash.com/photo-1497633762265-9d179a990aa6 |
+| `arts_board.webp` | Illustration drawn for Relate (no photo) |
