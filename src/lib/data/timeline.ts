@@ -972,12 +972,17 @@ export async function getEventPassages(
     .eq("event_id", eventId)
     .order("sort_order", { ascending: true });
   if (passageError) throw passageError;
-  if (!passages?.length) return [];
+  // THE ARCHIVE'S PASSAGES ARE NOT THE RECORD'S EVIDENCE PANEL. A text in the
+  // archive hangs its hundreds of passages on its marker; they are read in the
+  // archive's reader, and the record page links there instead. Filtered here
+  // rather than in the query so this works before the archive migration runs.
+  const own = (passages ?? []).filter((passage) => !passage.work_id);
+  if (!own.length) return [];
 
   const { data: layers, error: layerError } = await supabase
     .from("timeline_text_layers")
     .select("*")
-    .in("passage_id", passages.map((passage) => passage.id))
+    .in("passage_id", own.map((passage) => passage.id))
     .order("sort_order", { ascending: true });
   if (layerError) throw layerError;
 
@@ -987,7 +992,7 @@ export async function getEventPassages(
     if (existing) existing.push(layer);
     else byPassage.set(layer.passage_id, [layer]);
   }
-  return passages.map((passage) => ({ ...passage, layers: byPassage.get(passage.id) ?? [] }));
+  return own.map((passage) => ({ ...passage, layers: byPassage.get(passage.id) ?? [] }));
 }
 
 /**

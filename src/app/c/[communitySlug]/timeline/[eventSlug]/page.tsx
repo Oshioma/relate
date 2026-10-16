@@ -16,6 +16,7 @@ import {
   getTimelineSourcesByIds,
   getTimelineTracks,
 } from "@/lib/data/timeline";
+import { getWorksForEvent } from "@/lib/data/timeline-texts";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
 import { EventDetail } from "../event-detail";
 
@@ -97,9 +98,12 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
   // make impossible.
   // Two independent fetches: the evidence under the record, and the chains
   // that carried any claims attached to it. Both are empty for most records.
-  const [passages, genealogies] = await Promise.all([
+  const [passages, genealogies, archiveWorks] = await Promise.all([
     getEventPassages(supabase, event.id),
     getEventGenealogies(supabase, event.id),
+    // The archive's texts hung on this record. Optional: a database without
+    // the archive yet reads as none.
+    getWorksForEvent(supabase, community.id, event.id).catch(() => []),
   ]);
   const chainSourceIds = [
     ...passages.map((passage) => passage.source_id),
@@ -126,6 +130,7 @@ export default async function TimelineEventPage({ params }: { params: Promise<Pa
         linkedRecords={linkedRecords}
         passages={passages}
         genealogies={genealogies}
+        archiveWorks={archiveWorks.map((work) => ({ workKey: work.work_key, title: work.title }))}
         communitySlug={community.slug}
         canContribute={isCommunityMember(community, membership, user?.id)}
         isStaff={isCommunityStaff(community, membership, user?.id)}
