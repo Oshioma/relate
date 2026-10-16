@@ -79,18 +79,25 @@ export function isTopUpOnly(from: unknown, to: unknown, slug: string): boolean {
   const before = Array.isArray(from) ? (from as Picture[]) : [];
   const after = Array.isArray(to) ? (to as Picture[]) : null;
   if (!after) return false;
-  const afterByUrl = new Map(after.map((item) => [item.url ?? "", item]));
+  // ONE AFTER-ITEM PER BEFORE-ITEM. The top-up could list the same file twice
+  // (a second caption for one stored copy), so matching by address alone would
+  // compare a picture with its twin and call an append a person's edit.
+  const unclaimed = [...after];
   for (const item of before) {
-    const now = afterByUrl.get(item.url ?? "");
-    if (!now) return false;
-    const keys = new Set([...Object.keys(item), ...Object.keys(now)]);
-    for (const key of keys) {
-      if (key === "shows" && item.shows == null) continue;
-      if (JSON.stringify(item[key]) !== JSON.stringify(now[key])) return false;
-    }
+    const index = unclaimed.findIndex((now) => {
+      if ((now.url ?? "") !== (item.url ?? "")) return false;
+      const keys = new Set([...Object.keys(item), ...Object.keys(now)]);
+      for (const key of keys) {
+        if (key === "shows" && item.shows == null) continue;
+        if (JSON.stringify(item[key]) !== JSON.stringify(now[key])) return false;
+      }
+      return true;
+    });
+    if (index === -1) return false;
+    unclaimed.splice(index, 1);
   }
-  const beforeUrls = new Set(before.map((item) => item.url ?? ""));
-  return after.every((item) => beforeUrls.has(item.url ?? "") || isSeededCopy(item.url, slug));
+  // Whatever is left was added, and the top-up only ever added seeded copies.
+  return unclaimed.every((item) => isSeededCopy(item.url, slug));
 }
 
 /**
