@@ -2264,25 +2264,49 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
  *   exactly once per claim and then silently refuse for ever, because its own
  *   first correction would look like an edit to protect.
  */
+// How many ids go in one `.in(...)` filter. Each is a 36-character uuid in the
+// request URL; 100 keeps the URL comfortably short.
+const ID_SLICE = 100;
+
+type StoredClaimRow = Pick<
+  Database["public"]["Tables"]["timeline_date_claims"]["Row"],
+  | "id"
+  | "event_id"
+  | "start_year"
+  | "end_year"
+  | "original_date_text"
+  | "dating_method"
+  | "chronology"
+  | "evidence"
+  | "notes"
+  | "source_id"
+  | "temporal_claim_type"
+  | "duration_years"
+  | "what_is_dated"
+>;
+
 async function editedByAPerson(
   supabase: SupabaseClient<Database>,
   communityId: string,
   claimIds: string[]
 ): Promise<Set<string>> {
-  if (claimIds.length === 0) return new Set();
-  const { data } = await supabase
-    .from("timeline_revisions")
-    .select("claim_id, actor_id, changes")
-    .eq("community_id", communityId)
-    .eq("entity", "claim")
-    .eq("action", "updated")
-    .in("claim_id", claimIds);
-
   const edited = new Set<string>();
-  for (const row of data ?? []) {
-    if (!row.claim_id || !row.actor_id) continue;
-    if (row.changes && Object.prototype.hasOwnProperty.call(row.changes, "seed_synced_at")) continue;
-    edited.add(row.claim_id);
+  // A whole dataset's claims arrive at once now, so the ids go in slices: each
+  // one rides in the request URL, and a few hundred of them is too long a URL.
+  for (let i = 0; i < claimIds.length; i += ID_SLICE) {
+    const { data } = await supabase
+      .from("timeline_revisions")
+      .select("claim_id, actor_id, changes")
+      .eq("community_id", communityId)
+      .eq("entity", "claim")
+      .eq("action", "updated")
+      .in("claim_id", claimIds.slice(i, i + ID_SLICE));
+
+    for (const row of data ?? []) {
+      if (!row.claim_id || !row.actor_id) continue;
+      if (row.changes && Object.prototype.hasOwnProperty.call(row.changes, "seed_synced_at")) continue;
+      edited.add(row.claim_id);
+    }
   }
   return edited;
 }
@@ -2492,20 +2516,41 @@ export async function refreshSeededDatasets(communitySlug: string) {
 
     const idBySlug = new Map(present.map((row) => [row.slug, row.id]));
 
+    // THE DATASET'S CLAIMS AND THEIR HISTORY, READ ONCE.
+    //
+    // This used to be two queries per event — its claims, then their revisions
+    // — so one press on a community holding every dataset was ~560 requests,
+    // and each request is a line in Supabase's billed log ingestion. Read them
+    // for the whole dataset here and hand each event its share below.
+    const claimsByEvent = new Map<string, StoredClaimRow[]>();
+    const eventIds = [...idBySlug.values()];
+    for (let i = 0; i < eventIds.length; i += ID_SLICE) {
+      const { data: claimRows } = await supabase
+        .from("timeline_date_claims")
+        .select(
+          "id, event_id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id, temporal_claim_type, duration_years, what_is_dated"
+        )
+        .in("event_id", eventIds.slice(i, i + ID_SLICE));
+      for (const row of claimRows ?? []) {
+        if (!row.event_id) continue;
+        const list = claimsByEvent.get(row.event_id) ?? [];
+        list.push(row);
+        claimsByEvent.set(row.event_id, list);
+      }
+    }
+    const editedInDataset = await editedByAPerson(
+      supabase,
+      community.id,
+      [...claimsByEvent.values()].flat().map((claim) => claim.id)
+    );
+
     for (const seed of dataset.events) {
       const eventId = idBySlug.get(seed.slug);
       if (!eventId) continue;
 
-      const { data: storedClaims } = await supabase
-        .from("timeline_date_claims")
-        .select(
-          "id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id, temporal_claim_type, duration_years, what_is_dated"
-        )
-        .eq("event_id", eventId);
-      const stored = storedClaims ?? [];
+      const stored = claimsByEvent.get(eventId) ?? [];
       if (stored.length === 0) continue;
 
-      const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
 
       // A STORED ROW BELONGS TO AT MOST ONE SEEDED CLAIM. Without these two,
       // several seeded claims at the same position all matched the same row and
@@ -2526,7 +2571,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
           continue;
         }
         claimedRows.add(match.id);
-        if (editedHere.has(match.id)) {
+        if (editedInDataset.has(match.id)) {
           keptBecauseEdited++;
           continue;
         }
