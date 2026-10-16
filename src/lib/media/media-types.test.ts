@@ -1,13 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ageRangeLabel, notableConcerns, MediaItemInputSchema } from "./media-types";
+import { ageRangeLabel, notableConcerns, suitsAge, MediaItemInputSchema } from "./media-types";
 
 test("age ranges read naturally", () => {
   assert.equal(ageRangeLabel(8, 12), "Ages 8–12");
   assert.equal(ageRangeLabel(10, 10), "Age 10");
-  assert.equal(ageRangeLabel(13, null), "Ages 13+");
-  assert.equal(ageRangeLabel(null, 4), "Under 5");
+  assert.equal(ageRangeLabel(13, null), "From age 13");
+  assert.equal(ageRangeLabel(null, 4), "Up to age 4");
   assert.equal(ageRangeLabel(null, null), null);
+});
+
+test("a child's age is matched against the range, open ends included", () => {
+  assert.ok(suitsAge({ age_min: 8, age_max: 12 }, 10));
+  assert.equal(suitsAge({ age_min: 8, age_max: 12 }, 7), false);
+  assert.ok(suitsAge({ age_min: 13, age_max: null }, 16));
+  assert.equal(suitsAge({ age_min: 13, age_max: null }, 9), false);
+  assert.ok(suitsAge({ age_min: null, age_max: null }, 5));
 });
 
 test("only concerns that say something are notable", () => {

@@ -7,12 +7,13 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { MEDIA_KINDS, mediaSearchText, type MediaItemRow, type SharedMediaItem } from "@/lib/media/media-types";
+import { EMPTY_MARKS, MEDIA_KINDS, mediaSearchText, suitsAge, type MediaItemRow, type MediaMarks, type SharedMediaItem } from "@/lib/media/media-types";
+import { FamilyNotes, MarkToggle } from "./media-marks";
 import { lessonLinkKey } from "@/lib/school/lesson-link-key";
 import type { MediaKind } from "@/types/database";
 import { MediaItemForm } from "./media-item-form";
 import { MediaCard } from "./media-item-card";
-import { deleteMediaItem, importSharedMediaItem, loadSharedMediaItems } from "./books-media-actions";
+import { deleteMediaItem, importSharedMediaItem, importSharedShelf, loadSharedMediaItems } from "./books-media-actions";
 
 // The family media shelf.
 //
@@ -34,6 +35,7 @@ const CHIP_OFF = "border-border text-muted-foreground hover:border-muted-foregro
 
 export function BooksMediaView({
   items,
+  marks,
   communityId,
   communitySlug,
   spaceId,
@@ -44,6 +46,8 @@ export function BooksMediaView({
   aiConfigured,
 }: {
   items: MediaItemRow[];
+  // Every family's tick and note, per item id.
+  marks: Record<string, MediaMarks>;
   communityId: string;
   communitySlug: string;
   spaceId: string;
@@ -57,6 +61,8 @@ export function BooksMediaView({
   const [shelf, setShelf] = useState<Shelf>("good");
   const [kind, setKind] = useState<MediaKind | "all">("all");
   const [query, setQuery] = useState("");
+  // A child's age, to narrow the shelf to what was reviewed as suiting them.
+  const [childAge, setChildAge] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [shared, setShared] = useState<SharedMediaItem[] | null>(null);
@@ -64,10 +70,17 @@ export function BooksMediaView({
   const [loadingShared, startLoadingShared] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  // The card whose review is open beneath it. One at a time: the shelf is for
+  // comparing, and two open reviews push everything else off the screen.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
-  const matches = (item: { kind: MediaKind; title: string; creator: string | null; description: string; themes: string[]; reason: string | null }) =>
-    (kind === "all" || item.kind === kind) && (!q || mediaSearchText(item).includes(q));
+  const age = childAge.trim() === "" ? null : Number(childAge);
+  const matches = (item: { kind: MediaKind; title: string; creator: string | null; description: string; themes: string[]; reason: string | null; age_min: number | null; age_max: number | null }) =>
+    (kind === "all" || item.kind === kind) &&
+    (!q || mediaSearchText(item).includes(q)) &&
+    (age == null || !Number.isFinite(age) || suitsAge(item, age));
 
   const good = useMemo(() => items.filter((i) => i.verdict !== "not_suitable"), [items]);
   const notSuitable = useMemo(() => items.filter((i) => i.verdict === "not_suitable"), [items]);
@@ -95,6 +108,26 @@ export function BooksMediaView({
     });
   }
 
+  // Everything one community has shared that isn't on our shelf yet, in one
+  // go. The server skips duplicates by link, so pressing it twice is safe.
+  async function copyInShelf(communityId: string, label: string) {
+    setActionError(null);
+    setImportNotice(null);
+    setBusyId(`shelf:${communityId}`);
+    const result = await importSharedShelf(communityId, spaceId, communitySlug, spaceSlug);
+    setBusyId(null);
+    if (result.error) {
+      setActionError(result.error);
+      return;
+    }
+    setImportNotice(
+      result.added === 0
+        ? `Nothing new from ${label} — everything they've shared is already here.`
+        : `Brought in ${result.added} ${result.added === 1 ? "item" : "items"} from ${label}${result.skipped > 0 ? `, skipped ${result.skipped} already here` : ""}.`
+    );
+    router.refresh();
+  }
+
   async function copyIn(item: SharedMediaItem) {
     setActionError(null);
     setBusyId(item.id);
@@ -117,14 +150,30 @@ export function BooksMediaView({
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-xs flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search the shelf…"
-            className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="relative min-w-[12rem] max-w-xs flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search the shelf…"
+              className="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="whitespace-nowrap">For a child aged</span>
+            <input
+              type="number"
+              min={0}
+              max={21}
+              inputMode="numeric"
+              value={childAge}
+              onChange={(e) => setChildAge(e.target.value)}
+              placeholder="any"
+              aria-label="Child's age"
+              className="w-16 rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </label>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary" onClick={bringIn} disabled={loadingShared} className="w-auto shrink-0">
@@ -201,10 +250,10 @@ export function BooksMediaView({
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-3">
           {visible.map((item) =>
             editingId === item.id ? (
-              <div key={item.id} className="md:col-span-2">
+              <div key={item.id}>
                 <MediaItemForm
                   communitySlug={communitySlug}
                   spaceId={spaceId}
@@ -222,6 +271,18 @@ export function BooksMediaView({
               <MediaCard
                 key={item.id}
                 data={item}
+                href={`/c/${communitySlug}/spaces/${spaceSlug}/media/${item.id}`}
+                expanded={expandedId === item.id}
+                onToggle={() => setExpandedId((current) => (current === item.id ? null : item.id))}
+                marksLine={
+                  <MarkToggle itemId={item.id} kind={item.kind} marks={marks[item.id] ?? EMPTY_MARKS} canMark={canPost} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+                }
+                details={
+                  <>
+                    <AiWriteUp analysis={item.ai_analysis} />
+                    <FamilyNotes itemId={item.id} kind={item.kind} marks={marks[item.id] ?? EMPTY_MARKS} canMark={canPost} communitySlug={communitySlug} spaceSlug={spaceSlug} />
+                  </>
+                }
                 byline={
                   <span className="flex items-center gap-2">
                     <Avatar src={item.creatorProfile?.avatar_url} name={item.creatorProfile?.full_name || item.creatorProfile?.username} size={20} />
@@ -231,7 +292,6 @@ export function BooksMediaView({
                     </span>
                   </span>
                 }
-                details={<AiWriteUp analysis={item.ai_analysis} />}
                 footer={
                   (isStaff || item.created_by === userId) && (
                     <>
@@ -265,38 +325,62 @@ export function BooksMediaView({
             Reviews other communities chose to share. {canPost ? "Add any to your own shelf — it becomes yours to edit." : "Join this community to add them to its shelf."}
           </p>
           {sharedError && <p className="mt-2 text-sm text-danger">{sharedError}</p>}
+          {importNotice && <p className="mt-2 text-sm text-accent">{importNotice}</p>}
           {sharedVisible.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">
               {shared.length === 0 ? "No other community has shared anything yet." : "Nothing more on this shelf from other communities."}
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {sharedVisible.map((item) => (
-                <MediaCard
-                  key={item.id}
-                  data={item}
-                  byline={
-                    item.community_name ? (
-                      item.community_slug ? (
-                        <a href={`/c/${item.community_slug}`} className="hover:underline">
-                          From {item.community_name}
+            <div className="mt-4 space-y-6">
+              {groupByCommunity(sharedVisible).map((group) => (
+                <div key={group.communityId}>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {group.slug ? (
+                        <a href={`/c/${group.slug}`} className="hover:underline">
+                          {group.label}
                         </a>
                       ) : (
-                        <span>From {item.community_name}</span>
-                      )
-                    ) : (
-                      <span>From another community</span>
-                    )
-                  }
-                  footer={
-                    canPost && (
-                      <Button type="button" size="sm" variant="secondary" onClick={() => copyIn(item)} disabled={busyId === item.id} className="w-auto">
-                        {busyId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                        Add to our shelf
+                        group.label
+                      )}
+                      <span className="ml-2 font-normal text-muted-foreground">
+                        {group.items.length} not yet on your shelf
+                      </span>
+                    </h3>
+                    {canPost && group.items.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => copyInShelf(group.communityId, group.label)}
+                        disabled={busyId === `shelf:${group.communityId}`}
+                        className="w-auto"
+                      >
+                        {busyId === `shelf:${group.communityId}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                        Bring in everything from {group.label}
                       </Button>
-                    )
-                  }
-                />
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {group.items.map((item) => (
+                      <MediaCard
+                        key={item.id}
+                        data={item}
+                        expanded={expandedId === item.id}
+                        onToggle={() => setExpandedId((current) => (current === item.id ? null : item.id))}
+                        byline={<span>From {group.label}</span>}
+                        footer={
+                          canPost && (
+                            <Button type="button" size="sm" variant="secondary" onClick={() => copyIn(item)} disabled={busyId === item.id} className="w-auto">
+                              {busyId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                              Add to our shelf
+                            </Button>
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -304,6 +388,25 @@ export function BooksMediaView({
       )}
     </div>
   );
+}
+
+// Shared items by the community that shared them, in the order they first
+// appear (newest sharer first, since the list is newest-first). An
+// invite-only community is unlisted, so its rows carry no name or slug and
+// are shown as "another community".
+function groupByCommunity(items: SharedMediaItem[]): { communityId: string; label: string; slug: string | null; items: SharedMediaItem[] }[] {
+  const groups = new Map<string, { communityId: string; label: string; slug: string | null; items: SharedMediaItem[] }>();
+  for (const item of items) {
+    const group = groups.get(item.community_id) ?? {
+      communityId: item.community_id,
+      label: item.community_name ?? "another community",
+      slug: item.community_slug,
+      items: [],
+    };
+    group.items.push(item);
+    groups.set(item.community_id, group);
+  }
+  return [...groups.values()];
 }
 
 // The full write-up Claude gave when the item was reviewed, if it was.
@@ -314,10 +417,10 @@ function AiWriteUp({ analysis }: { analysis: unknown }) {
   const sources = Array.isArray(a.sources) ? a.sources.filter((s): s is string => typeof s === "string") : [];
   if (!summary && sources.length === 0) return null;
   return (
-    <div className="rounded-md bg-muted/40 px-3 py-2">
-      <p className="text-xs font-medium text-muted-foreground">
-        AI review{typeof a.confidence === "string" ? ` · ${a.confidence} confidence` : ""}
-      </p>
+    <section className="rounded-md bg-muted/40 px-3 py-2">
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        The AI review{typeof a.confidence === "string" ? ` · ${a.confidence} confidence` : ""}
+      </h4>
       {summary && <p className="mt-1 text-sm text-foreground">{summary}</p>}
       {sources.length > 0 && (
         <ul className="mt-1 space-y-0.5 text-xs">
@@ -330,6 +433,6 @@ function AiWriteUp({ analysis }: { analysis: unknown }) {
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }

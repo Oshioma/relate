@@ -44,7 +44,8 @@ export type SpaceType =
   | "meetups"
   | "lessons"
   | "guided_journey"
-  | "books_media";
+  | "books_media"
+  | "arts_board";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -62,7 +63,8 @@ export type FeedItemType =
   | "meetup"
   | "review"
   | "course"
-  | "guide";
+  | "guide"
+  | "editorial_guide";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -1247,6 +1249,35 @@ export type MediaKind = "book" | "video" | "audio" | "game" | "app" | "website" 
 export type MediaVerdict = "suitable" | "caution" | "not_suitable";
 export type MediaProfanity = "none" | "mild" | "moderate" | "strong" | "unknown";
 export type MediaConcern = { category: string; level: "none" | "mild" | "moderate" | "strong"; note: string };
+// One family's tick and note on a shelf item. See the media_item_marks
+// migration: visible to whoever can see the item, written only by its own
+// family.
+export type MediaItemMark = {
+  id: string;
+  item_id: string;
+  user_id: string;
+  done: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+// One family's done tick and note on one of the 64 arts, on one board. See
+// the arts_board_marks migration: read and written only by that family.
+export type ArtsBoardMark = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  art_number: number;
+  done: boolean;
+  note: string | null;
+  // Up to four photos of what the family made (see the
+  // arts_board_marks_photos_and_share migration).
+  photo_urls: string[];
+  // The community post made when the family shared this square, if any.
+  shared_post_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
 export type SpaceMediaItem = {
   id: string;
   space_id: string;
@@ -3322,6 +3353,18 @@ export type Database = {
         Update: Partial<SpaceMediaItem>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
+      media_item_marks: {
+        Row: MediaItemMark;
+        Insert: Partial<MediaItemMark> & { item_id: string; user_id: string };
+        Update: Partial<MediaItemMark>;
+        Relationships: [FKey<"item_id", "space_media_items">, FKey<"user_id", "profiles">];
+      };
+      arts_board_marks: {
+        Row: ArtsBoardMark;
+        Insert: Partial<ArtsBoardMark> & { space_id: string; user_id: string; art_number: number };
+        Update: Partial<ArtsBoardMark>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"user_id", "profiles">, FKey<"shared_post_id", "posts">];
+      };
       lesson_video_jobs: {
         Row: LessonVideoJob;
         Insert: Partial<LessonVideoJob> & {
@@ -3702,7 +3745,11 @@ export type Database = {
       timeline_events: {
         Row: TimelineEvent;
         Insert: Partial<TimelineEvent> & { community_id: string; created_by: string; slug: string; title: string };
-        Update: Partial<TimelineEvent>;
+        // seed_synced_at is WRITE-ONLY: the seeded-dataset refresh sets it so its
+        // revisions can be told apart from a person's, and nothing reads it. It is
+        // kept off the Row so no page ever selects it — see
+        // 20261013200025_event_seed_sync_marker.sql.
+        Update: Partial<TimelineEvent> & { seed_synced_at?: string | null };
         Relationships: [FKey<"created_by", "profiles">];
       };
       timeline_date_claims: {

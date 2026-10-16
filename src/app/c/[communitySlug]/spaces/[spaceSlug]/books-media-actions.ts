@@ -48,7 +48,9 @@ function json(fd: FormData, name: string): unknown {
 function parseInput(fd: FormData): { ok: true; input: MediaItemInput } | { ok: false; error: string } {
   const themes = str(fd, "themes")
     .split(/[,\n]/)
-    .map((t) => t.trim())
+    // Clipped rather than refused: a long phrase is not a reason to lose
+    // the form.
+    .map((t) => t.trim().slice(0, 80))
     .filter(Boolean)
     .slice(0, 20);
   const concerns = cleanConcerns(json(fd, "concerns"));
@@ -256,5 +258,100 @@ export async function importSharedMediaItem(
   }
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { error: null };
+}
+
+// Everything one community has shared, onto this shelf in one go. Items whose
+// link is already here are skipped rather than refused, so the button is safe
+// to press again later when that community has shared more.
+export async function importSharedShelf(
+  sourceCommunityId: string,
+  spaceId: string,
+  communitySlug: string,
+  spaceSlug: string
+): Promise<{ added: number; skipped: number; error: string | null }> {
+  const supabase = await createClient();
+  const auth = await authorizeMediaMember(supabase, spaceId);
+  if (!auth.ok) return { added: 0, skipped: 0, error: auth.error };
+
+  const shared = (await getSharedMediaItemsFromOtherCommunities(supabase, auth.space.community_id)).filter(
+    (s) => s.community_id === sourceCommunityId
+  );
+  if (shared.length === 0) return { added: 0, skipped: 0, error: "That community hasn't shared anything." };
+
+  // What's here already, by link. Checked up front so the insert can be one
+  // statement; the unique index is the backstop for a race.
+  const { data: existing, error: readError } = await supabase.from("space_media_items").select("link_key").eq("space_id", auth.space.id);
+  if (readError) return { added: 0, skipped: 0, error: readError.message };
+  const have = new Set((existing ?? []).map((row) => row.link_key));
+
+  const seen = new Set<string>();
+  const rows = shared.flatMap((item) => {
+    const linkKey = lessonLinkKey(item.url);
+    if (!linkKey || have.has(linkKey) || seen.has(linkKey)) return [];
+    seen.add(linkKey);
+    return [
+      {
+        space_id: auth.space.id,
+        community_id: auth.space.community_id,
+        created_by: auth.userId,
+        url: item.url,
+        link_key: linkKey,
+        kind: item.kind,
+        title: item.title,
+        creator: item.creator,
+        description: item.description,
+        image_url: item.image_url,
+        age_min: item.age_min,
+        age_max: item.age_max,
+        verdict: item.verdict,
+        reason: item.reason,
+        profanity: item.profanity,
+        concerns: item.concerns,
+        themes: item.themes,
+        share_with_other_communities: true,
+        imported_from: item.id,
+      },
+    ];
+  });
+  const skipped = shared.length - rows.length;
+  if (rows.length === 0) return { added: 0, skipped, error: null };
+
+  const { error } = await supabase.from("space_media_items").insert(rows);
+  if (error) return { added: 0, skipped, error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  return { added: rows.length, skipped, error: null };
+}
+
+// A family's tick and note on one item: one row per family, written over.
+// A cleared tick with no note removes the row rather than leaving an empty
+// one behind.
+export async function setMediaMark(
+  itemId: string,
+  mark: { done: boolean; note: string },
+  communitySlug: string,
+  spaceSlug: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const item = await getMediaItem(supabase, itemId);
+  if (!item) return { error: "Item not found." };
+  const auth = await authorizeMediaMember(supabase, item.space_id);
+  if (!auth.ok) return { error: auth.error };
+
+  const note = mark.note.trim().slice(0, 600) || null;
+  const { error } =
+    !mark.done && !note
+      ? await supabase.from("media_item_marks").delete().eq("item_id", itemId).eq("user_id", user.id)
+      : await supabase.from("media_item_marks").upsert({ item_id: itemId, user_id: user.id, done: mark.done, note }, { onConflict: "item_id,user_id" });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}/media/${itemId}`);
   return { error: null };
 }
