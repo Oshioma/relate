@@ -44,7 +44,8 @@ export type SpaceType =
   | "meetups"
   | "lessons"
   | "guided_journey"
-  | "books_media";
+  | "books_media"
+  | "arts_board";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -1255,6 +1256,18 @@ export type MediaItemMark = {
   id: string;
   item_id: string;
   user_id: string;
+  done: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+// One family's done tick and note on one of the 64 arts, on one board. See
+// the arts_board_marks migration: read and written only by that family.
+export type ArtsBoardMark = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  art_number: number;
   done: boolean;
   note: string | null;
   created_at: string;
@@ -3340,6 +3353,12 @@ export type Database = {
         Insert: Partial<MediaItemMark> & { item_id: string; user_id: string };
         Update: Partial<MediaItemMark>;
         Relationships: [FKey<"item_id", "space_media_items">, FKey<"user_id", "profiles">];
+      };
+      arts_board_marks: {
+        Row: ArtsBoardMark;
+        Insert: Partial<ArtsBoardMark> & { space_id: string; user_id: string; art_number: number };
+        Update: Partial<ArtsBoardMark>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"user_id", "profiles">];
       };
       lesson_video_jobs: {
         Row: LessonVideoJob;
