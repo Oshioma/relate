@@ -1,25 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-export type AdminNavSection = { id: string; label: string; group: string };
+export type NavSection = { id: string; label: string; group?: string };
 
-// Navigation for the (very long) admin page. The old version was a single row
-// of chips that scrolled sideways with a hidden scrollbar, so most sections sat
-// off-screen and nobody knew they existed. Now every section is always listed:
+// Section navigation for long pages (the admin page, long-form posts). The
+// admin page used to have a single row of chips that scrolled sideways with a
+// hidden scrollbar, so most sections sat off-screen and nobody knew they
+// existed. Now every section is always listed:
 //
-//   - lg and up: a sticky sidebar showing every section, grouped under headings.
+//   - lg and up: a sticky sidebar showing every section, grouped under headings
+//                (sections without a group are listed without one).
 //   - below lg:  a sticky "Jump to" bar naming the current section; tapping it
 //                opens the full grouped list.
 //
 // Both highlight the section currently in view via an IntersectionObserver
 // scroll-spy. Renders as two siblings so the page can drop the sidebar into a
 // grid column (the mobile bar is display:none there and takes no cell).
-export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
+export function SectionNav({
+  sections,
+  label = "Sections",
+}: {
+  sections: NavSection[];
+  /** Accessible name for the nav, e.g. "Admin sections". */
+  label?: string;
+}) {
   const [active, setActive] = useState<string>(sections[0]?.id ?? "");
   const [menuOpen, setMenuOpen] = useState(false);
   const mobileRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
   useEffect(() => {
     const observed = sections
@@ -33,7 +43,8 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) tops.set(entry.target.id, entry.boundingClientRect.top);
+          if (entry.isIntersecting)
+            tops.set(entry.target.id, entry.boundingClientRect.top);
           else tops.delete(entry.target.id);
         }
         let best: string | null = null;
@@ -62,7 +73,8 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
       if (event.key === "Escape") setMenuOpen(false);
     };
     const onPointer = (event: PointerEvent) => {
-      if (!mobileRef.current?.contains(event.target as Node)) setMenuOpen(false);
+      if (!mobileRef.current?.contains(event.target as Node))
+        setMenuOpen(false);
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
@@ -75,11 +87,12 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
   if (sections.length <= 1) return null;
 
   // Groups in first-appearance order, so the page decides the order.
-  const groups: { name: string; items: AdminNavSection[] }[] = [];
+  const groups: { name: string; items: NavSection[] }[] = [];
   for (const section of sections) {
-    const group = groups.find((g) => g.name === section.group);
+    const name = section.group ?? "";
+    const group = groups.find((g) => g.name === name);
     if (group) group.items.push(section);
-    else groups.push({ name: section.group, items: [section] });
+    else groups.push({ name, items: [section] });
   }
 
   const activeIndex = Math.max(
@@ -103,9 +116,11 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
     <div className="space-y-4">
       {groups.map((group) => (
         <div key={group.name}>
-          <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {group.name}
-          </p>
+          {group.name && (
+            <p className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {group.name}
+            </p>
+          )}
           <ul className="space-y-0.5">
             {group.items.map((section) => {
               const isActive = active === section.id;
@@ -145,14 +160,16 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
           aria-expanded={menuOpen}
-          aria-controls="admin-section-menu"
+          aria-controls={menuId}
           className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left"
         >
           <span className="min-w-0">
             <span className="block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               Jump to section · {activeIndex + 1} of {sections.length}
             </span>
-            <span className="block truncate text-sm font-medium text-foreground">{activeLabel}</span>
+            <span className="block truncate text-sm font-medium text-foreground">
+              {activeLabel}
+            </span>
           </span>
           <ChevronDown
             className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${menuOpen ? "rotate-180" : ""}`}
@@ -161,8 +178,8 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
         </button>
         {menuOpen && (
           <nav
-            id="admin-section-menu"
-            aria-label="Admin sections"
+            id={menuId}
+            aria-label={label}
             className="absolute inset-x-4 top-full mt-1 max-h-[70vh] overflow-y-auto rounded-md border border-border bg-card p-3 shadow-lg sm:inset-x-6"
           >
             {groupedList}
@@ -173,7 +190,7 @@ export function AdminSectionNav({ sections }: { sections: AdminNavSection[] }) {
       {/* Desktop: every section always visible in a sticky sidebar. */}
       <aside className="hidden lg:block">
         <nav
-          aria-label="Admin sections"
+          aria-label={label}
           className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-6"
         >
           {groupedList}
