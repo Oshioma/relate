@@ -51,6 +51,20 @@ test("appending seeded copies and labelling what they show is the top-up, not a 
   assert.equal(isTopUpOnly(null, [fuseli], SLUG), true);
 });
 
+test("a top-up that listed the same stored file a second time is still the top-up", () => {
+  // Nabta Playa as one community holds it: the old top-up appended a second
+  // caption for a file the record already had, then a new picture. Matching by
+  // address alone compared the first listing with its twin and called it a
+  // person's edit, so the duplicate could never be cleared.
+  const slug = "nabta-playa-megaliths";
+  const circle = { url: `${STORAGE}/${slug}-8dfcf217.jpg`, caption: "The stone circle in the museum" };
+  const twin = { url: circle.url, caption: "The megaliths in the museum" };
+  const calendar = { url: `${STORAGE}/${slug}-73960d66.jpg`, caption: "The calendar circle" };
+  assert.equal(isTopUpOnly([circle], [circle, twin, calendar], slug), true);
+  // A caption change on the existing listing is still a person.
+  assert.equal(isTopUpOnly([circle], [{ ...circle, caption: "Mine" }, calendar], slug), false);
+});
+
 test("removing, recaptioning or uploading a picture is a person", () => {
   assert.equal(isTopUpOnly([pdf, fuseli], [fuseli], SLUG), false, "a removal");
   assert.equal(isTopUpOnly([pdf], [{ ...pdf, caption: "My better caption" }], SLUG), false, "a new caption");
