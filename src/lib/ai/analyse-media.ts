@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { fetchPageContent, parsePublicUrl } from "@/lib/page-content";
 import { normaliseUrl } from "@/lib/ai/read-url";
 import { parseVideoLink } from "@/lib/school/video-links";
-import { isbn10Of, isbnFromUrl } from "@/lib/media/isbn";
+import { amazonAsinFromUrl, isbn10Of, isbnFromUrl } from "@/lib/media/isbn";
 import { meterClaude } from "@/lib/usage/ai-meter";
 import { CONCERN_LEVELS, MEDIA_KIND_KEYS, MEDIA_VERDICT_KEYS, PROFANITY_LEVELS } from "@/lib/media/media-types";
 import { CONCERN_KEYS, MediaAnalysisSchema, type MediaAnalysisShape } from "@/lib/media/media-analysis-schema";
@@ -132,15 +132,15 @@ export async function verifyImageUrl(candidate: string | null | undefined): Prom
     try {
       const response = await fetch(url, { method, signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS), redirect: "follow", cache: "no-store" });
       const type = response.headers.get("content-type") ?? "";
-      if (method === "GET" || response.ok || response.status === 405) {
-        await response.body?.cancel().catch(() => undefined);
-        // A "missing cover" answer from a catalogue is a 1×1 placeholder, not
-        // a 404 — Amazon's is a 43-byte GIF. Anything that small is no picture.
-        const length = Number(response.headers.get("content-length"));
-        const placeholder = Number.isFinite(length) && length > 0 && length < 1000;
-        if (response.ok && type.startsWith("image/") && !placeholder) return url.toString().slice(0, 1000);
-        if (method === "GET" || response.status !== 405) return null;
-      }
+      await response.body?.cancel().catch(() => undefined);
+      // A "missing cover" answer from a catalogue is a 1×1 placeholder, not
+      // a 404 — Amazon's is a 43-byte GIF. Anything that small is no picture.
+      const length = Number(response.headers.get("content-length"));
+      const placeholder = Number.isFinite(length) && length > 0 && length < 1000;
+      if (response.ok && type.startsWith("image/") && !placeholder) return url.toString().slice(0, 1000);
+      // Some image hosts refuse HEAD outright (403 as well as 405); a GET
+      // whose body is dropped costs little and settles it.
+      if (method === "GET" || response.ok) return null;
     } catch {
       return null;
     }
@@ -227,12 +227,77 @@ async function lookupBook(isbn: string): Promise<BookRecord | null> {
   if (!record.cover) {
     const isbn10 = isbn10Of(isbn);
     if (isbn10) {
-      record.cover = await verifyImageUrl(`https://images-na.ssl-images-amazon.com/images/P/${isbn10}.01.LZZZZZZZ.jpg`);
+      record.cover = await verifyImageUrl(amazonCoverUrl(isbn10));
       if (record.cover) found = true;
     }
   }
 
   return found ? record : null;
+}
+
+// Amazon's keyless cover service, by ISBN-10 or any ASIN.
+function amazonCoverUrl(code: string): string {
+  return `https://images-na.ssl-images-amazon.com/images/P/${code}.01.LZZZZZZZ.jpg`;
+}
+
+// Searching by title, when the link itself led nowhere. Covers for a book no
+// catalogue lists under its ISBN often exist under another edition; a film's
+// or a show's poster is usually on its Wikipedia page. Each is one free
+// request, and the first that answers with a real image wins.
+async function coverByTitle(kind: string, title: string, creator: string | null): Promise<string | null> {
+  const q = encodeURIComponent(title);
+  const author = creator ? encodeURIComponent(creator.split(/[;(,]/)[0].trim()) : "";
+  const tries: (() => Promise<string | null>)[] = [];
+
+  if (kind === "book" || kind === "audio") {
+    tries.push(async () => {
+      const data = (await fetchJson(
+        `https://www.googleapis.com/books/v1/volumes?q=intitle:${q}${author ? `+inauthor:${author}` : ""}&maxResults=3&fields=items(volumeInfo(imageLinks))`
+      )) as { items?: { volumeInfo?: { imageLinks?: Record<string, unknown> } }[] } | null;
+      for (const item of data?.items ?? []) {
+        const thumb = str(item.volumeInfo?.imageLinks?.thumbnail, 1000) ?? str(item.volumeInfo?.imageLinks?.smallThumbnail, 1000);
+        if (thumb) return verifyImageUrl(thumb.replace(/^http:\/\//i, "https://").replace(/&edge=curl/g, ""));
+      }
+      return null;
+    });
+    tries.push(async () => {
+      const data = (await fetchJson(
+        `https://openlibrary.org/search.json?title=${q}${author ? `&author=${author}` : ""}&limit=3&fields=cover_i`
+      )) as { docs?: { cover_i?: unknown }[] } | null;
+      for (const doc of data?.docs ?? []) {
+        if (typeof doc.cover_i === "number") return verifyImageUrl(`https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg?default=false`);
+      }
+      return null;
+    });
+  }
+
+  // Wikipedia last for books, first for everything else: a film, a series, a
+  // game or an app usually has a page with a poster or a box shot on it.
+  const wikipedia = async () => {
+    const search = (await fetchJson(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}${author ? `%20${author}` : ""}&srlimit=1&format=json`
+    )) as { query?: { search?: { title?: string }[] } } | null;
+    const page = search?.query?.search?.[0]?.title;
+    if (!page) return null;
+    const summary = (await fetchJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`)) as {
+      originalimage?: { source?: unknown };
+      thumbnail?: { source?: unknown };
+    } | null;
+    const source = str(summary?.originalimage?.source, 1000) ?? str(summary?.thumbnail?.source, 1000);
+    return source ? verifyImageUrl(source) : null;
+  };
+  if (kind === "book" || kind === "audio") tries.push(wikipedia);
+  else tries.unshift(wikipedia);
+
+  for (const attempt of tries) {
+    try {
+      const found = await attempt();
+      if (found) return found;
+    } catch {
+      // That source is down or changed shape; the next may not be.
+    }
+  }
+  return null;
 }
 
 async function gatherFacts(url: string): Promise<PageFacts> {
@@ -284,6 +349,7 @@ async function gatherFacts(url: string): Promise<PageFacts> {
   const parsed = parsePublicUrl(facts.url);
   if (!parsed) return facts;
   const page = await fetchPageContent(parsed, { jsonLdTypes: MEDIA_JSON_LD, timeoutMs: 10_000, maxText: 6000, dropChrome: true });
+  if (!facts.image) facts.image = await amazonCoverFromLink(facts.url);
   if (!page) return facts;
 
   facts.title ??= page.title;
@@ -293,6 +359,13 @@ async function gatherFacts(url: string): Promise<PageFacts> {
   facts.jsonLd = page.jsonLd;
   facts.text = page.text;
   return facts;
+}
+
+// An Amazon listing with no ISBN — a Kindle edition, an independently
+// published book, a DVD — still has a cover on Amazon's image host, by ASIN.
+async function amazonCoverFromLink(url: string): Promise<string | null> {
+  const asin = amazonAsinFromUrl(url);
+  return asin ? verifyImageUrl(amazonCoverUrl(asin)) : null;
 }
 
 // --- Asking Claude ----------------------------------------------------------
@@ -377,6 +450,12 @@ function buildPrompt(facts: PageFacts): string {
     parts.push(
       "",
       "The page itself could not be read (shops often refuse automated readers), so identify the work from the link and from what you can find about it."
+    );
+  }
+  if (!facts.image) {
+    parts.push(
+      "",
+      "No cover picture was found for this yet. If a page you visit shows the cover or poster, put the direct link to that image file in cover_image_url — the publisher's page, a bookshop, Wikipedia or a review site usually has one."
     );
   }
   return parts.join("\n");
@@ -470,12 +549,23 @@ export async function analyseMedia(rawUrl: string): Promise<AnalyseMediaResult> 
     const reason = data.reason?.trim() || null;
     // The page's or catalogue's own picture first; the model's find only once
     // it has answered as an image.
-    const image = facts.image && /^https?:\/\//i.test(facts.image) ? facts.image.slice(0, 1000) : await verifyImageUrl(data.cover_image_url);
+    let image: string | null = facts.image && /^https?:\/\//i.test(facts.image) ? facts.image.slice(0, 1000) : null;
+    let route = "page/catalogue";
+    if (!image) {
+      image = await verifyImageUrl(data.cover_image_url);
+      route = "the model, verified";
+    }
+    if (!image) {
+      // Last: search by what the review says it is. A book under another
+      // edition's ISBN, a film's poster on Wikipedia.
+      image = await coverByTitle(data.kind, data.title, data.creator);
+      route = "title search";
+    }
     // A line in the logs for the day a cover doesn't show up: which way it
     // came, or that every way came up empty.
     console.log(
       `[analyse-media] ${facts.isbn ? `isbn ${facts.isbn}` : facts.kindHint ?? "page"}: cover ${
-        image ? (facts.image ? "from page/catalogue" : "from the model, verified") : `none (model offered ${data.cover_image_url ? "one that failed verification" : "none"})`
+        image ? `from ${route}` : `none (model offered ${data.cover_image_url ? "one that failed verification" : "none"}; title search empty)`
       }`
     );
     return {
