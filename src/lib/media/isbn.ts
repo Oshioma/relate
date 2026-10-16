@@ -63,3 +63,20 @@ export function isbn10Of(isbn: string): string | null {
   const check = (11 - (sum % 11)) % 11;
   return core + (check === 10 ? "X" : String(check));
 }
+
+// The ten-character Amazon product code in a link, ISBN or not. A Kindle
+// edition or an independently published book has an ASIN beginning with B
+// that no catalogue knows, but Amazon's own cover service answers to it.
+const AMAZON_HOST = /(^|\.)amazon\.[a-z.]+$/i;
+const ASIN_PATH = /\/(?:dp|gp\/product|gp\/aw\/d|product)\/([A-Z0-9]{10})(?=[/?#]|$)/i;
+
+export function amazonAsinFromUrl(raw: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(raw.trim()) ? raw.trim() : `https://${raw.trim()}`);
+  } catch {
+    return null;
+  }
+  if (!AMAZON_HOST.test(url.hostname)) return null;
+  return ASIN_PATH.exec(url.pathname)?.[1]?.toUpperCase() ?? null;
+}
