@@ -3185,6 +3185,26 @@ export function TimelineView({
                       `Added ${result.linked} ${result.linked === 1 ? "connection" : "connections"} between records.`
                     );
                   }
+                  // TEXT AND PICTURE CORRECTIONS, each named for what it did:
+                  // a rewritten description and a removed picture are different
+                  // news to somebody who knows their timeline.
+                  if (result.retexted > 0) {
+                    parts.push(
+                      `Brought the wording of ${result.retexted} ${result.retexted === 1 ? "record" : "records"} up to date.`
+                    );
+                  }
+                  if (result.picturesRemoved > 0) {
+                    parts.push(
+                      `Removed ${result.picturesRemoved} ${
+                        result.picturesRemoved === 1 ? "picture the datasets no longer use" : "pictures the datasets no longer use"
+                      }.`
+                    );
+                  }
+                  if (result.picturesCorrected > 0) {
+                    parts.push(
+                      `Corrected the details of ${result.picturesCorrected} ${result.picturesCorrected === 1 ? "picture" : "pictures"}.`
+                    );
+                  }
                   // "Nothing changed" is the headline whenever nothing did —
                   // the kept count goes after it rather than standing alone,
                   // which read as though something had happened.
@@ -3199,6 +3219,20 @@ export function TimelineView({
                       result.keptBecauseEdited === 1
                         ? "1 date was left alone because somebody here had edited it."
                         : `${result.keptBecauseEdited} dates were left alone because somebody here had edited them.`
+                    );
+                  }
+                  if (result.textKeptBecauseEdited > 0) {
+                    parts.push(
+                      result.textKeptBecauseEdited === 1
+                        ? "1 record's wording was left alone because somebody here had edited it."
+                        : `${result.textKeptBecauseEdited} records' wording was left alone because somebody here had edited it.`
+                    );
+                  }
+                  if (result.picturesKeptBecauseEdited > 0) {
+                    parts.push(
+                      result.picturesKeptBecauseEdited === 1
+                        ? "1 record's pictures were left alone because somebody here had arranged them."
+                        : `${result.picturesKeptBecauseEdited} records' pictures were left alone because somebody here had arranged them.`
                     );
                   }
                   setSeedNote(parts.join(" "));

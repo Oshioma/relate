@@ -102,18 +102,26 @@ export const MediaItemInputSchema = z.object({
   reason: z.string().trim().max(1000).nullable(),
   profanity: z.enum(PROFANITY_LEVELS.map((p) => p.value) as [MediaProfanity, ...MediaProfanity[]]),
   concerns: z.array(MediaConcernSchema).max(20),
-  themes: z.array(z.string().trim().min(1).max(60)).max(20),
+  themes: z.array(z.string().trim().min(1).max(80)).max(20),
   share_with_other_communities: z.boolean(),
 });
 
 export type MediaItemInput = z.infer<typeof MediaItemInputSchema>;
 
-// Ages 6–9, 10+, Under 5, or nothing at all.
+// "Ages 6–9", "From age 10", "Up to age 4", or nothing at all. The "from"
+// age is said in words: a parent reads it off the shelf, and "10+" was being
+// read as a rating rather than a starting age.
 export function ageRangeLabel(min: number | null | undefined, max: number | null | undefined): string | null {
   if (min == null && max == null) return null;
   if (min != null && max != null) return min === max ? `Age ${min}` : `Ages ${min}–${max}`;
-  if (min != null) return `Ages ${min}+`;
-  return `Under ${max! + 1}`;
+  if (min != null) return `From age ${min}`;
+  return `Up to age ${max}`;
+}
+
+// Whether something reviewed for a range suits a child of this age. An open
+// end is open: "from age 10" suits a fourteen-year-old.
+export function suitsAge(item: { age_min: number | null; age_max: number | null }, age: number): boolean {
+  return (item.age_min == null || item.age_min <= age) && (item.age_max == null || item.age_max >= age);
 }
 
 // Only the concerns that actually say something: "none" is the model
@@ -153,4 +161,36 @@ export type SharedMediaItem = {
 
 export function mediaSearchText(item: { title: string; creator: string | null; description: string; themes: string[]; reason: string | null }): string {
   return [item.title, item.creator ?? "", item.description, item.themes.join(" "), item.reason ?? ""].join(" ").toLowerCase();
+}
+
+// What the families here have said about one item: the viewer's own tick and
+// note, how many have ticked it, and everyone's notes with a name beside each.
+export type FamilyNote = { userId: string; name: string | null; avatarUrl: string | null; done: boolean; note: string | null; updatedAt: string };
+export type MediaMarks = {
+  mine: { done: boolean; note: string | null } | null;
+  doneCount: number;
+  notes: FamilyNote[];
+};
+
+export const EMPTY_MARKS: MediaMarks = { mine: null, doneCount: 0, notes: [] };
+
+// "Read it" for a book, "Watched it" for a film — the verb a family would use.
+export function doneVerb(kind: MediaKind): { done: string; notDone: string; past: string } {
+  switch (kind) {
+    case "video":
+      return { done: "Watched it", notDone: "Watched it?", past: "watched" };
+    case "audio":
+      return { done: "Listened to it", notDone: "Listened to it?", past: "listened to" };
+    case "game":
+    case "app":
+    case "website":
+      return { done: "Tried it", notDone: "Tried it?", past: "tried" };
+    default:
+      return { done: "Read it", notDone: "Read it?", past: "read" };
+  }
+}
+
+export function familiesLine(count: number, past: string): string | null {
+  if (count === 0) return null;
+  return count === 1 ? `1 family has ${past} it` : `${count} families have ${past} it`;
 }

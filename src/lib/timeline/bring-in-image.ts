@@ -34,8 +34,19 @@ const IMAGE_TYPES = new Map([
   ["image/gif", "gif"],
 ]);
 
-/** The same ceiling the in-app uploader uses. A seed should not be a way past it. */
-const MAX_BYTES = 8 * 1024 * 1024;
+/**
+ * How big a file we will store, and how big a download we will accept to get
+ * there. The stored ceiling is the in-app uploader's 8MB — a seed should not be
+ * a way past it. But a Commons original is often 20–40MB of pixels nobody will
+ * ever see at the size a card shows them, and refusing it outright left whole
+ * events without pictures. So a download up to 40MB is taken and anything over
+ * the stored ceiling is shrunk to fit (see fitForStorage): the longest edge to
+ * 2000px, re-encoded as WebP. A picture that is too big becomes a picture that
+ * is the right size, rather than no picture.
+ */
+const STORE_MAX_BYTES = 8 * 1024 * 1024;
+const DOWNLOAD_MAX_BYTES = 40 * 1024 * 1024;
+const MAX_EDGE_PX = 2000;
 
 /** Long enough for a large photograph, short enough that seeding cannot hang. */
 const FETCH_TIMEOUT_MS = 20_000;
@@ -69,16 +80,53 @@ export async function bringImageIn(
 ): Promise<BringInResult> {
   if (!isHotlinked(url)) return { url };
 
-  // The address as stored, then whatever else is worth trying for it.
-  const attempts = [url, ...wikimediaAlternatives(url)];
-  let firstReason: string | null = null;
+  // For a Wikimedia file, a SIZED copy first: Commons will hand back a 1600px
+  // rendering of a 30MB original in a fraction of the bytes, and that is all a
+  // card or a lightbox ever shows. Then the address as stored, then the full
+  // original as the last resort (shrunk here if it is over the ceiling).
+  const alternatives = wikimediaAlternatives(url);
+  const attempts = alternatives.length > 0 ? [alternatives[0], url, ...alternatives.slice(1)] : [url];
+  const reasons: string[] = [];
 
   for (const attempt of attempts) {
     const result = await fetchAndStore(supabase, { url: attempt, userId, name });
     if ("url" in result) return result;
-    firstReason ??= result.reason;
+    if (!reasons.includes(result.reason)) reasons.push(result.reason);
   }
-  return { reason: firstReason ?? "that picture could not be brought in" };
+  // Every attempt's reason, not just the first: "the original is 27MB" is only
+  // half the story when the sized copy was tried too and also failed.
+  return { reason: reasons.slice(0, 3).join("; ") || "that picture could not be brought in" };
+}
+
+/**
+ * Shrink an oversized image to fit the stored ceiling: longest edge to
+ * MAX_EDGE_PX, re-encoded as WebP, quality stepped down if it is still too
+ * big. Animated GIFs keep their frames. Returns null if the image cannot be
+ * decoded, so the caller can say so.
+ */
+async function fitForStorage(bytes: Uint8Array, contentType: string): Promise<{ bytes: Uint8Array; contentType: string; extension: string } | null> {
+  let sharp: typeof import("sharp");
+  try {
+    sharp = (await import("sharp")).default;
+  } catch (error) {
+    console.error("[bring-in-image] sharp is not available to shrink an image", error);
+    return null;
+  }
+  const animated = contentType === "image/gif";
+  for (const quality of [82, 70, 58]) {
+    try {
+      const out = await sharp(Buffer.from(bytes), { animated, limitInputPixels: 400_000_000 })
+        .rotate()
+        .resize({ width: MAX_EDGE_PX, height: MAX_EDGE_PX, fit: "inside", withoutEnlargement: true })
+        .webp({ quality })
+        .toBuffer();
+      if (out.byteLength <= STORE_MAX_BYTES) return { bytes: new Uint8Array(out), contentType: "image/webp", extension: "webp" };
+    } catch (error) {
+      console.error("[bring-in-image] could not shrink an image", error);
+      return null;
+    }
+  }
+  return null;
 }
 
 /** One attempt at one address for the timeline: fetch it, check it, store it. */
@@ -141,6 +189,14 @@ export async function storeExternalImage(
   const extension = IMAGE_TYPES.get(contentType);
   if (!extension) return { reason: `${hostOf(url)} sent ${contentType || "no content type"}, not an image` };
 
+  // Refuse a download that is absurd before it is made: the header is a hint,
+  // not a promise, so the real check is on the bytes below.
+  const declared = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > DOWNLOAD_MAX_BYTES) {
+    await response.body?.cancel().catch(() => undefined);
+    return { reason: `that picture is ${Math.round(declared / 1024 / 1024)}MB, more than the ${DOWNLOAD_MAX_BYTES / 1024 / 1024}MB this will download` };
+  }
+
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await response.arrayBuffer());
@@ -148,14 +204,23 @@ export async function storeExternalImage(
     return { reason: `the download from ${hostOf(url)} broke off (${error instanceof Error ? error.message : String(error)})` };
   }
   if (bytes.byteLength === 0) return { reason: `${hostOf(url)} sent an empty file` };
-  if (bytes.byteLength > MAX_BYTES) {
-    return { reason: `that picture is ${Math.round(bytes.byteLength / 1024 / 1024)}MB, over the 8MB limit` };
+  if (bytes.byteLength > DOWNLOAD_MAX_BYTES) {
+    return { reason: `that picture is ${Math.round(bytes.byteLength / 1024 / 1024)}MB, more than the ${DOWNLOAD_MAX_BYTES / 1024 / 1024}MB this will download` };
   }
 
-  const path = `${userId}/${folder}/${key}.${extension}`;
+  let stored = { bytes, contentType, extension };
+  if (bytes.byteLength > STORE_MAX_BYTES) {
+    const fitted = await fitForStorage(bytes, contentType);
+    if (!fitted) {
+      return { reason: `that picture is ${Math.round(bytes.byteLength / 1024 / 1024)}MB and couldn't be shrunk to fit the ${STORE_MAX_BYTES / 1024 / 1024}MB ceiling` };
+    }
+    stored = fitted;
+  }
+
+  const path = `${userId}/${folder}/${key}.${stored.extension}`;
   const { error } = await supabase.storage
     .from("uploads")
-    .upload(path, bytes, { upsert: true, contentType });
+    .upload(path, stored.bytes, { upsert: true, contentType: stored.contentType });
   if (error) return { reason: `storage refused the upload: ${error.message}` };
 
   const { data } = supabase.storage.from("uploads").getPublicUrl(path);
@@ -175,8 +240,10 @@ export async function storeExternalImage(
 //
 // Special:FilePath is the documented way to ask for a file by NAME and let
 // Wikimedia choose the thumbnail — so the size question is answered by the only
-// party that knows the answer. Tried with a width first, then without, which is
-// full resolution and always exists if the file does.
+// party that knows the answer. The sized rendering comes first (1600px is more
+// than any card or lightbox here shows, and a fraction of a modern original's
+// bytes), then the bare path, which is full resolution and always exists if
+// the file does.
 //
 // Derived from the failing address rather than stored alongside it, so this
 // also repairs communities that already have the broken URLs written into their
@@ -198,7 +265,7 @@ export function wikimediaAlternatives(url: string): string[] {
   if (!name || !name.includes(".")) return [];
 
   const base = `https://commons.wikimedia.org/wiki/Special:FilePath/${name}`;
-  return [`${base}?width=1024`, base];
+  return [`${base}?width=1600`, base];
 }
 
 /** Just the host, for a message a person reads. */

@@ -36,9 +36,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected a JSON body." }, { status: 400, headers: NO_STORE });
   }
 
-  const payload = body as { spaceId?: unknown; url?: unknown };
+  const payload = body as { spaceId?: unknown; url?: unknown; itemId?: unknown };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   const url = typeof payload.url === "string" ? payload.url.trim() : "";
+  // The item being edited, when the review is run again from its edit form.
+  // The one link already on the shelf that is not a duplicate of itself.
+  const itemId = typeof payload.itemId === "string" ? payload.itemId : null;
 
   if (!spaceId) return NextResponse.json({ error: "Which space?" }, { status: 400, headers: NO_STORE });
   if (!url) return NextResponse.json({ error: "Paste a link first." }, { status: 400, headers: NO_STORE });
@@ -51,7 +54,7 @@ export async function POST(request: NextRequest) {
   const key = lessonLinkKey(url);
   if (!key) return NextResponse.json({ error: "That doesn't look like a web address." }, { status: 400, headers: NO_STORE });
   const existing = await findMediaItemByLinkKey(supabase, spaceId, key);
-  if (existing) {
+  if (existing && existing.id !== itemId) {
     return NextResponse.json(
       { error: `"${existing.title}" is already on this shelf.`, existing: { id: existing.id, title: existing.title } },
       { status: 409, headers: NO_STORE }

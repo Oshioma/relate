@@ -36,6 +36,12 @@ import {
   withBroughtInPictures,
 } from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
+import {
+  fieldsEditedByAPerson,
+  reconcileEventText,
+  reconcileSeededPictures,
+  type EventRevision,
+} from "@/lib/timeline/reconcile-seeded-event";
 
 /**
  * A picture as it comes back out of `timeline_events.media`, which is a jsonb
@@ -2258,25 +2264,49 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
  *   exactly once per claim and then silently refuse for ever, because its own
  *   first correction would look like an edit to protect.
  */
+// How many ids go in one `.in(...)` filter. Each is a 36-character uuid in the
+// request URL; 100 keeps the URL comfortably short.
+const ID_SLICE = 100;
+
+type StoredClaimRow = Pick<
+  Database["public"]["Tables"]["timeline_date_claims"]["Row"],
+  | "id"
+  | "event_id"
+  | "start_year"
+  | "end_year"
+  | "original_date_text"
+  | "dating_method"
+  | "chronology"
+  | "evidence"
+  | "notes"
+  | "source_id"
+  | "temporal_claim_type"
+  | "duration_years"
+  | "what_is_dated"
+>;
+
 async function editedByAPerson(
   supabase: SupabaseClient<Database>,
   communityId: string,
   claimIds: string[]
 ): Promise<Set<string>> {
-  if (claimIds.length === 0) return new Set();
-  const { data } = await supabase
-    .from("timeline_revisions")
-    .select("claim_id, actor_id, changes")
-    .eq("community_id", communityId)
-    .eq("entity", "claim")
-    .eq("action", "updated")
-    .in("claim_id", claimIds);
-
   const edited = new Set<string>();
-  for (const row of data ?? []) {
-    if (!row.claim_id || !row.actor_id) continue;
-    if (row.changes && Object.prototype.hasOwnProperty.call(row.changes, "seed_synced_at")) continue;
-    edited.add(row.claim_id);
+  // A whole dataset's claims arrive at once now, so the ids go in slices: each
+  // one rides in the request URL, and a few hundred of them is too long a URL.
+  for (let i = 0; i < claimIds.length; i += ID_SLICE) {
+    const { data } = await supabase
+      .from("timeline_revisions")
+      .select("claim_id, actor_id, changes")
+      .eq("community_id", communityId)
+      .eq("entity", "claim")
+      .eq("action", "updated")
+      .in("claim_id", claimIds.slice(i, i + ID_SLICE));
+
+    for (const row of data ?? []) {
+      if (!row.claim_id || !row.actor_id) continue;
+      if (row.changes && Object.prototype.hasOwnProperty.call(row.changes, "seed_synced_at")) continue;
+      edited.add(row.claim_id);
+    }
   }
   return edited;
 }
@@ -2380,6 +2410,16 @@ export async function refreshSeededDatasets(communitySlug: string) {
   // again: nothing was wrong with them, they simply predate the field — the
   // same shape of gap the relationship backfill closed.
   let classified = 0;
+  // Records whose title, summary or description was brought into line, and
+  // those left alone because a person here had written over the seed's text.
+  let retexted = 0;
+  let textKeptBecauseEdited = 0;
+  // Pictures the dataset dropped or replaced, and pictures whose details
+  // (caption, accession number, provenance) it corrected. Records whose
+  // pictures a person has edited are left alone and counted.
+  let picturesRemoved = 0;
+  let picturesCorrected = 0;
+  let picturesKeptBecauseEdited = 0;
   // RECORDS THIS COMMUNITY ONCE HAD AND NO LONGER DOES.
   //
   // The per-dataset offers ("Add the Chinese flood records") are gated on ONE
@@ -2432,7 +2472,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
     // work happens, and it is why this button could appear to hang.
     const { data: presentRows } = await supabase
       .from("timeline_events")
-      .select("id, slug, image_url, media")
+      .select("id, slug, title, summary, description, image_url, media")
       .eq("community_id", community.id)
       .in("slug", dataset.events.map((event) => event.slug));
     const present = presentRows ?? [];
@@ -2476,20 +2516,41 @@ export async function refreshSeededDatasets(communitySlug: string) {
 
     const idBySlug = new Map(present.map((row) => [row.slug, row.id]));
 
+    // THE DATASET'S CLAIMS AND THEIR HISTORY, READ ONCE.
+    //
+    // This used to be two queries per event — its claims, then their revisions
+    // — so one press on a community holding every dataset was ~560 requests,
+    // and each request is a line in Supabase's billed log ingestion. Read them
+    // for the whole dataset here and hand each event its share below.
+    const claimsByEvent = new Map<string, StoredClaimRow[]>();
+    const eventIds = [...idBySlug.values()];
+    for (let i = 0; i < eventIds.length; i += ID_SLICE) {
+      const { data: claimRows } = await supabase
+        .from("timeline_date_claims")
+        .select(
+          "id, event_id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id, temporal_claim_type, duration_years, what_is_dated"
+        )
+        .in("event_id", eventIds.slice(i, i + ID_SLICE));
+      for (const row of claimRows ?? []) {
+        if (!row.event_id) continue;
+        const list = claimsByEvent.get(row.event_id) ?? [];
+        list.push(row);
+        claimsByEvent.set(row.event_id, list);
+      }
+    }
+    const editedInDataset = await editedByAPerson(
+      supabase,
+      community.id,
+      [...claimsByEvent.values()].flat().map((claim) => claim.id)
+    );
+
     for (const seed of dataset.events) {
       const eventId = idBySlug.get(seed.slug);
       if (!eventId) continue;
 
-      const { data: storedClaims } = await supabase
-        .from("timeline_date_claims")
-        .select(
-          "id, start_year, end_year, original_date_text, dating_method, chronology, evidence, notes, source_id, temporal_claim_type, duration_years, what_is_dated"
-        )
-        .eq("event_id", eventId);
-      const stored = storedClaims ?? [];
+      const stored = claimsByEvent.get(eventId) ?? [];
       if (stored.length === 0) continue;
 
-      const editedHere = await editedByAPerson(supabase, community.id, stored.map((claim) => claim.id));
 
       // A STORED ROW BELONGS TO AT MOST ONE SEEDED CLAIM. Without these two,
       // several seeded claims at the same position all matched the same row and
@@ -2510,7 +2571,7 @@ export async function refreshSeededDatasets(communitySlug: string) {
           continue;
         }
         claimedRows.add(match.id);
-        if (editedHere.has(match.id)) {
+        if (editedInDataset.has(match.id)) {
           keptBecauseEdited++;
           continue;
         }
@@ -2553,6 +2614,81 @@ export async function refreshSeededDatasets(communitySlug: string) {
           .eq("id", match.id);
         if (error) continue;
         updated++;
+        if (!changed.includes(seed.title)) changed.push(seed.title);
+      }
+    }
+
+    // THE TEXT AND PICTURES A LATER CORRECTION CHANGED.
+    //
+    // Everything above fixes dates; the top-up below only ever ADDS pictures.
+    // So a dataset change that rewrote a description, dropped a picture or
+    // corrected a caption reached a community only halfway, and the rest had to
+    // be done by hand in the database.
+    //
+    // Here the record is brought into line — but only the fields no person
+    // here has edited, read from the record's own history. The rules, and how
+    // a person's edit is told apart from the machine's, are in
+    // reconcile-seeded-event.ts, where they are tested.
+    {
+      const ids = present.map((row) => row.id);
+      const { data: revisionRows } = await supabase
+        .from("timeline_revisions")
+        .select("event_id, actor_id, changes")
+        .eq("community_id", community.id)
+        .eq("entity", "event")
+        .eq("action", "updated")
+        .in("event_id", ids);
+      const revisionsByEvent = new Map<string, EventRevision[]>();
+      for (const row of revisionRows ?? []) {
+        if (!row.event_id) continue;
+        const list = revisionsByEvent.get(row.event_id) ?? [];
+        list.push({ actor_id: row.actor_id, changes: row.changes as EventRevision["changes"] });
+        revisionsByEvent.set(row.event_id, list);
+      }
+
+      for (const seed of dataset.events) {
+        const row = storedBySlug.get(seed.slug);
+        if (!row) continue;
+        const edited = fieldsEditedByAPerson(revisionsByEvent.get(row.id) ?? [], seed.slug);
+
+        const { patch, kept } = reconcileEventText(row, seed, edited);
+        if (kept.length > 0) textKeptBecauseEdited++;
+
+        const pictures = reconcileSeededPictures({
+          slug: seed.slug,
+          stored: { image_url: row.image_url, media: (row.media ?? []) as StoredPicture[] },
+          seed: { imageUrl: seed.imageUrl, media: seed.media },
+        });
+        // A person has arranged these pictures themselves: say so, touch nothing.
+        const picturesEdited = edited.has("media") || edited.has("image_url");
+        if (picturesEdited && pictures.changed) picturesKeptBecauseEdited++;
+
+        const textChanged = Object.keys(patch).length > 0;
+        const picturesChanged = pictures.changed && !picturesEdited;
+        if (!textChanged && !picturesChanged) continue;
+
+        // seed_synced_at rides along in the SAME update, so the revision the
+        // trigger writes carries the key that marks this as the refresh's work.
+        const { error } = await supabase
+          .from("timeline_events")
+          .update({
+            ...patch,
+            ...(picturesChanged
+              ? { image_url: pictures.image_url, media: pictures.media as StoredPicture[] }
+              : {}),
+            seed_synced_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        if (error) continue;
+
+        if (textChanged) retexted++;
+        if (picturesChanged) {
+          picturesRemoved += pictures.removed;
+          picturesCorrected += pictures.corrected;
+          // The top-up and the classifier below read this snapshot.
+          row.image_url = pictures.image_url;
+          row.media = pictures.media as StoredPicture[];
+        }
         if (!changed.includes(seed.title)) changed.push(seed.title);
       }
     }
@@ -2699,6 +2835,11 @@ export async function refreshSeededDatasets(communitySlug: string) {
     skippedAmbiguous,
     linked,
     classified,
+    retexted,
+    textKeptBecauseEdited,
+    picturesRemoved,
+    picturesCorrected,
+    picturesKeptBecauseEdited,
     pictured,
     picturesStillMissing,
     restored,

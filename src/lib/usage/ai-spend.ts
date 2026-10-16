@@ -39,26 +39,31 @@ export async function checkAiAllowance(
 ): Promise<AllowanceVerdict> {
   const admin = createAdminClient();
 
-  const [{ data: caller }, { data: community }] = await Promise.all([
+  // Two plain reads rather than one embedded one. This used to ask for the
+  // owner's profile through `owner:owner_id (...)`, which needs a foreign key
+  // from communities.owner_id to profiles that the live database does not
+  // have — so the whole community read failed, the community came back as
+  // nothing, and every comped and exempt community was capped at the free
+  // $5 like a brand-new one (super admins aside, who are exempt in their own
+  // right, which is why it went unnoticed). Reading the owner by id needs no
+  // relationship at all.
+  const [{ data: caller }, { data: community, error: communityError }] = await Promise.all([
     userId
       ? admin.from("profiles").select("is_super_admin").eq("id", userId).maybeSingle()
       : Promise.resolve({ data: null }),
-    admin
-      .from("communities")
-      .select("plan_status, owner:owner_id (username, is_super_admin)")
-      .eq("id", communityId)
-      .maybeSingle(),
+    admin.from("communities").select("plan_status, owner_id").eq("id", communityId).maybeSingle(),
   ]);
+  if (communityError) console.error("Could not read community for AI allowance", communityError);
 
-  const owner = (community as unknown as {
-    owner?: { username: string | null; is_super_admin: boolean | null } | null;
-  } | null)?.owner;
+  const { data: owner } = community?.owner_id
+    ? await admin.from("profiles").select("username, is_super_admin").eq("id", community.owner_id).maybeSingle()
+    : { data: null };
 
   const base = {
     callerIsSuperAdmin: Boolean(caller?.is_super_admin),
     ownerUsername: owner?.username ?? null,
     ownerIsSuperAdmin: Boolean(owner?.is_super_admin),
-    planStatus: (community as { plan_status?: string } | null)?.plan_status ?? null,
+    planStatus: community?.plan_status ?? null,
     freeMonthlyUsd: freeMonthlyUsd(),
     exemptOwners: exemptOwners(),
   };
