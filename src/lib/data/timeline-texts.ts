@@ -49,7 +49,7 @@ async function readAll<T>(fetchPage: (from: number, to: number) => PromiseLike<{
 export type LibraryWork = TimelineTextWork & {
   counts: ManifestCounts | null;
   eventSlug: string | null;
-  lastRun: Pick<TimelineTextImportRun, "status" | "cursor" | "total" | "finished_at"> | null;
+  lastRun: Pick<TimelineTextImportRun, "status" | "cursor" | "total" | "finished_at" | "file_hash"> | null;
 };
 
 const EMPTY_COUNTS: ManifestCounts = {
@@ -81,7 +81,7 @@ export async function getLibrary(supabase: Client, communityId: string): Promise
 
   const { data: runs } = await supabase
     .from("timeline_text_import_runs")
-    .select("work_key, status, cursor, total, finished_at, started_at")
+    .select("work_key, status, cursor, total, finished_at, started_at, file_hash")
     .eq("community_id", communityId)
     .order("started_at", { ascending: false });
   const lastRun = new Map<string, LibraryWork["lastRun"]>();

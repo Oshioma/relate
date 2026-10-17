@@ -28,7 +28,8 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Community, Database } from "@/types/database";
-import type { SeedClaim, SeedSource } from "../seed-types";
+import { pictureTopUp } from "../bring-in-image";
+import type { SeedClaim, SeedPicture, SeedSource } from "../seed-types";
 import type { InventoryWork, TextCorpusFile } from "./corpus-types";
 import { corpusFor } from "./corpus";
 import { INVENTORY, INVENTORY_SOURCES } from "./inventory";
@@ -132,18 +133,49 @@ function claimRow(claim: SeedClaim, eventId: string, communityId: string, userId
 export type InstallResult = {
   works: number;
   markersAdded: number;
+  /** Pictures put on markers. They point at their source until "Copy pictures" brings them in. */
+  picturesAdded: number;
   claimsAdded: number;
   linksAdded: number;
   themes: number;
   missingAnchors: string[];
 };
 
+/**
+ * A MARKER'S PICTURES, ADDED WHERE IT HAS NONE OF THEM YET.
+ *
+ * Markers made before the inventory carried pictures have none. The pictures
+ * are written with their source address and copied into storage by the
+ * library's "Copy pictures" button, so an install never waits on downloads.
+ * Uses the timeline's own top-up rule: a picture is missing when no picture on
+ * the record has its caption, and a cover is set only on a record without one.
+ */
+async function addMissingPictures(
+  supabase: Client,
+  eventId: string,
+  stored: { image_url: string | null; media: unknown },
+  seed: { imageUrl?: string; media?: SeedPicture[] }
+): Promise<number> {
+  const media = (Array.isArray(stored.media) ? stored.media : []) as SeedPicture[];
+  const { missing, needsCover } = pictureTopUp({ image_url: stored.image_url, media }, seed);
+  if (missing.length === 0 && !needsCover) return 0;
+  const { error } = await supabase
+    .from("timeline_events")
+    .update({
+      media: [...media, ...missing],
+      ...(needsCover ? { image_url: seed.imageUrl } : {}),
+    })
+    .eq("id", eventId);
+  if (error) throw new Error(`pictures for ${eventId}: ${error.message}`);
+  return missing.length;
+}
+
 export async function installLibrary(supabase: Client, community: Community, userId: string): Promise<InstallResult> {
   const problems = validateInventory(INVENTORY);
   if (problems.length > 0) throw new Error(`The inventory has problems:\n${formatProblems(problems)}`);
 
   const sourceIds = await resolveSources(supabase, community.id, userId, INVENTORY_SOURCES);
-  const result: InstallResult = { works: 0, markersAdded: 0, claimsAdded: 0, linksAdded: 0, themes: 0, missingAnchors: [] };
+  const result: InstallResult = { works: 0, markersAdded: 0, picturesAdded: 0, claimsAdded: 0, linksAdded: 0, themes: 0, missingAnchors: [] };
 
   // --- Markers ---------------------------------------------------------------
   const anchorSlug = (work: InventoryWork) =>
@@ -152,11 +184,12 @@ export async function installLibrary(supabase: Client, community: Community, use
   const linkSlugs = [...new Set(INVENTORY.flatMap((w) => (w.eventLinks ?? []).map((l) => l.slug)))];
   const { data: present, error: presentError } = await supabase
     .from("timeline_events")
-    .select("id, slug")
+    .select("id, slug, image_url, media")
     .eq("community_id", community.id)
     .in("slug", [...slugs, ...linkSlugs]);
   if (presentError) throw new Error(presentError.message);
   const idBySlug = new Map((present ?? []).map((row) => [row.slug, row.id]));
+  const storedBySlug = new Map((present ?? []).map((row) => [row.slug, row]));
 
   for (const work of INVENTORY) {
     if (!work.anchor) continue;
@@ -164,6 +197,7 @@ export async function installLibrary(supabase: Client, community: Community, use
       const seed = work.anchor.event;
       if (idBySlug.has(seed.slug)) {
         result.claimsAdded += await addMissingClaims(supabase, community.id, userId, idBySlug.get(seed.slug)!, seed.claims, sourceIds);
+        result.picturesAdded += await addMissingPictures(supabase, idBySlug.get(seed.slug)!, storedBySlug.get(seed.slug)!, seed);
         continue;
       }
       const { data: event, error } = await supabase
@@ -187,6 +221,8 @@ export async function installLibrary(supabase: Client, community: Community, use
           lat: seed.lat ?? null,
           lng: seed.lng ?? null,
           prominence: work.prominence ?? null,
+          image_url: seed.imageUrl ?? null,
+          media: seed.media ?? [],
           status: "published",
         })
         .select("id")
@@ -202,6 +238,7 @@ export async function installLibrary(supabase: Client, community: Community, use
       }
       idBySlug.set(seed.slug, event.id);
       result.markersAdded++;
+      result.picturesAdded += seed.media?.length ?? 0;
       result.claimsAdded += seed.claims.length;
     } else {
       const eventId = idBySlug.get(work.anchor.existingSlug);

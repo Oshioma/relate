@@ -52,9 +52,10 @@ export function ImportPanel({
       setJustInstalled(true);
       const r = response.result;
       say(
-        `Library ready: ${r.works} works, ${r.markersAdded} new markers, ${r.claimsAdded} dates added, ${r.linksAdded} links.` +
+        `Library ready: ${r.works} works, ${r.markersAdded} new markers, ${r.picturesAdded} pictures added to markers, ${r.claimsAdded} dates added, ${r.linksAdded} links.` +
           (r.missingAnchors.length ? ` Not on this timeline yet: ${r.missingAnchors.join(", ")}.` : "")
       );
+      if (r.picturesAdded > 0) await copyPictures();
       router.refresh();
     });
   }

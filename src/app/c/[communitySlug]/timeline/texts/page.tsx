@@ -14,6 +14,7 @@ import { CORPUS_GROUPS } from "@/lib/timeline/texts/taxonomy";
 import type { InventoryWork } from "@/lib/timeline/texts/corpus-types";
 import { CompletenessBadge, TraditionBadge } from "./archive-ui";
 import { ImportPanel } from "./import-panel";
+import { hashOf } from "@/lib/timeline/texts/importer";
 import { picturesToCopy } from "@/lib/timeline/texts/pictures";
 import { TextsNav } from "./texts-nav";
 
@@ -67,7 +68,12 @@ export default async function TextsLibraryPage({ params }: { params: Promise<{ c
             return {
               workKey: file.workKey,
               title: INVENTORY.find((w) => w.workKey === file.workKey)?.title ?? file.workKey,
-              imported: row?.lastRun?.status === "completed" && (row.counts?.passageRecords ?? 0) > 0,
+              // Imported means imported FROM THIS VERSION of the file: a corpus
+              // file changed since the last run offers its import again.
+              imported:
+                row?.lastRun?.status === "completed" &&
+                row.lastRun.file_hash === hashOf(file) &&
+                (row.counts?.passageRecords ?? 0) > 0,
             };
           })}
         />
