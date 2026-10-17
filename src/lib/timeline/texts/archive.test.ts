@@ -90,6 +90,53 @@ test("the Plato counts are what the edition's markup gives, and each section has
   assert.ok(atlantis.themes?.some((t) => t.themeKey === "atlantis"));
 });
 
+test("the Corpus Hermeticum has all seventeen treatises, the Poimandres whole, and nothing marked verified", () => {
+  const passages = corpusFor("herm.corpus-hermeticum")!.passages;
+  const treatises = passages.filter((p) => p.divisionKind === "treatise").map((p) => p.key);
+  assert.deepEqual(
+    treatises,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18].map((n) => `herm.ch.${n}`)
+  );
+  const poimandres = passages.filter((p) => p.parentKey === "herm.ch.1");
+  assert.equal(poimandres.length, 32);
+  assert.deepEqual(
+    poimandres.map((p) => p.key),
+    Array.from({ length: 32 }, (_, i) => `herm.ch.1.${i + 1}`)
+  );
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      assert.ok(layer.content?.trim(), `${passage.key} has an empty layer`);
+      assert.doesNotMatch(layer.content!, /THRICE-GREATEST|\s[0-9]{1,2}\s|[\\<>£$€#^]/, `${passage.key} still has OCR debris`);
+    }
+  }
+  // The Poimandres alias and Doreal's link both land on passages that exist.
+  assert.ok(passages.some((p) => p.key === "herm.ch.1.9"));
+});
+
+test("the Pyramid Texts hold every utterance Mercer prints, in Sethe's numbers, and nothing marked verified", () => {
+  const passages = corpusFor("egy.pyramid-texts")!.passages;
+  const utterances = passages.filter((p) => p.divisionKind === "utterance");
+  const numbers = utterances.map((p) => Number(p.key.slice("egy.pt.".length)));
+  assert.equal(new Set(numbers).size, numbers.length);
+  for (const n of numbers) assert.ok(Number.isInteger(n) && n >= 1 && n <= 714, `utterance ${n}`);
+  // 1–714 less 65 (absent from the web edition) and 274 and 445 (printed
+  // with 273 and 444).
+  assert.equal(utterances.length, 711);
+  assert.ok(!numbers.includes(65));
+  assert.equal(passages.filter((p) => p.divisionKind === "chapter").length, 59);
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      if (layer.content) assert.doesNotMatch(layer.content, /\bp\. \d|Close navigation|security service/, passage.key);
+    }
+  }
+  assert.match(utterances[0].layers[0].content!, /^1a\. To say by Nut/);
+  for (const n of [260, 277]) {
+    assert.ok(passages.find((p) => p.key === `egy.pt.${n}`)!.images?.length, `utterance ${n} has its wall`);
+  }
+});
+
 test("Doreal's book carries no text of its own and no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);

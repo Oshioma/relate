@@ -92,7 +92,7 @@ export const INVENTORY_SOURCES: SeedSource[] = [
     publishedYear: 1952,
     url: "https://archive.org/details/pyramidtextsmercer",
     sourceType: "academic_book",
-    notes: "English translation following Sethe's numbering. Reported as not renewed and so public domain in the United States; the renewal record is to be checked before its text is imported in full.",
+    notes: "English translation following Sethe's numbering (Utt. 1–714). Reported as not renewed, and so public domain in the United States, by sacred-texts.com and by etana.org's search of the Copyright Office records; not independently checked. Imported in full on that basis. In copyright elsewhere (Mercer d. 1969).",
   },
   {
     key: "debuck-ct",
@@ -437,7 +437,7 @@ export const INVENTORY: InventoryWork[] = [
     inventoryVerified: false,
     copyrightSummary:
       "Hieroglyphic text public domain (Sethe). Mercer 1952 English believed public domain in the US only; Faulkner and Allen in copyright (reference only).",
-    fullTextEditions: ["Sethe 1908–22 (hieroglyphic)", "Mercer 1952 (US only, after renewal check)"],
+    fullTextEditions: ["Sethe 1908–22 (hieroglyphic)", "Mercer 1952 (US only)"],
     referenceOnlyEditions: ["Faulkner 1969", "Allen 2005, 2015"],
     imageCollections: ["Wikimedia Commons: pyramids of Unas, Teti, Pepi I", "Louvre: Pyramid Text fragments", "Mission archéologique franco-suisse de Saqqâra"],
     anchor: {
