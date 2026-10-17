@@ -684,6 +684,8 @@ export const INVENTORY: InventoryWork[] = [
       },
     },
     prominence: 1,
+    notes:
+      "Imported from Budge 1895 (the web edition at sacred-texts.com). The passages are every number in Budge's list of the chapters of the Theban version (pp. xxxi–xlvi): 1–186 with his lettered and sub-numbered variants, 197 entries, less the seven he lists only to say they are now known by another number (10 = 48, 73 = 9, 111 = 108, 120 = 12, 121 = 13, 129 = 100, 139 = 123), plus 29 and 93A, which only his List of Chapters of the Papyrus of Ani gives — 199 chapters in all. Seventy carry Budge's full translation: sixty from the Papyrus of Ani, and ten he supplies from other papyri (1B, 25, 28, 29A, 30A, 55, 56, 63A, 63B, 79); for 42 and 72 he adds a fuller version from another copy beside Ani's. The rest carry Budge's title only. Ani's 6 (part of 151 in this papyrus) and 16A (a vignette only) have no text of their own. Absent: 187–192, which Budge's 1895 list does not reach. Budge's numbering is not checked against the Totenbuch-Projekt list, so no total is stated and the work cannot show as complete. Allen 1974, Faulkner 1985 and Quirke 2013 are cited on every chapter, never quoted.",
   },
   {
     workKey: "egy.amduat",
