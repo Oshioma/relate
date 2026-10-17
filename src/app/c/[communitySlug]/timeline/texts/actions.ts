@@ -6,6 +6,7 @@ import { getCommunityBySlug, getMembership, isCommunityStaff } from "@/lib/data/
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { importWorkChunk, installLibrary, type ChunkResult, type InstallResult } from "@/lib/timeline/texts/importer";
 import { textsPath } from "@/lib/timeline/texts/paths";
+import { copyArchivePictures, type PictureCopyResult } from "@/lib/timeline/texts/pictures";
 
 // Staff-only, like every seeder: the archive is a curated import, and RLS on
 // the archive tables refuses anyone else. Checking here first turns a
@@ -46,6 +47,26 @@ export async function importArchiveWork(
   try {
     const result = await importWorkChunk(context.supabase, context.community, context.userId, workKey, { restart });
     if (result.done) revalidatePath(textsPath(communitySlug));
+    return { ok: true, result };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Copy the archive's pictures into the community's storage, as many as fit in
+ * one call. The page calls again while `remaining` is above zero, passing the
+ * keys that failed so they are not retried in the same session.
+ */
+export async function copyArchivePicturesAction(
+  communitySlug: string,
+  skip: string[] = []
+): Promise<{ error: string } | { ok: true; result: PictureCopyResult }> {
+  const context = await requireStaff(communitySlug);
+  if ("error" in context) return { error: context.error! };
+  try {
+    const result = await copyArchivePictures(context.supabase, context.community.id, context.userId, { skip });
+    if (result.remaining === 0) revalidatePath(textsPath(communitySlug));
     return { ok: true, result };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };

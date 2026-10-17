@@ -33,6 +33,7 @@ import type { InventoryWork, TextCorpusFile } from "./corpus-types";
 import { corpusFor } from "./corpus";
 import { INVENTORY, INVENTORY_SOURCES } from "./inventory";
 import { deriveCompleteness } from "./manifest";
+import { keepCopiedPictures } from "./pictures";
 import { ARCHIVE_THEMES } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
@@ -618,11 +619,15 @@ async function writePassages(
     if (error) throw new Error(`dates: ${error.message}`);
   }
 
-  const imageRows = changed.flatMap((passage) =>
-    (passage.images ?? []).map((image, index) => ({
-      ...imageRow(communityId, userId, image, index),
-      passage_id: idByKey.get(passage.key)!,
-    }))
+  const imageRows = await keepCopiedPictures(
+    supabase,
+    communityId,
+    changed.flatMap((passage) =>
+      (passage.images ?? []).map((image, index) => ({
+        ...imageRow(communityId, userId, image, index),
+        passage_id: idByKey.get(passage.key)!,
+      }))
+    )
   );
   if (imageRows.length > 0) {
     const { error } = await supabase.from("timeline_passage_images").upsert(imageRows, { onConflict: "community_id,import_key" });
@@ -686,11 +691,15 @@ async function syncWorkImages(
   file: TextCorpusFile,
   manuscriptIds: Map<string, string>
 ) {
-  const rows = (file.images ?? []).map((image, index) => ({
-    ...imageRow(communityId, userId, image, index),
-    work_id: workId,
-    manuscript_id: image.manuscriptKey ? manuscriptIds.get(image.manuscriptKey) ?? null : null,
-  }));
+  const rows = await keepCopiedPictures(
+    supabase,
+    communityId,
+    (file.images ?? []).map((image, index) => ({
+      ...imageRow(communityId, userId, image, index),
+      work_id: workId,
+      manuscript_id: image.manuscriptKey ? manuscriptIds.get(image.manuscriptKey) ?? null : null,
+    }))
+  );
   if (rows.length === 0) return;
   const { error } = await supabase.from("timeline_passage_images").upsert(rows, { onConflict: "community_id,import_key" });
   if (error) throw new Error(`work images: ${error.message}`);

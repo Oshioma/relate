@@ -14,6 +14,7 @@ import { CORPUS_GROUPS } from "@/lib/timeline/texts/taxonomy";
 import type { InventoryWork } from "@/lib/timeline/texts/corpus-types";
 import { CompletenessBadge, TraditionBadge } from "./archive-ui";
 import { ImportPanel } from "./import-panel";
+import { picturesToCopy } from "@/lib/timeline/texts/pictures";
 import { TextsNav } from "./texts-nav";
 
 // THE LIBRARY: every work in scope, imported or not.
@@ -38,6 +39,7 @@ export default async function TextsLibraryPage({ params }: { params: Promise<{ c
   const library = await getLibrary(supabase, community.id).catch(() => [] as LibraryWork[]);
   const byKey = new Map(library.map((work) => [work.work_key, work]));
   const installed = library.length > 0;
+  const toCopy = isStaff && installed ? await picturesToCopy(supabase, community.id).catch(() => []) : [];
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
@@ -59,6 +61,7 @@ export default async function TextsLibraryPage({ params }: { params: Promise<{ c
         <ImportPanel
           communitySlug={community.slug}
           installed={installed}
+          picturesToCopy={toCopy.length}
           importable={ALL_CORPORA.map((file) => {
             const row = byKey.get(file.workKey);
             return {

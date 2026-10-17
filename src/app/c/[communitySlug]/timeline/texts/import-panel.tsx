@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { importArchiveWork, installArchiveLibrary } from "./actions";
+import { copyArchivePicturesAction, importArchiveWork, installArchiveLibrary } from "./actions";
 
 // STAFF: put the archive into this community.
 //
@@ -15,14 +15,20 @@ import { importArchiveWork, installArchiveLibrary } from "./actions";
 // A button turns to a tick once its step has finished — from the page's own
 // reading of the database on load, or from this session's run — so it is
 // plain at a glance what has been done.
+//
+// Step three copies the pictures into the community's own storage. It runs by
+// itself after each import, and has its own button for pictures imported
+// before copying existed.
 
 export function ImportPanel({
   communitySlug,
   installed,
+  picturesToCopy,
   importable,
 }: {
   communitySlug: string;
   installed: boolean;
+  picturesToCopy: number;
   importable: { workKey: string; title: string; imported: boolean }[];
 }) {
   const router = useRouter();
@@ -32,6 +38,7 @@ export function ImportPanel({
   const [justInstalled, setJustInstalled] = useState(false);
   const [justImported, setJustImported] = useState<Set<string>>(() => new Set());
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
+  const [picturesLeft, setPicturesLeft] = useState(picturesToCopy);
   const libraryReady = installed || justInstalled;
   const say = (line: string) => setLog((current) => [...current, line]);
 
@@ -70,9 +77,43 @@ export function ImportPanel({
         say(`${title}: ${r.cursor} of ${r.total} passages (${r.inserted} new, ${r.updated} changed, ${r.unchanged} unchanged).`);
         if (r.done) break;
       }
-      setRunning(null);
       setJustImported((current) => new Set(current).add(workKey));
       say(`${title} imported.`);
+      await copyPictures();
+      setRunning(null);
+      router.refresh();
+    });
+  }
+
+  // Calls again while pictures remain; a picture that fails is reported once
+  // and skipped for the rest of the run.
+  async function copyPictures() {
+    setRunning("pictures");
+    const skip: string[] = [];
+    let copied = 0;
+    for (;;) {
+      const response = await copyArchivePicturesAction(communitySlug, skip);
+      if ("error" in response) {
+        say(`Copying pictures stopped: ${response.error}`);
+        break;
+      }
+      const r = response.result;
+      copied += r.copied;
+      for (const failure of r.failed) {
+        skip.push(failure.key);
+        say(`Picture ${failure.key} not copied: ${failure.reason}`);
+      }
+      setPicturesLeft(r.remaining + skip.length);
+      if (r.remaining === 0 || r.copied + r.failed.length === 0) break;
+    }
+    if (copied > 0) say(`${copied} picture${copied === 1 ? "" : "s"} copied into this site's storage.`);
+    setRunning(null);
+  }
+
+  function copyAllPictures() {
+    startTransition(async () => {
+      say("Copying pictures…");
+      await copyPictures();
       router.refresh();
     });
   }
@@ -106,6 +147,29 @@ export function ImportPanel({
             "Install the library"
           )}
         </button>
+        {libraryReady && (
+          <button
+            type="button"
+            disabled={pending || picturesLeft === 0}
+            onClick={copyAllPictures}
+            className={
+              picturesLeft === 0 && running !== "pictures"
+                ? "inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/40 bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-700 disabled:opacity-100 dark:text-emerald-400"
+                : "rounded-lg border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted disabled:opacity-50"
+            }
+            title="Copy the archive's pictures into this site's own storage, so they keep working if the original moves"
+          >
+            {running === "pictures" ? (
+              "Copying pictures…"
+            ) : picturesLeft === 0 ? (
+              <>
+                <Check className="h-4 w-4" /> Pictures copied
+              </>
+            ) : (
+              `Copy ${picturesLeft} picture${picturesLeft === 1 ? "" : "s"}`
+            )}
+          </button>
+        )}
         {importable.map((work) => {
           const done = (work.imported || justImported.has(work.workKey)) && !failed.has(work.workKey) && running !== work.workKey;
           return (
