@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
+import { getWorksByEvent } from "@/lib/data/timeline-texts";
 import { getCommunityBySlug, getMembership, isCommunityMember, isCommunityStaff } from "@/lib/data/community";
 import {
   getTimelineWindow,
@@ -240,9 +241,12 @@ export default async function TimelinePage({
   //
   // Alongside it, the records this member has already opened, so cluster
   // cards can lead with one they have not. Private, read as the member.
-  const [linkedRecords, seenEventIds] = await Promise.all([
+  const [linkedRecords, seenEventIds, archiveWorksByEvent] = await Promise.all([
     getLinkedRecords(supabase, community.id, eventLinks),
     getSeenTimelineEventIds(supabase, user?.id ?? null),
+    // Which markers are texts in the archive, so the drawer can open them.
+    // A few dozen rows at most: one per text, never one per passage.
+    getWorksByEvent(supabase, community.id),
   ]);
 
   return (
@@ -279,6 +283,7 @@ export default async function TimelinePage({
         periodLinks={periodLinks}
         eventLinks={eventLinks}
         linkedRecords={linkedRecords}
+        archiveWorksByEvent={archiveWorksByEvent}
         hasPeriods={hasPeriods}
         hasAtlantis={hasAtlantis}
         hasLemuria={hasLemuria}

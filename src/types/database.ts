@@ -2600,6 +2600,20 @@ export type TimelineTextPassage = {
   notes: string | null;
   sort_order: number;
   created_at: string;
+  // THE TEXT ARCHIVE (20261016225210). Null on passages written before it.
+  work_id: string | null;
+  version_id: string | null;
+  parent_id: string | null;
+  /** Permanent ID, e.g. 'greek.tim.24e'. Unique per community. */
+  passage_key: string | null;
+  /** A TEXT_DIVISION_KINDS key in src/lib/timeline/texts/taxonomy.ts. */
+  division_kind: string | null;
+  /** Reading order within the work. */
+  ordinal: number | null;
+  summary: string | null;
+  /** A PASSAGE_VERIFICATION_STATUSES key. */
+  verification_status: string;
+  content_hash: string | null;
 };
 
 /**
@@ -2690,6 +2704,203 @@ export type TimelineTextLayer = {
   notes: string | null;
   sort_order: number;
   created_at: string;
+  /** Set on layers an archive import wrote, so a re-import updates them in place. */
+  import_key: string | null;
+  /** A LAYER_LICENCES key. */
+  licence: string | null;
+};
+
+// ---------------------------------------------------------------------------
+// THE TEXT ARCHIVE (migration 20261016225210). See src/lib/timeline/texts/.
+// ---------------------------------------------------------------------------
+
+export type TimelineTextWork = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  event_id: string | null;
+  work_key: string;
+  title: string;
+  alternative_titles: string[];
+  corpus_group: string;
+  tradition_class: string;
+  civilisation: string | null;
+  geographical_origin: string | null;
+  original_language: string | null;
+  attribution: string | null;
+  attribution_note: string | null;
+  summary: string | null;
+  reference_edition: string | null;
+  expected_units: number | null;
+  unit_label: string | null;
+  inventory_basis: string | null;
+  inventory_verified: boolean;
+  completeness_status: string;
+  copyright_summary: string | null;
+  research_sources: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TimelineTextVersion = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_id: string;
+  version_key: string;
+  label: string;
+  language: string | null;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelineTextManuscript = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_id: string | null;
+  manuscript_key: string;
+  siglum: string | null;
+  name: string;
+  object_kind: string | null;
+  holding_institution: string | null;
+  accession_number: string | null;
+  findspot: string | null;
+  start_year: number | null;
+  end_year: number | null;
+  date_precision: string | null;
+  is_approximate: boolean;
+  original_date_text: string | null;
+  dating_evidence: string | null;
+  catalogue_url: string | null;
+  source_id: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageWitness = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  manuscript_id: string;
+  locus: string | null;
+  variant_note: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageDate = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  import_key: string | null;
+  /** A PASSAGE_DATE_ROLES key. */
+  date_role: string;
+  start_year: number | null;
+  end_year: number | null;
+  date_precision: string;
+  is_approximate: boolean;
+  original_date_text: string;
+  evidence: string;
+  source_id: string | null;
+  created_at: string;
+};
+
+export type TimelinePassageImage = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string | null;
+  manuscript_id: string | null;
+  work_id: string | null;
+  import_key: string;
+  url: string;
+  source_page_url: string | null;
+  institution: string | null;
+  accession_number: string | null;
+  object_date: string | null;
+  image_date: string | null;
+  caption: string;
+  creator: string | null;
+  credit: string | null;
+  licence: string | null;
+  licence_status: string;
+  shows: string;
+  identification_status: string;
+  what_is_unverified: string | null;
+  verification_status: string;
+  duplicate_of: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageLink = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  import_key: string;
+  from_passage_key: string;
+  to_passage_key: string;
+  /** A PASSAGE_CONNECTION_CLASSES key. */
+  connection_class: string;
+  similarities: string;
+  differences: string;
+  wording_comparable: string;
+  meaning_comparable: string;
+  transmission_evidence: string;
+  earlier_note: string | null;
+  common_source_note: string | null;
+  contradiction_note: string | null;
+  scholarly_view: string | null;
+  alternative_view: string | null;
+  source_id: string | null;
+  review_status: string;
+  created_at: string;
+};
+
+export type TimelineTheme = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  theme_key: string;
+  label: string;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageTheme = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  theme_id: string;
+  note: string;
+  created_at: string;
+};
+
+export type TimelineTextImportRun = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_key: string;
+  file_hash: string;
+  status: string;
+  cursor: number;
+  total: number;
+  inserted: number;
+  updated: number;
+  unchanged: number;
+  rejected: number;
+  errors: unknown[];
+  started_at: string;
+  finished_at: string | null;
 };
 
 export type TimelineMeasurementClaim = {
@@ -3870,6 +4081,131 @@ export type Database = {
         };
         Update: Partial<TimelineTextLayer>;
         Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_text_works: {
+        Row: TimelineTextWork;
+        Insert: Partial<TimelineTextWork> & {
+          community_id: string;
+          created_by: string;
+          work_key: string;
+          title: string;
+          corpus_group: string;
+          tradition_class: string;
+        };
+        Update: Partial<TimelineTextWork>;
+        Relationships: [FKey<"event_id", "timeline_events">];
+      };
+      timeline_text_versions: {
+        Row: TimelineTextVersion;
+        Insert: Partial<TimelineTextVersion> & {
+          community_id: string;
+          created_by: string;
+          work_id: string;
+          version_key: string;
+          label: string;
+        };
+        Update: Partial<TimelineTextVersion>;
+        Relationships: [FKey<"work_id", "timeline_text_works">];
+      };
+      timeline_text_manuscripts: {
+        Row: TimelineTextManuscript;
+        Insert: Partial<TimelineTextManuscript> & {
+          community_id: string;
+          created_by: string;
+          manuscript_key: string;
+          name: string;
+        };
+        Update: Partial<TimelineTextManuscript>;
+        Relationships: [FKey<"work_id", "timeline_text_works">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_passage_witnesses: {
+        Row: TimelinePassageWitness;
+        Insert: Partial<TimelinePassageWitness> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          manuscript_id: string;
+        };
+        Update: Partial<TimelinePassageWitness>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"manuscript_id", "timeline_text_manuscripts">];
+      };
+      timeline_passage_dates: {
+        Row: TimelinePassageDate;
+        Insert: Partial<TimelinePassageDate> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          date_role: string;
+          date_precision: string;
+          original_date_text: string;
+          evidence: string;
+        };
+        Update: Partial<TimelinePassageDate>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_passage_images: {
+        Row: TimelinePassageImage;
+        Insert: Partial<TimelinePassageImage> & {
+          community_id: string;
+          created_by: string;
+          import_key: string;
+          url: string;
+          caption: string;
+          shows: string;
+          identification_status: string;
+        };
+        Update: Partial<TimelinePassageImage>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"manuscript_id", "timeline_text_manuscripts">, FKey<"work_id", "timeline_text_works">];
+      };
+      timeline_passage_links: {
+        Row: TimelinePassageLink;
+        Insert: Partial<TimelinePassageLink> & {
+          community_id: string;
+          created_by: string;
+          import_key: string;
+          from_passage_key: string;
+          to_passage_key: string;
+          connection_class: string;
+          similarities: string;
+          differences: string;
+          transmission_evidence: string;
+        };
+        Update: Partial<TimelinePassageLink>;
+        Relationships: [FKey<"source_id", "timeline_sources">];
+      };
+      timeline_themes: {
+        Row: TimelineTheme;
+        Insert: Partial<TimelineTheme> & {
+          community_id: string;
+          created_by: string;
+          theme_key: string;
+          label: string;
+        };
+        Update: Partial<TimelineTheme>;
+        Relationships: [];
+      };
+      timeline_passage_themes: {
+        Row: TimelinePassageTheme;
+        Insert: Partial<TimelinePassageTheme> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          theme_id: string;
+          note: string;
+        };
+        Update: Partial<TimelinePassageTheme>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"theme_id", "timeline_themes">];
+      };
+      timeline_text_import_runs: {
+        Row: TimelineTextImportRun;
+        Insert: Partial<TimelineTextImportRun> & {
+          community_id: string;
+          created_by: string;
+          work_key: string;
+          file_hash: string;
+        };
+        Update: Partial<TimelineTextImportRun>;
+        Relationships: [];
       };
       timeline_measurement_claims: {
         Row: TimelineMeasurementClaim;
