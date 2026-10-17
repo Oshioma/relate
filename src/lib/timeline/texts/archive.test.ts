@@ -137,6 +137,27 @@ test("the Pyramid Texts hold every utterance Mercer prints, in Sethe's numbers, 
   }
 });
 
+test("the Coffin Texts list all 1,185 spells, quote only public-domain English, and nothing marked verified", () => {
+  const passages = corpusFor("egy.coffin-texts")!.passages;
+  const spells = passages.filter((p) => p.divisionKind === "spell");
+  assert.deepEqual(
+    spells.map((p) => p.key),
+    Array.from({ length: 1185 }, (_, i) => `egy.ct.${i + 1}`)
+  );
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      // Faulkner is cited, never reproduced; the only English text is Breasted's.
+      if (layer.content != null) assert.equal(layer.licence, "public_domain", passage.key);
+      if (layer.sourceKey === "faulkner-ct") assert.equal(layer.content, undefined, passage.key);
+    }
+  }
+  const twoWays = spells.filter((p) => p.parentKey === "egy.ct.two-ways").map((p) => Number(p.key.slice("egy.ct.".length)));
+  assert.equal(twoWays.length, 102);
+  assert.deepEqual([twoWays[0], twoWays.at(-1)], [1029, 1130]);
+  assert.match(passages.find((p) => p.key === "egy.ct.335")!.layers.find((l) => l.key === "eng-breasted")!.content!, /^I am Atum/);
+});
+
 test("Doreal's book carries no text of its own and no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);
