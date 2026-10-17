@@ -132,7 +132,7 @@ SUPPLIED = {
     ("plate_xvi", "28"): "Naville, Todtenbuch I",
     # Not in Budge's List of Chapters of the papyrus; the text names no owner
     # ("[The deceased] saith"), and Budge does not say where it comes from.
-    ("plate_xxvii", "79"): "a copy Budge does not name (the chapter is not in his List of Chapters of the Papyrus of Ani)",
+    ("plate_xxvii", "79"): "a copy he does not name (the chapter is not in his List of Chapters of the Papyrus of Ani)",
     ("plate_xxxii", "42"): "Naville, Todtenbuch I, Bl. 56 (the complete version of the chapter)",
 }
 # Pieces under a SUPPLIED (plate, chapter) that are nevertheless Ani's own,
@@ -418,7 +418,7 @@ def translation(directory, in_ani):
                 mode = "text"
             if mode == "text" and current:
                 previous = current["lines"][-1] if current["lines"] else ""
-                if (run_on and previous and not re.search(r"[.!?]['\"]?$", previous)) or re.search(r"[a-z,;]$", previous):
+                if (run_on and previous and not re.search(r"[.!?]['\"]?$", previous)) or re.search(r"[A-Za-z,;]$", previous):
                     report.append(f"joined: …{previous[-30:]!r} + {text[:30]!r}")
                     current["lines"][-1] += " " + text
                 else:
@@ -432,7 +432,9 @@ def translation(directory, in_ani):
     rows = []
     for seg in segments:
         english = "\n".join(c for c in (clean(l) for l in seg["lines"]) if c)
-        plates = seg["plates"][0] if len(seg["plates"]) == 1 else f"{seg['plates'][0]}–{seg['plates'][-1]}"
+        # "XI-XII" … "XIV" → "XI–XIV": from the first plate to the last.
+        first_plate, last_plate = seg["plates"][0].split("-")[0], seg["plates"][-1].split("-")[-1]
+        plates = first_plate if first_plate == last_plate else f"{first_plate}–{last_plate}"
         rows.append([seg["key"], plates, seg["first"], seg["last"], seg["supplied"], english])
         report.append(
             f"{seg['key']:>9} pl. {plates:<14} pp. {seg['first']}-{seg['last']} {'SUPPLIED ' if seg['supplied'] else ''}"
