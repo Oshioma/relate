@@ -254,7 +254,7 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
     accessionNumber: "S. 15744/01",
     objectDate: "Twelfth Dynasty",
     caption:
-      "Inner board of Iqer's wooden coffin, with offering bearers and columns of Coffin Text spells that the Museo Egizio identifies as a local tradition of the corpus.",
+      "Two boards from the inner walls of Iqer's wooden coffin, covered in dense columns of Coffin Text spells that the Museo Egizio identifies as a local tradition of the corpus.",
     credit: "Museo Egizio, Turin, via Wikimedia Commons",
     licence: "CC0 1.0",
     licenceStatus: "open",
@@ -304,7 +304,7 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
     objectDate: "12th Dynasty",
     imageDate: "1903",
     caption:
-      "Lacau's 1903 catalogue plate of the coffin of the steward Nefri (Cairo CG 28088) from Deir el-Bersha, the cemetery where many Coffin Text coffins were found. The plate shows the coffin, not which spells it carries.",
+      "Lacau's 1903 plate of an inner wall of the coffin of the steward Nefri (Cairo CG 28088) from Deir el-Bersha: a painted false door, an offering table, a frieze of objects and, at the right, columns of cursive text. The plate does not say which spells the text holds.",
     creator: "Pierre Lacau",
     credit: "Lacau, Sarcophages antérieurs au Nouvel Empire I (1903), pl. XXVII",
     licence: "Public domain",
