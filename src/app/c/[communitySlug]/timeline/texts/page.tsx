@@ -58,10 +58,15 @@ export default async function TextsLibraryPage({ params }: { params: Promise<{ c
       {isStaff && (
         <ImportPanel
           communitySlug={community.slug}
-          importable={ALL_CORPORA.map((file) => ({
-            workKey: file.workKey,
-            title: INVENTORY.find((w) => w.workKey === file.workKey)?.title ?? file.workKey,
-          }))}
+          installed={installed}
+          importable={ALL_CORPORA.map((file) => {
+            const row = byKey.get(file.workKey);
+            return {
+              workKey: file.workKey,
+              title: INVENTORY.find((w) => w.workKey === file.workKey)?.title ?? file.workKey,
+              imported: row?.lastRun?.status === "completed" && (row.counts?.passageRecords ?? 0) > 0,
+            };
+          })}
         />
       )}
       {!installed && !isStaff && (
