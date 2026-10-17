@@ -14,6 +14,12 @@
 // is not established ("for history's sake"). Their captions and licence fields
 // already say all of that. Only a picture marked 'restricted' stays a link.
 //
+// THE MARKERS' PICTURES TOO. The timeline markers this library creates carry
+// pictures of their own (the inventory's anchor events). Those are copied by
+// the same button, with the timeline's own rules (hotlinkedPicturesToBringIn,
+// withBroughtInPictures): only the address changes, provenance is kept, and
+// the cover follows its gallery twin.
+//
 // A COPY IS NAMED FOR WHAT IT IS A COPY OF: the image key and a hash of the
 // source address. A re-import that finds a row already holding the copy of
 // the same address keeps it; a corpus file that points a key at a new address
@@ -22,7 +28,15 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { bringImageIn, isHotlinked } from "../bring-in-image";
+import {
+  bringImageIn,
+  hotlinkedPicturesToBringIn,
+  isHotlinked,
+  pictureName,
+  withBroughtInPictures,
+} from "../bring-in-image";
+import type { SeedPicture } from "../seed-types";
+import { INVENTORY } from "./inventory";
 
 type Client = SupabaseClient<Database>;
 
@@ -74,15 +88,61 @@ export type PictureCopyResult = {
   remaining: number;
 };
 
+/** The slugs of the markers this library creates. */
+export const MARKER_SLUGS: string[] = INVENTORY.flatMap((work) =>
+  work.anchor && "event" in work.anchor ? [work.anchor.event.slug] : []
+);
+
+/** One picture still pointing at somebody else's server. */
+export type PictureToCopy =
+  | { kind: "passage"; id: string; import_key: string; url: string }
+  | { kind: "marker"; id: string; import_key: string; url: string; slug: string };
+
 /** Pictures in this community still pointing at somebody else's server. */
-export async function picturesToCopy(supabase: Client, communityId: string) {
+export async function picturesToCopy(supabase: Client, communityId: string): Promise<PictureToCopy[]> {
   const { data, error } = await supabase
     .from("timeline_passage_images")
     .select("id, import_key, url")
     .eq("community_id", communityId)
     .in("licence_status", [...COPIED_LICENCE_STATUSES]);
   if (error) throw new Error(`pictures: ${error.message}`);
-  return (data ?? []).filter((row) => isHotlinked(row.url));
+  const passages = (data ?? [])
+    .filter((row) => isHotlinked(row.url))
+    .map((row) => ({ kind: "passage" as const, ...row }));
+
+  const { data: markers, error: markerError } = await supabase
+    .from("timeline_events")
+    .select("id, slug, image_url, media")
+    .eq("community_id", communityId)
+    .in("slug", MARKER_SLUGS);
+  if (markerError) throw new Error(`marker pictures: ${markerError.message}`);
+  const markerPictures = (markers ?? []).flatMap((row) =>
+    hotlinkedPicturesToBringIn({ image_url: row.image_url, media: (row.media ?? []) as SeedPicture[] }).urls.map(
+      (url) => ({ kind: "marker" as const, id: row.id, slug: row.slug, import_key: `${row.slug}:${url}`, url })
+    )
+  );
+  return [...passages, ...markerPictures];
+}
+
+/** Copy one marker picture in and point the record at the copy, re-reading it first. */
+async function copyMarkerPicture(
+  supabase: Client,
+  userId: string,
+  job: Extract<PictureToCopy, { kind: "marker" }>
+): Promise<string | null> {
+  const brought = await bringImageIn(supabase, { url: job.url, userId, name: pictureName(job.slug, job.url) });
+  if ("reason" in brought) return brought.reason;
+  const { data: record, error } = await supabase.from("timeline_events").select("image_url, media").eq("id", job.id).single();
+  if (error || !record) return `stored, but the marker could not be read: ${error?.message}`;
+  const next = withBroughtInPictures(
+    { image_url: record.image_url, media: (record.media ?? []) as SeedPicture[] },
+    new Map([[job.url, brought.url]])
+  );
+  const { error: updateError } = await supabase
+    .from("timeline_events")
+    .update({ image_url: next.image_url, media: next.media })
+    .eq("id", job.id);
+  return updateError ? `stored, but the marker could not be updated: ${updateError.message}` : null;
 }
 
 /**
@@ -101,6 +161,13 @@ export async function copyArchivePictures(
   const result: PictureCopyResult = { copied: 0, failed: [], remaining: pending.length };
   for (const row of pending) {
     if (Date.now() - started > budgetMs) break;
+    if (row.kind === "marker") {
+      result.remaining -= 1;
+      const failed = await copyMarkerPicture(supabase, userId, row);
+      if (failed) result.failed.push({ key: row.import_key, reason: failed });
+      else result.copied += 1;
+      continue;
+    }
     const brought = await bringImageIn(supabase, { url: row.url, userId, name: copiedPictureName(row.import_key, row.url) });
     result.remaining -= 1;
     if ("reason" in brought) {
