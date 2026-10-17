@@ -6,7 +6,7 @@ import { ALL_CORPORA, corpusFor } from "./corpus";
 import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
 import { breadcrumb, historicalGap, neighbours, readingOrder } from "./reading";
-import { dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
+import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
 const SOURCE_TYPES = new Set<string>(TIMELINE_SOURCE_TYPES.map((t) => t.key));
@@ -158,13 +158,18 @@ test("the Coffin Texts list all 1,185 spells, quote only public-domain English, 
   assert.match(passages.find((p) => p.key === "egy.ct.335")!.layers.find((l) => l.key === "eng-breasted")!.content!, /^I am Atum/);
 });
 
-test("Doreal's book carries no text of its own and no artefact picture", () => {
+test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);
   for (const passage of doreal.passages) {
-    for (const layer of passage.layers) assert.equal(layer.content, undefined, passage.key);
+    assert.ok(passage.summary, passage.key);
+    for (const layer of passage.layers) {
+      assert.equal(layer.licence, "copyrighted_excerpt", passage.key);
+      assert.ok(layer.content && layer.content.length <= COPYRIGHT_EXCERPT_MAX_CHARS, passage.key);
+    }
     assert.equal(passage.images, undefined);
   }
+  assert.match(doreal.passages[10].layers[0].content!, /Look thee above or look thee below/);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
