@@ -196,7 +196,7 @@ export function NewSpaceForm({
           )}
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Shown at the top of the space and on its cards. Leave it empty to use the space type&apos;s default photo on cards.
+          Shown at the top of the space and on its cards. Leave it empty to use the space type&apos;s default photo.
         </p>
       </div>
 
