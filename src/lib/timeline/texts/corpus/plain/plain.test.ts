@@ -55,3 +55,12 @@ test("our own translation appears only where there is no English to paraphrase",
   const vulgate = ALL_CORPORA.find((c) => c.workKey === "arab.emerald-tablet")!.passages.find((p) => p.key === "arab.tab.vulgate.01")!;
   assert.equal(vulgate.layers.find((l) => l.layer === "modern_summary")?.key, PLAIN_LAYER_KEY);
 });
+
+test("where a passage can be read more than one way, the other readings are listed in one shape", () => {
+  for (const plain of Object.values(PLAIN)) {
+    for (const [key, words] of Object.entries(plain)) {
+      if (!words.includes("Other possible readings")) continue;
+      assert.match(words, /\S\n\nOther possible readings:\n- \S.*(\n- \S.*)*$/, key);
+    }
+  }
+});
