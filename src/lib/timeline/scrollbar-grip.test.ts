@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { barFraction, dateAtBar, middleDate, pullDoublings, thumbCentre, windowAfterPull, windowWithThumbAt } from "./scrollbar-grip";
+import { barFraction, dateAtBar, thumbPixels, middleDate, pullDoublings, thumbCentre, windowAfterPull, windowWithThumbAt } from "./scrollbar-grip";
 import { presentPosition, TIMELINE_MAX_YEAR, TIMELINE_MIN_YEAR } from "./time";
 
 const close = (a: number, b: number, tolerance: number) => Math.abs(a - b) < tolerance;
@@ -167,4 +167,20 @@ test("switching between linear and log keeps the thumb on the strip's own middle
   // The two scales put a different date in the middle of the same window, and
   // the thumb follows whichever the strip is drawn with.
   assert.notEqual(middleDate(view, "linear"), middleDate(view, "log"));
+});
+
+test("the thumb is big enough to hold and grows with the bar, within limits", () => {
+  assert.equal(thumbPixels(340), 64, "a phone still gets a thumb a fingertip can hold");
+  assert.ok(thumbPixels(1000) >= 100 && thumbPixels(1000) <= 140, `${thumbPixels(1000)}px on a laptop`);
+  assert.equal(thumbPixels(2400), 136, "a wide screen does not get a giant thumb");
+  for (const width of [300, 600, 900, 1200, 1800]) assert.ok(thumbPixels(width) > 56, "always larger than the old 56px");
+});
+
+test("the future takes a small share of the bar, the past the rest", () => {
+  const now = barFraction(presentPosition());
+  assert.ok(1 - now < 0.12, `the next thousand years take ${((1 - now) * 100).toFixed(1)}% of the bar`);
+  // Recorded history (the last 5,000 years) gets at least a quarter of it.
+  assert.ok(now - barFraction(-3000) > 0.25);
+  // The future is still on the bar, in order.
+  assert.ok(barFraction(2500) > now && barFraction(2900) > barFraction(2500));
 });

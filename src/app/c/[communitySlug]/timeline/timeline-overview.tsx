@@ -3,16 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  fractionOf,
   panWindow,
   presentPosition,
   TIMELINE_JUMPS,
-  timelineExtentWindow,
   zoomWindow,
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
-import { PULL_PX_PER_DOUBLING, thumbCentre, windowAfterPull, windowWithThumbAt } from "@/lib/timeline/scrollbar-grip";
+import { barFraction, PULL_PX_PER_DOUBLING, thumbPixels, thumbCentre, windowAfterPull, windowWithThumbAt } from "@/lib/timeline/scrollbar-grip";
 import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
 import { timelineCategory } from "@/lib/timeline/taxonomy";
 
@@ -40,18 +38,17 @@ import { timelineCategory } from "@/lib/timeline/taxonomy";
 // no need for one — the question it answers is "is there anything over there?",
 // and a tick answers that completely.
 
-// THE THUMB IS ONE SIZE EVERYWHERE, centred on the strip's middle date (see
-// scrollbar-grip.ts for why it no longer stretches to the window's edges).
-// Wide enough for two edge grips and a middle to take hold of.
-const THUMB_PX = 56;
+// THE THUMB IS ONE SIZE WHEREVER IT IS, a share of the bar's width
+// (thumbPixels in scrollbar-grip.ts), centred on the strip's middle date.
 
-// How close to an edge counts as grabbing that edge rather than the thumb.
-const EDGE_GRAB_PX = 9;
+// THE ZOOM HANDLES are solid tabs at each end of the thumb, this wide, and
+// everything between them is the body that MOVES — the gesture that travels
+// through time. At the smallest thumb that still leaves 32px of body.
+const HANDLE_PX = 16;
 
-// ...but an edge grip may never eat more than this share of the thumb, so
-// there is always a middle to take hold of: taking hold of the body MOVES,
-// which is the gesture that travels through time.
-const EDGE_GRAB_SHARE = 1 / 3;
+// A press this close OUTSIDE a handle still takes hold of it: a handle is a
+// small target, and missing it by a pixel should not jump the strip.
+const HANDLE_SLOP_PX = 4;
 
 type DragMode = "move" | "from" | "to";
 
@@ -99,9 +96,13 @@ export function TimelineOverview({
   // a hand over the thumb, a resize arrow over its ends, a pointer elsewhere.
   const [hover, setHover] = useState<DragMode | "jump" | null>(null);
   const [dragging, setDragging] = useState<DragMode | null>(null);
+  // How far the end being pulled has moved outwards, in pixels, so the thumb
+  // can stretch with the pointer while the pull lasts: the edge you hold
+  // follows your hand, and springs back when you let go.
+  const [stretch, setStretch] = useState(0);
 
-  // The rail's width is measured rather than assumed: the thumb is a fixed
-  // number of pixels wide, and the hit-testing and the grips have to agree on
+  // The rail's width is measured rather than assumed: the thumb's width in
+  // pixels depends on it, and the hit-testing and the grips have to agree on
   // where it is on screen. That needs the width during render, not only during
   // a pointer event.
   const [railWidth, setRailWidth] = useState(0);
@@ -152,10 +153,6 @@ export function TimelineOverview({
     return () => element.removeEventListener("wheel", handleWheel);
   }, []);
 
-  // The bar always shows everything, whatever the strip is showing — that is
-  // the whole of its job, so its own frame never changes.
-  const full = useMemo(() => timelineExtentWindow(), []);
-
   // THE BAR IS ALWAYS SPACED BY MAGNITUDE, whatever the strip is doing.
   //
   // Linear spacing makes this control useless, and the arithmetic is brutal:
@@ -170,7 +167,10 @@ export function TimelineOverview({
   // 291, 772, 822 and 912 pixels instead of all at 975. This is a navigator,
   // not a ruler — the span above it reports the true number of years, and the
   // strip below honours whichever scale the reader chose.
-  const toFraction = useCallback((position: number) => fractionOf(full, position, "log"), [full]);
+  //
+  // The bar's own spacing (barFraction) also gives the future a smaller share
+  // than the past; see scrollbar-grip.ts.
+  const toFraction = barFraction;
 
   // THE MIDDLE DATE IS NOT WRITTEN HERE. It is the headline of the ruler just
   // above (span-ruler.tsx), with a picture of that time beside it; a second
@@ -180,10 +180,23 @@ export function TimelineOverview({
   // THE THUMB, in bar fractions. It may hang half off either end of the rail
   // when the middle date is at an end of time; the rail clips it, rather than
   // the thumb being nudged inwards to a place that marks a different date.
-  const thumbWidth = railWidth > 0 ? THUMB_PX / railWidth : 0.04;
+  const thumbWidth = railWidth > 0 ? thumbPixels(railWidth) / railWidth : 0.12;
   const centre = thumbCentre(view, scale);
   const drawnFrom = centre - thumbWidth / 2;
   const drawnTo = centre + thumbWidth / 2;
+  // While an end is pulled, that end follows the pointer. Never pushed in so
+  // far that the handles meet.
+  const stretchFraction =
+    railWidth > 0 ? Math.max(-(thumbWidth / 2 - (2 * HANDLE_PX + 4) / railWidth / 2), stretch / railWidth) : 0;
+  const shownFrom = drawnFrom - (dragging === "from" ? stretchFraction : 0);
+  const shownTo = drawnTo + (dragging === "to" ? stretchFraction : 0);
+
+  // THE STRIP'S REAL STRETCH OF TIME, as a faint band behind the thumb. The
+  // thumb is a handle — the same size wherever it is — so on its own it says
+  // nothing about how much time is on screen. The band does: pull a handle
+  // out and it widens across the bar to show the time you have opened up.
+  const spanFrom = Math.max(0, Math.min(1, barFraction(view.from)));
+  const spanTo = Math.max(0, Math.min(1, barFraction(view.to)));
   // Within a few pixels of either end, snap to the actual end of the timeline.
   // Without this the last pixel is still worth millions of years and "drag it
   // all the way over" never quite arrives — you stop just short of the present
@@ -209,25 +222,26 @@ export function TimelineOverview({
   const pullTo = useCallback(
     (edge: "from" | "to", fraction: number, start: number, base: TimeWindow) => {
       const outwardPx = (fraction - start) * railWidth * (edge === "to" ? 1 : -1);
+      setStretch(outwardPx);
       onWindowChange(windowAfterPull(base, outwardPx, scale));
     },
     [onWindowChange, railWidth, scale]
   );
 
   /**
-   * Which part of the thumb a press at this fraction is reaching for. Taking
-   * hold of its body means MOVE, the default; only the outer third at each end
-   * zooms.
+   * Which part of the thumb a press at this fraction is reaching for: a
+   * handle zooms, anything else — the body, or the track around it — moves.
    */
   const modeAt = useCallback(
     (fraction: number): DragMode => {
       if (railWidth === 0) return "move";
-      const edge = Math.min(EDGE_GRAB_PX / railWidth, thumbWidth * EDGE_GRAB_SHARE);
-      if (Math.abs(fraction - drawnFrom) <= edge) return "from";
-      if (Math.abs(fraction - drawnTo) <= edge) return "to";
+      const handle = HANDLE_PX / railWidth;
+      const slop = HANDLE_SLOP_PX / railWidth;
+      if (fraction >= drawnFrom - slop && fraction <= drawnFrom + handle) return "from";
+      if (fraction <= drawnTo + slop && fraction >= drawnTo - handle) return "to";
       return "move";
     },
-    [drawnFrom, drawnTo, railWidth, thumbWidth]
+    [drawnFrom, drawnTo, railWidth]
   );
 
   /**
@@ -261,9 +275,9 @@ export function TimelineOverview({
     const candidates = [
       ...ERA_LABELS.flatMap(({ key, label }) => {
         const jump = TIMELINE_JUMPS.find((item) => item.key === key);
-        return jump ? [{ key, label, fraction: fractionOf(full, jump.window.from, "log") }] : [];
+        return jump ? [{ key, label, fraction: barFraction(jump.window.from) }] : [];
       }),
-      { key: "now", label: "Now", fraction: fractionOf(full, now, "log") },
+      { key: "now", label: "Now", fraction: barFraction(now) },
     ].sort((a, b) => a.fraction - b.fraction);
 
     const nowItem = candidates.find((item) => item.key === "now")!;
@@ -283,18 +297,20 @@ export function TimelineOverview({
       lastEnd = end;
     }
     return placed;
-  }, [full, railWidth]);
+  }, [railWidth]);
 
   if (markers.length === 0) return null;
 
   const cursor =
     dragging === "move"
       ? "cursor-grabbing"
-      : hover === "from" || hover === "to"
+      : dragging || hover === "from" || hover === "to"
         ? "cursor-ew-resize"
         : hover === "move"
           ? "cursor-grab"
           : "cursor-pointer";
+  const thumbLit = dragging !== null || hover === "move" || hover === "from" || hover === "to";
+  const handleLit = (edge: "from" | "to") => dragging === edge || (!dragging && hover === edge);
 
   return (
     <div className={cn("select-none", className)}>
@@ -315,7 +331,7 @@ export function TimelineOverview({
         className={cn(
           // A TRACK: recessed, full-width, rounded like every scrollbar track,
           // so it is recognisably the thing you drag to travel.
-          "relative h-8 w-full touch-pan-y overflow-hidden rounded-full border border-border bg-muted shadow-inner",
+          "relative h-10 w-full touch-pan-y overflow-hidden rounded-full border border-border bg-muted shadow-inner",
           cursor
         )}
         onPointerDown={(event) => {
@@ -349,11 +365,13 @@ export function TimelineOverview({
         onPointerUp={(event) => {
           drag.current = null;
           setDragging(null);
+          setStretch(0);
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
         onPointerCancel={() => {
           drag.current = null;
           setDragging(null);
+          setStretch(0);
         }}
         onPointerLeave={() => {
           if (!drag.current) setHover(null);
@@ -366,26 +384,51 @@ export function TimelineOverview({
           return (
             <span
               key={`${marker.position}-${index}`}
-              className={cn("absolute inset-y-2 w-px opacity-70", timelineCategory(marker.category).dotClass)}
+              className={cn("absolute inset-y-2.5 w-px opacity-70", timelineCategory(marker.category).dotClass)}
               style={{ left: `${left * 100}%` }}
             />
           );
         })}
 
+        {/* The strip's real stretch of time: faint, behind everything. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 border-x border-dashed border-accent/50 bg-accent/10"
+          style={{ left: `${spanFrom * 100}%`, width: `max(1px, ${(spanTo - spanFrom) * 100}%)` }}
+        />
+
         {/* THE THUMB: the middle of what is on screen. A solid pill rather than an
-            outline, so it reads as a thing to take hold of; darker while held.
-            Its ends carry grips because, unlike a native thumb, pulling them
-            changes how much time is shown. */}
+            outline, so it reads as a thing to take hold of; brighter with a halo
+            when the pointer is over it or holding it. Its ends are solid handles
+            because, unlike a native thumb, pulling them changes how much time
+            is shown. */}
         <span
           className={cn(
-            "pointer-events-none absolute inset-y-[3px] rounded-full border border-accent/80 shadow-sm transition-colors",
-            dragging ? "bg-accent/45" : hover === "move" || hover === "from" || hover === "to" ? "bg-accent/35" : "bg-accent/25"
+            "pointer-events-none absolute inset-y-1 overflow-hidden rounded-full border border-accent transition-[background-color,box-shadow]",
+            thumbLit ? "bg-accent/50 shadow-[0_0_0_3px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.25)]" : "bg-accent/30 shadow-sm"
           )}
-          style={{ left: `${drawnFrom * 100}%`, width: `${thumbWidth * 100}%` }}
+          style={{ left: `${shownFrom * 100}%`, width: `${(shownTo - shownFrom) * 100}%` }}
         >
-          {/* Drawn inside the thumb so they cannot drift away from its edges. */}
-          <span className="absolute inset-y-1.5 left-1 w-1 rounded-full bg-accent" />
-          <span className="absolute inset-y-1.5 right-1 w-1 rounded-full bg-accent" />
+          {/* The handles, drawn inside the thumb so they cannot drift from its ends. */}
+          {(["from", "to"] as const).map((edge) => (
+            <span
+              key={edge}
+              className={cn(
+                "absolute inset-y-0 flex items-center justify-center transition-colors",
+                edge === "from" ? "left-0" : "right-0",
+                handleLit(edge) ? "bg-accent" : "bg-accent/60"
+              )}
+              style={{ width: HANDLE_PX }}
+            >
+              <span className="h-3.5 w-1.5 border-x-2 border-white/90" />
+            </span>
+          ))}
+          {/* Grip dots: the middle is the part you take hold of. */}
+          <span className="absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 grid-cols-3 gap-[3px] opacity-70">
+            {Array.from({ length: 6 }, (_, index) => (
+              <span key={index} className="size-[3px] rounded-full bg-foreground" />
+            ))}
+          </span>
         </span>
 
         {/* THE MIDDLE DATE'S LINE, down the centre of the thumb: the exact spot
@@ -413,8 +456,8 @@ export function TimelineOverview({
             if (event.key === "ArrowLeft") { event.preventDefault(); nudge("from", -1); }
             if (event.key === "ArrowRight") { event.preventDefault(); nudge("from", 1); }
           }}
-          className="absolute inset-y-0 w-3 -translate-x-1/2 cursor-ew-resize focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ left: `${drawnFrom * 100}%` }}
+          className="absolute inset-y-0 cursor-ew-resize rounded-l-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{ left: `${shownFrom * 100}%`, width: HANDLE_PX }}
         />
         <button
           type="button"
@@ -423,8 +466,8 @@ export function TimelineOverview({
             if (event.key === "ArrowLeft") { event.preventDefault(); nudge("to", -1); }
             if (event.key === "ArrowRight") { event.preventDefault(); nudge("to", 1); }
           }}
-          className="absolute inset-y-0 w-3 -translate-x-1/2 cursor-ew-resize focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ left: `${drawnTo * 100}%` }}
+          className="absolute inset-y-0 -translate-x-full cursor-ew-resize rounded-r-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{ left: `${shownTo * 100}%`, width: HANDLE_PX }}
         />
       </div>
 
@@ -445,8 +488,8 @@ export function TimelineOverview({
       </div>
 
       <p className="mt-1 text-xs text-muted-foreground">
-        All of time, spaced by order of magnitude. The bar marks the middle of your view: drag it to travel through
-        time, pull either end to zoom, or click anywhere on the track to go there.
+        All of time, spaced by order of magnitude. Drag the thumb to travel through time, pull its dark ends to show
+        more or less time (the faint band is what is on screen), or click anywhere on the track to go there.
       </p>
     </div>
   );
