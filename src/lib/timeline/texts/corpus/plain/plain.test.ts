@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ALL_CORPORA } from "..";
 import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY, plainWordsBasis } from ".";
+import { PLAIN_ASCLEPIUS } from "./asclepius";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./coffin-texts";
 import { PLAIN_CRITIAS } from "./critias";
@@ -18,6 +19,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "greek.timaeus": PLAIN_TIMAEUS,
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,
+  "herm.asclepius": PLAIN_ASCLEPIUS,
   "arab.emerald-tablet": PLAIN_EMERALD_TABLET,
   "modern.doreal-emerald-tablets": PLAIN_DOREAL,
 };
