@@ -5,20 +5,25 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { IMAGE_ACCEPTED_TYPES, uploadImage, validateImageFile } from "@/lib/upload-image";
+import { defaultSpaceImage } from "@/lib/space-images";
+import type { SpaceType } from "@/types/database";
 
-// The space's own cover (spaces.image_url), as a banner across the top of the
-// space. Only an uploaded cover is shown here: the space type's default photo
-// dresses the cards that link in, but as a banner it would put the same stock
-// picture on top of every new space. Admins add, change or remove it in place,
+// The space's cover as a full-width banner across the top of the space, the
+// same height as the feed page's hero: its own upload
+// (spaces.image_url) when it has one, otherwise the space type's default photo,
+// the same one its cards show, so every space opens with a picture the way
+// every event card does. Admins add, change or remove the upload in place,
 // filed at the same path as the Admin → Spaces uploader so the two agree.
 export function SpaceCover({
   spaceId,
   communityId,
+  spaceType,
   imageUrl,
   canEdit,
 }: {
   spaceId: string;
   communityId: string;
+  spaceType: SpaceType;
   imageUrl: string | null;
   // Community admins only, matching the community-assets upload policy and
   // spaces_update_admin.
@@ -28,8 +33,9 @@ export function SpaceCover({
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (!imageUrl && !canEdit) return null;
+  // A default photo that fails to load hides the banner rather than showing a
+  // broken-image icon; an upload that fails still shows, so it can be changed.
+  const [defaultBroken, setDefaultBroken] = useState(false);
 
   async function save(url: string | null) {
     const supabase = createClient();
@@ -74,31 +80,21 @@ export function SpaceCover({
     <input ref={inputRef} type="file" accept={IMAGE_ACCEPTED_TYPES.join(",")} className="hidden" onChange={handleFile} />
   );
 
-  if (!imageUrl) {
-    return (
-      <div className="mb-6">
-        {picker}
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border px-4 py-5 text-sm font-medium text-muted-foreground transition-colors hover:border-accent hover:text-foreground disabled:opacity-60"
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-          {busy ? "Uploading…" : "Add a cover image"}
-        </button>
-        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
-      </div>
-    );
-  }
+  const isDefault = !imageUrl;
+  if (isDefault && defaultBroken) return null;
 
   return (
-    <div className="mb-6">
-      <div className="relative aspect-[3/1] w-full overflow-hidden rounded-xl bg-muted">
+    <div>
+      <div className="relative h-[340px] w-full overflow-hidden border-b border-border bg-muted sm:h-[400px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+        <img
+          src={imageUrl ?? defaultSpaceImage(spaceType)}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={isDefault ? () => setDefaultBroken(true) : undefined}
+        />
         {canEdit && (
-          <div className="absolute right-2 top-2 flex gap-2">
+          <div className="absolute right-3 top-3 flex gap-2 sm:right-4 sm:top-4">
             {picker}
             <button
               type="button"
@@ -107,8 +103,9 @@ export function SpaceCover({
               className="flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm hover:bg-black/70 disabled:opacity-60"
             >
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
-              Change cover
+              {busy ? "Uploading…" : isDefault ? "Add your own cover" : "Change cover"}
             </button>
+            {!isDefault && (
             <button
               type="button"
               onClick={handleRemove}
@@ -118,10 +115,11 @@ export function SpaceCover({
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
+            )}
           </div>
         )}
       </div>
-      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+      {error && <p className="mx-auto mt-2 max-w-3xl px-4 text-xs text-danger sm:px-6">{error}</p>}
     </div>
   );
 }

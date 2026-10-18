@@ -166,6 +166,7 @@ export const TEXT_DIVISION_KINDS = [
   { key: "scene", label: "Scene", hint: "A scene with its captions." },
   { key: "gate", label: "Gate", hint: "A gate of the Book of Gates." },
   { key: "maxim", label: "Maxim", hint: "One maxim of a wisdom instruction." },
+  { key: "saying", label: "Saying", hint: "One numbered saying (logion) of a sayings collection — the Gospel of Thomas." },
   { key: "page", label: "Page", hint: "A page of a standard reference edition — a Stephanus page of Plato." },
   { key: "section", label: "Section", hint: "A numbered section within a chapter, treatise or page." },
   { key: "fragment", label: "Fragment", hint: "A surviving fragment, numbered by its editor." },

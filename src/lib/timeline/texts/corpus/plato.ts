@@ -56,8 +56,109 @@ const PLATO_MANUSCRIPTS: CorpusManuscript[] = [
   },
 ];
 
-/** Images keyed to a work; plato's corpus files pick theirs out by workKey. */
-const PLATO_IMAGES: (CorpusImage & { manuscriptKey?: string; workKey: string })[] = [
+/**
+ * Images keyed to a work; plato's corpus files pick theirs out by workKey.
+ * With `section` the image sits on that Stephanus section (the page it shows);
+ * without, on the work as a whole.
+ */
+type PlatoImage = CorpusImage & { manuscriptKey?: string; workKey: string; section?: string };
+
+const PLATO_IMAGES: PlatoImage[] = [
+  {
+    workKey: "greek.timaeus",
+    section: "17a",
+    key: "paris-gr-1807-timaeus-opening",
+    manuscriptKey: "paris-gr-1807",
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Timaios_beginning._Codex_Parisinus_graecus_1807.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Timaios_beginning._Codex_Parisinus_graecus_1807.jpg",
+    institution: "Bibliothèque nationale de France",
+    accessionNumber: "Grec 1807",
+    objectDate: "Ninth century (Commons gives c. 900)",
+    imageDate: "Facsimile published 1908; photographed from it",
+    caption:
+      "The opening of the Timaeus in Paris gr. 1807, Burnet's manuscript A, photographed from Henri Omont's full-size 1908 facsimile. The heading reads 'Plato's Timaeus, or On Nature'; the short column at upper left is the end of the Republic, which comes before it in the manuscript. The folio number has not been recorded here.",
+    creator: "Unknown scribe; facsimile by Henri Omont (1908)",
+    credit: "Omont, Œuvres philosophiques de Platon: facsimilé du ms. grec 1807 (1908), via Wikimedia Commons",
+    licence: "Public domain (PD-Art)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    workKey: "greek.timaeus",
+    section: "17a",
+    key: "aldine-1513-timaeus-opening",
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Timaios_beginning._Editio_princeps.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Timaios_beginning._Editio_princeps.jpg",
+    objectDate: "1513",
+    caption:
+      "The opening of the Timaeus in the first printed edition of Plato's Greek, Venice 1513, under the heading 'Plato's Timaeus, or On Nature' and the list of speakers: Socrates, Critias, Timaeus, Hermocrates. Which copy was photographed is not stated.",
+    creator: "Printed by Aldus Manutius",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-Art, PD-old-100)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    workKey: "greek.timaeus",
+    section: "36a",
+    key: "lyon-324-f22v-calcidius-harmonic-diagram",
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/25/Calcidius%2C_Diagram%2C_Lyon_324%2C_fol._22v.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Calcidius,_Diagram,_Lyon_324,_fol._22v.jpg",
+    institution: "Bibliothèque municipale de Lyon",
+    accessionNumber: "MS 324, fol. 22v",
+    objectDate: "Ninth century",
+    caption:
+      "Two lambda-shaped number diagrams from Calcidius's Latin commentary on the Timaeus, in a ninth-century manuscript at Lyon. The heading speaks of a harmony built on the 9:8 ratio (epogdous) with the fourth and the fifth, and the columns end in the 'limma': Calcidius working out how Timaeus 36a–b fills the intervals of the World Soul. Commentary, not Plato's text; manuscript and folio are as the Commons record gives them.",
+    creator: "Calcidius (text); unknown scribe",
+    credit: "Bibliothèque municipale de Lyon, via Wikimedia Commons",
+    licence: "Public domain (PD-Art, PD-old-100-expired)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "probable",
+    verificationStatus: "unverified",
+  },
+  {
+    workKey: "greek.critias",
+    section: "106a",
+    key: "paris-gr-1807-critias-opening",
+    manuscriptKey: "paris-gr-1807",
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/56/Kritias_beginning._Codex_Parisinus_graecus_1807.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Kritias_beginning._Codex_Parisinus_graecus_1807.jpg",
+    institution: "Bibliothèque nationale de France",
+    accessionNumber: "Grec 1807",
+    objectDate: "Ninth century (Commons gives c. 900)",
+    imageDate: "Facsimile published 1908; photographed from it",
+    caption:
+      "The opening of the Critias in Paris gr. 1807, Burnet's manuscript A, photographed from Henri Omont's full-size 1908 facsimile. The heading reads 'Plato's Critias, or Atlanticus', above Timaeus's words handing over the discourse. The folio number has not been recorded here.",
+    creator: "Unknown scribe; facsimile by Henri Omont (1908)",
+    credit: "Omont, Œuvres philosophiques de Platon: facsimilé du ms. grec 1807 (1908), via Wikimedia Commons",
+    licence: "Public domain (PD-Art)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    workKey: "greek.critias",
+    section: "106a",
+    key: "aldine-1513-critias-opening",
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/91/Kritias_beginning._Editio_princeps.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Kritias_beginning._Editio_princeps.jpg",
+    objectDate: "1513",
+    caption:
+      "The page of the first printed Greek Plato, Venice 1513, where the Timaeus ends and the Critias begins under the heading 'Plato's Critias, or Atlanticus'. Which copy was photographed is not stated.",
+    creator: "Printed by Aldus Manutius",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-Art, PD-old-100)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
   {
     workKey: "greek.timaeus",
     key: "vat-reg-lat-1308-f21v-22r",
@@ -278,6 +379,20 @@ const GREEK_EVIDENCE =
 const ENGLISH_EVIDENCE =
   "R. G. Bury's Loeb translation (1929), as encoded by Perseus (CC BY-SA 4.0). Bury translates Burnet's text.";
 
+/** An image without its placement fields, as a passage or work carries it. */
+function placed(image: PlatoImage, keepManuscript: boolean): CorpusImage & { manuscriptKey?: string } {
+  const copy: Partial<PlatoImage> = { ...image };
+  delete copy.workKey;
+  delete copy.section;
+  if (!keepManuscript) delete copy.manuscriptKey;
+  return copy as CorpusImage & { manuscriptKey?: string };
+}
+
+function sectionImages(workKey: string, section: string): CorpusImage[] | undefined {
+  const found = PLATO_IMAGES.filter((image) => image.workKey === workKey && image.section === section).map((image) => placed(image, false));
+  return found.length > 0 ? found : undefined;
+}
+
 function pageOf(section: string): string {
   return section.match(/^\d+/)![0];
 }
@@ -373,6 +488,7 @@ function buildPassages(spec: Spec): CorpusPassage[] {
         witnesses: [{ manuscriptKey: "paris-gr-1807" }],
         themes: themes.length > 0 ? themes : undefined,
         dates: date ? [date] : undefined,
+        images: sectionImages(spec.workKey, section),
       });
     }
   }
@@ -385,11 +501,7 @@ function corpus(spec: Spec): TextCorpusFile {
     revision: "perseus-2026-10",
     sources: PLATO_SOURCES,
     manuscripts: PLATO_MANUSCRIPTS,
-    images: PLATO_IMAGES.filter((image) => image.workKey === spec.workKey).map((image) => {
-      const copy: CorpusImage & { manuscriptKey?: string; workKey?: string } = { ...image };
-      delete copy.workKey;
-      return copy;
-    }),
+    images: PLATO_IMAGES.filter((image) => image.workKey === spec.workKey && image.section == null).map((image) => placed(image, true)),
     passages: buildPassages(spec),
     links: PLATO_LINKS.filter((link) => link.from.startsWith(`${spec.prefix}.`)),
   };
