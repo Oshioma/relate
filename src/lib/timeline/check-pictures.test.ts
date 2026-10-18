@@ -112,6 +112,26 @@ test("a redirect is reported and NOT followed", async () => {
 
 const redirectTo = (location: string, status = 302) => new Response(null, { status, headers: { location } });
 
+test("a sized Special:FilePath that ends on thumb.wikimedia.org is followed", async () => {
+  // FilePath -> Special:Redirect/file (302) -> thumb.wikimedia.org (301), as
+  // Commons answers sized requests since October 2026.
+  const hops = [
+    redirectTo("https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/Head_of_Juba_II_(Cherchell).jpg&width=1200"),
+    redirectTo("https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Head_of_Juba_II_%28Cherchell%29.jpg/1280px-Head_of_Juba_II_%28Cherchell%29.jpg", 301),
+  ];
+  const asked: string[] = [];
+  const result = await checkOnePicture(
+    "https://commons.wikimedia.org/wiki/Special:FilePath/Head_of_Juba_II_(Cherchell).jpg?width=1200",
+    async (input) => {
+      asked.push(String(input));
+      return hops[asked.length - 1] ?? respond(200, "image/jpeg");
+    }
+  );
+  assert.equal(result.outcome, "ok");
+  assert.equal(asked.length, 3);
+  assert.match(asked[2], /^https:\/\/thumb\.wikimedia\.org\//);
+});
+
 test("a Special:FilePath redirect to upload.wikimedia.org is followed", async () => {
   // Special:FilePath ALWAYS redirects to the file itself. Refusing it reported
   // every such picture as failing, and one record lost a good photograph.
