@@ -115,7 +115,10 @@ const MANUSCRIPTS: CorpusManuscript[] = [
   },
 ];
 
-const IMAGES: (CorpusImage & { manuscriptKey?: string })[] = [
+/** With `passageKey` an image sits on that version; without, on the work. */
+type Placed = CorpusImage & { manuscriptKey?: string; passageKey?: string };
+
+const IMAGES: Placed[] = [
   {
     key: "paris-arabe-2300-tablet",
     manuscriptKey: "paris-arabe-2300",
@@ -184,7 +187,139 @@ const IMAGES: (CorpusImage & { manuscriptKey?: string })[] = [
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  {
+    key: "paris-arabe-2300-tablet-full-page",
+    manuscriptKey: "paris-arabe-2300",
+    duplicateOf: "paris-arabe-2300-tablet",
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/29/Biblioth%C3%A8que_nationale_de_France._D%C3%A9partement_des_Manuscrits._Arabe_2300_fol._149.png",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Biblioth%C3%A8que_nationale_de_France._D%C3%A9partement_des_Manuscrits._Arabe_2300_fol._149.png",
+    institution: "Bibliothèque nationale de France",
+    accessionNumber: "Arabe 2300 (Gallica view f141; the file name says fol. 149)",
+    caption:
+      "The whole page of the Paris manuscript of the Book of the Secret of Creation on which the Arabic Emerald Tablet stands, with the surrounding frame story in which Balinus speaks. Uncropped: probably the same Gallica image (view f141) from which the cropped view of the Tablet was cut.",
+    credit: "Bibliothèque nationale de France (Gallica), via Wikimedia Commons",
+    licence: "Public domain (PD-US-expired, PD-old-70)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "leipzig-vollers-832-tablet",
+    passageKey: "arab.tab.arabic",
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Leipzig_tablet_text.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Leipzig_tablet_text.jpg",
+    institution: "Universitätsbibliothek Leipzig (Refaiya collection)",
+    accessionNumber: "Vollers 832, final folio",
+    caption:
+      "The Arabic Emerald Tablet in a Leipzig manuscript; its first line has the words 'truth, without doubt'. The Commons record identifies it as the final folio of Vollers 832 and as the older recension A, which would make it a second recension beside the Paris copy; neither point has been checked here, and the date the record gives is unexplained, so none is stated.",
+    creator: "Unknown scribe",
+    credit: "Universitätsbibliothek Leipzig (via Qalamos), via Wikimedia Commons",
+    licence: "Public domain (PD-US-expired, PD-old-70)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "probable",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "ibn-umayl-topkapi-sage-tablet",
+    passageKey: "arab.tab.arabic",
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Ibn_Umayl_Hermes_Crop.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Ibn_Umayl_Hermes_Crop.jpg",
+    institution: "Topkapı Palace Museum Library, Istanbul",
+    accessionNumber: "Ahmet III 2075",
+    objectDate: "1339 (739 AH), per the Commons record",
+    caption:
+      "A seated sage holding a tablet painted with suns, moons and two birds, from a fourteenth-century copy of Ibn Umayl's alchemical Book of the Silvery Water and the Starry Earth. Ibn Umayl describes a statue of a sage, later identified as Hermes, holding a tablet of ancient knowledge. Related context: this is not the Emerald Tablet's text.",
+    creator: "Unknown painter",
+    credit: "Topkapı Palace Museum Library, via Wikimedia Commons",
+    licence: "Public domain (PD-US-expired, PD-old-70)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "bodleian-canon-class-lat-135-secretum",
+    passageKey: "arab.tab.secretum",
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/37/Bodleian_Library_MS._Canon._Class._Lat._135_-_Philip_of_Tripoli.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Bodleian_Library_MS._Canon._Class._Lat._135_-_Philip_of_Tripoli.png",
+    institution: "Bodleian Library, Oxford",
+    accessionNumber: "MS. Canon. Class. Lat. 135",
+    objectDate: "c. 1400–1405",
+    caption:
+      "The opening of Philip of Tripoli's Latin Secret of Secrets in a north Italian manuscript of about 1400–1405: his dedication to Guido de Valencia, bishop of Tripoli, beneath a decorated initial with a teaching figure. Related evidence: the book that carries this version of the Tablet, not the page with the Tablet on it.",
+    creator: "Unknown scribe and illuminator",
+    credit: "Bodleian Libraries, University of Oxford, via Wikimedia Commons",
+    licence: "Public domain (PD-Art)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "nlm-sirr-al-asrar-1848-onomancy",
+    passageKey: "arab.tab.secretum",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Secret_of_secrets_a.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Secret_of_secrets_a.jpg",
+    institution: "US National Library of Medicine",
+    objectDate: "1848 (Rajab 1264), as dated in the copy",
+    caption:
+      "Two number grids, a 'tablet of life' and a 'tablet of death', for foretelling whether a patient will live from the numerical value of his name, in an 1848 copy of part of the Arabic Secret of Secrets (Sirr al-asrār). Related evidence for the Arabic book Philip translated; this page is not the Emerald Tablet.",
+    creator: "Unknown scribe",
+    credit: "US National Library of Medicine, via Wikimedia Commons",
+    licence: "Public domain (PD-USGov-HHS-NIH)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "probable",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "chrysogonus-1541-tabula-smaragdina",
+    passageKey: "arab.tab.vulgate",
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/91/Table_Emeraude_Chrysogonus.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Table_Emeraude_Chrysogonus.jpg",
+    objectDate: "1541",
+    caption:
+      "The vulgate Latin Tablet in its first printing, 'Tabula Smaragdina Hermetis Trismegisti … incerto interprete', in the alchemical collection De alchemia edited by Chrysogonus Polydorus (Nuremberg, 1541). The full text from 'Verba secretorum Hermetis' to 'de operatione Solis' is on the page.",
+    creator: "Chrysogonus Polydorus (editor)",
+    credit: "Wikimedia Commons (from la-rose-bleue.org)",
+    licence: "Public domain (PD-old-100)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "khunrath-emerald-tablet-wellcome",
+    passageKey: "arab.tab.vulgate",
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/de/%27The_Emerald_Table_of_Hermes%27._Wellcome_M0012393.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:%27The_Emerald_Table_of_Hermes%27._Wellcome_M0012393.jpg",
+    institution: "Wellcome Collection, London",
+    accessionNumber: "Photo M0012393",
+    objectDate: "1606 or earlier (as Commons dates the same plate)",
+    caption:
+      "The Emerald Tablet as an engraving: the Latin vulgate text carved on a rocky peak in a landscape, with a long inscription below, from Heinrich Khunrath's Amphitheatrum sapientiae aeternae. Later artwork showing how the Tablet was imagined, not an artefact.",
+    creator: "Heinrich Khunrath (designer); engraver not named",
+    credit: "Wellcome Collection, CC BY 4.0",
+    licence: "CC BY 4.0",
+    licenceStatus: "attribution",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
 ];
+
+function imagesFor(passageKey: string): CorpusImage[] | undefined {
+  const found = IMAGES.filter((image) => image.passageKey === passageKey).map((image) => {
+    const copy: Placed = { ...image };
+    delete copy.passageKey;
+    delete copy.manuscriptKey;
+    return copy;
+  });
+  return found.length > 0 ? found : undefined;
+}
 
 // ---------------------------------------------------------------------------
 // THE VERSIONS, LINE BY LINE
@@ -608,7 +743,14 @@ export const EMERALD_TABLET_CORPUS: TextCorpusFile = {
   revision: "2026-10-16",
   sources: SOURCES,
   manuscripts: MANUSCRIPTS,
-  images: IMAGES,
-  passages: PASSAGES,
+  images: IMAGES.filter((image) => image.passageKey == null).map((image) => {
+    const copy: Placed = { ...image };
+    delete copy.passageKey;
+    return copy;
+  }),
+  passages: PASSAGES.map((passage) => {
+    const images = imagesFor(passage.key);
+    return images ? { ...passage, images } : passage;
+  }),
   links: LINKS,
 };
