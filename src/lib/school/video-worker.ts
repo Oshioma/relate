@@ -20,7 +20,7 @@
 
 import "server-only";
 import type { LessonVideoJob, LessonVideoJobStatus } from "@/types/database";
-import { withSiteHelpLink } from "@/lib/school/video-links";
+import { cleanClip, withSiteHelpLink, type VideoClip } from "@/lib/school/video-links";
 import { signUploadToken } from "@/lib/school/upload-token";
 
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -63,6 +63,9 @@ export type WorkerJobReport = {
   audioSeconds: number | null;
   downloadBytes: number | null;
   proxied: boolean | null;
+  // The part of the video the worker actually used, once it knows the
+  // length. Null from a worker that predates clips, or before it knows.
+  clip: VideoClip | null;
 };
 
 const STATUSES: LessonVideoJobStatus[] = ["queued", "downloading", "transcribing", "done", "error"];
@@ -91,6 +94,10 @@ function parseReport(body: unknown): WorkerJobReport | null {
     audioSeconds: count(b.audio_seconds),
     downloadBytes: count(b.download_bytes),
     proxied: typeof b.proxied === "boolean" ? b.proxied : null,
+    clip:
+      b.clip_start_seconds === undefined || b.clip_start_seconds === null
+        ? null
+        : cleanClip(b.clip_start_seconds, b.clip_end_seconds),
   };
 }
 
@@ -105,7 +112,16 @@ export type WorkerJobSource =
   | { kind: "file"; url: string; fileName: string }
   | { kind: "direct"; fileName: string };
 
-function startBody(jobId: string, source: WorkerJobSource) {
+function startBody(jobId: string, source: WorkerJobSource, clip: VideoClip) {
+  // Only sent when a part was chosen, so an older worker sees the same body.
+  const part = {
+    ...(clip.start != null ? { start_seconds: clip.start } : {}),
+    ...(clip.end != null ? { end_seconds: clip.end } : {}),
+  };
+  return { ...sourceBody(jobId, source), ...part };
+}
+
+function sourceBody(jobId: string, source: WorkerJobSource) {
   switch (source.kind) {
     case "link":
       return { id: jobId, url: source.url };
@@ -118,11 +134,17 @@ function startBody(jobId: string, source: WorkerJobSource) {
 
 // Hands a job to the worker. It answers straight away and does the work in
 // the background; the job id is ours, so a retry of the same id is harmless.
-export async function startWorkerJob(jobId: string, source: WorkerJobSource): Promise<StartResult> {
+// `clip` is the part of the video to use; the worker uses at most three hours
+// of it, and the first three hours of a longer video when none is chosen.
+export async function startWorkerJob(
+  jobId: string,
+  source: WorkerJobSource,
+  clip: VideoClip = { start: null, end: null }
+): Promise<StartResult> {
   try {
     const response = await callWorker("/jobs", {
       method: "POST",
-      body: JSON.stringify(startBody(jobId, source)),
+      body: JSON.stringify(startBody(jobId, source, clip)),
     });
     if (response.ok) return { ok: true };
 
@@ -191,6 +213,9 @@ export function publicJob(job: LessonVideoJob, withTranscript: boolean) {
     message: job.message,
     title: job.title,
     durationSeconds: job.duration_seconds,
+    // The part of the video the transcript covers, and the lesson will play.
+    clipStartSeconds: job.clip_start_seconds ?? null,
+    clipEndSeconds: job.clip_end_seconds ?? null,
     method: job.method,
     error: withSiteHelpLink(job.error),
     createdAt: job.created_at,

@@ -247,19 +247,107 @@ export function formatDuration(seconds: number | null | undefined): string | nul
   return formatTimestamp(Math.round(seconds));
 }
 
+// The part of a video a lesson uses, in seconds of the whole video. A long
+// video (over the worker's three hours) can be used in part: the transcript
+// covers only that part, and the lesson plays only that part. Null: from the
+// start / to the end. Both null is the whole video.
+export type VideoClip = { start: number | null; end: number | null };
+
+export const WHOLE_VIDEO: VideoClip = { start: null, end: null };
+
+// "2:30:00", "150:00", "45" (minutes) or "1h30m" -> seconds, or null for
+// anything that isn't a time. Empty is null too: "not set".
+export function parseTimestamp(raw: string): number | null {
+  const text = raw.trim().toLowerCase();
+  if (!text) return null;
+  if (/^\d+(\.\d+)?$/.test(text)) return Math.round(Number(text) * 60);
+  const colons = /^(\d+)(?::(\d{1,2}))?(?::(\d{1,2}))?$/.exec(text);
+  if (colons && colons[2] !== undefined) {
+    const parts = [colons[1], colons[2], colons[3]].filter((p): p is string => p !== undefined).map(Number);
+    if (parts.slice(1).some((n) => n >= 60)) return null;
+    return parts.length === 3 ? parts[0] * 3600 + parts[1] * 60 + parts[2] : parts[0] * 60 + parts[1];
+  }
+  const units = /^(?:(\d+)\s*h)?\s*(?:(\d+)\s*m)?\s*(?:(\d+)\s*s)?$/.exec(text);
+  if (units && (units[1] || units[2] || units[3])) {
+    return Number(units[1] ?? 0) * 3600 + Number(units[2] ?? 0) * 60 + Number(units[3] ?? 0);
+  }
+  return null;
+}
+
+// Whole, non-negative seconds, or null. For values that came over the wire.
+function cleanSeconds(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
+  return Math.floor(value);
+}
+
+// A clip as stored: whole seconds, a start of 0 is the same as none, and an
+// end that isn't after the start is dropped rather than trusted.
+export function cleanClip(start: unknown, end: unknown): VideoClip {
+  const from = cleanSeconds(start) || null;
+  let to = cleanSeconds(end);
+  if (to !== null && to <= (from ?? 0)) to = null;
+  return { start: from, end: to };
+}
+
+// A lesson row's clip. Rows from before clips existed have neither column.
+export function lessonVideoClip(row: {
+  video_start_seconds?: number | null;
+  video_end_seconds?: number | null;
+}): VideoClip {
+  return cleanClip(row.video_start_seconds, row.video_end_seconds);
+}
+
+export function isWholeVideo(clip: VideoClip | null | undefined): boolean {
+  return !clip || (!clip.start && clip.end == null);
+}
+
+// "0:00–2:30:00", "1:00:00 to the end", or null for the whole video.
+export function describeClip(clip: VideoClip | null | undefined): string | null {
+  if (!clip || isWholeVideo(clip)) return null;
+  const from = formatTimestamp(clip.start ?? 0);
+  return clip.end == null ? `${from} to the end` : `${from}–${formatTimestamp(clip.end)}`;
+}
+
+// The player for a lesson that uses only part of its video: it starts at the
+// part's start, and (on YouTube) stops at its end. Vimeo's player can be told
+// where to start but not where to stop; the others can be told neither, so
+// they play the whole video.
+export function clipEmbedUrl(link: VideoLink, clip: VideoClip | null | undefined): string | null {
+  if (!link.embedUrl) return null;
+  if (isWholeVideo(clip)) return link.embedUrl;
+  switch (link.platform) {
+    case "youtube": {
+      const url = new URL(link.embedUrl);
+      if (clip?.start) url.searchParams.set("start", String(clip.start));
+      if (clip?.end != null) url.searchParams.set("end", String(clip.end));
+      return url.toString();
+    }
+    case "vimeo": {
+      if (!clip?.start) return link.embedUrl;
+      const url = new URL(link.embedUrl);
+      url.hash = `t=${clip.start}s`;
+      return url.toString();
+    }
+    default:
+      return link.embedUrl;
+  }
+}
+
 // The embed address that starts the video at `seconds` and plays it, or null
 // when this platform's player can't be told where to start — the lesson page
 // then offers no "watch from" buttons rather than ones that start at 0:00.
+// With a clip, a YouTube player still stops at the clip's end.
 //
 // Built from the parsed link, never from a stored embed address, for the same
 // reason the embed itself is: only parseVideoLink decides what may be framed.
 // A platform that can seek is a case here (Vimeo would append "#t=<n>s").
-export function seekEmbedUrl(link: VideoLink, seconds: number): string | null {
+export function seekEmbedUrl(link: VideoLink, seconds: number, clip?: VideoClip | null): string | null {
   if (!link.embedUrl || !Number.isFinite(seconds) || seconds < 0) return null;
   switch (link.platform) {
     case "youtube": {
       const url = new URL(link.embedUrl);
       url.searchParams.set("start", String(Math.floor(seconds)));
+      if (clip?.end != null && clip.end > seconds) url.searchParams.set("end", String(clip.end));
       // The click that asked for this moment is the viewer's go-ahead to play.
       url.searchParams.set("autoplay", "1");
       return url.toString();
