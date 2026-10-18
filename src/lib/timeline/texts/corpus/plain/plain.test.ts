@@ -1,10 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ALL_CORPORA } from "..";
-import { PLAIN_LAYER_KEY } from ".";
+import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY, plainWordsBasis } from ".";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./coffin-texts";
 import { PLAIN_CRITIAS } from "./critias";
+import { PLAIN_DOREAL } from "./doreal";
 import { PLAIN_EMERALD_TABLET } from "./emerald-tablet";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
@@ -18,6 +19,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,
   "arab.emerald-tablet": PLAIN_EMERALD_TABLET,
+  "modern.doreal-emerald-tablets": PLAIN_DOREAL,
 };
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
@@ -27,16 +29,10 @@ test("plain words are written only for passages that exist and have text to para
     for (const [key, words] of Object.entries(plain)) {
       const passage = byKey.get(key);
       assert.ok(passage, `${workKey}: no passage ${key}`);
-      assert.ok(
-        passage.layers.some(
-          (l) =>
-            l.key !== PLAIN_LAYER_KEY &&
-            l.content &&
-            l.language === "English" &&
-            l.licence !== "copyrighted_excerpt"
-        ),
-        `${key}: no open English translation to paraphrase`
-      );
+      const basis = plainWordsBasis(passage.layers);
+      assert.ok(basis, `${key}: nothing to paraphrase or translate`);
+      // A book in copyright is paraphrased only as far as its short quotation goes.
+      if (basis === "excerpt") assert.ok(words.length <= 600, `${key}: too long for a paraphrase of a quotation`);
       assert.ok(words.trim().length >= 20 && words.length <= 1500, `${key}: ${words.length} characters`);
     }
   }
@@ -45,10 +41,17 @@ test("plain words are written only for passages that exist and have text to para
 test("the plain words are our voice, never the text's", () => {
   for (const file of ALL_CORPORA) {
     for (const passage of file.passages) {
-      for (const layer of passage.layers.filter((l) => l.key === PLAIN_LAYER_KEY)) {
+      for (const layer of passage.layers.filter((l) => l.key === PLAIN_LAYER_KEY || l.key === OUR_TRANSLATION_LAYER_KEY)) {
         assert.equal(layer.layer, "modern_summary", passage.key);
         assert.equal(layer.licence, "original_work", passage.key);
       }
     }
   }
+});
+
+test("our own translation appears only where there is no English to paraphrase", () => {
+  const secretum = ALL_CORPORA.find((c) => c.workKey === "arab.emerald-tablet")!.passages.find((p) => p.key === "arab.tab.secretum.01")!;
+  assert.equal(secretum.layers.find((l) => l.layer === "modern_summary")?.key, OUR_TRANSLATION_LAYER_KEY);
+  const vulgate = ALL_CORPORA.find((c) => c.workKey === "arab.emerald-tablet")!.passages.find((p) => p.key === "arab.tab.vulgate.01")!;
+  assert.equal(vulgate.layers.find((l) => l.layer === "modern_summary")?.key, PLAIN_LAYER_KEY);
 });

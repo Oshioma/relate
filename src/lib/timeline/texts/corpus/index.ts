@@ -16,6 +16,7 @@ import { withPlainWords } from "./plain";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./plain/book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./plain/coffin-texts";
 import { PLAIN_CRITIAS } from "./plain/critias";
+import { PLAIN_DOREAL } from "./plain/doreal";
 import { PLAIN_EMERALD_TABLET } from "./plain/emerald-tablet";
 import { PLAIN_HERMETICA } from "./plain/hermetica";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
@@ -29,7 +30,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(CRITIAS_CORPUS, PLAIN_CRITIAS),
   withPlainWords(HERMETICA_CORPUS, PLAIN_HERMETICA),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
-  DOREAL_CORPUS,
+  withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {

@@ -215,7 +215,8 @@ test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture
   assert.equal(doreal.passages.length, 15);
   for (const passage of doreal.passages) {
     assert.ok(passage.summary, passage.key);
-    for (const layer of passage.layers) {
+    // The book's own words are a short quotation; the plain words are ours.
+    for (const layer of passage.layers.filter((l) => l.key !== PLAIN_LAYER_KEY)) {
       assert.equal(layer.licence, "copyrighted_excerpt", passage.key);
       assert.ok(layer.content && layer.content.length <= COPYRIGHT_EXCERPT_MAX_CHARS, passage.key);
     }

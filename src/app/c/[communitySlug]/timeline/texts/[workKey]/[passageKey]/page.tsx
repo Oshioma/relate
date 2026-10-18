@@ -15,6 +15,7 @@ import {
 } from "@/lib/data/timeline-texts";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { chronologyLabel, evidenceLayerLabel } from "@/lib/timeline/taxonomy";
+import { OUR_TRANSLATION_LAYER_KEY } from "@/lib/timeline/texts/corpus/plain";
 import { workForPassageKey } from "@/lib/timeline/texts/inventory";
 import { comparePath, passagePath, themePath, workPath } from "@/lib/timeline/texts/paths";
 import { breadcrumb, neighbours } from "@/lib/timeline/texts/reading";
@@ -332,7 +333,7 @@ function Layer({ layer, source, original }: { layer: TimelineTextLayer; source: 
     <article className={cn("rounded-xl border bg-card p-4", original ? "border-accent/40" : "border-border")}>
       <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {evidenceLayerLabel(layer.layer)}
+          {layer.import_key === OUR_TRANSLATION_LAYER_KEY ? "Our translation" : evidenceLayerLabel(layer.layer)}
           {layer.language ? ` · ${layer.language}` : ""}
           {layer.viewpoint ? ` · ${chronologyLabel(layer.viewpoint)}` : ""}
         </h2>
