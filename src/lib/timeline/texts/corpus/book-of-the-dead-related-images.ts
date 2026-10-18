@@ -93,6 +93,17 @@ export const BD_RELATED_IMAGES: Placed[] = [
     verificationStatus: "unverified",
   },
   {
+    key: "bd-hunefer-sheet-4-funeral-procession",
+    chapter: "1",
+    ...HUNEFER,
+    accessionNumber: "EA 9901,4",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Book_of_the_Dead_of_Hunefer_sheet_4.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Book_of_the_Dead_of_Hunefer_sheet_4.jpg",
+    caption:
+      "The same chapter in another papyrus: sheet 4 of the Book of the Dead of Hunefer, which the British Museum's description gives as Spell 1. Across the top men and oxen drag Hunefer's mummy in its shrine on a sledge, followed by mourners and men with burial goods; the chapter's columns fill the sheet below.",
+    identificationStatus: "secure",
+  },
+  {
     key: "bd-hunefer-sheet-5-opening-of-the-mouth",
     chapter: "23",
     ...HUNEFER,
@@ -187,21 +198,6 @@ export const BD_RELATED_IMAGES: Placed[] = [
     shows: "manuscript",
     identificationStatus: "secure",
     verificationStatus: "unverified",
-  },
-  {
-    key: "bd-nefertari-senet-met-facsimile",
-    chapter: "17",
-    ...MET,
-    accessionNumber: "30.4.145",
-    url: "https://upload.wikimedia.org/wikipedia/commons/8/85/Queen_Nefertari_Playing_Senet_MET_DT11770.jpg",
-    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Queen_Nefertari_Playing_Senet_MET_DT11770.jpg",
-    objectDate: "Original: Nineteenth Dynasty, reign of Ramesses II, c. 1279–1213 BCE",
-    imageDate: "Twentieth-century facsimile painting",
-    caption:
-      "The same scene on a tomb wall: a facsimile, made for the Metropolitan Museum, of Queen Nefertari seated at the senet board in her tomb in the Valley of the Queens (QV 66) — the game named in Chapter XVII's title, which the chapter's vignette shows.",
-    creator: "Facsimile painted for the Metropolitan Museum's Egyptian Expedition (Graphic Section)",
-    shows: "later_artwork",
-    identificationStatus: "secure",
   },
   {
     key: "bd-sennedjem-cat-and-serpent-met-facsimile",
@@ -694,6 +690,35 @@ export const BD_RELATED_IMAGES: Placed[] = [
     licenceStatus: "open",
     shows: "manuscript",
     identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "bd-ani-ch186-hathor-facsimile",
+    chapter: "186",
+    ...ANI_FACSIMILE,
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/58/BD_Hathor_Mistress_of_the_West.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:BD_Hathor_Mistress_of_the_West.jpg",
+    caption:
+      "Detail of the last vignette in Budge's 1890 facsimile of the Papyrus of Ani: Hathor, Mistress of the West, as a cow with horns, sun disk and menat necklace, coming out of the western mountain through papyrus, with a tomb chapel at the lower right — the goddess the hymn of Chapter CLXXXVI addresses.",
+    licence: "Public domain (PD-1923; Public Domain Mark)",
+    identificationStatus: "secure",
+  },
+  {
+    key: "bd-ani-ch92-budge-1914",
+    chapter: "92",
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a6/The_literature_of_the_ancient_Egyptians_%281914%29_%2814596009210%29.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:The_literature_of_the_ancient_Egyptians_(1914)_(14596009210).jpg",
+    imageDate: "1914 (printed illustration)",
+    caption:
+      "UNVERIFIED — A black-and-white plate from Budge's The Literature of the Ancient Egyptians (1914), filed on Commons under the Papyrus of Ani: two men in white kilts stand at either side of an open doorway, a bird flying above it, over columns of hieroglyphs. It is placed here as the vignette of opening the tomb to the soul and shadow, which has not been confirmed.",
+    whatIsUnverified:
+      "That this plate reproduces the Papyrus of Ani's vignette to Chapter XCII; neither the Commons page nor the book caption seen confirms the chapter.",
+    creator: "Illustration in E. A. Wallis Budge, The Literature of the Ancient Egyptians (London, 1914)",
+    credit: "Internet Archive Book Images (copy at the University of California), via Flickr and Wikimedia Commons",
+    licence: "No known copyright restrictions (Flickr Commons)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
     verificationStatus: "unverified",
   },
   {
