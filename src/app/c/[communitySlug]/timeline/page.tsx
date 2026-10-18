@@ -55,6 +55,10 @@ import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
 import { SACRED_TREES_ANCHOR_SLUG } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_ANCHOR_SLUG } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 import { MOORS_ANCHOR_SLUG } from "@/lib/timeline/moors-origins-seed";
+import { BENIN_DEEP_PAST_ANCHOR_SLUG } from "@/lib/timeline/benin-deep-past-seed";
+import { BENIN_DAHOMEY_ANCHOR_SLUG } from "@/lib/timeline/benin-dahomey-seed";
+import { BENIN_VODUN_ANCHOR_SLUG } from "@/lib/timeline/benin-vodun-seed";
+import { BENIN_ATLANTIC_ANCHOR_SLUG } from "@/lib/timeline/benin-atlantic-seed";
 import { SERPENT_KUNDALINI_ANCHOR_SLUG } from "@/lib/timeline/serpent-kundalini-seed";
 import { HORUS_CLAIMS_ANCHOR_SLUG } from "@/lib/timeline/horus-claims-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
@@ -161,6 +165,10 @@ export default async function TimelinePage({
     hasSacredTrees,
     hasOkomilo,
     hasMoorsOrigins,
+    hasBeninDeepPast,
+    hasBeninDahomey,
+    hasBeninVodun,
+    hasBeninAtlantic,
     hasSerpentKundalini,
     hasHorusClaims,
     hannibalNeedsPictures,
@@ -224,6 +232,10 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, SACRED_TREES_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, OKOMILO_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, MOORS_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DEEP_PAST_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DAHOMEY_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_VODUN_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, BENIN_ATLANTIC_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SERPENT_KUNDALINI_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, HORUS_CLAIMS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
@@ -315,6 +327,10 @@ export default async function TimelinePage({
         hasSacredTrees={hasSacredTrees}
         hasOkomilo={hasOkomilo}
         hasMoorsOrigins={hasMoorsOrigins}
+        hasBeninDeepPast={hasBeninDeepPast}
+        hasBeninDahomey={hasBeninDahomey}
+        hasBeninVodun={hasBeninVodun}
+        hasBeninAtlantic={hasBeninAtlantic}
         hasSerpentKundalini={hasSerpentKundalini}
         hasHorusClaims={hasHorusClaims}
         hannibalNeedsPictures={hannibalNeedsPictures}
