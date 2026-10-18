@@ -26,6 +26,7 @@
 
 import type { CorpusImage, CorpusLayer, CorpusLink, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { ASCLEPIUS_RELATED_IMAGES } from "./asclepius-related-images";
 import { ASCLEPIUS_SECTIONS } from "./asclepius-text";
 
 const PREFIX = "herm.ascl";
@@ -551,6 +552,7 @@ const IMAGES: Placed[] = [
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...ASCLEPIUS_RELATED_IMAGES,
 ];
 
 function imagesFor(test: (image: Placed) => boolean): CorpusImage[] | undefined {

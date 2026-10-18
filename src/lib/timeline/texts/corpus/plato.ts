@@ -14,6 +14,7 @@ import type { SeedSource } from "../../seed-types";
 import type { CorpusImage, CorpusLink, CorpusManuscript, CorpusPassage, CorpusPassageDate, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
 import { CRITIAS_SECTIONS } from "./plato-critias-text";
+import { PLATO_RELATED_IMAGES } from "./plato-related-images";
 import { TIMAEUS_SECTIONS } from "./plato-timaeus-text";
 
 type SectionRow = [string, string, string | null, string | null];
@@ -195,6 +196,7 @@ const PLATO_IMAGES: PlatoImage[] = [
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...PLATO_RELATED_IMAGES,
 ];
 
 const PLATO_LINKS: CorpusLink[] = [

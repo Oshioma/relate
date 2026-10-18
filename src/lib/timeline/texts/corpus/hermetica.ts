@@ -15,6 +15,7 @@
 
 import type { CorpusImage, CorpusLink, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { HERMETICA_RELATED_IMAGES } from "./hermetica-related-images";
 import { HERMETICA_SECTIONS } from "./hermetica-text";
 
 const PREFIX = "herm.ch";
@@ -375,6 +376,7 @@ const IMAGES: (CorpusImage & { manuscriptKey?: string; passageKey?: string })[] 
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...HERMETICA_RELATED_IMAGES,
 ];
 
 const LINKS: CorpusLink[] = [
@@ -474,6 +476,7 @@ function buildPassages(): CorpusPassage[] {
           ]
         : [],
       themes: t.themes.map(([themeKey, note]) => ({ themeKey, note })),
+      images: imagesFor(key),
     });
     if (whole) continue;
 
