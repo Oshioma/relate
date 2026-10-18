@@ -238,6 +238,33 @@ test("the Asclepius has Mead's 41 chapters, his English in full, no Latin it can
   assert.notEqual(deriveCompleteness(work, { importedUnits: 41, verifiedUnits: 0 }), "verified_against_edition");
 });
 
+test("the Gospel of Thomas has its prologue and 114 sayings, cites the Coptic and every English translation, and joins the existing event", () => {
+  const file = corpusFor("gnostic.gospel-of-thomas")!;
+  const passages = file.passages;
+  const sayings = passages.filter((p) => p.divisionKind === "saying").map((p) => p.key);
+  assert.deepEqual(sayings, Array.from({ length: 114 }, (_, i) => `gnostic.thom.${i + 1}`));
+  assert.ok(passages.some((p) => p.key === "gnostic.thom.prologue"));
+  assert.ok(passages.some((p) => p.key === "gnostic.thom.title"));
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      // No Coptic and no modern translation of it is reproduced.
+      if (layer.key === "cop-nhc-ii") assert.equal(layer.content, undefined, passage.key);
+      if (layer.licence === "copyrighted_reference") assert.equal(layer.content, undefined, passage.key);
+    }
+  }
+  const versions = passages.filter((p) => p.divisionKind === "version").map((p) => p.key);
+  assert.deepEqual(versions, ["gnostic.thom.poxy654", "gnostic.thom.poxy1", "gnostic.thom.poxy655"]);
+  // Every Greek section is linked to the Coptic it parallels.
+  const greek = passages.filter((p) => p.parentKey && versions.includes(p.parentKey)).map((p) => p.key);
+  for (const key of greek) assert.ok(file.links!.some((l) => l.from === key), key);
+  assert.match(passages.find((p) => p.key === "gnostic.thom.poxy1.logion-7")!.layers[0].content!, /^Λέγει Ἰησοῦς, πόλις/);
+  assert.ok(file.links!.some((l) => l.from === "gnostic.thom.poxy1.logion-5" && l.to === "gnostic.thom.77"));
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.gospel-of-thomas")!;
+  assert.equal(work.inventoryVerified, false);
+  assert.ok(work.anchor && "existingSlug" in work.anchor && work.anchor.existingSlug === "gospel-of-thomas");
+});
+
 test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);
