@@ -11,9 +11,11 @@ interface NavLinkProps {
   children: ReactNode;
   exact?: boolean;
   className?: string;
+  // A small marker after the label (e.g. NEW), pushed to the row's end.
+  badge?: ReactNode;
 }
 
-export function NavLink({ href, icon, children, exact = false, className }: NavLinkProps) {
+export function NavLink({ href, icon, children, exact = false, className, badge }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
 
@@ -35,6 +37,7 @@ export function NavLink({ href, icon, children, exact = false, className }: NavL
     >
       {icon}
       <span className="truncate">{children}</span>
+      {badge && <span className="ml-auto shrink-0">{badge}</span>}
     </Link>
   );
 }

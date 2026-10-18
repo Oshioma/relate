@@ -174,9 +174,438 @@ export const SERPENT_KUNDALINI_SOURCES: SeedSource[] = [
       "says, whether the entwined-serpent motif is attested elsewhere in Mesopotamian art, and what " +
       "Ningishzida's role in the religion actually was.",
   },
+  {
+    key: "hatley_kundalini_2016",
+    title: "Kuṇḍalinī",
+    author: "Shaman Hatley",
+    workTitle: "Encyclopedia of Indian Religions",
+    reference: "Entry prepared for Encyclopedia of Indian Religions, ed. Arvind Sharma; early history section",
+    sourceType: "encyclopedia",
+    publishedYear: 2016,
+    notes:
+      "READ FOR THE EARLY-HISTORY CLAIM. Hatley states that kuṇḍalinī first comes into evidence in circa " +
+      "sixth-to-eighth-century scriptures of Tantric Śaivism, and calls Sārdhatriśatikālottara 12.1–2 a " +
+      "potentially very early reference. He does NOT claim in this entry that this passage is demonstrably " +
+      "the single earliest occurrence. That distinction is preserved here.",
+  },
+  {
+    key: "williams_cosmogenesis_2023",
+    title: "Cosmogenesis and Phonematic Emanation",
+    author: "Ben Williams",
+    workTitle: "The Oxford Handbook of Tantric Studies",
+    reference: "Oxford University Press, 2023, note 37; Sārdhatriśatikālottara 12.1–3, 12.5–6ab",
+    sourceType: "academic_book",
+    publishedYear: 2023,
+    notes:
+      "READ FOR THE PASSAGE. Williams prints the Sanskrit of Sārdhatriśatikālottara 12.1–3 and 12.5–6ab " +
+      "and supplies an English translation. Verses 12.1–2 name ādyā kuṇḍalinī, place her in the heart, " +
+      "describe a sprout-like form, and instruct visualization of flowing amṛta. Clarifications in brackets " +
+      "are explicitly supplied from Rāmakaṇṭha's commentary.",
+  },
+  {
+    key: "westoby_body_2024",
+    title: "The body in early haṭha yoga",
+    author: "Ruth Westoby",
+    publisher: "SOAS University of London",
+    reference: "PhD thesis, 2024; genealogy of Kuṇḍalinī in Śaiva sources",
+    sourceType: "academic_book",
+    publishedYear: 2024,
+    notes:
+      "READ FOR CHRONOLOGICAL CONTEXT. Westoby describes the Sārdhatriśatikālottara as sixth-to-seventh " +
+      "century and says it contains an early reference to kuṇḍalinī. This supports an approximate period " +
+      "for the textual witness, not a precise composition year and not proof that no earlier occurrence existed.",
+  },
+  {
+    key: "bang_tantrasadbhava_2022",
+    title: "Selected Chapters from the Tantrasadbhāva",
+    author: "Junglan Bang",
+    publisher: "Universität Hamburg",
+    reference: "PhD dissertation, 2022; Tantrasadbhāva chapter 1, especially 1.252cd",
+    url: "https://ediss.sub.uni-hamburg.de/bitstream/ediss/9642/1/Dissertation_Bang_TaSa.pdf",
+    sourceType: "academic_book",
+    publishedYear: 2022,
+    notes:
+      "READ FOR THE PRIMARY-TEXT READING. Bang's critical study states that the yogin awakens Śakti in " +
+      "the form of a sleeping serpent, Kuṇḍalī, and cites Tantrasadbhāva 1.252cd directly: nābhisthā " +
+      "kuṇḍalī jñeyā prasuptabhujagākṛtiḥ. Bang contrasts early Saiddhāntika heart-location material with " +
+      "the Tantrasadbhāva's belly/navel location.",
+  },
+  {
+    key: "westoby_snake_woman_2024",
+    title: "Kuṇḍalinī in the Haṭha sources: snake woman (uragāṅganā)",
+    author: "Ruth Westoby",
+    publisher: "SOAS University of London",
+    reference: "The body in early haṭha yoga, PhD thesis, 2024; discussion of Tantrasadbhāva 1.56, 1.215 and 1.216–217",
+    url: "https://www.wisdomlib.org/hinduism/essay/the-body-in-early-hatha-yoga/d/doc1500797.html",
+    sourceType: "academic_book",
+    publishedYear: 2024,
+    notes:
+      "READ FOR THE HISTORICAL SYNTHESIS. Westoby dates the Tantrasadbhāva to the eighth century, reports " +
+      "1.56 as describing Kuṇḍalinī as curved (kuṭilākṛtiḥ), and 1.215 as Śakti in the heart in snake form. " +
+      "She reports Shaman Hatley's suggestion (2022:823) that this might be the first such snake-form " +
+      "description. Elsewhere in the thesis she identifies 1.216–217 as a sleeping-snake passage. The " +
+      "priority claim is therefore kept as a specialist suggestion, not promoted to certainty.",
+  },
+  {
+    key: "chandogya_8_6_6",
+    title: "Chāndogya Upaniṣad 8.6.6",
+    reference: "8.6.6; the 101 nāḍīs of the heart and the single upward route to the head",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE PASSAGE. The Sanskrit says there are one hundred and one nāḍīs of the heart; one " +
+      "extends to the head (mūrdhan), and going upward by it one reaches immortality (amṛtatvam). The verse " +
+      "does not itself name that channel Suṣumṇā, nor does it mention Kuṇḍalinī, Iḍā, Piṅgalā, cakras or a serpent.",
+  },
+  {
+    key: "katha_2_3_16",
+    title: "Kaṭha Upaniṣad 2.3.16",
+    reference: "2.3.16; parallel 101-nāḍī formula",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE PASSAGE. The verse preserves the same core formula: one hundred and one nāḍīs of the " +
+      "heart, one reaching the head, upward movement through it, and immortality. This is strong evidence " +
+      "for an early channel-and-ascent precursor, but the verse itself does not call the channel Suṣumṇā or " +
+      "describe a rising serpent power.",
+  },
+  {
+    key: "sankara_katha_2_3_16",
+    title: "Śaṅkara's commentary on Kaṭha Upaniṣad 2.3.16",
+    author: "Śaṅkara",
+    reference: "Commentary to Kaṭha Upaniṣad 2.3.16; later identification of the upward channel as suṣumṇā",
+    sourceType: "religious_text",
+    notes:
+      "READ FOR THE INTERPRETIVE LAYER. The commentary identifies the one upward nāḍī as suṣumṇā. This is " +
+      "kept separate from the older verse because importing the commentary's name into the Upaniṣadic text " +
+      "would erase the chronology the timeline is trying to show.",
+  },
+  {
+    key: "mallinson_goraksasataka_2011",
+    title: "The Original Gorakṣaśataka",
+    author: "James Mallinson",
+    workTitle: "Yoga in Practice",
+    publisher: "Princeton University Press",
+    reference: "2011, pp. 257–272; Sanskrit witness discussed alongside Mallinson's translation and textual study",
+    sourceType: "academic_book",
+    publishedYear: 2011,
+    notes:
+      "READ FOR THE TEXTUAL-HISTORICAL CLAIM. Mallinson's study presents the original Gorakṣaśataka as an " +
+      "early source for Haṭhayoga techniques and Kuṇḍalinī practice. The text names iḍā, piṅgalā and suṣumṇā, " +
+      "locates them left, right and centre, and describes awakened Kuṇḍalī rising through suṣumṇā. Dating of " +
+      "the text is not exact; later scholarship treats its core as medieval, around the thirteenth/fourteenth century.",
+  },
+  {
+    key: "gretil_goraksasataka",
+    title: "Gorakṣaśataka Sanskrit e-text",
+    publisher: "Göttingen Register of Electronic Texts in Indian Languages, SUB Göttingen",
+    reference: "GorS 18, 20, 23, 30–31; based on Kuvalayananda and Shukla's critical edition",
+    sourceType: "historical_document",
+    notes:
+      "READ FOR THE SANSKRIT PASSAGES. GorS 18 names iḍā, piṅgalā and suṣumṇā; GorS 20 places iḍā on the " +
+      "left, piṅgalā on the right and suṣumṇā in the middle; GorS 23 associates the triad with moon, sun and " +
+      "fire; GorS 30–31 describes coiled Kuṇḍalī-śakti and her upward movement through suṣumṇā after awakening.",
+  },
+  {
+    key: "westoby_goraksasataka_date_2024",
+    title: "The body in early haṭha yoga",
+    author: "Ruth Westoby",
+    publisher: "SOAS University of London",
+    reference: "PhD thesis, 2024; discussion of the Gorakṣaśataka and Vivekamārtaṇḍa",
+    sourceType: "academic_book",
+    publishedYear: 2024,
+    notes:
+      "READ FOR DATING CAUTION. Westoby reports Mallinson's tentative dating of the central core of the " +
+      "Gorakṣaśataka to around 1400 and stresses the manuscript and recension problems. This record therefore " +
+      "uses a broad medieval range rather than presenting an exact composition year.",
+  },
 ];
 
 export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
+  {
+    slug: "goraksasataka-ida-pingala-sushumna-kundalini",
+    title: "Iḍā, Piṅgalā and Suṣumṇā become an explicit Kundalini route",
+    summary:
+      "The medieval Gorakṣaśataka explicitly names Iḍā, Piṅgalā and Suṣumṇā, places them left, right and centre, and describes awakened Kuṇḍalī rising through Suṣumṇā.",
+    description:
+      "THE NAMED-CHANNEL STAGE. Gorakṣaśataka 18 names iḍā, piṅgalā and suṣumṇā among the principal nāḍīs. " +
+      "Verse 20 places iḍā on the left, piṅgalā on the right and suṣumṇā in the middle; verse 23 associates " +
+      "the three with moon, sun and fire. Verses 30–31 then describe Kuṇḍalī-śakti as coiled and, once " +
+      "awakened, moving upward through suṣumṇā.\n\n" +
+      "WHY THIS IS A DIFFERENT RECORD FROM THE UPANIṢADIC PRECURSOR. Chāndogya 8.6.6 and Kaṭha 2.3.16 " +
+      "already supplied an unnamed privileged upward channel from the heart to the head. Here the channels " +
+      "are explicitly named and differentiated, and Kuṇḍalī's ascent is explicitly routed through suṣumṇā.\n\n" +
+      "WHAT THIS DOES NOT CLAIM. The verses do not by themselves establish that the familiar modern image " +
+      "of Iḍā and Piṅgalā repeatedly crossing around Suṣumṇā like a caduceus or DNA double helix was intended. " +
+      "Named left/right/central channels are direct textual evidence; the modern graphic geometry requires " +
+      "its own source history.",
+    category: "religion",
+    subcategory: "Haṭhayoga",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "explicit_kundalini",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.subtleBody,
+      SERPENT_THREADS.ascent,
+      SERPENT_THREADS.kundalini,
+      SERPENT_THREADS.yoga,
+      "nadi",
+      "ida",
+      "pingala",
+      "sushumna",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "mallinson_goraksasataka_2011",
+        citations: [
+          {
+            sourceKey: "gretil_goraksasataka",
+            relation: "supports",
+            note:
+              "Sanskrit witness: GorS 18, 20 and 23 name and position the triad; GorS 30–31 describes awakened Kuṇḍalī rising through suṣumṇā.",
+          },
+          {
+            sourceKey: "westoby_goraksasataka_date_2024",
+            relation: "context",
+            note:
+              "Dating remains approximate: Westoby reports Mallinson's tentative dating of the central core to around 1400.",
+          },
+        ],
+        startYear: 1200,
+        endYear: 1400,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The medieval textual layer represented by the Gorakṣaśataka",
+        originalDateText: "medieval; approximately thirteenth to fourteenth century, with the central core tentatively placed around 1400",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "The dating is deliberately broad because the textual and manuscript history is difficult. The " +
+          "doctrinal content is direct: the Sanskrit names iḍā, piṅgalā and suṣumṇā, locates them left/right/centre, " +
+          "and describes awakened Kuṇḍalī moving upward through suṣumṇā.",
+        notes:
+          "KEY PASSAGES: GorS 18 iḍā ca piṅgalā caiva suṣumṇā ca tṛtīyakā; GorS 20 iḍā vāme ... piṅgalā " +
+          "dakṣiṇe ... suṣumṇā madhya-deśe; GorS 31 vrajaty ūrdhvaṃ suṣumṇayā. This fills the named-channel " +
+          "evidence without projecting later double-helix imagery backward.",
+      },
+    ],
+    media: [],
+  },
+
+  {
+    slug: "upanishadic-heart-nadis-upward-immortality",
+    title: "One heart-channel rises to the head",
+    summary:
+      "Chāndogya Upaniṣad 8.6.6 and Kaṭha Upaniṣad 2.3.16 describe 101 nāḍīs of the heart, one extending upward to the head; ascent by that route leads to immortality.",
+    description:
+      "EARLY PRECURSOR, NOT YET THE LATER KUNDALINI SYSTEM. Chāndogya Upaniṣad 8.6.6 says that the heart " +
+      "has one hundred and one nāḍīs, that one extends to the head, and that one going upward by it reaches " +
+      "immortality. Kaṭha Upaniṣad 2.3.16 preserves essentially the same formula.\n\n" +
+      "WHAT THIS ESTABLISHES. The text itself gives nāḍīs, a heart locus, a privileged upward route to the " +
+      "head, and immortality as its destination. These are genuine early components relevant to the later " +
+      "subtle-body ascent tradition.\n\n" +
+      "WHAT IT DOES NOT ESTABLISH. Neither verse names this channel Suṣumṇā or mentions Kuṇḍalinī, Iḍā, " +
+      "Piṅgalā, cakras, a base-of-spine locus or a serpent. Śaṅkara's later commentary on Kaṭha 2.3.16 " +
+      "identifies the upward channel as suṣumṇā; that is recorded as a later interpretive layer rather than " +
+      "silently inserted into the older verse.",
+    category: "religion",
+    subcategory: "Early Upaniṣads",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "historical_precursor",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.subtleBody,
+      SERPENT_THREADS.ascent,
+      SERPENT_THREADS.crown,
+      SERPENT_THREADS.immortality,
+      "nadi",
+      "heart",
+      "upanishads",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "chandogya_8_6_6",
+        citations: [
+          {
+            sourceKey: "katha_2_3_16",
+            relation: "supports",
+            note:
+              "Kaṭha Upaniṣad 2.3.16 preserves essentially the same 101-heart-nāḍī, upward-to-head, immortality formula.",
+          },
+          {
+            sourceKey: "sankara_katha_2_3_16",
+            relation: "context",
+            note:
+              "LATER INTERPRETATION: Śaṅkara names the privileged upward channel suṣumṇā; the underlying Upaniṣadic verse does not.",
+          },
+        ],
+        startYear: -700,
+        endYear: -300,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The early Upaniṣadic channel-and-upward-ascent textual layer",
+        originalDateText: "first millennium BCE; exact relative dating of the parallel passages remains debated",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "The date range positions the early Upaniṣadic textual layer broadly rather than pretending to " +
+          "a precise year. The evidential point of this record rests on the directly preserved wording of " +
+          "Chāndogya 8.6.6 and Kaṭha 2.3.16, not on assigning either verse an exact composition date.",
+        notes:
+          "DIRECT TEXTUAL FEATURES: hṛdayasya nāḍyaḥ (nāḍīs of the heart), one reaching mūrdhan (the head), " +
+          "ūrdhvam āyan (going upward), and amṛtatvam eti (reaches immortality). The verse does not itself " +
+          "supply the later name suṣumṇā.",
+      },
+    ],
+    media: [],
+  },
+
+  {
+    slug: "tantrasadbhava-sleeping-serpent-kundali",
+    title: "Kuṇḍalī takes the form of a sleeping serpent",
+    summary:
+      "The eighth-century Tantrasadbhāva is an early witness to explicitly serpentine Kuṇḍalī: its first chapter describes Śakti as curved and snake-shaped, and directly describes Kuṇḍalī at the navel as having the appearance of a sleeping serpent.",
+    description:
+      "TEXTUAL DEVELOPMENT. This record is deliberately later and more specific than the Sārdhatriśatikālottara heart-Kuṇḍalinī witness. Junglan Bang's critical study cites Tantrasadbhāva 1.252cd: " +
+      "'nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ' — Kuṇḍalī is located at the navel/belly and has the " +
+      "appearance of a sleeping serpent. Bang explains this in a practice in which the yogin first awakens " +
+      "Śakti in the form of a sleeping serpent.\n\n" +
+      "OTHER EARLY SERPENT LANGUAGE. Ruth Westoby reports 1.56 describing Kuṇḍalinī as curved " +
+      "(kuṭilākṛtiḥ), 1.215 describing Śakti in the heart in snake form, and 1.216–217 as a sleeping-snake " +
+      "passage. She reports Shaman Hatley's suggestion that the 1.215 material may be the first explicit " +
+      "snake-form description. That is preserved as a suggestion, not converted into a proven superlative.\n\n" +
+      "STATUS. This securely advances the chain from an early Kuṇḍalinī witness to explicit serpent and " +
+      "sleep/dormancy imagery. It still does not establish the complete later Haṭhayoga system of a serpent " +
+      "coiled at Mūlādhāra rising through Suṣumṇā and seven cakras.",
+    category: "religion",
+    subcategory: "Tantric Śaivism",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "explicit_kundalini",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.kundalini,
+      SERPENT_THREADS.subtleBody,
+      "tantric-shaivism",
+      "tantrasadbhava",
+      "sleeping-serpent",
+      "navel",
+      "shakti",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "westoby_snake_woman_2024",
+        citations: [
+          {
+            sourceKey: "bang_tantrasadbhava_2022",
+            relation: "supports",
+            note:
+              "Bang supplies the directly checkable Sanskrit at Tantrasadbhāva 1.252cd and explains it as Kuṇḍalī in sleeping-serpent form.",
+          },
+        ],
+        startYear: 700,
+        endYear: 799,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The Tantrasadbhāva witness to explicitly serpentine and sleeping Kuṇḍalī",
+        originalDateText: "eighth century",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "Westoby dates the Tantrasadbhāva to the eighth century and identifies its early serpent-form " +
+          "Kuṇḍalinī material. Bang's critical study supplies a directly checkable sleeping-serpent verse " +
+          "from chapter 1. The century is an approximate textual date, not a precise composition year.",
+        notes:
+          "DIRECT PASSAGE: Tantrasadbhāva 1.252cd: nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ. " +
+          "This establishes sleeping-serpent imagery and a navel/belly locus. Westoby separately reports " +
+          "1.215 as Śakti in the heart in snake form and Hatley's suggestion that it may be the first such " +
+          "description; that relative-priority question remains open.",
+      },
+    ],
+    media: [],
+  },
+
+  {
+    slug: "sardhatrisatikalottara-primordial-kundalini",
+    title: "A primordial Kuṇḍalinī in the heart",
+    summary:
+      "Sārdhatriśatikālottara 12.1–2 gives a very early textual witness to Kuṇḍalinī: primordial, associated with moon, fire and sun, situated in the heart in sprout-like form, with flowing amṛta.",
+    description:
+      "WHAT THE TEXT ACTUALLY SAYS. Sārdhatriśatikālottara 12.1 begins candrāgniravisaṃyuktā ādyā " +
+      "kuṇḍalinī tu yā and locates this kuṇḍalinī in the heart (hṛtpradeśe), in a sprout-like form " +
+      "(aṅkurākāravat). The following verse instructs visualization of flowing amṛta. Ben Williams prints " +
+      "the Sanskrit and translates this passage in The Oxford Handbook of Tantric Studies.\n\n" +
+      "WHY THIS MATTERS. This is not yet the familiar later picture of a sleeping serpent coiled at the " +
+      "base of the spine. Hatley calls 12.1–2 a potentially very early reference and places the first " +
+      "evidence for kuṇḍalinī generally in Tantric Śaiva scriptures of roughly the sixth to eighth centuries. " +
+      "Westoby treats this text as sixth-to-seventh century and likewise calls its kuṇḍalinī reference early.\n\n" +
+      "WHAT THIS RECORD DOES NOT CLAIM. It does not call 12.1–2 the proven first occurrence of the word. " +
+      "Hatley's wording is deliberately more cautious, and the relative chronology of early Śaiva tantras " +
+      "is not secure enough to turn 'potentially very early' into 'the earliest'. It also does not turn " +
+      "kuṇḍalinī into an explicit serpent here. The word/coiled-power question and the explicit-serpent " +
+      "question remain separate.",
+    category: "religion",
+    subcategory: "Tantric Śaivism",
+    eventType: "religious_account",
+    identificationStatus: "secure",
+    kundaliniRelation: "explicit_kundalini",
+    transmissionStatus: "not_applicable",
+    tags: [
+      SERPENT_THREADS.kundalini,
+      SERPENT_THREADS.subtleBody,
+      SERPENT_THREADS.immortality,
+      "tantric-shaivism",
+      "sardhatrisatikalottara",
+      "heart",
+      "amrta",
+    ],
+    civilisations: ["India"],
+    claims: [
+      {
+        sourceKey: "westoby_body_2024",
+        citations: [
+          {
+            sourceKey: "hatley_kundalini_2016",
+            relation: "context",
+            note:
+              "Hatley places the first evidence for kuṇḍalinī in circa sixth-to-eighth-century Tantric Śaiva scripture and calls this passage potentially very early, not securely first.",
+          },
+          {
+            sourceKey: "williams_cosmogenesis_2023",
+            relation: "supports",
+            note:
+              "Williams prints and translates Sārdhatriśatikālottara 12.1–2, directly establishing what the passage says.",
+          },
+        ],
+        startYear: 500,
+        endYear: 699,
+        datePrecision: "century",
+        isApproximate: true,
+        temporalClaimType: "estimated_range",
+        whatIsDated: "The Sārdhatriśatikālottara textual witness to ādyā kuṇḍalinī",
+        originalDateText: "sixth-to-seventh century",
+        datingMethod: "textual_interpretation",
+        chronology: "conventional",
+        evidence:
+          "Ruth Westoby (2024) describes the Sārdhatriśatikālottara as sixth-to-seventh century. This claim " +
+          "dates the textual witness only approximately. It does not assert a precise composition year or " +
+          "that this is the first use of kuṇḍalinī anywhere.",
+        notes:
+          "PASSAGE: Sārdhatriśatikālottara 12.1–2. Williams 2023 prints: " +
+          "'candrāgniravisaṃyuktā ādyā kuṇḍalinī tu yā | hṛtpradeśe tu sā jñeyā aṅkurākāravatsthitā ||' " +
+          "and continues with the instruction to contemplate flowing amṛta. Translation and Sanskrit are " +
+          "therefore directly sourced; priority remains explicitly open.",
+      },
+    ],
+    media: [],
+  },
+
   {
     slug: SERPENT_KUNDALINI_ANCHOR_SLUG,
     title: "The Pashupati seal: what is on it, and what has been read into it",
@@ -785,6 +1214,112 @@ export const SERPENT_KUNDALINI_EVENTS: SeedEvent[] = [
       },
     ],
   },
+
+  {
+    slug: "caduceus-kundalini-comparison",
+    title: "The caduceus: two serpents around a staff, and the later Kundalini comparison",
+    summary: "The Greek caduceus belongs first to Hermes. Its resemblance to later Iḍā–Piṅgalā–Suṣumṇā diagrams is retained here as a comparison, not silently converted into a historical connection.",
+    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. The ancient object-type and Greek tradition are real; the claim that its two serpents encode Iḍā and Piṅgalā and its staff Suṣumṇā requires a separately sourced history of interpretation. No transmission from Indian subtle-body doctrine is asserted here.",
+    category: "religion",
+    subcategory: "Ancient Greece",
+    eventType: "archaeological_interpretation",
+    identificationStatus: "secure",
+    kundaliniRelation: "cross_cultural_parallel",
+    transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, SERPENT_THREADS.subtleBody, "caduceus", "hermes", "greece"],
+    civilisations: ["Ancient Greece"],
+    people: ["Hermes"],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed identification of the caduceus with the three-channel Kundalini scheme", originalDateText: "Ancient equivalence not established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The visual comparison is retained because it is specific and recurrent. What is missing is an ancient text, specialist historical argument, or transmission chain identifying the Greek staff with Iḍā, Piṅgalā and Suṣumṇā.", notes: "OPEN: establish the earliest printed pairing and any specialist discussion." }],
+  },
+  {
+    slug: "asclepius-staff-kundalini-comparison",
+    title: "The Rod of Asclepius: healing serpent and the spinal-ascent comparison",
+    summary: "A single serpent around the healing staff of Asclepius is ancient Greek material. Reading it as Kundalini rising on the spine is kept as a later proposed comparison.",
+    description: "STATUS: RELATED / LATER INTERPRETATION. Keep the Greek healing symbolism and the modern spinal/Kundalini comparison on the same record, but do not merge them.",
+    category: "religion", subcategory: "Ancient Greece", eventType: "archaeological_interpretation",
+    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "asclepius", "healing", "greece"],
+    civilisations: ["Ancient Greece"], people: ["Asclepius"],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed spinal/Kundalini reading of the Rod of Asclepius", originalDateText: "No ancient bodily-energy equivalence established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The ancient healing emblem and the modern Kundalini comparison are separate propositions. This record preserves both without treating resemblance as descent.", notes: "OPEN: add the best museum object and the publication history of the modern comparison." }],
+  },
+  {
+    slug: "quetzalcoatl-kundalini-comparison",
+    title: "Quetzalcoatl and Kukulkan: feathered serpent, retained without forced equivalence",
+    summary: "Mesoamerican feathered-serpent traditions are retained beside Kundalini because modern comparisons exist; their indigenous meanings must remain primary.",
+    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. The feathered serpent is not labelled Kundalini by this record. Any claim of ascending inner energy, chakras or historical transmission needs its own claimant and evidence.",
+    category: "religion", subcategory: "Mesoamerica", eventType: "archaeological_interpretation",
+    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.ascent, "quetzalcoatl", "kukulkan", "mesoamerica"],
+    civilisations: ["Mesoamerica"], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed equivalence with Kundalini", originalDateText: "Not established in indigenous sources here", datingMethod: "textual_interpretation", chronology: "disputed", evidence: "The comparison is preserved for investigation. It must not overwrite specialist accounts of Quetzalcoatl/Kukulkan or imply Old World transmission without evidence.", notes: "OPEN: specialist Mesoamerican source plus earliest traceable Kundalini comparison." }],
+  },
+  {
+    slug: "nehushtan-kundalini-comparison",
+    title: "The bronze serpent and Nehushtan: healing pole versus Kundalini reading",
+    summary: "The Hebrew Bible's bronze serpent tradition is real; interpreting the pole as a spine and serpent as Kundalini is retained as a later claim requiring its own source.",
+    description: "STATUS: TEXT ATTESTED / KUNDALINI CONNECTION UNVERIFIED. Numbers 21 and 2 Kings 18:4 belong to the evidence chain for the Hebrew tradition. They do not themselves name chakras, nāḍīs or Kundalini.",
+    category: "religion", subcategory: "Hebrew Bible", eventType: "religious_account",
+    identificationStatus: "secure", kundaliniRelation: "speculative_esoteric", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "nehushtan", "bronze-serpent", "hebrew-bible"],
+    civilisations: ["Ancient Israel"], people: ["Moses", "Hezekiah"],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The Kundalini interpretation of the bronze serpent", originalDateText: "Later interpretation; ancient equivalence not established", datingMethod: "textual_interpretation", chronology: "disputed", evidence: "The underlying serpent-on-pole narrative and later destruction of Nehushtan can be sourced directly. The additional spine/Kundalini reading is a separate claim and remains unverified until a traceable interpreter is supplied.", notes: "OPEN: add scholarly Hebrew commentary and earliest printed Kundalini reading." }],
+  },
+  {
+    slug: "jormungandr-kundalini-comparison",
+    title: "Jörmungandr: the world serpent and the proposed inner-energy comparison",
+    summary: "The Norse world serpent is kept in the comparison set, but no bodily subtle-anatomy meaning is supplied by resemblance alone.",
+    description: "STATUS: RELATED / CROSS-CULTURAL PARALLEL. Jörmungandr's Norse textual role and any modern Kundalini interpretation are different evidence chains.",
+    category: "religion", subcategory: "Norse", eventType: "religious_account",
+    identificationStatus: "secure", kundaliniRelation: "cross_cultural_parallel", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, "jormungandr", "world-serpent", "norse"],
+    civilisations: ["Norse"], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The proposed Kundalini equivalence", originalDateText: "No specialist bodily-energy equivalence established here", datingMethod: "textual_interpretation", chronology: "disputed", evidence: "The comparison stays visible but is not promoted into a historical connection.", notes: "OPEN: primary Eddic passage, academic Norse source, and earliest traceable Kundalini comparison." }],
+  },
+  {
+    slug: "uraeus-kundalini-comparison",
+    title: "The Egyptian uraeus: forehead cobra and the brow/crown Kundalini reading",
+    summary: "The royal forehead cobra is securely Egyptian. Its modern interpretation as awakened Kundalini reaching the brow or crown is retained separately as a speculative reading.",
+    description: "STATUS: ANCIENT ICONOGRAPHY SECURE / KUNDALINI CONNECTION UNVERIFIED. Similar placement at the forehead is worth comparing; it is not itself evidence of shared subtle anatomy.",
+    category: "religion", subcategory: "Ancient Egypt", eventType: "archaeological_interpretation",
+    identificationStatus: "secure", kundaliniRelation: "speculative_esoteric", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.innerEye, SERPENT_THREADS.crown, "uraeus", "egypt"],
+    civilisations: ["Ancient Egypt"], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The claim that the uraeus depicts awakened Kundalini", originalDateText: "Later interpretation; not established by Egyptian evidence here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The forehead placement and serpent form are observable. The proposed inner-energy meaning needs Egyptological or historical evidence beyond visual correspondence.", notes: "OPEN: Egyptological source for uraeus meanings and first traceable Kundalini comparison." }],
+  },
+  {
+    slug: "djed-spine-kundalini-comparison",
+    title: "The djed pillar: stability symbol, spine comparison and Kundalini claim",
+    summary: "The Egyptian djed is retained because modern esoteric readings compare it with the spine or central channel; that anatomical/Kundalini identification is not assumed ancient.",
+    description: "STATUS: ANCIENT SYMBOL SECURE / SPINAL-KUNDALINI READING UNVERIFIED. Record the Egyptian meanings first, then name and date later interpreters.",
+    category: "religion", subcategory: "Ancient Egypt", eventType: "archaeological_interpretation",
+    identificationStatus: "secure", kundaliniRelation: "speculative_esoteric", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.subtleBody, SERPENT_THREADS.ascent, "djed", "spine", "egypt"],
+    civilisations: ["Ancient Egypt"], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The claim that the djed represents the spine or Kundalini central channel", originalDateText: "Later interpretation; ancient anatomical equivalence not established here", datingMethod: "stylistic_comparison", chronology: "disputed", evidence: "The comparison is retained explicitly so it can be sourced and tested rather than either repeated as fact or discarded.", notes: "OPEN: Egyptological history of the djed plus earliest spine/Kundalini reading." }],
+  },
+  {
+    slug: "double-serpent-dna-comparison",
+    title: "Double serpents and DNA: a modern resemblance claim, not ancient genetics",
+    summary: "Claims that ancient entwined-serpent imagery encoded the DNA double helix are retained as modern interpretation. Resemblance alone does not establish ancient knowledge of molecular genetics.",
+    description: "STATUS: MODERN SPECULATIVE COMPARISON. This belongs in the timeline because the claim is culturally influential and testable: identify who made it, when, which ancient image they used, and what evidence they offered.",
+    category: "history", subcategory: "Modern esotericism", eventType: "alternative",
+    identificationStatus: "secure", kundaliniRelation: "modern_development", transmissionStatus: "not_applicable",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.serpentStaff, "dna", "double-helix", "modern-esotericism"],
+    civilisations: [], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The emergence of the ancient-serpent-as-DNA claim", originalDateText: "Date not yet established", datingMethod: "historical_record", chronology: "disputed", evidence: "The modern claim is the historical object here. It should be dated from publications, not back-projected onto the ancient artefacts it compares.", notes: "OPEN: find earliest printed claimant, publication, page and image pairing." }],
+  },
+  {
+    slug: "primordial-serpent-energy-doctrine",
+    title: "One primordial serpent-energy doctrine: the universal-origin hypothesis",
+    summary: "The proposal that ancient serpent traditions descend from one lost worldwide teaching is kept as a hypothesis, including Atlantis or Lemuria variants when a source actually makes that claim.",
+    description: "STATUS: LATER INTERPRETATION / HYPOTHESIS. This record exists so the strongest version of the universal-serpent argument can be shown rather than implied. Each claimant must be named; each proposed transmission route must be sourced; resemblance by itself is not entered as transmission.",
+    category: "history", subcategory: "Comparative esotericism", eventType: "alternative",
+    identificationStatus: "secure", kundaliniRelation: "modern_development", transmissionStatus: "no_contact_known",
+    tags: [SERPENT_THREADS.serpent, SERPENT_THREADS.subtleBody, "universal-serpent", "atlantis", "lemuria", "comparative-esotericism"],
+    civilisations: [], people: [],
+    claims: [{ sourceKey: null, datePrecision: "year", isApproximate: false, temporalClaimType: "unknown", whatIsDated: "The universal-origin hypothesis itself", originalDateText: "No ancient cross-cultural statement established here", datingMethod: "historical_record", chronology: "disputed", evidence: "The dataset currently has ancient serpent traditions but no ancient source that groups them as manifestations of one bodily energy doctrine. The hypothesis remains visible while its genealogy is researched.", notes: "OPEN: identify earliest comparative-mythology and esoteric publications, including sourced Atlantis/Lemuria variants." }],
+  },
+
 ];
 
 // ---------------------------------------------------------------------------

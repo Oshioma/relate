@@ -48,6 +48,13 @@ export interface WizardState {
   mapLayers: string[];
   rationale: string[];
   spaces: WizardSpace[];
+  // The suggested cover picked in Customize (COMMUNITY_COVERS key), or "" to
+  // let the server choose the best match for the template.
+  coverKey: string;
+  // The feed's big headline (communities.tagline), set in Customize. Pre-filled
+  // from the template's first suggestion until the owner edits it themselves.
+  tagline: string;
+  taglineTouched: boolean;
 }
 
 export const INITIAL_WIZARD_STATE: WizardState = {
@@ -68,6 +75,9 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   mapLayers: [],
   rationale: [],
   spaces: [],
+  coverKey: "",
+  tagline: "",
+  taglineTouched: false,
 };
 
 let counter = 0;

@@ -1,20 +1,32 @@
 // POST /api/lessons/<id>/rewrite   { ageBand }
 //
-// Writes the same material again for a different age group. Every lesson keeps
-// the text it was built from, so this needs nothing from the teacher but a
-// choice of band — which is the feature that makes the library worth having in
-// a school: one text, one lesson per year group.
+// Adds another age level to a lesson. Every lesson keeps the text it was built
+// from, so this needs nothing from the teacher but a choice of band — which is
+// the feature that makes the library worth having in a school: one text, one
+// page, a level for each year group.
 //
-// The result is a new lesson, not a replacement: the point is usually to have
-// both.
+// The new level joins the lesson's family and shows on the same page. When it
+// is older than levels that already exist, the writer is handed those younger
+// levels and told to pick up where they stop rather than repeat them — so a
+// reader can skim the earlier levels and carry on down as far as they like.
+//
+// The Adult level goes beyond the source; that is decided by the band, not
+// asked for, so the client cannot turn it on for a child band or off for adults.
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { streamLesson } from "@/lib/school/lesson-stream";
-import { getLesson } from "@/lib/data/lessons";
-import { MIN_SOURCE_CHARS, canGoBeyondSource, isAgeBandKey } from "@/lib/school/lesson-types";
+import { getLesson, getLessonFamily } from "@/lib/data/lessons";
+import {
+  MIN_SOURCE_CHARS,
+  ageBandLabel,
+  ageBandRank,
+  canGoBeyondSource,
+  isAgeBandKey,
+} from "@/lib/school/lesson-types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -35,18 +47,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   const requestedBand = (body as { ageBand?: unknown }).ageBand;
   if (typeof requestedBand !== "string" || !isAgeBandKey(requestedBand)) {
     return NextResponse.json({ error: "Unknown age band." }, { status: 400, headers: NO_STORE });
-  }
-
-  // "Go deeper" leaves the source behind, so it is checked here rather than
-  // trusted from the client: a request naming a child band is refused outright
-  // rather than quietly downgraded, because silently ignoring the flag would
-  // hand back a lesson that is not the one that was asked for.
-  const beyondSource = (body as { beyondSource?: unknown }).beyondSource === true;
-  if (beyondSource && !canGoBeyondSource(requestedBand)) {
-    return NextResponse.json(
-      { error: "Going beyond the source is only available on an adult age group." },
-      { status: 400, headers: NO_STORE }
-    );
   }
 
   // RLS scopes this to lessons in spaces the caller can see.
@@ -72,21 +72,38 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     );
   }
 
-  // Rewriting to the band a lesson is already in produces a duplicate — unless
-  // this is "go deeper", which is a genuinely different lesson from the same
-  // material and is allowed to share its age.
-  if (lesson.age_band === requestedBand && !beyondSource) {
+  // One level per age on a page. A second one at the same age is the
+  // near-duplicate this whole arrangement exists to get rid of; to redo a level,
+  // delete it and add it again.
+  const family = await getLessonFamily(supabase, lesson);
+  if (family.some((level) => level.age_band === requestedBand)) {
     return NextResponse.json(
-      { error: "That's the age group this lesson is already written for." },
+      {
+        error: `This lesson already has a level for ${ageBandLabel(requestedBand)}. Delete that level first if you want it written again.`,
+      },
       { status: 400, headers: NO_STORE }
     );
   }
 
   // A rewrite is a full model call, so it counts against the same quota.
+  // The community's free monthly AI allowance, unless it is exempt or
+  // subscribed. Checked before the daily quota so a refusal here doesn't
+  // also use up one of the person's daily lessons.
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+  if (!allowance.allowed) {
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+  }
+
   const quota = await consumeLessonQuota(supabase, auth.userId);
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.message }, { status: 429, headers: NO_STORE });
   }
+
+  // Everything younger than the new level, youngest first — what its reader
+  // has already been through on the way down the page.
+  const earlierLevels = family
+    .filter((level) => ageBandRank(level.age_band) < ageBandRank(requestedBand))
+    .map((level) => ({ ageBand: level.age_band, lesson: level.lesson }));
 
   return streamLesson({
     supabase,
@@ -95,11 +112,17 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     userId: auth.userId,
     sourceText,
     ageBand: requestedBand,
-    beyondSource,
-    // A rewrite is the same material for a different reader, so it came from
-    // wherever the original did. Losing the reference on a rewrite would make
-    // provenance depend on which copy somebody happened to open.
+    beyondSource: canGoBeyondSource(requestedBand),
+    familyId: lesson.family_id,
+    earlierLevels,
+    // Another level of the same material, so it came from wherever the
+    // original did. Losing the reference would make provenance depend on
+    // which level somebody happened to open.
     sourceUrl: lesson.source_url,
     sourceTitle: lesson.source_title,
+    videoUrl: lesson.video_url,
+    // Already vouched for when the first level was written; possibly another
+    // teacher's upload, which is fine — it is the same lesson's recording.
+    mediaPath: lesson.media_path,
   });
 }

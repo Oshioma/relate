@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
+import Link from "next/link";
+import { BookOpenText, Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
@@ -26,8 +27,10 @@ import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
+import { workPath } from "@/lib/timeline/texts/paths";
 import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
-import { deleteTimelineEvent, reviewTimelineEvent } from "./actions";
+import { deleteTimelineEvent, reviewTimelineEvent, setEventProminence } from "./actions";
+import { PROMINENCE_LABELS, type Prominence } from "@/lib/timeline/prominence";
 import {
   eventTypeHint,
   eventTypeLabel,
@@ -82,12 +85,15 @@ export function EventDetail({
   linkedRecords = [],
   passages = [],
   genealogies = [],
+  archiveWorks = [],
   tracks = [],
   userId = null,
   communitySlug,
   canContribute,
   isStaff,
   onShowContext,
+  onSelectTag,
+  activeTag = "",
   onClose,
   onSaved,
 }: {
@@ -123,6 +129,12 @@ export function EventDetail({
    * record, and the panel draws nothing when it is.
    */
   genealogies?: TimelineGenealogyWithLinks[];
+  /**
+   * Texts in the archive whose marker this is. The text sits on the timeline
+   * once, at its documented dates; its passages open from here rather than
+   * crowding the strip.
+   */
+  archiveWorks?: { workKey: string; title: string }[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -130,6 +142,10 @@ export function EventDetail({
   isStaff: boolean;
   /** Jump the timeline to this event's own stretch of time. Absent on the standalone page, which links instead. */
   onShowContext?: (from: number, to: number) => void;
+  /** Filter the timeline to one of this record's tags. Absent on the standalone page, which links instead. */
+  onSelectTag?: (tag: string) => void;
+  /** The tag the timeline is filtered to, so its chip can show as on. */
+  activeTag?: string;
   onClose?: () => void;
   /** An edit was saved. The standalone page needs nothing; the timeline reloads. */
   onSaved?: () => void;
@@ -175,6 +191,22 @@ export function EventDetail({
       const result = await reviewTimelineEvent(event.id, communitySlug, decision);
       if (result && "error" in result) setError(result.error);
       else router.refresh();
+    });
+  }
+
+  // Held locally so the control answers at once; the strip picks the new
+  // value up the next time its window loads.
+  const [prominence, setProminence] = useState<Prominence | null>(event.prominence ?? null);
+  function changeProminence(next: Prominence | null) {
+    setError(null);
+    const previous = prominence;
+    setProminence(next);
+    startTransition(async () => {
+      const result = await setEventProminence(event.id, communitySlug, next);
+      if (result && "error" in result) {
+        setProminence(previous);
+        setError(result.error);
+      } else router.refresh();
     });
   }
 
@@ -479,13 +511,43 @@ export function EventDetail({
         </div>
       )}
 
+      {/* A TAG IS A WAY IN TO EVERYTHING FILED WITH IT. Pressing one filters
+          the timeline to the records that carry it and frames all of them; on
+          the standalone page it is a link to the same view. The record being
+          read stays selected either way, so the reader does not lose their
+          place. */}
       {event.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
-          {event.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-              #{tag}
-            </span>
-          ))}
+          {event.tags.map((tag) => {
+            const chipClass = cn(
+              "rounded-full px-2.5 py-1 text-xs transition-colors",
+              tag === activeTag
+                ? "bg-foreground text-background"
+                : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+            );
+            const title = `Show every record tagged ${tag}`;
+            return onSelectTag ? (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onSelectTag(tag)}
+                aria-pressed={tag === activeTag}
+                title={title}
+                className={chipClass}
+              >
+                #{tag}
+              </button>
+            ) : (
+              <a
+                key={tag}
+                href={`/c/${communitySlug}/timeline?tag=${encodeURIComponent(tag)}&focus=${encodeURIComponent(event.slug)}`}
+                title={title}
+                className={chipClass}
+              >
+                #{tag}
+              </a>
+            );
+          })}
         </div>
       )}
 
@@ -622,6 +684,26 @@ export function EventDetail({
           says. Placed after the dates and before the relationships: the dates
           are what the page is FOR, and this is the answer to the question a
           reader asks next. Draws nothing when the record has no passages. */}
+      {archiveWorks.length > 0 && (
+        <div className="mt-8 rounded-xl border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground">
+            The full text is in the archive, passage by passage, with its manuscripts and translations.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {archiveWorks.map((work) => (
+              <Link
+                key={work.workKey}
+                href={workPath(communitySlug, work.workKey)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground"
+              >
+                <BookOpenText className="h-4 w-4" />
+                Read the original text{archiveWorks.length > 1 ? `: ${work.title}` : ""}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <EvidenceChainPanel passages={passages} sourcesById={sourcesById} />
 
       {/* And the chain that runs the other way: forwards, through whoever
@@ -664,6 +746,33 @@ export function EventDetail({
               <Trash2 className="h-4 w-4" /> Delete event
             </Button>
           )}
+        </div>
+      )}
+
+      {/* WHAT SHOWS WHEN ZOOMED OUT. Semantic zoom shows the most important
+          records that fit; "Automatic" scores this one from its pictures,
+          dates and sources, and the three levels override that. Staff only:
+          it decides what every reader sees first. */}
+      {isStaff && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">When zoomed out, treat as</span>
+          <div className="flex items-center gap-0.5 rounded-full bg-muted p-0.5" role="group" aria-label="Prominence when zoomed out">
+            {([null, 1, 2, 3] as const).map((level) => (
+              <button
+                key={String(level)}
+                type="button"
+                onClick={() => changeProminence(level)}
+                disabled={pending}
+                aria-pressed={prominence === level}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  prominence === level ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {level === null ? "Automatic" : PROMINENCE_LABELS[level]}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

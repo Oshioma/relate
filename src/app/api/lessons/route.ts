@@ -14,8 +14,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { streamLesson } from "@/lib/school/lesson-stream";
+import { findOwnUpload } from "@/lib/school/lesson-media-storage";
 import {
+  canGoBeyondSource,
   DEFAULT_AGE_BAND,
   MAX_SOURCE_CHARS,
   MIN_SOURCE_CHARS,
@@ -47,6 +50,8 @@ export async function POST(request: NextRequest) {
     ageBand?: unknown;
     sourceUrl?: unknown;
     sourceTitle?: unknown;
+    videoUrl?: unknown;
+    mediaPath?: unknown;
   };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   if (!spaceId) {
@@ -81,6 +86,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown age band." }, { status: 400, headers: NO_STORE });
   }
 
+  // An uploaded file to play in the lesson. Only the author's own, and only
+  // one that is really in Storage — a lesson page plays whatever path it is
+  // given, so this is the one place that path is vouched for.
+  const mediaPath = typeof payload.mediaPath === "string" && payload.mediaPath ? payload.mediaPath : null;
+  if (mediaPath) {
+    const found = await findOwnUpload(supabase, auth.userId, mediaPath);
+    if (!found.ok) {
+      return NextResponse.json({ error: found.error }, { status: 400, headers: NO_STORE });
+    }
+  }
+
+  // The community's free monthly AI allowance, unless it is exempt or
+
+  // subscribed. Checked before the daily quota so a refusal here doesn't
+
+  // also use up one of the person's daily lessons.
+
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+
+  if (!allowance.allowed) {
+
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+
+  }
+
+
   const quota = await consumeLessonQuota(supabase, auth.userId);
   if (!quota.allowed) {
     return NextResponse.json({ error: quota.message }, { status: 429, headers: NO_STORE });
@@ -93,9 +124,15 @@ export async function POST(request: NextRequest) {
     userId: auth.userId,
     sourceText,
     ageBand: requestedBand,
+    // Decided by the band, not asked for: an Adult lesson goes beyond its
+    // source and nothing else does.
+    beyondSource: canGoBeyondSource(requestedBand),
     // Sanitised again in streamLesson — the client is only reporting which
     // page it read the text from, and a lesson shows this as a link.
     sourceUrl: typeof payload.sourceUrl === "string" ? payload.sourceUrl : null,
     sourceTitle: typeof payload.sourceTitle === "string" ? payload.sourceTitle : null,
+    // Checked against the supported platforms in streamLesson.
+    videoUrl: typeof payload.videoUrl === "string" ? payload.videoUrl : null,
+    mediaPath,
   });
 }

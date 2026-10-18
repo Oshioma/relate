@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, type StoredLesson, type Subject } from "@/lib/school/lesson-types";
+import { formatTimestamp } from "@/lib/school/video-links";
 
 // Hand-editing a written lesson. The model gets things wrong, and a teaching
 // library nobody can correct is one nobody trusts.
@@ -247,6 +248,13 @@ export function LessonEditor({
                   Picture kept: {section.image.title}
                 </p>
               )}
+              {/* Carried on the draft untouched, like the picture: the time is
+                  read off the video, not written, so it isn't a field here. */}
+              {section.video_seconds != null && (
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Video link kept: {formatTimestamp(section.video_seconds)}
+                </p>
+              )}
             </div>
           ))}
           <AddButton
@@ -255,7 +263,7 @@ export function LessonEditor({
                 ...draft,
                 sections: [
                   ...(draft.sections ?? []),
-                  { heading: "", body: "", image_query: "", image: null },
+                  { heading: "", body: "", image_query: "", image: null, video_seconds: null },
                 ],
               })
             }

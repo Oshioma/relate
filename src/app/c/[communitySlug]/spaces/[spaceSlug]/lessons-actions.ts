@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
-import { getLesson } from "@/lib/data/lessons";
+import { getLesson, getLessonFamily } from "@/lib/data/lessons";
 import {
   cleanDiscoveryCategories,
   EditableLessonSchema,
@@ -250,11 +250,19 @@ export async function deleteLesson(
   const auth = await authorizeLessonAuthor(supabase, lesson.space_id);
   if (!auth.ok) return { error: auth.error };
 
+  // Deleting one level of several leaves the rest of the page standing, so go
+  // back to it rather than out to the library.
+  const remaining = (await getLessonFamily(supabase, lesson)).filter((level) => level.id !== lessonId);
+
   const { error } = await supabase.from("space_lessons").delete().eq("id", lessonId);
   if (error) return { error: error.message };
 
   revalidatePath(`/c/${communitySlug}/spaces/${spaceSlug}`);
-  redirect(`/c/${communitySlug}/spaces/${spaceSlug}`);
+  redirect(
+    remaining.length > 0
+      ? `/c/${communitySlug}/spaces/${spaceSlug}/lessons/${remaining[0].id}`
+      : `/c/${communitySlug}/spaces/${spaceSlug}`
+  );
 }
 
 // Takes one picture off a lesson. The commonest edit by far: an image search is

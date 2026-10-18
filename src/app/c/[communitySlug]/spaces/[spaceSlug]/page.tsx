@@ -39,6 +39,7 @@ import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
 import { isPlantScannerConfigured } from "@/lib/ai/plant-scanner";
 import { isPlantIdConfigured } from "@/lib/ai/plant-id";
 import { isLessonWriterConfigured } from "@/lib/ai/lesson-writer";
+import { isVideoWorkerConfigured } from "@/lib/school/video-worker";
 import { isCropImageGenConfigured } from "@/lib/ai/crop-image";
 import type { CropRegion, CommunityCropRegion } from "@/types/database";
 import { getSpaceVolunteerProjects } from "@/lib/data/volunteer-hub";
@@ -63,6 +64,8 @@ import { cn, formatRelativeTime, isImageUrl, isVideoUrl, isAudioUrl } from "@/li
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { ExternalAudioPlayer, getExternalAudioEmbed } from "@/components/ui/external-audio-player";
 import { NewPostForm } from "./new-post-form";
+import { PostGallery, TagChips } from "@/components/ui/post-gallery";
+import { postGallery } from "@/lib/post-media";
 import { SpaceResourceForm } from "./space-resource-form";
 import { TidesWeatherPanel } from "./tides-weather-panel";
 import { JournalEntryForm } from "./journal-entry-form";
@@ -83,22 +86,32 @@ import { CoursesView } from "./courses-view";
 import { LiveEventsView } from "./live-events-view";
 import { CropGuidesView } from "./crop-guides-view";
 import { LessonsView } from "./lessons-view";
+import { BooksMediaView } from "./books-media-view";
+import { ArtsBoardView } from "./arts-board-view";
+import { getArtsBoardMarks, getArtsShareTarget } from "@/lib/data/arts-board";
+import { getSpaceMediaItems, getMediaMarks } from "@/lib/data/media-items";
+import { isMediaReviewConfigured } from "@/lib/ai/analyse-media";
 import { PlantScannerPanel } from "./plant-scanner-panel";
 import { MyCropsView } from "./my-crops-view";
 import { PlantIdPanel } from "./plant-id-panel";
+import { GuidedJourneySpaceView } from "@/components/guided-journey/space-view";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { MemberDirectoryList } from "../../members/member-directory-list";
 import { DiscoverySection } from "../../members/discovery-section";
+
+// Posts longer than this (as plain text) show an excerpt in the feed rather
+// than their whole body.
+const LONG_POST_CHARS = 1200;
 
 export default async function SpaceDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[] }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed, import: rawImport } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport, ended } = await searchParams;
   // A link handed over from the directory's add form when what was pasted turned
   // out to be a place to stay — see the `handoff` on an import result.
   const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
@@ -185,6 +198,13 @@ export default async function SpaceDetailPage({
   const isLiveSpace = space.space_type === "live";
   const isMeetupsSpace = space.space_type === "meetups";
   const isLessonsSpace = space.space_type === "lessons";
+  // The family media shelf: reviewed books, videos and shows.
+  const isBooksMediaSpace = space.space_type === "books_media";
+  // The 64 Arts board: a family's own progress across the 64 classical arts.
+  const isArtsBoardSpace = space.space_type === "arts_board";
+  // Adopt a Beginner and its siblings: a landing page with its own hero, and
+  // sub-pages under ./join, ./mentors, ./requests, ./journeys, ./stories, ./manage.
+  const isGuidedJourneySpace = space.space_type === "guided_journey";
   // A standalone page: its description is the whole content (rendered as
   // sanitised HTML/Markdown), with no post form and no feed.
   const isCustomPageSpace = space.space_type === "custom";
@@ -211,7 +231,10 @@ export default async function SpaceDetailPage({
     !isPlantIdSpace &&
     !isLiveSpace &&
     !isMeetupsSpace &&
-    !isLessonsSpace;
+    !isLessonsSpace &&
+    !isBooksMediaSpace &&
+    !isArtsBoardSpace &&
+    !isGuidedJourneySpace;
 
   const [
     membership,
@@ -297,6 +320,16 @@ export default async function SpaceDetailPage({
     : new Set<string>();
   const lessons = isLessonsSpace ? withSavedState(allLessons, savedLessonIds) : [];
 
+  // The shelf of a Books & Media space. RLS scopes it to what the viewer may
+  // see, so a guest on a public homeschool gets the same list.
+  const mediaItems = isBooksMediaSpace ? await getSpaceMediaItems(supabase, space.id) : [];
+  // Every family's "read it" and note on those items (see media_item_marks).
+  const mediaMarks = isBooksMediaSpace ? await getMediaMarks(supabase, mediaItems.map((m) => m.id), user?.id ?? null) : {};
+
+  // This family's circled squares and notes. Private to them (see
+  // arts_board_marks), so a guest gets a clean board.
+  const artsBoardMarks = isArtsBoardSpace ? await getArtsBoardMarks(supabase, space.id, user?.id ?? null) : {};
+
   // Region-aware calendar data for a Crop Guides space (see crop-guides-view).
   const cropCurrentMonth = new Date().getMonth() + 1;
   const [cropRegions, cropCommunityRegions, cropMonthCalendar]: [CropRegion[], CommunityCropRegion[], MonthCalendarRow[]] = isCropGuidesSpace
@@ -356,6 +389,8 @@ export default async function SpaceDetailPage({
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+  // Where a family's "Share" on a 64 Arts square posts to.
+  const artsShareTarget = isArtsBoardSpace && canPost ? await getArtsShareTarget(supabase, community.id, Boolean(isStaff)) : null;
   // The member list that powers the "invite members" picker in a live space.
   // Staff-only (only staff can invite), so members aren't loaded otherwise.
   const liveInviteMembers = isLiveSpace && isStaff ? (await getCommunityMembers(supabase, community.id)).map((m) => m.profile) : [];
@@ -399,14 +434,14 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : "max-w-3xl",
-        isBusinessDirectorySpace ? "pt-4 sm:pt-5" : "pt-8 sm:pt-10"
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : "max-w-3xl",
+        isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
-      ) : isBusinessDirectorySpace || isLessonsSpace ? null : (
+      ) : isBusinessDirectorySpace || isLessonsSpace || isGuidedJourneySpace || isArtsBoardSpace ? null : (
         <div className="mb-6">
           {/* A custom page is a blank canvas: no default title or icon, its
               description *is* the whole page. Every other space keeps the title
@@ -763,6 +798,33 @@ export default async function SpaceDetailPage({
           spaceSlug={space.slug}
           isStaff={Boolean(isStaff)}
         />
+      ) : isGuidedJourneySpace ? (
+        <GuidedJourneySpaceView communitySlug={community.slug} spaceSlug={space.slug} justEnded={ended === "1"} />
+      ) : isArtsBoardSpace ? (
+        <ArtsBoardView
+          marks={artsBoardMarks}
+          spaceId={space.id}
+          spaceName={space.name}
+          spaceDescription={space.description}
+          communitySlug={community.slug}
+          spaceSlug={space.slug}
+          canMark={canPost}
+          userId={viewerId}
+          shareTarget={artsShareTarget}
+        />
+      ) : isBooksMediaSpace ? (
+        <BooksMediaView
+          items={mediaItems}
+          marks={mediaMarks}
+          communityId={community.id}
+          communitySlug={community.slug}
+          spaceId={space.id}
+          spaceSlug={space.slug}
+          canPost={canPost}
+          isStaff={Boolean(isStaff)}
+          userId={viewerId}
+          aiConfigured={isMediaReviewConfigured()}
+        />
       ) : isLessonsSpace ? (
         <LessonsView
           lessons={lessons}
@@ -775,6 +837,7 @@ export default async function SpaceDetailPage({
           isMember={canPost}
           defaultAgeBand={schoolDefaultAgeBand(community.school_kind) ?? DEFAULT_AGE_BAND}
           writerConfigured={isLessonWriterConfigured()}
+          videoConfigured={isVideoWorkerConfigured()}
         />
       ) : isCropGuidesSpace ? (
         <CropGuidesView
@@ -890,72 +953,94 @@ export default async function SpaceDetailPage({
           ) : (
             <div className="space-y-5">
               {posts.map((post) => {
-                // Photos and videos become a full-width banner atop the card so
-                // the imagery leads; documents stay an inline link in the body.
-                const bannerUrl = post.media_url && (isImageUrl(post.media_url) || isVideoUrl(post.media_url)) ? post.media_url : null;
+                // One photo or video becomes a full-width banner atop the card
+                // so the imagery leads; several sit as a gallery row under the
+                // text; a document stays an inline link in the body.
+                const gallery = postGallery(post);
+                const bannerUrl = gallery.length === 1 ? gallery[0] : null;
+                const documentUrl = post.media_url && !gallery.includes(post.media_url) ? post.media_url : null;
                 // The default "discussion" type is noise on every card, so only
                 // announcements and resources earn a labelled pill.
                 const typeTone = post.post_type === "announcement" ? "accent" : "neutral";
+                const postHref = `/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`;
+                // A long-form post (a guide, an article) would fill the whole
+                // feed, so its card shows a short excerpt and a link instead.
+                const plainBody = post.body ? toPlainText(post.body) : "";
+                const isLongPost = plainBody.length > LONG_POST_CHARS;
+                // The whole post reads here — formatted body and all — so a
+                // member doesn't have to open each one. That body can carry its
+                // own links, so the card isn't one big link any more: the
+                // photo, the title and the comment count go to the post page.
                 return (
-                  <Link key={post.id} href={`/c/${community.slug}/spaces/${space.slug}/posts/${post.id}`}>
-                    <Card
-                      className={cn(
-                        "group overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-accent/35 motion-reduce:transform-none motion-reduce:transition-none",
-                        post.is_pinned && "border-accent/40"
-                      )}
-                    >
-                      {bannerUrl && (
-                        <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-                          {isVideoUrl(bannerUrl) ? (
-                            <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={bannerUrl} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none" />
-                          )}
-                        </div>
-                      )}
-                      <CardContent className="pt-4">
-                        {post.is_pinned && (
-                          <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
-                            <Pin className="h-3.5 w-3.5" />
-                            Pinned
-                          </div>
+                  <Card
+                    key={post.id}
+                    className={cn("group overflow-hidden transition-shadow duration-200 hover:shadow-md", post.is_pinned && "border-accent/40")}
+                  >
+                    {bannerUrl && (
+                      <Link href={postHref} className="block aspect-[16/10] w-full overflow-hidden bg-muted">
+                        {isVideoUrl(bannerUrl) ? (
+                          <video preload="metadata" src={bannerUrl} className="h-full w-full object-cover" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
                         )}
-                        <div className="flex items-center gap-2.5">
-                          <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-foreground">{post.author?.full_name || post.author?.username}</p>
-                            <p className="text-xs text-muted-foreground">{formatRelativeTime(post.created_at)}</p>
-                          </div>
-                          {post.post_type !== "discussion" && <Badge tone={typeTone}>{post.post_type}</Badge>}
+                      </Link>
+                    )}
+                    <CardContent className="pt-4">
+                      {post.is_pinned && (
+                        <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                          <Pin className="h-3.5 w-3.5" />
+                          Pinned
                         </div>
+                      )}
+                      <div className="flex items-center gap-2.5">
+                        <Avatar src={post.author?.avatar_url} name={post.author?.full_name || post.author?.username} size={32} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground">{post.author?.full_name || post.author?.username}</p>
+                          <p className="text-xs text-muted-foreground">{formatRelativeTime(post.created_at)}</p>
+                        </div>
+                        {post.post_type !== "discussion" && <Badge tone={typeTone}>{post.post_type}</Badge>}
+                      </div>
 
-                        <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-accent">
+                      <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground">
+                        <Link href={postHref} className="transition-colors hover:text-accent">
                           {post.title}
-                        </h3>
-                        {post.body && <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(post.body)}</p>}
-                        {post.media_url && !bannerUrl && (
-                          <div className="mt-3">
-                            <MediaAttachment url={post.media_url} />
-                          </div>
-                        )}
-
-                        <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <MessageSquare className="h-4 w-4" />
-                            {post.comment_count}
-                            <span className="sr-only"> comments</span>
-                          </span>
-                          <span className={cn("inline-flex items-center gap-1.5", post.viewer_reacted && "text-accent")}>
-                            <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
-                            {post.reaction_count}
-                            <span className="sr-only"> smiles</span>
-                          </span>
-                          <SmileStack reactors={post.reactors} count={post.reaction_count} size={20} />
+                        </Link>
+                      </h3>
+                      {post.body &&
+                        (isLongPost ? (
+                          <>
+                            <p className="mt-1.5 line-clamp-3 text-sm text-foreground">{plainBody.slice(0, 400)}</p>
+                            <Link href={postHref} className="mt-1.5 inline-block text-sm font-medium text-accent hover:underline">
+                              Read the full post
+                            </Link>
+                          </>
+                        ) : (
+                          <RichText content={post.body} className="mt-1.5 text-sm text-foreground" />
+                        ))}
+                      {gallery.length > 1 && <PostGallery urls={gallery} className="mt-3" />}
+                      {documentUrl && (
+                        <div className="mt-3">
+                          <MediaAttachment url={documentUrl} />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      )}
+                      <TagChips tags={post.tags ?? []} className="mt-3" />
+
+                      <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
+                        <Link href={postHref} className="inline-flex items-center gap-1.5 transition-colors hover:text-accent">
+                          <MessageSquare className="h-4 w-4" />
+                          {post.comment_count > 0 ? post.comment_count : "Comment"}
+                          {post.comment_count > 0 && <span className="sr-only"> comments</span>}
+                        </Link>
+                        <span className={cn("inline-flex items-center gap-1.5", post.viewer_reacted && "text-accent")}>
+                          <span aria-hidden className="text-base leading-none">{SMILE_EMOJI}</span>
+                          {post.reaction_count}
+                          <span className="sr-only"> smiles</span>
+                        </span>
+                        <SmileStack reactors={post.reactors} count={post.reaction_count} size={20} />
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>

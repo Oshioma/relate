@@ -28,9 +28,12 @@
 //     169.254.169.254 is the cloud metadata address and is the specific one
 //     worth naming; the ranges around it matter just as much.
 //   * No localhost, and no .local / .internal / .home.arpa names.
-//   * Redirects are NOT followed. A public URL that redirects to an internal
-//     one is the standard way around a check like this, so a redirect is
-//     reported as its own outcome and the destination is never fetched.
+//   * Redirects are NOT followed — with one narrow exception. A public URL
+//     that redirects to an internal one is the standard way around a check
+//     like this, so a redirect is reported as its own outcome and the
+//     destination is never fetched. The exception is a redirect to a named
+//     Wikimedia host over https (see FOLLOWABLE_REDIRECT_HOSTS), and even
+//     then the destination goes back through the same guard.
 //   * Only the status and content type come back. Never a body.
 //
 // A hostname that resolves to a private address through DNS is not caught by
@@ -45,9 +48,41 @@ export type PictureCheck = {
   url: string;
   /** Where on the record: the cover image, or one of the extra pictures. */
   where: "cover" | "media";
-  outcome: "ok" | "missing" | "not-an-image" | "redirected" | "blocked" | "unreachable";
+  outcome: "ok" | "missing" | "not-an-image" | "redirected" | "blocked" | "unreachable" | "rate-limited";
   detail: string;
 };
+
+/**
+ * WHO IS ASKING. Wikimedia's published condition for automated requests is a
+ * User-Agent that names the caller and gives a way to get in touch, and it
+ * throttles requests without one. The checker used to send none, so a full
+ * check was ~300 anonymous requests in a burst — and Wikimedia answered most
+ * of the later ones with 429, which the report then listed as broken pictures.
+ * The importer in bring-in-image.ts already sent this; now both share it.
+ */
+export const PICTURE_FETCH_USER_AGENT = "Relate/1.0 (community platform; +https://github.com/Oshioma/relate)";
+
+/**
+ * THE ONLY REDIRECTS WORTH FOLLOWING.
+ *
+ * commons.wikimedia.org/wiki/Special:FilePath/<name> is the documented way to
+ * ask Wikimedia for a file by name, and it ALWAYS answers with a redirect to
+ * the actual bytes on upload.wikimedia.org. Refusing every redirect therefore
+ * reported every one of those pictures as failing — and one record lost a
+ * perfectly good photograph on the strength of it.
+ *
+ * Following a redirect is only dangerous when the destination can be
+ * anywhere. Here it cannot: https, a host on this list, and the same guard
+ * again. Anything else is still reported and never fetched.
+ */
+const FOLLOWABLE_REDIRECT_HOSTS = new Set(["upload.wikimedia.org", "commons.wikimedia.org"]);
+const MAX_REDIRECTS = 3;
+
+/** How long a 429 is waited out before asking once more. Longer than this and the check is better reported as rate-limited. */
+const MAX_RATE_LIMIT_WAIT_MS = 3000;
+
+/** At most this many requests in flight to any single host, whatever the overall concurrency. */
+const PER_HOST_CONCURRENCY = 2;
 
 const BLOCKED_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
 const BLOCKED_SUFFIXES = [".local", ".internal", ".home.arpa", ".localhost"];
@@ -103,50 +138,110 @@ export function isFetchableWebUrl(raw: string): { ok: true; url: URL } | { ok: f
   return { ok: true, url };
 }
 
+/** Where a redirect points, if it is one this checker may follow. */
+function followableRedirect(from: URL, location: string | null): URL | null {
+  if (!location) return null;
+  let next: URL;
+  try {
+    next = new URL(location, from);
+  } catch {
+    return null;
+  }
+  if (next.protocol !== "https:" || !FOLLOWABLE_REDIRECT_HOSTS.has(next.hostname.toLowerCase())) return null;
+  // The list is the decision; the guard runs anyway, so a mistake in the list
+  // cannot become a way inside.
+  const allowed = isFetchableWebUrl(next.toString());
+  return allowed.ok ? allowed.url : null;
+}
+
+/** Seconds or an HTTP date, as Retry-After allows; null when absent or unreadable. */
+function retryAfterMs(header: string | null, now = Date.now()): number | null {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const at = Date.parse(header);
+  return Number.isNaN(at) ? null : Math.max(0, at - now);
+}
+
 /**
  * Ask for one picture and report what came back.
  *
  * HEAD first, because it costs nothing and most image hosts answer it. Some
  * answer 405 or 403 to HEAD while serving GET perfectly well, so a failed HEAD
  * falls back to a GET whose body is abandoned as soon as the headers arrive.
+ *
+ * A 429 IS NOT A BROKEN PICTURE. It is the host saying "not so fast", and it
+ * says nothing about whether the file exists. It is waited out once, briefly,
+ * and if it persists it is reported as its own outcome so it is never listed
+ * among the pictures that failed.
  */
 export async function checkOnePicture(
   raw: string,
   fetchImpl: typeof fetch = fetch,
-  timeoutMs = 8000
+  timeoutMs = 8000,
+  sleep: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 ): Promise<Pick<PictureCheck, "outcome" | "detail">> {
   const allowed = isFetchableWebUrl(raw);
   if (!allowed.ok) return { outcome: "blocked", detail: allowed.reason };
 
-  const attempt = async (method: "HEAD" | "GET") => {
+  const attempt = async (url: URL, method: "HEAD" | "GET") => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      return await fetchImpl(allowed.url, {
+      return await fetchImpl(url, {
         method,
         redirect: "manual",
         signal: controller.signal,
-        headers: { accept: "image/*" },
+        headers: { accept: "image/*", "user-agent": PICTURE_FETCH_USER_AGENT },
       });
     } finally {
       clearTimeout(timer);
     }
   };
 
+  /** One address: HEAD, GET if HEAD is refused, and one patient retry on 429. */
+  const ask = async (url: URL) => {
+    const once = async () => {
+      const response = await attempt(url, "HEAD");
+      // Some hosts refuse HEAD and serve GET. 405 is the honest refusal; 403 is
+      // the common dishonest one.
+      return response.status === 405 || response.status === 403 ? attempt(url, "GET") : response;
+    };
+    const response = await once();
+    if (response.status !== 429) return response;
+    const wait = retryAfterMs(response.headers.get("retry-after")) ?? 1500;
+    if (wait > MAX_RATE_LIMIT_WAIT_MS) return response;
+    await sleep(wait);
+    return once();
+  };
+
+  let url = allowed.url;
   let response: Response;
+  let hops = 0;
   try {
-    response = await attempt("HEAD");
-    // Some hosts refuse HEAD and serve GET. 405 is the honest refusal; 403 is
-    // the common dishonest one.
-    if (response.status === 405 || response.status === 403) response = await attempt("GET");
+    response = await ask(url);
+    while (response.status >= 300 && response.status < 400) {
+      const next = hops < MAX_REDIRECTS ? followableRedirect(url, response.headers.get("location")) : null;
+      if (!next) break;
+      hops++;
+      url = next;
+      response = await ask(url);
+    }
   } catch (error) {
     return { outcome: "unreachable", detail: error instanceof Error ? error.message : "could not be reached" };
   }
 
   if (response.status >= 300 && response.status < 400) {
     // Not followed, on purpose: a public URL redirecting to an internal one is
-    // the standard way past a check like this.
+    // the standard way past a check like this. Only the Wikimedia hops above
+    // are taken.
     return { outcome: "redirected", detail: `redirects (${response.status}) — destination not followed` };
+  }
+  if (response.status === 429) {
+    return {
+      outcome: "rate-limited",
+      detail: `${url.hostname} asked us to slow down (429) — not checked, try again in a few minutes`,
+    };
   }
   if (response.status === 404 || response.status === 410) {
     return { outcome: "missing", detail: `not found (${response.status})` };
@@ -165,12 +260,52 @@ export async function checkOnePicture(
   return { outcome: "ok", detail: type || "ok" };
 }
 
+/** A tiny per-key semaphore: `task` runs once fewer than `limit` others hold the same key. */
+function perKeyLimiter(limit: number) {
+  const active = new Map<string, number>();
+  const waiting = new Map<string, (() => void)[]>();
+  return async function run<T>(key: string, task: () => Promise<T>): Promise<T> {
+    if ((active.get(key) ?? 0) >= limit) {
+      // The slot is handed over by whoever releases it, below, so a newcomer
+      // can never slip in between the release and this waiter waking.
+      await new Promise<void>((resolve) => {
+        const queue = waiting.get(key) ?? [];
+        queue.push(resolve);
+        waiting.set(key, queue);
+      });
+    } else {
+      active.set(key, (active.get(key) ?? 0) + 1);
+    }
+    try {
+      return await task();
+    } finally {
+      const next = waiting.get(key)?.shift();
+      if (next) next();
+      else active.set(key, (active.get(key) ?? 1) - 1);
+    }
+  };
+}
+
+function hostKey(raw: string): string {
+  try {
+    return new URL(raw).hostname.toLowerCase();
+  } catch {
+    return raw;
+  }
+}
+
 /** Every picture on a set of records, checked with a small amount of concurrency. */
 export async function checkPictures(
   records: { slug: string; title: string; image_url: string | null; media: { url: string }[] }[],
-  options: { fetchImpl?: typeof fetch; concurrency?: number; limit?: number } = {}
+  options: {
+    fetchImpl?: typeof fetch;
+    concurrency?: number;
+    perHostConcurrency?: number;
+    limit?: number;
+    sleep?: (ms: number) => Promise<void>;
+  } = {}
 ): Promise<PictureCheck[]> {
-  const { fetchImpl = fetch, concurrency = 6, limit = 300 } = options;
+  const { fetchImpl = fetch, concurrency = 6, perHostConcurrency = PER_HOST_CONCURRENCY, limit = 300, sleep } = options;
 
   const jobs: Omit<PictureCheck, "outcome" | "detail">[] = [];
   for (const record of records) {
@@ -192,11 +327,17 @@ export async function checkPictures(
   // URL before any of them has finished, all find the cache empty, and all
   // fetch. Storing the in-flight request means the second worker waits on the
   // first instead of racing it.
+  //
+  // AND NO MORE THAN A COUPLE AT A TIME TO ANY ONE HOST. Nearly every picture
+  // here lives on Wikimedia, so six workers meant six simultaneous requests to
+  // the same servers — which is what earned the 429s. The other hosts still
+  // get the full concurrency.
   const inFlight = new Map<string, Promise<Pick<PictureCheck, "outcome" | "detail">>>();
+  const limited = perKeyLimiter(perHostConcurrency);
   const ask = (url: string) => {
     const existing = inFlight.get(url);
     if (existing) return existing;
-    const started = checkOnePicture(url, fetchImpl);
+    const started = limited(hostKey(url), () => checkOnePicture(url, fetchImpl, undefined, sleep));
     inFlight.set(url, started);
     return started;
   };

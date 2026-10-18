@@ -244,8 +244,10 @@ no, and a well-evidenced no is a finding I will record**, not a wasted search.
 
 # PART D — THE TRADITIONS THIS COLLECTION HAS NOT TOUCHED
 
-Four records is not a cross-cultural collection. But the gap must not be filled
-by scraping serpents from everywhere — that would build the exact pile the
+Seventeen records is still not a cross-cultural collection — and nine of the
+seventeen are the comparison records described under the retention rule at the
+end of this brief, which carry a status and no passage. The gap must not be
+filled by scraping serpents from everywhere — that would build the exact pile the
 collection exists to resist.
 
 **So the question for each tradition below is deliberately narrow:**
@@ -253,13 +255,13 @@ collection exists to resist.
 > What does the serpent **do** in this tradition, according to specialists in it,
 > and does any specialist connect it to energy, ascent, or the human body?
 
-| tradition | the obvious starting point |
-| --- | --- |
-| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body |
-| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing |
-| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil |
-| West Africa | Dan / Damballa and the serpent-and-rainbow complex |
-| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 |
+| tradition | the obvious starting point | record so far |
+| --- | --- | --- |
+| China | the dragon/serpent and *qi*; the Daoist internal-alchemy body | **none** |
+| Mesoamerica | Quetzalcoatl / Kukulkan — a feathered serpent, which is not obviously the same kind of thing | `quetzalcoatl-kundalini-comparison`, no passage |
+| Norse | Jörmungandr, the world-encircling serpent; Níðhöggr at the root of Yggdrasil | `jormungandr-kundalini-comparison`, no passage; Níðhöggr untouched |
+| West Africa | Dan / Damballa and the serpent-and-rainbow complex | **none** |
+| Hebrew / Near Eastern | the *nāḥāš* of Genesis 3, and the Nehushtan of Numbers 21 | `nehushtan-kundalini-comparison`, no passage; Genesis 3 untouched |
 
 **Two rules for this section, and the first one matters more than the research.**
 
@@ -331,3 +333,129 @@ End with:
 The collection's whole claim on a reader is that it shows how much evidence sits
 under each part of a system usually presented as seamless. **An empty row proves
 that claim. A filled-in guess destroys it.**
+
+
+---
+
+## RETENTION RULE — KEEP THE COMPARISONS, LABEL THE STATUS
+
+Do **not** exclude a serpent/body/ascent comparison merely because the historical connection is unverified. The collection is meant to preserve the comparison while making the evidential status impossible to miss. This does **not** relax the traceback standard above: an unattested connection must never be promoted into an attested ancient doctrine.
+
+For every comparison, separate four questions wherever the evidence allows:
+
+1. **Object/text/tradition** — is the underlying object, passage or tradition itself securely identified and dated?
+2. **Interpretation** — who actually proposed the comparison, in what work, and when?
+3. **Relation** — is this explicit Kundalini, a historical precursor, a related tradition, a cross-cultural parallel, a speculative/esoteric reading, or a modern development?
+4. **Transmission** — is there evidence that the idea or motif travelled between the cultures, or is transmission unknown/unestablished?
+
+A record may therefore contain a secure ancient object and an **unverified proposed Kundalini connection** at the same time. That is not a contradiction; it is the point of the schema. Preserve the object, preserve the resemblance, preserve the claimant if one can be found, and preserve the absence of a demonstrated transmission mechanism.
+
+### Comparisons that must be retained rather than filtered out
+
+The following are explicit research targets. Their presence here means **investigate and keep the comparison**, not “accept the proposed equivalence.” Attach as many directly relevant and related images as licensing/provenance allows, with image-level identification status where appropriate.
+
+| comparison | secure material to establish | proposed connection to retain separately | default status until evidence improves |
+| --- | --- | --- | --- |
+| Gudea / Ningishzida libation vase | object, inscription, date, iconography, specialist account of Ningishzida | entwined serpents / central axis compared with Kundalini or subtle-body diagrams | ancient object may be secure; Kundalini equivalence unverified unless a sourced historical argument establishes more |
+| Greek caduceus | Hermes, two-serpent staff, chronology and iconography | serpents read as Iḍā/Piṅgalā and staff as Suṣumṇā | cross-cultural/speculative unless a specialist historical connection is found |
+| Rod of Asclepius | one-serpent healing staff and its Greek medical/religious context | serpent rising on a staff read as spinal/Kundalini ascent | cross-cultural/speculative unless demonstrated |
+| Quetzalcoatl / Kukulkan | Mesoamerican feathered-serpent traditions in their own specialist context | feathered serpent identified with Kundalini or ascending inner energy | related/cross-cultural; transmission unestablished unless evidence says otherwise |
+| Nehushtan / bronze serpent | Numbers 21, 2 Kings 18:4, archaeology and Hebrew scholarship | pole as spine and serpent as Kundalini | speculative/later interpretation unless ancient evidence is found |
+| Jörmungandr | Norse textual/iconographic tradition | world serpent equated with Kundalini or inner energy | related/cross-cultural; no bodily-energy equivalence assumed |
+| Egyptian uraeus | Egyptian textual/iconographic meaning and chronology of the forehead cobra | awakened Kundalini reaching brow/crown | speculative/later interpretation unless Egyptological evidence supports the bodily-energy claim |
+| Djed pillar | Egyptian meaning, chronology and iconographic contexts | Djed as spine/central channel carrying Kundalini | speculative/later interpretation unless the anatomical/esoteric chain can be sourced |
+| double helix / DNA comparison | modern discovery and structure of DNA plus the ancient serpent image being compared | claim that ancient double-serpent imagery encoded DNA | modern speculative comparison; ancient knowledge of DNA is not established by resemblance |
+| universal primordial serpent-energy doctrine | the individual serpent traditions and their own meanings | claim that they descend from one lost worldwide teaching (including Atlantis/Lemuria variants where sourced) | hypothesis/later interpretation; common origin or transmission must not be inferred from resemblance alone |
+
+### Image rule for these records
+
+Do not use “unverified connection” as a reason to omit an otherwise relevant historical image. Prefer, in order: the actual object/manuscript; museum or holding-institution photography; excavation/publication plates; historically significant reproductions; then clearly labelled related imagery. If an image is itself securely identified but its claimed Kundalini significance is not, say exactly that. The image's status and the interpretation's status are separate.
+
+### What would upgrade a comparison
+
+A resemblance becomes historically stronger only when evidence supplies something beyond the resemblance: an ancient passage giving the relevant bodily meaning; a specialist reading grounded in the culture's own sources; a documented contact/transmission chain; or a traceable history showing who first made the comparison and how later writers inherited it. Until then, keep the comparison visible and label the gap.
+
+
+---
+
+## VERIFIED SOURCE PASS 01 — EARLY TEXTUAL CHAIN
+
+**Status:** partial verification only. This section records what the current source pass can support without filling the remaining traceback from memory. It does not supersede the fill/open rules above.
+
+### Early Kuṇḍalinī: keep the heart-stage separate from the later serpent-stage
+
+**Sārdhatriśatikālottara 12.1–2 — candidate early Kuṇḍalinī attestation.** The critical-edition trail is N. R. Bhatt, *Sārdhatriśatikālottara* (Institut Français de Pondichéry, 1979). Modern specialist discussion by Shaman Hatley treats early tantric Śaiva material as central to the emergence of Kuṇḍalinī. The passage names *ādyā kuṇḍalinī* and places her in the region of the **heart**, with bud/sprout imagery and *amṛta*. This is important negative evidence against silently back-projecting the later base-of-spine sleeping-serpent system into every early occurrence.
+
+**Do not yet mark `kundalini-word` FILLED solely from this note.** Before promotion to FILLED, the repository still needs the exact critically edited Sanskrit/transliteration, a published translation with translator named, and the specialist's explicit dating argument tied to this passage.
+
+**Tantrasadbhāva — explicit serpentine development.** Published scholarship discussing this text reports Kuṇḍalinī/Śakti as curved and explicitly snake-like, including sleep/awakening imagery. This belongs in a separate developmental record from the Sārdhatriśatikālottara material. It is a candidate for `kundalini-as-serpent`, `dormant`, `awakening`, and `shakti`, but those elements remain OPEN until the exact passages, edition, published translation and dating authority are attached.
+
+**Interpretive rule established by this pass:** *kuṇḍalinī* / coiled power is not automatically an explicit snake. `kundalini-word`, `coiled`, and `kundalini-as-serpent` remain independent traceback rows.
+
+### Earlier channel/ascent precursors: do not relabel them Kuṇḍalinī
+
+**Chāndogya Upaniṣad 8.6.6** and **Kaṭha Upaniṣad 2.3.16** belong in the precursor chain because they describe the heart's channels, one going upward toward the head/crown, with immortality associated with ascent by that route. They are evidence relevant to `nadi`, `upward-movement`, and `crown-destination`.
+
+They do **not** by themselves establish Kuṇḍalinī, Suṣumṇā, Iḍā, Piṅgalā, a seven-cakra system, or a serpent rising through the spine. The research task remains to establish, with named specialists, whether treating these passages as precursors of the later nāḍī system is accepted or retrospective. Per the brief's original rule, that disagreement must not be resolved by the seed data.
+
+### Traceback status after pass 01
+
+**Candidate, not yet FILLED:** `kundalini-word`, `kundalini-as-serpent`, `coiled`, `dormant`, `awakening`, `shakti`, `nadi`, `upward-movement`, `crown-destination`, `amrta`.
+
+**Still OPEN:** `base-location`, `sushumna`, `ida`, `pingala`, `cakras`, `seven-cakra-system`, `lotus-imagery`, `granthis`, `cakra-piercing`, `sahasrara`, `ajna`, `inner-fire`, `prana`, `breath-retention`, `shiva-shakti-union`, `liberation-through-ascent`.
+
+The candidate rows remain unfilled deliberately: this pass found a stronger route to the primary evidence, but has not yet met the project's own requirement of passage + dating authority + exact text + published translation for each row.
+
+### Image rule added during this pass
+
+For textual-development records, do not attach a later chakra painting merely to make an early record visual. Prefer **no image** until a directly relevant manuscript, edition page, historical diagram or object is available. Across the track, duplicate crops, thumbnails and alternate resolutions of the same object do not count as additional evidence. A few materially different images are preferred to many near-duplicates.
+
+
+### SOURCE PASS 02 — E1 promotion check: `kundalini-word`
+
+**Result: remains OPEN. Do not promote this row merely because the candidate is strong.**
+
+Candidate passage: *Sārdhatriśatikālottara* 12.1–2, beginning with the expression *ādyā kuṇḍalinī*. Critical-edition trail: N. R. Bhatt, *Sārdhatriśatikālottara* (Institut Français de Pondichéry, 1979). Specialist historical trail: Shaman Hatley's work on Kuṇḍalinī in early tantric Śaiva traditions.
+
+What this pass can safely preserve: this is a concrete early textual candidate; its Kuṇḍalinī is associated with the heart rather than silently assumed to be the familiar later serpent at the base of the spine; and the passage belongs in the search for the history of *amṛta* as well as the word Kuṇḍalinī.
+
+What is still missing for the project's FILLED contract: (1) the exact Sanskrit of 12.1–2 checked directly against the critical edition, (2) a published translation with translator and page, and (3) a specialist statement that supplies or argues the composition date used for the timeline and establishes the candidate's priority relative to other early occurrences.
+
+`whatWouldEstablishThis`: inspect Bhatt 1979 at 12.1–2 directly; attach the critically edited Sanskrit; locate a citable published translation; then attach Hatley or another specialist's explicit dating/priority discussion. If the specialist only calls it an early occurrence rather than the earliest, record exactly that and leave E1 open.
+
+`searched`: repository seed and research brief; Bhatt critical-edition bibliographic trail; Hatley specialist trail; modern historical discussions located in the preceding source pass. No repository source currently satisfies all three missing requirements together.
+
+**Decision:** no timeline `startYear` is added in this pass. A plausible 6th–7th-century axis position without the dating argument would violate the brief's most important rule.
+
+
+#### SOURCE PASS 03 — primary passage recovered; E1 remains narrowly OPEN
+
+The missing passage/translation requirement is now substantially resolved. Ben Williams, **“Cosmogenesis and Phonematic Emanation,” The Oxford Handbook of Tantric Studies** (2023), note 37, prints Sārdhatriśatikālottara 12.1–3 and 12.5–6ab. For 12.1 he gives: `candrāgniravisaṃyuktā ādyā kuṇḍalinī tu yā | hṛtpradeśe tu sā jñeyā aṅkurākāravatsthitā ||`; 12.2 continues the rite and instructs contemplation of flowing `amṛta`. Williams translates the first verse as primordial Kuṇḍalinī associated with moon, fire and sun, abiding in the heart in sprout-like form. His bracketed clarifications are explicitly drawn from Rāmakaṇṭha's commentary.
+
+Shaman Hatley's **“Kuṇḍalinī”** states that Kuṇḍalinī first comes into evidence in circa sixth-to-eighth-century Tantric Śaiva scriptures and calls Sārdhatriśatikālottara 12.1–2 a **potentially very early** reference. This is now the wording the dataset follows: early is established; absolute priority is not. Ruth Westoby (2024) describes the Sārdhatriśatikālottara as sixth-to-seventh century and calls its Kuṇḍalinī reference early.
+
+**Repository action:** an `explicit_kundalini` timeline record has now been added for this textual witness, dated only to Westoby's approximate sixth-to-seventh-century range. It has no image: a later chakra painting would be anachronistic evidence dressing.
+
+**E1 status:** still OPEN only in its strongest wording — *earliest securely dated occurrence*. To close that superlative, the research needs a firmer relative chronology across the competing early Śaiva witnesses. This caution is supported independently by current scholarship on the Sārdhatriśatikālottara's chronology: its relative position is early, but firm absolute dating remains difficult.
+
+
+#### SOURCE PASS 04 — Tantrasadbhāva: explicit serpent and sleep/dormancy
+
+A stronger primary-text route is now available through Junglan Bang, *Selected Chapters from the Tantrasadbhāva* (University of Hamburg dissertation, 2022). Bang describes the practice as first awakening Śakti in the form of a sleeping serpent, Kuṇḍalī, and cites Tantrasadbhāva 1.252cd directly: `nābhisthā kuṇḍalī jñeyā prasuptabhujagākṛtiḥ`. This gives a directly checkable textual basis for Kuṇḍalī at the navel/belly with the appearance of a sleeping serpent.
+
+Ruth Westoby's 2024 historical synthesis dates the Tantrasadbhāva to the eighth century and reports a developmental sequence inside chapter 1: Kuṇḍalinī as curved (`kuṭilākṛtiḥ`, 1.56), Śakti in the heart in snake form (1.215), and sleeping-snake material at 1.216–217. Westoby reports Shaman Hatley's suggestion that the snake-form description may be the first such occurrence. That wording remains a **candidate priority claim**, not a settled superlative.
+
+**Traceback effect:** `kundalini-as-serpent` now has strong early textual evidence; `dormant`/sleeping has a directly recoverable Sanskrit witness; `shakti` is supported in the same textual complex. `awakening` is strongly described by Bang's analysis and by Padoux's published translation trail, but its exact Sanskrit verse should still be attached before treating that row as independently complete under the strictest fill contract.
+
+**Repository action:** added a distinct eighth-century Tantrasadbhāva timeline record and a regression test that prevents it from being silently expanded into the later complete base/channel/seven-cakra model. No later chakra painting is attached as evidence.
+
+
+#### SOURCE PASS 05 — early Upaniṣadic heart-channel ascent
+
+Chāndogya Upaniṣad 8.6.6 and Kaṭha Upaniṣad 2.3.16 preserve essentially the same formula: 101 nāḍīs of the heart, one extending to the head, upward movement through that privileged route, and immortality as the result. These passages therefore provide direct textual evidence for the precursor keys `nadi`, `upward-movement` and `crown-destination`/head-destination.
+
+The verses themselves do **not** name the channel Suṣumṇā and do not mention Kuṇḍalinī, Iḍā, Piṅgalā, cakras or a serpent. A later Śaṅkara commentary on Kaṭha 2.3.16 identifies the upward channel as suṣumṇā. The timeline must preserve that chronological separation rather than back-projecting the commentary's terminology into the older verse.
+
+**Repository action:** added a single precursor record for the parallel Upaniṣadic formula, with the later Suṣumṇā identification attached as a separate interpretive citation. No later subtle-body diagram is attached as if it illustrated the early verse.
+
+**Dating caution:** this pass deliberately uses a broad first-millennium-BCE range rather than pretending that the parallel verses can presently be assigned an exact year. Before the strict 26-key matrix marks these rows fully FILLED, attach a named modern critical edition/translator and a named scholarly dating argument for the relevant textual strata.

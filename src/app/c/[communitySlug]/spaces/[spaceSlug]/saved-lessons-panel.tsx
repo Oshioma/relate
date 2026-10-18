@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Bookmark } from "lucide-react";
 import { formatDuration, lessonThumbnail, type LessonRow } from "@/lib/school/lesson-types";
 
@@ -52,17 +53,12 @@ export function SavedLessonsPanel({
                 href={`/c/${communitySlug}/spaces/${spaceSlug}/lessons/${lesson.id}`}
                 className="group flex items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-muted"
               >
-                {image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={image.thumbUrl}
-                    alt=""
-                    loading="lazy"
-                    className="h-9 w-9 shrink-0 rounded-lg bg-muted object-cover"
-                  />
-                ) : (
-                  <span aria-hidden className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
-                )}
+                <SafeImage
+                  srcs={[image?.thumbUrl, image?.url]}
+                  alt=""
+                  className="h-9 w-9 shrink-0 rounded-lg bg-muted object-cover"
+                  fallback={<span aria-hidden className="h-9 w-9 shrink-0 rounded-lg bg-muted" />}
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium leading-snug text-foreground">
                     {lesson.title || "Untitled lesson"}

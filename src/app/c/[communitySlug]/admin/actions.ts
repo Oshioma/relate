@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
 import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-types";
 import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
+import { seedGuidedJourneySpace, copyGuidedJourneySpace } from "@/lib/data/guided-journey-seed";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
@@ -150,6 +151,21 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
 
   if (error) {
     return { error: error.message };
+  }
+
+  // A guided-journey space ("Adopt a Beginner", "Adopt a New Sailor"…) starts
+  // from the preset the admin picked: its wording, stages and starter journeys.
+  // The new row is read back by slug rather than with insert().select():
+  // spaces_select runs can_see_space_shell(), which can't see a row inside the
+  // statement that inserts it, so RETURNING is refused by RLS.
+  if (spaceType === "guided_journey") {
+    const { data: created } = await supabase.from("spaces").select("id").eq("community_id", communityId).eq("slug", slug).single();
+    const seeded = created
+      ? await seedGuidedJourneySpace(supabase, created.id, String(formData.get("journey_preset") ?? ""))
+      : { error: "the new space couldn't be read back" };
+    if (seeded.error) {
+      return { error: `The space was created, but its starting setup failed: ${seeded.error}` };
+    }
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);
@@ -308,6 +324,17 @@ export async function duplicateSpace(spaceId: string, communitySlug: string): Pr
 
   if (error) {
     return { error: error.message };
+  }
+
+  // A guided-journey space's wording, stages and templates live in their own
+  // tables; carry them over so the copy works straight away.
+  // Read back by slug, not insert().select() — see createSpace.
+  if (original.space_type === "guided_journey") {
+    const { data: copy } = await supabase.from("spaces").select("id").eq("community_id", original.community_id).eq("slug", slug).single();
+    const copied = copy ? await copyGuidedJourneySpace(supabase, original.id, copy.id) : { error: "the copy couldn't be read back" };
+    if (copied.error) {
+      return { error: `The space was copied, but its journey setup wasn't: ${copied.error}` };
+    }
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);
@@ -469,6 +496,71 @@ export async function updateCommunityDetails(
   revalidatePath(`/c/${communitySlug}`, "layout");
   revalidatePath("/dashboard");
   return undefined;
+}
+
+export type CommunityHeroState = { error: string } | { ok: true } | undefined;
+
+// Save the feed's landing hero: the headline over the cover, the optional
+// "Watch video" link, and which space the sidebar promo card features. Blank
+// fields clear back to the defaults (the community name, no video, no promo).
+export async function updateCommunityHero(
+  _prevState: CommunityHeroState,
+  formData: FormData
+): Promise<CommunityHeroState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const tagline = String(formData.get("tagline") ?? "").trim();
+  const videoUrl = String(formData.get("hero_video_url") ?? "").trim();
+  const backgroundVideoUrl = String(formData.get("hero_background_video_url") ?? "").trim();
+  const landingVideoUrl = String(formData.get("landing_background_video_url") ?? "").trim();
+  const featuredSpaceId = String(formData.get("featured_space_id") ?? "").trim();
+
+  if (tagline.length > 140) {
+    return { error: "Keep the headline to 140 characters or fewer." };
+  }
+  if (videoUrl && !/^https?:\/\/\S+$/i.test(videoUrl)) {
+    return { error: "The video link should be a full web address starting with https://." };
+  }
+  if (backgroundVideoUrl && !/^https?:\/\/\S+$/i.test(backgroundVideoUrl)) {
+    return { error: "The background video should be a full web address starting with https://." };
+  }
+  if (landingVideoUrl && !/^https?:\/\/\S+$/i.test(landingVideoUrl)) {
+    return { error: "The landing page video should be a full web address starting with https://." };
+  }
+
+  const supabase = await createClient();
+
+  // The featured space must belong to this community — a forged id from
+  // another community would otherwise put its name and photo on this feed.
+  if (featuredSpaceId) {
+    const { data: space } = await supabase
+      .from("spaces")
+      .select("id")
+      .eq("id", featuredSpaceId)
+      .eq("community_id", communityId)
+      .maybeSingle();
+    if (!space) return { error: "That space isn't part of this community." };
+  }
+
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({
+        tagline: tagline || null,
+        hero_video_url: videoUrl || null,
+        hero_background_video_url: backgroundVideoUrl || null,
+        landing_background_video_url: landingVideoUrl || null,
+        featured_space_id: featuredSpaceId || null,
+      })
+      .eq("id", communityId)
+      .select("id"),
+    "the landing page"
+  );
+  if (failure) return failure;
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}`);
+  return { ok: true };
 }
 
 export type CommunityGuidelinesState = { error: string } | { ok: true } | undefined;

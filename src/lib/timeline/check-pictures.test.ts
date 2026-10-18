@@ -103,11 +103,139 @@ test("a redirect is reported and NOT followed", async () => {
   let calls = 0;
   const result = await checkOnePicture("https://example.org/x.jpg", async () => {
     calls++;
-    return respond(302, "text/html");
+    return new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/" } });
   });
   assert.equal(result.outcome, "redirected");
   assert.equal(calls, 1, "the destination must not be fetched");
   assert.match(result.detail, /not followed/i);
+});
+
+const redirectTo = (location: string, status = 302) => new Response(null, { status, headers: { location } });
+
+test("a Special:FilePath redirect to upload.wikimedia.org is followed", async () => {
+  // Special:FilePath ALWAYS redirects to the file itself. Refusing it reported
+  // every such picture as failing, and one record lost a good photograph.
+  const asked: string[] = [];
+  const result = await checkOnePicture(
+    "https://commons.wikimedia.org/wiki/Special:FilePath/Seal_impression_Peribsen.jpg?width=1200",
+    async (input) => {
+      asked.push(String(input));
+      return asked.length === 1
+        ? redirectTo("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Seal.jpg/1200px-Seal.jpg")
+        : respond(200, "image/jpeg");
+    }
+  );
+  assert.equal(result.outcome, "ok");
+  assert.equal(asked.length, 2);
+  assert.match(asked[1], /^https:\/\/upload\.wikimedia\.org\//);
+});
+
+test("a Wikimedia redirect to anywhere else is still not followed", async () => {
+  for (const location of [
+    "http://upload.wikimedia.org/x.jpg", // not https
+    "https://example.org/x.jpg", // not a listed host
+    "https://upload.wikimedia.org.evil.example/x.jpg", // a suffix trick
+    "http://169.254.169.254/latest/",
+  ]) {
+    let calls = 0;
+    const result = await checkOnePicture("https://commons.wikimedia.org/wiki/Special:FilePath/X.jpg", async () => {
+      calls++;
+      return redirectTo(location);
+    });
+    assert.equal(result.outcome, "redirected", `${location} must not be followed`);
+    assert.equal(calls, 1, `${location} must never be fetched`);
+  }
+});
+
+test("a redirect loop between Wikimedia hosts stops", async () => {
+  let calls = 0;
+  const result = await checkOnePicture("https://commons.wikimedia.org/wiki/Special:FilePath/X.jpg", async () => {
+    calls++;
+    return redirectTo("https://commons.wikimedia.org/wiki/Special:FilePath/X.jpg");
+  });
+  assert.equal(result.outcome, "redirected");
+  assert.equal(calls, 4, "the first request and at most three hops");
+});
+
+test("every request says who is asking", async () => {
+  // Wikimedia throttles anonymous automated requests; that is where the 429s
+  // came from.
+  let agent: string | null = null;
+  await checkOnePicture("https://example.org/a.jpg", async (_input, init) => {
+    agent = new Headers(init?.headers).get("user-agent");
+    return respond(200, "image/jpeg");
+  });
+  assert.match(String(agent), /^Relate\/1\.0 .*github\.com\/Oshioma\/relate/);
+});
+
+test("a 429 is waited out once and then checked properly", async () => {
+  const waits: number[] = [];
+  let calls = 0;
+  const result = await checkOnePicture(
+    "https://upload.wikimedia.org/x.jpg",
+    async () => {
+      calls++;
+      return calls === 1
+        ? new Response(null, { status: 429, headers: { "retry-after": "2" } })
+        : respond(200, "image/jpeg");
+    },
+    8000,
+    async (ms) => {
+      waits.push(ms);
+    }
+  );
+  assert.equal(result.outcome, "ok");
+  assert.deepEqual(waits, [2000], "Retry-After is honoured");
+});
+
+test("a 429 that persists is rate-limited, never reported as broken", async () => {
+  const result = await checkOnePicture("https://upload.wikimedia.org/x.jpg", async () => respond(429), 8000, async () => {});
+  assert.equal(result.outcome, "rate-limited");
+  assert.match(result.detail, /not checked/);
+});
+
+test("a long Retry-After is not waited for", async () => {
+  const waits: number[] = [];
+  let calls = 0;
+  const result = await checkOnePicture(
+    "https://upload.wikimedia.org/x.jpg",
+    async () => {
+      calls++;
+      return new Response(null, { status: 429, headers: { "retry-after": "60" } });
+    },
+    8000,
+    async (ms) => {
+      waits.push(ms);
+    }
+  );
+  assert.equal(result.outcome, "rate-limited");
+  assert.deepEqual(waits, []);
+  assert.equal(calls, 1);
+});
+
+test("no more than two requests at a time go to one host", async () => {
+  // Nearly every picture is on Wikimedia; six at once to the same servers is
+  // what earned the 429s.
+  let active = 0;
+  let peak = 0;
+  const records = Array.from({ length: 12 }, (_, index) => ({
+    slug: `r${index}`,
+    title: `R${index}`,
+    image_url: index % 3 === 0 ? `https://example.org/${index}.jpg` : `https://upload.wikimedia.org/${index}.jpg`,
+    media: [],
+  }));
+  const results = await checkPictures(records, {
+    fetchImpl: async (input) => {
+      const wikimedia = String(input).includes("wikimedia");
+      if (wikimedia) peak = Math.max(peak, ++active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      if (wikimedia) active--;
+      return respond(200, "image/jpeg");
+    },
+  });
+  assert.equal(results.length, 12);
+  assert.ok(results.every((result) => result.outcome === "ok"));
+  assert.equal(peak, 2, "Wikimedia never sees more than two at once");
 });
 
 test("a host that refuses HEAD is retried with GET", async () => {

@@ -4,11 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
-import { getLesson, getSavedLessonIds, redactSource } from "@/lib/data/lessons";
+import { getLesson, getLessonFamily, getSavedLessonIds, redactSource } from "@/lib/data/lessons";
 import { isLessonWriterConfigured, lessonSystemPrompt } from "@/lib/ai/lesson-writer";
-import { isAgeBandKey, DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
+import {
+  ageBandLabel,
+  ageBandRank,
+  isAgeBandKey,
+  DEFAULT_AGE_BAND,
+  type LessonRow,
+} from "@/lib/school/lesson-types";
+import { getUsageRates } from "@/lib/usage/pricing";
+import { formatUsd, lessonWritingCost } from "@/lib/usage/costs";
 import { LessonDetailView } from "../../lesson-detail-view";
+import { LessonAddLevel } from "../../lesson-add-level";
+import { activeBatchJob, batchJobStatus } from "@/lib/school/lesson-batch";
+import { LessonVideoProvider } from "../../lesson-video";
 
+// One page per source: every age level written from the same material, youngest
+// first. Opening any level's link opens the whole page, and a reader skims the
+// levels they already know and carries on down as far as they like.
 export default async function LessonPage({
   params,
 }: {
@@ -29,6 +43,9 @@ export default async function LessonPage({
   const lesson = await getLesson(supabase, lessonId);
   if (!lesson || lesson.space_id !== space.id) notFound();
 
+  // Every level the viewer may see. RLS leaves out private ones.
+  const levels = await getLessonFamily(supabase, lesson);
+
   const membership = user ? await getMembership(supabase, community.id, user.id) : null;
   const isStaff =
     membership?.status === "active" &&
@@ -37,22 +54,67 @@ export default async function LessonPage({
 
   // A save is private to whoever made it, so this reads as the viewer and a
   // guest simply gets nothing back.
-  const saved = user ? (await getSavedLessonIds(supabase, user.id, [lesson.id])).has(lesson.id) : false;
+  const savedIds = user
+    ? await getSavedLessonIds(
+        supabase,
+        user.id,
+        levels.map((level) => level.id)
+      )
+    : new Set<string>();
 
-  // The rules this lesson was written under, rebuilt from the row. Computed
-  // here and only for staff, so it never reaches a member's page payload at
-  // all — hiding it with CSS would still have shipped it to everybody.
+  // The rules a level was written under, rebuilt from the row. Computed here
+  // and only for staff, so it never reaches a member's page payload at all —
+  // hiding it with CSS would still have shipped it to everybody.
   // The prompt as sent, when the lesson kept one. Rebuilt only as a fallback
   // for lessons written before they did — and the panel says which it got, so
   // "rebuilt" is never mistaken for evidence.
-  const sourceRules = isStaff
-    ? lesson.prompt_used ??
+  function rulesFor(level: LessonRow) {
+    if (!isStaff) return null;
+    return (
+      level.prompt_used ??
       lessonSystemPrompt(
-        isAgeBandKey(lesson.age_band) ? lesson.age_band : DEFAULT_AGE_BAND,
-        lesson.beyond_source
+        isAgeBandKey(level.age_band) ? level.age_band : DEFAULT_AGE_BAND,
+        level.beyond_source,
+        levels.some((other) => ageBandRank(other.age_band) < ageBandRank(level.age_band))
       )
-    : null;
-  const rulesAreOriginal = Boolean(lesson.prompt_used);
+    );
+  }
+
+  // What writing each level cost, for staff only — computed here so the figure
+  // never reaches anyone else's page payload. Priced the same way as the
+  // platform admin's Usage & costs tab, so the two agree about any lesson.
+  const rates = isStaff ? getUsageRates() : null;
+  function priceOf(level: LessonRow) {
+    return lessonWritingCost(
+      {
+        ai_model: level.ai_model,
+        ai_batch: level.ai_batch,
+        ai_input_tokens: level.ai_input_tokens,
+        ai_output_tokens: level.ai_output_tokens,
+        sourceChars: (level.source_text ?? "").length,
+        lessonChars: JSON.stringify(level.lesson ?? {}).length,
+      },
+      rates!
+    );
+  }
+  function costFor(level: LessonRow): string | null {
+    if (!rates) return null;
+    const { cost, estimated } = priceOf(level);
+    return `Writing this level (${ageBandLabel(level.age_band)}) cost about ${formatUsd(cost)}${
+      estimated ? " — estimated from its length" : ""
+    }.`;
+  }
+  // Every level on the page together, for staff, when there is more than one.
+  const familyCost =
+    rates && levels.length > 1
+      ? levels.reduce(
+          (sum, level) => {
+            const { cost, estimated } = priceOf(level);
+            return { cost: sum.cost + cost, estimated: sum.estimated || estimated };
+          },
+          { cost: 0, estimated: false }
+        )
+      : null;
 
   // The material is private unless its author has published it. Staff see it
   // regardless, because they answer for what is in their space and cannot
@@ -62,8 +124,22 @@ export default async function LessonPage({
   // props are serialised into the page, so a source left on the object and
   // merely not rendered is still readable by anyone who looks. The button says
   // "Source is private", and this is what makes that true.
-  const canSeeSource = Boolean(isStaff) || lesson.source_public;
-  const visible = canSeeSource ? lesson : redactSource(lesson);
+  function visibleRow(level: LessonRow): LessonRow {
+    const canSeeSource = Boolean(isStaff) || level.source_public;
+    return canSeeSource ? level : redactSource(level);
+  }
+
+  const writerConfigured = isLessonWriterConfigured();
+  const canAddLevel =
+    Boolean(isStaff) &&
+    writerConfigured &&
+    levels.some((level) => (level.source_text ?? "").trim().length > 0);
+
+  // A background half-price job for this lesson, for staff to watch. The page
+  // only reads it; the panel's first poll is what moves it on, so a level that
+  // has just come back never holds up the page load.
+  const runningJob = canAddLevel ? await activeBatchJob(lesson.family_id, lesson.space_id) : null;
+  const batchJob = runningJob ? batchJobStatus(runningJob) : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -73,19 +149,78 @@ export default async function LessonPage({
         </Link>
       </p>
 
-      <LessonDetailView
-        lesson={{ ...visible, saved }}
-        communitySlug={community.slug}
-        spaceSlug={space.slug}
-        canEdit={Boolean(isStaff)}
-        // Its author decides whether anyone else sees it; staff can too, since
-        // they answer for what is in their space.
-        canManageVisibility={Boolean(isStaff) || lesson.created_by === user?.id}
-        canSave={Boolean(isMember)}
-        sourceRules={sourceRules}
-        rulesAreOriginal={rulesAreOriginal}
-        writerConfigured={isLessonWriterConfigured()}
-      />
+      {familyCost && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          All {levels.length} levels together cost about {formatUsd(familyCost.cost)} to write
+          {familyCost.estimated ? " (some estimated from their length)" : ""}.
+        </p>
+      )}
+
+      {/* The levels on this page, so an adult can jump past the ones written
+          for children without scrolling through them. */}
+      {levels.length > 1 && (
+        <nav
+          aria-label="Levels"
+          className="mb-5 flex flex-wrap items-center gap-2 rounded-xl bg-muted/60 px-4 py-3"
+        >
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Jump to
+          </span>
+          {levels.map((level) => (
+            <a
+              key={level.id}
+              href={`#level-${level.id}`}
+              className="rounded-full bg-card px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
+            >
+              {ageBandLabel(level.age_band)}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      {/* The first level's video is the one on the page (see LessonDetailView),
+          and every level's sections may point into it. */}
+      <LessonVideoProvider url={levels[0]?.video_url ?? null}>
+        <div className="space-y-10">
+          {levels.map((level, index) => (
+            <LessonDetailView
+              key={level.id}
+              lesson={{ ...visibleRow(level), saved: savedIds.has(level.id) }}
+              communitySlug={community.slug}
+              spaceSlug={space.slug}
+              canEdit={Boolean(isStaff)}
+              // Its author decides whether anyone else sees it; staff can too,
+              // since they answer for what is in their space.
+              canManageVisibility={Boolean(isStaff) || level.created_by === user?.id}
+              canSave={Boolean(isMember)}
+              sourceRules={rulesFor(level)}
+              rulesAreOriginal={Boolean(level.prompt_used)}
+              writingCost={costFor(level)}
+              level={{
+                index,
+                count: levels.length,
+                // Only claimed for a level that really was written on top of
+                // the ones above it. Levels written before families existed were
+                // each written on their own, and may overlap.
+                previousBand:
+                  index > 0 && level.prompt_used?.includes("<earlier_levels>")
+                    ? levels[index - 1].age_band
+                    : null,
+              }}
+            />
+          ))}
+
+          {canAddLevel && (
+            <LessonAddLevel
+              lessonId={levels.find((level) => (level.source_text ?? "").trim())?.id ?? lesson.id}
+              existingBands={levels.map((level) => level.age_band)}
+              communitySlug={community.slug}
+              spaceSlug={space.slug}
+              batchJob={batchJob}
+            />
+          )}
+        </div>
+      </LessonVideoProvider>
     </div>
   );
 }

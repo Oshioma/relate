@@ -5,6 +5,7 @@ import { X, Search, Sprout, Leaf, UserCircle2 } from "lucide-react";
 import { UploadButton } from "@/components/ui/upload-button";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { cn, isImageUrl, isVideoUrl } from "@/lib/utils";
+import { MAX_POST_PHOTOS, isPhotoUrl } from "@/lib/post-media";
 
 export interface CropPhotoOption {
   id: string;
@@ -25,8 +26,9 @@ export interface FarmCropPhotoOption {
 }
 
 interface PostImagePickerProps {
-  mediaUrl: string | null;
-  onChange: (url: string | null) => void;
+  /** Lead item first (any kind), then up to MAX_POST_PHOTOS - 1 more photos. */
+  mediaUrls: string[];
+  onChange: (urls: string[]) => void;
   /** Community crop-guide photos the author can borrow an image from. */
   crops?: CropPhotoOption[];
   /** The member's own "My Crops" (farm) photos. */
@@ -37,55 +39,75 @@ interface PostImagePickerProps {
 
 type OpenPicker = "crop" | "myCrops" | null;
 
-// Photo controls shared by the new-post composer and the edit form: a preview
+// Photo controls shared by the new-post composer and the edit form: previews
 // of the chosen media plus its sources — upload from device, a photo from one
 // of the member's own crops ("My Crops"), a community crop-guide photo, or the
 // member's own avatar. Sources with nothing to show are hidden.
-export function PostImagePicker({ mediaUrl, onChange, crops = [], myCrops = [], avatarUrl = null }: PostImagePickerProps) {
+//
+// A post holds up to MAX_POST_PHOTOS items. The first can be anything an
+// upload allows (photo, video, document); the rest are photos, since they're
+// shown as a gallery. Each pick adds to the list rather than replacing it.
+export function PostImagePicker({ mediaUrls, onChange, crops = [], myCrops = [], avatarUrl = null }: PostImagePickerProps) {
   const [openPicker, setOpenPicker] = useState<OpenPicker>(null);
 
   // Only crops that actually have a photo are worth offering as an image.
   const cropsWithPhotos = useMemo(() => crops.filter((c) => c.image_url), [crops]);
   const myCropsWithPhotos = useMemo(() => myCrops.filter((c) => c.image_url), [myCrops]);
 
+  const full = mediaUrls.length >= MAX_POST_PHOTOS;
+  // A lead that isn't a photo (a video or document) can't share a gallery.
+  const leadIsPhoto = mediaUrls.length === 0 || isPhotoUrl(mediaUrls[0]);
+  const canAdd = !full && leadIsPhoto;
+
   function selectMedia(url: string) {
-    onChange(url);
+    if (!mediaUrls.includes(url)) onChange([...mediaUrls, url].slice(0, MAX_POST_PHOTOS));
     setOpenPicker(null);
+  }
+
+  function remove(index: number) {
+    onChange(mediaUrls.filter((_, i) => i !== index));
   }
 
   function togglePicker(which: OpenPicker) {
     setOpenPicker((current) => (current === which ? null : which));
   }
 
+  const [single] = mediaUrls;
+
   return (
     <div className="space-y-3">
-      {mediaUrl && (
+      {mediaUrls.length === 1 && (
         <div className="relative w-full overflow-hidden rounded-md border border-border">
           {/* Show the chosen media the same way the post will — a generous
               banner for photos/videos, a link for documents — so what you pick
               is what you get. */}
-          {isImageUrl(mediaUrl) || isVideoUrl(mediaUrl) ? (
+          {isImageUrl(single) || isVideoUrl(single) ? (
             <div className="aspect-[3/2] w-full bg-muted">
-              {isVideoUrl(mediaUrl) ? (
-                <video preload="metadata" src={mediaUrl} className="h-full w-full object-cover" />
+              {isVideoUrl(single) ? (
+                <video preload="metadata" src={single} className="h-full w-full object-cover" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={mediaUrl} alt="" className="h-full w-full object-cover" />
+                <img src={single} alt="" className="h-full w-full object-cover" />
               )}
             </div>
           ) : (
             <div className="p-3">
-              <MediaAttachment url={mediaUrl} />
+              <MediaAttachment url={single} />
             </div>
           )}
-          <button
-            type="button"
-            title="Remove photo"
-            onClick={() => onChange(null)}
-            className="absolute right-2 top-2 rounded-full bg-background/80 p-1 text-muted-foreground shadow-sm backdrop-blur hover:text-danger"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <RemoveButton onClick={() => remove(0)} />
+        </div>
+      )}
+
+      {mediaUrls.length > 1 && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {mediaUrls.map((url, i) => (
+            <div key={url} className="relative aspect-[4/3] overflow-hidden rounded-md border border-border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+              <RemoveButton onClick={() => remove(i)} />
+            </div>
+          ))}
         </div>
       )}
 
@@ -117,39 +139,65 @@ export function PostImagePicker({ mediaUrl, onChange, crops = [], myCrops = [], 
         />
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <UploadButton kind="any" label={mediaUrl ? "Change photo" : "Upload"} onUploaded={onChange} />
-
-        {myCropsWithPhotos.length > 0 && (
-          <SourceButton
-            active={openPicker === "myCrops"}
-            onClick={() => togglePicker("myCrops")}
-            icon={<Leaf className="h-3.5 w-3.5 shrink-0" />}
-            label="My Crops"
+      {canAdd && (
+        <div className="flex flex-wrap items-center gap-2">
+          {/* The first upload can be any file; after that it's photos only. */}
+          <UploadButton
+            kind={mediaUrls.length === 0 ? "any" : "image"}
+            label={mediaUrls.length === 0 ? "Upload" : "Add photo"}
+            onUploaded={selectMedia}
           />
-        )}
 
-        {cropsWithPhotos.length > 0 && (
-          <SourceButton
-            active={openPicker === "crop"}
-            onClick={() => togglePicker("crop")}
-            icon={<Sprout className="h-3.5 w-3.5 shrink-0" />}
-            label="Choose a crop"
-          />
-        )}
+          {myCropsWithPhotos.length > 0 && (
+            <SourceButton
+              active={openPicker === "myCrops"}
+              onClick={() => togglePicker("myCrops")}
+              icon={<Leaf className="h-3.5 w-3.5 shrink-0" />}
+              label="My Crops"
+            />
+          )}
 
-        {avatarUrl && (
-          <button
-            type="button"
-            onClick={() => selectMedia(avatarUrl)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
-          >
-            <UserCircle2 className="h-3.5 w-3.5 shrink-0" />
-            Use my photo
-          </button>
-        )}
-      </div>
+          {cropsWithPhotos.length > 0 && (
+            <SourceButton
+              active={openPicker === "crop"}
+              onClick={() => togglePicker("crop")}
+              icon={<Sprout className="h-3.5 w-3.5 shrink-0" />}
+              label="Choose a crop"
+            />
+          )}
+
+          {avatarUrl && !mediaUrls.includes(avatarUrl) && (
+            <button
+              type="button"
+              onClick={() => selectMedia(avatarUrl)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
+            >
+              <UserCircle2 className="h-3.5 w-3.5 shrink-0" />
+              Use my photo
+            </button>
+          )}
+
+          {mediaUrls.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {mediaUrls.length} of {MAX_POST_PHOTOS} photos
+            </span>
+          )}
+        </div>
+      )}
     </div>
+  );
+}
+
+function RemoveButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      title="Remove photo"
+      onClick={onClick}
+      className="absolute right-2 top-2 rounded-full bg-background/80 p-1 text-muted-foreground shadow-sm backdrop-blur hover:text-danger"
+    >
+      <X className="h-4 w-4" />
+    </button>
   );
 }
 

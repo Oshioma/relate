@@ -63,6 +63,7 @@ export function PlantScannerPanel({
         </div>
 
         <form action={formAction} className="flex-1">
+            <input type="hidden" name="community_slug" value={communitySlug} />
           <input type="hidden" name="image_url" value={shownImage ?? ""} />
           <Button type="submit" size="sm" className="w-auto" disabled={!shownImage || isPending}>
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}

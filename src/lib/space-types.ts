@@ -1,4 +1,5 @@
 import {
+  Grid3x3,
   MessageSquare,
   NotebookPen,
   Images,
@@ -25,6 +26,8 @@ import {
   Radio,
   Footprints,
   NotebookText,
+  HeartHandshake,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 import type { SpaceType } from "@/types/database";
@@ -91,6 +94,9 @@ export const SPACE_TYPES: Record<SpaceType, SpaceTypeMeta> = {
   live: { type: "live", label: "Live Events", icon: Radio, description: "Host live video sessions — staff go live and members join a Zoom-like meeting right in the community.", category: "programs" },
   meetups: { type: "meetups", label: "Meetups", icon: Footprints, description: "A live board of member-posted meetups — a time, a meeting point and a pace. Others tap \"I'm in\" and go together.", category: "general" },
   lessons: { type: "lessons", label: "Lessons", icon: NotebookText, description: "A teaching library — staff paste source material, Claude writes an age-appropriate lesson from it, and members read, print and re-use it.", category: "programs" },
+  guided_journey: { type: "guided_journey", label: "Guided Journey", icon: HeartHandshake, description: "Adopt a Beginner: experienced members take a beginner under their wing for one shared journey — matching, milestones, photo updates and a public gallery of finished stories.", category: "programs" },
+  arts_board: { type: "arts_board", label: "64 Arts Board", icon: Grid3x3, description: "The 64 classical arts of ancient India on an 8×8 board — each square flips to say what the art was and offers a family activity, with an Under 15s switch for child-friendly versions. Families circle the ones they've done.", category: "programs" },
+  books_media: { type: "books_media", label: "Books & Media", icon: Library, description: "A reviewed shelf of books, videos and other media for children — paste a link, Claude fills in the title, description, age range and anything a parent should know, and members file it as good for kids or not suitable (and why). Shareable across communities.", category: "programs" },
 };
 
 export const SPACE_TYPE_LIST = Object.values(SPACE_TYPES);

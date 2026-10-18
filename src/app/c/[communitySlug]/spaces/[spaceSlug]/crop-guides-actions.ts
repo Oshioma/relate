@@ -9,6 +9,8 @@ import { buildCropContext, askCropAssistant } from "@/lib/ai/crop-assistant";
 import { scanPlant, type PlantScanResult, type AnthropicImageMediaType } from "@/lib/ai/plant-scanner";
 import { findCropPhoto, generateCropImage, type CropImageResult } from "@/lib/ai/crop-image";
 import { identifyPlant, type PlantIdResult } from "@/lib/ai/plant-id";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
+import { meteredFor } from "@/lib/usage/ai-meter";
 
 export type CropRegionFormState = { error: string } | undefined;
 
@@ -266,7 +268,12 @@ export async function askCropQuestion(_prevState: CropAssistantState, formData: 
   const approvedTips = tips.filter((t) => t.approved).map((t) => ({ region: t.region, body: t.body }));
   const context = buildCropContext(detail, approvedTips, computeJournalStats(journals), new Date());
 
-  const answer = await askCropAssistant(detail.crop.common_name, question, context);
+  if (communityId) {
+    const allowance = await checkAiAllowance(communityId, user.id);
+    if (!allowance.allowed) return { question, error: allowance.message };
+  }
+  const ask = () => askCropAssistant(detail.crop.common_name, question, context);
+  const answer = communityId ? await meteredFor({ communityId, userId: user.id }, ask) : await ask();
   if (!answer) {
     return { question, error: "The growing assistant isn't available right now." };
   }
@@ -405,7 +412,15 @@ export async function scanPlantAction(_prevState: PlantScanState, formData: Form
     return { imageUrl, error: "Couldn't read that image." };
   }
 
-  const result = await scanPlant(base64, mediaType);
+  // Charged to the community the scanner lives in.
+  const communitySlug = String(formData.get("community_slug") ?? "").trim();
+  const community = communitySlug ? await getCommunityBySlug(supabase, communitySlug) : null;
+  if (community) {
+    const allowance = await checkAiAllowance(community.id, user.id);
+    if (!allowance.allowed) return { imageUrl, error: allowance.message };
+  }
+  const scan = () => scanPlant(base64, mediaType);
+  const result = community ? await meteredFor({ communityId: community.id, userId: user.id }, scan) : await scan();
   if (!result) {
     return { imageUrl, error: "The plant scanner isn't available right now." };
   }
@@ -488,7 +503,16 @@ export async function identifyPlantAction(_prevState: PlantIdState, formData: Fo
 
   const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
 
-  const result = await identifyPlant(base64, mediaType);
+  // Charged to the community this Plant ID space belongs to, whoever is asking.
+  const idCommunity = communitySlug ? await getCommunityBySlug(supabase, communitySlug) : null;
+  if (idCommunity) {
+    const allowance = await checkAiAllowance(idCommunity.id, user?.id ?? null);
+    if (!allowance.allowed) return { error: allowance.message };
+  }
+  const identify = () => identifyPlant(base64, mediaType);
+  const result = idCommunity
+    ? await meteredFor({ communityId: idCommunity.id, userId: user?.id ?? null }, identify)
+    : await identify();
   if (!result) {
     return { error: "Plant identification isn't available right now." };
   }

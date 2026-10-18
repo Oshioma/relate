@@ -5,7 +5,14 @@ import { ArrowRight, HelpCircle, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TimelineEventLink, TimelineSource } from "@/types/database";
 import type { TimelineLinkedRecord } from "@/lib/data/timeline";
-import { chronologyLabel, relationHint, relationLabel, viewpointOrder } from "@/lib/timeline/taxonomy";
+import {
+  chronologyLabel,
+  mediaKindLabel,
+  mediaKindNeedsWarning,
+  relationHint,
+  relationLabel,
+  viewpointOrder,
+} from "@/lib/timeline/taxonomy";
 
 // WHAT ELSE THIS RECORD IS TIED TO — AND WHO SAYS SO.
 //
@@ -145,6 +152,45 @@ export function RelatedRecords({
                 {other.title}
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </a>
+
+              {/* THE OTHER RECORD'S PICTURES, so a link can be recognised
+                  before it is followed. Thumbnails only: the captions, credits
+                  and full evidence notes live on the record itself, one click
+                  away. What must NOT wait for that click is a warning — an
+                  UNVERIFIED identification, or a picture that is a
+                  reconstruction rather than evidence — so those are marked on
+                  the thumbnail's face. */}
+              {other.pictures.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {other.pictures.map((picture) => {
+                    const unverified = /^UNVERIFIED\b/i.test(picture.caption?.trim() ?? "");
+                    const warning = mediaKindNeedsWarning(picture.shows) ? mediaKindLabel(picture.shows) : null;
+                    const badge = unverified ? "Unverified" : warning;
+                    return (
+                      <a
+                        key={picture.url}
+                        href={`/c/${communitySlug}/timeline/${other.slug}`}
+                        title={picture.caption ?? other.title}
+                        className="relative block h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-border hover:ring-foreground/40"
+                      >
+                        {/* Plain <img>: arbitrary hosts, as in the record's own gallery. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={picture.url}
+                          alt={picture.caption ?? `Picture from ${other.title}`}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                        {badge && (
+                          <span className="absolute inset-x-0 bottom-0 truncate bg-black/65 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-white">
+                            {badge}
+                          </span>
+                        )}
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
 
               {link.note && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{link.note}</p>}
 

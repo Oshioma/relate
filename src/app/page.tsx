@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import type { Community } from "@/types/database";
 import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
+import { communitySubdomainUrl } from "@/lib/custom-domain";
 
 // How many public communities the showcase strip's fallback considers before
 // ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
@@ -177,14 +178,29 @@ function Feature({ icon, title, description }: { icon: ReactNode; title: string;
   );
 }
 
+// Where a showcase card goes: the community's own front door — its verified
+// custom domain, else its subdomain, else the path on this site. Opened in a
+// new tab so the platform homepage stays where the visitor left it.
+function communityFrontDoor(community: Community): string {
+  if (community.custom_domain && community.custom_domain_verified_at) return `https://${community.custom_domain}`;
+  return communitySubdomainUrl(community.slug) ?? `/c/${community.slug}`;
+}
+
 function CommunityPreview({ community }: { community: Community }) {
   return (
-    <Card className="text-left">
-      <CardContent className="pt-6">
-        <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} className="mb-3" />
-        <h3 className="text-sm font-semibold text-foreground">{community.name}</h3>
-        {community.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>}
-      </CardContent>
-    </Card>
+    <a
+      href={communityFrontDoor(community)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <Card className="h-full text-left transition-shadow group-hover:shadow-md">
+        <CardContent className="pt-6">
+          <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} className="mb-3" />
+          <h3 className="text-sm font-semibold text-foreground group-hover:text-accent">{community.name}</h3>
+          {community.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>}
+        </CardContent>
+      </Card>
+    </a>
   );
 }

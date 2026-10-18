@@ -52,7 +52,7 @@ export async function WeatherTidesCard({
   const outlook = weather.daily.slice(0, 4);
 
   return (
-    <div className="mb-6">
+    <div>
       <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         {weather.tides ? "Tides & weather" : "Weather"}
       </h2>

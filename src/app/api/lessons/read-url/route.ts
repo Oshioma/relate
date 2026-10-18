@@ -13,6 +13,9 @@ import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { readUrl } from "@/lib/ai/read-url";
 import { MAX_SOURCE_CHARS } from "@/lib/school/lesson-types";
+import { checkAiAllowance } from "@/lib/usage/ai-spend";
+import { meteredFor } from "@/lib/usage/ai-meter";
+import { findLessonsFromLink, linkLessonsResponse } from "@/lib/school/lesson-from-link";
 
 export const maxDuration = 90;
 
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected a JSON body." }, { status: 400, headers: NO_STORE });
   }
 
-  const payload = body as { spaceId?: unknown; url?: unknown };
+  const payload = body as { spaceId?: unknown; url?: unknown; acknowledgedElsewhere?: unknown };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
   const url = typeof payload.url === "string" ? payload.url : "";
 
@@ -45,6 +48,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: auth.error }, { status: auth.status, headers: NO_STORE });
   }
 
+  // A page already made into a lesson is answered before the read is paid
+  // for. In this community that's a hard stop; in another it's a warning the
+  // author can go past, which comes back with acknowledgedElsewhere.
+  const found = await findLessonsFromLink(supabase, {
+    communityId: auth.space.community_id,
+    userId: auth.userId,
+    url,
+    includeElsewhere: payload.acknowledgedElsewhere !== true,
+  });
+  if (found.here || found.elsewhere.length > 0) {
+    return NextResponse.json(linkLessonsResponse(found), { status: 409, headers: NO_STORE });
+  }
+
   // Shares the daily lesson allowance rather than having one of its own. A
   // page read is cheaper than a lesson, but it is the same budget and the
   // same person, and one counter is one thing to explain.
@@ -53,7 +69,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: quota.message }, { status: 429, headers: NO_STORE });
   }
 
-  const result = await readUrl(url);
+  const allowance = await checkAiAllowance(auth.space.community_id, auth.userId);
+  if (!allowance.allowed) {
+    return NextResponse.json({ error: allowance.message }, { status: 402, headers: NO_STORE });
+  }
+
+  const result = await meteredFor({ communityId: auth.space.community_id, userId: auth.userId }, () =>
+    readUrl(url)
+  );
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 422, headers: NO_STORE });
   }

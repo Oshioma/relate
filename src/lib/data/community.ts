@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Community, CommunityMembership, Profile } from "@/types/database";
+import { previewingAsMember } from "@/lib/view-as-member";
 
 type Client = SupabaseClient<Database>;
 
-type CommunityOwner = Pick<Community, "owner_id">;
+// view_as_member is app-only, never a column: getCommunityBySlug sets it while
+// the viewer is previewing the community as a member (src/lib/view-as-member.ts).
+type CommunityOwner = Pick<Community, "owner_id"> & { view_as_member?: boolean };
 type ViewerMembership = Pick<CommunityMembership, "role" | "status"> | null;
 
 // The viewer predicates below all take the community as well as the membership
@@ -16,6 +19,7 @@ type ViewerMembership = Pick<CommunityMembership, "role" | "status"> | null;
 // mirror is_community_owner / _admin / _staff / _member in the database, which
 // answer the same way for the same reason.
 export function isCommunityOwner(community: CommunityOwner, viewerId: string | null | undefined): boolean {
+  if (community.view_as_member) return false;
   return Boolean(viewerId) && community.owner_id === viewerId;
 }
 
@@ -112,6 +116,7 @@ export async function getAllCommunities(supabase: Client): Promise<Community[]> 
 export async function getCommunityBySlug(supabase: Client, slug: string): Promise<Community | null> {
   const { data, error } = await supabase.from("communities").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
+  if (data && (await previewingAsMember(data.id))) return Object.assign(data, { view_as_member: true });
   return data;
 }
 
@@ -127,6 +132,10 @@ export async function getMembership(
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
+  // Previewing as a member: staff roles read as a plain member.
+  if (data && data.role !== "member" && (await previewingAsMember(communityId))) {
+    return { ...data, role: "member" };
+  }
   return data;
 }
 
@@ -245,6 +254,50 @@ export async function getCommunityStats(supabase: Client, communityId: string): 
   };
 }
 
+export interface CommunityWeeklyActivity {
+  posts: number;
+  members: number;
+  // Posts in the community's Growing Journey space, when it has one.
+  journeyUpdates: number;
+}
+
+// What happened in the last seven days, for the feed's "Community activity"
+// card. Head-only counts, same as getCommunityStats, so RLS decides what a
+// viewer can count and no rows come back over the wire.
+export async function getCommunityWeeklyActivity(
+  supabase: Client,
+  communityId: string,
+  journeySpaceId: string | null
+): Promise<CommunityWeeklyActivity> {
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [posts, members, journey] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .gte("created_at", since),
+    supabase
+      .from("community_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("community_id", communityId)
+      .eq("status", "active")
+      .gte("created_at", since),
+    journeySpaceId
+      ? supabase
+          .from("posts")
+          .select("id", { count: "exact", head: true })
+          .eq("space_id", journeySpaceId)
+          .gte("created_at", since)
+      : Promise.resolve({ count: 0 }),
+  ]);
+
+  return {
+    posts: posts.count ?? 0,
+    members: members.count ?? 0,
+    journeyUpdates: journey.count ?? 0,
+  };
+}
+
 export type MemberRow = CommunityMembership & { profile: Profile };
 
 export async function getCommunityMembers(supabase: Client, communityId: string): Promise<MemberRow[]> {
@@ -293,4 +346,35 @@ export async function getCommunityRecentMembers(
 
   if (error) throw error;
   return (data ?? []) as unknown as MemberRow[];
+}
+
+// How many members are sharing a growing journey: distinct authors in the
+// community's Growing Journey space. For the hero's stats panel.
+export async function getGrowingJourneyCount(supabase: Client, spaceId: string): Promise<number> {
+  const { data } = await supabase.from("posts").select("author_id").eq("space_id", spaceId).limit(5000);
+  return new Set((data ?? []).map((row) => row.author_id)).size;
+}
+
+// Where each of these people says they are ("Pemba, Tanzania"), for bylines
+// on the feed. Only locations their owner made visible, and RLS only returns
+// them to signed-in viewers — guests get an empty map. One query for the lot.
+export async function getMemberLocationLabels(
+  supabase: Client,
+  profileIds: string[]
+): Promise<Map<string, { full: string; short: string }>> {
+  const labels = new Map<string, { full: string; short: string }>();
+  const ids = [...new Set(profileIds)];
+  if (ids.length === 0) return labels;
+  const { data } = await supabase
+    .from("member_locations")
+    .select("profile_id, city, region, country, is_visible")
+    .in("profile_id", ids)
+    .eq("is_visible", true);
+  for (const row of data ?? []) {
+    const place = row.city || row.region;
+    const full = [place, row.country].filter(Boolean).join(", ");
+    const short = row.country || place;
+    if (full && short) labels.set(row.profile_id, { full, short });
+  }
+  return labels;
 }

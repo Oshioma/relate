@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  BookOpenText,
   ChevronDown,
   Globe2,
+  Hash,
   Layers,
   List,
   MapPin,
@@ -36,6 +38,8 @@ import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
+import { JumpToDate } from "./jump-to-date";
+import { interpolateWindow, jumpWindow } from "@/lib/timeline/jump-date";
 import { EventDetail } from "./event-detail";
 import { PeriodDetail } from "./period-detail";
 import { periodExtent, periodMatches, periodRegions, type PeriodWithClaims } from "@/lib/timeline/periods";
@@ -44,6 +48,8 @@ import { AddEventFlow } from "./add-event-flow";
 import {
   loadTimelineEvent,
   loadTimelineWindow,
+  loadTagExtent,
+  markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
   seedEarlySapiensDataset,
@@ -74,7 +80,11 @@ import {
   seedBrutusAlbionDataset,
   seedSetSutekhDataset,
   seedSacredTreesDataset,
+  seedOkomiloDataset,
+  seedSerpentKundaliniDataset,
+  seedHorusClaimsDataset,
   checkTimelinePictures,
+  bringHotlinkedPicturesIn,
   seedShowcaseEvent,
   seedStarterTracks,
   seedTimePeriods,
@@ -104,6 +114,9 @@ import {
   type TimeScale,
   type TimeWindow,
 } from "@/lib/timeline/time";
+import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
+import { resolveTrackParam, trackLinkSearch } from "@/lib/timeline/track-link";
+import { OKOMILO_TRACK, OKOMILO_TRACK_WINDOW } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 
 // The timeline page.
 //
@@ -115,6 +128,10 @@ import {
 // already has enough to draw the next frame.
 
 const REFETCH_DEBOUNCE_MS = 260;
+/** How long a jump takes to fly from where the reader is to where they asked to be. */
+const FLIGHT_MS = 650;
+/** How long the view has to sit still before the address is rewritten to match it. */
+const URL_WRITE_DEBOUNCE_MS = 300;
 
 type Mode = "timeline" | "compare";
 
@@ -269,6 +286,7 @@ export function TimelineView({
   periodLinks,
   eventLinks,
   linkedRecords,
+  archiveWorksByEvent = {},
   hasPeriods,
   hasAtlantis,
   hasLemuria,
@@ -295,6 +313,9 @@ export function TimelineView({
   hasBrutusAlbion,
   hasSetSutekh,
   hasSacredTrees,
+  hasOkomilo,
+  hasSerpentKundalini,
+  hasHorusClaims,
   datasetGaps,
   recordsMissingPictures,
   hannibalNeedsPictures,
@@ -308,7 +329,8 @@ export function TimelineView({
   isStaff,
   userId,
   pendingCount,
-  focusSlug,
+  initialUrlState,
+  seenEventIds,
 }: {
   communitySlug: string;
   initialEvents: TimelineEventWithClaims[];
@@ -334,6 +356,8 @@ export function TimelineView({
   eventLinks: TimelineEventLink[];
   /** The records those edges point at, which are usually outside the window. */
   linkedRecords: TimelineLinkedRecord[];
+  /** Event id → the archive texts whose marker it is, for "Read the original text". */
+  archiveWorksByEvent?: Record<string, { workKey: string; title: string }[]>;
   /** Whether the fifteen periods are already here. True for non-staff, who are never offered them. */
   hasPeriods: boolean;
   /** Whether the Atlantis dataset is already here. Same rule. */
@@ -363,6 +387,9 @@ export function TimelineView({
   hasBrutusAlbion: boolean;
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
+  hasOkomilo: boolean;
+  hasSerpentKundalini: boolean;
+  hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
   datasetGaps: { label: string; have: number; total: number }[];
   /** Records here whose dataset defines a picture for them and which have none. */
@@ -381,7 +408,10 @@ export function TimelineView({
   isStaff: boolean;
   userId: string | null;
   pendingCount: number;
-  focusSlug: string | null;
+  /** Scale, selection and filters read from the address (see url-state.ts). */
+  initialUrlState: Omit<TimelineUrlState, "window">;
+  /** Records this member has opened before. Empty when signed out. */
+  seenEventIds: string[];
 }) {
   const router = useRouter();
 
@@ -403,7 +433,8 @@ export function TimelineView({
   const [mode, setMode] = useState<Mode>("timeline");
   // Linear by default, always. A log axis is a distortion — a useful one, but a
   // reader who has not chosen it must never be shown it.
-  const [scale, setScale] = useState<TimeScale>("linear");
+  // (Unless the reader chose it and the address remembers they did.)
+  const [scale, setScale] = useState<TimeScale>(initialUrlState.scale);
   const [seeding, setSeeding] = useState(false);
   // Its own flag: the two seed cards can both be on screen, and one spinner
   // for both would put "Adding…" on the button nobody pressed.
@@ -445,24 +476,55 @@ export function TimelineView({
     | null
     | { kind: "none" }
     | { kind: "all-good"; checked: number }
-    | { kind: "problems"; checked: number; problems: { slug: string; title: string; where: string; detail: string }[] }
+    | {
+        kind: "problems";
+        checked: number;
+        problems: { slug: string; title: string; where: string; outcome: string; detail: string }[];
+      }
     // The failure has to land in the same panel as the answer. Sending it to
     // seedError instead would put it back in the three places that withdraw.
     | { kind: "error"; message: string }
   >(null);
+  // Its own panel for the same reason as the picture report above.
+  const [hotlinkReport, setHotlinkReport] = useState<
+    | null
+    | { kind: "error"; message: string }
+    | {
+        kind: "done";
+        broughtIn: number;
+        recordsUpdated: number;
+        stillWaiting: number;
+        leftAlone: number;
+        failures: { slug: string; title: string; reason: string }[];
+      }
+  >(null);
   const [, startSeed] = useTransition();
-  const [showList, setShowList] = useState(false);
+  // ?track= may name the track by slug as well as by id, so a hand-written or
+  // in-code link works in every community. Resolved once, before anything
+  // filters on it; arriving on a track opens the list too, because a track's
+  // undated records live there and nowhere on the strip.
+  const [initialTrackId] = useState(() => resolveTrackParam(initialUrlState.trackId, tracks));
+  const [showList, setShowList] = useState(Boolean(initialTrackId));
+  // "SEE ALL" FROM A CLUSTER: the strip and the list show only these records
+  // until the reader asks for everything back. Kept as the records themselves,
+  // not a filter on the loaded window, so panning away never empties it.
+  const [showingOnly, setShowingOnly] = useState<TimelineEventWithClaims[] | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [adding, setAdding] = useState(false);
 
-  const [category, setCategory] = useState("");
-  const [trackId, setTrackId] = useState("");
-  const [chronology, setChronology] = useState("");
-  const [sourceType, setSourceType] = useState("");
-  const [person, setPerson] = useState("");
-  const [civilisation, setCivilisation] = useState("");
-  const [disputedOnly, setDisputedOnly] = useState(false);
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [category, setCategory] = useState(initialUrlState.category);
+  const [trackId, setTrackId] = useState(initialTrackId);
+  const [chronology, setChronology] = useState(initialUrlState.chronology);
+  const [sourceType, setSourceType] = useState(initialUrlState.sourceType);
+  const [person, setPerson] = useState(initialUrlState.person);
+  const [civilisation, setCivilisation] = useState(initialUrlState.civilisation);
+  const [tag, setTag] = useState(initialUrlState.tag);
+  // How many records carry the tag, and where they sit in time — fetched when
+  // the tag changes, so the chip can say "12 records" and frame all of them.
+  const [tagExtent, setTagExtent] = useState<{ tag: string; from: number; to: number; count: number } | null>(null);
+  const [disputedOnly, setDisputedOnly] = useState(initialUrlState.disputedOnly);
+  const [pendingOnly, setPendingOnly] = useState(initialUrlState.pendingOnly);
 
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<TimelineEventWithClaims[] | null>(null);
@@ -479,11 +541,11 @@ export function TimelineView({
   // went stale the moment the server sent a newer one — the same bug the event
   // panel had after a rename. The id is the thing the reader chose; the period
   // is looked up from the current props on every render, so it cannot be old.
-  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(initialUrlState.period);
   const periodDetailRef = useRef<HTMLDivElement>(null);
 
   const [selected, setSelected] = useState<TimelineEventWithClaims | null>(
-    focusSlug ? initialEvents.find((event) => event.slug === focusSlug) ?? null : null
+    initialUrlState.focus ? initialEvents.find((event) => event.slug === initialUrlState.focus) ?? null : null
   );
   const [compareTrackIds, setCompareTrackIds] = useState<string[]>(() => tracks.slice(0, 4).map((track) => track.id));
 
@@ -495,11 +557,63 @@ export function TimelineView({
       sourceType: sourceType || null,
       person: person || null,
       civilisation: civilisation || null,
+      tag: tag || null,
       disputedOnly,
       includePending: pendingOnly || isStaff,
     }),
-    [category, trackId, chronology, sourceType, person, civilisation, disputedOnly, pendingOnly, isStaff]
+    [category, trackId, chronology, sourceType, person, civilisation, tag, disputedOnly, pendingOnly, isStaff]
   );
+
+  // --- The address follows the reader --------------------------------------
+  //
+  // Position, zoom, selection and filters are written into the URL as they
+  // change, so Back from a record's own page — or a reload, or a shared link —
+  // lands exactly here rather than on the default window.
+  //
+  // replaceState, not router.replace: the router would re-run this whole
+  // server page (every dataset check, the initial window query) once per pan.
+  // The native call updates the address and Next's router keeps in step with
+  // it without a round trip. Replace rather than push, because a history entry
+  // per drag would make Back step through every pixel the reader moved.
+  //
+  // Debounced so a drag writes once when it settles, not once per frame.
+  // Skipped until something actually changed, so an untouched timeline keeps
+  // the address it was opened with.
+  const selectedSlug = selected?.slug ?? null;
+  const urlState: TimelineUrlState = useMemo(
+    () => ({
+      window: view,
+      scale,
+      focus: selectedSlug,
+      period: selectedPeriodId,
+      category,
+      trackId,
+      chronology,
+      sourceType,
+      person,
+      civilisation,
+      tag,
+      disputedOnly,
+      pendingOnly,
+    }),
+    [view, scale, selectedSlug, selectedPeriodId, category, trackId, chronology, sourceType, person, civilisation, tag, disputedOnly, pendingOnly]
+  );
+  const openedWith = useRef<TimelineUrlState | null>(null);
+  useEffect(() => {
+    if (openedWith.current === null) {
+      openedWith.current = urlState;
+      return;
+    }
+    const handle = setTimeout(() => {
+      // Built against the live address so parameters this page does not own
+      // are carried along rather than dropped.
+      const next = timelineSearch(urlState, window.location.search);
+      if (next !== window.location.search) {
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${next}${window.location.hash}`);
+      }
+    }, URL_WRITE_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [urlState]);
 
   // --- Progressive loading --------------------------------------------------
   //
@@ -608,6 +722,43 @@ export function TimelineView({
     setMode("timeline");
   }, [extent]);
 
+  // A TAG IS "EVERYTHING FILED WITH THIS", and that is usually spread far
+  // wider than the window it was clicked from. The extent is asked for once
+  // per tag; framing on it is then the same arithmetic as fitEverything.
+  useEffect(() => {
+    // A stale extent is harmless: the chip only reads one whose tag matches.
+    if (!tag) return;
+    let cancelled = false;
+    loadTagExtent(communitySlug, tag)
+      .then((found) => {
+        if (!cancelled) setTagExtent(found ? { tag, ...found } : null);
+      })
+      .catch(() => {
+        if (!cancelled) setTagExtent(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [communitySlug, tag]);
+
+  const frameWindow = useCallback((found: { from: number; to: number }) => {
+    const span = Math.max(50, found.to - found.from);
+    const pad = span * 0.08;
+    setView(clampWindow({ from: found.from - pad, to: found.to + pad }));
+    setMode("timeline");
+  }, []);
+
+  // From a tag on a record: filter to it and frame every record carrying it,
+  // keeping the record that was clicked open.
+  const showTag = useCallback(
+    async (next: string) => {
+      setTag(next);
+      const found = await loadTagExtent(communitySlug, next).catch(() => null);
+      if (found) frameWindow(found);
+    },
+    [communitySlug, frameWindow]
+  );
+
   // Bring the panel into view when the selection changes — but only when it
   // changes, so scrolling away from an open panel doesn't yank you back on
   // every unrelated re-render.
@@ -647,6 +798,32 @@ export function TimelineView({
     if (!selectedId) return;
     reveal(detailRef.current);
   }, [selectedId, reveal]);
+
+  // WHAT THIS MEMBER HAS OPENED. Seeded from the server and added to the moment
+  // a record is opened — from the strip, a cluster card, the list or a search —
+  // so the cluster it came from stops leading with it straight away rather than
+  // on the next visit. Written to the account in the background; a failure only
+  // costs which record leads a card. Signed-out readers keep no history.
+  //
+  // The local set is updated DURING RENDER, keyed on the selection changing —
+  // React's pattern for state that follows another value — so the card that
+  // was clicked re-ranks in the same frame, with no effect-driven second pass.
+  const [seenState, setSeenState] = useState<{ last: string | null; ids: ReadonlySet<string> }>(() => ({
+    last: null,
+    ids: new Set(seenEventIds),
+  }));
+  if (selectedId && userId && selectedId !== seenState.last) {
+    const ids = seenState.ids.has(selectedId) ? seenState.ids : new Set([...seenState.ids, selectedId]);
+    setSeenState({ last: selectedId, ids });
+  }
+  const seen = seenState.ids;
+  // The account copy, once per newly opened record.
+  const recorded = useRef(new Set(seenEventIds));
+  useEffect(() => {
+    if (!selectedId || !userId || recorded.current.has(selectedId)) return;
+    recorded.current.add(selectedId);
+    void markEventSeen(selectedId);
+  }, [selectedId, userId]);
 
   useEffect(() => {
     if (!selectedPeriodId) return;
@@ -693,6 +870,53 @@ export function TimelineView({
     return () => clearTimeout(handle);
   }, [term, communitySlug, searching]);
 
+  // --- Flying to a date ------------------------------------------------------
+  //
+  // A jump TRAVELS rather than cuts, so the reader sees which way and how far
+  // they went — the difference between being moved and being teleported. The
+  // flight is interpolated by interpolateWindow (geometric zoom, log-distance
+  // travel), and any gesture during it wins: the moment the view is set by
+  // something other than the flight, the flight stops.
+  const flight = useRef<{ frame: number; last: TimeWindow } | null>(null);
+  const cancelFlight = useCallback(() => {
+    if (flight.current) cancelAnimationFrame(flight.current.frame);
+    flight.current = null;
+  }, []);
+  useEffect(() => {
+    if (flight.current && view !== flight.current.last) cancelFlight();
+  }, [view, cancelFlight]);
+  useEffect(() => cancelFlight, [cancelFlight]);
+
+  const flyTo = useCallback(
+    (target: TimeWindow) => {
+      cancelFlight();
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        setView(target);
+        return;
+      }
+      const start = view;
+      const startedAt = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - startedAt) / FLIGHT_MS);
+        // Ease in and out, so the strip neither lurches off nor slams to a stop.
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const next = t >= 1 ? target : interpolateWindow(start, target, eased);
+        flight.current = t >= 1 ? null : { frame: requestAnimationFrame(step), last: next };
+        setView(next);
+      };
+      flight.current = { frame: requestAnimationFrame(step), last: start };
+    },
+    [view, cancelFlight]
+  );
+
+  const jumpTo = useCallback(
+    (position: number) => {
+      flyTo(jumpWindow(view, position, scale));
+    },
+    [flyTo, view, scale]
+  );
+
   const goTo = useCallback((event: TimelineEventWithClaims) => {
     // Jump to the first claim that is actually somewhere. An event whose only
     // claims are positionless has nowhere to jump to, so the strip stays put
@@ -723,13 +947,14 @@ export function TimelineView({
       if (trackId && !event.trackIds.includes(trackId)) return false;
       if (person && !event.people.includes(person)) return false;
       if (civilisation && !event.civilisations.includes(civilisation)) return false;
+      if (tag && !event.tags.includes(tag)) return false;
       if (chronology && !event.claims.some((claim) => claim.chronology === chronology)) return false;
       if (sourceIdsOfType && !event.claims.some((claim) => claim.source_id && sourceIdsOfType.has(claim.source_id)))
         return false;
       if (disputedOnly && !claimsDisagree(event.claims)) return false;
       return true;
     },
-    [category, trackId, person, civilisation, chronology, sourceIdsOfType, disputedOnly]
+    [category, trackId, person, civilisation, tag, chronology, sourceIdsOfType, disputedOnly]
   );
 
   // Loaded is wider than shown (see the loader above), so the list is filtered
@@ -809,8 +1034,15 @@ export function TimelineView({
 
   const visible = pendingOnly ? inWindow.filter((event) => event.status === "pending") : inWindow;
   const activeResults = searching ? results : null;
-  const displayed = activeResults ?? visible;
-  const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation].filter(Boolean).length +
+  // A pinned set reads its records' latest copies where the window has them,
+  // so an edit made while it is showing is shown too.
+  const pinned = useMemo(() => {
+    if (!showingOnly) return null;
+    const latest = new Map(events.map((event) => [event.id, event]));
+    return showingOnly.map((event) => latest.get(event.id) ?? event);
+  }, [showingOnly, events]);
+  const displayed = activeResults ?? pinned ?? visible;
+  const activeFilterCount = [category, trackId, chronology, sourceType, person, civilisation, tag].filter(Boolean).length +
     (disputedOnly ? 1 : 0) + (pendingOnly ? 1 : 0);
 
   // Nothing at all, ever — as opposed to nothing in this window, which the
@@ -843,6 +1075,58 @@ export function TimelineView({
           </Button>
         )}
       </div>
+
+      {(() => {
+        // ONE TRACK, ON ITS OWN. With every dataset showing, the Okomilo
+        // records sit between unrelated ones and "See all" on a cluster only
+        // lists that cluster. This opens the whole track: filtered to it, over
+        // the span its dated records cover, with the list open for the
+        // records that deliberately have no date. It sits at the top, under
+        // the heading, because at the foot of the page nobody found it.
+        const track = tracks.find((candidate) => candidate.slug === OKOMILO_TRACK.slug);
+        if (!track || trackId === track.id) return null;
+        return (
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5">
+            <p className="min-w-0 flex-1 text-sm text-foreground">
+              <span className="font-medium">{track.name}</span>
+              <span className="text-muted-foreground"> — see the whole track together, without the other datasets in between.</span>
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setShowingOnly(null);
+                setTrackId(track.id);
+                setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
+                setShowList(true);
+                listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Open this track on its own
+            </Button>
+            <button
+              type="button"
+              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              onClick={(event) => {
+                // A link, not a navigation: the same page keeps its state on
+                // a client-side route change, so following it from here would
+                // not re-apply the filter. Copy it for sharing instead.
+                // The page's own address, so it works on a community's custom domain
+                // as well as under /c/<slug>.
+                const url = `${window.location.origin}${window.location.pathname}${trackLinkSearch(track.slug, OKOMILO_TRACK_WINDOW)}`;
+                const button = event.currentTarget;
+                navigator.clipboard?.writeText(url).then(
+                  () => (button.textContent = "Link copied"),
+                  () => window.prompt("Copy this link", url)
+                );
+              }}
+            >
+              Copy link
+            </button>
+          </div>
+        );
+      })()}
 
       {isStaff && pendingCount > 0 && (
         <button
@@ -1067,6 +1351,43 @@ export function TimelineView({
         </div>
       </div>
 
+      {/* ---- The tag being followed -------------------------------------
+          Outside the filter drawer, because it is usually set from a record
+          rather than from the drawer, and a filter the reader cannot see is a
+          timeline that has silently gone quiet. */}
+      {tag && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+          <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            Records tagged {tag}
+          </span>
+          {tagExtent?.tag === tag && (
+            <span className="text-muted-foreground">
+              {tagExtent.count} {tagExtent.count === 1 ? "record" : "records"}
+            </span>
+          )}
+          {tagExtent?.tag === tag && (
+            <button
+              type="button"
+              onClick={() => frameWindow(tagExtent)}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+              Show all of them
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setTag("")}
+            aria-label={`Stop filtering by ${tag}`}
+            className="ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+            Clear
+          </button>
+        </div>
+      )}
+
       {showFilters && (
         <div className="mb-3 flex flex-wrap gap-2 rounded-xl border border-border bg-card p-3">
           {tracks.length > 0 && (
@@ -1111,6 +1432,7 @@ export function TimelineView({
                 setSourceType("");
                 setPerson("");
                 setCivilisation("");
+                setTag("");
                 setDisputedOnly(false);
                 setPendingOnly(false);
               }}
@@ -1203,15 +1525,16 @@ export function TimelineView({
         ))}
       </div>
 
-      {/* ---- How much time is on screen ------------------------------------
-          Above the strip in both windowed modes, and absent from "whole",
-          where the answer is "all of it" and a measurement of the view would
-          be measuring nothing. */}
-      <SpanRuler window={view} scale={scale} />
+      {/* ---- When the middle of the view is, and a picture of it ----------
+          Above the strip: the middle date, large, with one picture from the
+          record nearest it among those shown. Clicking the picture opens it. */}
+      <SpanRuler window={view} scale={scale} events={displayed} onOpen={setSelected} />
 
-      {/* Where everything is, and where you are in it. Above the strip, under
+      {/* ---- The scrollbar -------------------------------------------------
+          Where everything is, and where you are in it. Above the strip, under
           the measurement, so the three read as one instrument: how wide, what
-          is out there, and then the detail. */}
+          is out there, and then the detail. Grab the thumb to travel, pull its
+          ends to zoom; it moves with every pan and zoom of the strip below. */}
       <TimelineOverview
         markers={markers}
         window={view}
@@ -1222,6 +1545,10 @@ export function TimelineView({
         className="mt-3"
       />
 
+      {/* "See all" from a cluster: say so, and how to undo it. */}
+      {pinned && (
+        <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} />
+      )}
       {/* ---- The timeline itself ------------------------------------------ */}
       {mode === "timeline" ? (
         // ONE canvas, sized by a class. A phone gets a shorter strip for the
@@ -1241,6 +1568,14 @@ export function TimelineView({
           onSelectPeriod={(period) => setSelectedPeriodId((current) => (current === period.id ? null : period.id))}
           loading={loading}
           truncated={truncated}
+          seenIds={seen}
+          onShowOnly={(records, window) => {
+            setShowingOnly(records);
+            setView(window);
+            setShowList(true);
+            // After the list has rendered with them in it.
+            requestAnimationFrame(() => listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }}
           className="h-[260px] sm:h-[440px] xl:h-[560px]"
         />
       ) : (
@@ -1307,6 +1642,9 @@ export function TimelineView({
           ))}
         </div>
 
+        {/* Straight to a moment: "10,500 BCE", "500 AD", "65 million years ago". */}
+        <JumpToDate communitySlug={communitySlug} onJump={jumpTo} />
+
         <button
           type="button"
           onClick={() => setShowList((open) => !open)}
@@ -1336,6 +1674,16 @@ export function TimelineView({
         >
           <Scale className="h-4 w-4" />
           Compare the traditions
+        </Link>
+
+        {/* THE TEXTS THEMSELVES. Each sits on the strip once, at its dates;
+            the archive is where they are read passage by passage. */}
+        <Link
+          href={`/c/${communitySlug}/timeline/texts`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <BookOpenText className="h-4 w-4" />
+          Ancient texts
         </Link>
 
         <Link
@@ -1382,6 +1730,7 @@ export function TimelineView({
             citations={citations}
             links={eventLinks}
             linkedRecords={linkedRecords}
+            archiveWorks={archiveWorksByEvent[selected.id]}
             tracks={tracks}
             userId={userId}
             communitySlug={communitySlug}
@@ -1395,6 +1744,8 @@ export function TimelineView({
             // timeline rather than over it, jumping to "what else was happening
             // then" no longer has to close what you were reading.
             onShowContext={(from, to) => setView({ from, to })}
+            onSelectTag={showTag}
+            activeTag={tag}
           // A save writes to the database and refreshes the server components;
           // this is what tells the client-side copy of the timeline to go and
           // look again, so a renamed event is renamed on the strip too.
@@ -1407,10 +1758,11 @@ export function TimelineView({
           Also one list, not two. Always on a phone, where it is the primary way
           in; on a desktop only when asked for, because there the strip is doing
           that job. */}
-      <div className={cn("mt-4", showList ? "block" : "block sm:hidden")}>
+      <div ref={listRef} className={cn("mt-4 scroll-mt-4", showList ? "block" : "block sm:hidden")}>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:hidden">
           In order
         </h2>
+        {pinned && <ShowingOnlyBar count={pinned.length} onClear={() => setShowingOnly(null)} className="mb-2" />}
         <TimelineList
           events={displayed}
           onSelect={setSelected}
@@ -1933,6 +2285,63 @@ export function TimelineView({
         </DatasetOffer>
       )}
 
+
+      {isStaff && !hasOkomilo && (
+        <DatasetOffer
+          title="Add the Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)?"
+          busyLabel="Adding the records…"
+          label="Add the family and community history"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedOkomiloDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasSerpentKundalini && (
+        <DatasetOffer
+          title="Add the serpent, Kundalini and sacred ascent?"
+          busyLabel="Adding the records…"
+          label="Add the serpent collection"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedSerpentKundaliniDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Serpents, staffs, inner fire and ascent across five thousand years and four continents — from the Indus seals to Tantric and Tibetan practice. Each record says what it claims about Kundalini and whether anything is shown to have travelled between cultures; resemblance is never presented as descent.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasHorusClaims && (
+        <DatasetOffer
+          title="Add four claims about Horus, and where they came from?"
+          busyLabel="Adding the records…"
+          label="Add the Horus claims"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedHorusClaimsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          Virgin birth, December 25, twelve disciples, crucifixion — each claim traced backwards through the people who made it until the chain reaches an Egyptian source or stops.
+        </DatasetOffer>
+      )}
 
       {isStaff && !hasSacredTrees && (
         <DatasetOffer
@@ -2555,50 +2964,177 @@ export function TimelineView({
             </p>
           )}
 
-          {pictureReport.kind === "problems" && (
+          {pictureReport.kind === "problems" &&
+            (() => {
+              // RATE-LIMITED IS NOT BROKEN. A 429 is the host asking us to
+              // slow down and says nothing about whether the file exists — so
+              // those are counted apart and never listed as pictures that
+              // failed. Listing them was how a report of 49 "broken" pictures
+              // turned out to be mostly healthy ones.
+              const broken = pictureReport.problems.filter((problem) => problem.outcome !== "rate-limited");
+              const unchecked = pictureReport.problems.length - broken.length;
+              return (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {broken.length === 0
+                        ? "Nothing failed."
+                        : `${broken.length} of ${pictureReport.checked} did not load.`}
+                    </span>{" "}
+                    Nothing has been changed — this is a report.
+                  </p>
+                  {unchecked > 0 && (
+                    <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {unchecked === 1 ? "One picture" : `${unchecked} pictures`} could not be checked.
+                      </span>{" "}
+                      The host asked us to slow down (429), which says nothing about whether{" "}
+                      {unchecked === 1 ? "it loads" : "they load"}. Run the check again in a few minutes.
+                    </p>
+                  )}
+
+                  {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
+                      THE PROBLEM. A server behind a proxy that refuses outbound
+                      requests answers 403 for every URL alike, and the honest
+                      report then names twelve healthy records as broken — which
+                      sends somebody editing good data to fix a network. Twelve
+                      files going bad at once in identical fashion is not what
+                      rot looks like; a blocked server is exactly what it looks
+                      like, so say so before the list rather than after it. */}
+                  {broken.length === pictureReport.checked &&
+                    pictureReport.checked > 2 &&
+                    new Set(broken.map((problem) => problem.detail)).size === 1 && (
+                      <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Read this before editing anything.</span> Every
+                        picture failed in the same way — {broken[0].detail}. That is what a server which cannot reach
+                        the internet looks like, not what {pictureReport.checked} separately broken addresses look
+                        like. Check whether this server is allowed to make outbound requests before changing any
+                        record below.
+                      </p>
+                    )}
+                  <ul className="mt-3 space-y-2">
+                    {broken.map((problem, index) => (
+                      <li key={`${problem.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${problem.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {problem.title}
+                        </a>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
+        </div>
+      )}
+
+      {/* PICTURES STILL POINTING AT SOMEBODY ELSE'S SERVER. A copy that
+          failed at seeding time keeps its original address for good, so a
+          reader's browser asks Wikimedia for it on every visit — and the
+          picture check keeps listing it. This tries the copy again. */}
+      {isStaff && (
+        <DatasetOffer
+          title="Bring hotlinked pictures in?"
+          busyLabel="Copying pictures in…"
+          label="Bring hotlinked pictures in"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                setHotlinkReport(null);
+                const result = await bringHotlinkedPicturesIn(communitySlug);
+                if (result && "error" in result) setHotlinkReport({ kind: "error", message: result.error });
+                else if (result) setHotlinkReport({ kind: "done", ...result });
+                resolve();
+              });
+            })
+          }
+        >
+          Copies pictures that still load from Wikimedia or another listed source into this community&apos;s own
+          storage, so they no longer depend on somebody else&apos;s server. Only the address changes — captions,
+          credits and order stay as they are, and nothing is removed. Pictures from hosts that are not on the list of
+          licensed sources, or with no record of where they came from, are left where they are. It works a batch at a
+          time: press it until nothing is left waiting.
+        </DatasetOffer>
+      )}
+
+      {isStaff && hotlinkReport && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Bringing pictures in
+            </h3>
+            <button
+              type="button"
+              onClick={() => setHotlinkReport(null)}
+              aria-label="Dismiss the report on bringing pictures in"
+              className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {hotlinkReport.kind === "error" && (
+            <p className="mt-2 text-sm text-danger">
+              <span className="font-medium">Nothing was copied.</span> {hotlinkReport.message}
+            </p>
+          )}
+
+          {hotlinkReport.kind === "done" && (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">
-                  {pictureReport.problems.length} of {pictureReport.checked} did not load.
-                </span>{" "}
-                Nothing has been changed — this is a report.
-              </p>
-
-              {/* WHEN EVERY PICTURE FAILS THE SAME WAY, THE PICTURES ARE NOT
-                  THE PROBLEM. A server behind a proxy that refuses outbound
-                  requests answers 403 for every URL alike, and the honest
-                  report then names twelve healthy records as broken — which
-                  sends somebody editing good data to fix a network. Twelve
-                  files going bad at once in identical fashion is not what
-                  rot looks like; a blocked server is exactly what it looks
-                  like, so say so before the list rather than after it. */}
-              {pictureReport.problems.length === pictureReport.checked &&
-                pictureReport.checked > 2 &&
-                new Set(pictureReport.problems.map((problem) => problem.detail)).size === 1 && (
-                  <p className="mt-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">Read this before editing anything.</span> Every
-                    picture failed in the same way — {pictureReport.problems[0].detail}. That is what a server which
-                    cannot reach the internet looks like, not what {pictureReport.checked} separately broken
-                    addresses look like. Check whether this server is allowed to make outbound requests before
-                    changing any record below.
-                  </p>
+                  {hotlinkReport.broughtIn === 0
+                    ? "No pictures were copied in."
+                    : `${hotlinkReport.broughtIn} ${hotlinkReport.broughtIn === 1 ? "picture" : "pictures"} copied in, on ${hotlinkReport.recordsUpdated} ${hotlinkReport.recordsUpdated === 1 ? "record" : "records"}.`}
+                </span>
+                {hotlinkReport.stillWaiting > 0 && (
+                  <>
+                    {" "}
+                    {hotlinkReport.stillWaiting} more {hotlinkReport.stillWaiting === 1 ? "is" : "are"} waiting —
+                    press the button again.
+                  </>
                 )}
-              <ul className="mt-3 space-y-2">
-                {pictureReport.problems.map((problem, index) => (
-                  <li key={`${problem.slug}-${index}`} className="text-sm">
-                    <a
-                      href={`/c/${communitySlug}/timeline/${problem.slug}`}
-                      className="font-medium text-foreground hover:text-accent hover:underline"
-                    >
-                      {problem.title}
-                    </a>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      — {problem.where === "cover" ? "cover image" : "picture"}: {problem.detail}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                {hotlinkReport.broughtIn === 0 &&
+                  hotlinkReport.stillWaiting === 0 &&
+                  hotlinkReport.failures.length === 0 &&
+                  " Every picture that can be copied in already has been."}
+              </p>
+              {hotlinkReport.leftAlone > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {hotlinkReport.leftAlone === 1 ? "One picture was" : `${hotlinkReport.leftAlone} pictures were`} left
+                  where {hotlinkReport.leftAlone === 1 ? "it is" : "they are"}: from a host that is not a listed
+                  source, or with no record of where {hotlinkReport.leftAlone === 1 ? "it" : "they"} came from.
+                </p>
+              )}
+              {hotlinkReport.failures.length > 0 && (
+                <>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {hotlinkReport.failures.length} could not be copied
+                    </span>{" "}
+                    and still point where they did. Nothing was removed.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {hotlinkReport.failures.map((failure, index) => (
+                      <li key={`${failure.slug}-${index}`} className="text-sm">
+                        <a
+                          href={`/c/${communitySlug}/timeline/${failure.slug}`}
+                          className="font-medium text-foreground hover:text-accent hover:underline"
+                        >
+                          {failure.title}
+                        </a>
+                        <span className="text-muted-foreground"> — {failure.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           )}
         </div>
@@ -2664,6 +3200,26 @@ export function TimelineView({
                       `Added ${result.linked} ${result.linked === 1 ? "connection" : "connections"} between records.`
                     );
                   }
+                  // TEXT AND PICTURE CORRECTIONS, each named for what it did:
+                  // a rewritten description and a removed picture are different
+                  // news to somebody who knows their timeline.
+                  if (result.retexted > 0) {
+                    parts.push(
+                      `Brought the wording of ${result.retexted} ${result.retexted === 1 ? "record" : "records"} up to date.`
+                    );
+                  }
+                  if (result.picturesRemoved > 0) {
+                    parts.push(
+                      `Removed ${result.picturesRemoved} ${
+                        result.picturesRemoved === 1 ? "picture the datasets no longer use" : "pictures the datasets no longer use"
+                      }.`
+                    );
+                  }
+                  if (result.picturesCorrected > 0) {
+                    parts.push(
+                      `Corrected the details of ${result.picturesCorrected} ${result.picturesCorrected === 1 ? "picture" : "pictures"}.`
+                    );
+                  }
                   // "Nothing changed" is the headline whenever nothing did —
                   // the kept count goes after it rather than standing alone,
                   // which read as though something had happened.
@@ -2678,6 +3234,20 @@ export function TimelineView({
                       result.keptBecauseEdited === 1
                         ? "1 date was left alone because somebody here had edited it."
                         : `${result.keptBecauseEdited} dates were left alone because somebody here had edited them.`
+                    );
+                  }
+                  if (result.textKeptBecauseEdited > 0) {
+                    parts.push(
+                      result.textKeptBecauseEdited === 1
+                        ? "1 record's wording was left alone because somebody here had edited it."
+                        : `${result.textKeptBecauseEdited} records' wording was left alone because somebody here had edited it.`
+                    );
+                  }
+                  if (result.picturesKeptBecauseEdited > 0) {
+                    parts.push(
+                      result.picturesKeptBecauseEdited === 1
+                        ? "1 record's pictures were left alone because somebody here had arranged them."
+                        : `${result.picturesKeptBecauseEdited} records' pictures were left alone because somebody here had arranged them.`
                     );
                   }
                   setSeedNote(parts.join(" "));
@@ -2784,6 +3354,33 @@ export function TimelineView({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * The bar shown while "See all" has narrowed the timeline to one cluster's
+ * records: how many, and the one button that brings everything back.
+ */
+function ShowingOnlyBar({ count, onClear, className }: { count: number; onClear: () => void; className?: string }) {
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-xl border border-accent/40 bg-accent-soft px-4 py-2.5 text-sm text-foreground",
+        className
+      )}
+    >
+      <span className="min-w-0 flex-1">
+        Showing only these <span className="font-semibold tabular-nums">{count}</span> {count === 1 ? "record" : "records"}.
+      </span>
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+      >
+        Show everything
+      </button>
     </div>
   );
 }

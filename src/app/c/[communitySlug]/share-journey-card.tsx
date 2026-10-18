@@ -1,5 +1,5 @@
 import { Sprout } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ShareJourneyButton } from "./share-journey-button";
 
 // Sidebar call-to-action shown only when the community runs a "Growing
@@ -28,28 +28,22 @@ export function ShareJourneyCard({
   const mode = !isLoggedIn ? "login" : isMember ? "post" : "join";
 
   return (
-    <div className="mb-6">
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-        {spaceName}
-      </h2>
-      <Card>
-        <CardContent className="pt-5">
-          <div className="flex items-center gap-3">
-            <Sprout className="h-9 w-9 shrink-0 text-accent" />
-            <p className="text-sm text-muted-foreground">
-              Share how your season is going with the community.
-            </p>
-          </div>
-          <div className="mt-4">
-            <ShareJourneyButton
-              mode={mode}
-              communityId={communityId}
-              composerHref={composerHref}
-              loginHref={loginHref}
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <Sprout className="h-5 w-5" />
+        </span>
+        <h2 className="text-sm font-semibold text-foreground">{spaceName}</h2>
+      </div>
+      <p className="mt-3 text-sm text-muted-foreground">Share how your season is going with the community.</p>
+      <div className="mt-4">
+        <ShareJourneyButton
+          mode={mode}
+          communityId={communityId}
+          composerHref={composerHref}
+          loginHref={loginHref}
+        />
+      </div>
+    </Card>
   );
 }

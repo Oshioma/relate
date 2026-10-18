@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
+import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
+import { ShareOriginProvider } from "@/components/ui/share-origin";
+import { communityShareOrigin } from "@/lib/custom-domain";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import {
@@ -13,6 +16,7 @@ import {
 } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { getCommunityFeaturedBusinessCategories, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
 import { getCommunityFeatures } from "@/lib/data/features";
@@ -21,7 +25,8 @@ import { countActiveTiers } from "@/lib/data/tiers";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { homeLabelForCommunity } from "@/lib/community-templates";
 import { communityHasTimeline, timelinePath } from "@/lib/timeline/availability";
-import { NAV_GROUPS, isNavGroup, type NavGroup } from "@/lib/nav-groups";
+import { DEFAULT_NAV_GROUPS, type NavGroup } from "@/lib/nav-groups";
+import { getCommunityNavGroups } from "@/lib/data/nav-groups";
 import { businessCategoryPluralLabel } from "@/lib/business-categories";
 import { getNotifications, getUnreadNotificationCount } from "@/lib/data/notifications";
 import { getConversations, getUnreadMessageCount } from "@/lib/data/messages";
@@ -29,6 +34,7 @@ import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messa
 import { Avatar } from "@/components/ui/avatar";
 import { NavLink } from "@/components/layout/nav-link";
 import { LogoutButton } from "@/components/layout/logout-button";
+import { isRecent } from "@/lib/recency";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { MessagesPopover } from "@/components/layout/messages-popover";
@@ -95,6 +101,7 @@ export async function generateMetadata({
 // Just under the built-in nav items' base (see defaultNavItemSort), so the
 // Timeline lands after a community's own spaces but ahead of Events and Search.
 const TIMELINE_NAV_SORT = 99_000;
+const GUIDES_NAV_SORT = 98_000;
 
 export default async function CommunityLayout({
   children,
@@ -125,7 +132,7 @@ export default async function CommunityLayout({
 
   // Community-scoped nav data everyone needs; RLS narrows `spaces` to the
   // public ones for a guest.
-  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession] = await Promise.all([
+  const [spaces, navLinks, navItemOrder, featuredCategories, customCategories, labelOverrides, features, activeTierCount, liveSession, savedNavGroups, editorialGuides] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityNavLinks(supabase, community.id),
     getCommunityNavItemOrder(supabase, community.id),
@@ -135,7 +142,16 @@ export default async function CommunityLayout({
     getCommunityFeatures(supabase, community.id),
     countActiveTiers(supabase, community.id),
     getCommunityLiveSession(supabase, community.id),
+    getCommunityNavGroups(supabase, community.id),
+    getCommunityEditorialGuides(supabase, community.id),
   ]);
+
+  // This community's sidebar sections, in the admin's order. A key that is
+  // not among them (a section since removed, or a built-in link's section the
+  // admin deleted) counts as ungrouped.
+  const navGroups = savedNavGroups ?? DEFAULT_NAV_GROUPS;
+  const sectionFor = (key: string | null | undefined): NavGroup | null =>
+    key && navGroups.some((group) => group.key === key) ? key : null;
 
   // Personal chrome (profile, membership, notifications, messages) only exists
   // for a signed-in visitor.
@@ -166,6 +182,9 @@ export default async function CommunityLayout({
   // community — no Admin link here, and the guest banner below — with nothing
   // on screen offering a way back in.
   const isStaff = isCommunityAdmin(community, membership, user?.id);
+  // Set when an owner/admin is previewing as a member — the helpers above
+  // already read them as one; this only drives the "Exit preview" bar.
+  const previewingMember = Boolean(user) && (community as { view_as_member?: boolean }).view_as_member === true;
   const isMember = isCommunityMember(community, membership, user?.id);
   // Contact-form messages waiting on staff. Only staff can read them (RLS says
   // so too), so only staff pay for the count query.
@@ -194,8 +213,12 @@ export default async function CommunityLayout({
   type NavUnit = {
     sort: number;
     group: NavGroup | null;
-    items: { href: string; label: string; icon: React.ReactNode; sub?: boolean }[];
+    items: { href: string; label: string; icon: React.ReactNode; sub?: boolean; isNew?: boolean }[];
   };
+
+  const newBadge = (
+    <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">New</span>
+  );
 
   const orderedUnits: NavUnit[] = [
     // Featured business categories render as indented sub-links right under
@@ -203,12 +226,14 @@ export default async function CommunityLayout({
     // they travel with their space as one unit.
     ...navSpaces.map((space) => ({
       sort: space.sort_order,
-      group: isNavGroup(space.nav_group) ? space.nav_group : null,
+      group: sectionFor(space.nav_group),
       items: [
         {
           href: `${base}/spaces/${space.slug}`,
           label: space.name,
           icon: <Layers className="h-4 w-4" />,
+          // Flag a space added in the last fortnight, so members notice it.
+          isNew: isRecent(space.created_at),
         },
         ...featuredCategories
           .filter((f) => f.space_id === space.id)
@@ -226,10 +251,10 @@ export default async function CommunityLayout({
     // the front page rather than under one section of it. Both keep their
     // admin-set sort position within that section.
     ...(features.events && canSeeEvents && navItemOrder.events?.showInNav !== false
-      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), group: "connect" as NavGroup, items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.events?.sortOrder ?? defaultNavItemSort("events"), group: sectionFor("connect"), items: [{ href: `${base}/events`, label: "Events", icon: <CalendarDays className="h-4 w-4" /> }] }]
       : []),
     ...(features.concierge && navItemOrder.concierge?.showInNav !== false
-      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: "home" as NavGroup, items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
+      ? [{ sort: navItemOrder.concierge?.sortOrder ?? defaultNavItemSort("concierge"), group: sectionFor("home"), items: [{ href: `${base}/concierge`, label: "Search", icon: <Search className="h-4 w-4" /> }] }]
       : []),
     // The Timeline, for the community types that have it (homeschool today —
     // see src/lib/timeline/availability.ts, which the database agrees with).
@@ -243,8 +268,23 @@ export default async function CommunityLayout({
     ...(communityHasTimeline(community)
       ? [{
           sort: TIMELINE_NAV_SORT,
-          group: navSpaces.some((space) => isNavGroup(space.nav_group)) ? ("learn" as NavGroup) : null,
+          group: navSpaces.some((space) => sectionFor(space.nav_group)) ? sectionFor("learn") : null,
           items: [{ href: timelinePath(community.slug), label: "Timeline", icon: <History className="h-4 w-4" /> }],
+        }]
+      : []),
+    // Editorial guides ("Where to Stay in Zanzibar"), for a community that has
+    // one. A single guide links straight to itself; several go to /guides.
+    // Placed with the Timeline, after the spaces and before Events/Search, and
+    // grouped under Learn only where this community already uses sections.
+    ...(editorialGuides.length > 0
+      ? [{
+          sort: GUIDES_NAV_SORT,
+          group: navSpaces.some((space) => sectionFor(space.nav_group)) ? sectionFor("learn") : null,
+          items: [{
+            href: editorialGuides.length === 1 ? `${base}/guides/${editorialGuides[0].slug}` : `${base}/guides`,
+            label: editorialGuides.length === 1 ? editorialGuides[0].title : "Guides",
+            icon: <Compass className="h-4 w-4" />,
+          }],
         }]
       : []),
   ].sort((a, b) => a.sort - b.sort);
@@ -266,7 +306,7 @@ export default async function CommunityLayout({
   // The sections actually in use. Empty when nothing in this community has been
   // grouped, which is the signal to render the flat list — a single heading
   // over the whole nav labels nothing.
-  const usedGroups = NAV_GROUPS.filter((group) =>
+  const usedGroups = navGroups.filter((group) =>
     orderedUnits.some((unit) => unit.group === group.key)
   );
   // Ungrouped units fall to the end, in their own order, with no heading. A
@@ -302,11 +342,21 @@ export default async function CommunityLayout({
             and no tint reads well behind every possible logo. The cover earns
             its place on the feed header, where it's large enough to be the
             photograph it is. */}
-        <div className="border-b border-border px-5 py-5">
+        {/* pt-[49px]: the 48px main header plus the logo ring's 1px, so the top
+            of the ring sits level with the top of the cover photo beside it. */}
+        <div className="border-b border-border px-5 pb-5 pt-[49px]">
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
-            <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={140} />
+            {/* A thin ring in the community's colour frames the logo, so a logo on a
+                white background doesn't dissolve into the white sidebar. */}
+            <Avatar
+              src={community.logo_url}
+              name={community.name}
+              initials={community.logo_initials}
+              size={140}
+              className="ring-1 ring-accent"
+            />
             <span className="mt-3 truncate text-lg font-semibold text-foreground transition-colors hover:text-accent">
               {community.name}
             </span>
@@ -324,6 +374,7 @@ export default async function CommunityLayout({
                   icon={item.icon}
                   exact={item.href === base}
                   className={"sub" in item && item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                  badge={"isNew" in item && item.isNew ? newBadge : undefined}
                 >
                   {item.label}
                 </NavLink>
@@ -351,6 +402,7 @@ export default async function CommunityLayout({
                         href={item.href}
                         icon={item.icon}
                         className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                        badge={item.isNew ? newBadge : undefined}
                       >
                         {item.label}
                       </NavLink>
@@ -370,6 +422,7 @@ export default async function CommunityLayout({
                         href={item.href}
                         icon={item.icon}
                         className={item.sub ? "pl-9 py-1.5 text-sm" : undefined}
+                        badge={item.isNew ? newBadge : undefined}
                       >
                         {item.label}
                       </NavLink>
@@ -452,7 +505,10 @@ export default async function CommunityLayout({
           Found by the motif comparison table, whose own overflow-x-auto could
           not work until this was set. */}
       <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:px-6">
+        {/* A fixed 48px (border included) rather than padding around whatever it
+            holds, so the cover below always starts at the same height — the
+            sidebar logo's ring is lined up with it. */}
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-4 md:px-6">
           {/* The left of the header is deliberately not part of the cluster on
               the right: everything on the right is what a community owner sees,
               so a super admin browsing a community sees the same header they
@@ -507,7 +563,9 @@ export default async function CommunityLayout({
                 )}
               </Link>
             )}
-            {isStaff && (
+            {/* The super admin gets it too: the admin page opens read-only for them
+                (platform view), so they can see any community the way its owner does. */}
+            {(isStaff || (profile?.is_super_admin && !previewingMember)) && (
               <Link
                 href={`${base}/admin`}
                 title="Community admin"
@@ -516,6 +574,20 @@ export default async function CommunityLayout({
                 <Shield className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin</span>
               </Link>
+            )}
+            {isStaff && (
+              <form action={startViewAsMember}>
+                <input type="hidden" name="community_id" value={community.id} />
+                <input type="hidden" name="community_slug" value={community.slug} />
+                <button
+                  type="submit"
+                  title="See this community as a regular member does"
+                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <Eye className="h-5 w-5" />
+                  <span className="hidden lg:inline">View as member</span>
+                </button>
+              </form>
             )}
             {showMembersLink && (
               <Link href={`${base}/members`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -546,6 +618,25 @@ export default async function CommunityLayout({
         </header>
 
         <main className="flex-1">
+          {previewingMember && (
+            <form
+              action={exitViewAsMember}
+              className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-foreground px-4 py-2 text-center text-sm text-background"
+            >
+              <input type="hidden" name="community_slug" value={community.slug} />
+              <Eye className="h-4 w-4 shrink-0" aria-hidden />
+              <span>
+                <span className="font-medium">Viewing as a member.</span> This is {community.name} as a regular member
+                sees it — no admin tools.
+              </span>
+              <button
+                type="submit"
+                className="rounded-md bg-background px-3 py-1 text-xs font-medium text-foreground transition-opacity hover:opacity-90"
+              >
+                Exit preview
+              </button>
+            </form>
+          )}
           {!user ? (
             <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               You&apos;re viewing the public parts of {community.name}.{" "}
@@ -581,7 +672,7 @@ export default async function CommunityLayout({
           {planLapse && (
             <PlanLapseBanner notice={planLapse} communityName={community.name} communitySlug={community.slug} />
           )}
-          {children}
+          <ShareOriginProvider origin={communityShareOrigin(community)}>{children}</ShareOriginProvider>
         </main>
       </div>
 

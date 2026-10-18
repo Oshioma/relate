@@ -81,6 +81,95 @@ test("a cross-cultural parallel carries both sides of the argument", () => {
   }
 });
 
+test("the retained serpent comparisons stay visible and explicitly labelled", () => {
+  const retained = [
+    "gudea-vase-entwined-serpents",
+    "caduceus-kundalini-comparison",
+    "asclepius-staff-kundalini-comparison",
+    "quetzalcoatl-kundalini-comparison",
+    "nehushtan-kundalini-comparison",
+    "jormungandr-kundalini-comparison",
+    "uraeus-kundalini-comparison",
+    "djed-spine-kundalini-comparison",
+    "double-serpent-dna-comparison",
+    "primordial-serpent-energy-doctrine",
+  ];
+
+  for (const slug of retained) {
+    const event = record(slug);
+    assert.ok(event.kundaliniRelation, `${slug}: comparison has no Kundalini-relation label`);
+    assert.ok(event.transmissionStatus, `${slug}: comparison has no transmission status`);
+  }
+
+  for (const slug of [
+    "caduceus-kundalini-comparison",
+    "asclepius-staff-kundalini-comparison",
+    "quetzalcoatl-kundalini-comparison",
+    "jormungandr-kundalini-comparison",
+  ]) {
+    assert.equal(record(slug).kundaliniRelation, "cross_cultural_parallel", `${slug}: visual comparison was promoted into descent`);
+  }
+
+  for (const slug of [
+    "nehushtan-kundalini-comparison",
+    "uraeus-kundalini-comparison",
+    "djed-spine-kundalini-comparison",
+  ]) {
+    assert.equal(record(slug).kundaliniRelation, "speculative_esoteric", `${slug}: speculative reading lost its status`);
+  }
+
+  assert.equal(record("double-serpent-dna-comparison").kundaliniRelation, "modern_development");
+  assert.equal(record("primordial-serpent-energy-doctrine").kundaliniRelation, "modern_development");
+});
+
+test("the Upanishadic ascent precursor does not get silently renamed sushumna or Kundalini", () => {
+  const precursor = record("upanishadic-heart-nadis-upward-immortality");
+  assert.equal(precursor.kundaliniRelation, "historical_precursor");
+  assert.match(precursor.description, /one hundred and one nāḍīs/i);
+  assert.match(precursor.description, /upward/i);
+  assert.match(precursor.description, /immortality/i);
+  assert.match(precursor.description, /Neither verse names this channel Suṣumṇā/i);
+  assert.match(precursor.description, /later commentary/i);
+  assert.equal(precursor.media?.length ?? 0, 0);
+  assert.ok(
+    precursor.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "sankara_katha_2_3_16")
+    )
+  );
+});
+
+test("the early Sārdhatriśatikālottara witness stays distinct from the later serpent-at-the-base model", () => {
+  const early = record("sardhatrisatikalottara-primordial-kundalini");
+  assert.equal(early.kundaliniRelation, "explicit_kundalini");
+  assert.match(early.description, /heart/i);
+  assert.match(early.description, /potentially very early/i);
+  assert.match(early.description, /does not call 12\.1–2 the proven first occurrence/i);
+  assert.ok(early.description.toLowerCase().includes("does not turn kuṇḍalinī into an explicit serpent"));
+  assert.equal(early.media?.length ?? 0, 0, "do not decorate the early textual witness with later chakra imagery");
+  assert.ok(early.claims.some((claim) => claim.sourceKey === "westoby_body_2024"));
+  assert.ok(
+    early.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "williams_cosmogenesis_2023")
+    ),
+    "the Sanskrit/translation source must stay attached to the dating claim"
+  );
+});
+
+test("Tantrasadbhava sleeping-serpent witness keeps its limits", () => {
+  const serpent = record("tantrasadbhava-sleeping-serpent-kundali");
+  assert.equal(serpent.kundaliniRelation, "explicit_kundalini");
+  assert.match(serpent.description, /sleeping serpent/i);
+  assert.match(serpent.description, /navel|belly/i);
+  assert.match(serpent.description, /proven superlative/i);
+  assert.match(serpent.description, /does not establish/i);
+  assert.equal(serpent.media?.length ?? 0, 0);
+  assert.ok(
+    serpent.claims.some((claim) =>
+      claim.citations?.some((citation) => citation.sourceKey === "bang_tantrasadbhava_2022")
+    )
+  );
+});
+
 test("the Gudea vase holds a parallel and documented contact at the same time", () => {
   // The position this collection is usually in, and the one that needs two
   // fields to state: Mesopotamia and the Indus demonstrably traded, AND
@@ -216,15 +305,15 @@ test("slugs are unique, claims are sourced, and evidence is not a stub", () => {
   }
 });
 
-test("the unread sources admit it, because none of them has been opened", () => {
-  // This collection was begun with no access to a museum catalogue, an
-  // excavation report or a journal. The flags are the record of that, and the
-  // assertion is not that the count is low.
+test("every source declares whether it has actually been read", () => {
+  // This collection began with placeholder sources that had not been opened.
+  // Verified source passes now add READ sources, so the invariant is disclosure,
+  // not permanent unread status.
   for (const source of SERPENT_KUNDALINI_SOURCES) {
     assert.match(
       source.notes,
-      /NOT READ|NEEDS SOURCE VERIFICATION/,
-      `${source.key}: an unopened source must say so`
+      /\bREAD\b|NOT READ|NEEDS SOURCE VERIFICATION/,
+      `${source.key}: source notes must disclose verification state`
     );
     assert.ok(source.notes.length > 40, `${source.key}: a note must say what it is cited FOR`);
   }

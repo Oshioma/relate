@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { SafeImage } from "@/components/ui/safe-image";
 import {
   lessonThumbnail,
   primaryCategory,
@@ -183,12 +184,11 @@ export function LessonsHero({
         aria-hidden
         className="relative h-32 overflow-hidden sm:h-36 md:h-auto md:min-h-[7.5rem]"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image.url}
+        <SafeImage
+          srcs={[image.url]}
           alt=""
-          loading="lazy"
           className="absolute inset-0 h-full w-full bg-muted object-cover"
+          fallback={<div className="absolute inset-0 bg-muted" />}
         />
 
         {/* The editorial annotation, moved off the words and onto the picture

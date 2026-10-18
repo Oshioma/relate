@@ -504,3 +504,35 @@ body {
 .leaflet-container .leaflet-control-attribution a {
   color: inherit;
 }
+
+/* Guided-journey spaces (Adopt a Beginner): a milestone's tick pops in, and the
+   completion screen's leaves drift once. Both switch off for reduced motion
+   via motion-reduce: utilities at the call sites. */
+@keyframes gj-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes gj-rise {
+  0% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes gj-drift {
+  0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
+  15% { opacity: 0.9; }
+  100% { transform: translateY(110vh) rotate(220deg); opacity: 0; }
+}
+
+/* The 64 Arts board: a square flips open into its card. See arts-board-view. */
+@keyframes art-flip {
+  from {
+    opacity: 0.4;
+    transform: rotateY(-100deg) scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type DragEventHandler } from "react";
+import type { DragEventHandler } from "react";
 import { useRouter } from "next/navigation";
 import { GripVertical } from "lucide-react";
 import { setNavItemVisibility } from "./actions";
+import { AutoSaveCheckbox } from "@/components/ui/auto-save-checkbox";
 import type { FeatureKey } from "@/types/database";
 
 // A draggable row for a built-in sidebar link (Events, Search) shown in the
@@ -35,22 +36,6 @@ export function BuiltinNavRow({
   isDragging: boolean;
 }) {
   const router = useRouter();
-  const [checked, setChecked] = useState(showInNav);
-  const [saving, setSaving] = useState(false);
-
-  async function toggle(event: React.ChangeEvent<HTMLInputElement>) {
-    const next = event.target.checked;
-    setChecked(next);
-    setSaving(true);
-    const result = await setNavItemVisibility(itemKey, next, communityId, communitySlug);
-    setSaving(false);
-    if (result?.error) {
-      setChecked(!next); // revert optimistic flip
-      return;
-    }
-    router.refresh();
-  }
-
   return (
     <div className={`rounded-lg border ${isDragging ? "border-accent" : "border-border"} bg-muted/40`} {...dragHandlers}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
@@ -59,16 +44,15 @@ export function BuiltinNavRow({
           <p className="truncate text-sm font-medium text-foreground">{label}</p>
           <p className="text-xs text-muted-foreground">Built-in link</p>
         </div>
-        <label className="flex shrink-0 items-center gap-2 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={checked}
-            disabled={saving}
-            onChange={toggle}
-            className="h-4 w-4 rounded border-border disabled:opacity-50"
-          />
-          Show in navigation
-        </label>
+        <AutoSaveCheckbox
+          label="Show in navigation"
+          defaultChecked={showInNav}
+          onSave={async (next) => {
+            const result = await setNavItemVisibility(itemKey, next, communityId, communitySlug);
+            if (result?.error) return result.error;
+            router.refresh();
+          }}
+        />
       </div>
     </div>
   );

@@ -139,3 +139,9 @@ export function isPlatformHost(host: string): boolean {
   }
   return false;
 }
+
+// The origin a community's links should be shared on: its verified custom
+// domain (https://<domain>), or null when it has none.
+export function communityShareOrigin(community: { custom_domain: string | null; custom_domain_verified_at: string | null }): string | null {
+  return community.custom_domain && community.custom_domain_verified_at ? `https://${community.custom_domain}` : null;
+}

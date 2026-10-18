@@ -42,7 +42,10 @@ export type SpaceType =
   | "plant_id"
   | "live"
   | "meetups"
-  | "lessons";
+  | "lessons"
+  | "guided_journey"
+  | "books_media"
+  | "arts_board";
 export type PostType = "discussion" | "announcement" | "resource";
 // The activity kinds the community feed can carry a smile or a comment on.
 // Discussion posts are absent on purpose: they keep using post_reactions and
@@ -60,7 +63,8 @@ export type FeedItemType =
   | "meetup"
   | "review"
   | "course"
-  | "guide";
+  | "guide"
+  | "editorial_guide";
 export type ResourceType = "link" | "file" | "video" | "document";
 export type BuiltInBusinessCategory = "restaurant" | "cafe" | "shop" | "accommodation" | "service" | "health" | "fitness" | "coworking" | "activity" | "taxi" | "other";
 // Stored as text: a built-in value above, or the slug of a per-space custom
@@ -201,6 +205,20 @@ export type Community = {
   // Defaults false — a small community is usually better off not advertising
   // its size.
   show_stats: boolean;
+  // Feed hero (see the community_landing_hero migration): the big headline
+  // over the cover (null = show the name), an optional "Watch video" link, and
+  // a space promoted in the feed sidebar's photo card.
+  tagline: string | null;
+  // Place communities: whether the weekly Supabase cron run adds new events
+  // found by AI discovery (migration weekly_event_discovery).
+  weekly_event_discovery: boolean;
+  hero_video_url: string | null;
+  // Muted looping clip behind the hero headline (desktop only; the cover is
+  // its poster and fallback).
+  hero_background_video_url: string | null;
+  // The same, for the signed-out landing page (/welcome/<slug>).
+  landing_background_video_url: string | null;
+  featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
   // Who can see the Members list/page — independent of `privacy` above.
@@ -418,9 +436,12 @@ export type Space = {
   space_type: SpaceType;
   sort_order: number;
   show_in_nav: boolean;
-  // Sidebar section: 'home' | 'learn' | 'connect', or null for ungrouped.
-  // A community where every space is null renders the flat nav it always had.
-  // See src/lib/nav-groups.ts and 20260905003233_space_nav_groups.sql.
+  // Whether the space gets a photo card on the community feed — set
+  // separately from show_in_nav (see the space_show_as_card migration).
+  show_as_card: boolean;
+  // Sidebar section: a key from this community's community_nav_groups, or
+  // null for ungrouped. A community where every space is null renders the
+  // flat nav it always had. See src/lib/nav-groups.ts.
   nav_group: string | null;
   // Optional cover image (community-assets bucket URL), surfaced on the mobile
   // Explore strip and the Spaces grid. Null = fall back to the type icon.
@@ -461,6 +482,10 @@ export type Post = {
   title: string;
   body: string | null;
   media_url: string | null;
+  // Photos after the first (media_url stays the lead item), at most 3.
+  extra_media_urls: string[];
+  // Short topic tags shown as chips, at most 5.
+  tags: string[];
   post_type: PostType;
   is_pinned: boolean;
   lat: number | null;
@@ -526,6 +551,9 @@ export type Event = {
   lng: number | null;
   location_label: string | null;
   image_url: string | null;
+  // Places available; null = unlimited. RSVPs past it are refused by a
+  // trigger (see the event_capacity migration).
+  capacity: number | null;
   created_by: string;
   created_at: string;
 };
@@ -554,6 +582,18 @@ export type CommunityInvite = {
   created_by: string;
   created_at: string;
   email: string | null;
+};
+
+// A sidebar section in one community. spaces.nav_group holds its key. See
+// src/lib/nav-groups.ts and 20261009143443_community_nav_groups.sql.
+export type CommunityNavGroup = {
+  id: string;
+  community_id: string;
+  key: string;
+  label: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type CommunityNavLink = {
@@ -1176,6 +1216,181 @@ export type SpaceLesson = {
   // When true, the source material and reference show to anyone who can see
   // the lesson. The system prompt stays staff-only either way.
   source_public: boolean;
+  // A video shown at the top of the lesson, when it was written from one.
+  // Part of the lesson rather than its private provenance, so it is not
+  // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
+  video_url: string | null;
+  // An uploaded video or audio file to play at the top of the lesson: an
+  // object path in the public 'uploads' bucket, and which player it needs.
+  // See 20261001092236_lesson_media_uploads.sql.
+  media_path: string | null;
+  media_type: LessonMediaType | null;
+  // Every level written from the same source shares one, and they show on one
+  // page, youngest first. A lesson on its own is a family of one.
+  // See 20261001061018_lesson_families_and_adult_band.sql.
+  family_id: string;
+  // What writing it cost, in Claude's billing units: the model that answered,
+  // every billed input token (cache creation and reads folded in) and output
+  // tokens. Null on lessons written before usage was recorded — the cost panel
+  // estimates those from text lengths. See 20261001092142_lesson_usage_costs.sql.
+  ai_model: string | null;
+  // Written through the Message Batches API: billed at half the token price.
+  ai_batch: boolean;
+  ai_input_tokens: number | null;
+  ai_output_tokens: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// A Books & Media space's shelf: one row per reviewed book, video or other
+// piece of media. See 20261010113029_space_media_items.sql and
+// src/lib/media/media-types.ts for the vocabularies the text columns use.
+export type MediaKind = "book" | "video" | "audio" | "game" | "app" | "website" | "other";
+export type MediaVerdict = "suitable" | "caution" | "not_suitable";
+export type MediaProfanity = "none" | "mild" | "moderate" | "strong" | "unknown";
+export type MediaConcern = { category: string; level: "none" | "mild" | "moderate" | "strong"; note: string };
+// One family's tick and note on a shelf item. See the media_item_marks
+// migration: visible to whoever can see the item, written only by its own
+// family.
+export type MediaItemMark = {
+  id: string;
+  item_id: string;
+  user_id: string;
+  done: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+// One family's done tick and note on one of the 64 arts, on one board. See
+// the arts_board_marks migration: read and written only by that family.
+export type ArtsBoardMark = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  art_number: number;
+  done: boolean;
+  note: string | null;
+  // Up to four photos of what the family made (see the
+  // arts_board_marks_photos_and_share migration).
+  photo_urls: string[];
+  // The community post made when the family shared this square, if any.
+  shared_post_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type SpaceMediaItem = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  url: string;
+  link_key: string;
+  kind: MediaKind;
+  title: string;
+  creator: string | null;
+  description: string;
+  image_url: string | null;
+  age_min: number | null;
+  age_max: number | null;
+  verdict: MediaVerdict;
+  reason: string | null;
+  profanity: MediaProfanity;
+  concerns: MediaConcern[];
+  themes: string[];
+  ai_analysis: unknown;
+  ai_model: string | null;
+  ai_input_tokens: number | null;
+  ai_output_tokens: number | null;
+  share_with_other_communities: boolean;
+  imported_from: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonVideoJobStatus = "queued" | "downloading" | "transcribing" | "done" | "error";
+
+// 'link' a video link fetched by the worker; 'file' an upload kept in Storage;
+// 'direct' an upload too big for Storage, sent straight to the worker and not
+// kept. See 20261001092236_lesson_media_uploads.sql.
+export type LessonVideoJobKind = "link" | "file" | "direct";
+
+export type LessonMediaType = "video" | "audio";
+
+// One request to download and transcribe a video for the lesson composer.
+// Private to whoever made it. See 20260930145354_lesson_video_jobs.sql.
+// One paid AI call, priced at list rates when it happened. Service-role only.
+// See 20261001120904_ai_spend_ledger.sql.
+export type AiSpend = {
+  id: string;
+  community_id: string;
+  user_id: string | null;
+  // "lesson", "video", or another AI feature's name (see ai-meter.ts).
+  kind: string;
+  amount_usd: number;
+  ref: string;
+  created_at: string;
+};
+
+// A lesson that was written but whose insert failed, parked so it can be saved
+// later without paying for it again. Service-role only.
+// See 20261001122856_unsaved_lessons.sql.
+export type UnsavedLesson = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  row: Record<string, unknown>;
+  error: string | null;
+  created_at: string;
+};
+
+// A background job writing a lesson's missing ages at half price, one level
+// after another. Service-role only. See 20261001135949_lesson_batch_jobs.sql.
+export type LessonBatchJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  family_id: string;
+  source_lesson_id: string | null;
+  pending_bands: string[];
+  current_band: string | null;
+  batch_id: string | null;
+  lesson_ids: string[];
+  status: "running" | "done" | "error" | "cancelled";
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonVideoJob = {
+  id: string;
+  space_id: string;
+  community_id: string;
+  created_by: string;
+  kind: LessonVideoJobKind;
+  // The link as given. Null for an upload, which has none.
+  source_url: string | null;
+  // The file's name on the uploader's computer, for an upload.
+  file_name: string | null;
+  // 'file' jobs: the kept object in the 'uploads' bucket.
+  storage_path: string | null;
+  status: LessonVideoJobStatus;
+  progress: number;
+  message: string | null;
+  title: string | null;
+  duration_seconds: number | null;
+  method: "captions" | "whisper" | null;
+  transcript: string | null;
+  error: string | null;
+  // What the job used of the paid services, as the worker reports it: seconds
+  // of audio sent to Whisper (0/null for captions), bytes downloaded (what a
+  // per-GB proxy bills), and whether it went through the proxy. Null on jobs
+  // from before the worker reported them.
+  // See 20261001092142_lesson_usage_costs.sql.
+  audio_seconds: number | null;
+  download_bytes: number | null;
+  proxied: boolean | null;
   created_at: string;
   updated_at: string;
 };
@@ -1184,6 +1399,14 @@ export type SpaceLesson = {
 export type LessonSave = {
   id: string;
   lesson_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+/** A timeline record a member has opened. Private to that member. */
+export type TimelineEventView = {
+  id: string;
+  event_id: string;
   user_id: string;
   created_at: string;
 };
@@ -1200,6 +1423,39 @@ export type MeetupParticipant = {
 // what "contributors" (GuideContributor) means: everyone who's ever saved
 // an edit. GuideRevision snapshots the previous title/body before each
 // edit, so there's a real revision history.
+export type EditorialGuideStatus = "draft" | "published";
+
+// A community's curated long-form guide (src/lib/guides/…). `content` holds
+// the admins' overrides of the guide's built-in copy; see
+// src/lib/guides/where-to-stay/content.ts for its shape.
+export type EditorialGuide = {
+  id: string;
+  community_id: string;
+  slug: string;
+  title: string;
+  status: EditorialGuideStatus;
+  content: unknown;
+  last_reviewed_on: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EditorialGuideUpdateKind = "restaurant" | "beach_access" | "accommodation" | "seasonal" | "event" | "road" | "other";
+
+export type EditorialGuideUpdate = {
+  id: string;
+  guide_id: string;
+  community_id: string;
+  destination_key: string | null;
+  kind: EditorialGuideUpdateKind;
+  body: string;
+  noted_on: string;
+  expires_on: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
 export type Guide = {
   id: string;
   space_id: string;
@@ -1474,7 +1730,7 @@ export type QuizAttempt = {
   created_at: string;
 };
 
-export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join";
+export type NotificationType = "comment" | "post" | "membership" | "claim" | "live_event" | "live_started" | "live_reminder" | "live_invite" | "member_message" | "contact" | "contact_reply" | "direct_message" | "meetup" | "meetup_join" | "journey_request" | "journey_request_response" | "journey_update" | "journey_completed" | "journey_report" | "journey_mentor_available";
 
 export type Notification = {
   id: string;
@@ -2105,6 +2361,11 @@ export type TimelineEvent = {
   // the tradition". A grid filled in from memory would invent the parallels it
   // exists to test.
   motifs: string[];
+  // HOW PROMINENT WHEN ZOOMED OUT — 1 landmark, 2 notable, 3 detail, null for
+  // "score it from what it has". Semantic zoom shows the most prominent records
+  // that fit. See src/lib/timeline/prominence.ts and
+  // 20261001220248_timeline_event_prominence.sql.
+  prominence: 1 | 2 | 3 | null;
   // Members contribute as 'pending' and staff approve — the same moderation
   // pattern business claims and crop proposals use. RLS forces it; this is not
   // merely a default.
@@ -2339,6 +2600,20 @@ export type TimelineTextPassage = {
   notes: string | null;
   sort_order: number;
   created_at: string;
+  // THE TEXT ARCHIVE (20261016225210). Null on passages written before it.
+  work_id: string | null;
+  version_id: string | null;
+  parent_id: string | null;
+  /** Permanent ID, e.g. 'greek.tim.24e'. Unique per community. */
+  passage_key: string | null;
+  /** A TEXT_DIVISION_KINDS key in src/lib/timeline/texts/taxonomy.ts. */
+  division_kind: string | null;
+  /** Reading order within the work. */
+  ordinal: number | null;
+  summary: string | null;
+  /** A PASSAGE_VERIFICATION_STATUSES key. */
+  verification_status: string;
+  content_hash: string | null;
 };
 
 /**
@@ -2429,6 +2704,203 @@ export type TimelineTextLayer = {
   notes: string | null;
   sort_order: number;
   created_at: string;
+  /** Set on layers an archive import wrote, so a re-import updates them in place. */
+  import_key: string | null;
+  /** A LAYER_LICENCES key. */
+  licence: string | null;
+};
+
+// ---------------------------------------------------------------------------
+// THE TEXT ARCHIVE (migration 20261016225210). See src/lib/timeline/texts/.
+// ---------------------------------------------------------------------------
+
+export type TimelineTextWork = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  event_id: string | null;
+  work_key: string;
+  title: string;
+  alternative_titles: string[];
+  corpus_group: string;
+  tradition_class: string;
+  civilisation: string | null;
+  geographical_origin: string | null;
+  original_language: string | null;
+  attribution: string | null;
+  attribution_note: string | null;
+  summary: string | null;
+  reference_edition: string | null;
+  expected_units: number | null;
+  unit_label: string | null;
+  inventory_basis: string | null;
+  inventory_verified: boolean;
+  completeness_status: string;
+  copyright_summary: string | null;
+  research_sources: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TimelineTextVersion = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_id: string;
+  version_key: string;
+  label: string;
+  language: string | null;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelineTextManuscript = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_id: string | null;
+  manuscript_key: string;
+  siglum: string | null;
+  name: string;
+  object_kind: string | null;
+  holding_institution: string | null;
+  accession_number: string | null;
+  findspot: string | null;
+  start_year: number | null;
+  end_year: number | null;
+  date_precision: string | null;
+  is_approximate: boolean;
+  original_date_text: string | null;
+  dating_evidence: string | null;
+  catalogue_url: string | null;
+  source_id: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageWitness = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  manuscript_id: string;
+  locus: string | null;
+  variant_note: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageDate = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  import_key: string | null;
+  /** A PASSAGE_DATE_ROLES key. */
+  date_role: string;
+  start_year: number | null;
+  end_year: number | null;
+  date_precision: string;
+  is_approximate: boolean;
+  original_date_text: string;
+  evidence: string;
+  source_id: string | null;
+  created_at: string;
+};
+
+export type TimelinePassageImage = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string | null;
+  manuscript_id: string | null;
+  work_id: string | null;
+  import_key: string;
+  url: string;
+  source_page_url: string | null;
+  institution: string | null;
+  accession_number: string | null;
+  object_date: string | null;
+  image_date: string | null;
+  caption: string;
+  creator: string | null;
+  credit: string | null;
+  licence: string | null;
+  licence_status: string;
+  shows: string;
+  identification_status: string;
+  what_is_unverified: string | null;
+  verification_status: string;
+  duplicate_of: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageLink = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  import_key: string;
+  from_passage_key: string;
+  to_passage_key: string;
+  /** A PASSAGE_CONNECTION_CLASSES key. */
+  connection_class: string;
+  similarities: string;
+  differences: string;
+  wording_comparable: string;
+  meaning_comparable: string;
+  transmission_evidence: string;
+  earlier_note: string | null;
+  common_source_note: string | null;
+  contradiction_note: string | null;
+  scholarly_view: string | null;
+  alternative_view: string | null;
+  source_id: string | null;
+  review_status: string;
+  created_at: string;
+};
+
+export type TimelineTheme = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  theme_key: string;
+  label: string;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TimelinePassageTheme = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  passage_id: string;
+  theme_id: string;
+  note: string;
+  created_at: string;
+};
+
+export type TimelineTextImportRun = {
+  id: string;
+  community_id: string;
+  created_by: string;
+  work_key: string;
+  file_hash: string;
+  status: string;
+  cursor: number;
+  total: number;
+  inserted: number;
+  updated: number;
+  unchanged: number;
+  rejected: number;
+  errors: unknown[];
+  started_at: string;
+  finished_at: string | null;
 };
 
 export type TimelineMeasurementClaim = {
@@ -2483,6 +2955,226 @@ export type TimelineEventTrack = {
   event_id: string;
   track_id: string;
   community_id: string;
+  created_at: string;
+};
+
+
+// --- Guided Journey spaces ("Adopt a Beginner") ------------------------------
+// See supabase/migrations/20261008191453_guided_journey_tables.sql and
+// src/lib/guided-journey/. One reusable space type: everything that makes a
+// space about gardening, sailing or cooking lives in its config, not in code.
+export type GuidedJourneySpace = {
+  space_id: string;
+  preset_key: string;
+  // Partial overrides of the preset; validated by parseConfigOverrides.
+  config: Record<string, unknown>;
+  accepting_mentors: boolean;
+  accepting_beginners: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyMilestoneSeed = { title: string; description?: string | null };
+
+export type JourneyTemplate = {
+  id: string;
+  space_id: string;
+  title: string;
+  subject: string | null;
+  summary: string | null;
+  cover_image_url: string | null;
+  duration_label: string | null;
+  expected_weeks: number | null;
+  milestones: JourneyMilestoneSeed[];
+  is_active: boolean;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyHelpMode = "online" | "local" | "either";
+export type MentorLevel = "experienced" | "community" | "first_harvest";
+
+export type JourneyMentorProfile = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  level: MentorLevel;
+  is_verified: boolean;
+  verified_note: string | null;
+  experience: string[];
+  preferred_topics: string[];
+  country: string | null;
+  region: string | null;
+  climate: string | null;
+  years_experience: number | null;
+  languages: string[];
+  help_mode: JourneyHelpMode;
+  capacity: number;
+  group_mentoring: boolean;
+  availability: string | null;
+  intro: string | null;
+  photos: string[];
+  is_paused: boolean;
+  status: "active" | "suspended";
+  adult_confirmed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyBeginnerProfile = {
+  id: string;
+  space_id: string;
+  user_id: string;
+  country: string | null;
+  region: string | null;
+  approx_location: string | null;
+  setting: string[];
+  interests: string[];
+  experience: string | null;
+  help_mode: JourneyHelpMode;
+  languages: string[];
+  space_photo_url: string | null;
+  notes: string | null;
+  // Opt-in to the waiting list mentors and staff see (and can offer from).
+  listed_for_offers: boolean;
+  adult_confirmed_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MentorshipRequestStatus = "pending" | "accepted" | "declined" | "withdrawn";
+
+export type MentorshipRequest = {
+  id: string;
+  space_id: string;
+  beginner_id: string;
+  mentor_id: string;
+  template_id: string | null;
+  requested_journey_id: string | null;
+  // Who started it: a beginner asking, or a mentor offering. The other
+  // person is always the one who accepts or declines.
+  initiated_by: "beginner" | "mentor";
+  message: string | null;
+  status: MentorshipRequestStatus;
+  response_message: string | null;
+  journey_id: string | null;
+  created_at: string;
+  responded_at: string | null;
+};
+
+export type JourneyStatus = "active" | "completed" | "ended";
+
+export type Journey = {
+  id: string;
+  space_id: string;
+  template_id: string | null;
+  mentor_id: string;
+  title: string;
+  subject: string | null;
+  cover_image_url: string | null;
+  duration_label: string | null;
+  expected_weeks: number | null;
+  update_frequency: string;
+  is_group: boolean;
+  max_beginners: number | null;
+  status: JourneyStatus;
+  mentor_acknowledgement: string | null;
+  started_at: string;
+  completed_at: string | null;
+  ended_at: string | null;
+  ended_by: string | null;
+  end_reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyParticipant = {
+  id: string;
+  journey_id: string;
+  user_id: string;
+  role: "mentor" | "beginner";
+  joined_at: string;
+  left_at: string | null;
+  in_person_ok: boolean;
+  reflection: string | null;
+};
+
+export type JourneyMilestone = {
+  id: string;
+  journey_id: string;
+  position: number;
+  title: string;
+  description: string | null;
+  status: "pending" | "done";
+  completed_at: string | null;
+  completed_by: string | null;
+  created_at: string;
+};
+
+export type JourneyUpdate = {
+  id: string;
+  journey_id: string;
+  author_id: string;
+  parent_id: string | null;
+  body: string | null;
+  question: string | null;
+  problems: string | null;
+  milestone_id: string | null;
+  photos: string[];
+  is_hidden: boolean;
+  created_at: string;
+  edited_at: string | null;
+};
+
+export type JourneyStoryStatus = "draft" | "published" | "hidden";
+
+export type JourneyStory = {
+  id: string;
+  journey_id: string;
+  space_id: string;
+  author_id: string;
+  mentor_id: string | null;
+  title: string;
+  subject: string | null;
+  region: string | null;
+  climate: string | null;
+  method: string | null;
+  conditions: string | null;
+  problems: string | null;
+  solutions: string | null;
+  lessons: string | null;
+  results: string | null;
+  before_photo_url: string | null;
+  after_photo_url: string | null;
+  photos: string[];
+  duration_weeks: number | null;
+  show_mentor: boolean;
+  mentor_acknowledgement: string | null;
+  status: JourneyStoryStatus;
+  hidden_reason: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type JourneyReportReason = "harassment" | "unsafe" | "inappropriate" | "spam" | "misleading_advice" | "other";
+
+export type JourneyReport = {
+  id: string;
+  space_id: string;
+  reporter_id: string;
+  reported_user_id: string | null;
+  journey_id: string | null;
+  update_id: string | null;
+  story_id: string | null;
+  reason: JourneyReportReason;
+  details: string | null;
+  status: "open" | "resolved" | "dismissed";
+  staff_note: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
   created_at: string;
 };
 
@@ -2623,6 +3315,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_nav_groups: {
+        Row: CommunityNavGroup;
+        Insert: Partial<CommunityNavGroup> & { community_id: string; key: string; label: string };
+        Update: Partial<CommunityNavGroup>;
       } & NoRel;
       community_nav_links: {
         Row: CommunityNavLink;
@@ -2861,11 +3558,78 @@ export type Database = {
         Update: Partial<SpaceLesson>;
         Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
       };
+      space_media_items: {
+        Row: SpaceMediaItem;
+        Insert: Partial<SpaceMediaItem> & { space_id: string; community_id: string; created_by: string; url: string; link_key: string; title: string };
+        Update: Partial<SpaceMediaItem>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      media_item_marks: {
+        Row: MediaItemMark;
+        Insert: Partial<MediaItemMark> & { item_id: string; user_id: string };
+        Update: Partial<MediaItemMark>;
+        Relationships: [FKey<"item_id", "space_media_items">, FKey<"user_id", "profiles">];
+      };
+      arts_board_marks: {
+        Row: ArtsBoardMark;
+        Insert: Partial<ArtsBoardMark> & { space_id: string; user_id: string; art_number: number };
+        Update: Partial<ArtsBoardMark>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"user_id", "profiles">, FKey<"shared_post_id", "posts">];
+      };
+      lesson_video_jobs: {
+        Row: LessonVideoJob;
+        Insert: Partial<LessonVideoJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+        };
+        Update: Partial<LessonVideoJob>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      unsaved_lessons: {
+        Row: UnsavedLesson;
+        Insert: Omit<UnsavedLesson, "id" | "created_at" | "error"> & {
+          id?: string;
+          created_at?: string;
+          error?: string | null;
+        };
+        Update: Partial<UnsavedLesson>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      lesson_batch_jobs: {
+        Row: LessonBatchJob;
+        Insert: Partial<LessonBatchJob> & {
+          space_id: string;
+          community_id: string;
+          created_by: string;
+          family_id: string;
+        };
+        Update: Partial<LessonBatchJob>;
+        Relationships: [FKey<"space_id", "spaces">, FKey<"created_by", "profiles">];
+      };
+      ai_spend: {
+        Row: AiSpend;
+        Insert: Omit<AiSpend, "id" | "created_at"> & { id?: string; created_at?: string };
+        Update: Partial<AiSpend>;
+        Relationships: [FKey<"community_id", "communities">];
+      };
       meetup_participants: {
         Row: MeetupParticipant;
         Insert: Partial<MeetupParticipant> & { meetup_id: string; user_id: string };
         Update: Partial<MeetupParticipant>;
         Relationships: [FKey<"meetup_id", "meetups">, FKey<"user_id", "profiles">];
+      };
+      editorial_guides: {
+        Row: EditorialGuide;
+        Insert: Partial<EditorialGuide> & { community_id: string; slug: string; title: string };
+        Update: Partial<EditorialGuide>;
+        Relationships: [FKey<"community_id", "communities">, FKey<"updated_by", "profiles">];
+      };
+      editorial_guide_updates: {
+        Row: EditorialGuideUpdate;
+        Insert: Partial<EditorialGuideUpdate> & { guide_id: string; community_id: string; body: string };
+        Update: Partial<EditorialGuideUpdate>;
+        Relationships: [FKey<"guide_id", "editorial_guides">, FKey<"created_by", "profiles">];
       };
       guides: {
         Row: Guide;
@@ -3192,7 +3956,11 @@ export type Database = {
       timeline_events: {
         Row: TimelineEvent;
         Insert: Partial<TimelineEvent> & { community_id: string; created_by: string; slug: string; title: string };
-        Update: Partial<TimelineEvent>;
+        // seed_synced_at is WRITE-ONLY: the seeded-dataset refresh sets it so its
+        // revisions can be told apart from a person's, and nothing reads it. It is
+        // kept off the Row so no page ever selects it — see
+        // 20261013200025_event_seed_sync_marker.sql.
+        Update: Partial<TimelineEvent> & { seed_synced_at?: string | null };
         Relationships: [FKey<"created_by", "profiles">];
       };
       timeline_date_claims: {
@@ -3242,6 +4010,12 @@ export type Database = {
         Insert: Partial<TimelineRevision> & { community_id: string; entity: string; action: string };
         Update: Partial<TimelineRevision>;
         Relationships: [FKey<"actor_id", "profiles">];
+      };
+      timeline_event_views: {
+        Row: TimelineEventView;
+        Insert: Partial<TimelineEventView> & { event_id: string; user_id: string };
+        Update: Partial<TimelineEventView>;
+        Relationships: [FKey<"event_id", "timeline_events">, FKey<"user_id", "profiles">];
       };
       timeline_event_links: {
         Row: TimelineEventLink;
@@ -3308,6 +4082,131 @@ export type Database = {
         Update: Partial<TimelineTextLayer>;
         Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"source_id", "timeline_sources">];
       };
+      timeline_text_works: {
+        Row: TimelineTextWork;
+        Insert: Partial<TimelineTextWork> & {
+          community_id: string;
+          created_by: string;
+          work_key: string;
+          title: string;
+          corpus_group: string;
+          tradition_class: string;
+        };
+        Update: Partial<TimelineTextWork>;
+        Relationships: [FKey<"event_id", "timeline_events">];
+      };
+      timeline_text_versions: {
+        Row: TimelineTextVersion;
+        Insert: Partial<TimelineTextVersion> & {
+          community_id: string;
+          created_by: string;
+          work_id: string;
+          version_key: string;
+          label: string;
+        };
+        Update: Partial<TimelineTextVersion>;
+        Relationships: [FKey<"work_id", "timeline_text_works">];
+      };
+      timeline_text_manuscripts: {
+        Row: TimelineTextManuscript;
+        Insert: Partial<TimelineTextManuscript> & {
+          community_id: string;
+          created_by: string;
+          manuscript_key: string;
+          name: string;
+        };
+        Update: Partial<TimelineTextManuscript>;
+        Relationships: [FKey<"work_id", "timeline_text_works">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_passage_witnesses: {
+        Row: TimelinePassageWitness;
+        Insert: Partial<TimelinePassageWitness> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          manuscript_id: string;
+        };
+        Update: Partial<TimelinePassageWitness>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"manuscript_id", "timeline_text_manuscripts">];
+      };
+      timeline_passage_dates: {
+        Row: TimelinePassageDate;
+        Insert: Partial<TimelinePassageDate> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          date_role: string;
+          date_precision: string;
+          original_date_text: string;
+          evidence: string;
+        };
+        Update: Partial<TimelinePassageDate>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"source_id", "timeline_sources">];
+      };
+      timeline_passage_images: {
+        Row: TimelinePassageImage;
+        Insert: Partial<TimelinePassageImage> & {
+          community_id: string;
+          created_by: string;
+          import_key: string;
+          url: string;
+          caption: string;
+          shows: string;
+          identification_status: string;
+        };
+        Update: Partial<TimelinePassageImage>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"manuscript_id", "timeline_text_manuscripts">, FKey<"work_id", "timeline_text_works">];
+      };
+      timeline_passage_links: {
+        Row: TimelinePassageLink;
+        Insert: Partial<TimelinePassageLink> & {
+          community_id: string;
+          created_by: string;
+          import_key: string;
+          from_passage_key: string;
+          to_passage_key: string;
+          connection_class: string;
+          similarities: string;
+          differences: string;
+          transmission_evidence: string;
+        };
+        Update: Partial<TimelinePassageLink>;
+        Relationships: [FKey<"source_id", "timeline_sources">];
+      };
+      timeline_themes: {
+        Row: TimelineTheme;
+        Insert: Partial<TimelineTheme> & {
+          community_id: string;
+          created_by: string;
+          theme_key: string;
+          label: string;
+        };
+        Update: Partial<TimelineTheme>;
+        Relationships: [];
+      };
+      timeline_passage_themes: {
+        Row: TimelinePassageTheme;
+        Insert: Partial<TimelinePassageTheme> & {
+          community_id: string;
+          created_by: string;
+          passage_id: string;
+          theme_id: string;
+          note: string;
+        };
+        Update: Partial<TimelinePassageTheme>;
+        Relationships: [FKey<"passage_id", "timeline_text_passages">, FKey<"theme_id", "timeline_themes">];
+      };
+      timeline_text_import_runs: {
+        Row: TimelineTextImportRun;
+        Insert: Partial<TimelineTextImportRun> & {
+          community_id: string;
+          created_by: string;
+          work_key: string;
+          file_hash: string;
+        };
+        Update: Partial<TimelineTextImportRun>;
+        Relationships: [];
+      };
       timeline_measurement_claims: {
         Row: TimelineMeasurementClaim;
         Insert: Partial<TimelineMeasurementClaim> & {
@@ -3328,9 +4227,145 @@ export type Database = {
         Update: Partial<TimelineEventTrack>;
         Relationships: [FKey<"track_id", "timeline_tracks">, FKey<"event_id", "timeline_events">];
       };
+      guided_journey_spaces: {
+        Row: GuidedJourneySpace;
+        Insert: Partial<GuidedJourneySpace> & { space_id: string };
+        Update: Partial<GuidedJourneySpace>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      journey_templates: {
+        Row: JourneyTemplate;
+        Insert: Partial<JourneyTemplate> & { space_id: string; title: string };
+        Update: Partial<JourneyTemplate>;
+        Relationships: [FKey<"space_id", "spaces">];
+      };
+      journey_mentor_profiles: {
+        Row: JourneyMentorProfile;
+        Insert: Partial<JourneyMentorProfile> & { space_id: string; user_id: string; adult_confirmed_at: string };
+        Update: Partial<JourneyMentorProfile>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"space_id", "spaces">];
+      };
+      journey_beginner_profiles: {
+        Row: JourneyBeginnerProfile;
+        Insert: Partial<JourneyBeginnerProfile> & { space_id: string; user_id: string; adult_confirmed_at: string };
+        Update: Partial<JourneyBeginnerProfile>;
+        Relationships: [FKey<"user_id", "profiles">, FKey<"space_id", "spaces">];
+      };
+      mentorship_requests: {
+        Row: MentorshipRequest;
+        Insert: Partial<MentorshipRequest> & { space_id: string; beginner_id: string; mentor_id: string };
+        Update: Partial<MentorshipRequest>;
+        Relationships: [
+          FKey<"beginner_id", "profiles">,
+          FKey<"mentor_id", "profiles">,
+          FKey<"template_id", "journey_templates">,
+          FKey<"journey_id", "journeys">,
+          FKey<"requested_journey_id", "journeys">,
+        ];
+      };
+      journeys: {
+        Row: Journey;
+        Insert: Partial<Journey> & { space_id: string; mentor_id: string; title: string };
+        Update: Partial<Journey>;
+        Relationships: [FKey<"mentor_id", "profiles">, FKey<"space_id", "spaces">, FKey<"template_id", "journey_templates">];
+      };
+      journey_participants: {
+        Row: JourneyParticipant;
+        Insert: Partial<JourneyParticipant> & { journey_id: string; user_id: string; role: "mentor" | "beginner" };
+        Update: Partial<JourneyParticipant>;
+        Relationships: [FKey<"journey_id", "journeys">, FKey<"user_id", "profiles">];
+      };
+      journey_milestones: {
+        Row: JourneyMilestone;
+        Insert: Partial<JourneyMilestone> & { journey_id: string; title: string };
+        Update: Partial<JourneyMilestone>;
+        Relationships: [FKey<"journey_id", "journeys">];
+      };
+      journey_updates: {
+        Row: JourneyUpdate;
+        Insert: Partial<JourneyUpdate> & { journey_id: string; author_id: string };
+        Update: Partial<JourneyUpdate>;
+        Relationships: [FKey<"journey_id", "journeys">, FKey<"author_id", "profiles">, FKey<"milestone_id", "journey_milestones">];
+      };
+      journey_stories: {
+        Row: JourneyStory;
+        Insert: Partial<JourneyStory> & { journey_id: string; space_id: string; author_id: string; title: string };
+        Update: Partial<JourneyStory>;
+        Relationships: [FKey<"author_id", "profiles">, FKey<"mentor_id", "profiles">, FKey<"journey_id", "journeys">];
+      };
+      journey_reports: {
+        Row: JourneyReport;
+        Insert: Partial<JourneyReport> & { space_id: string; reporter_id: string; reason: JourneyReportReason };
+        Update: Partial<JourneyReport>;
+        Relationships: [FKey<"reporter_id", "profiles">, FKey<"reported_user_id", "profiles">, FKey<"journey_id", "journeys">];
+      };
     };
     Views: Record<string, never>;
     Functions: {
+      respond_to_mentorship_request: {
+        Args: {
+          p_request_id: string;
+          p_accept: boolean;
+          p_message?: string | null;
+          p_group_journey_id?: string | null;
+          p_milestones?: JourneyMilestoneSeed[] | null;
+          p_default_title?: string | null;
+        };
+        Returns: string | null;
+      };
+      withdraw_mentorship_request: {
+        Args: { p_request_id: string };
+        Returns: void;
+      };
+      create_group_journey: {
+        Args: { p_space_id: string; p_template_id: string | null; p_title: string; p_max_beginners: number; p_milestones?: JourneyMilestoneSeed[] | null };
+        Returns: string;
+      };
+      complete_journey: {
+        Args: { p_journey_id: string; p_acknowledgement?: string | null };
+        Returns: void;
+      };
+      end_journey: {
+        Args: { p_journey_id: string; p_reason?: string | null };
+        Returns: void;
+      };
+      waiting_beginners: {
+        Args: { p_space_id: string };
+        Returns: {
+          user_id: string;
+          full_name: string | null;
+          username: string;
+          avatar_url: string | null;
+          country: string | null;
+          region: string | null;
+          setting: string[];
+          interests: string[];
+          experience: string | null;
+          help_mode: string;
+          languages: string[];
+          waiting_since: string;
+        }[];
+      };
+      mentor_journey_stats: {
+        Args: { p_space_id: string };
+        Returns: { mentor_id: string; active_beginners: number; completed_journeys: number }[];
+      };
+      mentor_active_beginner_count: {
+        Args: { p_space_id: string; p_mentor_id: string };
+        Returns: number;
+      };
+      lesson_usage_rows: {
+        Args: { p_since: string | null; p_limit: number };
+        Returns: {
+          community_id: string;
+          ai_model: string | null;
+          ai_input_tokens: number | null;
+          ai_output_tokens: number | null;
+          ai_batch: boolean;
+          source_chars: number | null;
+          lesson_chars: number | null;
+        }[];
+      };
       approve_crop_proposal: {
         Args: { p_proposal_id: string };
         Returns: string;
@@ -3347,6 +4382,11 @@ export type Database = {
         Args: { p_community_id: string };
         Returns: boolean;
       };
+      community_analytics: {
+        Args: { p_community_id: string; p_days?: number };
+        // jsonb — parsed and typed in src/lib/data/community-analytics.ts.
+        Returns: unknown;
+      };
       community_has_feature: {
         Args: { p_community_id: string; p_feature: string };
         Returns: boolean;
@@ -3358,6 +4398,29 @@ export type Database = {
       community_purchased_space_types: {
         Args: { p_community_id: string };
         Returns: string[];
+      };
+      shared_media_items_from_other_communities: {
+        Args: { p_community_id: string; p_limit?: number };
+        Returns: {
+          id: string;
+          community_id: string;
+          community_name: string | null;
+          community_slug: string | null;
+          url: string;
+          kind: string;
+          title: string;
+          creator: string | null;
+          description: string;
+          image_url: string | null;
+          age_min: number | null;
+          age_max: number | null;
+          verdict: string;
+          reason: string | null;
+          profanity: string;
+          concerns: unknown;
+          themes: string[];
+          created_at: string;
+        }[];
       };
       consume_ai_quota: {
         Args: { p_bucket: string; p_identity: string; p_limit: number };
@@ -3394,6 +4457,10 @@ export type Database = {
           user_id: string;
           confirmed: boolean;
         }[];
+      };
+      event_rsvp_counts: {
+        Args: { p_event_ids: string[] };
+        Returns: { event_id: string; going: number }[];
       };
       community_slug_for_domain: {
         Args: { p_domain: string };

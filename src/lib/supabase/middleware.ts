@@ -11,17 +11,18 @@ import {
 } from "@/lib/presence";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/confirm", "/forgot-password", "/terms", "/privacy", "/contact", "/pricing", "/help/video-cookies"];
 
 // Community sub-sections a signed-out visitor is allowed to reach. The page
 // (and Postgres RLS) still decides what actually renders — a members-only
 // space resolves to notFound for a guest — but the middleware must not bounce
 // them to /login first, or a public community could never be browsed.
 // Everything else under /c/<slug> (admin, members, …) stays login-gated.
-const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact"];
+// Editorial guides are public too; their /edit page checks staff itself.
+const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact", "guides"];
 
 // Matches the community feed (/c/<slug>) and its guest-visible sections
-// (/c/<slug>/spaces, /events, /concierge and anything nested under them).
+// (/c/<slug>/spaces, /events, /concierge, /guides and anything nested under them).
 const PUBLIC_COMMUNITY_PATH = new RegExp(
   `^/c/[^/]+(?:/(?:${PUBLIC_COMMUNITY_SECTIONS.join("|")})(?:/.*)?)?$`
 );
@@ -123,6 +124,22 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
+  }
+
+  // The sign-in page itself is public, so the detour above never fires for it
+  // — yet "Log in" on a custom domain's welcome page is exactly where someone
+  // who is already signed in on the platform lands. Send that GET through the
+  // bridge too, carrying the page they were headed for. Same once-per-window
+  // cookie, so a visitor with no platform session comes straight back to this
+  // host's own form (the finish route sets it) instead of looping.
+  if (!user && pathname === "/login" && request.method === "GET") {
+    const host = request.headers.get("host") ?? "";
+    if (!isPlatformHost(host) && !request.cookies.has(BRIDGE_CHECKED_COOKIE)) {
+      const requested = request.nextUrl.searchParams.get("next");
+      const next = requested && requested.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+      const bridge = platformBridgeUrl(host, next);
+      if (bridge) return NextResponse.redirect(bridge);
+    }
   }
 
   if (user && (pathname === "/login" || pathname === "/signup")) {
