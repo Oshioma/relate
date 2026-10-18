@@ -90,6 +90,8 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
   // Only meaningful alongside staff_post_only; forced false when not one-way so
   // the flag never lingers on a space that isn't broadcast.
   const allowMemberComments = staffPostOnly && formData.get("allow_member_comments") === "on";
+  // Optional cover uploaded from the New space form; empty means none.
+  const imageUrl = String(formData.get("image_url") ?? "").trim() || null;
 
   if (!name) {
     return { error: "Give the space a name." };
@@ -147,6 +149,7 @@ export async function createSpace(_prevState: SpaceFormState, formData: FormData
     show_in_nav: showInNav,
     staff_post_only: staffPostOnly,
     allow_member_comments: allowMemberComments,
+    image_url: imageUrl,
   });
 
   if (error) {
