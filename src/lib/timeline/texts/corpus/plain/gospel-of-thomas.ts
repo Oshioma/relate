@@ -235,7 +235,7 @@ export const PLAIN_GOSPEL_OF_THOMAS: Record<string, string> = {
   "gnostic.thom.113":
     "His disciples said to him: When will the kingdom come? <Jesus said:> It will not come by watching for it. People will not say, \"Look, here it is,\" or \"Look, there it is.\" Rather, the kingdom of the Father is spread out over the earth, and people do not see it.",
   "gnostic.thom.114":
-    "Simon Peter said to them: Mary should leave us, because women are not worthy of life. Jesus said: Look, I will guide her to make her male, so that she too may become a living spirit like you males. For every woman who makes herself male will enter the kingdom of heaven.\n\nOther possible readings:\n- \"Guide her\" can also be \"draw her\"\n- \"Male\" is generally taken as a figure of speech for a spiritual change, not a bodily one",
+    "Simon Peter said to them: Mary should leave us, because women are not worthy of life. Jesus said: Look, I will guide her to make her male, so that she too may become a living spirit like you males. For every woman who makes herself male will enter the kingdom of heaven.\n\nOther possible readings:\n- \"Guide her\" can also be \"draw her\"\n- \"Make her male\" may be meant as a figure of speech for an inner change rather than a bodily one",
   "gnostic.thom.title":
     "The Gospel according to Thomas.",
 
