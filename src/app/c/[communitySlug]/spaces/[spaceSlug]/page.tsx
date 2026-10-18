@@ -15,6 +15,7 @@ import { getSpacePosts, summarizeDiscussionActivity } from "@/lib/data/posts";
 import { SMILE_EMOJI } from "@/lib/post-reactions";
 import { SmileStack } from "@/components/ui/smile-stack";
 import { DiscussionSpaceHeader } from "./discussion-space-header";
+import { SpaceCover } from "./space-cover";
 import { getSpaceResources } from "@/lib/data/resources";
 import { getSpaceJournalFields, getSpaceJournalEntries } from "@/lib/data/journal";
 import { getMemberTimeline } from "@/lib/data/growth-journey";
@@ -438,6 +439,10 @@ export default async function SpaceDetailPage({
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
+      {/* Every space type can carry its own cover; it sits above whatever
+          masthead (or none) the type renders. */}
+      <SpaceCover spaceId={space.id} communityId={community.id} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} />
+
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
