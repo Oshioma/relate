@@ -388,12 +388,15 @@ export async function importWorkChunk(
   const problems = validateCorpus(file, INVENTORY);
   if (problems.length > 0) throw new Error(`${workKey} failed validation:\n${formatProblems(problems)}`);
 
-  const { data: workRow } = await supabase
-    .from("timeline_text_works")
-    .select("id, event_id")
-    .eq("community_id", community.id)
-    .eq("work_key", workKey)
-    .maybeSingle();
+  const findWorkRow = () =>
+    supabase.from("timeline_text_works").select("id, event_id").eq("community_id", community.id).eq("work_key", workKey).maybeSingle();
+  let { data: workRow } = await findWorkRow();
+  if (!workRow) {
+    // A work added to the inventory since the library was last installed:
+    // install again (it only adds what is missing) rather than send staff back.
+    await installLibrary(supabase, community, userId);
+    ({ data: workRow } = await findWorkRow());
+  }
   if (!workRow) throw new Error("Install the library first: this work has no row yet.");
   if (!workRow.event_id) throw new Error("This work has no marker on the timeline yet, so its passages have nowhere to hang.");
 
