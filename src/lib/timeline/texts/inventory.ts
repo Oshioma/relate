@@ -142,8 +142,37 @@ export const INVENTORY_SOURCES: SeedSource[] = [
     author: "E. A. Wallis Budge",
     publisher: "British Museum, London",
     publishedYear: 1895,
+    url: "https://sacred-texts.com/egy/ebod/index.htm",
     sourceType: "academic_book",
-    notes: "Public-domain English translation and transliteration of the Papyrus of Ani (BM EA 10470); the full-text base for the Book of the Dead.",
+    notes:
+      "Public-domain English translation of the Papyrus of Ani (BM EA 10470); the full-text base for the Book of the Dead. Imported from the web edition at sacred-texts.com (scanned 2000): the running translation, plate by plate (Plates I–XXXVII), his List of Chapters of the papyrus (pp. cxlvi–clii), and his list of the chapters of the Theban version with their titles (pp. xxxi–xlvi).",
+  },
+  {
+    key: "faulkner-bd",
+    title: "The Ancient Egyptian Book of the Dead",
+    author: "R. O. Faulkner (translator); Carol Andrews (editor)",
+    publisher: "British Museum Publications, London",
+    publishedYear: 1985,
+    sourceType: "academic_book",
+    notes: "English translation of the spells by number, in copyright. Cited, never reproduced.",
+  },
+  {
+    key: "allen-bd",
+    title: "The Book of the Dead or Going Forth by Day",
+    author: "Thomas George Allen",
+    publisher: "University of Chicago Press (Studies in Ancient Oriental Civilization 37)",
+    publishedYear: 1974,
+    sourceType: "academic_book",
+    notes: "Complete English translation of the spells by number, in copyright. Cited, never reproduced.",
+  },
+  {
+    key: "quirke-bd",
+    title: "Going out in Daylight – prt m hrw: The Ancient Egyptian Book of the Dead",
+    author: "Stephen Quirke",
+    publisher: "Golden House Publications, London (GHP Egyptology 20)",
+    publishedYear: 2013,
+    sourceType: "academic_book",
+    notes: "English translation of the spells by number, with their sources, in copyright. Cited, never reproduced.",
   },
   {
     key: "lepsius-bd",
@@ -655,6 +684,8 @@ export const INVENTORY: InventoryWork[] = [
       },
     },
     prominence: 1,
+    notes:
+      "Imported from Budge 1895 (the web edition at sacred-texts.com). The passages are every number in Budge's list of the chapters of the Theban version (pp. xxxi–xlvi): 1–186 with his lettered and sub-numbered variants, 197 entries, less the seven he lists only to say they are now known by another number (10 = 48, 73 = 9, 111 = 108, 120 = 12, 121 = 13, 129 = 100, 139 = 123), plus 29 and 93A, which only his List of Chapters of the Papyrus of Ani gives — 199 chapters in all. Seventy carry Budge's full translation: sixty from the Papyrus of Ani, and ten he supplies from other papyri (1B, 25, 28, 29A, 30A, 55, 56, 63A, 63B, 79); for 42 and 72 he adds a fuller version from another copy beside Ani's. The rest carry Budge's title only. Ani's 6 (part of 151 in this papyrus) and 16A (a vignette only) have no text of their own. Absent: 187–192, which Budge's 1895 list does not reach. Budge's numbering is not checked against the Totenbuch-Projekt list, so no total is stated and the work cannot show as complete. Allen 1974, Faulkner 1985 and Quirke 2013 are cited on every chapter, never quoted.",
   },
   {
     workKey: "egy.amduat",

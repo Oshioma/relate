@@ -158,6 +158,56 @@ test("the Coffin Texts list all 1,185 spells, quote only public-domain English, 
   assert.match(passages.find((p) => p.key === "egy.ct.335")!.layers.find((l) => l.key === "eng-breasted")!.content!, /^I am Atum/);
 });
 
+test("the Book of the Dead lists every chapter Budge lists, gives his Ani text in full, and cites the modern translations only", () => {
+  const passages = corpusFor("egy.book-of-the-dead")!.passages;
+  const chapters = passages.filter((p) => p.divisionKind === "spell");
+  const keys = chapters.map((p) => p.key.slice("egy.bd.".length));
+  assert.equal(new Set(keys).size, keys.length);
+  // Budge's Theban list: 197 numbers (186 chapters, with lettered and
+  // sub-numbered variants, less the 7 he lists only as renumbered), plus 29
+  // and 93A, which only his List of Chapters of the Papyrus of Ani gives.
+  assert.equal(chapters.length, 199);
+  for (const n of [10, 73, 111, 120, 121, 129, 139]) assert.ok(!keys.includes(String(n)), `${n} is only a renumbering`);
+  for (const k of ["1", "1b", "15b-2", "17", "29", "30b", "93a", "101", "125", "186"]) assert.ok(keys.includes(k), k);
+  assert.deepEqual([keys[0], keys.at(-1)], ["1", "186"]);
+
+  // Budge's own text: 70 chapters, ten of them supplied from other papyri.
+  const withText = chapters.filter(
+    (p) => p.layers.some((l) => l.key === "eng-budge") || passages.some((c) => c.parentKey === p.key)
+  );
+  assert.equal(withText.length, 70);
+  const supplied = passages.filter((p) => p.layers.some((l) => l.key === "eng-budge" && /does not have this text/.test(l.evidence)));
+  assert.equal(supplied.length, 12);
+
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      if (layer.content != null) assert.equal(layer.licence, "public_domain", passage.key);
+      if (["allen-bd", "faulkner-bd", "quirke-bd"].includes(layer.sourceKey ?? "")) {
+        assert.equal(layer.licence, "copyrighted_reference", passage.key);
+        assert.equal(layer.content, undefined, passage.key);
+      }
+      if (layer.content) assert.doesNotMatch(layer.content, /\{p\. ?\d|###|\[\d\]|security service|�/, passage.key);
+    }
+  }
+  for (const chapter of chapters) {
+    assert.deepEqual(
+      chapter.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key),
+      ["eng-allen", "eng-faulkner", "eng-quirke"],
+      chapter.key
+    );
+  }
+
+  // Chapter 125: the declarations of innocence, in Budge's words.
+  const confession = passages.find((p) => p.key === "egy.bd.125.1")!.layers[0].content!;
+  assert.match(confession, /\(1\) Ani saith: "Hail, thou whose strides are long, who comest forth from Annu, I have not done iniquity\."/);
+  assert.match(confession, /\(42\) "Hail, thou whose teeth are white, .* I have not slaughtered with evil intent the cattle of the god\."/);
+  assert.match(passages.find((p) => p.key === "egy.bd.30b.1")!.layers[0].content!, /^Osiris, the scribe Ani, saith: "My heart my mother/);
+  assert.match(passages.find((p) => p.key === "egy.bd.judgement")!.layers[0].content!, /^Thoth, the righteous judge/);
+  assert.equal(passages.find((p) => p.key === "egy.bd.6")!.layers[0].content, "The Chapter of making ushabtiu figures do work for a man in the underworld.");
+  assert.ok(passages.find((p) => p.key === "egy.bd.judgement")!.images?.some((i) => i.key === "ani-weighing-of-the-heart"));
+});
+
 test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);
