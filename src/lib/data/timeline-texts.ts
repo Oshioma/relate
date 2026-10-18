@@ -318,6 +318,34 @@ export async function getPassageByKey(supabase: Client, communityId: string, pas
   };
 }
 
+/** The text of each imported layer of these passages, by passage key and then by the layer's import key. */
+export async function getLayerTexts(
+  supabase: Client,
+  communityId: string,
+  passageKeys: string[]
+): Promise<Map<string, Map<string, string>>> {
+  const out = new Map<string, Map<string, string>>();
+  if (passageKeys.length === 0) return out;
+  const { data: passages } = await supabase
+    .from("timeline_text_passages")
+    .select("id, passage_key")
+    .eq("community_id", communityId)
+    .in("passage_key", passageKeys);
+  const keyById = new Map((passages ?? []).map((p) => [p.id, p.passage_key]));
+  if (keyById.size === 0) return out;
+  const { data: layers } = await supabase
+    .from("timeline_text_layers")
+    .select("passage_id, import_key, content")
+    .in("passage_id", [...keyById.keys()]);
+  for (const layer of layers ?? []) {
+    const key = keyById.get(layer.passage_id);
+    if (!key || !layer.import_key || !layer.content) continue;
+    if (!out.has(key)) out.set(key, new Map());
+    out.get(key)!.set(layer.import_key, layer.content);
+  }
+  return out;
+}
+
 /** Connections touching any of these passages, in either direction. */
 export async function getLinksFor(supabase: Client, communityId: string, keys: string[]): Promise<TimelinePassageLink[]> {
   if (keys.length === 0) return [];

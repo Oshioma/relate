@@ -5,7 +5,7 @@ import { TIMELINE_SOURCE_TYPES } from "../taxonomy";
 import { ALL_CORPORA, corpusFor } from "./corpus";
 import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
-import { breadcrumb, historicalGap, neighbours, readingOrder } from "./reading";
+import { breadcrumb, historicalGap, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
@@ -284,4 +284,17 @@ test("the five chronological concepts round-trip through what_is_dated", () => {
   for (const role of ["event_described", "claimed", "composition", "earliest_evidence", "manuscript", "translation_publication"]) {
     assert.equal(dateRoleFromWhatIsDated(`${whatIsDatedFor(role)} — something`), role);
   }
+});
+
+test("a sentence cut by a section boundary is finished from the next section and begun from the previous", () => {
+  const cut = "we do not examine closely or criticize the paintings, but tolerate, in such cases, an inexact";
+  const next = "and deceptive sketch. But whenever any artist tries to portray our bodies, we quickly perceive the defects.";
+  assert.equal(sentenceRunsOnInto(cut, next), "and deceptive sketch.");
+  assert.equal(sentenceRunsOnInto("A whole sentence.", next), null);
+  assert.equal(sentenceRunsOnInto(`"Quoted to the end."`, next), null);
+  assert.equal(sentenceRunsInFrom("But whenever any artist tries.", cut), null, "a capitalised start is a new sentence");
+  assert.equal(sentenceRunsInFrom("and deceptive sketch.", `First sentence. ${cut}`), cut);
+  assert.equal(sentenceRunsInFrom("and deceptive sketch.", "Ends cleanly."), null);
+  const long = sentenceRunsOnInto("no stop", "word ".repeat(400));
+  assert.ok(long!.length <= RUN_ON_MAX_CHARS + 2 && long!.endsWith("…"));
 });
