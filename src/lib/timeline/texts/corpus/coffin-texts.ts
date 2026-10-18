@@ -224,6 +224,19 @@ const MANUSCRIPTS: CorpusManuscript[] = [
     originalDateText: "ca. 2000–1950 BC",
     notes: "The museum lists offering formulas and Coffin Texts among its inscriptions.",
   },
+  {
+    key: "coffin-djehutynakht-outer",
+    name: "Outer coffin of the governor Djehutynakht",
+    objectKind: "coffin",
+    findspot: "Deir el-Bersha, tomb 10A",
+    startYear: -2009,
+    endYear: -1960,
+    datePrecision: "decade",
+    isApproximate: true,
+    originalDateText: "late Dynasty 11 – early Dynasty 12, 2010–1961 B.C.",
+    datingEvidence: "As given with the photograph on Wikimedia Commons, which appears to copy the museum's label; not checked against the museum's record.",
+    notes: "One of the cedar coffins from the Bersha tomb of Djehutynakht, the richest single group of Coffin Text witnesses. The Commons record does not name the holding museum, so none is given here.",
+  },
 ];
 
 const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
@@ -293,6 +306,23 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
     licenceStatus: "share_alike",
     shows: "artefact",
     identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "coffin-djehutynakht-outer-side",
+    manuscriptKey: "coffin-djehutynakht-outer",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Outer_Coffin_of_Djehutynakht_1.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Outer_Coffin_of_Djehutynakht_1.jpg",
+    objectDate: "Late Dynasty 11 – early Dynasty 12, 2010–1961 BC",
+    imageDate: "2012",
+    caption:
+      "A long side of the cedar outer coffin of the governor Djehutynakht from Deir el-Bersha, in a museum case: plain planks framed by two horizontal bands of painted hieroglyphs. On coffins of this kind the Coffin Texts are written on the inner faces, which this view does not show; the identification is the photographer's caption.",
+    creator: "Photograph by Marcus Cyron",
+    credit: "Marcus Cyron, via Wikimedia Commons, CC BY 3.0",
+    licence: "CC BY 3.0",
+    licenceStatus: "attribution",
+    shows: "artefact",
+    identificationStatus: "probable",
     verificationStatus: "unverified",
   },
   {
