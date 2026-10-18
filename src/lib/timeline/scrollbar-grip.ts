@@ -1,6 +1,5 @@
 import {
   clampWindow,
-  fractionOf,
   logValueOf,
   MIN_WINDOW_YEARS,
   positionAt,
@@ -8,7 +7,6 @@ import {
   presentPosition,
   TIMELINE_MAX_YEAR,
   TIMELINE_MIN_YEAR,
-  timelineExtentWindow,
   zoomWindow,
   type TimeScale,
   type TimeWindow,
@@ -33,16 +31,56 @@ import {
 // contradicts anything on screen, and it moves the same way on both sides of
 // the bar: a pixel of drag is the same step along the bar wherever you are.
 
-const FULL = timelineExtentWindow();
+// THE FUTURE GETS A SMALLER SHARE OF THE BAR.
+//
+// The bar is spaced by order of magnitude around Now, and the same spacing on
+// both sides gave the next thousand years (Now to 3000 CE, a handful of plans
+// and predictions) almost a quarter of the bar: as much room as everything
+// between the first humans and the Bronze Age. Squeezing the future side to
+// this share of its old width hands that room back to the past, where the
+// records are, so a drag through history covers less time per pixel. The strip
+// itself is untouched; this is only how the bar lays time out.
+export const BAR_FUTURE_SHARE = 0.4;
+
+/** A date's place on the bar before scaling to 0–1: magnitude around Now, the future squeezed. */
+function barValue(position: number, now: number): number {
+  const value = logValueOf(position, now);
+  return value > 0 ? value * BAR_FUTURE_SHARE : value;
+}
+
+function barRange(now: number): { lo: number; hi: number } {
+  return { lo: barValue(TIMELINE_MIN_YEAR, now), hi: barValue(TIMELINE_MAX_YEAR, now) };
+}
 
 /** Where a date sits on the bar, 0–1. */
 export function barFraction(position: number): number {
-  return fractionOf(FULL, position, "log");
+  const now = presentPosition();
+  const { lo, hi } = barRange(now);
+  return (barValue(position, now) - lo) / (hi - lo);
 }
 
 /** The date at the bar position `fraction`, the inverse of barFraction. */
 export function dateAtBar(fraction: number): number {
-  return positionAt(FULL, Math.max(0, Math.min(1, fraction)), "log");
+  const now = presentPosition();
+  const { lo, hi } = barRange(now);
+  const value = lo + (hi - lo) * Math.max(0, Math.min(1, fraction));
+  return positionFromLogValue(value > 0 ? value / BAR_FUTURE_SHARE : value, now);
+}
+
+// THE THUMB'S SIZE.
+//
+// It used to be a fixed 56px, a third of which was zoom grips: a 37px middle
+// to take hold of, on a bar that travels thirteen billion years. Now it is a
+// share of the bar's width, between a size a fingertip can hold on a phone and
+// one that still leaves the track readable on a wide screen — about 120px on
+// a laptop.
+const THUMB_SHARE = 0.12;
+const THUMB_MIN_PX = 64;
+const THUMB_MAX_PX = 136;
+
+/** How wide the thumb is drawn, in pixels, on a bar `railWidth` pixels wide. */
+export function thumbPixels(railWidth: number): number {
+  return Math.max(THUMB_MIN_PX, Math.min(THUMB_MAX_PX, railWidth * THUMB_SHARE));
 }
 
 /** The date at the middle of the strip — what the thumb's centre marks. */
@@ -101,8 +139,27 @@ export function windowWithThumbAt(base: TimeWindow, centre: number, scale: TimeS
   return windowCentredOn(base, dateAtBar(centre), scale);
 }
 
-/** Pixels of pull on a thumb end that double (outwards) or halve (inwards) the span. */
+/** Pixels of pull on a thumb end that double (outwards) or halve (inwards) the span, for a short pull. */
 export const PULL_PX_PER_DOUBLING = 40;
+/** Past roughly this many pixels a pull speeds up, so a long one reaches the ends of time. */
+export const PULL_ACCELERATE_PX = 100;
+
+/**
+ * How many doublings (negative: halvings) of the span a pull of `outwardPx`
+ * is worth.
+ *
+ * A fixed 40px per doubling was precise but could not get anywhere: from a
+ * 500-year view to all thirteen billion years is about 25 doublings, a
+ * thousand pixels of pull — wider than the bar itself, so the ends of the
+ * thumb could never show "everything" in one pull. So a short pull stays
+ * precise and a long one accelerates: about 4 doublings by 100px, 16 by
+ * 300px, and the whole of time from a 500-year view by about 400px.
+ */
+export function pullDoublings(outwardPx: number): number {
+  const reach = Math.abs(outwardPx);
+  const doublings = reach / PULL_PX_PER_DOUBLING + Math.pow(reach / PULL_ACCELERATE_PX, 2);
+  return Math.sign(outwardPx) * doublings;
+}
 
 /**
  * Pulling an end of the thumb zooms about the strip's middle date: outwards
@@ -110,5 +167,5 @@ export const PULL_PX_PER_DOUBLING = 40;
  * pulled away from the thumb's centre (negative when pushed towards it).
  */
 export function windowAfterPull(base: TimeWindow, outwardPx: number, scale: TimeScale = "linear"): TimeWindow {
-  return zoomWindow(base, Math.pow(2, outwardPx / PULL_PX_PER_DOUBLING), 0.5, scale);
+  return zoomWindow(base, Math.pow(2, pullDoublings(outwardPx)), 0.5, scale);
 }
