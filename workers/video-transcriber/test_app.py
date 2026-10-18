@@ -500,7 +500,7 @@ class FileJobTests(unittest.TestCase):
 
         seen = {}
 
-        def fake_whisper(jid, source, workdir, what="video"):
+        def fake_whisper(jid, source, workdir, what="video", clip=None):
             seen["bytes"] = Path(source).read_bytes()
             app._update(jid, status="done", transcript="hello", method="whisper")
 
@@ -514,14 +514,24 @@ class FileJobTests(unittest.TestCase):
         self.assertEqual(app._jobs[job_id]["status"], "done")
         self.assertEqual(app._jobs[job_id]["duration_seconds"], 90)
 
-    def test_too_long_recording_is_refused_before_whisper(self):
+    def test_too_long_recording_uses_its_first_part(self):
+        limit = app.MAX_DURATION_MINUTES * 60
         job_id = "job-long-" + str(int(time.time() * 1000))
         app._jobs[job_id] = {"id": job_id, "status": "queued", "created_at": time.time()}
-        with mock.patch.object(app, "_probe_duration", return_value=app.MAX_DURATION_MINUTES * 60 + 1), \
-                mock.patch.object(app, "_whisper") as whisper:
-            self.assertFalse(app._check_duration(job_id, Path("/nonexistent")))
-        whisper.assert_not_called()
+        with mock.patch.object(app, "_probe_duration", return_value=limit + 1000):
+            clip = app._check_duration(job_id, Path("/nonexistent"))
+        self.assertEqual(clip, app.Clip(0.0, float(limit)))
+        self.assertEqual(app._jobs[job_id]["clip_start_seconds"], 0)
+        self.assertEqual(app._jobs[job_id]["clip_end_seconds"], limit)
+        self.assertNotEqual(app._jobs[job_id]["status"], "error")
+
+    def test_a_part_past_the_end_is_refused_before_whisper(self):
+        job_id = "job-past-" + str(int(time.time() * 1000))
+        app._jobs[job_id] = {"id": job_id, "status": "queued", "created_at": time.time(), "start_seconds": 500}
+        with mock.patch.object(app, "_probe_duration", return_value=90.0):
+            self.assertIsNone(app._check_duration(job_id, Path("/nonexistent")))
         self.assertEqual(app._jobs[job_id]["status"], "error")
+        self.assertIn("only 1:30 long", app._jobs[job_id]["error"])
 
 
 class MergedWhisperTests(unittest.TestCase):
@@ -558,6 +568,83 @@ class MergedWhisperTests(unittest.TestCase):
             app.shutil.rmtree(app.JOBS_DIR, ignore_errors=True)
             app.shutil.rmtree(workdir, ignore_errors=True)
             app.JOBS_DIR = old_dir
+
+
+class ClipTests(unittest.TestCase):
+    """Using part of a long video instead of refusing it."""
+
+    def test_whole_video_when_it_fits(self):
+        self.assertEqual(app.choose_clip(600.0), (app.Clip(0.0, 600.0), None))
+
+    def test_long_video_defaults_to_its_first_part(self):
+        limit = app.MAX_DURATION_MINUTES * 60
+        clip, error = app.choose_clip(3 * 3600 + 16 * 60 + 55)
+        self.assertIsNone(error)
+        self.assertEqual(clip, app.Clip(0.0, float(limit)))
+
+    def test_chosen_part_is_kept(self):
+        clip, _ = app.choose_clip(11815.0, 0, 9000)
+        self.assertEqual(clip, app.Clip(0.0, 9000.0))
+        self.assertEqual(clip.length(), 9000.0)
+
+    def test_chosen_part_is_cut_to_the_limit_and_the_end(self):
+        limit = app.MAX_DURATION_MINUTES * 60
+        clip, _ = app.choose_clip(20000.0, 1000, 19000)
+        self.assertEqual(clip, app.Clip(1000.0, 1000.0 + limit))
+        clip, _ = app.choose_clip(600.0, 60, 9000)
+        self.assertEqual(clip, app.Clip(60.0, 600.0))
+
+    def test_unknown_length_still_stops_at_the_limit(self):
+        clip, _ = app.choose_clip(None, 120)
+        self.assertEqual(clip, app.Clip(120.0, None))
+        self.assertEqual(clip.length(), app.MAX_DURATION_MINUTES * 60)
+
+    def test_start_past_the_end_is_an_error(self):
+        clip, error = app.choose_clip(600.0, 700)
+        self.assertIsNone(clip)
+        self.assertIn("10:00", error)
+
+    def test_captions_keep_only_the_part_with_whole_video_times(self):
+        vtt = (
+            "WEBVTT\n\n00:00:05.000 --> 00:00:06.000\nToo early.\n\n"
+            "00:02:00.000 --> 00:02:01.000\nInside the part.\n\n"
+            "00:05:00.000 --> 00:05:01.000\nToo late.\n"
+        )
+        self.assertEqual(app.vtt_to_text(vtt, app.Clip(60.0, 240.0)), "[2:00] Inside the part.")
+
+    def test_split_seeks_to_the_part_and_cuts_its_length(self):
+        workdir = Path(app.tempfile.mkdtemp())
+        try:
+            with mock.patch.object(app.subprocess, "run") as run:
+                run.return_value = mock.Mock(returncode=0, stderr="")
+                app._split_audio(Path("in.mp3"), workdir, app.Clip(600.0, 9600.0))
+            command = run.call_args.args[0]
+            self.assertEqual(command[command.index("-ss") + 1], "600.000")
+            self.assertLess(command.index("-ss"), command.index("-i"))
+            self.assertEqual(command[command.index("-t") + 1], "9000.000")
+        finally:
+            app.shutil.rmtree(workdir, ignore_errors=True)
+
+    def test_whisper_times_count_from_the_start_of_the_video(self):
+        def fake(path, prompt):
+            return "Words.", [(5.0, "Words.")]
+
+        with mock.patch.object(app, "_transcribe_chunk", fake):
+            pieces = app._transcribe_all("no-such-job", [Path("chunk_000.mp3")], start=3600.0)
+        self.assertEqual(pieces, [(3605.0, "Words.")])
+
+    def test_new_job_rejects_a_backwards_part(self):
+        with self.assertRaises(app.HTTPException):
+            app.validate_new_job(
+                app.NewJob(id="abcdefgh-1", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ", start_seconds=50, end_seconds=10)
+            )
+        app.validate_new_job(
+            app.NewJob(id="abcdefgh-2", url="https://www.youtube.com/watch?v=dQw4w9WgXcQ", end_seconds=9000)
+        )
+
+    def test_public_reports_the_part_used(self):
+        out = app._public({"id": "x", "status": "done", "clip_start_seconds": 0, "clip_end_seconds": 9000})
+        self.assertEqual((out["clip_start_seconds"], out["clip_end_seconds"]), (0, 9000))
 
 
 if __name__ == "__main__":

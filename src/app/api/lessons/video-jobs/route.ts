@@ -16,6 +16,10 @@
 //                                        a file too big for Storage; answered
 //                                        with where to PUT it on the worker
 //
+// Any of them may add { startSeconds, endSeconds }: the part of the video to
+// use. The worker transcribes at most three hours; a longer video with no
+// part chosen uses its first three hours.
+//
 // Staff-only and metered, for the same reason the writer is: it spends money.
 
 import { NextResponse, type NextRequest } from "next/server";
@@ -23,7 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 import { authorizeLessonAuthor } from "@/lib/school/lesson-auth";
 import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { checkAiAllowance } from "@/lib/usage/ai-spend";
-import { parseVideoLink } from "@/lib/school/video-links";
+import { cleanClip, parseVideoLink } from "@/lib/school/video-links";
 import {
   directUploadTarget,
   isVideoWorkerConfigured,
@@ -175,6 +179,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: requested.error }, { status: 400, headers: NO_STORE });
   }
 
+  const clip = cleanClip(payload.startSeconds, payload.endSeconds);
+  if (
+    typeof payload.startSeconds === "number" &&
+    typeof payload.endSeconds === "number" &&
+    payload.endSeconds <= payload.startSeconds
+  ) {
+    return NextResponse.json(
+      { error: "The part to use has to end after it starts." },
+      { status: 400, headers: NO_STORE }
+    );
+  }
+
   const auth = await authorizeLessonAuthor(supabase, spaceId);
   if (!auth.ok) {
     return NextResponse.json({ error: auth.error }, { status: auth.status, headers: NO_STORE });
@@ -226,6 +242,10 @@ export async function POST(request: NextRequest) {
     .from("lesson_video_jobs")
     .insert({
       ...insertFor(requested),
+      // Only written when a part was chosen, so a database without the
+      // lesson_video_clips migration still takes every other job.
+      ...(clip.start != null ? { clip_start_seconds: clip.start } : {}),
+      ...(clip.end != null ? { clip_end_seconds: clip.end } : {}),
       space_id: auth.space.id,
       community_id: auth.space.community_id,
       created_by: auth.userId,
@@ -240,7 +260,7 @@ export async function POST(request: NextRequest) {
   }
 
   let job = created as LessonVideoJob;
-  const started = await startWorkerJob(job.id, workerSource(requested));
+  const started = await startWorkerJob(job.id, workerSource(requested), clip);
   if (!started.ok) {
     const { data } = await supabase
       .from("lesson_video_jobs")

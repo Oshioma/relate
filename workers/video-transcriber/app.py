@@ -45,6 +45,7 @@ import base64
 import hashlib
 import hmac
 import json
+import math
 import os
 import re
 import shutil
@@ -55,7 +56,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, NamedTuple, Optional
 from urllib.parse import urlparse
 
 import requests
@@ -440,8 +441,60 @@ def format_marker(seconds: float) -> str:
     return f"[{minutes}:{secs:02d}]"
 
 
-def vtt_to_text(vtt: str) -> str:
+# --------------------------------------------------------------------------
+# The part of a video to use
+# --------------------------------------------------------------------------
+
+
+class Clip(NamedTuple):
+    """The stretch of a video that becomes the lesson, in seconds of the video.
+
+    `end` is None when the length isn't known (a link that didn't say, a file
+    ffprobe couldn't read): everything from `start` on, up to the limit.
+    """
+
+    start: float
+    end: Optional[float]
+
+    def length(self) -> float:
+        """How much audio to cut — never more than MAX_DURATION_MINUTES."""
+        limit = MAX_DURATION_MINUTES * 60
+        return limit if self.end is None else min(limit, self.end - self.start)
+
+
+def choose_clip(
+    duration: Optional[float], start: Optional[float] = None, end: Optional[float] = None
+) -> tuple[Optional[Clip], Optional[str]]:
+    """The part of a video to transcribe: (clip, None), or (None, why not).
+
+    A video longer than one lesson takes is no longer refused: without a
+    chosen part it is the first MAX_DURATION_MINUTES, and a chosen part longer
+    than that is cut to its first MAX_DURATION_MINUTES. Times past the end of
+    the video are pulled back to it.
+    """
+    limit = MAX_DURATION_MINUTES * 60
+    begin = max(0.0, float(start or 0))
+    known = float(duration) if duration and duration > 0 else None
+    if known is not None and begin >= known:
+        return None, (
+            f"That video is only {format_marker(known)[1:-1]} long, "
+            f"so it can't start at {format_marker(begin)[1:-1]}."
+        )
+    stop = float(end) if end else None
+    if known is not None:
+        stop = known if stop is None else min(stop, known)
+    if stop is not None and stop - begin > limit:
+        stop = begin + limit
+    if stop is None and known is None:
+        return Clip(begin, None), None
+    return Clip(begin, stop), None
+
+
+def vtt_to_text(vtt: str, clip: Optional[Clip] = None) -> str:
     """Caption file -> the words, once each, in timed paragraphs.
+
+    With a clip, only the lines said inside it are kept; their times stay
+    times in the whole video, so a lesson's "watch from" still finds them.
 
     YouTube's automatic captions "roll": every cue repeats the previous cue's
     line before adding a new one, so a naive join says everything twice. A
@@ -480,6 +533,9 @@ def vtt_to_text(vtt: str) -> str:
         if lines and lines[-1][1] == text:
             continue
         lines.append((start, text))
+    if clip is not None:
+        stop = clip.start + clip.length()
+        lines = [(at, words) for at, words in lines if clip.start <= at < stop]
     return timed_paragraphs(lines)
 
 
@@ -661,14 +717,22 @@ def _download_audio(job_id: str, url: str, workdir: Path) -> Path:
     return files[0]
 
 
-def _split_audio(source: Path, workdir: Path) -> list[Path]:
-    """Small mono MP3 chunks: ~3.5 MB per 10 minutes, far under Groq's limit."""
+def _split_audio(source: Path, workdir: Path, clip: Optional[Clip] = None) -> list[Path]:
+    """Small mono MP3 chunks: ~3.5 MB per 10 minutes, far under Groq's limit.
+
+    Only the clip's stretch is cut, never more than MAX_DURATION_MINUTES.
+    """
+    clip = clip or Clip(0.0, None)
     out_dir = workdir / "chunks"
     out_dir.mkdir()
+    # -ss before -i seeks the input, so a clip that starts two hours in
+    # doesn't decode two hours of audio to throw away.
+    seek = ["-ss", f"{clip.start:.3f}"] if clip.start > 0 else []
     command = [
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        *seek,
         "-i", str(source),
-        "-t", str(MAX_DURATION_MINUTES * 60),
+        "-t", f"{clip.length():.3f}",
         "-vn", "-ac", "1", "-ar", "16000",
         "-c:a", "libmp3lame", "-b:a", "48k",
         "-f", "segment", "-segment_time", str(CHUNK_MINUTES * 60),
@@ -705,13 +769,17 @@ def _parse_verbose(body: dict[str, Any]) -> tuple[str, list[Timed]]:
 
 
 def _transcribe_all(
-    job_id: str, chunks: list[Path], chunk_seconds: Optional[list[float]] = None
+    job_id: str,
+    chunks: list[Path],
+    chunk_seconds: Optional[list[float]] = None,
+    start: float = 0.0,
 ) -> list[Timed]:
     """Every chunk, in order, with segment times made relative to the whole video.
 
     ffmpeg resets each chunk's clock to zero (-reset_timestamps), and every
     chunk but the last is exactly CHUNK_MINUTES long, so a chunk's offset is
-    just its index times that.
+    just its index times that — plus where the clip starts, when only part of
+    the video was cut.
     """
     pieces: list[Timed] = []
     previous = ""
@@ -722,7 +790,7 @@ def _transcribe_all(
             message=f"Transcribing part {index + 1} of {len(chunks)}…",
         )
         text, segments = _transcribe_chunk(chunk, previous)
-        offset = index * CHUNK_MINUTES * 60
+        offset = start + index * CHUNK_MINUTES * 60
         pieces.extend((offset + start, words) for start, words in segments)
         previous = text
         if chunk_seconds is not None:
@@ -773,6 +841,22 @@ def _transcribe_chunk(path: Path, prompt: str) -> tuple[str, list[Timed]]:
 # --------------------------------------------------------------------------
 
 
+def _clip_or_fail(job_id: str, duration: Optional[float]) -> Optional[Clip]:
+    """The job's clip, recorded on it; None (and an error on the job) if its
+    chosen part doesn't fit the video."""
+    job = _jobs.get(job_id) or {}
+    clip, error = choose_clip(duration, job.get("start_seconds"), job.get("end_seconds"))
+    if clip is None:
+        _update(job_id, status="error", error=error)
+        return None
+    _update(
+        job_id,
+        clip_start_seconds=int(clip.start),
+        clip_end_seconds=None if clip.end is None else int(round(clip.end)),
+    )
+    return clip
+
+
 def run_job(job_id: str, url: str) -> None:
     workdir = Path(tempfile.mkdtemp(prefix="relate-video-"))
     try:
@@ -793,12 +877,10 @@ def run_job(job_id: str, url: str) -> None:
         duration = info.get("duration")
         _update(job_id, title=title, duration_seconds=duration)
 
-        if duration and duration > MAX_DURATION_MINUTES * 60:
-            _update(
-                job_id,
-                status="error",
-                error=f"That video is over {MAX_DURATION_MINUTES // 60} hours — too long for one lesson.",
-            )
+        # A long video isn't refused any more: only the chosen part (or the
+        # first MAX_DURATION_MINUTES) is used.
+        clip = _clip_or_fail(job_id, duration)
+        if clip is None:
             return
 
         # 1. Captions, when there are good ones.
@@ -811,7 +893,7 @@ def run_job(job_id: str, url: str) -> None:
                     with yt_dlp.YoutubeDL(_ydl_opts()) as ydl:
                         raw = ydl.urlopen(caption_url).read()
                     _add_usage(job_id, download_bytes=len(raw))
-                    text = vtt_to_text(raw.decode("utf-8", "replace"))
+                    text = vtt_to_text(raw.decode("utf-8", "replace"), clip)
                 except Exception as error:
                     print(f"{job_id}: captions failed, falling back to audio: {redact(str(error))}", flush=True)
                     text = ""
@@ -843,7 +925,7 @@ def run_job(job_id: str, url: str) -> None:
             _update(job_id, status="error", error=_friendly_download_error(error))
             return
 
-        _whisper(job_id, audio, workdir, duration=duration)
+        _whisper(job_id, audio, workdir, duration=duration, clip=clip)
     except Exception as error:  # never leave a job stuck "running"
         print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
         _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
@@ -852,11 +934,17 @@ def run_job(job_id: str, url: str) -> None:
 
 
 def _whisper(
-    job_id: str, audio: Path, workdir: Path, what: str = "video", duration: Optional[float] = None
+    job_id: str,
+    audio: Path,
+    workdir: Path,
+    what: str = "video",
+    duration: Optional[float] = None,
+    clip: Optional[Clip] = None,
 ) -> None:
     """Downloaded audio (or video) -> chunks -> Groq Whisper -> a finished job."""
+    clip = clip or Clip(0.0, None)
     _update(job_id, progress=0.36, message="Preparing the audio…")
-    chunks = _split_audio(audio, workdir)
+    chunks = _split_audio(audio, workdir, clip)
     audio.unlink(missing_ok=True)  # free the disk before the long part
     if not chunks:
         _update(job_id, status="error", error=f"That {what} has no audio track.")
@@ -866,13 +954,14 @@ def _whisper(
     # can't read one, the chunks share an estimate from the duration.
     probed = [_probe_seconds(chunk) for chunk in chunks]
     if any(seconds is None for seconds in probed):
-        fallback = estimate_audio_seconds(duration, len(chunks)) / len(chunks)
+        length = clip.length() if duration is None else min(clip.length(), duration - clip.start)
+        fallback = estimate_audio_seconds(length, len(chunks)) / len(chunks)
         probed = [fallback if seconds is None else seconds for seconds in probed]
 
     _update(job_id, status="transcribing", progress=0.4)
     # Each chunk's audio is counted for the cost report as Whisper answers
     # for it: a chunk that failed wasn't billed.
-    text = timed_paragraphs(_transcribe_all(job_id, chunks, probed))
+    text = timed_paragraphs(_transcribe_all(job_id, chunks, probed, start=clip.start))
     if not text:
         _update(job_id, status="error", error=f"No speech was found in that {what}.")
         return
@@ -934,19 +1023,13 @@ def _fetch_file(job_id: str, url: str, workdir: Path) -> Path:
     return target
 
 
-def _check_duration(job_id: str, source: Path) -> bool:
-    """Records the length; False (and an error on the job) if it's too long."""
+def _check_duration(job_id: str, source: Path) -> Optional[Clip]:
+    """Records the length and the part to use; None (and an error on the job)
+    if the chosen part isn't in the recording."""
     duration = _probe_duration(source)
     if duration:
         _update(job_id, duration_seconds=int(duration))
-        if duration > MAX_DURATION_MINUTES * 60:
-            _update(
-                job_id,
-                status="error",
-                error=f"That recording is over {MAX_DURATION_MINUTES // 60} hours — too long for one lesson.",
-            )
-            return False
-    return True
+    return _clip_or_fail(job_id, duration)
 
 
 def run_file_job(job_id: str, url: str) -> None:
@@ -963,8 +1046,9 @@ def run_file_job(job_id: str, url: str) -> None:
             print(f"{job_id}: fetch failed: {redact(repr(error))}", flush=True)
             _update(job_id, status="error", error="Couldn't fetch the uploaded file. Try again.")
             return
-        if _check_duration(job_id, source):
-            _whisper(job_id, source, workdir, what="recording")
+        clip = _check_duration(job_id, source)
+        if clip is not None:
+            _whisper(job_id, source, workdir, what="recording", clip=clip)
     except Exception as error:  # never leave a job stuck "running"
         print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
         _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
@@ -975,8 +1059,9 @@ def run_file_job(job_id: str, url: str) -> None:
 def run_uploaded_job(job_id: str, source: Path, workdir: Path) -> None:
     """A "direct" job, once its file has arrived: straight to Whisper."""
     try:
-        if _check_duration(job_id, source):
-            _whisper(job_id, source, workdir, what="recording")
+        clip = _check_duration(job_id, source)
+        if clip is not None:
+            _whisper(job_id, source, workdir, what="recording", clip=clip)
     except Exception as error:  # never leave a job stuck "running"
         print(f"{job_id}: failed: {redact(repr(error))}", flush=True)
         _update(job_id, status="error", error=redact(str(error))[:300] or "Something went wrong.")
@@ -1053,6 +1138,11 @@ class NewJob(BaseModel):
     url: Optional[str] = None
     kind: str = "link"
     file_name: Optional[str] = None
+    # The part of the video to use, in seconds. Either may be left out: from
+    # the start, to the end. Whatever is chosen, at most MAX_DURATION_MINUTES
+    # is transcribed.
+    start_seconds: Optional[float] = None
+    end_seconds: Optional[float] = None
 
 
 def validate_new_job(body: NewJob) -> None:
@@ -1061,6 +1151,11 @@ def validate_new_job(body: NewJob) -> None:
         raise HTTPException(status_code=400, detail="Bad job id.")
     if body.kind not in JOB_KINDS:
         raise HTTPException(status_code=400, detail="Unknown kind of job.")
+    for value in (body.start_seconds, body.end_seconds):
+        if value is not None and not (math.isfinite(value) and 0 <= value <= 7 * 24 * 3600):
+            raise HTTPException(status_code=400, detail="That isn't a time in the video.")
+    if body.start_seconds is not None and body.end_seconds is not None and body.end_seconds <= body.start_seconds:
+        raise HTTPException(status_code=400, detail="The part to use has to end after it starts.")
     if body.kind == "link":
         if not body.url or not is_allowed_url(body.url):
             raise HTTPException(status_code=400, detail="Only YouTube, Facebook, Instagram, TikTok and Vimeo links are supported.")
@@ -1082,6 +1177,7 @@ def _public(job: dict[str, Any]) -> dict[str, Any]:
     out = {key: job.get(key) for key in (
         "id", "status", "progress", "message", "title", "duration_seconds",
         "method", "transcript", "error", "proxied",
+        "clip_start_seconds", "clip_end_seconds",
     )}
     # Whole numbers on the wire; a job from before these were counted has
     # neither, and says so with null rather than a misleading zero.
@@ -1119,6 +1215,8 @@ def create_job(body: NewJob) -> dict[str, Any]:
             "kind": body.kind,
             "url": body.url,
             "title": title_from_file_name(body.file_name),
+            "start_seconds": body.start_seconds,
+            "end_seconds": body.end_seconds,
             "status": "queued",
             "progress": 0.0,
             "message": "Waiting for the upload…" if body.kind == "direct" else "Waiting for a free slot…",

@@ -54,6 +54,7 @@ import { THIRTY_THREE_VEDIC_ANCHOR_SLUG } from "@/lib/timeline/thirty-three-vedi
 import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
 import { SACRED_TREES_ANCHOR_SLUG } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_ANCHOR_SLUG } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
+import { MOORS_ANCHOR_SLUG } from "@/lib/timeline/moors-origins-seed";
 import { SERPENT_KUNDALINI_ANCHOR_SLUG } from "@/lib/timeline/serpent-kundalini-seed";
 import { HORUS_CLAIMS_ANCHOR_SLUG } from "@/lib/timeline/horus-claims-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
@@ -159,6 +160,7 @@ export default async function TimelinePage({
     hasSetSutekh,
     hasSacredTrees,
     hasOkomilo,
+    hasMoorsOrigins,
     hasSerpentKundalini,
     hasHorusClaims,
     hannibalNeedsPictures,
@@ -221,6 +223,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, SET_SUTEKH_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SACRED_TREES_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, OKOMILO_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, MOORS_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, SERPENT_KUNDALINI_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, HORUS_CLAIMS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
@@ -311,6 +314,7 @@ export default async function TimelinePage({
         hasSetSutekh={hasSetSutekh}
         hasSacredTrees={hasSacredTrees}
         hasOkomilo={hasOkomilo}
+        hasMoorsOrigins={hasMoorsOrigins}
         hasSerpentKundalini={hasSerpentKundalini}
         hasHorusClaims={hasHorusClaims}
         hannibalNeedsPictures={hannibalNeedsPictures}

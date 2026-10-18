@@ -139,6 +139,8 @@ export function SpaceCard({
             <input type="hidden" name="image_url" value={imageUrl ?? ""} />
             <div className="flex items-center gap-4">
               <ImageUpload
+                // Remounted on Remove so its preview clears with the cover.
+                key={imageUrl ?? "none"}
                 bucket="community-assets"
                 basePath={`${space.community_id}/space-${space.id}-cover`}
                 currentUrl={imageUrl}
@@ -158,7 +160,7 @@ export function SpaceCard({
               )}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Shown on the welcome page, the mobile Explore strip and the Spaces grid. Optional — falls back to the space type&apos;s default photo.
+              Shown at the top of the space, on the welcome page, the mobile Explore strip and the Spaces grid. Optional — falls back to the space type&apos;s default photo.
             </p>
           </div>
 

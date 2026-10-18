@@ -34,6 +34,7 @@ import {
   pictureBudget,
   pictureName,
   pictureTopUp,
+  resolveCredits,
   withBroughtInPictures,
 } from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
@@ -68,6 +69,7 @@ import {
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { SACRED_TREES_EVENTS, SACRED_TREES_SOURCES, SACRED_TREES_TRACK } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_EVENTS, OKOMILO_LINKS, OKOMILO_SOURCES, OKOMILO_TRACK } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
+import { MOORS_EVENTS, MOORS_LINKS, MOORS_SOURCES, MOORS_TRACK } from "@/lib/timeline/moors-origins-seed";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
@@ -1339,11 +1341,24 @@ async function seedDataset(
   supabase: SupabaseClient<Database>,
   community: Community,
   userId: string,
-  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string; links?: SeedEventLink[] }
+  dataset: {
+    events: SeedEvent[];
+    sources: SeedSource[];
+    track: SeedTrack;
+    label: string;
+    links?: SeedEventLink[];
+    /**
+     * Write the records with their pictures still at Commons (credits fetched
+     * as usual) and leave the copying to "Bring hotlinked pictures in", which
+     * works to a time budget. For a dataset with hundreds of pictures, copying
+     * them all inside this one request would outlast it.
+     */
+    copyPicturesLater?: boolean;
+  }
 ): Promise<
   { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number; linked: number }
 > {
-  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [] } = dataset;
+  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [], copyPicturesLater = false } = dataset;
 
   // --- The lane -------------------------------------------------------------
   const { data: existingTrack } = await supabase
@@ -1442,12 +1457,13 @@ async function seedDataset(
     }
 
     // Copied into the community's own storage before the event is written, so
-    // it never carries an address pointing somewhere we do not control.
-    const { pictures } = await bringEventPicturesIn(supabase, {
-      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
-      userId,
-      slug: seed.slug,
-    });
+    // it never carries an address pointing somewhere we do not control —
+    // unless the dataset is too large for that, in which case only the credits
+    // are fetched now and the hotlinked-pictures pass does the copying.
+    const seedPictures = { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] };
+    const { pictures } = copyPicturesLater
+      ? { pictures: { imageUrl: seedPictures.imageUrl, media: (await resolveCredits(seedPictures)).media } }
+      : await bringEventPicturesIn(supabase, { pictures: seedPictures, userId, slug: seed.slug });
 
     const { data: event, error: eventError } = await supabase
       .from("timeline_events")
@@ -2083,6 +2099,7 @@ type SeedDatasetSpec = {
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)", track: OKOMILO_TRACK, events: OKOMILO_EVENTS, sources: OKOMILO_SOURCES, links: OKOMILO_LINKS },
+  { label: "Origins of the Moors", track: MOORS_TRACK, events: MOORS_EVENTS, sources: MOORS_SOURCES, links: MOORS_LINKS },
   { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
@@ -3466,6 +3483,30 @@ export async function seedOkomiloDataset(communitySlug: string) {
     track: OKOMILO_TRACK,
     links: OKOMILO_LINKS,
     label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The Origins of the Moors, from Jebel Irhoud about 315,000 years ago to Tariq
+ * ibn Ziyad's crossing into Iberia in 711. The opening is the opening of this
+ * track, not of the timeline; no record before the name existed calls anyone a
+ * Moor. See moors-origins-seed.ts and docs/moors-origins-plan.md.
+ */
+export async function seedMoorsOriginsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const result = await seedDataset(supabase, community, userId, {
+    events: MOORS_EVENTS,
+    sources: MOORS_SOURCES,
+    track: MOORS_TRACK,
+    links: MOORS_LINKS,
+    label: "Origins of the Moors",
+    // 278 pictures: staff press "Bring hotlinked pictures in" afterwards.
+    copyPicturesLater: true,
   });
   revalidatePath(timelinePath(community.slug));
   return result;

@@ -23,6 +23,7 @@ import { LessonClassification } from "./lesson-classification";
 import { LessonRulesPanel } from "./lesson-rules-panel";
 import { LessonVideo } from "./lesson-video";
 import { LessonMediaPlayer } from "./lesson-media-player";
+import { lessonVideoClip } from "@/lib/school/video-links";
 import {
   deleteLesson,
   removeLessonImage,
@@ -212,9 +213,9 @@ export function LessonDetailView({
         {/* A lesson written from a video leads with the video: it is the thing
             to watch before reading, and a better picture than any cover. */}
         {continues ? null : lesson.video_url ? (
-          <LessonVideo url={lesson.video_url} className="mt-4" />
+          <LessonVideo url={lesson.video_url} clip={lessonVideoClip(lesson)} className="mt-4" />
         ) : lesson.media_path ? (
-          <LessonMediaPlayer path={lesson.media_path} type={lesson.media_type} className="mt-4" />
+          <LessonMediaPlayer path={lesson.media_path} type={lesson.media_type} clip={lessonVideoClip(lesson)} className="mt-4" />
         ) : lesson.lesson.cover ? (
           <SafeImage
             srcs={[lesson.lesson.cover.url, lesson.lesson.cover.thumbUrl]}

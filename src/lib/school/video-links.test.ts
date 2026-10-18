@@ -1,8 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  cleanClip,
+  clipEmbedUrl,
+  describeClip,
   formatDuration,
   formatTimestamp,
+  parseTimestamp,
   parseVideoLink,
   seekEmbedUrl,
   withSiteHelpLink,
@@ -193,4 +197,45 @@ test("Vimeo seeks with the #t= fragment and keeps an unlisted video's hash", () 
     seekEmbedUrl(link, 754.9),
     "https://player.vimeo.com/video/76979871?dnt=1&h=abc123&autoplay=1#t=754s"
   );
+});
+
+test("times are read the ways a teacher types them", () => {
+  assert.equal(parseTimestamp("2:30:00"), 9000);
+  assert.equal(parseTimestamp("150:00"), 9000);
+  assert.equal(parseTimestamp("4:05"), 245);
+  assert.equal(parseTimestamp("150"), 9000);
+  assert.equal(parseTimestamp("2h30m"), 9000);
+  assert.equal(parseTimestamp("90s"), 90);
+  assert.equal(parseTimestamp(""), null);
+  assert.equal(parseTimestamp("1:75"), null);
+  assert.equal(parseTimestamp("soon"), null);
+});
+
+test("a clip is whole seconds, and a backwards end is dropped", () => {
+  assert.deepEqual(cleanClip(0, 9000.7), { start: null, end: 9000 });
+  assert.deepEqual(cleanClip(600, 300), { start: 600, end: null });
+  assert.deepEqual(cleanClip("x", -1), { start: null, end: null });
+  assert.equal(describeClip({ start: null, end: 9000 }), "0:00–2:30:00");
+  assert.equal(describeClip({ start: 3600, end: null }), "1:00:00 to the end");
+  assert.equal(describeClip({ start: null, end: null }), null);
+});
+
+test("a YouTube lesson plays only its part, and watch-from keeps the end", () => {
+  const link = parseVideoLink("https://www.youtube.com/watch?v=dQw4w9WgXcQ")!;
+  assert.equal(clipEmbedUrl(link, null), link.embedUrl);
+  assert.equal(
+    clipEmbedUrl(link, { start: 60, end: 9000 }),
+    "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=60&end=9000"
+  );
+  assert.equal(
+    seekEmbedUrl(link, 120, { start: null, end: 9000 }),
+    "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=120&end=9000&autoplay=1"
+  );
+});
+
+test("Vimeo starts at the part; platforms that can't seek play it all", () => {
+  const vimeo = parseVideoLink("https://vimeo.com/76979871")!;
+  assert.equal(clipEmbedUrl(vimeo, { start: 60, end: 900 }), "https://player.vimeo.com/video/76979871?dnt=1#t=60s");
+  const insta = parseVideoLink("https://www.instagram.com/reel/abc123/")!;
+  assert.equal(clipEmbedUrl(insta, { start: 60, end: 900 }), insta.embedUrl);
 });
