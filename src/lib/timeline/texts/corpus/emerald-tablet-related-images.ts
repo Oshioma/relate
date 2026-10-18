@@ -24,7 +24,7 @@ export const EMERALD_TABLET_RELATED_IMAGES: (CorpusImage & { passageKey: string 
     accessionNumber: "L0073562 (Wellcome photo number)",
     objectDate: "1550",
     caption:
-      "A woodcut from the Rosarium philosophorum, printed with De alchimia opuscula complura veterum philosophorum (Frankfurt, 1550): a crowned king standing on the Sun and a crowned queen standing on the Moon, holding flowers, with a dove and a star above. The Vulgate's fifth line says of the one thing, 'The father thereof is the Sun, the mother the Moon'. Later artwork: how sixteenth-century alchemists pictured that line, not evidence for the Tablet itself.",
+      "A woodcut from the Rosarium philosophorum, bound with De alchimia opuscula complura veterum philosophorum (1550): a crowned king standing on the Sun and a crowned queen standing on a crescent Moon join hands and hold crossed flowering branches, with a dove and a star above. The Vulgate's fifth line says of the one thing, 'The father thereof is the Sun, the mother the Moon'. Later artwork: how sixteenth-century alchemists pictured that line, not evidence for the Tablet itself.",
     creator: "Unknown woodcut artist",
     credit: "Wellcome Collection, via Wikimedia Commons",
     licence: "CC BY 4.0",
@@ -40,7 +40,7 @@ export const EMERALD_TABLET_RELATED_IMAGES: (CorpusImage & { passageKey: string 
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Atalanta_Fugiens_Emblema_I.jpg",
     objectDate: "1617",
     caption:
-      "Emblem I of Michael Maier's Atalanta fugiens (Oppenheim, 1617), with the motto 'Portavit eum ventus in ventre suo' ('The wind carried it in its belly'): a wind-god with billowing cloud for hair strides over a coastal landscape, a child visible in his belly. The motto is the Vulgate's sixth line, 'Portavit illud ventus in ventre suo'. Later artwork: an alchemist's emblem of the line, not evidence for the Tablet's origin.",
+      "Emblem I of Michael Maier's Atalanta fugiens (Oppenheim, 1617), with the motto 'Portavit eum ventus in ventre suo' ('The wind carried it in its belly'): a wind-god with billowing cloud for hair strides over a coastal landscape, a child visible in his belly. The motto is the Vulgate's sixth line, 'Portavit illuc ventus in ventre suo'. Later artwork: an alchemist's emblem of the line, not evidence for the Tablet's origin.",
     creator: "Michael Maier (author); engraving attributed on Commons to the book only",
     credit: "Internet Archive scan, via Wikimedia Commons",
     licence: "Public domain (PD-old-70, PD-US-expired); Public Domain Mark 1.0",
@@ -74,7 +74,7 @@ export const EMERALD_TABLET_RELATED_IMAGES: (CorpusImage & { passageKey: string 
     accessionNumber: "L0022783 (Wellcome photo number)",
     objectDate: "1617",
     caption:
-      "'Hermes Aegyptius', a bearded sage in a turban pointing to an armillary sphere: a portrait from Michael Maier's Symbola aureae mensae duodecim nationum (Frankfurt, 1617), which sets Hermes first among the twelve masters of alchemy. The Vulgate closes by naming its author 'Hermes the Thrice-Great, having the three parts of the philosophy of the whole world'. Later artwork: an imagined portrait, not a likeness of anyone.",
+      "'Hermes Aegyptius', a bearded sage in a pointed hood and a richly patterned robe, holding up an armillary sphere: a roundel portrait from Michael Maier's Symbola aureae mensae duodecim nationum (Frankfurt, 1617), which sets Hermes first among the twelve masters of alchemy. In the Vulgate's seventeenth line the speaker says, 'I am called Hermes Trismegistus, because I hold three parts of the wisdom of the whole world'. Later artwork: an imagined portrait, not a likeness of anyone.",
     creator: "Michael Maier (author)",
     credit: "Wellcome Collection, via Wikimedia Commons",
     licence: "CC BY 4.0",
