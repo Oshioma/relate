@@ -145,7 +145,7 @@ export const HERMETICA_RELATED_IMAGES: (CorpusImage & { passageKey: string })[] 
     accessionNumber: "28.57.23",
     objectDate: "About 440 BCE",
     caption:
-      "An Attic red-figure bell-krater, a bowl for mixing wine and water, attributed to the Persephone Painter: Persephone rises from the underworld, guided by Hermes and Hekate, while Demeter waits. In Corpus Hermeticum IV.4 God fills a great mixing bowl (krater) with Mind and sends it down with a herald, who calls on hearts to baptise themselves in it. Related evidence: a krater of the kind the treatise names, painted with Hermes as guide between the worlds; not an illustration of the text.",
+      "An Attic red-figure bell-krater, a bowl for mixing wine and water, attributed to the Persephone Painter. This photograph shows the reverse, a libation scene of a woman with a jug between two cloaked men; the front, not shown, has Persephone rising from the underworld guided by Hermes and Hekate. In Corpus Hermeticum IV.4 God fills a great mixing bowl (krater) with Mind and sends it down with a herald, who calls on hearts to baptise themselves in it. Related evidence: a krater of the kind the treatise names, not an illustration of the text.",
     creator: "Persephone Painter",
     credit: "Metropolitan Museum of Art (Open Access), via Wikimedia Commons",
     licence: "CC0 1.0",
