@@ -16,6 +16,7 @@ import type {
   TimelineGenealogyLink,
 } from "@/types/database";
 import { claimsDisagree, type ClaimTimeParts } from "@/lib/timeline/time";
+import type { FocusChoice } from "@/lib/timeline/focus";
 
 type Client = SupabaseClient<Database>;
 
@@ -363,22 +364,56 @@ export async function getTagExtent(
   tag: string,
   includePending = false
 ): Promise<{ from: number; to: number; count: number } | null> {
-  let query = supabase
-    .from("timeline_date_claims")
-    .select("event_id, start_position, end_position, event:event_id!inner (id)")
-    .eq("community_id", communityId)
-    .not("start_position", "is", null)
-    .contains("event.tags", [tag])
-    .limit(5000);
-  if (!includePending) query = query.eq("event.status", "published");
+  return getFocusExtent(supabase, communityId, { kind: "tag", value: tag }, includePending);
+}
 
-  const { data, error } = await query;
-  if (error) throw error;
+/**
+ * Where the records filed under one topic sit in time — a track, a category, a
+ * civilisation, a tag or a person — for framing the timeline on all of them.
+ */
+export async function getFocusExtent(
+  supabase: Client,
+  communityId: string,
+  choice: FocusChoice,
+  includePending = false
+): Promise<{ from: number; to: number; count: number } | null> {
+  const claimsQuery = () => {
+    let query = supabase
+      .from("timeline_date_claims")
+      .select("event_id, start_position, end_position, event:event_id!inner (id)")
+      .eq("community_id", communityId)
+      .not("start_position", "is", null)
+      .limit(5000);
+    if (!includePending) query = query.eq("event.status", "published");
+    return query;
+  };
+
+  let rows: { event_id: string | null; start_position: number | null; end_position: number | null }[] = [];
+  if (choice.kind === "track") {
+    // A track is a join, so its members are found first and their claims
+    // asked for in batches small enough to fit in a request's address.
+    const members = await getEventIdsInTracks(supabase, communityId, [choice.value]);
+    const ids = [...new Set(members.map((row) => row.event_id))];
+    for (let at = 0; at < ids.length; at += 200) {
+      const { data, error } = await claimsQuery().in("event_id", ids.slice(at, at + 200));
+      if (error) throw error;
+      rows = rows.concat(data ?? []);
+    }
+  } else {
+    let query = claimsQuery();
+    if (choice.kind === "category") query = query.eq("event.category", choice.value);
+    else if (choice.kind === "civilisation") query = query.contains("event.civilisations", [choice.value]);
+    else if (choice.kind === "person") query = query.contains("event.people", [choice.value]);
+    else query = query.contains("event.tags", [choice.value]);
+    const { data, error } = await query;
+    if (error) throw error;
+    rows = data ?? [];
+  }
 
   let from = Infinity;
   let to = -Infinity;
   const events = new Set<string>();
-  for (const row of data ?? []) {
+  for (const row of rows) {
     if (row.start_position == null || !row.event_id) continue;
     events.add(row.event_id);
     from = Math.min(from, row.start_position);
@@ -603,14 +638,18 @@ export async function getTrackMembership(
   return byTrack;
 }
 
-/** The distinct people and civilisations named across a community's timeline — the filter dropdowns' options. */
+/**
+ * The distinct people, civilisations, categories and shared tags named across a
+ * community's timeline — the filter dropdowns' options. A tag only one record
+ * carries relates nothing to anything, so tags are listed from two records up.
+ */
 export async function getTimelineFacets(
   supabase: Client,
   communityId: string
-): Promise<{ people: string[]; civilisations: string[]; categories: string[] }> {
+): Promise<{ people: string[]; civilisations: string[]; categories: string[]; tags: string[] }> {
   const { data, error } = await supabase
     .from("timeline_events")
-    .select("people, civilisations, category")
+    .select("people, civilisations, category, tags")
     .eq("community_id", communityId)
     .eq("status", "published")
     .limit(2000);
@@ -619,13 +658,16 @@ export async function getTimelineFacets(
   const people = new Set<string>();
   const civilisations = new Set<string>();
   const categories = new Set<string>();
+  const tagCounts = new Map<string, number>();
   for (const row of data ?? []) {
     for (const name of row.people ?? []) people.add(name);
     for (const name of row.civilisations ?? []) civilisations.add(name);
     if (row.category) categories.add(row.category);
+    for (const name of new Set(row.tags ?? [])) tagCounts.set(name, (tagCounts.get(name) ?? 0) + 1);
   }
-  const sort = (values: Set<string>) => [...values].sort((a, b) => a.localeCompare(b));
-  return { people: sort(people), civilisations: sort(civilisations), categories: sort(categories) };
+  const sort = (values: Iterable<string>) => [...values].sort((a, b) => a.localeCompare(b));
+  const tags = [...tagCounts].filter(([, count]) => count >= 2).map(([name]) => name);
+  return { people: sort(people), civilisations: sort(civilisations), categories: sort(categories), tags: sort(tags) };
 }
 
 /**
