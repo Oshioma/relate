@@ -339,6 +339,36 @@ export const INVENTORY_SOURCES: SeedSource[] = [
     notes: "First printed edition of Ficino's Latin translation of Corpus Hermeticum I–XIV, made in 1463.",
   },
   {
+    key: "thomas-apuleius-1908",
+    title: "Apulei Platonici Madaurensis opera quae supersunt, vol. III: De philosophia libri",
+    author: "Paul Thomas (ed.)",
+    publisher: "B. G. Teubner, Leipzig",
+    publishedYear: 1908,
+    reference: "Asclepius, pp. 36–81",
+    url: "https://archive.org/details/dephilosophiali00apulgoog",
+    sourceType: "academic_book",
+    notes:
+      "Public-domain critical edition of the Latin Asclepius, on the Brussels manuscript (B, KBR 10054–10056), which Thomas dated to the beginning of the eleventh century. Cited for the Latin and its witnesses; its text is not reproduced here because the only scans found have uncorrected OCR.",
+  },
+  {
+    key: "lactantius-institutes",
+    title: "Divinae institutiones (The Divine Institutes)",
+    author: "Lactantius",
+    publishedDisplay: "early fourth century CE",
+    sourceType: "primary",
+    notes:
+      "Quotes the lost Greek 'Perfect Discourse' (Logos Teleios) by name — e.g. in IV.6 and book VII (Asclepius 8 and 26), as Mead's notes give the places. The earliest securely dated witness to the Greek text.",
+  },
+  {
+    key: "augustine-city-of-god",
+    title: "De civitate Dei (The City of God), book VIII",
+    author: "Augustine of Hippo",
+    publishedDisplay: "written c. 413–426 CE",
+    sourceType: "primary",
+    notes:
+      "Quotes the Latin Asclepius at length in VIII.23–26 (Asclepius 23–24 and 37), as Mead's notes give the places. Shows the Latin translation existed by the early fifth century.",
+  },
+  {
     key: "mahe-definitions",
     title: "Hermès en Haute-Égypte, II: Le fragment du Discours parfait et les Définitions hermétiques arméniennes",
     author: "Jean-Pierre Mahé",
@@ -1540,10 +1570,11 @@ export const INVENTORY: InventoryWork[] = [
     expectedUnits: 41,
     unitLabel: "chapters",
     unitDivisionKind: "chapter",
-    inventoryBasis: "Forty-one chapters in the standard numbering; the Coptic extract (NHC VI,8) parallels chapters 21–29 and is kept as a separate version.",
+    inventoryBasis:
+      "Forty-one chapters in the standard numbering; the Coptic extract (NHC VI,8) parallels chapters 21–29 and is kept as a separate version. Mead (1906) prints the same forty-one chapters ('the numbering of the chapters are those usually found'); they have not been checked against Nock–Festugière.",
     inventoryConfidence: "high",
     inventoryVerified: false,
-    copyrightSummary: "Latin text (Thomas 1908) and Mead 1906 English public domain.",
+    copyrightSummary: "Latin text (Thomas 1908) and Mead 1906 English public domain; the Nag Hammadi translations (Robinson 1977 and later) are in copyright.",
     fullTextEditions: ["Thomas 1908 (Latin)", "Mead 1906"],
     referenceOnlyEditions: ["Copenhaver 1992"],
     imageCollections: ["Latin manuscripts (per catalogue)", "Nag Hammadi Codex VI (Claremont)"],
@@ -1565,7 +1596,30 @@ export const INVENTORY: InventoryWork[] = [
             endYear: 300,
             datePrecision: "century",
             originalDateText: "Greek original, second to third century CE",
-            evidence: "Dated with the other Hermetica by language and content.",
+            evidence:
+              "Dated with the other Hermetica by language and content. The Greek is lost except in quotations; Lactantius quotes it as the 'Perfect Discourse' early in the fourth century, so it was written before then. A closer date is not established.",
+          }),
+          dated("earliest_evidence", {
+            qualifier: "quotations of the Greek",
+            sourceKey: "lactantius-institutes",
+            startYear: 300,
+            endYear: 320,
+            datePrecision: "decade",
+            originalDateText: "Quoted in Greek by Lactantius, Divine Institutes, early fourth century CE",
+            datingMethod: "historical_record",
+            evidence:
+              "Lactantius quotes the Greek 'Perfect Discourse' by name (e.g. Divine Institutes IV.6, Asclepius 8). The Institutes are usually dated to the first decade or so of the fourth century; that date is the handbooks' and has not been checked here.",
+          }),
+          dated("translation_publication", {
+            qualifier: "the Latin translation",
+            sourceKey: "augustine-city-of-god",
+            startYear: 300,
+            endYear: 426,
+            datePrecision: "century",
+            originalDateText: "Latin translation, made by the early fifth century at the latest",
+            datingMethod: "historical_record",
+            evidence:
+              "Augustine quotes the Latin text at length in City of God VIII.23–26 (written c. 413–426), so the translation is older than that; it is often placed in the fourth century. Its translator is unknown — the manuscripts' attribution to Apuleius is generally rejected. The earlier limit here is not a finding, only the century in which the Greek is first quoted.",
           }),
           dated("earliest_evidence", {
             sourceKey: "robinson-nhl",

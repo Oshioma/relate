@@ -210,6 +210,34 @@ test("the Book of the Dead lists every chapter Budge lists, gives his Ani text i
   assert.ok(passages.find((p) => p.key === "egy.bd.judgement")!.images?.some((i) => i.key === "ani-weighing-of-the-heart"));
 });
 
+test("the Asclepius has Mead's 41 chapters, his English in full, no Latin it cannot vouch for, and the Coptic cited only", () => {
+  const file = corpusFor("herm.asclepius")!;
+  const passages = file.passages;
+  const chapters = passages.filter((p) => p.divisionKind === "chapter").map((p) => p.key);
+  assert.deepEqual(chapters, Array.from({ length: 41 }, (_, i) => `herm.ascl.${i + 1}`));
+  const units = passages.filter((p) => p.layers.some((l) => l.key === "eng-mead"));
+  assert.equal(units.length, 134);
+  for (const passage of passages) {
+    assert.equal(passage.verificationStatus, "unverified", passage.key);
+    for (const layer of passage.layers) {
+      if (layer.key === "eng-mead") assert.doesNotMatch(layer.content!, /Footnotes|security service|[<>{}#\\]|\bp\. \d|THRICE-GREATEST|�/, passage.key);
+      if (layer.key === "lat-thomas") assert.equal(layer.content, undefined, passage.key);
+      if (layer.licence === "copyrighted_reference") assert.equal(layer.content, undefined, passage.key);
+    }
+  }
+  for (const key of ["herm.ascl.coptic", "herm.ascl.prayer-coptic"]) {
+    const version = passages.find((p) => p.key === key)!;
+    assert.ok(version.layers.every((l) => l.content == null), key);
+  }
+  assert.match(passages.find((p) => p.key === "herm.ascl.24.3")!.layers[0].content!, /^Then shall this holiest land/);
+  assert.match(passages.find((p) => p.key === "herm.ascl.41.5")!.layers[0].content!, /pure and fleshless meal\.$/);
+  // Mead prints no fourth paragraph in chapter XXIX.
+  assert.ok(!passages.some((p) => p.key === "herm.ascl.29.4"));
+  const work = INVENTORY.find((w) => w.workKey === "herm.asclepius")!;
+  assert.equal(work.inventoryVerified, false);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 41, verifiedUnits: 0 }), "verified_against_edition");
+});
+
 test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture", () => {
   const doreal = corpusFor("modern.doreal-emerald-tablets")!;
   assert.equal(doreal.passages.length, 15);
