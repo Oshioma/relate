@@ -36,6 +36,7 @@ import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
+import { FocusSearch } from "./focus-search";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
 import { JumpToDate } from "./jump-to-date";
@@ -1144,26 +1145,12 @@ export function TimelineView({
             <label htmlFor="timeline-focus" className="text-sm font-medium text-foreground">
               Show on its own
             </label>
-            <select
+            <FocusSearch
               id="timeline-focus"
+              groups={groups}
               value={current ? encodeFocus(current) : ""}
-              onChange={(event) => void showOnItsOwn(decodeFocus(event.target.value))}
-              className={cn(
-                "min-w-0 max-w-full flex-1 cursor-pointer rounded-full border-0 px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:max-w-md sm:flex-none",
-                current ? "bg-accent-soft font-medium text-accent" : "bg-card text-foreground hover:bg-muted"
-              )}
-            >
-              <option value="">Everything</option>
-              {groups.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              onChange={(value) => void showOnItsOwn(decodeFocus(value))}
+            />
             {current ? (
               <>
                 <button
