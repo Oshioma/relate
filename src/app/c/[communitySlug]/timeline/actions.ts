@@ -6,6 +6,7 @@ import { getCommunityBySlug, getMembership, isCommunityStaff, isCommunityMember 
 import {
   getTimelineWindow,
   getTagExtent,
+  getFocusExtent,
   getTimelineEventBySlug,
   searchTimelineEvents,
   searchTimelineSources,
@@ -219,6 +220,7 @@ import {
 } from "@/lib/timeline/draft";
 import { slugify, normalizeUrl } from "@/lib/utils";
 import { readSourceLink, type LinkReadResult } from "@/lib/timeline/source-link";
+import { isFocusKind, type FocusChoice } from "@/lib/timeline/focus";
 import type { Community, CommunityMembership, TimelineSource, TimelineRevision } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -3760,6 +3762,23 @@ export async function loadTagExtent(
   } = await supabase.auth.getUser();
   // The same widening as the window: RLS, not this flag, decides what is visible.
   return getTagExtent(supabase, community.id, trimmed, Boolean(user));
+}
+
+/** Where the records filed under one topic sit in time, for "show on its own". */
+export async function loadFocusExtent(
+  communitySlug: string,
+  choice: FocusChoice
+): Promise<{ from: number; to: number; count: number } | null> {
+  const value = typeof choice?.value === "string" ? choice.value.trim() : "";
+  if (!isFocusKind(choice?.kind) || !value) return null;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community || !communityHasTimeline(community)) return null;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return getFocusExtent(supabase, community.id, { kind: choice.kind, value }, Boolean(user));
 }
 
 /** One event by slug, for framing the timeline on something just added or shared. */
