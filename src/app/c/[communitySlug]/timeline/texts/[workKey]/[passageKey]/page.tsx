@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug } from "@/lib/data/community";
 import {
   getOutline,
+  getLayerTexts,
   getPassageByKey,
   getPassageHeads,
   getSourcesByIds,
@@ -18,7 +19,7 @@ import { chronologyLabel, evidenceLayerLabel } from "@/lib/timeline/taxonomy";
 import { OUR_TRANSLATION_LAYER_KEY } from "@/lib/timeline/texts/corpus/plain";
 import { workForPassageKey } from "@/lib/timeline/texts/inventory";
 import { comparePath, passagePath, themePath, workPath } from "@/lib/timeline/texts/paths";
-import { breadcrumb, neighbours } from "@/lib/timeline/texts/reading";
+import { breadcrumb, neighbours, sentenceRunsInFrom, sentenceRunsOnInto } from "@/lib/timeline/texts/reading";
 import {
   comparabilityLabel,
   connectionClassHint,
@@ -75,6 +76,24 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
   // instead — labelled as the witnesses of the whole text, not of this line.
   const ownImages = passage.images;
   const workImages = ownImages.length === 0 ? await getWorkImages(supabase, community.id, work.id) : [];
+
+  // The ends of sentences that cross into the neighbouring sections.
+  const neighbourTexts = await getLayerTexts(
+    supabase,
+    community.id,
+    [previous?.passage_key, next?.passage_key].filter((key): key is string => !!key)
+  );
+  const runOn = (layer: TimelineTextLayer) => {
+    if (!layer.content || !layer.import_key) return {};
+    const before = previous?.passage_key ? neighbourTexts.get(previous.passage_key)?.get(layer.import_key) : undefined;
+    const after = next?.passage_key ? neighbourTexts.get(next.passage_key)?.get(layer.import_key) : undefined;
+    const runIn = sentenceRunsInFrom(layer.content, before);
+    const runOut = sentenceRunsOnInto(layer.content, after);
+    return {
+      runIn: runIn && previous ? { text: runIn, label: previous.label } : undefined,
+      runOut: runOut && next ? { text: runOut, label: next.label } : undefined,
+    };
+  };
 
   const sourcesById = await getSourcesByIds(supabase, [
     passage.source_id ?? "",
@@ -178,10 +197,10 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
 
         <section aria-label="Text" className="min-w-0 space-y-4">
           {primary.map((layer) => (
-            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} original />
+            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} original {...runOn(layer)} />
           ))}
           {translations.map((layer) => (
-            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
+            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} {...runOn(layer)} />
           ))}
           {plainWords.map((layer) => (
             <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
@@ -328,7 +347,23 @@ function LayerAside({ layer, source }: { layer: TimelineTextLayer; source: Timel
   );
 }
 
-function Layer({ layer, source, original }: { layer: TimelineTextLayer; source: TimelineSource | undefined; original?: boolean }) {
+type RunOn = { text: string; label: string };
+
+function Layer({
+  layer,
+  source,
+  original,
+  runIn,
+  runOut,
+}: {
+  layer: TimelineTextLayer;
+  source: TimelineSource | undefined;
+  original?: boolean;
+  /** The start of the first sentence, from the previous section. */
+  runIn?: RunOn;
+  /** The end of the last sentence, from the next section. */
+  runOut?: RunOn;
+}) {
   return (
     <article className={cn("rounded-xl border bg-card p-4", original ? "border-accent/40" : "border-border")}>
       <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -340,13 +375,25 @@ function Layer({ layer, source, original }: { layer: TimelineTextLayer; source: 
         {layer.licence && <span className="ml-auto text-[11px] text-muted-foreground">{layerLicenceLabel(layer.licence)}</span>}
       </header>
       {layer.content ? (
-        <p
-          lang={layer.language === "Ancient Greek" ? "grc" : layer.language === "Arabic" ? "ar" : layer.language === "Latin" ? "la" : undefined}
-          dir={layer.language === "Arabic" ? "rtl" : undefined}
-          className={cn("mt-2 whitespace-pre-line text-foreground", original ? "text-lg leading-relaxed" : "text-base leading-relaxed")}
-        >
-          {layer.content}
-        </p>
+        <>
+          <p
+            lang={layer.language === "Ancient Greek" ? "grc" : layer.language === "Arabic" ? "ar" : layer.language === "Latin" ? "la" : undefined}
+            dir={layer.language === "Arabic" ? "rtl" : undefined}
+            className={cn("mt-2 whitespace-pre-line text-foreground", original ? "text-lg leading-relaxed" : "text-base leading-relaxed")}
+          >
+            {runIn && <span className="text-muted-foreground">{runIn.text} </span>}
+            {layer.content}
+            {runOut && <span className="text-muted-foreground"> {runOut.text}</span>}
+          </p>
+          {(runIn || runOut) && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              The section boundary falls mid-sentence, so the lighter words
+              {runIn ? ` before are from ${runIn.label}` : ""}
+              {runIn && runOut ? " and those" : ""}
+              {runOut ? ` after are from ${runOut.label}` : ""}.
+            </p>
+          )}
+        </>
       ) : (
         <p className="mt-2 text-sm italic text-muted-foreground">{layer.content_absent_reason}</p>
       )}

@@ -87,6 +87,58 @@ export function neighbours<T extends OutlineRow>(
   };
 }
 
+// ---------------------------------------------------------------------------
+// SENTENCES THAT CROSS A SECTION BOUNDARY
+//
+// Passages are cut at the edition's reference points (Stephanus pages,
+// utterance numbers), which fall wherever the editor put them, often in the
+// middle of a sentence. The passage keeps its own text exactly; the reader
+// shows, set apart, the end of the sentence from the next passage and its
+// beginning from the previous one, so a sentence can be read whole.
+// ---------------------------------------------------------------------------
+
+/** Longest run-on shown, so a passage with no full stop does not pull in a whole page. */
+export const RUN_ON_MAX_CHARS = 600;
+
+// A sentence ends at . ! ? (and the Greek question mark ; and raised dot ·),
+// optionally followed by closing quotes or brackets.
+const SENTENCE_END = /[.!?;·…]["'”’»)\]]*$/;
+const FIRST_SENTENCE_END = /[.!?·…]["'”’»)\]]*(?=\s|$)/;
+
+/** Does this text stop in the middle of a sentence? */
+export function endsMidSentence(text: string): boolean {
+  const trimmed = text.trim();
+  return trimmed.length > 0 && !SENTENCE_END.test(trimmed);
+}
+
+/** Does this text start in the middle of a sentence (with a lower-case word)? */
+export function startsMidSentence(text: string): boolean {
+  const first = text.trim().match(/\p{L}/u)?.[0];
+  return first != null && first !== first.toUpperCase();
+}
+
+/** The words of the next passage that finish this one's last sentence, or null. */
+export function sentenceRunsOnInto(current: string, next: string | null | undefined): string | null {
+  if (!next || !endsMidSentence(current)) return null;
+  const text = next.trim();
+  const end = text.match(FIRST_SENTENCE_END);
+  if (end?.index != null && end.index + end[0].length <= RUN_ON_MAX_CHARS) return text.slice(0, end.index + end[0].length);
+  const cut = text.slice(0, RUN_ON_MAX_CHARS);
+  return `${cut.slice(0, cut.lastIndexOf(" ") > 0 ? cut.lastIndexOf(" ") : cut.length)} …`;
+}
+
+/** The words of the previous passage that begin this one's first sentence, or null. */
+export function sentenceRunsInFrom(current: string, previous: string | null | undefined): string | null {
+  if (!previous || !startsMidSentence(current) || !endsMidSentence(previous)) return null;
+  const text = previous.trim();
+  let start = 0;
+  for (const match of text.matchAll(/[.!?·…]["'”’»)\]]*\s+/g)) start = match.index! + match[0].length;
+  const tail = text.slice(start);
+  if (tail.length <= RUN_ON_MAX_CHARS) return tail;
+  const cut = tail.slice(tail.length - RUN_ON_MAX_CHARS);
+  return `… ${cut.slice(cut.indexOf(" ") + 1)}`;
+}
+
 /** Ancestors of a passage, outermost first. */
 export function breadcrumb<T extends OutlineRow>(rows: T[], key: string): T[] {
   const byKey = new Map(rows.filter((r) => r.passage_key).map((r) => [r.passage_key!, r]));
