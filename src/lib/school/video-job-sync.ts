@@ -50,6 +50,11 @@ export async function syncVideoJob(
       audio_seconds: r.audioSeconds ?? job.audio_seconds,
       download_bytes: r.downloadBytes ?? job.download_bytes,
       proxied: r.proxied ?? job.proxied,
+      // The part the worker settled on: the one asked for, or the first
+      // three hours of a longer video. Kept as asked until it says.
+      ...(r.clip
+        ? { clip_start_seconds: r.clip.start ?? 0, clip_end_seconds: r.clip.end }
+        : {}),
     };
     if (update.status === "done" && !update.transcript) {
       update.status = "error";
@@ -74,14 +79,17 @@ export async function syncVideoJob(
   const write = (values: Partial<LessonVideoJob>) =>
     supabase.from("lesson_video_jobs").update(values).eq("id", job.id).select("*").single();
   let { data, error } = await write(update);
-  // PGRST204 is "no such column": the lesson_usage_costs migration isn't
-  // pushed yet. The usage figures are a nice-to-have; the job's progress
-  // isn't, so write it without them rather than leave the job stuck.
+  // PGRST204 is "no such column": the lesson_usage_costs or
+  // lesson_video_clips migration isn't pushed yet. Those figures are a
+  // nice-to-have; the job's progress isn't, so write it without them rather
+  // than leave the job stuck.
   if (error?.code === "PGRST204") {
     const rest = { ...update };
     delete rest.audio_seconds;
     delete rest.download_bytes;
     delete rest.proxied;
+    delete rest.clip_start_seconds;
+    delete rest.clip_end_seconds;
     ({ data, error } = await write(rest));
   }
 

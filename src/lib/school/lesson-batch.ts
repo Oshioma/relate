@@ -317,6 +317,7 @@ async function saveLevel(
     sourceUrl: source?.source_url ?? null,
     sourceTitle: source?.source_title ?? null,
     videoUrl: source?.video_url ?? null,
+    videoClip: { start: source?.video_start_seconds ?? null, end: source?.video_end_seconds ?? null },
     mediaPath: source?.media_path ?? null,
     mediaType: source?.media_type ?? null,
     familyId: job.family_id,
