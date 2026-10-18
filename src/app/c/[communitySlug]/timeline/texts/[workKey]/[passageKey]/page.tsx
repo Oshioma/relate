@@ -84,7 +84,10 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
 
   const primary = passage.layers.filter((l) => ["primary_object", "primary_text", "transcription", "transliteration"].includes(l.layer));
   const translations = passage.layers.filter((l) => l.layer === "translation");
-  const interpretations = passage.layers.filter((l) => l.layer === "interpretation" || l.layer === "modern_summary");
+  // The plain-words paraphrase sits with the translations it paraphrases;
+  // readings of the passage go further down, under Interpretations.
+  const plainWords = passage.layers.filter((l) => l.layer === "modern_summary");
+  const interpretations = passage.layers.filter((l) => l.layer === "interpretation");
   const firstTranslation = translations.find((l) => l.content);
   const links = [...passage.links].sort((a, b) => connectionClassOrder(a.connection_class) - connectionClassOrder(b.connection_class));
   const alternatives = links.filter((l) => l.alternative_view);
@@ -177,6 +180,9 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
             <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} original />
           ))}
           {translations.map((layer) => (
+            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
+          ))}
+          {plainWords.map((layer) => (
             <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
           ))}
           {passage.layers.length === 0 && children.length > 0 && (
