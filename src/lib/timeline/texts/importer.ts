@@ -34,6 +34,7 @@ import type { InventoryWork, TextCorpusFile } from "./corpus-types";
 import { corpusFor } from "./corpus";
 import { INVENTORY, INVENTORY_SOURCES } from "./inventory";
 import { deriveCompleteness } from "./manifest";
+import { MARKER_PICTURES } from "./marker-pictures";
 import { keepCopiedPictures } from "./pictures";
 import { ARCHIVE_THEMES } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -170,6 +171,15 @@ async function addMissingPictures(
   return missing.length;
 }
 
+/** A marker's pictures: its own, else the library's list for its slug. The first is the cover. */
+export function markerPictures(seed: { slug: string; imageUrl?: string; media?: SeedPicture[] }): {
+  imageUrl?: string;
+  media: SeedPicture[];
+} {
+  const media = seed.media ?? MARKER_PICTURES[seed.slug] ?? [];
+  return { imageUrl: seed.imageUrl ?? media[0]?.url, media };
+}
+
 export async function installLibrary(supabase: Client, community: Community, userId: string): Promise<InstallResult> {
   const problems = validateInventory(INVENTORY);
   if (problems.length > 0) throw new Error(`The inventory has problems:\n${formatProblems(problems)}`);
@@ -197,7 +207,7 @@ export async function installLibrary(supabase: Client, community: Community, use
       const seed = work.anchor.event;
       if (idBySlug.has(seed.slug)) {
         result.claimsAdded += await addMissingClaims(supabase, community.id, userId, idBySlug.get(seed.slug)!, seed.claims, sourceIds);
-        result.picturesAdded += await addMissingPictures(supabase, idBySlug.get(seed.slug)!, storedBySlug.get(seed.slug)!, seed);
+        result.picturesAdded += await addMissingPictures(supabase, idBySlug.get(seed.slug)!, storedBySlug.get(seed.slug)!, markerPictures(seed));
         continue;
       }
       const { data: event, error } = await supabase
@@ -221,8 +231,8 @@ export async function installLibrary(supabase: Client, community: Community, use
           lat: seed.lat ?? null,
           lng: seed.lng ?? null,
           prominence: work.prominence ?? null,
-          image_url: seed.imageUrl ?? null,
-          media: seed.media ?? [],
+          image_url: markerPictures(seed).imageUrl ?? null,
+          media: markerPictures(seed).media,
           status: "published",
         })
         .select("id")
@@ -238,7 +248,7 @@ export async function installLibrary(supabase: Client, community: Community, use
       }
       idBySlug.set(seed.slug, event.id);
       result.markersAdded++;
-      result.picturesAdded += seed.media?.length ?? 0;
+      result.picturesAdded += markerPictures(seed).media.length;
       result.claimsAdded += seed.claims.length;
     } else {
       const eventId = idBySlug.get(work.anchor.existingSlug);
