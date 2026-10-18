@@ -92,11 +92,10 @@ export function wheelIntent(event: WheelLike, lockedAxis: WheelAxis | null = nul
 // A trackpad swipe is a stream of wheel events, and the first is the worst one
 // to judge it by: macOS often opens a swipe with an event that has no movement
 // at all, or a pixel of vertical drift before the fingers settle into their
-// sideways path. Reading that first event alone called the swipe vertical and
-// locked it there, so a two-finger swipe right never moved the strip.
+// sideways path.
 //
-// It is worse than a stutter, because of how browsers handle the stream. Once
-// the page lets the first event of a scroll through, the browser takes the
+// It matters more than a stutter, because of how browsers handle the stream.
+// Once the page lets an event of a scroll through, the browser takes the
 // gesture for itself and every later event in it arrives uncancelable — the
 // strip can no longer claim it even when it turns plainly sideways.
 //
@@ -106,40 +105,121 @@ export function wheelIntent(event: WheelLike, lockedAxis: WheelAxis | null = nul
 // is handed back to the page for the rest of the gesture. A vertical scroll
 // loses its first few pixels, which nobody can see; a sideways swipe is never
 // lost.
+//
+// HOW THE DIRECTION IS READ, AND WHY THE FIRST VERSION GOT IT WRONG.
+//
+// It used to add up the SIZE of every movement on each axis and call the
+// gesture vertical whenever the vertical total was the larger one, ties
+// included, after only six pixels. Two fingers landing on a trackpad wobble
+// up and down before they travel sideways, and that wobble — a pixel up, a
+// pixel down — counted in full. A swipe that opened with it was called
+// vertical, every one of its events (and its whole momentum tail) went to the
+// page, and since the page cannot scroll sideways nothing moved at all: the
+// two-finger swipe "did not work".
+//
+// Now the totals are SIGNED, so a wobble cancels itself out, and the call
+// leans sideways: a gesture is sideways unless it is clearly more vertical
+// than horizontal (WHEEL_SIDEWAYS_LEAN). The strip is a band across the
+// page, not the whole page, so a reader whose fingers move diagonally over it
+// almost always means to travel through time; a reader scrolling the page
+// moves nearly straight up or down.
 
 /** Events further apart than this belong to separate gestures (momentum keeps a swipe's events closer). */
 export const WHEEL_GESTURE_GAP_MS = 200;
 /** How much movement a gesture needs before its direction is trusted. */
 export const WHEEL_AXIS_DECIDE_PX = 6;
+/**
+ * A gesture is sideways when its horizontal travel is at least this share of
+ * its vertical travel — anything within about 53° of horizontal. Below one, so
+ * a diagonal swipe goes to the strip rather than the page.
+ */
+export const WHEEL_SIDEWAYS_LEAN = 0.75;
+/**
+ * How far a sideways gesture has to turn plainly vertical before it is handed
+ * back to the page. Momentum keeps a swipe's events close together, so a page
+ * scroll begun just as a swipe's momentum fades would otherwise be read as
+ * more of the swipe and swallowed.
+ */
+export const WHEEL_RELEASE_PX = 24;
 
-export type WheelGesture = { axis: WheelAxis | null; at: number; sumX: number; sumY: number };
+export type WheelGesture = {
+  axis: WheelAxis | null;
+  at: number;
+  /** Net movement since the gesture began, signed, so a wobble cancels out. */
+  sumX: number;
+  sumY: number;
+  /** Net movement of the current run of plainly vertical events, while sideways. */
+  turnX: number;
+  turnY: number;
+};
 
 /** What to do with one event: as wheelIntent, plus "hold" — claim it, do nothing yet. */
 export type WheelAction = WheelIntent | { kind: "hold" };
 
+const leansSideways = (x: number, y: number) => x !== 0 && Math.abs(x) >= WHEEL_SIDEWAYS_LEAN * Math.abs(y);
+
+/**
+ * Read one event of a plain (unmodified) wheel stream as part of its gesture.
+ *
+ * `cancelable` is the event's own: false means the browser has already given
+ * this stream to something else and will not let it be stopped. Such an event
+ * still moves the strip when it continues a gesture the strip already owns —
+ * a sideways swipe's momentum tail must not be cut off mid-glide — and is the
+ * page's otherwise, so one gesture never moves two things.
+ */
 export function readWheelGesture(
   previous: WheelGesture | null,
   event: WheelLike,
-  now: number
+  now: number,
+  cancelable = true
 ): { gesture: WheelGesture | null; action: WheelAction } {
   // Modifier gestures are unambiguous on every event; they neither start nor
   // continue a plain swipe.
-  if (event.ctrlKey || event.metaKey || event.shiftKey) return { gesture: previous, action: wheelIntent(event) };
+  if (event.ctrlKey || event.metaKey || event.shiftKey) {
+    return { gesture: previous, action: cancelable ? wheelIntent(event) : { kind: "page" } };
+  }
 
   const dx = toPixels(event.deltaX, event.deltaMode);
   const dy = toPixels(event.deltaY, event.deltaMode);
   const fresh = !previous || now - previous.at >= WHEEL_GESTURE_GAP_MS;
-  const gesture: WheelGesture = fresh
-    ? { axis: null, at: now, sumX: Math.abs(dx), sumY: Math.abs(dy) }
-    : { ...previous, at: now, sumX: previous.sumX + Math.abs(dx), sumY: previous.sumY + Math.abs(dy) };
 
-  if (gesture.axis === null && gesture.sumX + gesture.sumY >= WHEEL_AXIS_DECIDE_PX) {
-    gesture.axis = gesture.sumX > gesture.sumY ? "x" : "y";
+  if (!cancelable) {
+    if (!fresh && previous.axis === "x") {
+      const gesture = { ...previous, at: now, sumX: previous.sumX + dx, sumY: previous.sumY + dy };
+      return { gesture, action: dx !== 0 ? { kind: "pan", pixels: dx } : { kind: "page" } };
+    }
+    return { gesture: previous, action: { kind: "page" } };
+  }
+
+  const gesture: WheelGesture = fresh
+    ? { axis: null, at: now, sumX: dx, sumY: dy, turnX: 0, turnY: 0 }
+    : { ...previous, at: now, sumX: previous.sumX + dx, sumY: previous.sumY + dy };
+
+  if (gesture.axis === null && Math.abs(gesture.sumX) + Math.abs(gesture.sumY) >= WHEEL_AXIS_DECIDE_PX) {
+    gesture.axis = leansSideways(gesture.sumX, gesture.sumY) ? "x" : "y";
   }
 
   if (gesture.axis === "y") return { gesture, action: { kind: "page" } };
-  // Sideways, or not decided yet: sideways movement travels at once (so a
-  // swipe responds from its very first pixel); anything else is held.
-  if (dx !== 0 && (gesture.axis === "x" || Math.abs(dx) > Math.abs(dy))) return { gesture, action: { kind: "pan", pixels: dx } };
+
+  if (gesture.axis === "x") {
+    // A run of plainly vertical events long enough to be a page scroll, not
+    // a wobble: the swipe is over and the reader is scrolling the page.
+    if (leansSideways(dx, dy) || (dx === 0 && dy === 0)) {
+      gesture.turnX = 0;
+      gesture.turnY = 0;
+    } else {
+      gesture.turnX += dx;
+      gesture.turnY += dy;
+      if (Math.abs(gesture.turnY) >= WHEEL_RELEASE_PX && Math.abs(gesture.turnX) < Math.abs(gesture.turnY) / 2) {
+        gesture.axis = "y";
+        return { gesture, action: { kind: "page" } };
+      }
+    }
+    return { gesture, action: dx !== 0 ? { kind: "pan", pixels: dx } : { kind: "hold" } };
+  }
+
+  // Not decided yet: sideways movement travels at once (so a swipe responds
+  // from its very first pixel); anything else is held.
+  if (leansSideways(dx, dy)) return { gesture, action: { kind: "pan", pixels: dx } };
   return { gesture, action: { kind: "hold" } };
 }

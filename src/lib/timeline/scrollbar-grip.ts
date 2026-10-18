@@ -101,8 +101,27 @@ export function windowWithThumbAt(base: TimeWindow, centre: number, scale: TimeS
   return windowCentredOn(base, dateAtBar(centre), scale);
 }
 
-/** Pixels of pull on a thumb end that double (outwards) or halve (inwards) the span. */
+/** Pixels of pull on a thumb end that double (outwards) or halve (inwards) the span, for a short pull. */
 export const PULL_PX_PER_DOUBLING = 40;
+/** Past roughly this many pixels a pull speeds up, so a long one reaches the ends of time. */
+export const PULL_ACCELERATE_PX = 100;
+
+/**
+ * How many doublings (negative: halvings) of the span a pull of `outwardPx`
+ * is worth.
+ *
+ * A fixed 40px per doubling was precise but could not get anywhere: from a
+ * 500-year view to all thirteen billion years is about 25 doublings, a
+ * thousand pixels of pull — wider than the bar itself, so the ends of the
+ * thumb could never show "everything" in one pull. So a short pull stays
+ * precise and a long one accelerates: about 4 doublings by 100px, 16 by
+ * 300px, and the whole of time from a 500-year view by about 400px.
+ */
+export function pullDoublings(outwardPx: number): number {
+  const reach = Math.abs(outwardPx);
+  const doublings = reach / PULL_PX_PER_DOUBLING + Math.pow(reach / PULL_ACCELERATE_PX, 2);
+  return Math.sign(outwardPx) * doublings;
+}
 
 /**
  * Pulling an end of the thumb zooms about the strip's middle date: outwards
@@ -110,5 +129,5 @@ export const PULL_PX_PER_DOUBLING = 40;
  * pulled away from the thumb's centre (negative when pushed towards it).
  */
 export function windowAfterPull(base: TimeWindow, outwardPx: number, scale: TimeScale = "linear"): TimeWindow {
-  return zoomWindow(base, Math.pow(2, outwardPx / PULL_PX_PER_DOUBLING), 0.5, scale);
+  return zoomWindow(base, Math.pow(2, pullDoublings(outwardPx)), 0.5, scale);
 }

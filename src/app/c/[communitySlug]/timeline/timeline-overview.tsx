@@ -135,12 +135,13 @@ export function TimelineOverview({
     const element = railRef.current;
     if (!element) return;
     function handleWheel(event: WheelEvent) {
-      if (!event.cancelable) return;
-      const read = readWheelGesture(gesture.current, event, event.timeStamp);
+      // Uncancelable events are the page's unless they continue a sideways
+      // swipe this bar already owns — see the strip's handler.
+      const read = readWheelGesture(gesture.current, event, event.timeStamp, event.cancelable);
       gesture.current = read.gesture;
       const intent = read.action;
       if (intent.kind === "page") return;
-      event.preventDefault();
+      if (event.cancelable) event.preventDefault();
       if (intent.kind === "hold") return;
       const { view: current, onWindowChange: change, scale: strip } = latest.current;
       const width = Math.max(1, element!.getBoundingClientRect().width);
