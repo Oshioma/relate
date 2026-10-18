@@ -34,6 +34,7 @@ import {
   pictureBudget,
   pictureName,
   pictureTopUp,
+  resolveCredits,
   withBroughtInPictures,
 } from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
@@ -1340,11 +1341,24 @@ async function seedDataset(
   supabase: SupabaseClient<Database>,
   community: Community,
   userId: string,
-  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string; links?: SeedEventLink[] }
+  dataset: {
+    events: SeedEvent[];
+    sources: SeedSource[];
+    track: SeedTrack;
+    label: string;
+    links?: SeedEventLink[];
+    /**
+     * Write the records with their pictures still at Commons (credits fetched
+     * as usual) and leave the copying to "Bring hotlinked pictures in", which
+     * works to a time budget. For a dataset with hundreds of pictures, copying
+     * them all inside this one request would outlast it.
+     */
+    copyPicturesLater?: boolean;
+  }
 ): Promise<
   { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number; linked: number }
 > {
-  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [] } = dataset;
+  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [], copyPicturesLater = false } = dataset;
 
   // --- The lane -------------------------------------------------------------
   const { data: existingTrack } = await supabase
@@ -1443,12 +1457,13 @@ async function seedDataset(
     }
 
     // Copied into the community's own storage before the event is written, so
-    // it never carries an address pointing somewhere we do not control.
-    const { pictures } = await bringEventPicturesIn(supabase, {
-      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
-      userId,
-      slug: seed.slug,
-    });
+    // it never carries an address pointing somewhere we do not control —
+    // unless the dataset is too large for that, in which case only the credits
+    // are fetched now and the hotlinked-pictures pass does the copying.
+    const seedPictures = { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] };
+    const { pictures } = copyPicturesLater
+      ? { pictures: { imageUrl: seedPictures.imageUrl, media: (await resolveCredits(seedPictures)).media } }
+      : await bringEventPicturesIn(supabase, { pictures: seedPictures, userId, slug: seed.slug });
 
     const { data: event, error: eventError } = await supabase
       .from("timeline_events")
@@ -3490,6 +3505,8 @@ export async function seedMoorsOriginsDataset(communitySlug: string) {
     track: MOORS_TRACK,
     links: MOORS_LINKS,
     label: "Origins of the Moors",
+    // 278 pictures: staff press "Bring hotlinked pictures in" afterwards.
+    copyPicturesLater: true,
   });
   revalidatePath(timelinePath(community.slug));
   return result;

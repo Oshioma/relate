@@ -73,4 +73,19 @@ export const MOORS_SOURCES: SeedSource[] = (() => {
   return [...byKey.values()];
 })();
 
-export const MOORS_LINKS: SeedEventLink[] = sections.flatMap((section) => section.links ?? []);
+/**
+ * Every edge, once. Links are read from both ends, so two sections that each
+ * wrote the same pair — one from either side — mean one relationship, not two;
+ * the first written is kept.
+ */
+export const MOORS_LINKS: SeedEventLink[] = (() => {
+  const seen = new Set<string>();
+  return sections
+    .flatMap((section) => section.links ?? [])
+    .filter((link) => {
+      const pair = [link.from, link.to].sort().join("|") + `|${link.relation}|${link.viewpoint ?? ""}`;
+      if (seen.has(pair)) return false;
+      seen.add(pair);
+      return true;
+    });
+})();

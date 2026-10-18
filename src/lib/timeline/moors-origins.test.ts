@@ -324,7 +324,7 @@ test("every link names records that exist, a real relation, and says why", async
     if (link.sourceKey) assert.ok(sourceKeys.has(link.sourceKey), `${label}: source ${link.sourceKey}`);
     assert.ok(link.note.trim().length > 20, `${label}: say why`);
   }
-  const keyed = MOORS_LINKS.map((link) => `${link.from}|${link.to}|${link.relation}|${link.viewpoint ?? ""}`);
+  const keyed = MOORS_LINKS.map((link) => `${[link.from, link.to].sort().join("|")}|${link.relation}|${link.viewpoint ?? ""}`);
   assert.equal(new Set(keyed).size, keyed.length, "a link is written twice");
 });
 
