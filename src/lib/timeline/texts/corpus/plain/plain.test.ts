@@ -28,8 +28,14 @@ test("plain words are written only for passages that exist and have text to para
       const passage = byKey.get(key);
       assert.ok(passage, `${workKey}: no passage ${key}`);
       assert.ok(
-        passage.layers.some((l) => l.key !== PLAIN_LAYER_KEY && l.content && l.licence !== "copyrighted_excerpt"),
-        `${key}: nothing public-domain to paraphrase`
+        passage.layers.some(
+          (l) =>
+            l.key !== PLAIN_LAYER_KEY &&
+            l.content &&
+            l.language === "English" &&
+            l.licence !== "copyrighted_excerpt"
+        ),
+        `${key}: no open English translation to paraphrase`
       );
       assert.ok(words.trim().length >= 20 && words.length <= 1500, `${key}: ${words.length} characters`);
     }
