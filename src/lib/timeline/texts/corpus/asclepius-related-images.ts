@@ -130,7 +130,7 @@ export const ASCLEPIUS_RELATED_IMAGES: (CorpusImage & { passageKey: string })[] 
     objectDate: "Ptolemaic period (temple built 237–57 BCE)",
     imageDate: "2009",
     caption:
-      "A carved and inscribed wall relief in the temple of Horus at Edfu, one of the last great Egyptian temples, built under the Ptolemies. In the Lament of Asclepius 24.3 Hermes foretells that of Egypt's pious cults 'words only will be left cut on thy stones, thy pious deeds recounting'. Related evidence: the kind of temple wall the prophecy has in view, from the centuries just before the text.",
+      "A wall relief in the temple of Horus at Edfu, one of the last great Egyptian temples, built under the Ptolemies: a king stands between two gods who raise their arms over him, among columns of hieroglyphs. In the Lament of Asclepius 24.3 Hermes foretells that of Egypt's pious cults 'words only will be left cut on thy stones, thy pious deeds recounting'. Related evidence: the kind of temple wall the prophecy has in view, from the centuries just before the text.",
     creator: "Unknown Egyptian sculptors; photograph by Hedwig Storch",
     credit: "Hedwig Storch, via Wikimedia Commons",
     licence: "CC BY-SA 3.0",

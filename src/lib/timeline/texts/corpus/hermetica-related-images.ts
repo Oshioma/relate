@@ -127,7 +127,7 @@ export const HERMETICA_RELATED_IMAGES: (CorpusImage & { passageKey: string })[] 
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Ptolemaicsystem-small.png",
     objectDate: "1539",
     caption:
-      "The nested spheres of the world from Petrus Apianus's Cosmographia, edited by Gemma Frisius (Antwerp, 1539): the earth and its elements at the centre, then the circles of the Moon, Mercury, Venus, the Sun, Mars, Jupiter and Saturn, the fixed stars and the outer heavens; the Commons file carries English labels beside the Latin. Poimandres I.9 has the second Mind form 'Seven Rulers who enclose the cosmos that the sense perceives', and at I.25 the soul rises back through their seven zones. Later artwork: the same planetary order as a Renaissance diagram drew it.",
+      "The nested spheres of the world from Petrus Apianus's Cosmographia, edited by Gemma Frisius (Antwerp, 1539): the earth and its elements at the centre, then the circles of the Moon, Mercury, Venus, the Sun, Mars, Jupiter and Saturn, the firmament of fixed stars with the zodiac, and the outer heavens up to the Empyrean, 'dwelling of God and of all the elect'. Poimandres I.9 has the second Mind form 'Seven Rulers who enclose the cosmos that the sense perceives', and at I.25 the soul rises back through their seven zones. Later artwork: the same planetary order as a Renaissance diagram drew it.",
     creator: "Petrus Apianus; edited by Gemma Frisius",
     credit: "Wikimedia Commons (uploaded by Fastfission)",
     licence: "Public domain (PD-Art, PD-old-100); Public Domain Mark 1.0",

@@ -52,7 +52,7 @@ export const DOREAL_RELATED_IMAGES: CorpusImage[] = [
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Thebes,_Luxor,_Egypt,_Panoramic_view_of_Deir_el-Bahari_from_above,_Temple_of_Hatshepsut.jpg",
     imageDate: "2007",
     caption:
-      "Deir el-Bahari on the west bank of the Nile at Thebes, with Hatshepsut's terraced mortuary temple under the desert cliffs. For Egyptians the West (Amentet) was the land of the dead, where tombs and mortuary temples were built. Context for Tablet II: Doreal's 'Halls of Amenti' borrow that name for a hidden realm beneath the earth that the Egyptian sources do not describe. The site, not evidence for the book.",
+      "Deir el-Bahari on the west bank of the Nile at Thebes: Hatshepsut's terraced mortuary temple seen from the desert cliffs above it. For Egyptians the West (Amentet) was the land of the dead, where tombs and mortuary temples were built. Context for Tablet II: Doreal's 'Halls of Amenti' borrow that name for a hidden realm beneath the earth that the Egyptian sources do not describe. The site, not evidence for the book.",
     creator: "Vyacheslav Argenberg",
     credit: "Vyacheslav Argenberg, via Wikimedia Commons",
     licence: "CC BY 4.0",

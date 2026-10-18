@@ -532,7 +532,7 @@ export const PLATO_RELATED_IMAGES: (CorpusImage & { workKey: string; section: st
     accessionNumber: "06.1021.214",
     objectDate: "About 390–380 BCE",
     caption:
-      "An Attic red-figure bell-krater, a bowl for mixing wine and water, attributed to the Meleager Painter, with satyrs and maenads on the front; made in Athens while Plato was teaching there. At Timaeus 41d the Demiurge pours what is left of the soul-stuff 'into the former bowl' (kratēr) in which he had mixed the Soul of the Universe, to make the souls of mortals. Related evidence: the ordinary vessel Plato's image is drawn from, not an illustration of the passage.",
+      "An Attic red-figure bell-krater, a bowl for mixing wine and water, attributed to the Meleager Painter, decorated with satyrs and maenads and here seen from the side, a palmette under the handle between a draped figure and a satyr; made in Athens while Plato was teaching there. At Timaeus 41d the Demiurge pours what is left of the soul-stuff 'into the former bowl' (kratēr) in which he had mixed the Soul of the Universe, to make the souls of mortals. Related evidence: the ordinary vessel Plato's image is drawn from, not an illustration of the passage.",
     creator: "Meleager Painter",
     credit: "Metropolitan Museum of Art (Open Access), via Wikimedia Commons",
     licence: "CC0 1.0",

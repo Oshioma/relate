@@ -90,7 +90,7 @@ export const EMERALD_TABLET_RELATED_IMAGES: (CorpusImage & { passageKey: string 
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Trismegistos.jpg",
     objectDate: "1624",
     caption:
-      "Hermes Trismegistus pointing to the Sun and the Moon, an engraving from Daniel Stolcius von Stolzenberg's Viridarium chymicum (Frankfurt, 1624), a book of alchemical emblems that reused plates from Maier's works. Newton's fifth line reads 'The Sun is its father, the moon its mother'. Later artwork: the alchemists' picture of the line, not evidence for the Tablet.",
+      "Hermes Trismegistus in a pointed cap, an armillary sphere in one hand, pointing with the other to a flaming Sun above and the Moon below: an engraving from Daniel Stolcius von Stolzenberg's Viridarium chymicum (Frankfurt, 1624), a book of alchemical emblems that reused plates from Maier's works. Newton's fifth line reads 'The Sun is its father, the moon its mother'. Later artwork: the alchemists' picture of the line, not evidence for the Tablet.",
     creator: "Daniel Stolcius von Stolzenberg (compiler)",
     credit: "Wikimedia Commons",
     licence: "Public domain (PD-old-70); Public Domain Mark 1.0",
