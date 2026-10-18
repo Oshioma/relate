@@ -470,10 +470,12 @@ export const INVENTORY_SOURCES: SeedSource[] = [
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
-    publisher: "H. S. Crocker, San Francisco",
+    publisher: "Printed for Manly P. Hall by H. S. Crocker Company, San Francisco",
     publishedYear: 1928,
+    url: "https://sacred-texts.com/book/the-secret-teachings-of-all-ages",
     sourceType: "modern_interpretation",
-    notes: "Public domain in the United States since 2024, not in the UK or EU (Hall d. 1990). Treated as excerpt-only by default.",
+    notes:
+      "A modern illustrated compendium of esoteric tradition, not an ancient text; cited for its own date and for Hall's readings of older works. Public domain in the United States (the 1928 copyright was not renewed, and works of 1928 entered the US public domain in 2024 in any case); not in the UK or EU until 2061 (Hall d. 1990). Reproduced in full under that US status by the owner's decision of 2026-10-17, from the sacred-texts.com e-text of the first edition.",
   },
 ];
 
@@ -2500,24 +2502,28 @@ export const INVENTORY: InventoryWork[] = [
     civilisation: "United States",
     originalLanguage: "English",
     attribution: "Manly P. Hall",
-    summary: "Relevant chapters on Hermes, the Bembine Table of Isis, Atlantis, initiation and alchemy.",
-    referenceEdition: "First edition, San Francisco 1928",
-    expectedUnits: null,
-    unitLabel: "passages (selection)",
-    unitDivisionKind: "section",
-    inventoryBasis: "A selection by chapter.",
+    summary:
+      "A modern compendium, not an ancient text: Hall's illustrated survey of the Mysteries, Hermes, Atlantis, Pythagoras, the Qabbalah, alchemy, the Rosicrucians and Freemasonry, published at San Francisco in 1928. It retells and quotes older writings in Hall's own reading of them.",
+    referenceEdition: "First edition, San Francisco 1928 (H. S. Crocker), as the sacred-texts.com e-text gives it",
+    expectedUnits: 47,
+    unitLabel: "chapters",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "The book's own table of contents: an Introduction, forty-five chapters (pp. 21–197, four pages each) and a Conclusion, 47 in all; checked against the chapter pages of the e-text, their printed page ranges and the index. The dedication, the preface and the unnumbered section of Celentano's alchemical figures (about p. 160, not in the table of contents) are imported as parts, not counted. Hall does not number his chapters; the archive numbers them 1–45 in his order.",
     inventoryConfidence: "high",
-    inventoryVerified: false,
-    copyrightSummary: "Public domain in the US since 2024, not in the UK or EU until 2061. Excerpt-only by default pending the owner's decision.",
-    fullTextEditions: [],
-    referenceOnlyEditions: ["The Secret Teachings of All Ages (1928) — excerpt-only by default"],
+    inventoryVerified: true,
+    copyrightSummary:
+      "Public domain in the United States (published 1928, copyright not renewed); not in the UK or EU until 2061 (Hall d. 1990). The owner decided on 2026-10-17 to reproduce the full text under its US status. J. Augustus Knapp's plates (Knapp d. 1938) are public domain with the book.",
+    fullTextEditions: ["The Secret Teachings of All Ages (San Francisco, 1928), sacred-texts.com e-text, completed from an archive.org OCR of the same e-text"],
+    referenceOnlyEditions: ["Later Philosophical Research Society reprints (with their own additions)"],
     imageCollections: ["J. Augustus Knapp's plates (1928)"],
     anchor: {
       event: {
         slug: "hall-secret-teachings",
         title: "Manly P. Hall publishes The Secret Teachings of All Ages",
         summary: "A large illustrated encyclopedia of esoteric tradition presents Hermes, Atlantis and the mysteries as one ancient wisdom.",
-        description: "Its plates and chapters popularised many of the connections this archive examines one by one.",
+        description:
+          "A modern compendium, not an ancient source. Its plates and chapters popularised many of the connections this archive examines one by one; the archive carries its full text.",
         category: "culture",
         eventType: "historical",
         tags: ["modern esoteric", "hermes", "atlantis", "alchemy"],
@@ -2531,7 +2537,8 @@ export const INVENTORY: InventoryWork[] = [
             isApproximate: false,
             originalDateText: "San Francisco, 1928",
             datingMethod: "historical_record",
-            evidence: "Imprint of the first edition.",
+            evidence:
+              "Imprint of the first edition: 'San Francisco: printed for Manly P. Hall by H. S. Crocker Company, Incorporated, MCMXXVIII'. This is the date of a modern book, not of any ancient text it discusses.",
           }),
         ],
       },
