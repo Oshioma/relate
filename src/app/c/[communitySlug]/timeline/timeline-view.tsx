@@ -82,6 +82,7 @@ import {
   seedSetSutekhDataset,
   seedSacredTreesDataset,
   seedOkomiloDataset,
+  seedMoorsOriginsDataset,
   seedSerpentKundaliniDataset,
   seedHorusClaimsDataset,
   checkTimelinePictures,
@@ -324,6 +325,7 @@ export function TimelineView({
   hasSetSutekh,
   hasSacredTrees,
   hasOkomilo,
+  hasMoorsOrigins,
   hasSerpentKundalini,
   hasHorusClaims,
   datasetGaps,
@@ -398,6 +400,7 @@ export function TimelineView({
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
   hasOkomilo: boolean;
+  hasMoorsOrigins: boolean;
   hasSerpentKundalini: boolean;
   hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
@@ -2374,6 +2377,25 @@ export function TimelineView({
           })}
         >
           The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasMoorsOrigins && (
+        <DatasetOffer
+          title="Add the Origins of the Moors, from Jebel Irhoud to 711?"
+          busyLabel="Adding the records…"
+          label="Add the Origins of the Moors"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedMoorsOriginsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          The deep human history of North Africa, from the Jebel Irhoud fossils of about 315,000 years ago through Taforalt, the Green Sahara, the Libyans of the Egyptian records, Carthage and the Etruscans, Numidia and Mauretania, the Garamantes and Roman Africa, to Tariq ibn Ziyad&apos;s crossing into Iberia in 711. Nobody before the Latin name Mauri existed is called a Moor; disputed theories sit in their own lane with the case for, the case against and the current scholarly view.
         </DatasetOffer>
       )}
 
