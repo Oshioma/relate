@@ -160,7 +160,7 @@ export function SpaceCard({
               )}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Shown at the top of the space, on the welcome page, the mobile Explore strip and the Spaces grid. Optional — cards fall back to the space type&apos;s default photo.
+              Shown at the top of the space, on the welcome page, the mobile Explore strip and the Spaces grid. Optional — falls back to the space type&apos;s default photo.
             </p>
           </div>
 

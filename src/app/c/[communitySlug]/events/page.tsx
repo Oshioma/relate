@@ -9,6 +9,7 @@ import { LinkButton } from "@/components/ui/button";
 import { NewEventForm } from "./new-event-form";
 import { DiscoverEventsPanel } from "./discover-events-panel";
 import { EventList } from "./event-list";
+import { EventsCover } from "./events-cover";
 
 export default async function EventsPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
@@ -22,6 +23,8 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   // who arrives before that gets a prompt to log in rather than an empty page.
   if (!user && !community.events_public) {
     return (
+      <>
+      <EventsCover />
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">Events</h1>
         <EmptyState
@@ -35,6 +38,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
           }
         />
       </div>
+      </>
     );
   }
 
@@ -56,6 +60,8 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   const pastItems = past.map((event) => ({ event, rsvps: rsvpsByEvent.get(event.id) ?? [] }));
 
   return (
+    <>
+    <EventsCover />
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Events</h1>
@@ -115,5 +121,6 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
         </>
       )}
     </div>
+    </>
   );
 }

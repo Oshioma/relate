@@ -34,6 +34,7 @@ import { SERPENT_KUNDALINI_EVENTS } from "./serpent-kundalini-seed";
 import { HORUS_CLAIMS_EVENTS } from "./horus-claims-seed";
 import { SACRED_TREES_EVENTS } from "./sacred-trees-seed";
 import { OKOMILO_EVENTS } from "./okomilo-avhianwu-benin-seed";
+import { MOORS_EVENTS } from "./moors-origins-seed";
 import { PERIODS } from "./period-seed";
 
 const ALL: SeedEvent[] = [
@@ -70,6 +71,7 @@ const ALL: SeedEvent[] = [
   ...HORUS_CLAIMS_EVENTS,
   ...SACRED_TREES_EVENTS,
   ...OKOMILO_EVENTS,
+  ...MOORS_EVENTS,
 ];
 
 const PICTURES = ALL.flatMap((event) =>
