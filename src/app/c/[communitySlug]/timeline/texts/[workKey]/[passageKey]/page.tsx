@@ -16,6 +16,7 @@ import {
 } from "@/lib/data/timeline-texts";
 import { communityHasTimeline } from "@/lib/timeline/availability";
 import { chronologyLabel, evidenceLayerLabel } from "@/lib/timeline/taxonomy";
+import { OUR_TRANSLATION_LAYER_KEY } from "@/lib/timeline/texts/corpus/plain";
 import { workForPassageKey } from "@/lib/timeline/texts/inventory";
 import { comparePath, passagePath, themePath, workPath } from "@/lib/timeline/texts/paths";
 import { breadcrumb, neighbours, sentenceRunsInFrom, sentenceRunsOnInto } from "@/lib/timeline/texts/reading";
@@ -103,7 +104,10 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
 
   const primary = passage.layers.filter((l) => ["primary_object", "primary_text", "transcription", "transliteration"].includes(l.layer));
   const translations = passage.layers.filter((l) => l.layer === "translation");
-  const interpretations = passage.layers.filter((l) => l.layer === "interpretation" || l.layer === "modern_summary");
+  // The plain-words paraphrase sits with the translations it paraphrases;
+  // readings of the passage go further down, under Interpretations.
+  const plainWords = passage.layers.filter((l) => l.layer === "modern_summary");
+  const interpretations = passage.layers.filter((l) => l.layer === "interpretation");
   const firstTranslation = translations.find((l) => l.content);
   const links = [...passage.links].sort((a, b) => connectionClassOrder(a.connection_class) - connectionClassOrder(b.connection_class));
   const alternatives = links.filter((l) => l.alternative_view);
@@ -197,6 +201,9 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
           ))}
           {translations.map((layer) => (
             <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} {...runOn(layer)} />
+          ))}
+          {plainWords.map((layer) => (
+            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
           ))}
           {passage.layers.length === 0 && children.length > 0 && (
             <div className="rounded-xl border border-border bg-card p-4">
@@ -361,7 +368,7 @@ function Layer({
     <article className={cn("rounded-xl border bg-card p-4", original ? "border-accent/40" : "border-border")}>
       <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {evidenceLayerLabel(layer.layer)}
+          {layer.import_key === OUR_TRANSLATION_LAYER_KEY ? "Our translation" : evidenceLayerLabel(layer.layer)}
           {layer.language ? ` · ${layer.language}` : ""}
           {layer.viewpoint ? ` · ${chronologyLabel(layer.viewpoint)}` : ""}
         </h2>

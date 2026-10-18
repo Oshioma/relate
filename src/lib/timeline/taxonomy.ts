@@ -1751,8 +1751,8 @@ export const EVIDENCE_LAYERS = [
   },
   {
     key: "modern_summary",
-    label: "Summary in modern words",
-    short: "Summary",
+    label: "In plain words",
+    short: "Plain words",
     hint:
       "A close paraphrase of what the passage says, written to be readable. Still reporting the text rather than explaining it — the moment it starts saying why the text says this, it has become an interpretation and belongs in the next row down.",
   },

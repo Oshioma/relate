@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { TIMELINE_SOURCE_TYPES } from "../taxonomy";
 import { ALL_CORPORA, corpusFor } from "./corpus";
+import { PLAIN_LAYER_KEY } from "./corpus/plain";
 import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
 import { breadcrumb, historicalGap, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
@@ -147,8 +148,9 @@ test("the Coffin Texts list all 1,185 spells, quote only public-domain English, 
   for (const passage of passages) {
     assert.equal(passage.verificationStatus, "unverified", passage.key);
     for (const layer of passage.layers) {
-      // Faulkner is cited, never reproduced; the only English text is Breasted's.
-      if (layer.content != null) assert.equal(layer.licence, "public_domain", passage.key);
+      // Faulkner is cited, never reproduced; the only English text quoted is
+      // Breasted's (the plain-words paraphrase is our own).
+      if (layer.content != null && layer.key !== PLAIN_LAYER_KEY) assert.equal(layer.licence, "public_domain", passage.key);
       if (layer.sourceKey === "faulkner-ct") assert.equal(layer.content, undefined, passage.key);
     }
   }
@@ -182,7 +184,7 @@ test("the Book of the Dead lists every chapter Budge lists, gives his Ani text i
   for (const passage of passages) {
     assert.equal(passage.verificationStatus, "unverified", passage.key);
     for (const layer of passage.layers) {
-      if (layer.content != null) assert.equal(layer.licence, "public_domain", passage.key);
+      if (layer.content != null && layer.key !== PLAIN_LAYER_KEY) assert.equal(layer.licence, "public_domain", passage.key);
       if (["allen-bd", "faulkner-bd", "quirke-bd"].includes(layer.sourceKey ?? "")) {
         assert.equal(layer.licence, "copyrighted_reference", passage.key);
         assert.equal(layer.content, undefined, passage.key);
@@ -213,7 +215,8 @@ test("Doreal's book is quoted, a few lines a tablet, and has no artefact picture
   assert.equal(doreal.passages.length, 15);
   for (const passage of doreal.passages) {
     assert.ok(passage.summary, passage.key);
-    for (const layer of passage.layers) {
+    // The book's own words are a short quotation; the plain words are ours.
+    for (const layer of passage.layers.filter((l) => l.key !== PLAIN_LAYER_KEY)) {
       assert.equal(layer.licence, "copyrighted_excerpt", passage.key);
       assert.ok(layer.content && layer.content.length <= COPYRIGHT_EXCERPT_MAX_CHARS, passage.key);
     }
