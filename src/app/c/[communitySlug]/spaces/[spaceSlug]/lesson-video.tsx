@@ -5,9 +5,12 @@ import { ExternalLink, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   VIDEO_PLATFORM_NAMES,
+  clipEmbedUrl,
+  describeClip,
   formatTimestamp,
   parseVideoLink,
   seekEmbedUrl,
+  type VideoClip,
 } from "@/lib/school/video-links";
 
 // "Watch from 12:30" on a section has to move a video that belongs to a
@@ -15,6 +18,10 @@ import {
 // level's card: only the first level shows the video, but every level's
 // sections can point into it. So the page holds the one video's state here,
 // and both the player and the buttons read it.
+//
+// A lesson written from only part of a long video plays only that part: the
+// player starts at the part's start and (on YouTube) stops at its end, and a
+// "watch from" still stops there.
 type Seek = {
   // Whether the page's video player can be started at a given moment. False
   // means no buttons anywhere on the page.
@@ -79,10 +86,19 @@ export function WatchFromButton({ seconds }: { seconds: number | null | undefine
 // stored: the stored value is only ever a link, and parseVideoLink decides
 // which platform's player it may become, so a row edited by hand can never
 // put an arbitrary page in the frame.
-export function LessonVideo({ url, className }: { url: string; className?: string }) {
+export function LessonVideo({
+  url,
+  clip,
+  className,
+}: {
+  url: string;
+  clip?: VideoClip | null;
+  className?: string;
+}) {
   const context = useContext(SeekContext);
   const link = parseVideoLink(url);
   if (!link) return null;
+  const part = describeClip(clip);
 
   const name = VIDEO_PLATFORM_NAMES[link.platform];
 
@@ -106,7 +122,7 @@ export function LessonVideo({ url, className }: { url: string; className?: strin
   // A section's button swaps in an address that starts at its moment; the
   // key remounts the frame so the player really reloads there.
   const startAt = context?.startAt ?? null;
-  const src = (startAt && seekEmbedUrl(link, startAt.seconds)) || link.embedUrl;
+  const src = (startAt && seekEmbedUrl(link, startAt.seconds, clip)) || clipEmbedUrl(link, clip) || link.embedUrl;
 
   return (
     <div ref={context?.videoRef} className={cn("scroll-mt-6 print:hidden", className)}>
@@ -130,6 +146,7 @@ export function LessonVideo({ url, className }: { url: string; className?: strin
         />
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
+        {part && <span className="mr-2">This lesson covers {part} of the video.</span>}
         <a
           href={link.url}
           target="_blank"

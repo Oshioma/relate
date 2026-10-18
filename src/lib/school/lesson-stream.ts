@@ -36,7 +36,7 @@ import { recordAiSpend } from "@/lib/usage/ai-spend";
 import { parkUnsavedLesson } from "@/lib/school/unsaved-lessons";
 import { getUsageRates } from "@/lib/usage/pricing";
 import { claudeCostWithCache, claudeRateFor } from "@/lib/usage/costs";
-import { parseVideoLink } from "@/lib/school/video-links";
+import { cleanClip, parseVideoLink, type VideoClip } from "@/lib/school/video-links";
 import { isLessonMediaPath, mediaTypeOfPath } from "@/lib/school/lesson-media";
 
 export function streamLesson(input: {
@@ -62,6 +62,9 @@ export function streamLesson(input: {
   // A video to show at the top of the lesson, when the material is its
   // transcript. Anything that isn't a recognised video link is dropped.
   videoUrl?: string | null;
+  // The part of that video (or uploaded recording) the lesson plays, when it
+  // was written from only part of it. Ignored without either.
+  videoClip?: VideoClip | null;
   // An uploaded file to play at the top of the lesson instead: an object
   // path in 'uploads'. The CALLER checks it may use it (POST /api/lessons
   // checks it is the author's own upload; a rewrite reuses the stored one).
@@ -125,6 +128,7 @@ export function streamLesson(input: {
           sourceUrl,
           sourceTitle,
           videoUrl,
+          videoClip: input.videoClip ?? null,
           mediaPath,
           mediaType,
           familyId: input.familyId,
@@ -235,6 +239,7 @@ export function buildLessonRow(input: {
   sourceUrl: string | null;
   sourceTitle: string | null;
   videoUrl: string | null;
+  videoClip?: VideoClip | null;
   mediaPath: string | null;
   mediaType: LessonMediaType | null;
   familyId?: string;
@@ -245,6 +250,14 @@ export function buildLessonRow(input: {
   // staff can override them — and keeping a second copy in the jsonb
   // would leave a stale one behind the moment they did.
   const document = storableLesson(lesson);
+  // Only part of the video (or uploaded recording), only with one, and only
+  // written when it is a part: a lesson using the whole video doesn't mention
+  // the columns, so it saves even where the lesson_video_clips migration
+  // hasn't run.
+  const clip =
+    (input.videoUrl || input.mediaPath) && input.videoClip
+      ? cleanClip(input.videoClip.start, input.videoClip.end)
+      : null;
   const row = {
     space_id: input.spaceId,
     community_id: input.communityId,
@@ -268,6 +281,8 @@ export function buildLessonRow(input: {
     source_url: input.sourceUrl,
     source_title: input.sourceTitle,
     video_url: input.videoUrl,
+    ...(clip?.start != null ? { video_start_seconds: clip.start } : {}),
+    ...(clip?.end != null ? { video_end_seconds: clip.end } : {}),
     media_path: input.mediaPath,
     media_type: input.mediaType,
     // Left to the column default for a new lesson: a family of one.

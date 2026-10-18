@@ -121,6 +121,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     sourceUrl: lesson.source_url,
     sourceTitle: lesson.source_title,
     videoUrl: lesson.video_url,
+    videoClip: { start: lesson.video_start_seconds ?? null, end: lesson.video_end_seconds ?? null },
     // Already vouched for when the first level was written; possibly another
     // teacher's upload, which is fine — it is the same lesson's recording.
     mediaPath: lesson.media_path,

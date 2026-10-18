@@ -1220,6 +1220,11 @@ export type SpaceLesson = {
   // Part of the lesson rather than its private provenance, so it is not
   // redacted with source_url. See 20260930145354_lesson_video_jobs.sql.
   video_url: string | null;
+  // The part of that video the lesson plays, when it was written from only
+  // part of a long one. Null: from the start / to the end.
+  // See 20261018105400_lesson_video_clips.sql.
+  video_start_seconds?: number | null;
+  video_end_seconds?: number | null;
   // An uploaded video or audio file to play at the top of the lesson: an
   // object path in the public 'uploads' bucket, and which player it needs.
   // See 20261001092236_lesson_media_uploads.sql.
@@ -1391,6 +1396,11 @@ export type LessonVideoJob = {
   audio_seconds: number | null;
   download_bytes: number | null;
   proxied: boolean | null;
+  // The part of the video to transcribe: what was asked for, then what the
+  // worker actually used. Null end: to the end.
+  // See 20261018105400_lesson_video_clips.sql.
+  clip_start_seconds?: number | null;
+  clip_end_seconds?: number | null;
   created_at: string;
   updated_at: string;
 };

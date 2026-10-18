@@ -197,7 +197,7 @@ See [.env.example](./.env.example). The useful ones:
 | `CAPTION_LANGS` | `en` | caption languages to accept, in order (`en,es`) |
 | `PREFER_CAPTIONS` | `1` | `0` always transcribes the audio (better punctuation, costs a little) |
 | `WHISPER_LANGUAGE` | auto | force a language, e.g. `en` |
-| `MAX_DURATION_MINUTES` | `180` | longer videos are refused |
+| `MAX_DURATION_MINUTES` | `180` | the most of one video transcribed for a lesson; a longer one uses its first part, or the part the teacher picks (`start_seconds` / `end_seconds` on `POST /jobs`) |
 | `MAX_CONCURRENT_JOBS` | `2` | parallel jobs; raise on a bigger box |
 | `UPLOAD_HOST_SUFFIXES` | `supabase.co,supabase.in` | where kept uploads may be fetched from |
 | `MAX_UPLOAD_MB` | `4000` | biggest file fetched or uploaded |
