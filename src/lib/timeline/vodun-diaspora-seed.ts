@@ -81,15 +81,30 @@ export const VODUN_DIASPORA_DATASETS: VodunDataset[] = (() => {
       if (asserting && !sources[home].has(asserting.key)) sources[home].set(asserting.key, asserting);
     }
   });
+  // Only the works something in the dataset actually cites: a source nobody
+  // cites is a line in the bibliography with nothing to say.
+  const cited = (section: VodunSection, index: number): Set<string> => {
+    const keys = new Set<string>();
+    for (const event of section.events) {
+      for (const claim of event.claims) {
+        if (claim.sourceKey) keys.add(claim.sourceKey);
+        for (const citation of claim.citations ?? []) keys.add(citation.sourceKey);
+      }
+      for (const genealogy of event.genealogies ?? []) for (const step of genealogy.links) if (step.sourceKey) keys.add(step.sourceKey);
+    }
+    for (const link of links[index]) if (link.sourceKey) keys.add(link.sourceKey);
+    return keys;
+  };
   return VODUN_DIASPORA_SECTIONS.map((section, index) => {
     const track = VODUN_DIASPORA_TRACKS[section.track];
+    const used = cited(section, index);
     return {
       key: section.track,
       label: track.name,
       track,
       anchorSlug: VODUN_DIASPORA_ANCHORS[section.track],
       events: section.events.map(withCover),
-      sources: [...sources[index].values()],
+      sources: [...sources[index].values()].filter((source) => used.has(source.key)),
       links: links[index],
     };
   });
