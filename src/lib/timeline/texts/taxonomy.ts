@@ -173,6 +173,7 @@ export const TEXT_DIVISION_KINDS = [
   { key: "line", label: "Line", hint: "A line or group of lines of a short text." },
   { key: "tablet", label: "Tablet", hint: "One of Doreal's fifteen 'tablets' — a chapter of a modern book." },
   { key: "version", label: "Version", hint: "One whole version of a short text, kept apart from the others." },
+  { key: "figure", label: "Figure", hint: "An illustration in a printed book, with its title and caption." },
 ] as const satisfies readonly Term[];
 
 const divisions = lookup(TEXT_DIVISION_KINDS);

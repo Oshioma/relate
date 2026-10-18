@@ -26,7 +26,7 @@ export const OUR_TRANSLATION_LAYER_KEY = "eng-ours";
 
 const EVIDENCE = {
   paraphrase:
-    "Written for this archive: a paraphrase in plain modern English of the translation above. It says what the passage says, not what it means, and is not itself a translation.",
+    "Written for this archive: a paraphrase in plain modern English of the English text above (a translation, or a modern author's own words). It says what the passage says, not what it means, and is not itself a translation.",
   excerpt:
     "Written for this archive: a paraphrase in plain modern English of the quotation above only. The book is in copyright, so the rest of the tablet is neither quoted nor paraphrased.",
   ours:

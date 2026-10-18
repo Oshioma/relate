@@ -11,6 +11,7 @@ import { COFFIN_TEXTS_CORPUS } from "./coffin-texts";
 import { DOREAL_CORPUS } from "./doreal";
 import { EMERALD_TABLET_CORPUS } from "./emerald-tablet";
 import { GOSPEL_OF_THOMAS_CORPUS } from "./gospel-of-thomas";
+import { HALL_CORPUS } from "./hall-secret-teachings";
 import { HERMETICA_CORPUS } from "./hermetica";
 import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PYRAMID_TEXTS_CORPUS } from "./pyramid-texts";
@@ -22,6 +23,7 @@ import { PLAIN_CRITIAS } from "./plain/critias";
 import { PLAIN_DOREAL } from "./plain/doreal";
 import { PLAIN_EMERALD_TABLET } from "./plain/emerald-tablet";
 import { PLAIN_GOSPEL_OF_THOMAS } from "./plain/gospel-of-thomas";
+import { PLAIN_HALL } from "./plain/hall-secret-teachings";
 import { PLAIN_HERMETICA } from "./plain/hermetica";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
@@ -37,6 +39,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(GOSPEL_OF_THOMAS_CORPUS, PLAIN_GOSPEL_OF_THOMAS),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
+  withPlainWords(HALL_CORPUS, PLAIN_HALL),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {
