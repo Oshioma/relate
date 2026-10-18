@@ -35,6 +35,8 @@
 
 import type { CorpusImage, CorpusLayer, CorpusLink, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { HALL_FIGURE_IMAGES } from "./hall-secret-teachings-figure-images";
+import { HALL_RELATED_IMAGES } from "./hall-secret-teachings-related-images";
 import { HALL_CHAPTERS, HALL_FIGURES, HALL_TEXT } from "./hall-secret-teachings-text";
 
 const PREFIX = "modern.hall";
@@ -474,8 +476,10 @@ const IMAGES: Placed[] = [
   },
 ];
 
+const ALL_IMAGES: Placed[] = [...IMAGES, ...HALL_FIGURE_IMAGES, ...HALL_RELATED_IMAGES];
+
 function imagesFor(test: (image: Placed) => boolean): CorpusImage[] | undefined {
-  const found = IMAGES.filter(test).map((image) => {
+  const found = ALL_IMAGES.filter(test).map((image) => {
     const copy: Placed = { ...image };
     delete copy.chapter;
     delete copy.passageKey;

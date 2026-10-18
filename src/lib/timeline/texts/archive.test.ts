@@ -265,11 +265,12 @@ test("Hall's book has its 47 chapters in full, is marked modern, and is linked a
     assert.match(link.transmissionEvidence, /not a witness/, link.key);
     assert.doesNotMatch(link.to, /doreal/, link.key);
   }
-  // Every picture is later artwork or a diagram; the unverified ones say so first.
+  // Hall's own pictures are later artwork or diagrams; pictures of what he
+  // discusses (keys "hall-related-…") may be anything. The unverified ones say so first.
   const images = passages.flatMap((p) => p.images ?? []);
   assert.ok(images.length >= 5);
   for (const image of images) {
-    assert.ok(["later_artwork", "diagram"].includes(image.shows ?? ""), image.key);
+    if (!image.key.startsWith("hall-related-")) assert.ok(["later_artwork", "diagram"].includes(image.shows ?? ""), image.key);
     if (image.identificationStatus === "unverified") {
       assert.match(image.caption, /^UNVERIFIED — /, image.key);
       assert.ok(image.whatIsUnverified, image.key);
