@@ -111,3 +111,18 @@ export function focusLinkSearch(kind: FocusKind, linkValue: string, window: Time
   });
   return `?${params.toString()}`;
 }
+
+/**
+ * The groups narrowed to what a search matches. Every word typed must appear
+ * somewhere in the label, in any order and any case, so "moors sahara" finds
+ * "moors: Garamantes and the Sahara". Accents are ignored, so "selene" finds
+ * "Séléné". An empty search changes nothing.
+ */
+export function filterFocusGroups(groups: readonly FocusGroup[], query: string): FocusGroup[] {
+  const fold = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [...groups];
+  return groups
+    .map((group) => ({ ...group, options: group.options.filter((option) => words.every((word) => fold(option.label).includes(word))) }))
+    .filter((group) => group.options.length > 0);
+}
