@@ -7,9 +7,11 @@ import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityStaff } from "@/lib/data/community";
 import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "@/lib/data/editorial-guides";
 import { parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
+import { BOUTIQUE_HOTELS_SLUG, parseBoutiqueOverrides, resolveBoutiqueContent } from "@/lib/guides/boutique-hotels/content";
 import { cn } from "@/lib/utils";
 import { DestinationEditor } from "./destination-editor";
 import { GuideSettingsForm, GuideUpdatesManager } from "./guide-settings-form";
+import { HotelPhotosEditor } from "./hotel-photos-editor";
 
 export const metadata: Metadata = { title: "Edit guide", robots: { index: false } };
 
@@ -26,7 +28,7 @@ export default async function EditGuidePage({
 }) {
   const { communitySlug, guideSlug } = await params;
   const { d } = await searchParams;
-  if (guideSlug !== WHERE_TO_STAY_SLUG) notFound();
+  if (guideSlug !== WHERE_TO_STAY_SLUG && guideSlug !== BOUTIQUE_HOTELS_SLUG) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -40,6 +42,91 @@ export default async function EditGuidePage({
 
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
+
+  if (guide.slug === BOUTIQUE_HOTELS_SLUG) {
+    const boutique = parseBoutiqueOverrides(guide.content);
+    const { featured, gems } = resolveBoutiqueContent(boutique);
+    const hotels = [...featured, ...gems];
+    const hotelUpdates = await getEditorialGuideUpdates(supabase, guide.id);
+    const hotel = hotels.find((h) => h.key === d) ?? hotels[0];
+    const href = `/c/${community.slug}/guides/${guide.slug}`;
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+        <Link href={href} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> Back to the guide
+        </Link>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">Edit: {guide.title}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Changes appear on the public guide as soon as they&apos;re saved. Unsaved edits are kept in this browser if you refresh. Hotel write-ups ship with the app; here you manage publishing, the editor&apos;s note, the hero, hotel photos and dated local updates.
+        </p>
+
+        {isAdmin && (
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold text-foreground">Guide settings</h2>
+            <div className="mt-3">
+              <GuideSettingsForm
+                communitySlug={community.slug}
+                guideSlug={guide.slug}
+                status={guide.status}
+                lastReviewedOn={guide.last_reviewed_on}
+                editorsNote={boutique.editorsNote ?? ""}
+                heroPhoto={boutique.heroPhoto ?? null}
+              />
+            </div>
+          </section>
+        )}
+
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-foreground">Local knowledge updates</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Short, dated notes shown under a hotel: a renovation, a new restaurant, a change to beach access. Set a hide-after date for anything temporary.</p>
+          <div className="mt-3">
+            <GuideUpdatesManager communitySlug={community.slug} guideSlug={guide.slug} destinations={hotels.map((h) => ({ key: h.key, name: h.name }))} updates={hotelUpdates} />
+          </div>
+        </section>
+
+        {isAdmin && hotel && (
+          <section className="mt-10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold text-foreground">Hotel photographs</h2>
+              <a href={`${href}#${hotel.key}`} className="inline-flex items-center gap-1 text-sm text-accent hover:underline">
+                View {hotel.name} on the guide <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+            <nav aria-label="Choose a hotel" className="mt-3 flex flex-wrap gap-2">
+              {hotels.map((h) => (
+                <Link
+                  key={h.key}
+                  href={`?d=${h.key}`}
+                  scroll={false}
+                  aria-current={h.key === hotel.key ? "page" : undefined}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-sm",
+                    h.key === hotel.key ? "border-accent bg-accent text-accent-foreground" : "border-border bg-card hover:bg-muted"
+                  )}
+                >
+                  {h.name}
+                  {h.photos.length === 0 ? " ○" : ""}
+                  {boutique.hotelPhotos?.[h.key] ? " •" : ""}
+                </Link>
+              ))}
+            </nav>
+            <p className="mt-2 text-xs text-muted-foreground">○ no photo yet · • photos edited here</p>
+            <div className="mt-6">
+              <HotelPhotosEditor
+                key={hotel.key}
+                communitySlug={community.slug}
+                guideSlug={guide.slug}
+                hotelKey={hotel.key}
+                hotelName={hotel.name}
+                photos={hotel.photos}
+                isOverridden={Boolean(boutique.hotelPhotos?.[hotel.key])}
+              />
+            </div>
+          </section>
+        )}
+      </div>
+    );
+  }
 
   const overrides = parseOverrides(guide.content);
   const { destinations } = resolveGuideContent(overrides);

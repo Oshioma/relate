@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ArrowDown, CalendarCheck, Columns3, Compass, Map as MapIcon, Pencil, Sparkles, Waves, CloudSun, ListChecks, Route, CircleHelp, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
-import { getEditorialGuide, getGuideDirectory } from "@/lib/data/editorial-guides";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
+import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityMember } from "@/lib/data/community";
+import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "@/lib/data/editorial-guides";
 import { communityShareOrigin } from "@/lib/custom-domain";
 import { WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
 import { communityLinksFor, guideUrl, loadGuide } from "@/lib/guides/where-to-stay/page-data";
@@ -29,6 +29,15 @@ import { DestinationSection, PhotoCredit } from "@/components/editorial-guide/de
 import { LinkedText, plainText } from "@/components/editorial-guide/linked-text";
 import { TAG_ICONS } from "@/components/editorial-guide/guide-icons";
 import { summarise } from "@/components/editorial-guide/types";
+import { feedInteractionFor, getFeedInteractions } from "@/lib/data/feed-interactions";
+import {
+  BOUTIQUE_HOTELS_DESCRIPTION,
+  BOUTIQUE_HOTELS_SEO_TITLE,
+  BOUTIQUE_HOTELS_SLUG,
+  parseBoutiqueOverrides,
+  resolveBoutiqueContent,
+} from "@/lib/guides/boutique-hotels/content";
+import { BoutiqueHotelsGuide } from "./boutique-hotels-guide";
 
 // /guides/where-to-stay-in-zanzibar on the community's host.
 //
@@ -45,6 +54,7 @@ const DESCRIPTION =
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { communitySlug, guideSlug } = await params;
+  if (guideSlug === BOUTIQUE_HOTELS_SLUG) return boutiqueMetadata(communitySlug);
   if (guideSlug !== WHERE_TO_STAY_SLUG) return {};
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
@@ -78,6 +88,36 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
+async function boutiqueMetadata(communitySlug: string): Promise<Metadata> {
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return {};
+  const guide = await getEditorialGuide(supabase, community.id, BOUTIQUE_HOTELS_SLUG);
+  if (!guide) return {};
+  const { heroPhoto } = resolveBoutiqueContent(parseBoutiqueOverrides(guide.content));
+  const host = (await headers()).get("host");
+  const { absolute } = guideUrl(host, community.slug, BOUTIQUE_HOTELS_SLUG, communityShareOrigin(community));
+  const title = BOUTIQUE_HOTELS_SEO_TITLE;
+  const description = BOUTIQUE_HOTELS_DESCRIPTION;
+  return {
+    // absolute: the SEO title is complete on its own, without the site suffix.
+    title: { absolute: title },
+    description,
+    alternates: absolute ? { canonical: absolute } : undefined,
+    robots: guide.status === "published" ? undefined : { index: false, follow: false },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url: absolute ?? undefined,
+      siteName: community.name,
+      locale: "en_GB",
+      ...(heroPhoto ? { images: [{ url: heroPhoto.src, alt: heroPhoto.alt }] } : {}),
+    },
+    twitter: { card: "summary_large_image", title, description, ...(heroPhoto ? { images: [heroPhoto.src] } : {}) },
+  };
+}
+
 function formatDate(iso: string | null): string | null {
   if (!iso) return null;
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -89,8 +129,7 @@ function jsonLd(value: unknown) {
 
 export default async function EditorialGuidePage({ params }: { params: Params }) {
   const { communitySlug, guideSlug } = await params;
-  // One guide is built today; the route is shaped for more.
-  if (guideSlug !== WHERE_TO_STAY_SLUG) notFound();
+  if (guideSlug !== WHERE_TO_STAY_SLUG && guideSlug !== BOUTIQUE_HOTELS_SLUG) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -99,6 +138,42 @@ export default async function EditorialGuidePage({ params }: { params: Params })
 
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
+
+  if (guide.slug === BOUTIQUE_HOTELS_SLUG) {
+    const [membership, updates, { links }, interactions, viewerProfile] = await Promise.all([
+      user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
+      getEditorialGuideUpdates(supabase, guide.id),
+      communityLinksFor(supabase, community, Boolean(user)),
+      getFeedInteractions(supabase, community.id, [{ type: "editorial_guide", id: guide.id }], user?.id),
+      user ? getProfile(supabase, user.id) : Promise.resolve(null),
+    ]);
+    const host = (await headers()).get("host");
+    const { absolute } = guideUrl(host, community.slug, guide.slug, communityShareOrigin(community));
+    const today = new Date().toISOString().slice(0, 10);
+    return (
+      <BoutiqueHotelsGuide
+        community={community}
+        guide={guide}
+        content={resolveBoutiqueContent(parseBoutiqueOverrides(guide.content))}
+        updates={updates.filter((u) => !u.expires_on || u.expires_on >= today)}
+        pageUrl={absolute}
+        canEdit={isCommunityAdmin(community, membership, user?.id)}
+        signedIn={Boolean(user)}
+        links={{ recommend: links.restaurant, stay: links.stay, ask: links.ask }}
+        comments={{
+          communitySlug: community.slug,
+          communityId: community.id,
+          itemType: "editorial_guide",
+          itemId: guide.id,
+          canInteract: isCommunityMember(community, membership, user?.id),
+          viewerId: user?.id ?? null,
+          viewer: viewerProfile ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url } : null,
+          isStaff: isCommunityAdmin(community, membership, user?.id),
+          ...feedInteractionFor(interactions, "editorial_guide", guide.id),
+        }}
+      />
+    );
+  }
 
   const [membership, { content, updates }, directory, community_links] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
