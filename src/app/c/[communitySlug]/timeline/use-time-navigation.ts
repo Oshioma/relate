@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import { panWindow, zoomWindow, type TimeScale, type TimeWindow } from "@/lib/timeline/time";
 import { fingerDistance, pinchWindow, type PinchStart } from "@/lib/timeline/pinch";
 import { readWheelGesture, type WheelGesture } from "@/lib/timeline/wheel-intent";
+import { isDrag } from "@/lib/timeline/press";
 
 // Moving through time: drag or swipe sideways to pan, pinch or Ctrl/Cmd+wheel
 // to zoom, Shift+wheel to pan, arrow keys for the keyboard. A plain vertical
@@ -133,15 +134,17 @@ export function useTimeNavigation(
       // An uncancelable wheel event is the browser telling us this gesture is
       // already scrolling something — usually the page, which carried the
       // strip under a stationary pointer mid-scroll. Joining in would move
-      // the strip AND the page with one swipe.
-      if (!nativeEvent.cancelable) return;
-
-      const read = readWheelGesture(wheelGesture.current, nativeEvent, nativeEvent.timeStamp);
+      // the strip AND the page with one swipe, so readWheelGesture gives it
+      // to the page — UNLESS it continues a sideways swipe the strip already
+      // owns. Those used to be dropped too, which could cut a swipe's
+      // momentum off mid-glide: the strip had claimed the gesture from its
+      // first event, so nothing else is moving with it.
+      const read = readWheelGesture(wheelGesture.current, nativeEvent, nativeEvent.timeStamp, nativeEvent.cancelable);
       wheelGesture.current = read.gesture;
       const intent = read.action;
 
       if (intent.kind === "page") return;
-      nativeEvent.preventDefault();
+      if (nativeEvent.cancelable) nativeEvent.preventDefault();
       // Claimed while its direction is still being read; see readWheelGesture.
       if (intent.kind === "hold") return;
       const rect = el.getBoundingClientRect();
@@ -185,6 +188,12 @@ export function useTimeNavigation(
       // Capture is taken in onPointerMove instead, the moment the press turns
       // into a real drag — which is the only moment it is needed, and by then
       // there is no click left to lose.
+      // Only the main button drags; a right-click opens the context menu and a
+      // middle-click autoscrolls, and neither should also pan.
+      if (event.pointerType === "mouse" && event.button !== 0) {
+        drag.current = null;
+        return;
+      }
       drag.current = { x: event.clientX, window: viewRef.current, moved: false };
     },
     [containerRef]
@@ -200,12 +209,21 @@ export function useTimeNavigation(
 
       const rect = element.getBoundingClientRect();
       const dx = event.clientX - drag.current.x;
-      if (Math.abs(dx) > 3 && !drag.current.moved) {
+      if (!drag.current.moved) {
+        // NOTHING MOVES UNTIL THE PRESS IS A DRAG.
+        //
+        // The strip used to pan on every pointermove from the first pixel,
+        // threshold or not, so the hand's tremor while clicking an event
+        // nudged the whole timeline sideways under it. Below the threshold a
+        // press is still a click and the strip stays exactly where it was.
+        if (!isDrag(dx, event.pointerType)) return;
         drag.current.moved = true;
         // Now it is a drag. Capture so the pan survives the pointer leaving the
         // strip — and only now, so a tap keeps its click (see onPointerDown).
         element.setPointerCapture?.(event.pointerId);
       }
+      // Measured from where the press began, not from where the threshold was
+      // crossed, so the date taken hold of stays under the pointer from here on.
       onWindowChange(panWindow(drag.current.window, -dx / Math.max(1, rect.width), scale));
     },
     [containerRef, onWindowChange, scale]

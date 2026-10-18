@@ -49,6 +49,7 @@ import {
   loadTimelineEvent,
   loadTimelineWindow,
   loadTagExtent,
+  loadFocusExtent,
   markEventSeen,
   searchTimeline,
   seedDeepTimeDataset,
@@ -115,7 +116,16 @@ import {
   type TimeWindow,
 } from "@/lib/timeline/time";
 import { timelineSearch, type TimelineUrlState } from "@/lib/timeline/url-state";
-import { resolveTrackParam, trackLinkSearch } from "@/lib/timeline/track-link";
+import { resolveTrackParam } from "@/lib/timeline/track-link";
+import {
+  buildFocusGroups,
+  currentFocus,
+  decodeFocus,
+  encodeFocus,
+  filtersForFocus,
+  focusLinkSearch,
+  type FocusChoice,
+} from "@/lib/timeline/focus";
 import { OKOMILO_TRACK, OKOMILO_TRACK_WINDOW } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 
 // The timeline page.
@@ -403,7 +413,7 @@ export function TimelineView({
   initialTruncated: boolean;
   sources: TimelineSource[];
   tracks: TimelineTrack[];
-  facets: { people: string[]; civilisations: string[]; categories: string[] };
+  facets: { people: string[]; civilisations: string[]; categories: string[]; tags: string[] };
   canContribute: boolean;
   isStaff: boolean;
   userId: string | null;
@@ -759,6 +769,40 @@ export function TimelineView({
     [communitySlug, frameWindow]
   );
 
+  // ONE TOPIC, ON ITS OWN, from the dropdown under the heading: that topic's
+  // filter set and every other topic filter cleared, framed on the span its
+  // dated records cover, with the list open for the records that have no date.
+  // Only the latest choice frames the strip — an earlier, slower extent that
+  // lands afterwards is dropped.
+  const focusRequest = useRef(0);
+  const [focusCopied, setFocusCopied] = useState(false);
+  const showOnItsOwn = useCallback(
+    async (choice: FocusChoice | null) => {
+      const request = ++focusRequest.current;
+      const next = filtersForFocus(choice);
+      setShowingOnly(null);
+      setFocusCopied(false);
+      setTrackId(next.trackId);
+      setCategory(next.category);
+      setCivilisation(next.civilisation);
+      setTag(next.tag);
+      setPerson(next.person);
+      if (!choice) return;
+      setShowList(true);
+      // The Okomilo track keeps the window it was written for, which also
+      // takes in the records dated only by "today".
+      const okomilo = choice.kind === "track" && tracks.find((track) => track.id === choice.value)?.slug === OKOMILO_TRACK.slug;
+      if (okomilo) {
+        setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
+        setMode("timeline");
+        return;
+      }
+      const found = await loadFocusExtent(communitySlug, choice).catch(() => null);
+      if (found && request === focusRequest.current) frameWindow(found);
+    },
+    [communitySlug, frameWindow, tracks]
+  );
+
   // Bring the panel into view when the selection changes — but only when it
   // changes, so scrolling away from an open panel doesn't yank you back on
   // every unrelated re-render.
@@ -1077,53 +1121,81 @@ export function TimelineView({
       </div>
 
       {(() => {
-        // ONE TRACK, ON ITS OWN. With every dataset showing, the Okomilo
+        // SHOW ONE THING ON ITS OWN. With every dataset showing, a track's
         // records sit between unrelated ones and "See all" on a cluster only
-        // lists that cluster. This opens the whole track: filtered to it, over
-        // the span its dated records cover, with the list open for the
-        // records that deliberately have no date. It sits at the top, under
+        // lists that cluster. This picks any track, topic, civilisation,
+        // shared tag or person and shows only that. It sits at the top, under
         // the heading, because at the foot of the page nobody found it.
-        const track = tracks.find((candidate) => candidate.slug === OKOMILO_TRACK.slug);
-        if (!track || trackId === track.id) return null;
+        const groups = buildFocusGroups({
+          tracks,
+          categories: TIMELINE_CATEGORIES.filter((meta) => facets.categories.includes(meta.key)),
+          civilisations: facets.civilisations,
+          tags: facets.tags,
+          people: facets.people,
+        });
+        if (groups.length === 0) return null;
+        const current = currentFocus({ trackId, category, civilisation, tag, person });
+        const currentTrack = current?.kind === "track" ? tracks.find((track) => track.id === current.value) : null;
         return (
           <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5">
-            <p className="min-w-0 flex-1 text-sm text-foreground">
-              <span className="font-medium">{track.name}</span>
-              <span className="text-muted-foreground"> — see the whole track together, without the other datasets in between.</span>
-            </p>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                setShowingOnly(null);
-                setTrackId(track.id);
-                setView(clampWindow({ ...OKOMILO_TRACK_WINDOW }));
-                setShowList(true);
-                listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
+            <label htmlFor="timeline-focus" className="text-sm font-medium text-foreground">
+              Show on its own
+            </label>
+            <select
+              id="timeline-focus"
+              value={current ? encodeFocus(current) : ""}
+              onChange={(event) => void showOnItsOwn(decodeFocus(event.target.value))}
+              className={cn(
+                "min-w-0 max-w-full flex-1 cursor-pointer rounded-full border-0 px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:max-w-md sm:flex-none",
+                current ? "bg-accent-soft font-medium text-accent" : "bg-card text-foreground hover:bg-muted"
+              )}
             >
-              Open this track on its own
-            </Button>
-            <button
-              type="button"
-              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-              onClick={(event) => {
-                // A link, not a navigation: the same page keeps its state on
-                // a client-side route change, so following it from here would
-                // not re-apply the filter. Copy it for sharing instead.
-                // The page's own address, so it works on a community's custom domain
-                // as well as under /c/<slug>.
-                const url = `${window.location.origin}${window.location.pathname}${trackLinkSearch(track.slug, OKOMILO_TRACK_WINDOW)}`;
-                const button = event.currentTarget;
-                navigator.clipboard?.writeText(url).then(
-                  () => (button.textContent = "Link copied"),
-                  () => window.prompt("Copy this link", url)
-                );
-              }}
-            >
-              Copy link
-            </button>
+              <option value="">Everything</option>
+              {groups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {current ? (
+              <>
+                <button
+                  type="button"
+                  className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  onClick={() => void showOnItsOwn(null)}
+                >
+                  Show everything
+                </button>
+                <button
+                  type="button"
+                  className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  onClick={() => {
+                    // A link, not a navigation: the same page keeps its state on
+                    // a client-side route change, so following it from here would
+                    // not re-apply the filter. Copy it for sharing instead.
+                    // The page's own address, so it works on a community's custom domain
+                    // as well as under /c/<slug>. A track is named by slug, which
+                    // is the same in every community it is seeded into.
+                    const linkValue = currentTrack ? currentTrack.slug : current.value;
+                    const url = `${window.location.origin}${window.location.pathname}${focusLinkSearch(current.kind, linkValue, view)}`;
+                    navigator.clipboard?.writeText(url).then(
+                      () => setFocusCopied(true),
+                      () => window.prompt("Copy this link", url)
+                    );
+                  }}
+                >
+                  {focusCopied ? "Link copied" : "Copy link"}
+                </button>
+              </>
+            ) : (
+              <span className="min-w-0 flex-1 text-sm text-muted-foreground">
+                Pick a track, topic or related group to see it together, without the other datasets in between.
+              </span>
+            )}
           </div>
         );
       })()}
