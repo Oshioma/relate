@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  BookOpenText,
   ChevronDown,
   Globe2,
   Hash,
@@ -285,6 +286,7 @@ export function TimelineView({
   periodLinks,
   eventLinks,
   linkedRecords,
+  archiveWorksByEvent = {},
   hasPeriods,
   hasAtlantis,
   hasLemuria,
@@ -354,6 +356,8 @@ export function TimelineView({
   eventLinks: TimelineEventLink[];
   /** The records those edges point at, which are usually outside the window. */
   linkedRecords: TimelineLinkedRecord[];
+  /** Event id → the archive texts whose marker it is, for "Read the original text". */
+  archiveWorksByEvent?: Record<string, { workKey: string; title: string }[]>;
   /** Whether the fifteen periods are already here. True for non-staff, who are never offered them. */
   hasPeriods: boolean;
   /** Whether the Atlantis dataset is already here. Same rule. */
@@ -1672,6 +1676,16 @@ export function TimelineView({
           Compare the traditions
         </Link>
 
+        {/* THE TEXTS THEMSELVES. Each sits on the strip once, at its dates;
+            the archive is where they are read passage by passage. */}
+        <Link
+          href={`/c/${communitySlug}/timeline/texts`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <BookOpenText className="h-4 w-4" />
+          Ancient texts
+        </Link>
+
         <Link
           href={`/c/${communitySlug}/timeline/map`}
           className="hidden items-center gap-1.5 rounded-full bg-muted/60 px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
@@ -1716,6 +1730,7 @@ export function TimelineView({
             citations={citations}
             links={eventLinks}
             linkedRecords={linkedRecords}
+            archiveWorks={archiveWorksByEvent[selected.id]}
             tracks={tracks}
             userId={userId}
             communitySlug={communitySlug}

@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
+import Link from "next/link";
+import { BookOpenText, Check, MapPin, Pencil, Scale, Sparkles, Trash2, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ import { RevisionHistory } from "./revision-history";
 import { ViewpointComparison } from "./viewpoint-comparison";
 import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
+import { workPath } from "@/lib/timeline/texts/paths";
 import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
 import { deleteTimelineEvent, reviewTimelineEvent, setEventProminence } from "./actions";
 import { PROMINENCE_LABELS, type Prominence } from "@/lib/timeline/prominence";
@@ -83,6 +85,7 @@ export function EventDetail({
   linkedRecords = [],
   passages = [],
   genealogies = [],
+  archiveWorks = [],
   tracks = [],
   userId = null,
   communitySlug,
@@ -126,6 +129,12 @@ export function EventDetail({
    * record, and the panel draws nothing when it is.
    */
   genealogies?: TimelineGenealogyWithLinks[];
+  /**
+   * Texts in the archive whose marker this is. The text sits on the timeline
+   * once, at its documented dates; its passages open from here rather than
+   * crowding the strip.
+   */
+  archiveWorks?: { workKey: string; title: string }[];
   tracks?: TimelineTrack[];
   userId?: string | null;
   communitySlug: string;
@@ -675,6 +684,26 @@ export function EventDetail({
           says. Placed after the dates and before the relationships: the dates
           are what the page is FOR, and this is the answer to the question a
           reader asks next. Draws nothing when the record has no passages. */}
+      {archiveWorks.length > 0 && (
+        <div className="mt-8 rounded-xl border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground">
+            The full text is in the archive, passage by passage, with its manuscripts and translations.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {archiveWorks.map((work) => (
+              <Link
+                key={work.workKey}
+                href={workPath(communitySlug, work.workKey)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground"
+              >
+                <BookOpenText className="h-4 w-4" />
+                Read the original text{archiveWorks.length > 1 ? `: ${work.title}` : ""}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <EvidenceChainPanel passages={passages} sourcesById={sourcesById} />
 
       {/* And the chain that runs the other way: forwards, through whoever
