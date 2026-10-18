@@ -17,6 +17,7 @@ import { consumeLessonQuota } from "@/lib/school/lesson-quota";
 import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { streamLesson } from "@/lib/school/lesson-stream";
 import { findOwnUpload } from "@/lib/school/lesson-media-storage";
+import { cleanClip } from "@/lib/school/video-links";
 import {
   canGoBeyondSource,
   DEFAULT_AGE_BAND,
@@ -51,6 +52,8 @@ export async function POST(request: NextRequest) {
     sourceUrl?: unknown;
     sourceTitle?: unknown;
     videoUrl?: unknown;
+    videoStartSeconds?: unknown;
+    videoEndSeconds?: unknown;
     mediaPath?: unknown;
   };
   const spaceId = typeof payload.spaceId === "string" ? payload.spaceId : "";
@@ -133,6 +136,8 @@ export async function POST(request: NextRequest) {
     sourceTitle: typeof payload.sourceTitle === "string" ? payload.sourceTitle : null,
     // Checked against the supported platforms in streamLesson.
     videoUrl: typeof payload.videoUrl === "string" ? payload.videoUrl : null,
+    // The part of it the lesson plays, when it was written from only part.
+    videoClip: cleanClip(payload.videoStartSeconds, payload.videoEndSeconds),
     mediaPath,
   });
 }

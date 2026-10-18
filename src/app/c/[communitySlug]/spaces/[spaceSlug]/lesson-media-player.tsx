@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { isLessonMediaPath, lessonMediaPublicUrl } from "@/lib/school/lesson-media";
+import { isWholeVideo, type VideoClip } from "@/lib/school/video-links";
 import type { LessonMediaType } from "@/types/database";
 
 // An uploaded recording a lesson was written from, played at the top of the
@@ -12,15 +13,22 @@ import type { LessonMediaType } from "@/types/database";
 export function LessonMediaPlayer({
   path,
   type,
+  clip,
   className,
 }: {
   path: string;
   type: LessonMediaType | null;
+  // The part of the recording the lesson uses, when only part of a long one.
+  clip?: VideoClip | null;
   className?: string;
 }) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!base || !isLessonMediaPath(path)) return null;
-  const src = lessonMediaPublicUrl(base, path);
+  // A media fragment (#t=start,end): the browser's own player starts there
+  // and pauses at the end, with no script.
+  const fragment =
+    clip && !isWholeVideo(clip) ? `#t=${clip.start ?? 0}${clip.end != null ? `,${clip.end}` : ""}` : "";
+  const src = `${lessonMediaPublicUrl(base, path)}${fragment}`;
 
   if (type === "audio") {
     return (

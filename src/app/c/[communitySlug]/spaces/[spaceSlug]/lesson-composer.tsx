@@ -24,7 +24,16 @@ import {
   isSubtitleFile,
   isTextFile,
 } from "@/lib/school/transcript-text";
-import { VIDEO_PLATFORM_NAMES, formatDuration, parseVideoLink } from "@/lib/school/video-links";
+import {
+  VIDEO_PLATFORM_NAMES,
+  WHOLE_VIDEO,
+  cleanClip,
+  describeClip,
+  formatDuration,
+  parseTimestamp,
+  parseVideoLink,
+  type VideoClip,
+} from "@/lib/school/video-links";
 import type { PublicVideoJob } from "@/lib/school/video-worker";
 import type { LessonElsewhere, LessonHere } from "@/lib/school/lesson-from-link";
 import { joinCommunity } from "@/app/dashboard/actions";
@@ -86,9 +95,35 @@ function jobLabel(job: PublicVideoJob): string {
 
 // What goes at the top of the lesson: an embedded video link, or a teacher's
 // own upload played from Storage.
+// `clip` is the part of it the transcript covers, which is all the lesson plays.
 type TopMedia =
-  | { kind: "link"; url: string; title: string | null }
-  | { kind: "upload"; path: string; title: string | null; mediaType: LessonMediaType };
+  | { kind: "link"; url: string; title: string | null; clip: VideoClip }
+  | { kind: "upload"; path: string; title: string | null; mediaType: LessonMediaType; clip: VideoClip };
+
+// The most of one video the worker transcribes for a lesson. A longer video
+// isn't refused: it uses its first three hours, or the part chosen here.
+const MAX_VIDEO_HOURS = 3;
+
+// The part of a video the teacher typed, as the jobs route takes it: nothing
+// for the whole video, or a reason the boxes don't make sense.
+function readClip(from: string, to: string):
+  | { ok: true; body: { startSeconds?: number; endSeconds?: number } }
+  | { ok: false; error: string } {
+  const start = parseTimestamp(from);
+  const end = parseTimestamp(to);
+  if (from.trim() && start === null) return { ok: false, error: `"${from}" isn't a time — write it like 1:05:00.` };
+  if (to.trim() && end === null) return { ok: false, error: `"${to}" isn't a time — write it like 2:30:00.` };
+  if (start !== null && end !== null && end <= start) {
+    return { ok: false, error: "The part to use has to end after it starts." };
+  }
+  return {
+    ok: true,
+    body: {
+      ...(start ? { startSeconds: start } : {}),
+      ...(end !== null ? { endSeconds: end } : {}),
+    },
+  };
+}
 
 // A file on its way up. `kept` says which way it is going: into Storage, to
 // stay with the lesson, or straight to the worker, to be thrown away after.
@@ -187,6 +222,12 @@ export function LessonComposer({
   const [video, setVideo] = useState<TopMedia | null>(null);
   const [embedVideo, setEmbedVideo] = useState(true);
 
+  // Only part of a video: "from" and "to" as typed. Both empty is the whole
+  // video (or its first three hours, if it's longer than that).
+  const [showClip, setShowClip] = useState(false);
+  const [clipFrom, setClipFrom] = useState("");
+  const [clipTo, setClipTo] = useState("");
+
   // Video jobs: the ones started here, plus any recent ones from an earlier
   // visit, so closing the composer mid-transcription loses nothing.
   const [jobs, setJobs] = useState<PublicVideoJob[]>([]);
@@ -248,8 +289,9 @@ export function LessonComposer({
 
     const length = formatDuration(job.durationSeconds);
     const how = job.method === "captions" ? "from its captions" : "by listening to it";
+    const part = describeClip(jobClip(job));
     setReadNote(
-      `Transcribed "${jobLabel(job)}"${length ? ` (${length})` : ""} ${how} — ` +
+      `Transcribed ${part ? `${part} of ` : ""}"${jobLabel(job)}"${length ? ` (${length})` : ""} ${how} — ` +
         `${text.length.toLocaleString()} characters. Read it through and trim anything off-topic before writing.` +
         // The worker's [m:ss] markers are what give each section its "watch
         // from" button, and they look like clutter worth deleting. Only a
@@ -322,6 +364,11 @@ export function LessonComposer({
 
   async function startVideo(acknowledgedElsewhere = false) {
     if (!url.trim() || starting || busy) return;
+    const clip = readClip(clipFrom, clipTo);
+    if (!clip.ok) {
+      setError(clip.error);
+      return;
+    }
     setStarting(true);
     setError(null);
     setLinkConflict(null);
@@ -330,7 +377,7 @@ export function LessonComposer({
       const response = await fetch("/api/lessons/video-jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceId, url, acknowledgedElsewhere }),
+        body: JSON.stringify({ spaceId, url, acknowledgedElsewhere, ...clip.body }),
       });
       const body = (await response.json().catch(() => null)) as
         | ({ job?: PublicVideoJob; error?: string } & LinkConflict)
@@ -390,10 +437,12 @@ export function LessonComposer({
   ): Promise<
     { ok: true; job: PublicVideoJob; uploadUrl?: string; uploadToken?: string } | { ok: false; error: string }
   > {
+    const clip = readClip(clipFrom, clipTo);
+    if (!clip.ok) return clip;
     const response = await fetch("/api/lessons/video-jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spaceId, ...body }),
+      body: JSON.stringify({ spaceId, ...body, ...clip.body }),
     });
     const json = (await response.json().catch(() => null)) as {
       job?: PublicVideoJob;
@@ -688,6 +737,9 @@ export function LessonComposer({
           sourceTitle: source?.title ?? null,
           videoUrl: video?.kind === "link" && embedVideo ? video.url : null,
           mediaPath: video?.kind === "upload" && embedVideo ? video.path : null,
+          // The part the transcript covers, which is all the lesson plays.
+          videoStartSeconds: video && embedVideo ? video.clip.start : null,
+          videoEndSeconds: video && embedVideo ? video.clip.end : null,
         }),
         signal: controller.signal,
       });
@@ -884,6 +936,61 @@ export function LessonComposer({
             </>
           )}
         </div>
+        {/* Only part of a long video. The worker takes at most three hours of
+            one video, so a longer one uses its first three hours unless a
+            part is chosen here; the lesson then plays just that part. */}
+        {videoConfigured &&
+          (showClip ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-foreground">
+              <span>Use only part of the video, from</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={clipFrom}
+                onChange={(e) => setClipFrom(e.target.value)}
+                disabled={busy || linkBusy}
+                placeholder="0:00"
+                aria-label="Start of the part to use"
+                className="w-24 rounded-md border border-border bg-card px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              />
+              <span>to</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={clipTo}
+                onChange={(e) => setClipTo(e.target.value)}
+                disabled={busy || linkBusy}
+                placeholder="2:30:00"
+                aria-label="End of the part to use"
+                className="w-24 rounded-md border border-border bg-card px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowClip(false);
+                  setClipFrom("");
+                  setClipTo("");
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+              >
+                Use the whole video
+              </button>
+              <span className="basis-full text-xs text-muted-foreground">
+                Times like 1:05:00. Leave &quot;from&quot; empty to start at the beginning. At most{" "}
+                {MAX_VIDEO_HOURS} hours are used; the lesson plays only this part.
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowClip(true)}
+              disabled={busy || linkBusy}
+              className="mt-2 text-xs text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50"
+            >
+              Only want part of the video? Choose from and to. (Videos over {MAX_VIDEO_HOURS} hours use their first{" "}
+              {MAX_VIDEO_HOURS} hours.)
+            </button>
+          ))}
         {upload && (
           <UploadRow upload={upload} onCancel={() => uploadAbortRef.current?.abort()} />
         )}
@@ -1077,12 +1184,22 @@ export function LessonComposer({
 // Turns a finished job into what can go at the top of its lesson: the link,
 // or a kept upload. A direct upload wasn't kept, so there is nothing to show.
 function topMediaOf(job: PublicVideoJob): TopMedia | null {
-  if (job.kind === "link" && job.sourceUrl) return { kind: "link", url: job.sourceUrl, title: job.title };
+  const clip = jobClip(job);
+  if (job.kind === "link" && job.sourceUrl) return { kind: "link", url: job.sourceUrl, title: job.title, clip };
   if (job.kind === "file" && job.storagePath) {
     const mediaType = mediaTypeOfPath(job.storagePath);
-    if (mediaType) return { kind: "upload", path: job.storagePath, title: job.title, mediaType };
+    if (mediaType) return { kind: "upload", path: job.storagePath, title: job.title, mediaType, clip };
   }
   return null;
+}
+
+// The part of its video a job's transcript covers. An end at the video's own
+// length is the same as no end: the lesson plays to the end either way.
+function jobClip(job: PublicVideoJob): VideoClip {
+  if (job.clipStartSeconds == null && job.clipEndSeconds == null) return WHOLE_VIDEO;
+  const clip = cleanClip(job.clipStartSeconds, job.clipEndSeconds);
+  if (clip.end != null && job.durationSeconds && clip.end >= job.durationSeconds) return { ...clip, end: null };
+  return clip;
 }
 
 // A recording on its way up. Kept and direct uploads say plainly which they
@@ -1137,6 +1254,7 @@ function VideoJobRow({
 }) {
   const running = !isJobFinished(job);
   const length = formatDuration(job.durationSeconds);
+  const part = describeClip(jobClip(job));
   const percent = Math.round((job.progress ?? 0) * 100);
   const isAudio = job.storagePath ? mediaTypeOfPath(job.storagePath) === "audio" : false;
   const Icon = isAudio ? Music : job.kind === "link" ? Film : Upload;
@@ -1153,6 +1271,7 @@ function VideoJobRow({
             <span className="truncate">{jobLabel(job)}</span>
             {length && <span className="shrink-0 text-xs font-normal text-muted-foreground">{length}</span>}
           </p>
+          {part && <p className="mt-0.5 text-xs text-muted-foreground">Using {part} of it.</p>}
           {running && (
             <>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
