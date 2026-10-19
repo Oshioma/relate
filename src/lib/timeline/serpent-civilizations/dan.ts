@@ -2402,6 +2402,19 @@ const links: SeedEventLink[] = [
   { from: "denyen-danuna-and-dan-yadin-hypothesis", to: "goliath-of-gath", relation: "related", note: "The Philistines, Yadin's model for a Sea People settled in Canaan." },
   { from: "jeroboam-golden-calves-dan-and-bethel", to: "set-lord-of-the-red-land", relation: "related", note: "Storm-god and bull imagery of the Levant; kept separate from any serpent." },
   { from: "tel-dan-serpent-imagery-what-is-reported", to: "primordial-serpent-energy-doctrine", relation: "relevant", note: "A serpent motif on Levantine jars is a regional decoration, not evidence for a single universal serpent doctrine." },
+  // Cross-lane links added in review: specific records that bear on each other.
+  { from: "nehushtan-bronze-serpent-numbers-and-kings", to: "healing-serpents-nehushtan-egypt-sakpata-dan", relation: "evidence_for", note: "The texts of Numbers 21 and 2 Kings 18, with their dates, behind the comparison of healing images." },
+  { from: "nehushtan-bronze-serpent-numbers-and-kings", to: "nehushtan-and-dangbe-compared", relation: "evidence_for", note: "The biblical side of the Nehushtan and Dangbé comparison, with the dates of the texts." },
+  { from: "nehushtan-and-the-tribe-of-dan", to: "tribe-of-dan-and-the-biblical-serpent-compared", relation: "evidence_for", note: "Its finding that no text or find links Nehushtan with Dan is one ground for rejecting a Danite serpent cult." },
+  { from: "nehushtan-and-the-tribe-of-dan", to: "nehushtan-and-dangbe-compared", relation: "relevant", note: "Nehushtan has no link even to the tribe of Dan, so it cannot carry a Danite serpent to the Gbe coast." },
+  { from: "timna-copper-serpent-rothenberg", to: "healing-serpents-nehushtan-egypt-sakpata-dan", relation: "related", note: "The Timna copper serpent is the excavated object most often set beside Nehushtan's healing image." },
+  { from: "assyrian-conquest-and-the-lost-tribe-of-dan", to: "danite-migration-traditions-and-african-jewish-history-compared", relation: "relevant", note: "The Assyrian conquests of 732 and 722 BCE are where the later traditions of a 'lost' Dan begin; the comparison dates those traditions." },
+  { from: "assyrian-conquest-and-the-lost-tribe-of-dan", to: "eldad-ha-dani-dan-in-the-land-of-cush", relation: "related", note: "Tzemah Gaon's reply to Kairouan puts Dan's departure to Cush before the Assyrian exile; this record sets out what the Assyrian sources actually show." },
+  { from: "danite-migration-to-laish-judges-18", to: "danite-migration-traditions-and-african-jewish-history-compared", relation: "relevant", note: "Judges 18 is the only migration of Dan the Bible narrates, northward within Canaan; the African migration traditions are later and have no biblical base." },
+  { from: "dan-named-in-genesis-30", to: "dan-and-dangbe-name-and-origins-compared", relation: "evidence_for", note: "Genesis 30:6's explanation of the name is the Hebrew side of that comparison." },
+  { from: "dan-serpent-by-the-way-genesis-49", to: "tribe-of-dan-and-the-biblical-serpent-compared", relation: "evidence_for", note: "The verse, its Hebrew and its date, on which the whole 'serpent tribe' question turns." },
+  { from: "tel-dan-serpent-imagery-what-is-reported", to: "tribe-of-dan-and-the-biblical-serpent-compared", relation: "evidence_for", note: "The snake pithoi are the only serpent imagery reported from Dan, and that comparison weighs them." },
+  { from: "tel-dan-altars-and-priestly-portions", to: "offerings-sacrifice-and-priests-compared", relation: "evidence_for", note: "Tel Dan's altars and priestly portions are the Israelite column of the sacrifice comparison." },
 ];
 
 export const DAN: SerpentSection = { sources, events, links };

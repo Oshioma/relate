@@ -2279,6 +2279,21 @@ const links: SeedEventLink[] = [
   { from: S.mummies, to: "route-b-egypt-kush-sahel-west-africa", relation: "relevant", note: "Egyptian serpent practice ends with the Ptolemaic and Roman periods; any route west has to bridge that gap." },
   { from: S.primordial, to: "naqa-lion-temple-serpent-bodied-apedemak", relation: "related", note: "A Meroitic serpent-bodied god set beside Egypt's serpent forms of the creator." },
   { from: S.wadjet, to: "dangbe-from-israel-or-egypt-history-of-the-idea", relation: "relevant", note: "The history of the idea that Dangbé came from Egypt has to be checked against Wadjet's actual evidence." },
+  // Cross-lane links added in review: specific records that bear on each other.
+  { from: "wadjet-of-buto-cobra-goddess-of-pe-and-dep", to: "serpents-that-protect-kings-wadjet-kush-dangbe", relation: "evidence_for", note: "Wadjet's own evidence, from the nebty name onward, is the Egyptian side of the comparison of how royal serpents guard a king." },
+  { from: "uraeus-eye-of-ra-serpent-protecting-the-king", to: "serpents-that-protect-kings-wadjet-kush-dangbe", relation: "evidence_for", note: "The Pyramid Texts' fiery uraeus protecting the king is the function that comparison sets beside the Kushite double uraeus and Dangbé." },
+  { from: "uraeus-on-the-royal-brow-from-den-to-senusret-ii", to: "wadjet-and-dangbe-compared", relation: "evidence_for", note: "The dated uraeus objects show what the Egyptian royal cobra was: a cobra worn as insignia, not a living python." },
+  { from: "wadjet-of-buto-cobra-goddess-of-pe-and-dep", to: "kushite-double-uraeus", relation: "precedes", note: "Wadjet, one of the 'Two Ladies', is the cobra the Kushite kings doubled at the brow; Tanutamani's dream names the 'Two Goddesses' on his brow." },
+  { from: "horus-cippi-and-the-metternich-stela", to: "healing-serpents-nehushtan-egypt-sakpata-dan", relation: "evidence_for", note: "The cippi and the Metternich Stela are the Egyptian 'image against the bite' in that comparison." },
+  { from: "brooklyn-snake-papyrus-and-the-kherep-serqet", to: "healing-serpents-nehushtan-egypt-sakpata-dan", relation: "evidence_for", note: "The Brooklyn treatise and the controllers of Serqet are the Egyptian healing specialists that comparison names." },
+  { from: "gate-serpents-of-the-book-of-gates", to: "savi-serpent-ditch-vs-nile-valley-landscapes", relation: "evidence_for", note: "Serpents guarding gates and uraeus friezes on shrines are the Egyptian serpent imagery of sacred space the comparison weighs." },
+  { from: "opet-festival-at-luxor-an-amun-festival", to: "savi-serpent-ditch-vs-nile-valley-landscapes", relation: "relevant", note: "The sphinx avenue between Karnak and Luxor is the Egyptian processional route the comparison sets beside Savi's palace-to-temple road." },
+  { from: "opet-festival-at-luxor-an-amun-festival", to: "coronation-legitimacy-processions-oaths-compared", relation: "evidence_for", note: "Opet is the Egyptian royal festival in the step-by-step comparison: an Amun festival, not a serpent festival." },
+  { from: "opet-festival-at-luxor-an-amun-festival", to: "three-royal-ceremonies-side-by-side", relation: "relevant", note: "The Opet procession reliefs that the side-by-side reading could not show for want of a free image are described here." },
+  { from: "egyptian-barque-oracles-and-the-saite-oracle-papyrus", to: "oracles-divination-possession-initiation-compared", relation: "evidence_for", note: "Egypt's barque oracles are the 'moving god' of the oracle comparison." },
+  { from: "egyptian-snake-mummies-and-serpent-coffins", to: "living-pythons-images-and-snake-mummies", relation: "evidence_for", note: "The snake mummies, coffins and the 2020 scan are the Egyptian side of the living-animal comparison." },
+  { from: "apep-in-the-texts-coffin-texts-to-book-of-gates", to: "cosmic-serpents-apep-mehen-aido-hwedo-damballa", relation: "evidence_for", note: "Apep's textual history is the Egyptian enemy-serpent in the cosmic-serpent comparison." },
+  { from: "mehen-the-coiled-protector-and-the-mehen-game", to: "cosmic-serpents-apep-mehen-aido-hwedo-damballa", relation: "evidence_for", note: "Mehen, the coil protecting the sun's barque, is the Egyptian protector-serpent in that comparison." },
 ];
 
 export const EGYPT: SerpentSection = { sources, events, links };
