@@ -84,6 +84,7 @@ import {
   seedSacredTreesDataset,
   seedOkomiloDataset,
   seedMoorsOriginsDataset,
+  seedSerpentCivilizationsDataset,
   seedBeninDeepPastDataset,
   seedBeninDahomeyDataset,
   seedBeninVodunDataset,
@@ -332,6 +333,7 @@ export function TimelineView({
   hasSacredTrees,
   hasOkomilo,
   hasMoorsOrigins,
+  hasSerpentCivilizations,
   hasBeninDeepPast,
   hasBeninDahomey,
   hasBeninVodun,
@@ -412,6 +414,7 @@ export function TimelineView({
   hasSacredTrees: boolean;
   hasOkomilo: boolean;
   hasMoorsOrigins: boolean;
+  hasSerpentCivilizations: boolean;
   hasBeninDeepPast: boolean;
   hasBeninDahomey: boolean;
   hasBeninVodun: boolean;
@@ -2399,6 +2402,25 @@ export function TimelineView({
           })}
         >
           The deep human history of North Africa, from the Jebel Irhoud fossils of about 315,000 years ago through Taforalt, the Green Sahara, the Libyans of the Egyptian records, Carthage and the Etruscans, Numidia and Mauretania, the Garamantes and Roman Africa, to Tariq ibn Ziyad&apos;s crossing into Iberia in 711. Nobody before the Latin name Mauri existed is called a Moor; disputed theories sit in their own lane with the case for, the case against and the current scholarly view.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasSerpentCivilizations && (
+        <DatasetOffer
+          title="Add The Serpent Across Civilizations?"
+          busyLabel="Adding the records…"
+          label="Add The Serpent Across Civilizations"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedSerpentCivilizationsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          An open investigation of one question: could the biblical tribe of Dan, Egyptian and Kushite serpent religion, and the Dan and Dangbé serpent traditions of the Gbe coast share any historical, religious, linguistic or migratory connection? Nine lanes: the tribe of Dan and Tel Dan, Danite traditions in Africa, Egypt, Nubia and Kush, Gbe serpent traditions and Savi, words compared, gods and rituals compared, five possible routes, and the comparisons with an evidence assessment. Biblical narrative, excavation, reconstruction and speculation are kept apart throughout.
         </DatasetOffer>
       )}
 
