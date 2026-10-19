@@ -267,6 +267,8 @@ export type Community = {
   // Admin opt-in: show this community's events to signed-out visitors. Only
   // takes effect for a community guests can already reach (is_public).
   events_public: boolean;
+  // Uploaded cover for the Events page; null shows the default event photo.
+  events_cover_url: string | null;
   // Lets signed-out visitors read the feed of a community that isn't public.
   // Privacy answers "is this community listed"; this answers "may a stranger
   // read it" — they used to be the same answer. Ignored for invite_only, in the

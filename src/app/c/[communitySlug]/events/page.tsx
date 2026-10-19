@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
-import { getCommunityBySlug, getMembership } from "@/lib/data/community";
+import { getCommunityBySlug, getMembership, isCommunityAdmin } from "@/lib/data/community";
 import { getCommunityEvents, splitUpcomingPast, getRsvpsForEvents, groupRsvpsByEvent } from "@/lib/data/events";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LinkButton } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
   if (!user && !community.events_public) {
     return (
       <>
-      <EventsCover />
+      <EventsCover communityId={community.id} imageUrl={community.events_cover_url} canEdit={false} />
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">Events</h1>
         <EmptyState
@@ -54,6 +54,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
 
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
   const canRsvp = membership?.status === "active";
+  const isAdmin = isCommunityAdmin(community, membership, user?.id);
   const { upcoming, past } = splitUpcomingPast(events);
 
   const upcomingItems = upcoming.map((event) => ({ event, rsvps: rsvpsByEvent.get(event.id) ?? [] }));
@@ -61,7 +62,7 @@ export default async function EventsPage({ params }: { params: Promise<{ communi
 
   return (
     <>
-    <EventsCover />
+    <EventsCover communityId={community.id} imageUrl={community.events_cover_url} canEdit={isAdmin} />
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Events</h1>
