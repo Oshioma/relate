@@ -444,6 +444,122 @@ test("every picture of the Egyptian wisdom texts is from Commons, and the unveri
   assert.equal(unverified, 4);
 });
 
+test("the Amduat has Budge's twelve hours, his Short Form beside them, and cites Hornung and the modern translations only", () => {
+  const file = assertOpenTextOnly("egy.amduat", ["eng-budge"]);
+  const hours = file.passages.filter((p) => p.divisionKind === "hour");
+  assert.deepEqual(
+    hours.map((p) => p.key),
+    Array.from({ length: 12 }, (_, i) => `egy.amd.${i + 1}`)
+  );
+  const work = INVENTORY.find((w) => w.workKey === "egy.amduat")!;
+  assert.equal(work.expectedUnits, 12);
+  assert.equal(work.unitDivisionKind, "hour");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "amduat-corpus");
+  for (const hour of hours) {
+    assert.equal(hour.layers.some((l) => l.content), false, `${hour.key} holds no text of its own`);
+    const cited = hour.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key);
+    assert.deepEqual(cited, ["deu-hornung", "eng-abt-hornung", "eng-warburton", "eng-darnell"], hour.key);
+    const registers = file.passages.filter((p) => p.parentKey === hour.key);
+    assert.ok(registers.length >= 3, hour.key);
+    for (const register of registers) assert.ok(register.layers.some((l) => l.key === "eng-budge" && l.content!.length > 0), register.key);
+  }
+  // Hours 7 to 12 have a middle register: the boat of the sun.
+  for (let n = 7; n <= 12; n++) assert.ok(file.passages.some((p) => p.key === `egy.amd.${n}.middle`), `hour ${n}`);
+  const short = file.passages.filter((p) => p.parentKey === "egy.amd.short");
+  assert.equal(short.length, 12);
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-budge")!.content!;
+  assert.match(text("egy.amd.title"), /^"THE WRITINGS AND THE DRAWINGS OF THE HIDDEN PALACE/);
+  assert.match(text("egy.amd.1.opening"), /^IN the scene that illustrates the FIRST DIVISION of the Tuat/);
+  assert.match(text("egy.amd.7.middle"), /^In the middle register are/);
+  for (const passage of file.passages) {
+    for (const layer of passage.layers.filter((l) => l.key === "eng-budge")) {
+      assert.match(layer.evidence!, /hieroglyphic text, transliteration/, passage.key);
+    }
+  }
+  const dates = file.passages[1].dates!;
+  assert.equal(file.passages[1].key, "egy.amd.1");
+  assert.deepEqual(
+    dates.map((d) => d.role),
+    ["composition", "earliest_evidence", "manuscript", "manuscript", "translation_publication"]
+  );
+  assert.match(dates[0].originalDateText, /disputed/);
+  assert.equal(deriveCompleteness(work, { importedUnits: 12, verifiedUnits: 0 }) === "verified_against_edition", false);
+});
+
+test("the Book of Gates has Budge's twelve divisions, the Judgment Hall, and both copies of the sixth", () => {
+  const file = assertOpenTextOnly("egy.book-of-gates", ["eng-budge"]);
+  const hours = file.passages.filter((p) => p.divisionKind === "hour");
+  assert.deepEqual(
+    hours.map((p) => p.key),
+    Array.from({ length: 12 }, (_, i) => `egy.gates.${i + 1}`)
+  );
+  const work = INVENTORY.find((w) => w.workKey === "egy.book-of-gates")!;
+  assert.equal(work.expectedUnits, 12);
+  assert.equal(work.unitDivisionKind, "hour");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "book-of-gates-corpus");
+  for (const hour of hours) {
+    assert.equal(hour.layers.some((l) => l.content), false, `${hour.key} holds no text of its own`);
+    assert.deepEqual(
+      hour.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key),
+      ["deu-hornung", "eng-hornung-abt", "eng-darnell"],
+      hour.key
+    );
+  }
+  // A gate opens every division after the first.
+  for (let n = 2; n <= 12; n++) assert.equal(file.passages.find((p) => p.key === `egy.gates.${n}.gate`)?.divisionKind, "gate", `division ${n}`);
+  assert.equal(file.passages.some((p) => p.key === "egy.gates.1.gate"), false);
+  const sixth = file.passages.filter((p) => p.parentKey === "egy.gates.6").map((p) => p.key.replace("egy.gates.6.", ""));
+  assert.deepEqual(sixth, ["hall-1", "hall-2", "gate", "seti-middle", "seti-upper", "seti-lower", "rvi-middle", "rvi-upper", "rvi-lower"]);
+  for (const passage of file.passages.filter((p) => p.key.startsWith("egy.gates.6.rvi-"))) {
+    assert.deepEqual(passage.witnesses, [{ manuscriptKey: "kv9" }], passage.key);
+  }
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-budge")!.content!;
+  assert.match(text("egy.gates.1.opening"), /^IN THE FIRST DIVISION of the "Book of Gates of the Tuat,"/);
+  assert.match(text("egy.gates.6.hall-1"), /if the judgment of Osiris prove adverse to him/);
+  assert.deepEqual(
+    file.passages[0].dates!.map((d) => d.role),
+    ["composition", "earliest_evidence", "manuscript", "manuscript", "translation_publication"]
+  );
+  assert.match(file.passages[0].dates![0].originalDateText, /disputed/);
+});
+
+test("the Amduat and the Book of Gates are linked as proposed parallels only, never as transmission", () => {
+  const links = ["egy.amduat", "egy.book-of-gates"].flatMap((workKey) => corpusFor(workKey)!.links ?? []);
+  assert.ok(links.length >= 4);
+  assert.ok(links.some((l) => l.from.startsWith("egy.amd.") && l.to.startsWith("egy.gates.")));
+  for (const link of links) {
+    assert.equal(link.connectionClass, "close_conceptual_parallel", link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.transmissionEvidence, /^None shown\..*never as transmission/, link.key);
+  }
+});
+
+/** Pictures whose hour, scene or object identification rests on an uploader's label. */
+const UNDERWORLD_UNVERIFIED_IMAGES = 9;
+
+test("every picture of the Amduat and the Book of Gates is from Commons, and claimed hours are marked unverified", () => {
+  let unverified = 0;
+  for (const workKey of ["egy.amduat", "egy.book-of-gates"]) {
+    const file = corpusFor(workKey)!;
+    const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+    assert.ok(images.length >= 4, workKey);
+    assert.ok(images.some((i) => i.identificationStatus === "secure"), `${workKey} has a securely identified witness`);
+    for (const image of images) {
+      assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+      assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+      assert.ok(image.licence, image.key);
+      if (image.identificationStatus === "unverified") {
+        unverified++;
+        assert.match(image.caption, /^UNVERIFIED — /, image.key);
+        assert.ok(image.whatIsUnverified, image.key);
+      } else {
+        assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+      }
+    }
+  }
+  assert.equal(unverified, UNDERWORLD_UNVERIFIED_IMAGES);
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);
