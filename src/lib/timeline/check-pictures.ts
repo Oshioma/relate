@@ -71,11 +71,16 @@ export const PICTURE_FETCH_USER_AGENT = "Relate/1.0 (community platform; +https:
  * reported every one of those pictures as failing — and one record lost a
  * perfectly good photograph on the strength of it.
  *
+ * Since October 2026 a sized request (?width=…) goes through one more hop,
+ * Special:Redirect/file, which answers 301 to thumb.wikimedia.org — the new
+ * home of Commons thumbnails. Leaving that host off the list reported every
+ * such picture as "redirects (301) — destination not followed".
+ *
  * Following a redirect is only dangerous when the destination can be
  * anywhere. Here it cannot: https, a host on this list, and the same guard
  * again. Anything else is still reported and never fetched.
  */
-const FOLLOWABLE_REDIRECT_HOSTS = new Set(["upload.wikimedia.org", "commons.wikimedia.org"]);
+const FOLLOWABLE_REDIRECT_HOSTS = new Set(["upload.wikimedia.org", "commons.wikimedia.org", "thumb.wikimedia.org"]);
 const MAX_REDIRECTS = 3;
 
 /** How long a 429 is waited out before asking once more. Longer than this and the check is better reported as rate-limited. */

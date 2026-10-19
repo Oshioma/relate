@@ -34,6 +34,7 @@ import {
   pictureBudget,
   pictureName,
   pictureTopUp,
+  resolveCredits,
   withBroughtInPictures,
 } from "@/lib/timeline/bring-in-image";
 import { claimPositionKey, matchStoredClaim, seedClaimsByPosition } from "@/lib/timeline/reconcile-claims";
@@ -68,6 +69,12 @@ import {
 import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/timeline/seed-types";
 import { SACRED_TREES_EVENTS, SACRED_TREES_SOURCES, SACRED_TREES_TRACK } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_EVENTS, OKOMILO_LINKS, OKOMILO_SOURCES, OKOMILO_TRACK } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
+import { MOORS_EVENTS, MOORS_LINKS, MOORS_SOURCES, MOORS_TRACK } from "@/lib/timeline/moors-origins-seed";
+import { BENIN_DEEP_PAST_EVENTS, BENIN_DEEP_PAST_LINKS, BENIN_DEEP_PAST_SOURCES, BENIN_DEEP_PAST_TRACK } from "@/lib/timeline/benin-deep-past-seed";
+import { BENIN_DAHOMEY_EVENTS, BENIN_DAHOMEY_LINKS, BENIN_DAHOMEY_SOURCES, BENIN_DAHOMEY_TRACK } from "@/lib/timeline/benin-dahomey-seed";
+import { BENIN_VODUN_EVENTS, BENIN_VODUN_LINKS, BENIN_VODUN_SOURCES, BENIN_VODUN_TRACK } from "@/lib/timeline/benin-vodun-seed";
+import { BENIN_ATLANTIC_EVENTS, BENIN_ATLANTIC_LINKS, BENIN_ATLANTIC_SOURCES, BENIN_ATLANTIC_TRACK } from "@/lib/timeline/benin-atlantic-seed";
+import { VODUN_DIASPORA_DATASETS } from "@/lib/timeline/vodun-diaspora-seed";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
@@ -1339,11 +1346,24 @@ async function seedDataset(
   supabase: SupabaseClient<Database>,
   community: Community,
   userId: string,
-  dataset: { events: SeedEvent[]; sources: SeedSource[]; track: SeedTrack; label: string; links?: SeedEventLink[] }
+  dataset: {
+    events: SeedEvent[];
+    sources: SeedSource[];
+    track: SeedTrack;
+    label: string;
+    links?: SeedEventLink[];
+    /**
+     * Write the records with their pictures still at Commons (credits fetched
+     * as usual) and leave the copying to "Bring hotlinked pictures in", which
+     * works to a time budget. For a dataset with hundreds of pictures, copying
+     * them all inside this one request would outlast it.
+     */
+    copyPicturesLater?: boolean;
+  }
 ): Promise<
   { error: string } | { ok: true; added: number; skipped: number; failed: number; repaired: number; linked: number }
 > {
-  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [] } = dataset;
+  const { events: seedEvents, sources: seedSources, track, label, links: seedLinks = [], copyPicturesLater = false } = dataset;
 
   // --- The lane -------------------------------------------------------------
   const { data: existingTrack } = await supabase
@@ -1442,12 +1462,13 @@ async function seedDataset(
     }
 
     // Copied into the community's own storage before the event is written, so
-    // it never carries an address pointing somewhere we do not control.
-    const { pictures } = await bringEventPicturesIn(supabase, {
-      pictures: { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] },
-      userId,
-      slug: seed.slug,
-    });
+    // it never carries an address pointing somewhere we do not control —
+    // unless the dataset is too large for that, in which case only the credits
+    // are fetched now and the hotlinked-pictures pass does the copying.
+    const seedPictures = { imageUrl: seed.imageUrl ?? null, media: [...(seed.media ?? [])] };
+    const { pictures } = copyPicturesLater
+      ? { pictures: { imageUrl: seedPictures.imageUrl, media: (await resolveCredits(seedPictures)).media } }
+      : await bringEventPicturesIn(supabase, { pictures: seedPictures, userId, slug: seed.slug });
 
     const { data: event, error: eventError } = await supabase
       .from("timeline_events")
@@ -2083,6 +2104,12 @@ type SeedDatasetSpec = {
 /** Every dataset this file can seed, for the refresh to walk. */
 const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)", track: OKOMILO_TRACK, events: OKOMILO_EVENTS, sources: OKOMILO_SOURCES, links: OKOMILO_LINKS },
+  { label: "Origins of the Moors", track: MOORS_TRACK, events: MOORS_EVENTS, sources: MOORS_SOURCES, links: MOORS_LINKS },
+  { label: "B\u00e9nin before the kingdoms: archaeology, environment, peoples", track: BENIN_DEEP_PAST_TRACK, events: BENIN_DEEP_PAST_EVENTS, sources: BENIN_DEEP_PAST_SOURCES, links: BENIN_DEEP_PAST_LINKS },
+  { label: "Dahomey: rulers, Abomey, the Agojie and the wars", track: BENIN_DAHOMEY_TRACK, events: BENIN_DAHOMEY_EVENTS, sources: BENIN_DAHOMEY_SOURCES, links: BENIN_DAHOMEY_LINKS },
+  { label: "Vodun: cosmology, ritual, Fa, and the Atlantic", track: BENIN_VODUN_TRACK, events: BENIN_VODUN_EVENTS, sources: BENIN_VODUN_SOURCES, links: BENIN_VODUN_LINKS },
+  { label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin", track: BENIN_ATLANTIC_TRACK, events: BENIN_ATLANTIC_EVENTS, sources: BENIN_ATLANTIC_SOURCES, links: BENIN_ATLANTIC_LINKS },
+  ...VODUN_DIASPORA_DATASETS.map(({ label, track, events, sources, links }) => ({ label, track, events, sources, links })),
   { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
@@ -3466,6 +3493,147 @@ export async function seedOkomiloDataset(communitySlug: string) {
     track: OKOMILO_TRACK,
     links: OKOMILO_LINKS,
     label: "Okomilo family, Ogbona and Avhianwu (Kingdom of Benin, Nigeria)",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The Origins of the Moors, from Jebel Irhoud about 315,000 years ago to Tariq
+ * ibn Ziyad's crossing into Iberia in 711. The opening is the opening of this
+ * track, not of the timeline; no record before the name existed calls anyone a
+ * Moor. See moors-origins-seed.ts and docs/moors-origins-plan.md.
+ */
+export async function seedMoorsOriginsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const result = await seedDataset(supabase, community, userId, {
+    events: MOORS_EVENTS,
+    sources: MOORS_SOURCES,
+    track: MOORS_TRACK,
+    links: MOORS_LINKS,
+    label: "Origins of the Moors",
+    // 278 pictures: staff press "Bring hotlinked pictures in" afterwards.
+    copyPicturesLater: true,
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * THE FOUR B\u00c9NIN DATASETS, and why they are four rather than one.
+ *
+ * They are separate tracks because they are separate ARGUMENTS, and a reader
+ * should be able to take one without the others:
+ *
+ *   benin-deep-past  the territory before the kingdoms \u2014 lithics, a rainforest
+ *                    that is no longer there, an iron-producing settlement two
+ *                    thousand years before Abomey, and the peoples' own accounts
+ *                    of where they came from
+ *   benin-dahomey    the kingdom, its rulers, its army and its memory
+ *   benin-vodun      a religion whose first written word is 1658 and whose
+ *                    beginning has no date at all
+ *   benin-atlantic   Ouidah, the trade, the colony, the republic, the returns
+ *
+ * Taking all four gives the sequence the whole thing exists to show: that the
+ * history of this ground did not begin with Dahomey and did not begin with
+ * European contact.
+ */
+export async function seedBeninDeepPastDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_DEEP_PAST_EVENTS,
+    sources: BENIN_DEEP_PAST_SOURCES,
+    track: BENIN_DEEP_PAST_TRACK,
+    links: BENIN_DEEP_PAST_LINKS,
+    label: "B\u00e9nin before the kingdoms: archaeology, environment, peoples",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninDahomeyDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_DAHOMEY_EVENTS,
+    sources: BENIN_DAHOMEY_SOURCES,
+    track: BENIN_DAHOMEY_TRACK,
+    links: BENIN_DAHOMEY_LINKS,
+    label: "Dahomey: rulers, Abomey, the Agojie and the wars",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninVodunDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_VODUN_EVENTS,
+    sources: BENIN_VODUN_SOURCES,
+    track: BENIN_VODUN_TRACK,
+    links: BENIN_VODUN_LINKS,
+    label: "Vodun: cosmology, ritual, Fa, and the Atlantic",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+export async function seedBeninAtlanticDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: BENIN_ATLANTIC_EVENTS,
+    sources: BENIN_ATLANTIC_SOURCES,
+    track: BENIN_ATLANTIC_TRACK,
+    links: BENIN_ATLANTIC_LINKS,
+    label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * THE VODUN, VODOU AND VOODOO EXPANSION: six tracks, taken one per call.
+ *
+ * One call per track rather than one for all six, because a hundred and
+ * seventy records with their claims, citations and edges is more than one
+ * request should be asked to carry. The page calls this once for each track
+ * the community does not have yet, in reading order, so every edge is written
+ * as soon as both its ends exist (see vodun-diaspora-seed.ts). Pictures are
+ * copied in afterwards by "Bring hotlinked pictures in".
+ */
+export async function seedVodunDiasporaDataset(communitySlug: string, key: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const dataset = VODUN_DIASPORA_DATASETS.find((candidate) => candidate.key === key);
+  if (!dataset) return { error: "There is no such Vodun track." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: dataset.events,
+    sources: dataset.sources,
+    track: dataset.track,
+    links: dataset.links,
+    label: dataset.label,
+    copyPicturesLater: true,
   });
   revalidatePath(timelinePath(community.slug));
   return result;

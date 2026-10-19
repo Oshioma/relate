@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StarRatingDisplay } from "./star-rating";
 import type { GuideWithStats } from "@/lib/data/guides";
+import { toPlainText } from "@/components/ui/rich-text";
 
+// Guides are written as HTML now, so the excerpt is read from the plain text.
 function excerpt(body: string, length = 140): string {
-  const trimmed = body.trim();
+  const trimmed = toPlainText(body).trim();
   return trimmed.length > length ? `${trimmed.slice(0, length)}…` : trimmed;
 }
 

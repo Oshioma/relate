@@ -433,12 +433,17 @@ export default async function SpaceDetailPage({
   const businessMembers = isDirectorySpace ? getBusinesses(discoverableMembers) : [];
 
   return (
-    // A directory opens straight onto its own controls, so it also gives back
-    // the page's top padding — every line above the first listing is a line of
-    // the directory nobody can see.
-    // A library of picture cards needs room: at max-w-3xl a two-column grid
-    // gives 350px cards and a third column is impossible, so a Lessons space
-    // gets the wider measure. Everything else keeps the reading width it had.
+    <>
+    {/* Every space opens with a full-width cover, the same size as the feed
+        page's hero (its own upload, or its type's default photo), above
+        whatever masthead (or none) the type renders. */}
+    <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} />
+    {/* A directory opens straight onto its own controls, so it also gives back
+        the page's top padding — every line above the first listing is a line of
+        the directory nobody can see.
+        A library of picture cards needs room: at max-w-3xl a two-column grid
+        gives 350px cards and a third column is impossible, so a Lessons space
+        gets the wider measure. Everything else keeps the reading width it had. */}
     <div
       className={cn(
         "mx-auto px-4 pb-8 sm:px-6 sm:pb-10",
@@ -449,10 +454,6 @@ export default async function SpaceDetailPage({
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
-      {/* Every space type can carry its own cover; it sits above whatever
-          masthead (or none) the type renders. */}
-      <SpaceCover spaceId={space.id} communityId={community.id} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} />
-
       {isDiscussionLike ? (
         // Discussion spaces get a richer masthead with live activity stats.
         <DiscussionSpaceHeader name={space.name} description={space.description} Icon={TypeIcon} summary={discussionSummary} />
@@ -1063,5 +1064,6 @@ export default async function SpaceDetailPage({
         </>
       )}
     </div>
+    </>
   );
 }

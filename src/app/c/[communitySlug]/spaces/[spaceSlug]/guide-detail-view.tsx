@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useCallback, useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { History, Star as StarIcon, Trash2, Pencil, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { RichEditor } from "@/components/ui/rich-editor";
+import { RichText } from "@/components/ui/rich-text";
+import { PROSE_CLASS } from "@/lib/prose";
+import { useFormDraftRef } from "@/lib/use-form-draft";
 import { formatDate } from "@/lib/utils";
 import { StarRatingDisplay, StarRatingInput } from "./star-rating";
 import { updateGuide, deleteGuide, setGuideFeatured, rateGuide, restoreGuideRevision } from "./guides-actions";
@@ -42,6 +46,34 @@ export function GuideDetailView({
   const [editError, setEditError] = useState<string | null>(null);
   const router = useRouter();
   const editFormRef = useRef<HTMLFormElement>(null);
+  // Unsaved edits survive a refresh: the title is a plain field, and the body
+  // (kept in React by the editor) is mirrored into a draft-only input and
+  // handed back to a remounted editor on restore.
+  const [bodySeed, setBodySeed] = useState(guide.body);
+  const [editorKey, setEditorKey] = useState(0);
+  const bodyMirrorRef = useRef<HTMLInputElement>(null);
+  const lastBodyRef = useRef(guide.body);
+  const onRestore = useCallback((values: Record<string, string | string[]>) => {
+    if (typeof values.body_draft === "string" && values.body_draft) {
+      lastBodyRef.current = values.body_draft;
+      if (bodyMirrorRef.current) bodyMirrorRef.current.value = values.body_draft;
+      setBodySeed(values.body_draft);
+      setEditorKey((k) => k + 1);
+    }
+  }, []);
+  const { clear: clearEditDraft, saveNow } = useFormDraftRef(editFormRef, `guide-edit:${guide.id}`, { onRestore, enabled: isEditing });
+
+  function startEditing() {
+    lastBodyRef.current = guide.body;
+    setBodySeed(guide.body);
+    setEditorKey((k) => k + 1);
+    setIsEditing(true);
+  }
+
+  function stopEditing() {
+    clearEditDraft();
+    setIsEditing(false);
+  }
 
   function handleSaveEdit() {
     if (!editFormRef.current) return;
@@ -52,7 +84,7 @@ export function GuideDetailView({
       if (result?.error) {
         setEditError(result.error);
       } else {
-        setIsEditing(false);
+        stopEditing();
         router.refresh();
       }
     });
@@ -109,7 +141,7 @@ export function GuideDetailView({
                 </button>
               )}
               {canEdit && !isEditing && (
-                <button type="button" onClick={() => setIsEditing(true)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Edit guide">
+                <button type="button" onClick={startEditing} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Edit guide">
                   <Pencil className="h-4 w-4" />
                 </button>
               )}
@@ -134,20 +166,33 @@ export function GuideDetailView({
               <input type="hidden" name="community_slug" value={communitySlug} />
               <input type="hidden" name="space_slug" value={spaceSlug} />
               <Input name="title" defaultValue={guide.title} required />
-              <Textarea name="body" rows={10} defaultValue={guide.body} required />
+              <input ref={bodyMirrorRef} type="hidden" name="body_draft" data-draft />
+              <RichEditor
+                key={editorKey}
+                name="body"
+                rows={12}
+                defaultValue={bodySeed}
+                allowMedia
+                onChange={(value) => {
+                  if (value === lastBodyRef.current) return;
+                  lastBodyRef.current = value;
+                  if (bodyMirrorRef.current) bodyMirrorRef.current.value = value;
+                  saveNow();
+                }}
+              />
               {editError && <p className="text-sm text-danger">{editError}</p>}
               <div className="flex gap-2">
                 <Button type="submit" disabled={isPending} className="w-auto">
                   {isPending ? "Saving…" : "Save changes"}
                 </Button>
-                <Button type="button" variant="secondary" disabled={isPending} onClick={() => setIsEditing(false)} className="w-auto">
+                <Button type="button" variant="secondary" disabled={isPending} onClick={stopEditing} className="w-auto">
                   <X className="h-4 w-4" />
                   Cancel
                 </Button>
               </div>
             </form>
           ) : (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{guide.body}</p>
+            <RichText content={guide.body} className={`mt-3 text-sm text-foreground ${PROSE_CLASS}`} />
           )}
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">

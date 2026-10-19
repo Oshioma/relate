@@ -15,6 +15,7 @@
 
 import type { CorpusImage, CorpusLink, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { HERMETICA_RELATED_IMAGES } from "./hermetica-related-images";
 import { HERMETICA_SECTIONS } from "./hermetica-text";
 
 const PREFIX = "herm.ch";
@@ -250,9 +251,42 @@ const MANUSCRIPTS: CorpusManuscript[] = [
     notes:
       "A Renaissance copy holding Hero of Alexandria's Pneumatica, Corpus Hermeticum I–XIV (ff. 72r–115r) and Ocellus Lucanus. Folios for each treatise are from the BnF catalogue description. Late, and a copy of earlier manuscripts, but fully digitised.",
   },
+  {
+    key: "bnm-gr-z-263",
+    name: "Venice, Biblioteca Nazionale Marciana, Gr. Z. 263 (= 1025)",
+    objectKind: "codex",
+    holdingInstitution: "Biblioteca Nazionale Marciana",
+    accessionNumber: "Gr. Z. 263 (= 1025)",
+    startYear: 1430,
+    endYear: 1470,
+    datePrecision: "decade",
+    isApproximate: true,
+    originalDateText: "mid-fifteenth century",
+    datingEvidence: "As given on Wikimedia Commons with the image of its fol. 42r; not checked against the library's catalogue.",
+    notes: "Owned by Cardinal Bessarion (Commons record). The Poimandres begins at fol. 42r; what else it holds has not been recorded here.",
+  },
 ];
 
 const IMAGES: (CorpusImage & { manuscriptKey?: string; passageKey?: string })[] = [
+  {
+    key: "bnm-gr-z-263-f42r-poimandres-opening",
+    passageKey: "herm.ch.1.1",
+    manuscriptKey: "bnm-gr-z-263",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Poimandres%2C_BNM_Gr._Z._263.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Poimandres,_BNM_Gr._Z._263.jpg",
+    institution: "Biblioteca Nazionale Marciana, Venice",
+    accessionNumber: "Gr. Z. 263 (= 1025), fol. 42r",
+    objectDate: "Mid-fifteenth century",
+    caption:
+      "The beginning of the Poimandres (Corpus Hermeticum I) in Greek, under a red interlace headpiece and the title 'Of Hermes Trismegistus: Poimandres', in a fifteenth-century manuscript once owned by Cardinal Bessarion. The page runs on past §1 into the opening of the vision; manuscript, folio and owner are as the Commons record gives them.",
+    creator: "Unknown scribe",
+    credit: "Biblioteca Nazionale Marciana, via Wikimedia Commons",
+    licence: "Public domain (PD-Art, PD-old-70), with the Italian Ministry of Culture's disclaimer on reuse",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
   {
     key: "laur-71-33-f125v-poimandres-hymn",
     passageKey: "herm.ch.1.31",
@@ -311,6 +345,22 @@ const IMAGES: (CorpusImage & { manuscriptKey?: string; passageKey?: string })[] 
     verificationStatus: "unverified",
   },
   {
+    key: "ficino-pimander-1471-bph",
+    url: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Corpus_Hermeticum.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Corpus_Hermeticum.jpg",
+    institution: "Bibliotheca Philosophica Hermetica, Amsterdam (per the Commons record)",
+    objectDate: "1471",
+    caption:
+      "An open copy of the first printed edition of Ficino's Latin Corpus Hermeticum (the 'Pimander'), Treviso 1471: on the left a printed note naming the scribe-printer Gerardus de Lisa and dated at Treviso 1471, on the right the opening of Ficino's argumentum with an illuminated initial. A translation, not a Greek witness.",
+    creator: "Marsilio Ficino (translation); printed by Gerardus de Lisa",
+    credit: "Bibliotheca Philosophica Hermetica, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100-1923)",
+    licenceStatus: "open",
+    shows: "manuscript",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
     key: "siena-hermes-pavement",
     url: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Hermes_mercurius_trismegistus_siena_cathedral.jpg",
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Hermes_mercurius_trismegistus_siena_cathedral.jpg",
@@ -326,6 +376,7 @@ const IMAGES: (CorpusImage & { manuscriptKey?: string; passageKey?: string })[] 
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...HERMETICA_RELATED_IMAGES,
 ];
 
 const LINKS: CorpusLink[] = [
@@ -425,6 +476,7 @@ function buildPassages(): CorpusPassage[] {
           ]
         : [],
       themes: t.themes.map(([themeKey, note]) => ({ themeKey, note })),
+      images: imagesFor(key),
     });
     if (whole) continue;
 
@@ -460,6 +512,7 @@ function buildPassages(): CorpusPassage[] {
             ? [{ manuscriptKey: "paris-gr-2518", locus: t.paris, variantNote: section === 4 && roman === "II" ? t.parisNote : undefined }]
             : []),
           ...(sectionKey === "herm.ch.1.31" || sectionKey === "herm.ch.1.32" ? [{ manuscriptKey: "laur-plut-71-33", locus: "fol. 125v" }] : []),
+          ...(sectionKey === "herm.ch.1.1" ? [{ manuscriptKey: "bnm-gr-z-263", locus: "fol. 42r" }] : []),
         ],
         images: imagesFor(sectionKey),
       });

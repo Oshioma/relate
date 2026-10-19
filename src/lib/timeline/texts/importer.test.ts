@@ -260,6 +260,18 @@ test("a work imports in chunks, every passage under its parent, and a re-import 
   assert.equal(db.table("timeline_text_layers").length, layers);
 });
 
+test("importing a work the library has not installed yet installs it first", async () => {
+  const db = freshDb();
+  await installLibrary(db as never, COMMUNITY, USER);
+  // As if the work was added to the inventory after the library was installed.
+  const rows = db.table("timeline_text_works");
+  rows.splice(rows.findIndex((w) => w.work_key === "greek.critias"), 1);
+
+  const done = await importAll(db, "greek.critias");
+  assert.equal(done.cursor, ALL_CORPORA.find((f) => f.workKey === "greek.critias")!.passages.length);
+  assert.equal(db.table("timeline_text_works").length, INVENTORY.length);
+});
+
 test("an interrupted import resumes at its cursor", async () => {
   const db = freshDb();
   await installLibrary(db as never, COMMUNITY, USER);

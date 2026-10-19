@@ -2,13 +2,21 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ALL_CORPORA } from "..";
 import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY, plainWordsBasis } from ".";
+import { PLAIN_AMENEMOPE } from "./amenemope";
 import { PLAIN_ASCLEPIUS } from "./asclepius";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./coffin-texts";
 import { PLAIN_CRITIAS } from "./critias";
 import { PLAIN_DOREAL } from "./doreal";
 import { PLAIN_EMERALD_TABLET } from "./emerald-tablet";
+import { PLAIN_GOSPEL_OF_THOMAS } from "./gospel-of-thomas";
+import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_HERMETICA } from "./hermetica";
+import { PLAIN_KAGEMNI } from "./kagemni";
+import { PLAIN_MEMPHITE_THEOLOGY } from "./memphite-theology";
+import { PLAIN_AMDUAT } from "./amduat";
+import { PLAIN_BOOK_OF_GATES } from "./book-of-gates";
+import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_TIMAEUS } from "./timaeus";
 
@@ -16,12 +24,20 @@ const PLAIN: Record<string, Record<string, string>> = {
   "egy.pyramid-texts": PLAIN_PYRAMID_TEXTS,
   "egy.coffin-texts": PLAIN_COFFIN_TEXTS,
   "egy.book-of-the-dead": PLAIN_BOOK_OF_THE_DEAD,
+  "egy.kagemni": PLAIN_KAGEMNI,
+  "egy.ptahhotep": PLAIN_PTAHHOTEP,
+  "egy.amenemope": PLAIN_AMENEMOPE,
+  "egy.memphite-theology": PLAIN_MEMPHITE_THEOLOGY,
+  "egy.amduat": PLAIN_AMDUAT,
+  "egy.book-of-gates": PLAIN_BOOK_OF_GATES,
   "greek.timaeus": PLAIN_TIMAEUS,
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,
   "herm.asclepius": PLAIN_ASCLEPIUS,
+  "gnostic.gospel-of-thomas": PLAIN_GOSPEL_OF_THOMAS,
   "arab.emerald-tablet": PLAIN_EMERALD_TABLET,
   "modern.doreal-emerald-tablets": PLAIN_DOREAL,
+  "modern.hall": PLAIN_HALL,
 };
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
@@ -56,6 +72,22 @@ test("our own translation appears only where there is no English to paraphrase",
   assert.equal(secretum.layers.find((l) => l.layer === "modern_summary")?.key, OUR_TRANSLATION_LAYER_KEY);
   const vulgate = ALL_CORPORA.find((c) => c.workKey === "arab.emerald-tablet")!.passages.find((p) => p.key === "arab.tab.vulgate.01")!;
   assert.equal(vulgate.layers.find((l) => l.layer === "modern_summary")?.key, PLAIN_LAYER_KEY);
+});
+
+test("the Coptic Gospel of Thomas carries our own translation; the Greek papyri a paraphrase of Grenfell and Hunt", () => {
+  const thomas = ALL_CORPORA.find((c) => c.workKey === "gnostic.gospel-of-thomas")!;
+  const summary = (key: string) =>
+    thomas.passages.find((p) => p.key === key)!.layers.find((l) => l.layer === "modern_summary");
+  for (const key of ["gnostic.thom.prologue", "gnostic.thom.1", "gnostic.thom.77", "gnostic.thom.114", "gnostic.thom.title"]) {
+    assert.equal(summary(key)?.key, OUR_TRANSLATION_LAYER_KEY, key);
+  }
+  for (const n of Array.from({ length: 114 }, (_, i) => i + 1)) {
+    assert.ok(PLAIN_GOSPEL_OF_THOMAS[`gnostic.thom.${n}`], `saying ${n} has no translation`);
+  }
+  assert.ok(PLAIN_GOSPEL_OF_THOMAS["gnostic.thom.prologue"]);
+  for (const key of ["gnostic.thom.poxy654.saying-1", "gnostic.thom.poxy1.logion-5", "gnostic.thom.poxy655.lines-41-46"]) {
+    assert.equal(summary(key)?.key, PLAIN_LAYER_KEY, key);
+  }
 });
 
 test("where a passage can be read more than one way, the other readings are listed in one shape", () => {

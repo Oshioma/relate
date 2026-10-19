@@ -36,6 +36,7 @@ import { TIMELINE_WINDOW_CAP } from "@/lib/data/timeline";
 import { TimelineCanvas } from "./timeline-canvas";
 import { CompareLanes } from "./compare-lanes";
 import { TimelineList } from "./timeline-list";
+import { FocusSearch } from "./focus-search";
 import { SpanRuler } from "./span-ruler";
 import { TimelineOverview } from "./timeline-overview";
 import { JumpToDate } from "./jump-to-date";
@@ -82,6 +83,12 @@ import {
   seedSetSutekhDataset,
   seedSacredTreesDataset,
   seedOkomiloDataset,
+  seedMoorsOriginsDataset,
+  seedBeninDeepPastDataset,
+  seedBeninDahomeyDataset,
+  seedBeninVodunDataset,
+  seedBeninAtlanticDataset,
+  seedVodunDiasporaDataset,
   seedSerpentKundaliniDataset,
   seedHorusClaimsDataset,
   checkTimelinePictures,
@@ -324,6 +331,12 @@ export function TimelineView({
   hasSetSutekh,
   hasSacredTrees,
   hasOkomilo,
+  hasMoorsOrigins,
+  hasBeninDeepPast,
+  hasBeninDahomey,
+  hasBeninVodun,
+  hasBeninAtlantic,
+  vodunDiasporaMissing,
   hasSerpentKundalini,
   hasHorusClaims,
   datasetGaps,
@@ -398,6 +411,13 @@ export function TimelineView({
   hasSetSutekh: boolean;
   hasSacredTrees: boolean;
   hasOkomilo: boolean;
+  hasMoorsOrigins: boolean;
+  hasBeninDeepPast: boolean;
+  hasBeninDahomey: boolean;
+  hasBeninVodun: boolean;
+  hasBeninAtlantic: boolean;
+  /** The Vodun expansion's tracks this community does not have yet, in seeding order. */
+  vodunDiasporaMissing: { key: string; label: string }[];
   hasSerpentKundalini: boolean;
   hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
@@ -1141,26 +1161,12 @@ export function TimelineView({
             <label htmlFor="timeline-focus" className="text-sm font-medium text-foreground">
               Show on its own
             </label>
-            <select
+            <FocusSearch
               id="timeline-focus"
+              groups={groups}
               value={current ? encodeFocus(current) : ""}
-              onChange={(event) => void showOnItsOwn(decodeFocus(event.target.value))}
-              className={cn(
-                "min-w-0 max-w-full flex-1 cursor-pointer rounded-full border-0 px-3.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:max-w-md sm:flex-none",
-                current ? "bg-accent-soft font-medium text-accent" : "bg-card text-foreground hover:bg-muted"
-              )}
-            >
-              <option value="">Everything</option>
-              {groups.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              onChange={(value) => void showOnItsOwn(decodeFocus(value))}
+            />
             {current ? (
               <>
                 <button
@@ -2374,6 +2380,236 @@ export function TimelineView({
           })}
         >
           The Okomilo family of Innih, Ogbona, from family testimony back to Sam Ikhenemho Okomilo&apos;s unnamed father — then a record marking where the documented line stops — then the community genealogy and oral tradition of Ogbona and Avhianwu, the competing Ewuare and Ozolua migration dates, Alokoko and the python, and the Kingdom of Benin (Nigeria, not the Republic of Benin) as context.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasMoorsOrigins && (
+        <DatasetOffer
+          title="Add the Origins of the Moors, from Jebel Irhoud to 711?"
+          busyLabel="Adding the records…"
+          label="Add the Origins of the Moors"
+          onAdd={() => new Promise<void>((resolve) => {
+            startSeed(async () => {
+              const result = await seedMoorsOriginsDataset(communitySlug);
+              if (result && "error" in result) setSeedError(result.error);
+              setReloadToken((token) => token + 1);
+              router.refresh();
+              resolve();
+            });
+          })}
+        >
+          The deep human history of North Africa, from the Jebel Irhoud fossils of about 315,000 years ago through Taforalt, the Green Sahara, the Libyans of the Egyptian records, Carthage and the Etruscans, Numidia and Mauretania, the Garamantes and Roman Africa, to Tariq ibn Ziyad&apos;s crossing into Iberia in 711. Nobody before the Latin name Mauri existed is called a Moor; disputed theories sit in their own lane with the case for, the case against and the current scholarly view.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninDeepPast && (
+        <DatasetOffer
+          title="Add Bénin before the kingdoms?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninDeepPastDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">The history of this ground does not begin with Dahomey.</span>
+            <span className="mt-1 block">
+              A settlement of some five hundred hectares stood on the Abomey plateau, working iron, more
+              than two thousand years before anybody built a palace there — and had been abandoned for two
+              millennia before the kingdom arrived.
+            </span>
+          </span>
+          Thirty-two records on the territory of modern Bénin before the kingdoms. THE ENVIRONMENT FIRST:
+          pollen from a lake in the south shows southern Bénin under rainforest until about four and a half
+          thousand years ago — the savanna corridor that now reaches the sea did not exist, and the
+          landscape every later event happens in was made by a climate change nobody recorded. THEN THE
+          ARCHAEOLOGY: Acheulean and Middle Stone Age tools along the Mékrou, mostly undated because most of
+          it was picked up off the ground rather than dug out of a layer — which is the honest headline and
+          has a record of its own. An iron spearhead from Sodohémé reported as the oldest directly dated
+          iron object in Africa, recorded as the large claim it is, next to the argument it belongs in.
+          THEN THE PEOPLES: Tado, the migrations, the three brothers, Nikki and the Kisra legend, Hogbonu,
+          Ganvié — with every traditional date marked as traditional and the method that produced it shown,
+          because multiplying a remembered number of generations by a guessed number of years is how most
+          pre-1500 dates in this region are made. AND ONE RECORD THAT SAVES A LOT OF CONFUSION: the Republic
+          of Bénin is not the Kingdom of Benin, which was in Nigeria.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninDahomey && (
+        <DatasetOffer
+          title="Add Dahomey: the rulers, Abomey, the Agojie and the wars?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninDahomeyDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">
+              &ldquo;A British report alleged that two thousand might be sacrificed&rdquo; and &ldquo;two thousand
+              people were sacrificed&rdquo; are different claims.
+            </span>
+            <span className="mt-1 block">
+              This dataset keeps six kinds of evidence apart — documented practice, eyewitness count,
+              second-hand report, diplomatic allegation, colonial propaganda, modern estimate — and never
+              lets one stand in for another.
+            </span>
+          </span>
+          Forty records. EVERY RULER from Gangnihessou to Agoli-Agbo, with competing reign dates where they
+          exist and with the method that produced each one visible: the early ones are back-counted through
+          a king list and say so. THE FOUNDATION STORY — &ldquo;in Dan&rsquo;s belly&rdquo; — recorded in full as an
+          oral tradition and a contested etymology, not as history. QUEEN HANGBE, whose reign lasted three
+          months or three years depending on the account, with the argument about whether she ruled at all
+          set out and not settled. THE AGOJIE: three competing origin traditions, the corps Ghezo built, the
+          European eyewitnesses who are almost the only description there is, the posters advertising them
+          as an attraction in Frankfurt in 1891, and the 2022 film. ABOMEY: three centuries of palace
+          building, walls that carry history in relief, and a system of royal emblems that stores a claim
+          about each reign in image, object, proverb and ceremony at once. AND THE WARS that ended it, dated
+          from the archive of the army that won them.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninVodun && (
+        <DatasetOffer
+          title="Add Vodun: a religion older than its first written word?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninVodunDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">How old is Vodun? Nobody knows, and this dataset says so.</span>
+            <span className="mt-1 block">
+              The earliest written use of the word <span className="font-medium">vodu</span> found here is 1658,
+              in a Christian catechism made for a mission to Allada. That proves the vocabulary existed then.
+              It proves nothing whatever about when the traditions began — and the figures of several
+              thousand years that circulate have no evidential basis at all.
+            </span>
+          </span>
+          Thirty-five records. THE HERO RECORD is that 1658 catechism, which preserves the earliest trace of
+          a religious vocabulary in a document written to replace it. THE POWERS get individual records —
+          Mawu and Lisa, Legba at the threshold, Dan, Sakpata and the smallpox that ended in 1980 while the
+          cult did not, Heviosso and the Stone Age axes taken for his thunderbolts, Gu and the iron — each
+          with the origin of the DESCRIPTION recorded beside the description, because most of the tidy
+          pantheons in circulation descend from one 1930s ethnography. FA gets its 256 signs, its bokonon and
+          its corpus, plus a record describing it as an oral information-retrieval system that is explicitly
+          labelled A MODERN ANALYTICAL READING rather than anything a practitioner would say. POSSESSION is
+          recorded in three separate layers: what is observed, what practitioners say is happening, and the
+          fact that supernatural causation is not empirically established — all three, none replacing the
+          others. AND THE SERPENT AT OUIDAH, where a Dutch trader described an established python cult two
+          decades before the tradition that explains the temple&rsquo;s founding. WHAT IT REFUSES: any Egyptian
+          derivation, any prehistoric date, the word &ldquo;voodoo&rdquo;, and the very common claim that Vodun
+          is UNESCO-listed. Gèlèdé is. Vodun is not — a nomination was being prepared in 2025–26.
+        </DatasetOffer>
+      )}
+
+      {isStaff && !hasBeninAtlantic && (
+        <DatasetOffer
+          title="Add Ouidah, the Atlantic, colonial rule and modern Bénin?"
+          busyLabel="Adding the records…"
+          label="Add these records"
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                const result = await seedBeninAtlanticDataset(communitySlug);
+                if (result && "error" in result) setSeedError(result.error);
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">A European fort is not evidence of European control.</span>
+            <span className="mt-1 block">
+              The three forts at Ouidah were about a hundred metres square, built of mud by African labour,
+              on land granted by African kings, garrisoned by a few dozen men inside a kingdom that taxed
+              them. That arrangement lasted two centuries. It ended in the 1890s, in four years.
+            </span>
+          </span>
+          Twenty records. OUIDAH as one landscape holding a serpent shrine, a royal administration, three
+          European forts, a Catholic mission and the busiest slaving beach on the coast at the same time —
+          usually written as five separate histories, which is what makes each of them wrong. THE PORTUGUESE
+          FORT was still Portuguese in 1961, when independent Dahomey took it and the occupants are said to
+          have burned it behind them: two hundred and forty years, bracketed at both ends by an African
+          decision. THE NUMBERS for the trade come from a database of documented voyages, and this dataset
+          quotes none from memory, because the difference between a documented figure and a modelled
+          estimate is the thing that always gets lost. THE MEMORIALS on the slave route date from 1992 and
+          the captions say so, because the most photographed object in Ouidah is younger than most people
+          reading about it. THEN the colony, the conscription, independence in 1960, six coups in nine years,
+          a Marxist-Leninist state that attacked traditional religion for the opposite reasons the colonial
+          one had, the National Conference of 1990 that was copied across francophone Africa — and the
+          twenty-six royal treasures that went home in 2021, with the argument about the rest left open.
+        </DatasetOffer>
+      )}
+
+      {isStaff && vodunDiasporaMissing.length > 0 && (
+        <DatasetOffer
+          title="Add the history of Vodun, Vodou and Voodoo, from the Bight of Benin to the Americas?"
+          busyLabel="Adding the six tracks…"
+          label={vodunDiasporaMissing.length === 6 ? "Add all six tracks" : `Add the ${vodunDiasporaMissing.length} missing tracks`}
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                // One track per request, in reading order, so each request
+                // stays small and every cross-link is drawn once both ends exist.
+                for (const track of vodunDiasporaMissing) {
+                  const result = await seedVodunDiasporaDataset(communitySlug, track.key);
+                  if (result && "error" in result) {
+                    setSeedError(`${track.label}: ${result.error}`);
+                    break;
+                  }
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">Haitian Vodou is not West African Vodun in exile, and Louisiana Voodoo is not either.</span>
+            <span className="mt-1 block">
+              Each formed under slavery, from many African traditions and in contact with Catholicism. These
+              tracks follow the gods, the practices and the places across the ocean, and say at every step what
+              the evidence for a connection actually is.
+            </span>
+          </span>
+          Six tracks that carry the Vodun records above across three centuries and two continents: West
+          Africa&apos;s powers, ancestors and knowledge; Vodun and the kingdoms of Allada, Hueda and Dahomey; the
+          Atlantic crossing; Haitian Vodou from Saint-Domingue and Bwa Kayiman to the 2003 recognition;
+          Louisiana Voodoo and Marie Laveau, Lucumí, Candomblé, Tambor de Mina, Winti and Trinidad&apos;s Rada;
+          and practice and perception today, from Ouidah&apos;s festivals to Hollywood. Every date names the kind
+          of evidence it rests on, comparisons keep resemblance apart from descent, and shared tags such as
+          &ldquo;deity: legba&rdquo; let the search follow one god, practice or place through all of them. Add the
+          Bénin datasets first so the links into them are drawn; pictures are copied in afterwards with
+          &ldquo;Bring hotlinked pictures in&rdquo;.
         </DatasetOffer>
       )}
 

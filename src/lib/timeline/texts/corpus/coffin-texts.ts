@@ -20,6 +20,7 @@
 
 import type { CorpusImage, CorpusLayer, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { CT_RELATED_IMAGES } from "./coffin-texts-related-images";
 
 const PREFIX = "egy.ct";
 
@@ -224,9 +225,24 @@ const MANUSCRIPTS: CorpusManuscript[] = [
     originalDateText: "ca. 2000–1950 BC",
     notes: "The museum lists offering formulas and Coffin Texts among its inscriptions.",
   },
+  {
+    key: "coffin-djehutynakht-outer",
+    name: "Outer coffin of the governor Djehutynakht",
+    objectKind: "coffin",
+    findspot: "Deir el-Bersha, tomb 10A",
+    startYear: -2009,
+    endYear: -1960,
+    datePrecision: "decade",
+    isApproximate: true,
+    originalDateText: "late Dynasty 11 – early Dynasty 12, 2010–1961 B.C.",
+    datingEvidence: "As given with the photograph on Wikimedia Commons, which appears to copy the museum's label; not checked against the museum's record.",
+    notes: "One of the cedar coffins from the Bersha tomb of Djehutynakht, the richest single group of Coffin Text witnesses. The Commons record does not name the holding museum, so none is given here.",
+  },
 ];
 
-const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
+type Placed = CorpusImage & { spell?: number; passageKey?: string; manuscriptKey?: string };
+
+const IMAGES: Placed[] = [
   {
     key: "coffin-gua-two-ways",
     spell: 1029,
@@ -296,6 +312,23 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
     verificationStatus: "unverified",
   },
   {
+    key: "coffin-djehutynakht-outer-side",
+    manuscriptKey: "coffin-djehutynakht-outer",
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Outer_Coffin_of_Djehutynakht_1.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Outer_Coffin_of_Djehutynakht_1.jpg",
+    objectDate: "Late Dynasty 11 – early Dynasty 12, 2010–1961 BC",
+    imageDate: "2012",
+    caption:
+      "A long side of the cedar outer coffin of the governor Djehutynakht from Deir el-Bersha, in a museum case: plain planks framed by two horizontal bands of painted hieroglyphs. On coffins of this kind the Coffin Texts are written on the inner faces, which this view does not show; the identification is the photographer's caption.",
+    creator: "Photograph by Marcus Cyron",
+    credit: "Marcus Cyron, via Wikimedia Commons, CC BY 3.0",
+    licence: "CC BY 3.0",
+    licenceStatus: "attribution",
+    shows: "artefact",
+    identificationStatus: "probable",
+    verificationStatus: "unverified",
+  },
+  {
     key: "lacau-1903-coffin-nefri",
     url: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Coffin_Nefri_Wahkare_Lacau.jpg",
     sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Coffin_Nefri_Wahkare_Lacau.jpg",
@@ -315,10 +348,17 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
   },
 ];
 
-function imagesFor(spell: number): CorpusImage[] | undefined {
-  const found = IMAGES.filter((image) => image.spell === spell).map((image) => {
-    const copy: CorpusImage & { spell?: number; manuscriptKey?: string } = { ...image };
+/** The coffin photographs above, then the related objects, scenes and iconography beside them. */
+const ALL_IMAGES: Placed[] = [...IMAGES, ...CT_RELATED_IMAGES];
+
+/** Pictures placed at a spell, or (with `passageKey`) at another passage such as one of Breasted's extracts. */
+function imagesFor(where: { spell: number } | { passageKey: string }): CorpusImage[] | undefined {
+  const found = ALL_IMAGES.filter((image) =>
+    "spell" in where ? image.spell === where.spell : image.passageKey === where.passageKey
+  ).map((image) => {
+    const copy: Placed = { ...image };
     delete copy.spell;
+    delete copy.passageKey;
     delete copy.manuscriptKey;
     return copy;
   });
@@ -351,7 +391,7 @@ function spellPassage(spell: number, parentKey: string): CorpusPassage {
     notes: known?.notes,
     layers,
     themes: known?.themes?.map(([themeKey, note]) => ({ themeKey, note })),
-    images: imagesFor(spell),
+    images: imagesFor({ spell }),
   };
 }
 
@@ -384,6 +424,7 @@ function buildPassages(): CorpusPassage[] {
           notes: "The span usually given for the Book of Two Ways in de Buck's numbering. Coffins carry different versions of it.",
           layers: [],
           themes: [{ themeKey: "underworld", note: "The earliest surviving map of the next world." }],
+          images: imagesFor({ passageKey: `${PREFIX}.two-ways` }),
         });
       }
       const inTwoWays = spell >= TWO_WAYS.first && spell <= TWO_WAYS.last;
@@ -405,8 +446,9 @@ function buildPassages(): CorpusPassage[] {
   });
   for (const [chapter, lacau, page, title, titleIsBreasted, quote, themes] of BREASTED) {
     const text = [titleIsBreasted ? `${title}.` : null, quote].filter(Boolean).join("\n\n");
+    const lacauKey = `${PREFIX}.lacau-${chapter.toLowerCase().replace("–", "-")}`;
     passages.push({
-      key: `${PREFIX}.lacau-${chapter.toLowerCase().replace("–", "-")}`,
+      key: lacauKey,
       parentKey: breastedKey,
       divisionKind: "chapter",
       label: `Lacau ${chapter}: ${title}`,
@@ -435,6 +477,7 @@ function buildPassages(): CorpusPassage[] {
           ]
         : [],
       themes: themes.length > 0 ? themes.map((themeKey) => ({ themeKey, note: `${title}.` })) : undefined,
+      images: imagesFor({ passageKey: lacauKey }),
     });
   }
   for (const other of BREASTED_OTHER) {
@@ -469,9 +512,10 @@ export const COFFIN_TEXTS_CORPUS: TextCorpusFile = {
   revision: "faulkner-ref-2026-10",
   sources: SOURCES,
   manuscripts: MANUSCRIPTS,
-  images: IMAGES.filter((image) => image.spell == null).map((image) => {
-    const copy: CorpusImage & { spell?: number; manuscriptKey?: string } = { ...image };
+  images: ALL_IMAGES.filter((image) => image.spell == null && image.passageKey == null).map((image) => {
+    const copy: Placed = { ...image };
     delete copy.spell;
+    delete copy.passageKey;
     return copy;
   }),
   passages: buildPassages(),
