@@ -7,7 +7,7 @@ import { RichEditor } from "@/components/ui/rich-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Avatar } from "@/components/ui/avatar";
 import { clearFormDraft, readJsonDraft, writeJsonDraft } from "@/lib/use-form-draft";
-import { MAX_POST_TAGS } from "@/lib/post-media";
+import { MAX_POST_TAGS, tagsPlaceholder } from "@/lib/post-media";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "./post-image-picker";
 
 interface NewPostFormProps {
@@ -19,6 +19,8 @@ interface NewPostFormProps {
   crops?: CropPhotoOption[];
   /** The member's own "My Crops" (farm) photos. */
   myCrops?: FarmCropPhotoOption[];
+  /** A growing (farming, gardening…) community: crop-flavoured tags hint. */
+  growing?: boolean;
   /** The current member's avatar, offered as a one-tap photo source. */
   avatarUrl?: string | null;
   authorName?: string | null;
@@ -56,6 +58,7 @@ export function NewPostForm({
   spaceSlug,
   crops = [],
   myCrops = [],
+  growing = false,
   avatarUrl = null,
   authorName = null,
 }: NewPostFormProps) {
@@ -164,7 +167,7 @@ export function NewPostForm({
             <Input
               id="tags"
               name="tags"
-              placeholder="e.g. Chillies, First harvest"
+              placeholder={tagsPlaceholder(growing)}
               value={draft.tags}
               onChange={(e) => update({ tags: e.target.value })}
             />
