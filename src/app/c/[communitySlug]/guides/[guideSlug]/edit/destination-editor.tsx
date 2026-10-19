@@ -17,7 +17,7 @@ import {
   TAG_LABELS,
   TIDE_LABELS,
 } from "@/lib/guides/where-to-stay/labels";
-import { ListEditor, type FieldSpec } from "./list-editor";
+import { EMPTY_PHOTO, ListEditor, PHOTO_FIELDS, type FieldSpec } from "./list-editor";
 import { resetDestination, saveDestination } from "./actions";
 
 export type ListingOption = { value: string; label: string };
@@ -183,17 +183,6 @@ export function DestinationEditor({
     { key: "disclosure", label: "Disclosure (commercial relationship)", type: "text" },
     { key: "verificationNote", label: "Note shown on the card", type: "text", wide: true },
   ];
-  const photoFields: FieldSpec[] = [
-    { key: "src", label: "Image URL", type: "url", wide: true },
-    { key: "alt", label: "Alt text", type: "text", wide: true },
-    { key: "caption", label: "Caption (start with “UNVERIFIED —” if the place isn't confirmed)", type: "textarea", rows: 2 },
-    { key: "credit", label: "Photographer / credit", type: "text" },
-    { key: "licence", label: "Licence", type: "text", placeholder: "CC BY-SA 4.0" },
-    { key: "licenceUrl", label: "Licence URL", type: "url" },
-    { key: "sourceUrl", label: "Source page", type: "url" },
-    { key: "identificationStatus", label: "Identification", type: "select", options: [{ value: "secure", label: "Secure" }, { value: "unverified", label: "Unverified" }] },
-    { key: "width", label: "Original width (px)", type: "number" },
-  ];
 
   const text = (key: keyof EditorState, label: string, rows = 3) => (
     <label className="block">
@@ -303,8 +292,8 @@ export function DestinationEditor({
         title="Photographs (first is the destination hero)"
         items={state.photos as unknown as EditableRow[]}
         onChange={(photos) => change({ photos: photos as unknown as EditorState["photos"] })}
-        fields={photoFields}
-        empty={{ src: "", alt: "", caption: "", credit: "", licence: "", licenceUrl: "", sourceUrl: "", identificationStatus: "secure" }}
+        fields={PHOTO_FIELDS}
+        empty={EMPTY_PHOTO}
         itemLabel={(p) => String(p.caption ?? p.src ?? "")}
       />
       <ListEditor

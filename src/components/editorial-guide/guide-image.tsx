@@ -28,7 +28,13 @@ function commonsThumb(src: string, width: number): string {
   return `${COMMONS_PREFIX}thumb/${rest}/${width}px-${file}`;
 }
 
+// The app's own guide photos ship at two widths, named …-640.webp and
+// …-1280.webp; `src` names the larger.
+const LOCAL_PAIR = /^(\/guides\/.+)-1280\.webp$/;
+
 export function commonsSrcSet(src: string, originalWidth?: number): { src: string; srcSet?: string } {
+  const local = LOCAL_PAIR.exec(src);
+  if (local) return originalWidth && originalWidth <= 640 ? { src } : { src, srcSet: `${local[1]}-640.webp 640w, ${src} ${Math.min(originalWidth ?? 1280, 1280)}w` };
   if (!src.startsWith(COMMONS_PREFIX) || src.includes("/thumb/") || /\.(svg|tiff?)$/i.test(src)) return { src };
   const widths = COMMONS_WIDTHS.filter((w) => !originalWidth || w < originalWidth);
   if (widths.length === 0) return { src };

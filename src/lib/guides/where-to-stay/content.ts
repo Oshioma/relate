@@ -18,8 +18,12 @@ const url = z.string().trim().url().max(2000);
 const optionalUrl = url.nullish().or(z.literal("").transform(() => null));
 const text = (max: number) => z.string().trim().max(max);
 
+// A photo is a full URL, or a path to a file the app itself serves (e.g. a
+// guide's own photos under /guides/…).
+const photoSrc = url.or(z.string().trim().max(500).regex(/^\/[^/\s][^\s]*$/, "Use a full image URL or a path starting with /"));
+
 export const photoSchema = z.object({
-  src: url,
+  src: photoSrc,
   alt: text(300).min(1),
   caption: text(500),
   credit: text(200),
@@ -147,7 +151,10 @@ export function defaultDestination(key: string): Destination | undefined {
 // Lives here rather than beside GuideImage because that file is a client
 // module, whose exports a server page can't call.
 export function guideCardImage(content: unknown): string | null {
-  const hero = resolveGuideContent(parseOverrides(content)).heroPhoto;
+  return cardThumb(resolveGuideContent(parseOverrides(content)).heroPhoto);
+}
+
+export function cardThumb(hero: GuidePhoto | null): string | null {
   if (!hero) return null;
   const prefix = "https://upload.wikimedia.org/wikipedia/commons/";
   if (!hero.src.startsWith(prefix) || hero.src.includes("/thumb/") || /\.(svg|tiff?)$/i.test(hero.src)) return hero.src;

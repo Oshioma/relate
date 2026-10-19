@@ -34,6 +34,8 @@ import { getSpaceLessons, getSavedLessonIds, withSavedState } from "@/lib/data/l
 import { DEFAULT_AGE_BAND } from "@/lib/school/lesson-types";
 import { activityLabelForKind, schoolDefaultAgeBand } from "@/lib/community-templates";
 import { getSpaceGuides } from "@/lib/data/guides";
+import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
+import { editorialGuideEntry } from "@/lib/guides/registry";
 import { getCrops, getCropRegions, getCommunityCropRegions, getCurrentMonthCalendar, getSavedCropIds, getCropSearchIndex, getCropProposals, type MonthCalendarRow } from "@/lib/data/crop-guides";
 import { getMyFarmCrops, getPublicFarmCrops, isFarmBridgeConfigured, type FarmCrop, type PublicFarm } from "@/lib/farm-bridge";
 import { getMyFarmPublic, getPublicFarmers } from "@/lib/data/farm-shares";
@@ -266,6 +268,7 @@ export default async function SpaceDetailPage({
     crops,
     liveSessions,
     meetups,
+    editorialGuideRows,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id, viewerId) : Promise.resolve([]),
@@ -296,7 +299,14 @@ export default async function SpaceDetailPage({
     isCropGuidesSpace || isMyCropsSpace || offerCropTools ? getCrops(supabase) : Promise.resolve([]),
     isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
     isMeetupsSpace ? getSpaceMeetups(supabase, space.id, viewerId) : Promise.resolve([]),
+    // A Guides space also points to the editors' own guides (RLS shows drafts
+    // to staff only).
+    isGuidesSpace ? getCommunityEditorialGuides(supabase, community.id) : Promise.resolve([]),
   ]);
+  const editorialGuides = editorialGuideRows.map((g) => {
+    const entry = editorialGuideEntry(g.slug);
+    return { slug: g.slug, title: g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
+  });
 
   const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);
   // RSVPs for the upcoming (scheduled) sessions, grouped by session for the card.
@@ -786,7 +796,7 @@ export default async function SpaceDetailPage({
           userId={viewerId}
         />
       ) : isGuidesSpace ? (
-        <GuidesView guides={guides} communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} canPost={canPost} />
+        <GuidesView guides={guides} editorialGuides={editorialGuides} communityId={community.id} communitySlug={community.slug} spaceId={space.id} spaceSlug={space.slug} canPost={canPost} />
       ) : isVolunteerHubSpace ? (
         <VolunteerHubView
           projects={volunteerProjects}

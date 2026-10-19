@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug } from "@/lib/data/community";
 import { getCommunitySpaces } from "@/lib/data/spaces";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
-import { parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
+import { editorialGuideEntry } from "@/lib/guides/registry";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -35,16 +35,15 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ co
       ) : (
         <ul className="mt-6 grid gap-5 sm:grid-cols-2">
           {guides.map((guide) => {
-            const hero = guide.slug === WHERE_TO_STAY_SLUG ? resolveGuideContent(parseOverrides(guide.content)).heroPhoto : null;
+            const entry = editorialGuideEntry(guide.slug);
+            const hero = entry ? entry.hero(guide.content) : null;
             return (
               <li key={guide.id}>
                 <Link href={`/c/${community.slug}/guides/${guide.slug}`} className="group block overflow-hidden rounded-xl border border-border bg-card hover:shadow-md">
                   {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
                   <div className="p-4">
                     <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{guide.title}</h2>
-                    {guide.slug === WHERE_TO_STAY_SLUG && (
-                      <p className="mt-1 text-sm text-muted-foreground">Compare Zanzibar&apos;s 14 best beach destinations and find the right one for your holiday.</p>
-                    )}
+                    {entry && <p className="mt-1 text-sm text-muted-foreground">{entry.blurb}</p>}
                     {guide.status === "draft" && <p className="mt-2 text-xs font-medium text-muted-foreground">Draft — visible to staff only</p>}
                     <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent">
                       Read the guide <ArrowRight className="h-4 w-4" aria-hidden />
