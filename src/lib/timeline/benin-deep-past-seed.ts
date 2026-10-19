@@ -1977,7 +1977,7 @@ export const BENIN_DEEP_PAST_EVENTS: SeedEvent[] = [
         startYear: 1882,
         startMonth: 4,
         startDay: 4,
-        datePrecision: "exact_date",
+        datePrecision: "day",
         isApproximate: false,
         temporalClaimType: "explicit_date",
         whatIsDated: "The French protectorate over Porto-Novo under King Toffa",
