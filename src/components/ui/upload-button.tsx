@@ -46,6 +46,33 @@ const KINDS = {
   },
 } as const;
 
+// Checks a file against one of the kinds above; the reason it can't be
+// uploaded, or null if it's fine.
+export function checkMemberFile(file: File, kind: keyof typeof KINDS): string | null {
+  const { types, maxBytes, hint } = KINDS[kind];
+  if (!(types as readonly string[]).includes(file.type)) return `Please choose ${hint}.`;
+  if (file.size > maxBytes) return `That file is too large (max ${Math.round(maxBytes / 1024 / 1024)}MB).`;
+  return null;
+}
+
+// Puts a file in the signed-in member's folder of the 'uploads' bucket and
+// returns its public URL. Throws on failure.
+export async function uploadMemberFile(file: File): Promise<string> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("You need to be signed in.");
+
+  const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").slice(0, 60) || "file";
+  const path = `${user.id}/${crypto.randomUUID()}-${safeName}`;
+
+  const { error: uploadError } = await supabase.storage.from("uploads").upload(path, file, { contentType: file.type });
+  if (uploadError) throw uploadError;
+
+  return supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
+}
+
 // Small self-contained upload button for the general 'uploads' bucket.
 // Resolves the signed-in user itself, so forms don't need to thread a userId
 // down just to attach a file. The uploaded file keeps a readable name after a
@@ -86,23 +113,7 @@ export function UploadButton({
 
     setIsUploading(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("You need to be signed in.");
-
-      const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").slice(0, 60) || "file";
-      const path = `${user.id}/${crypto.randomUUID()}-${safeName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(path, file, { contentType: file.type });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("uploads").getPublicUrl(path);
-      onUploaded(data.publicUrl, { type: file.type, name: file.name });
+      onUploaded(await uploadMemberFile(file), { type: file.type, name: file.name });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {

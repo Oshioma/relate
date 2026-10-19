@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bold, Italic, Heading, List, ListOrdered, Link as LinkIcon, Code, Eye, Pencil } from "lucide-react";
+import { Bold, Italic, Heading, List, ListOrdered, Link as LinkIcon, Code, Eye, Pencil, ImagePlus, Film, MonitorPlay, Loader2 } from "lucide-react";
+import { checkMemberFile, uploadMemberFile } from "./upload-button";
+import { parseVideoLink } from "@/lib/school/video-links";
 import { RichText } from "./rich-text";
 import { PROSE_CLASS } from "@/lib/prose";
 import { cn } from "@/lib/utils";
@@ -55,6 +57,10 @@ const PASTE_KEEP_TAGS = new Set([
 
 function escapeTextForHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escapeAttr(value: string): string {
+  return escapeTextForHtml(value).replace(/"/g, "&quot;");
 }
 
 // Only keep hrefs we'd actually render (mirrors SafeHtml's link policy).
@@ -177,6 +183,7 @@ export function RichEditor({
   placeholder,
   className,
   onChange,
+  allowMedia = false,
 }: {
   name: string;
   defaultValue?: string;
@@ -187,11 +194,21 @@ export function RichEditor({
   /** Called with the current HTML whenever it changes. For callers that build
    *  their own FormData instead of relying on the hidden input. */
   onChange?: (value: string) => void;
+  /** Adds Image, Video and Video-link buttons to the toolbar. Files go to the
+   *  writer's own folder of the 'uploads' bucket. */
+  allowMedia?: boolean;
 }) {
   const [value, setValue] = useState(defaultValue);
   const [mode, setMode] = useState<Mode>("write");
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  // Where the caret was when a media button was pressed: the file dialog takes
+  // focus away, so the picture lands there rather than at the end.
+  const savedRangeRef = useRef<Range | null>(null);
+  const [uploading, setUploading] = useState<"image" | "video" | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -294,6 +311,68 @@ export function RichEditor({
     syncFromEditor();
   }
 
+  function saveCaret() {
+    const selection = window.getSelection();
+    const editor = editorRef.current;
+    savedRangeRef.current =
+      selection && selection.rangeCount > 0 && editor?.contains(selection.anchorNode) ? selection.getRangeAt(0).cloneRange() : null;
+  }
+
+  // Inserts a block of media (with an empty paragraph after it, so typing can
+  // carry on below) where the caret was saved.
+  function insertMedia(html: string) {
+    const selection = window.getSelection();
+    if (savedRangeRef.current && selection) {
+      selection.removeAllRanges();
+      selection.addRange(savedRangeRef.current);
+    }
+    savedRangeRef.current = null;
+    insertHtmlAtCaret(`${html}<p><br></p>`);
+    syncFromEditor();
+  }
+
+  async function handleMediaFile(kind: "image" | "video", event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const invalid = checkMemberFile(file, kind === "image" ? "image" : "media");
+    if (invalid || (kind === "video" && !file.type.startsWith("video/"))) {
+      setMediaError(invalid ?? "Please choose a video (MP4, WebM or MOV).");
+      return;
+    }
+    setMediaError(null);
+    setUploading(kind);
+    try {
+      const url = escapeAttr(await uploadMemberFile(file));
+      insertMedia(kind === "image" ? `<img src="${url}" alt="">` : `<video controls preload="metadata" src="${url}"></video>`);
+    } catch (err) {
+      setMediaError(err instanceof Error ? err.message : "Upload failed. Try again.");
+    } finally {
+      setUploading(null);
+    }
+  }
+
+  // A YouTube or Vimeo link becomes an embedded player; a link to a video file
+  // plays inline; anything else (a TikTok, say, which can't be embedded) is
+  // kept as a plain link so it isn't lost.
+  function insertVideoLink() {
+    saveCaret();
+    const raw = window.prompt("Paste a YouTube or Vimeo link", "https://");
+    if (!raw || raw.trim() === "https://") return;
+    const link = parseVideoLink(raw.trim());
+    const embedHost = link?.embedUrl ? new URL(link.embedUrl).hostname : null;
+    if (link?.embedUrl && embedHost && /(^|\.)(youtube-nocookie\.com|youtube\.com|vimeo\.com)$/.test(embedHost)) {
+      insertMedia(`<iframe src="${escapeAttr(link.embedUrl)}" allowfullscreen></iframe>`);
+    } else if (/^https:\/\/\S+\.(mp4|webm|mov)(\?\S*)?$/i.test(raw.trim())) {
+      insertMedia(`<video controls preload="metadata" src="${escapeAttr(raw.trim())}"></video>`);
+    } else if (/^https?:\/\//i.test(raw.trim())) {
+      const href = escapeAttr(raw.trim());
+      insertMedia(`<p><a href="${href}">${href}</a></p>`);
+    } else {
+      setMediaError("That doesn't look like a link.");
+    }
+  }
+
   function insertLink() {
     const url = window.prompt("Link URL", "https://");
     if (url) exec("createLink", url);
@@ -324,6 +403,37 @@ export function RichEditor({
         <ToolbarButton label="Link" disabled={!inWrite} onClick={insertLink}>
           <LinkIcon className="h-4 w-4" />
         </ToolbarButton>
+
+        {allowMedia && (
+          <>
+            <span className="mx-1 h-4 w-px bg-border" aria-hidden />
+            <ToolbarButton
+              label="Add image"
+              disabled={!inWrite || uploading !== null}
+              onClick={() => {
+                saveCaret();
+                imageInputRef.current?.click();
+              }}
+            >
+              {uploading === "image" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+            </ToolbarButton>
+            <ToolbarButton
+              label="Add video"
+              disabled={!inWrite || uploading !== null}
+              onClick={() => {
+                saveCaret();
+                videoInputRef.current?.click();
+              }}
+            >
+              {uploading === "video" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Film className="h-4 w-4" />}
+            </ToolbarButton>
+            <ToolbarButton label="Add a YouTube or Vimeo video" disabled={!inWrite || uploading !== null} onClick={insertVideoLink}>
+              <MonitorPlay className="h-4 w-4" />
+            </ToolbarButton>
+            <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" data-no-draft onChange={(e) => handleMediaFile("image", e)} />
+            <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" data-no-draft onChange={(e) => handleMediaFile("video", e)} />
+          </>
+        )}
 
         <div className="ml-auto flex items-center gap-0.5">
           <button
@@ -386,6 +496,7 @@ export function RichEditor({
               "[&_h2]:text-base [&_h2]:font-semibold [&_h1]:text-lg [&_h1]:font-semibold",
               "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5",
               "[&_a]:text-accent [&_a]:underline",
+              "[&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-md [&_video]:my-2 [&_video]:max-w-full [&_video]:rounded-md [&_iframe]:my-2 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-md",
               className
             )}
             style={{ minHeight }}
@@ -393,6 +504,7 @@ export function RichEditor({
         </div>
       )}
 
+      {mediaError && <p className="border-t border-border px-3 py-1.5 text-xs text-danger">{mediaError}</p>}
       <input ref={hiddenRef} type="hidden" name={name} value={value} />
     </div>
   );
