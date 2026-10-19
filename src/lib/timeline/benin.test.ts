@@ -26,7 +26,7 @@ import {
   BENIN_ATLANTIC_SOURCES,
 } from "./benin-atlantic-seed";
 import { temporalTypeIsPositioned } from "./taxonomy";
-import { astronomicalFromYearsAgo, BP_REFERENCE_YEAR } from "./time";
+import { astronomicalFromYearsAgo, BP_REFERENCE_YEAR, DATE_UNITS } from "./time";
 import type { SeedEvent, SeedEventLink, SeedSource } from "./seed-types";
 
 const DATASETS: { name: string; events: SeedEvent[]; sources: SeedSource[]; links: SeedEventLink[] }[] = [
@@ -467,5 +467,18 @@ test("pictures of objects held in Paris say when the photograph was taken", () =
       /at the time of the photograph|2021|returned|transferred/i,
       `${event.slug}: a Paris caption must carry the date it was true`
     );
+  }
+});
+
+test("every precision is a unit the database accepts", () => {
+  // Eight records failed to seed on the live site because their claims said
+  // "exact_date", a spelling the claims table's check constraint stopped
+  // accepting before these datasets were written. The seeder records a failed
+  // event and carries on, so nothing said so except a short count.
+  const units = new Set<string>(DATE_UNITS.map((unit) => unit.key));
+  for (const event of ALL) {
+    for (const claim of event.claims) {
+      assert.ok(units.has(claim.datePrecision), `${event.slug}: "${claim.originalDateText}" uses precision "${claim.datePrecision}"`);
+    }
   }
 });
