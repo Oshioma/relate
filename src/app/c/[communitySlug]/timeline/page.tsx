@@ -55,6 +55,7 @@ import { BRUTUS_ALBION_ANCHOR_SLUG } from "@/lib/timeline/brutus-albion-seed";
 import { SACRED_TREES_ANCHOR_SLUG } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_ANCHOR_SLUG } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 import { MOORS_ANCHOR_SLUG } from "@/lib/timeline/moors-origins-seed";
+import { SERPENT_CIVILIZATIONS_ANCHOR_SLUG } from "@/lib/timeline/serpent-civilizations-seed";
 import { BENIN_DEEP_PAST_ANCHOR_SLUG } from "@/lib/timeline/benin-deep-past-seed";
 import { BENIN_DAHOMEY_ANCHOR_SLUG } from "@/lib/timeline/benin-dahomey-seed";
 import { BENIN_VODUN_ANCHOR_SLUG } from "@/lib/timeline/benin-vodun-seed";
@@ -166,6 +167,7 @@ export default async function TimelinePage({
     hasSacredTrees,
     hasOkomilo,
     hasMoorsOrigins,
+    hasSerpentCivilizations,
     hasBeninDeepPast,
     hasBeninDahomey,
     hasBeninVodun,
@@ -234,6 +236,7 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, SACRED_TREES_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, OKOMILO_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, MOORS_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff ? hasTimelineEvent(supabase, community.id, SERPENT_CIVILIZATIONS_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DEEP_PAST_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DAHOMEY_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_VODUN_ANCHOR_SLUG) : Promise.resolve(true),
@@ -332,6 +335,7 @@ export default async function TimelinePage({
         hasSacredTrees={hasSacredTrees}
         hasOkomilo={hasOkomilo}
         hasMoorsOrigins={hasMoorsOrigins}
+        hasSerpentCivilizations={hasSerpentCivilizations}
         hasBeninDeepPast={hasBeninDeepPast}
         hasBeninDahomey={hasBeninDahomey}
         hasBeninVodun={hasBeninVodun}
