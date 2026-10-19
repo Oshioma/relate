@@ -29,6 +29,7 @@ import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
 import { workPath } from "@/lib/timeline/texts/paths";
 import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
+import { PictureComparison } from "./picture-comparison";
 import { deleteTimelineEvent, reviewTimelineEvent, setEventProminence } from "./actions";
 import { PROMINENCE_LABELS, type Prominence } from "@/lib/timeline/prominence";
 import {
@@ -444,6 +445,8 @@ export function EventDetail({
           <RichText content={event.description} />
         </div>
       )}
+
+      <PictureComparison eventSlug={event.slug} media={event.media} />
 
       {/* THE REST OF THE PICTURES.
           The media column has been on this table since the feature shipped and
