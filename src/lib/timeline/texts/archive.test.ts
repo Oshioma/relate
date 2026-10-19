@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -275,6 +276,15 @@ test("Hall's book has its 47 chapters in full, is marked modern, and is linked a
       assert.match(image.caption, /^UNVERIFIED — /, image.key);
       assert.ok(image.whatIsUnverified, image.key);
     }
+  }
+  // Every figure but one (Table VII of the Gichtel tables, which the web
+  // edition does not print) has a picture, and every stored copy is in the repo.
+  const bare = passages.filter((p) => p.divisionKind === "figure" && !p.images?.length).map((p) => p.key);
+  assert.deepEqual(bare, ["modern.hall.32.fig6"]);
+  for (const image of images) {
+    const local = image.url.match(/^https:\/\/relate\.click\/(archive-pictures\/hall\/[\w-]+\.jpg)$/);
+    if (local) assert.ok(existsSync(`public/${local[1]}`), image.key);
+    else assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\//, image.key);
   }
 });
 

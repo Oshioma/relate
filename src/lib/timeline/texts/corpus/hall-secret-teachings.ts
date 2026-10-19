@@ -80,7 +80,7 @@ export function titleCase(text: string): string {
       if (/^([A-Z]\.)+,?$/.test(word)) return word; // R. C., A.D.
       const lower = word.toLowerCase();
       if (i > 0 && SMALL_WORDS.has(lower.replace(/[^a-z]/g, ""))) return lower;
-      return lower.replace(/(^|[-(—"']|--)([a-zæœ])/g, (_, before: string, letter: string) => before + letter.toUpperCase());
+      return lower.replace(/(^'|^|[-(—"]|--)([a-zæœ])/g, (_, before: string, letter: string) => before + letter.toUpperCase());
     })
     .join(" ")
     .replace(/,\s*$/, "");
@@ -587,6 +587,7 @@ function buildPassages(): CorpusPassage[] {
     for (const [, n, page, imageId, title, credit, figureSource, caption] of HALL_FIGURES.filter((f) => f[0] === chapterKey)) {
       const figureKey = `${key}.fig${n}`;
       const content = [credit, caption].filter((s) => s && s.trim()).join("\n\n");
+      const images = imagesFor((image) => image.passageKey === figureKey);
       passages.push({
         key: figureKey,
         parentKey: key,
@@ -597,7 +598,7 @@ function buildPassages(): CorpusPassage[] {
         verificationStatus: "unverified",
         notes:
           figureSource === "ocr"
-            ? "The sacred-texts.com page leaves out this illustration; its title and caption are taken from the archive.org OCR of the same e-text. The picture itself is not reproduced."
+            ? `The sacred-texts.com page leaves out this illustration; its title and caption are taken from the archive.org OCR of the same e-text.${images ? "" : " The picture itself is not reproduced."}`
             : undefined,
         layers: content
           ? [hallLayer(figureSource, content)]
@@ -606,13 +607,13 @@ function buildPassages(): CorpusPassage[] {
                 key: "eng-hall",
                 layer: "primary_text",
                 sourceKey: "hall-secret-teachings",
-                contentAbsentReason: `Hall gives this illustration a title only ("${title}"); there is no caption, and the picture is not reproduced here.`,
+                contentAbsentReason: `Hall gives this illustration a title only ("${title}"); there is no caption${images ? "" : ", and the picture is not reproduced here"}.`,
                 language: "English",
                 licence: "public_domain_us",
                 evidence: evidenceFor(figureSource),
               },
             ],
-        images: imagesFor((image) => image.passageKey === figureKey),
+        images,
       });
     }
   }
