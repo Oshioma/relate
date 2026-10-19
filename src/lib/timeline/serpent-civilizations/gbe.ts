@@ -91,7 +91,7 @@ const sources: SeedSource[] = [
     publishedYear: 1730,
     publishedDisplay: "information of 1715 and 1725; published 1730",
     notes:
-      "Cited for the coronation rite of the Hueda kings as Labat compiled it from Des Marchais's memoirs: the delay controlled by the grandees, the sacrifices ordered in the serpent's name, the royal wives' procession, the Allada grandee who crowned the king and his oath formula, the gifts, the succession rules, and the text's own date (April 1715) for the coronation Des Marchais attended. VIEWPOINT: a Dominican compiler in Paris who never visited Hueda, writing up a French slave-ship captain's notes for a French readership, with frequent sarcasm about the 'Dieu serpent'.",
+      "Cited for the coronation rite of the Hueda kings as Labat compiled it from Des Marchais's memoirs: the delay controlled by the grandees, the sacrifices ordered in the serpent's name, the royal wives' procession, the Allada grandee who crowned the king and his charge of fidelity to the people, the gifts, the succession rules, and the text's own date (April 1715) for the coronation Des Marchais attended. VIEWPOINT: a Dominican compiler in Paris who never visited Hueda, writing up a French slave-ship captain's notes for a French readership, with frequent sarcasm about the 'Dieu serpent'.",
   },
   {
     key: "labat_1724_nouveau_voyage",
@@ -892,7 +892,7 @@ const events: SeedEvent[] = [
     slug: "hueda-coronation-rite-allada-crowner",
     title: "Crowned by a grandee of Allada: the Hueda coronation rite as Labat's text describes it",
     summary:
-      "Labat's text describes a coronation, not just a procession. Grandees chose the date. The serpent's priest dictated the sacrifices. Royal wives carried a clay figure of a seated child. A hereditary Allada noble placed the helmet on the king and made the people swear fidelity. Gifts went out and came back richer. The rite ended at the serpent's house.",
+      "Labat's text describes a coronation, not just a procession. Grandees chose the date. The serpent's priest dictated the sacrifices. Royal wives carried a clay figure of a seated child. A hereditary Allada noble placed the helmet on the king and told the people three times to be faithful to him. Gifts went out and came back richer. The rite ended at the serpent's house.",
     description:
       "WHAT THE EXISTING RECORDS COVER, AND WHAT THEY DO NOT. vodun-diaspora's coronation record covers the processions to the serpent's house. This record covers the CORONATION itself: delay, sacrifice, homage, crowning, oath and gifts, in the order Labat gives (vol. 2, ch. 5, pp. ~59–76, read in this session). It is Labat's compilation from Des Marchais's memoirs, and Labat was never in Hueda.\n\n" +
       "1. DELAY AND DISPUTE. The king is installed in the palace at once, but not crowned for months, often years, up to seven, 'les Grands en reglent le temps selon leurs intérêts particuliers'. Meanwhile government is more in the grandees' hands than the king's, and he may not set foot outside the palace. Succession was itself contested. The heir was the eldest son born AFTER the father's coronation, raised incognito in the province of Zingué; the reigning king was found guarding his foster-father's pigs. Labat adds that the grandees could pass over the eldest 'comme il est arrivé en 1715', and credits the French director Derigouin with putting the younger son on the throne, an intervention he calls unprecedented.\n\n" +
@@ -900,7 +900,7 @@ const events: SeedEvent[] = [
       "3. THE WIVES AND THE CLAY CHILD. Eighteen wives of the third rank came out two by two with the king's flutes, four drums and twenty soldiers, singing. The senior one walked last carrying a terracotta figure 'qui représente grossièrement un enfant assis', which she set down beside the victims.\n\n" +
       "4. HOMAGE, ALLADA AND THE OATH. For fifteen days the grandees prostrated themselves before the empty throne. Then an embassy fetched from Allada ('Ardres') a grandee whose family had the right, 'de tems immémorial', to crown the kings of Juda. He would not enter Savi until assured that Hueda had repaired the main gate of Allada's capital, as old treaties required. After forty days' lodging two leagues off and five days of processions by grandees and people to the serpent's house, the coronation took place at night on the sixth day. The king sat in the 'cour du couronnement' with forty wives at his left and Europeans at his right; two dwarfs praised his predecessor and urged him to surpass him. The Allada grandee lifted the gilded helmet, turned to the people and said three times: 'voilà votre Roi, soyez-lui fidèles, & vos prières seront écoutées du Roi d'Ardres mon maître'.\n\n" +
       "5. GIFTS. The king's regalia belonged by right to the crowner, who settled for a present and fifteen captives. Next day the king sent presents to every grandee, and each returned richer ones, which Labat reads as homage and tribute. Festivities ran fifteen more days and closed with the solemn procession to the serpent's house.\n\n" +
-      "WHAT THE EVIDENCE DOES AND DOES NOT ESTABLISH. It establishes that by 1715–1725 a French account described Hueda kingship as completed in stages: by grandees, by the serpent's priest, by an Allada noble's oath formula, and by gifts. It is the most detailed early description of a Gbe coronation. It does NOT establish that every reign followed this pattern, and its numbers (17 cannon, 40 days, 15 captives) are Labat's from Des Marchais's notes. Nor is it independent of European framing: 'couronnement' and 'casque' are French words for what may have been a different act. Nothing in it resembles Egyptian or Kushite coronation as a sequence; the comparison lane weighs that.",
+      "WHAT THE EVIDENCE DOES AND DOES NOT ESTABLISH. It establishes that by 1715–1725 a French account described Hueda kingship as completed in stages: by grandees, by the serpent's priest, by an Allada noble's charge of fidelity ('soyez-lui fidèles'; no oath sworn by the people is recorded), and by gifts. It is the most detailed early description of a Gbe coronation. It does NOT establish that every reign followed this pattern, and its numbers (17 cannon, 40 days, 15 captives) are Labat's from Des Marchais's notes. Nor is it independent of European framing: 'couronnement' and 'casque' are French words for what may have been a different act. Nothing in it resembles Egyptian or Kushite coronation as a sequence; the comparison lane weighs that.",
     category: "religion",
     subcategory: SUB,
     eventType: "historical",
@@ -1259,14 +1259,14 @@ const events: SeedEvent[] = [
     slug: "agbo-dangbe-hymn-opened-the-eyes",
     title: "'Dagbé opened the eyes': the hymn Agbo printed, its wording and its earliest version",
     summary:
-      "Casimir Agbo's Histoire de Ouidah (1959) is reported to print a Hueda hymn: 'Dagbé wè houn noukoun na mi', 'C'est Dagbé qui a ouvert les yeux à l'homme'. Merlo and Vidaud made 'the black serpent who opened the eyes of man' their title in 1966. Neither text could be read here; the wording, a provisional gloss and the question of Christian influence are set out.",
+      "The text itself, not the comparison: Casimir Agbo's Histoire de Ouidah (1959) is reported to print a Hueda hymn, 'Dagbé wè houn noukoun na mi', 'C'est Dagbé qui a ouvert les yeux à l'homme'. The idea is older in print: the missionary Pierre Bouche heard at Ouidah in 1866–68 that Dan 'opened the eyes' of the first humans (published 1885). Agbo's page could not be read here; the wording, a provisional gloss and the question of Christian influence are set out.",
     description:
       "THE REPORTED TEXT. As given in the research request: Hueda 'Dagbé wè houn noukoun na mi'; Agbo's French 'C'est Dagbé qui a ouvert les yeux à l'homme' ('It is Dagbé who opened man's eyes'). The source is Casimir Agbo, called Alidji, Histoire de Ouidah du XVIe au XXe siècle (Avignon, 1959; about 307–338 pp. depending on edition). The book could NOT be consulted in this session, so neither the wording, its orthography nor the page is verified. NEEDS SOURCE VERIFICATION.\n\n" +
       "A PROVISIONAL WORD-BY-WORD GLOSS. Read as Fon/Gbe in a modern spelling, 'Dagbé wɛ hùn nùkún ná mì': DAGBÉ, the python vodun; WƐ, the focus particle ('it is ... who'); HÙN, 'open'; NÙKÚN, 'eye(s)'; NÁ, 'give / for' (benefactive); MÌ, 'us' (first person plural; in some varieties 'you' plural). Literally: 'It is Dagbé who opened eyes for us.' If that is right, the French 'à l'homme' (to MAN, humanity) is an interpretive widening of 'for us', perhaps 'for us, the Hueda'. Two cautions. HÙN is a homophone in Fon of the words for drum, blood and vodun, so tone and context matter. And this gloss is this record's, not a lexicographer's: it must be checked against Segurola's Dictionnaire fon-français (1963) or a Xweda (Hueda) speaker. NEEDS SOURCE VERIFICATION.\n\n" +
-      "WHAT 'OPENING THE EYES' CAN MEAN. In Gbe usage 'opening the eyes' can mean giving knowledge, making someone wise or alert, and, in ritual, the stage of initiation in which a novice is given sight of things hidden. Which sense the hymn bears is unknown without its context: whether it is sung at the temple, at initiation or at royal rites. Norman (2014), citing Merlo and Vidaud (1966: 66), says that in the oral histories they collected Dangbé 'confers on people the knowledge of good and evil: he “opened their eyes”'. 'Knowledge of good and evil' is already Genesis's phrase. Whether it is the informants' or the authors' cannot be told from here.\n\n" +
-      "THE EARLIEST VERSION FOUND. (1) Agbo, 1959, if the request's citation is right. (2) Merlo and Vidaud, Diogenes, September 1966, whose title is 'The Black Serpent Who Opened the Eyes of Man' (the royal python is brown and gold, not black, so 'black' needs explaining too). (3) Their 600-page typescript Dangbé (1974). Nothing earlier was found. Bosman, Labat, Burton and Herskovits, all read or searched here, do not record it. An oral hymn is of course older than its first printing, but by how much is unknown.\n\n" +
+      "WHAT 'OPENING THE EYES' CAN MEAN. In Gbe usage 'opening the eyes' can mean giving knowledge, making someone wise or alert, and, in ritual, the stage of initiation in which a novice is given sight of things hidden. Which sense the hymn bears is unknown without its context: whether it is sung at the temple, at initiation or at royal rites. Norman (2014), citing Merlo and Vidaud (1966: 66), says that in the oral histories they collected Dangbé 'confers on people the knowledge of good and evil: he “opened their eyes”'. But Merlo and Vidaud's own note 48, read by the rituals lane, says they never heard any mention of good and evil 'as related by the Abbé Bouche', and that Dangbé unseals the eyes with a vegetable medicine. 'Knowledge of good and evil' is Genesis's phrase, and in the record it goes back to Bouche, not to Merlo and Vidaud's informants; Norman's attribution looks mistaken.\n\n" +
+      "THE EARLIEST VERSION FOUND. (1) Abbé Pierre Bouche of the Société des Missions Africaines, at Ouidah from 1866 to 1868, printed in 1885 'l'histoire du serpent, telle que nous l'avons entendu raconter à Wydah': 'Dan ou Danghé (le serpent sacré)' is 'quelque chose comme qui dirait la sagesse incréée'; God made the first man and woman blind, 'Dan leur ouvrit les yeux, et ils virent le bien et le mal' (Sept ans en Afrique occidentale, archive.org full text, checked in review). It is a story, not a hymn text, and Bouche frames it at once through the Ophites and Genesis. (2) Father Kitti (1927) and Agbo in Notes Africaines 31 (1946), as cited by Merlo and Vidaud (see the comparison record genesis-3-and-the-dangbe-hymn). (3) Agbo, 1959, the hymn wording, if the request's citation is right. (4) Merlo and Vidaud, Diogenes, September 1966, whose title is 'The Black Serpent Who Opened the Eyes of Man' (the royal python is brown and gold, not black, so 'black' needs explaining too). (5) Their 600-page typescript Dangbé (1974). Bosman, Labat, Burton and Herskovits, read or searched here, do not record it. An oral hymn is older than its first printing, but by how much is unknown.\n\n" +
       "COULD CHRISTIAN INFLUENCE HAVE SHAPED IT? The question must be asked. Ouidah has had a Catholic mission since 1861; its basilica faces the python temple. Agbo wrote in French for readers who knew Genesis 3:5–7 ('your eyes shall be opened'). Merlo and Vidaud were looking for a 'universal myth of the serpent'. And already before 1698 a Hueda priest's explanation of the serpent cult came to Europe in words that echo the Christian view of the serpent (see the oracle record). None of this shows the hymn is Christian. It shows that the earliest recorded wording and its French gloss passed through minds and readers primed for the Genesis comparison. The comparison itself is in the comparisons lane, which links here.\n\n" +
-      "WHAT THE EVIDENCE DOES AND DOES NOT ESTABLISH. It establishes that by 1959–1966 a Hueda formula linking Dangbé with 'opening the eyes' was in print, and that French writers glossed it as giving knowledge to humanity. It does NOT establish the exact Hueda wording, its date of origin, its ritual context, or any historical connection with Genesis.",
+      "WHAT THE EVIDENCE DOES AND DOES NOT ESTABLISH. It establishes that a story of Dan or Dangbé opening the first humans' eyes was told at Ouidah by 1866–68 (Bouche, printed 1885), that by 1959–1966 a Hueda hymn linking Dagbé with 'opening the eyes' was in print, and that French writers glossed it as giving knowledge to humanity. It does NOT establish the exact Hueda wording, its date of origin, its ritual context, or any historical connection with Genesis.",
     category: "religion",
     subcategory: SUB,
     eventType: "religious_account",
@@ -1321,13 +1321,27 @@ const events: SeedEvent[] = [
         startYear: 1959,
         datePrecision: "year",
         isApproximate: false,
-        temporalClaimType: "date_of_first_known_record",
-        whatIsDated: "The earliest printing of the hymn found (as reported)",
+        temporalClaimType: "explicit_date",
+        whatIsDated: "Agbo's printing of the hymn wording (as reported); the story it voices was printed earlier, by Bouche in 1885",
         originalDateText: "Agbo prints 'Dagbé wè houn noukoun na mi' (1959)",
         datingMethod: "historical_record",
         chronology: "historical",
         evidence:
-          "EVIDENCE TYPE: religious tradition. A devotional formula first printed, as far as is known, in Agbo's 1959 history. The book was not seen here, so even this terminus is NEEDS SOURCE VERIFICATION.",
+          "EVIDENCE TYPE: religious tradition. A devotional formula printed in Agbo's 1959 history (and, as Merlo and Vidaud report, in Notes Africaines 31, 1946). The book was not seen here, so the wording and page are NEEDS SOURCE VERIFICATION.",
+      },
+      {
+        sourceKey: "bouche_1885_cote_des_esclaves",
+        startYear: 1866,
+        endYear: 1868,
+        datePrecision: "year",
+        isApproximate: false,
+        temporalClaimType: "date_of_first_known_record",
+        whatIsDated: "The earliest recorded telling found of Dan or Dangbé opening the first humans' eyes, heard at Ouidah",
+        originalDateText: "Bouche at Wydah, 1866–68: 'Dan leur ouvrit les yeux, et ils virent le bien et le mal'",
+        datingMethod: "historical_record",
+        chronology: "historical",
+        evidence:
+          "EVIDENCE TYPE: contemporary written. A missionary's report, printed in 1885, of a story he heard at Ouidah during his stay of September 1866 to April 1868. It dates the hearing, not the tradition, and it reaches us already framed by Genesis and the Ophites.",
       },
       {
         sourceKey: "merlo_vidaud_1966_black_serpent",
@@ -1356,7 +1370,7 @@ const events: SeedEvent[] = [
         datingMethod: "oral_tradition",
         chronology: "oral_tradition",
         evidence:
-          "EVIDENCE TYPE: oral tradition. A sung formula is older than its first printing, but nothing dates it; it is absent from the eighteenth- and nineteenth-century accounts searched here.",
+          "EVIDENCE TYPE: oral tradition. A sung formula is older than its first printing, but nothing dates it; the eighteenth-century accounts searched here do not record it, and the earliest telling found is Bouche's, heard in 1866–68.",
       },
     ],
     media: [pDangbeXo, pTempleEntrance],
