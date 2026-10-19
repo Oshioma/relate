@@ -26,7 +26,7 @@ export type CommunityLinks = {
   listStay: string | null;
 };
 
-const UPDATE_KIND_LABELS: Record<EditorialGuideUpdate["kind"], string> = {
+export const UPDATE_KIND_LABELS: Record<EditorialGuideUpdate["kind"], string> = {
   restaurant: "Restaurant news",
   beach_access: "Beach access",
   accommodation: "Accommodation",
@@ -36,7 +36,7 @@ const UPDATE_KIND_LABELS: Record<EditorialGuideUpdate["kind"], string> = {
   other: "Local update",
 };
 
-function formatDate(iso: string): string {
+export function formatDate(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 

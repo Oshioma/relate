@@ -15,6 +15,21 @@ export type FieldSpec =
 
 type Row = Record<string, unknown>;
 
+// A guide photograph's fields, shared by every guide's photo lists.
+export const PHOTO_FIELDS: FieldSpec[] = [
+  { key: "src", label: "Image URL", type: "url", wide: true },
+  { key: "alt", label: "Alt text", type: "text", wide: true },
+  { key: "caption", label: "Caption (start with “UNVERIFIED —” if the place isn't confirmed)", type: "textarea", rows: 2 },
+  { key: "credit", label: "Photographer / credit", type: "text" },
+  { key: "licence", label: "Licence", type: "text", placeholder: "CC BY-SA 4.0" },
+  { key: "licenceUrl", label: "Licence URL", type: "url" },
+  { key: "sourceUrl", label: "Source page", type: "url" },
+  { key: "identificationStatus", label: "Identification", type: "select", options: [{ value: "secure", label: "Secure" }, { value: "unverified", label: "Unverified" }] },
+  { key: "width", label: "Original width (px)", type: "number" },
+];
+
+export const EMPTY_PHOTO: Row = { src: "", alt: "", caption: "", credit: "", licence: "", licenceUrl: "", sourceUrl: "", identificationStatus: "secure" };
+
 const inputClass =
   "mt-1 w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 

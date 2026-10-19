@@ -147,7 +147,10 @@ export function defaultDestination(key: string): Destination | undefined {
 // Lives here rather than beside GuideImage because that file is a client
 // module, whose exports a server page can't call.
 export function guideCardImage(content: unknown): string | null {
-  const hero = resolveGuideContent(parseOverrides(content)).heroPhoto;
+  return cardThumb(resolveGuideContent(parseOverrides(content)).heroPhoto);
+}
+
+export function cardThumb(hero: GuidePhoto | null): string | null {
   if (!hero) return null;
   const prefix = "https://upload.wikimedia.org/wikipedia/commons/";
   if (!hero.src.startsWith(prefix) || hero.src.includes("/thumb/") || /\.(svg|tiff?)$/i.test(hero.src)) return hero.src;
