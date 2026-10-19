@@ -13,7 +13,7 @@ import { RichText } from "@/components/ui/rich-text";
 import { MediaAttachment } from "@/components/ui/media-attachment";
 import { formatRelativeTime } from "@/lib/utils";
 import { PostGallery, TagChips } from "@/components/ui/post-gallery";
-import { postGallery } from "@/lib/post-media";
+import { postGallery, tagsPlaceholder } from "@/lib/post-media";
 import { updatePost, deletePost, setPostPinned, togglePostReaction } from "../../actions";
 import { PostImagePicker, type CropPhotoOption, type FarmCropPhotoOption } from "../../post-image-picker";
 import { SMILE_EMOJI, type Reactor } from "@/lib/post-reactions";
@@ -30,6 +30,7 @@ export function PostCard({
   spaceSlug,
   crops = [],
   myCrops = [],
+  growing = false,
   avatarUrl = null,
   reactionCount = 0,
   viewerReacted = false,
@@ -46,6 +47,8 @@ export function PostCard({
   spaceSlug: string;
   crops?: CropPhotoOption[];
   myCrops?: FarmCropPhotoOption[];
+  // A growing (farming, gardening…) community: crop-flavoured tags hint.
+  growing?: boolean;
   avatarUrl?: string | null;
   reactionCount?: number;
   viewerReacted?: boolean;
@@ -148,7 +151,7 @@ export function PostCard({
           </div>
           <div>
             <Label htmlFor="edit_tags">Tags</Label>
-            <Input id="edit_tags" value={tags} onChange={(event) => setTags(event.target.value)} placeholder="e.g. Chillies, First harvest" />
+            <Input id="edit_tags" value={tags} onChange={(event) => setTags(event.target.value)} placeholder={tagsPlaceholder(growing)} />
           </div>
           <div>
             <Label>Photos</Label>

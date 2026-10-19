@@ -7,6 +7,12 @@ export const MAX_EXTRA_PHOTOS = MAX_POST_PHOTOS - 1;
 export const MAX_POST_TAGS = 5;
 const MAX_TAG_LENGTH = 24;
 
+// The tags field's example: crop-flavoured in growing (farming, gardening…)
+// communities, neutral everywhere else.
+export function tagsPlaceholder(growing: boolean): string {
+  return growing ? "e.g. Chillies, First harvest" : "e.g. Update, Question";
+}
+
 const isHttp = (url: string) => /^https?:\/\//i.test(url);
 
 // Extra photos are checked by elimination rather than by extension: a photo

@@ -7,7 +7,7 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { MembersOnlyGate } from "../../members-only-gate";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
-import { getSpaceBySlug } from "@/lib/data/spaces";
+import { getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
 import { getTiersForSpace } from "@/lib/data/tiers";
 import { SpacePaywall } from "./space-paywall";
@@ -251,6 +251,9 @@ export default async function SpaceDetailPage({
     !isBooksMediaSpace &&
     !isArtsBoardSpace &&
     !isGuidedJourneySpace;
+  // The discussion composer's crop photo pickers and crop-flavoured tags hint
+  // belong only in growing communities — not, say, a wellness journal.
+  const offerCropTools = isDiscussionLike && (await isGrowingCommunity(supabase, community));
 
   const [
     membership,
@@ -305,8 +308,8 @@ export default async function SpaceDetailPage({
     isVolunteerHubSpace ? getSpaceVolunteerProjects(supabase, space.id, viewerId) : Promise.resolve([]),
     isCourseSpace ? getSpaceCourses(supabase, space.id, viewerId) : Promise.resolve([]),
     // Crops power the Crop Guides / My Crops views, and also the "choose a
-    // crop photo" picker in the discussion composer.
-    isCropGuidesSpace || isMyCropsSpace || isDiscussionLike ? getCrops(supabase) : Promise.resolve([]),
+    // crop photo" picker in a growing community's discussion composer.
+    isCropGuidesSpace || isMyCropsSpace || offerCropTools ? getCrops(supabase) : Promise.resolve([]),
     isLiveSpace ? getSpaceLiveSessions(supabase, space.id) : Promise.resolve([]),
     isMeetupsSpace ? getSpaceMeetups(supabase, space.id, viewerId) : Promise.resolve([]),
     // A Guides space also points to the editors' own guides (RLS shows drafts
@@ -405,10 +408,10 @@ export default async function SpaceDetailPage({
   // The composer offers the author's own photo as a one-tap image source, so
   // fetch their profile only when they can actually post in a discussion space.
   const posterProfile = isDiscussionLike && canPost && user ? await getProfile(supabase, user.id) : null;
-  // The composer also lets the author pick a photo from their own "My Crops"
-  // (their shamba.online farm). Returns [] fast when the bridge is unconfigured
-  // or the member has no linked farm, so it's cheap to load in every discussion.
-  const posterFarmCrops: FarmCrop[] = isDiscussionLike && canPost && user ? await getMyFarmCrops(user.email) : [];
+  // In a growing community the composer also lets the author pick a photo from
+  // their own "My Crops" (their shamba.online farm). Returns [] fast when the
+  // bridge is unconfigured or the member has no linked farm.
+  const posterFarmCrops: FarmCrop[] = offerCropTools && canPost && user ? await getMyFarmCrops(user.email) : [];
   const isAdmin = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
   // Mirrors is_community_staff() in schema.sql (owner/admin/moderator) — the
   // businesses table lets staff, not just admins, grant verified/featured.
@@ -962,6 +965,7 @@ export default async function SpaceDetailPage({
                 spaceSlug={space.slug}
                 crops={crops}
                 myCrops={posterFarmCrops}
+                growing={offerCropTools}
                 avatarUrl={posterProfile?.avatar_url}
                 authorName={posterProfile?.full_name || posterProfile?.username}
               />
