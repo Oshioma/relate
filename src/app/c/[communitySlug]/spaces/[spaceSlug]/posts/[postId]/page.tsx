@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MembersOnlyGate } from "../../../../members-only-gate";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -26,10 +27,22 @@ export default async function PostDetailPage({
   if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
-  if (!space) notFound();
-
-  const post = await getPostById(supabase, postId);
-  if (!post || post.space_id !== space.id) notFound();
+  const post = space ? await getPostById(supabase, postId) : null;
+  // A members-only space or post resolves to null for a visitor RLS hides it
+  // from — often a member following a notification link on a signed-out
+  // phone. Offer a way in rather than "page not found".
+  if (!space || !post || post.space_id !== space.id) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    if (gateMembership?.status === "banned") notFound();
+    return (
+      <MembersOnlyGate
+        community={community}
+        isLoggedIn={Boolean(user)}
+        membershipStatus={gateMembership?.status ?? null}
+        returnTo={`/c/${community.slug}/spaces/${spaceSlug}/posts/${postId}`}
+      />
+    );
+  }
 
   // Crop photo pickers are only offered in growing communities (farming,
   // gardening…), never in, say, a wellness journal.

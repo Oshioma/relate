@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
@@ -126,7 +126,10 @@ export default async function CommunityLayout({
     // or a bad slug — notFound is the right, non-revealing answer for both.
     // A private community DOES resolve here: the shell renders with only its
     // public spaces in the nav (space RLS), and the members-only feed is gated
-    // in the page below.
+    // in the page below. A signed-out visitor may well be a member of a hidden
+    // community (say, following an email link on their phone), so ask them to
+    // log in rather than showing "page not found".
+    if (!user) redirect(`/login?next=${encodeURIComponent(`/c/${communitySlug}`)}`);
     notFound();
   }
 

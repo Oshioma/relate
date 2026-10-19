@@ -5,6 +5,7 @@ import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTe
 import { createClient } from "@/lib/supabase/server";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
+import { MembersOnlyGate } from "../../members-only-gate";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
@@ -126,8 +127,20 @@ export default async function SpaceDetailPage({
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
   // RLS only returns the space to a guest when it's public; members/private
-  // resolve to null here, so notFound doubles as the access gate.
-  if (!space) notFound();
+  // resolve to null here. That's often a member on a signed-out phone, or
+  // someone sent a link — offer a way in rather than "page not found".
+  if (!space) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    if (gateMembership?.status === "banned") notFound();
+    return (
+      <MembersOnlyGate
+        community={community}
+        isLoggedIn={Boolean(user)}
+        membershipStatus={gateMembership?.status ?? null}
+        returnTo={`/c/${community.slug}/spaces/${spaceSlug}`}
+      />
+    );
+  }
 
   // Gated space gate: a space is gated when it has a per-space price OR belongs
   // to a membership tier. Its content shows only to staff and to members who
