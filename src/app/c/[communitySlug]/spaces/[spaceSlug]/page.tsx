@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
+import { MembersOnlyGate } from "../../members-only-gate";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
@@ -121,19 +122,25 @@ export default async function SpaceDetailPage({
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
-  // RLS hides an invite-only community, and a members/private space, from a
-  // guest, so notFound doubles as the access gate. A signed-out visitor — say,
-  // a member opening an email link on their phone — may well be allowed in,
-  // so ask them to sign in and bring them back, rather than 404.
-  const signInFirst = () => redirect(`/login?next=${encodeURIComponent(`/c/${communitySlug}/spaces/${spaceSlug}`)}`);
-
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community && !user) signInFirst();
   if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
-  if (!space && !user) signInFirst();
-  if (!space) notFound();
+  // RLS only returns the space to a guest when it's public; members/private
+  // resolve to null here. That's often a member on a signed-out phone, or
+  // someone sent a link — offer a way in rather than "page not found".
+  if (!space) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    if (gateMembership?.status === "banned") notFound();
+    return (
+      <MembersOnlyGate
+        community={community}
+        isLoggedIn={Boolean(user)}
+        membershipStatus={gateMembership?.status ?? null}
+        returnTo={`/c/${community.slug}/spaces/${spaceSlug}`}
+      />
+    );
+  }
 
   // Gated space gate: a space is gated when it has a per-space price OR belongs
   // to a membership tier. Its content shows only to staff and to members who

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { MembersOnlyGate } from "../../../../members-only-gate";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -22,22 +23,26 @@ export default async function PostDetailPage({
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
-  // An invite-only community, or a members-only space or post, resolves to
-  // null for a signed-out visitor (RLS), who may well be a member following a
-  // notification link — ask them to sign in and bring them back, rather than 404.
-  const signInFirst = () => redirect(`/login?next=${encodeURIComponent(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`)}`);
-
   const community = await getCommunityBySlug(supabase, communitySlug);
-  if (!community && !user) signInFirst();
   if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
-  if (!space && !user) signInFirst();
-  if (!space) notFound();
-
-  const post = await getPostById(supabase, postId);
-  if (!post && !user) signInFirst();
-  if (!post || post.space_id !== space.id) notFound();
+  const post = space ? await getPostById(supabase, postId) : null;
+  // A members-only space or post resolves to null for a visitor RLS hides it
+  // from — often a member following a notification link on a signed-out
+  // phone. Offer a way in rather than "page not found".
+  if (!space || !post || post.space_id !== space.id) {
+    const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
+    if (gateMembership?.status === "banned") notFound();
+    return (
+      <MembersOnlyGate
+        community={community}
+        isLoggedIn={Boolean(user)}
+        membershipStatus={gateMembership?.status ?? null}
+        returnTo={`/c/${community.slug}/spaces/${spaceSlug}/posts/${postId}`}
+      />
+    );
+  }
 
   const [membership, comments, crops, editorProfile, editorFarmCrops, reactions] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
