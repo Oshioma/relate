@@ -51,3 +51,26 @@ export async function getGrowingJourneySpace(supabase: Client, communityId: stri
   if (error) throw error;
   return data;
 }
+
+// Space types that only make sense where people grow things.
+const GROWING_SPACE_TYPES = ["crop_guides", "my_crops", "plant_scanner", "plant_id"] as const;
+
+// Whether a community is about growing — farming, gardening, allotments — so
+// the post composer should offer the crop photo pickers ("My Crops", "Choose a
+// crop") and a crop-flavoured tags hint. True for the farming template, and for
+// any other community (a gardening club set up as custom, say) that has added
+// one of the growing spaces.
+export async function isGrowingCommunity(
+  supabase: Client,
+  community: { id: string; template_key: string | null }
+): Promise<boolean> {
+  if (community.template_key === "farming") return true;
+  const { count, error } = await supabase
+    .from("spaces")
+    .select("id", { count: "exact", head: true })
+    .eq("community_id", community.id)
+    .in("space_type", [...GROWING_SPACE_TYPES]);
+
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}

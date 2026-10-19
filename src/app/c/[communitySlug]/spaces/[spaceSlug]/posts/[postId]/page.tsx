@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { getSpaceBySlug } from "@/lib/data/spaces";
+import { getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
 import { getPostById, getPostComments, getPostReactionSummary } from "@/lib/data/posts";
 import { getCrops } from "@/lib/data/crop-guides";
 import { getMyFarmCrops } from "@/lib/farm-bridge";
@@ -31,14 +31,18 @@ export default async function PostDetailPage({
   const post = await getPostById(supabase, postId);
   if (!post || post.space_id !== space.id) notFound();
 
+  // Crop photo pickers are only offered in growing communities (farming,
+  // gardening…), never in, say, a wellness journal.
+  const growing = await isGrowingCommunity(supabase, community);
+
   const [membership, comments, crops, editorProfile, editorFarmCrops, reactions] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     getPostComments(supabase, post.id),
     // Powers the "choose a crop" image source when editing the post.
-    getCrops(supabase),
+    growing ? getCrops(supabase) : Promise.resolve([]),
     user ? getProfile(supabase, user.id) : Promise.resolve(null),
     // Powers the "My Crops" image source when editing — the editor's own farm.
-    user ? getMyFarmCrops(user.email) : Promise.resolve([]),
+    growing && user ? getMyFarmCrops(user.email) : Promise.resolve([]),
     getPostReactionSummary(supabase, post.id, user?.id),
   ]);
 
@@ -82,6 +86,7 @@ export default async function PostDetailPage({
           spaceSlug={space.slug}
           crops={crops}
           myCrops={editorFarmCrops}
+          growing={growing}
           avatarUrl={editorProfile?.avatar_url}
           reactionCount={reactions.count}
           viewerReacted={reactions.viewerReacted}
