@@ -30,14 +30,10 @@ import { LinkedText, plainText } from "@/components/editorial-guide/linked-text"
 import { TAG_ICONS } from "@/components/editorial-guide/guide-icons";
 import { summarise } from "@/components/editorial-guide/types";
 import { feedInteractionFor, getFeedInteractions } from "@/lib/data/feed-interactions";
-import {
-  BOUTIQUE_HOTELS_DESCRIPTION,
-  BOUTIQUE_HOTELS_SEO_TITLE,
-  BOUTIQUE_HOTELS_SLUG,
-  parseBoutiqueOverrides,
-  resolveBoutiqueContent,
-} from "@/lib/guides/boutique-hotels/content";
-import { BoutiqueHotelsGuide } from "./boutique-hotels-guide";
+import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { loadHotelGuide } from "@/lib/guides/hotel-guide/content";
+import type { HotelGuideDefinition } from "@/lib/guides/hotel-guide/types";
+import { HotelGuide } from "./hotel-guide";
 
 // /guides/where-to-stay-in-zanzibar on the community's host.
 //
@@ -54,7 +50,8 @@ const DESCRIPTION =
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { communitySlug, guideSlug } = await params;
-  if (guideSlug === BOUTIQUE_HOTELS_SLUG) return boutiqueMetadata(communitySlug);
+  const hotelGuide = hotelGuideFor(guideSlug);
+  if (hotelGuide) return hotelGuideMetadata(communitySlug, hotelGuide);
   if (guideSlug !== WHERE_TO_STAY_SLUG) return {};
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
@@ -88,17 +85,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-async function boutiqueMetadata(communitySlug: string): Promise<Metadata> {
+async function hotelGuideMetadata(communitySlug: string, def: HotelGuideDefinition): Promise<Metadata> {
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
-  const guide = await getEditorialGuide(supabase, community.id, BOUTIQUE_HOTELS_SLUG);
+  const guide = await getEditorialGuide(supabase, community.id, def.slug);
   if (!guide) return {};
-  const { heroPhoto } = resolveBoutiqueContent(parseBoutiqueOverrides(guide.content));
+  const { heroPhoto } = loadHotelGuide(def, guide.content);
   const host = (await headers()).get("host");
-  const { absolute } = guideUrl(host, community.slug, BOUTIQUE_HOTELS_SLUG, communityShareOrigin(community));
-  const title = BOUTIQUE_HOTELS_SEO_TITLE;
-  const description = BOUTIQUE_HOTELS_DESCRIPTION;
+  const { absolute } = guideUrl(host, community.slug, def.slug, communityShareOrigin(community));
+  const title = def.seoTitle;
+  const description = def.description;
   return {
     // absolute: the SEO title is complete on its own, without the site suffix.
     title: { absolute: title },
@@ -129,7 +126,8 @@ function jsonLd(value: unknown) {
 
 export default async function EditorialGuidePage({ params }: { params: Params }) {
   const { communitySlug, guideSlug } = await params;
-  if (guideSlug !== WHERE_TO_STAY_SLUG && guideSlug !== BOUTIQUE_HOTELS_SLUG) notFound();
+  const hotelGuide = hotelGuideFor(guideSlug);
+  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -139,7 +137,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
 
-  if (guide.slug === BOUTIQUE_HOTELS_SLUG) {
+  if (hotelGuide) {
     const [membership, updates, { links }, interactions, viewerProfile] = await Promise.all([
       user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
       getEditorialGuideUpdates(supabase, guide.id),
@@ -151,10 +149,11 @@ export default async function EditorialGuidePage({ params }: { params: Params })
     const { absolute } = guideUrl(host, community.slug, guide.slug, communityShareOrigin(community));
     const today = new Date().toISOString().slice(0, 10);
     return (
-      <BoutiqueHotelsGuide
+      <HotelGuide
+        def={hotelGuide}
         community={community}
         guide={guide}
-        content={resolveBoutiqueContent(parseBoutiqueOverrides(guide.content))}
+        content={loadHotelGuide(hotelGuide, guide.content)}
         updates={updates.filter((u) => !u.expires_on || u.expires_on >= today)}
         pageUrl={absolute}
         canEdit={isCommunityAdmin(community, membership, user?.id)}

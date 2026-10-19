@@ -1,6 +1,8 @@
 import type { GuidePhoto, ListingRef } from "@/lib/guides/where-to-stay/types";
 
-// The shape of "Zanzibar's Best Boutique Hotels & Hidden Gems".
+// The shape of an editorial hotel guide ("Zanzibar's Best Boutique Hotels &
+// Hidden Gems", "Zanzibar's Best Luxury Resorts"). Each guide is one
+// HotelGuideDefinition; the page, admin page and actions are shared.
 //
 // Every hotel separates three kinds of statement so the page can never blur
 // them: the editors' own judgement (positioning, description, best for),
@@ -84,8 +86,54 @@ export type AdviceBlock = { id: string; title: string; paragraphs: string[] };
 
 export type AreaGuide = { name: string; coast: string; summary: string };
 
+export type ItineraryLeg = {
+  nights: string;
+  where: string;
+  focus: string[];
+  body: string;
+  suggestions: string[];
+};
+
+// A suggested trip: two or more legs, why it's split, and alternatives.
+export type HotelGuideItinerary = {
+  title: string;
+  navLabel: string;
+  intro: string;
+  legs: ItineraryLeg[];
+  why: { title: string; body: string } | null;
+  alternatives: { title: string; items: string[] };
+};
+
+// Everything that differs between hotel guides. Copy is plain text; hotel
+// keys referenced by categories and itineraries must exist in the guide.
+export type HotelGuideDefinition = {
+  slug: string;
+  title: string;
+  subtitle: string;
+  seoTitle: string;
+  description: string;
+  // One line for the guides index, feed card and Guides space.
+  cardBlurb: string;
+  heroPhoto: GuidePhoto;
+  introduction: string[];
+  howToRead: { label: string; body: string }[];
+  categories: StayCategory[];
+  categoryCaveat: string;
+  featuredSection: { title: string; blurb: string; navGroup: string };
+  moreSection: { title: string; blurb: string; navLabel: string };
+  travellers: { title: string; source: string; items: TravellerRecommendation[] } | null;
+  bookingAdvice: AdviceBlock[];
+  areas: AreaGuide[];
+  itinerary: HotelGuideItinerary;
+  callToAction: { title: string; navLabel: string; paragraphs: string[]; commentPrompt: string; joinPrompt: string };
+  editorialStandards: string;
+  venuePhotoNote: string;
+  featured: Hotel[];
+  more: Hotel[];
+};
+
 // What admins may override, stored in editorial_guides.content.
-export type BoutiqueOverrides = {
+export type HotelGuideOverrides = {
   heroPhoto?: GuidePhoto | null;
   editorsNote?: string | null;
   // Licensed photos added later (e.g. a hotel's written permission), keyed by

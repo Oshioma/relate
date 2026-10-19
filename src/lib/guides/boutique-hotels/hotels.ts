@@ -1,4 +1,4 @@
-import type { Hotel } from "./types";
+import type { Hotel } from "@/lib/guides/hotel-guide/types";
 import { AREA } from "./photos";
 import { HOTEL_PHOTOS } from "./hotel-photos";
 

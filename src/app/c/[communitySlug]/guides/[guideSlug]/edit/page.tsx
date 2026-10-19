@@ -7,7 +7,8 @@ import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityStaff } from "@/lib/data/community";
 import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "@/lib/data/editorial-guides";
 import { parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
-import { BOUTIQUE_HOTELS_SLUG, parseBoutiqueOverrides, resolveBoutiqueContent } from "@/lib/guides/boutique-hotels/content";
+import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { parseHotelOverrides, resolveHotelGuide } from "@/lib/guides/hotel-guide/content";
 import { cn } from "@/lib/utils";
 import { DestinationEditor } from "./destination-editor";
 import { GuideSettingsForm, GuideUpdatesManager } from "./guide-settings-form";
@@ -28,7 +29,8 @@ export default async function EditGuidePage({
 }) {
   const { communitySlug, guideSlug } = await params;
   const { d } = await searchParams;
-  if (guideSlug !== WHERE_TO_STAY_SLUG && guideSlug !== BOUTIQUE_HOTELS_SLUG) notFound();
+  const hotelGuide = hotelGuideFor(guideSlug);
+  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -43,10 +45,10 @@ export default async function EditGuidePage({
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
 
-  if (guide.slug === BOUTIQUE_HOTELS_SLUG) {
-    const boutique = parseBoutiqueOverrides(guide.content);
-    const { featured, gems } = resolveBoutiqueContent(boutique);
-    const hotels = [...featured, ...gems];
+  if (hotelGuide) {
+    const stored = parseHotelOverrides(hotelGuide, guide.content);
+    const { featured, more } = resolveHotelGuide(hotelGuide, stored);
+    const hotels = [...featured, ...more];
     const hotelUpdates = await getEditorialGuideUpdates(supabase, guide.id);
     const hotel = hotels.find((h) => h.key === d) ?? hotels[0];
     const href = `/c/${community.slug}/guides/${guide.slug}`;
@@ -69,8 +71,8 @@ export default async function EditGuidePage({
                 guideSlug={guide.slug}
                 status={guide.status}
                 lastReviewedOn={guide.last_reviewed_on}
-                editorsNote={boutique.editorsNote ?? ""}
-                heroPhoto={boutique.heroPhoto ?? null}
+                editorsNote={stored.editorsNote ?? ""}
+                heroPhoto={stored.heroPhoto ?? null}
               />
             </div>
           </section>
@@ -106,7 +108,7 @@ export default async function EditGuidePage({
                 >
                   {h.name}
                   {h.photos.length === 0 ? " ○" : ""}
-                  {boutique.hotelPhotos?.[h.key] ? " •" : ""}
+                  {stored.hotelPhotos?.[h.key] ? " •" : ""}
                 </Link>
               ))}
             </nav>
@@ -119,7 +121,7 @@ export default async function EditGuidePage({
                 hotelKey={hotel.key}
                 hotelName={hotel.name}
                 photos={hotel.photos}
-                isOverridden={Boolean(boutique.hotelPhotos?.[hotel.key])}
+                isOverridden={Boolean(stored.hotelPhotos?.[hotel.key])}
               />
             </div>
           </section>

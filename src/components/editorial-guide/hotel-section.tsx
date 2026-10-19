@@ -1,5 +1,5 @@
 import { BadgeCheck, CalendarClock, CircleAlert, ExternalLink, ImageOff, MapPin, UtensilsCrossed, Waves, Compass, Sparkles } from "lucide-react";
-import type { Hotel } from "@/lib/guides/boutique-hotels/types";
+import type { Hotel } from "@/lib/guides/hotel-guide/types";
 import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 import type { EditorialGuideUpdate } from "@/types/database";
 import { ShareMenu } from "@/components/ui/share-menu";
