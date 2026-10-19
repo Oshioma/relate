@@ -96,6 +96,10 @@ async function hotelGuideMetadata(communitySlug: string, def: HotelGuideDefiniti
   const { absolute } = guideUrl(host, community.slug, def.slug, communityShareOrigin(community));
   const title = def.seoTitle;
   const description = def.description;
+  // A relative image path with no metadataBase breaks the build, so a local
+  // hero (/guides/…) is made absolute from the page's own URL, or dropped.
+  const ogSrc = heroPhoto && !/^https?:\/\//i.test(heroPhoto.src) ? (absolute ? new URL(heroPhoto.src, absolute).toString() : null) : heroPhoto?.src ?? null;
+  const ogPhoto = heroPhoto && ogSrc ? { url: ogSrc, alt: heroPhoto.alt } : null;
   return {
     // absolute: the SEO title is complete on its own, without the site suffix.
     title: { absolute: title },
@@ -109,9 +113,9 @@ async function hotelGuideMetadata(communitySlug: string, def: HotelGuideDefiniti
       url: absolute ?? undefined,
       siteName: community.name,
       locale: "en_GB",
-      ...(heroPhoto ? { images: [{ url: heroPhoto.src, alt: heroPhoto.alt }] } : {}),
+      ...(ogPhoto ? { images: [ogPhoto] } : {}),
     },
-    twitter: { card: "summary_large_image", title, description, ...(heroPhoto ? { images: [heroPhoto.src] } : {}) },
+    twitter: { card: "summary_large_image", title, description, ...(ogPhoto ? { images: [ogPhoto.url] } : {}) },
   };
 }
 

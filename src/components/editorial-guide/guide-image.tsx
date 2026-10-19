@@ -65,7 +65,10 @@ export function GuideImage({
   const { src: resolved, srcSet } = commonsSrcSet(src, width);
 
   return (
-    <div className={cn("relative overflow-hidden bg-muted", className)}>
+    // `cn` doesn't merge conflicting classes, so the wrapper is only made
+    // `relative` when the caller hasn't positioned it (a hero passes
+    // `absolute inset-0`; with both, `relative` won and the image had no height).
+    <div className={cn(!/\b(absolute|fixed|sticky)\b/.test(className ?? "") && "relative", "overflow-hidden bg-muted", className)}>
       {failed ? (
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground" aria-hidden>
           <ImageOff className="h-6 w-6" />
