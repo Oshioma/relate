@@ -560,6 +560,90 @@ test("every picture of the Amduat and the Book of Gates is from Commons, and cla
   assert.equal(unverified, UNDERWORLD_UNVERIFIED_IMAGES);
 });
 
+test("Stobaeus's Hermetic excerpts have Mead's 27 in full, and cite the Greek and the modern translations only", () => {
+  const file = assertOpenTextOnly("herm.stobaeus", ["eng-mead"]);
+  const excerpts = file.passages.filter((p) => p.divisionKind === "fragment").map((p) => p.key);
+  assert.deepEqual(excerpts, Array.from({ length: 27 }, (_, i) => `herm.sh.ex${i + 1}`));
+  const work = INVENTORY.find((w) => w.workKey === "herm.stobaeus")!;
+  assert.equal(work.unitDivisionKind, "fragment");
+  // Mead prints 27 of the 29 Stobaean Hermetic excerpts, so the work is partial.
+  assert.equal(work.expectedUnits, 29);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 27, verifiedUnits: 0 }), "verified_against_edition");
+  const withMead = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-mead" && l.content));
+  assert.equal(withMead.length, 164);
+  assert.match(file.passages.find((p) => p.key === "herm.sh.ex1.8")!.layers[0].content!, /^First God; second the Cosmos/);
+  // Mead prints no seventh paragraph in Excerpt III and no 37th in Excerpt XXV.
+  assert.ok(!file.passages.some((p) => p.key === "herm.sh.ex3.7" || p.key === "herm.sh.ex25.37"));
+  for (const excerpt of file.passages.filter((p) => p.divisionKind === "fragment")) {
+    const greek = excerpt.layers.find((l) => l.key === "grc-stobaeus")!;
+    assert.equal(greek.content, undefined, excerpt.key);
+    const cited = excerpt.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key);
+    assert.deepEqual(cited, ["grc-fra-nock-festugiere", "eng-litwa"], excerpt.key);
+  }
+  for (const link of file.links ?? []) {
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.ok(workForPassageKey(link.to), link.key);
+  }
+});
+
+test("the Pistis Sophia has Mead's 148 chapters in full, the scribe's additions apart, and cites MacDermot only", () => {
+  const file = assertOpenTextOnly("gnostic.pistis-sophia", ["eng-mead"]);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter").map((p) => p.key);
+  assert.deepEqual(chapters, Array.from({ length: 148 }, (_, i) => `gnostic.ps.${i + 1}`));
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.pistis-sophia")!;
+  assert.equal(work.expectedUnits, 148);
+  assert.equal(work.unitDivisionKind, "chapter");
+  const withMead = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-mead" && l.content));
+  assert.equal(withMead.length, 174);
+  for (const key of ["gnostic.ps.scribe-note", "gnostic.ps.subscription-1", "gnostic.ps.subscription-2", "gnostic.ps.postscript"]) {
+    assert.ok(withMead.some((p) => p.key === key), key);
+  }
+  assert.match(file.passages.find((p) => p.key === "gnostic.ps.1")!.layers[0].content!, /^IT came to pass, when Jesus had risen/);
+  // A long chapter holds no text itself; its parts do.
+  const split = file.passages.find((p) => p.key === "gnostic.ps.86")!;
+  assert.ok(split.layers.every((l) => l.content == null));
+  assert.deepEqual(
+    file.passages.filter((p) => p.parentKey === "gnostic.ps.86").map((p) => p.key),
+    ["gnostic.ps.86.1", "gnostic.ps.86.2", "gnostic.ps.86.3"],
+  );
+  for (const passage of withMead) {
+    const text = passage.layers.find((l) => l.key === "eng-mead")!.content!;
+    // No side-heading left in the text, and the psalm verses open with Mead's marks.
+    assert.doesNotMatch(text, /www\.globalgrey|Pistis Sophia By G\.R\.S\. Mead|^‘“/m, passage.key);
+  }
+  for (const chapter of file.passages.filter((p) => p.divisionKind === "chapter")) {
+    const cited = chapter.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key);
+    assert.deepEqual(cited, ["eng-macdermot"], chapter.key);
+  }
+  for (const link of file.links ?? []) {
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.ok(workForPassageKey(link.to), link.key);
+  }
+});
+
+test("every picture of Stobaeus and the Pistis Sophia is from Commons, and the unverified ones say so first", () => {
+  const expected: Record<string, number> = { "herm.stobaeus": 1, "gnostic.pistis-sophia": 1 };
+  for (const [workKey, count] of Object.entries(expected)) {
+    const file = corpusFor(workKey)!;
+    const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+    assert.ok(images.length >= 2, workKey);
+    let unverified = 0;
+    for (const image of images) {
+      assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+      assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+      assert.ok(image.licence, image.key);
+      if (image.identificationStatus === "unverified") {
+        unverified++;
+        assert.match(image.caption, /^UNVERIFIED — /, image.key);
+        assert.ok(image.whatIsUnverified, image.key);
+      } else {
+        assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+      }
+    }
+    assert.equal(unverified, count, workKey);
+  }
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);

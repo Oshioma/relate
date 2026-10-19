@@ -20,7 +20,9 @@ import { AMDUAT_CORPUS } from "./amduat";
 import { BOOK_OF_GATES_CORPUS } from "./book-of-gates";
 import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PTAHHOTEP_CORPUS } from "./ptahhotep";
+import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
 import { PYRAMID_TEXTS_CORPUS } from "./pyramid-texts";
+import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
 import { PLAIN_ASCLEPIUS } from "./plain/asclepius";
@@ -36,8 +38,10 @@ import { PLAIN_KAGEMNI } from "./plain/kagemni";
 import { PLAIN_MEMPHITE_THEOLOGY } from "./plain/memphite-theology";
 import { PLAIN_AMDUAT } from "./plain/amduat";
 import { PLAIN_BOOK_OF_GATES } from "./plain/book-of-gates";
+import { PLAIN_PISTIS_SOPHIA } from "./plain/pistis-sophia";
 import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
+import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
 export const ALL_CORPORA: TextCorpusFile[] = [
@@ -54,7 +58,9 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(CRITIAS_CORPUS, PLAIN_CRITIAS),
   withPlainWords(HERMETICA_CORPUS, PLAIN_HERMETICA),
   withPlainWords(ASCLEPIUS_CORPUS, PLAIN_ASCLEPIUS),
+  withPlainWords(STOBAEUS_CORPUS, PLAIN_STOBAEUS),
   withPlainWords(GOSPEL_OF_THOMAS_CORPUS, PLAIN_GOSPEL_OF_THOMAS),
+  withPlainWords(PISTIS_SOPHIA_CORPUS, PLAIN_PISTIS_SOPHIA),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
   withPlainWords(HALL_CORPUS, PLAIN_HALL),

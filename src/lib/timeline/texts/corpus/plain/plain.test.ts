@@ -11,6 +11,8 @@ import { PLAIN_DOREAL } from "./doreal";
 import { PLAIN_EMERALD_TABLET } from "./emerald-tablet";
 import { PLAIN_GOSPEL_OF_THOMAS } from "./gospel-of-thomas";
 import { PLAIN_HALL } from "./hall-secret-teachings";
+import { PLAIN_PISTIS_SOPHIA } from "./pistis-sophia";
+import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
 import { PLAIN_MEMPHITE_THEOLOGY } from "./memphite-theology";
@@ -38,6 +40,8 @@ const PLAIN: Record<string, Record<string, string>> = {
   "arab.emerald-tablet": PLAIN_EMERALD_TABLET,
   "modern.doreal-emerald-tablets": PLAIN_DOREAL,
   "modern.hall": PLAIN_HALL,
+  "herm.stobaeus": PLAIN_STOBAEUS,
+  "gnostic.pistis-sophia": PLAIN_PISTIS_SOPHIA,
 };
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
