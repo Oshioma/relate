@@ -47,6 +47,8 @@ export type Hotel = {
   nearby?: string;
   considerations: string[];
   website: string | null;
+  // Set when `website` is a booking listing rather than the hotel's own site.
+  websiteLabel?: string;
   // A search link, so it can never point at a made-up pin.
   mapsUrl: string;
   // Photos of the hotel itself. Empty when no freely licensed photo exists —

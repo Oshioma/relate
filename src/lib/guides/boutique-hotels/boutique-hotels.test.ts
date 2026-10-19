@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { photoSchema } from "../where-to-stay/content";
 import type { GuidePhoto } from "../where-to-stay/types";
 import { FEATURED_HOTELS, MORE_GEMS } from "./hotels";
@@ -47,8 +49,8 @@ test("every featured hotel has every editorial section the brief asks for", () =
   for (const h of MORE_GEMS) assert.ok(h.description[0].length > 120 && h.food && h.beach && h.considerations.length > 0, `${h.key}: thin entry`);
 });
 
-test("every photo validates, is credited and licensed, and UNVERIFIED captions say so", () => {
-  const all = [BOUTIQUE_HERO_PHOTO, ...ALL_HOTELS.flatMap((h) => [...h.photos, ...h.areaPhotos])];
+test("every Commons photo validates, is credited and licensed, and UNVERIFIED captions say so", () => {
+  const all = [BOUTIQUE_HERO_PHOTO, ...ALL_HOTELS.flatMap((h) => h.areaPhotos)];
   for (const p of all) {
     assert.ok(photoSchema.safeParse(p).success, p.src);
     assert.ok(p.licence && p.credit && p.sourceUrl.startsWith("https://commons.wikimedia.org/"), `${p.src} lacks licence, credit or Commons source`);
@@ -56,6 +58,28 @@ test("every photo validates, is credited and licensed, and UNVERIFIED captions s
     if (p.identificationStatus === "unverified") assert.match(p.caption, /^UNVERIFIED —/, `${p.src} must say UNVERIFIED`);
     else assert.doesNotMatch(p.caption, /^UNVERIFIED/, `${p.src} is secure but captioned UNVERIFIED`);
   }
+});
+
+test("venue photos are the venue's own: on disk at both sizes, credited to it and linked to its own site", () => {
+  let count = 0;
+  for (const h of ALL_HOTELS) {
+    for (const p of h.photos) {
+      count++;
+      assert.ok(photoSchema.safeParse(p).success, p.src);
+      const m = /^\/guides\/boutique-hotels\/(.+)-1280\.webp$/.exec(p.src);
+      assert.ok(m, `${p.src} should be one of the guide's own files`);
+      for (const size of [640, 1280]) assert.ok(existsSync(join("public", "guides", "boutique-hotels", `${m[1]}-${size}.webp`)), `${m[1]}-${size}.webp is missing`);
+      assert.equal(p.licence, "Courtesy of the venue");
+      assert.equal(p.identificationStatus, "secure");
+      const venueWord = h.name.replace(/^The /, "").split(/[\s–-]+/)[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      assert.match(p.credit.normalize("NFD").replace(/[\u0300-\u036f]/g, ""), new RegExp(venueWord, "i"), `${h.key}: credit should name the venue`);
+      if (h.website && !h.websiteLabel) {
+        const host = (u: string) => new URL(u).hostname.replace(/^www\./, "");
+        assert.equal(host(p.sourceUrl), host(h.website), `${h.key}: photo should come from the venue's own site`);
+      }
+    }
+  }
+  assert.ok(count >= 70, `expected the venues' photos, found ${count}`);
 });
 
 test("no hotel borrows a photo: area photos never claim to show the hotel", () => {
@@ -132,7 +156,7 @@ test("admin hotel photos replace the built-in ones; bad or unknown entries are i
   const parsed = parseBoutiqueOverrides({ hotelPhotos: { passion: good, nope: good, amani: [{ src: "not a url" }] }, editorsNote: "Hello" });
   const resolved = resolveBoutiqueContent(parsed);
   assert.deepEqual(resolved.featured.find((h) => h.key === "passion")!.photos, good);
-  assert.equal(resolved.featured.find((h) => h.key === "amani")!.photos.length, 0);
+  assert.deepEqual(resolved.featured.find((h) => h.key === "amani")!.photos, FEATURED_HOTELS.find((h) => h.key === "amani")!.photos, "an invalid override keeps the built-in photos");
   assert.equal(parsed.hotelPhotos?.nope, undefined);
   assert.equal(resolved.editorsNote, "Hello");
   assert.deepEqual(parseBoutiqueOverrides("garbage"), {});

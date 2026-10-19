@@ -14,6 +14,7 @@ import {
   HOW_TO_READ,
   INTRODUCTION,
   ITINERARY,
+  VENUE_PHOTO_NOTE,
 } from "@/lib/guides/boutique-hotels/advice";
 import { TRAVELLER_RECOMMENDATIONS, TRAVELLER_SOURCE } from "@/lib/guides/boutique-hotels/community";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
@@ -72,6 +73,8 @@ export function BoutiqueHotelsGuide({
   const reviewed = formatDate(guide.last_reviewed_on);
   const photos = photoCount(content);
   const withoutPhotos = all.filter((h) => h.photos.length === 0).length;
+  const venuePhotos = new Set(all.flatMap((h) => h.photos.map((p) => p.src))).size;
+  const contactHref = `/c/${community.slug}/contact`;
   const guidePath = `/c/${community.slug}/guides/${guide.slug}`;
 
   const structuredData = [
@@ -205,6 +208,12 @@ export function BoutiqueHotelsGuide({
                   </div>
                 ))}
               </dl>
+              <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">About the photographs.</span> {VENUE_PHOTO_NOTE}{" "}
+                <a href={contactHref} className="font-medium text-accent hover:underline">
+                  Contact {community.name}
+                </a>
+              </p>
             </div>
           </section>
 
@@ -456,8 +465,11 @@ export function BoutiqueHotelsGuide({
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">{EDITORIAL_STANDARDS}</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Photographs ({photos}) come from Wikimedia Commons under the free licences credited beneath each one. We only publish hotel photographs we are licensed to use, so{" "}
-              {withoutPhotos === all.length ? "none of the hotels has its own photograph here yet" : `${withoutPhotos} of the ${all.length} hotels don't yet have one`} — follow each hotel&apos;s website link to see its own photos. Pictures labelled &ldquo;The area, not the hotel&rdquo; show the surrounding beach or village, and captions beginning &ldquo;UNVERIFIED&rdquo; show something relevant whose exact location we could not confirm.
+              This guide has {photos} photographs, {venuePhotos} of them from the venues themselves, each linked to the page it came from. {VENUE_PHOTO_NOTE}{" "}
+              <a href={contactHref} className="font-medium text-accent hover:underline">
+                Contact us
+              </a>
+              . The others come from Wikimedia Commons under the free licences credited beneath each one. Pictures labelled &ldquo;The area, not the hotel&rdquo; show the surrounding beach or village{withoutPhotos > 0 ? `, and stand in for the ${withoutPhotos} venues we don't have photos of yet` : ""}; captions beginning &ldquo;UNVERIFIED&rdquo; show something relevant whose exact location we could not confirm.
             </p>
           </section>
         </div>
