@@ -74,6 +74,7 @@ import { BENIN_DEEP_PAST_EVENTS, BENIN_DEEP_PAST_LINKS, BENIN_DEEP_PAST_SOURCES,
 import { BENIN_DAHOMEY_EVENTS, BENIN_DAHOMEY_LINKS, BENIN_DAHOMEY_SOURCES, BENIN_DAHOMEY_TRACK } from "@/lib/timeline/benin-dahomey-seed";
 import { BENIN_VODUN_EVENTS, BENIN_VODUN_LINKS, BENIN_VODUN_SOURCES, BENIN_VODUN_TRACK } from "@/lib/timeline/benin-vodun-seed";
 import { BENIN_ATLANTIC_EVENTS, BENIN_ATLANTIC_LINKS, BENIN_ATLANTIC_SOURCES, BENIN_ATLANTIC_TRACK } from "@/lib/timeline/benin-atlantic-seed";
+import { VODUN_DIASPORA_DATASETS } from "@/lib/timeline/vodun-diaspora-seed";
 import { PERIODS, PERIOD_LINKS, PERIOD_SOURCES, PERIODS_ANCHOR_SLUG } from "@/lib/timeline/period-seed";
 import { ATLANTIS_EVENTS, ATLANTIS_LINKS, ATLANTIS_SOURCES, ATLANTIS_TRACK } from "@/lib/timeline/atlantis-seed";
 import { LEMURIA_EVENTS, LEMURIA_LINKS, LEMURIA_SOURCES, LEMURIA_TRACK } from "@/lib/timeline/lemuria-seed";
@@ -2108,6 +2109,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Dahomey: rulers, Abomey, the Agojie and the wars", track: BENIN_DAHOMEY_TRACK, events: BENIN_DAHOMEY_EVENTS, sources: BENIN_DAHOMEY_SOURCES, links: BENIN_DAHOMEY_LINKS },
   { label: "Vodun: cosmology, ritual, Fa, and the Atlantic", track: BENIN_VODUN_TRACK, events: BENIN_VODUN_EVENTS, sources: BENIN_VODUN_SOURCES, links: BENIN_VODUN_LINKS },
   { label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin", track: BENIN_ATLANTIC_TRACK, events: BENIN_ATLANTIC_EVENTS, sources: BENIN_ATLANTIC_SOURCES, links: BENIN_ATLANTIC_LINKS },
+  ...VODUN_DIASPORA_DATASETS.map(({ label, track, events, sources, links }) => ({ label, track, events, sources, links })),
   { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
@@ -3602,6 +3604,36 @@ export async function seedBeninAtlanticDataset(communitySlug: string) {
     track: BENIN_ATLANTIC_TRACK,
     links: BENIN_ATLANTIC_LINKS,
     label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin",
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * THE VODUN, VODOU AND VOODOO EXPANSION: six tracks, taken one per call.
+ *
+ * One call per track rather than one for all six, because a hundred and
+ * seventy records with their claims, citations and edges is more than one
+ * request should be asked to carry. The page calls this once for each track
+ * the community does not have yet, in reading order, so every edge is written
+ * as soon as both its ends exist (see vodun-diaspora-seed.ts). Pictures are
+ * copied in afterwards by "Bring hotlinked pictures in".
+ */
+export async function seedVodunDiasporaDataset(communitySlug: string, key: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const dataset = VODUN_DIASPORA_DATASETS.find((candidate) => candidate.key === key);
+  if (!dataset) return { error: "There is no such Vodun track." };
+
+  const result = await seedDataset(supabase, community, userId, {
+    events: dataset.events,
+    sources: dataset.sources,
+    track: dataset.track,
+    links: dataset.links,
+    label: dataset.label,
+    copyPicturesLater: true,
   });
   revalidatePath(timelinePath(community.slug));
   return result;

@@ -59,6 +59,7 @@ import { BENIN_DEEP_PAST_ANCHOR_SLUG } from "@/lib/timeline/benin-deep-past-seed
 import { BENIN_DAHOMEY_ANCHOR_SLUG } from "@/lib/timeline/benin-dahomey-seed";
 import { BENIN_VODUN_ANCHOR_SLUG } from "@/lib/timeline/benin-vodun-seed";
 import { BENIN_ATLANTIC_ANCHOR_SLUG } from "@/lib/timeline/benin-atlantic-seed";
+import { VODUN_DIASPORA_DATASETS } from "@/lib/timeline/vodun-diaspora-seed";
 import { SERPENT_KUNDALINI_ANCHOR_SLUG } from "@/lib/timeline/serpent-kundalini-seed";
 import { HORUS_CLAIMS_ANCHOR_SLUG } from "@/lib/timeline/horus-claims-seed";
 import { SET_SUTEKH_ANCHOR_SLUG } from "@/lib/timeline/set-sutekh-seed";
@@ -169,6 +170,7 @@ export default async function TimelinePage({
     hasBeninDahomey,
     hasBeninVodun,
     hasBeninAtlantic,
+    vodunDiasporaPresent,
     hasSerpentKundalini,
     hasHorusClaims,
     hannibalNeedsPictures,
@@ -236,6 +238,9 @@ export default async function TimelinePage({
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_DAHOMEY_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_VODUN_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, BENIN_ATLANTIC_ANCHOR_SLUG) : Promise.resolve(true),
+    isStaff
+      ? Promise.all(VODUN_DIASPORA_DATASETS.map((dataset) => hasTimelineEvent(supabase, community.id, dataset.anchorSlug)))
+      : Promise.resolve(VODUN_DIASPORA_DATASETS.map(() => true)),
     isStaff ? hasTimelineEvent(supabase, community.id, SERPENT_KUNDALINI_ANCHOR_SLUG) : Promise.resolve(true),
     isStaff ? hasTimelineEvent(supabase, community.id, HORUS_CLAIMS_ANCHOR_SLUG) : Promise.resolve(true),
     // Its events may be here from before it had pictures. Staff only: nobody
@@ -331,6 +336,7 @@ export default async function TimelinePage({
         hasBeninDahomey={hasBeninDahomey}
         hasBeninVodun={hasBeninVodun}
         hasBeninAtlantic={hasBeninAtlantic}
+        vodunDiasporaMissing={VODUN_DIASPORA_DATASETS.filter((_, index) => !vodunDiasporaPresent[index]).map((dataset) => ({ key: dataset.key, label: dataset.label }))}
         hasSerpentKundalini={hasSerpentKundalini}
         hasHorusClaims={hasHorusClaims}
         hannibalNeedsPictures={hannibalNeedsPictures}
