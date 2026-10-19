@@ -40,7 +40,7 @@ function NoHotelPhotoNote({ hotel }: { hotel: Hotel }) {
           <>
             {" "}
             <a href={hotel.website} target="_blank" rel="noopener noreferrer" className="font-medium text-accent hover:underline">
-              See the hotel&apos;s own photos
+              {hotel.websiteLabel ? "See photos on its listing" : "See the hotel's own photos"}
             </a>
             .
           </>
@@ -136,7 +136,7 @@ function AtAGlance({ hotel }: { hotel: Hotel }) {
       <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
         {hotel.website && (
           <a href={hotel.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
-            <ExternalLink className="h-4 w-4" aria-hidden /> Official website
+            <ExternalLink className="h-4 w-4" aria-hidden /> {hotel.websiteLabel ?? "Official website"}
           </a>
         )}
         <a href={hotel.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
