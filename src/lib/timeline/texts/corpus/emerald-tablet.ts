@@ -18,6 +18,7 @@
 import type { SeedSource } from "../../seed-types";
 import type { CorpusImage, CorpusLayer, CorpusLink, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { EMERALD_TABLET_RELATED_IMAGES } from "./emerald-tablet-related-images";
 
 const SOURCES: SeedSource[] = [
   ...INVENTORY_SOURCES.filter((s) => ["ruska-tabula", "holmyard-1923", "steele-secretum"].includes(s.key)),
@@ -309,6 +310,7 @@ const IMAGES: Placed[] = [
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...EMERALD_TABLET_RELATED_IMAGES,
 ];
 
 function imagesFor(passageKey: string): CorpusImage[] | undefined {
