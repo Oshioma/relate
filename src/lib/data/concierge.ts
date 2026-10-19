@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { formatDate } from "@/lib/utils";
+import { toPlainText } from "@/components/ui/rich-text";
 
 type Client = SupabaseClient<Database>;
 
@@ -223,7 +224,7 @@ export async function searchCommunity(supabase: Client, communityId: string, com
       type: "guide",
       id: g.id,
       title: g.title,
-      snippet: truncate(g.body),
+      snippet: truncate(toPlainText(g.body)),
       extra: null,
       href: `${base}/spaces/${g.space?.slug ?? ""}/guides/${g.id}`,
     }));
