@@ -20,9 +20,11 @@ import { buildOutline, readingOrder, type OutlineNode } from "@/lib/timeline/tex
 import { divisionKindLabel, passageVerificationLabel } from "@/lib/timeline/texts/taxonomy";
 import { CompletenessBadge, FiveDates, ImageFigure, TraditionBadge } from "../archive-ui";
 import { TextsNav } from "../texts-nav";
+import { InlinePassageRow } from "./inline-passage";
 
 // ONE TEXT: what it is, its five kinds of date, its witnesses, and its whole
-// table of contents. The text itself is read a passage at a time.
+// table of contents. A passage opens in place under its line in the contents;
+// its own page is a link away.
 
 type Params = { communitySlug: string; workKey: string };
 
@@ -191,16 +193,16 @@ function Outline({
               </div>
             </details>
           ) : (
-            <Link
+            <InlinePassageRow
+              communitySlug={communitySlug}
+              passageKey={node.passage_key!}
               href={passagePath(communitySlug, workKey, node.passage_key!)}
-              className="block rounded-md px-2 py-1 text-sm hover:bg-muted"
-            >
-              <span className="text-foreground">{node.label}</span>
-              {node.summary && <span className="block text-xs text-muted-foreground">{node.summary}</span>}
-              {node.verification_status === "unverified" && (
-                <span className="text-[11px] text-muted-foreground"> · {passageVerificationLabel(node.verification_status)}</span>
-              )}
-            </Link>
+              label={node.label}
+              summary={node.summary}
+              unverifiedLabel={
+                node.verification_status === "unverified" ? passageVerificationLabel(node.verification_status) ?? null : null
+              }
+            />
           )}
         </li>
       ))}
