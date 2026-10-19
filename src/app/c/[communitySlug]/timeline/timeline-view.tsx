@@ -88,6 +88,7 @@ import {
   seedBeninDahomeyDataset,
   seedBeninVodunDataset,
   seedBeninAtlanticDataset,
+  seedVodunDiasporaDataset,
   seedSerpentKundaliniDataset,
   seedHorusClaimsDataset,
   checkTimelinePictures,
@@ -335,6 +336,7 @@ export function TimelineView({
   hasBeninDahomey,
   hasBeninVodun,
   hasBeninAtlantic,
+  vodunDiasporaMissing,
   hasSerpentKundalini,
   hasHorusClaims,
   datasetGaps,
@@ -414,6 +416,8 @@ export function TimelineView({
   hasBeninDahomey: boolean;
   hasBeninVodun: boolean;
   hasBeninAtlantic: boolean;
+  /** The Vodun expansion's tracks this community does not have yet, in seeding order. */
+  vodunDiasporaMissing: { key: string; label: string }[];
   hasSerpentKundalini: boolean;
   hasHorusClaims: boolean;
   /** Seeded datasets this community has only part of — label, how many, of how many. */
@@ -2562,6 +2566,50 @@ export function TimelineView({
           a Marxist-Leninist state that attacked traditional religion for the opposite reasons the colonial
           one had, the National Conference of 1990 that was copied across francophone Africa — and the
           twenty-six royal treasures that went home in 2021, with the argument about the rest left open.
+        </DatasetOffer>
+      )}
+
+      {isStaff && vodunDiasporaMissing.length > 0 && (
+        <DatasetOffer
+          title="Add the history of Vodun, Vodou and Voodoo, from the Bight of Benin to the Americas?"
+          busyLabel="Adding the six tracks…"
+          label={vodunDiasporaMissing.length === 6 ? "Add all six tracks" : `Add the ${vodunDiasporaMissing.length} missing tracks`}
+          onAdd={() =>
+            new Promise<void>((resolve) => {
+              startSeed(async () => {
+                // One track per request, in reading order, so each request
+                // stays small and every cross-link is drawn once both ends exist.
+                for (const track of vodunDiasporaMissing) {
+                  const result = await seedVodunDiasporaDataset(communitySlug, track.key);
+                  if (result && "error" in result) {
+                    setSeedError(`${track.label}: ${result.error}`);
+                    break;
+                  }
+                }
+                setReloadToken((token) => token + 1);
+                router.refresh();
+                resolve();
+              });
+            })
+          }
+        >
+          <span className="mb-3 block rounded-lg border-l-4 border-l-accent bg-accent-soft/40 p-3 text-foreground">
+            <span className="block font-semibold">Haitian Vodou is not West African Vodun in exile, and Louisiana Voodoo is not either.</span>
+            <span className="mt-1 block">
+              Each formed under slavery, from many African traditions and in contact with Catholicism. These
+              tracks follow the gods, the practices and the places across the ocean, and say at every step what
+              the evidence for a connection actually is.
+            </span>
+          </span>
+          Six tracks that carry the Vodun records above across three centuries and two continents: West
+          Africa&apos;s powers, ancestors and knowledge; Vodun and the kingdoms of Allada, Hueda and Dahomey; the
+          Atlantic crossing; Haitian Vodou from Saint-Domingue and Bwa Kayiman to the 2003 recognition;
+          Louisiana Voodoo and Marie Laveau, Lucumí, Candomblé, Tambor de Mina, Winti and Trinidad&apos;s Rada;
+          and practice and perception today, from Ouidah&apos;s festivals to Hollywood. Every date names the kind
+          of evidence it rests on, comparisons keep resemblance apart from descent, and shared tags such as
+          &ldquo;deity: legba&rdquo; let the search follow one god, practice or place through all of them. Add the
+          Bénin datasets first so the links into them are drawn; pictures are copied in afterwards with
+          &ldquo;Bring hotlinked pictures in&rdquo;.
         </DatasetOffer>
       )}
 

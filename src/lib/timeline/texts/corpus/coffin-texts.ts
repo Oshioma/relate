@@ -20,6 +20,7 @@
 
 import type { CorpusImage, CorpusLayer, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { CT_RELATED_IMAGES } from "./coffin-texts-related-images";
 
 const PREFIX = "egy.ct";
 
@@ -239,7 +240,9 @@ const MANUSCRIPTS: CorpusManuscript[] = [
   },
 ];
 
-const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
+type Placed = CorpusImage & { spell?: number; passageKey?: string; manuscriptKey?: string };
+
+const IMAGES: Placed[] = [
   {
     key: "coffin-gua-two-ways",
     spell: 1029,
@@ -345,10 +348,17 @@ const IMAGES: (CorpusImage & { spell?: number; manuscriptKey?: string })[] = [
   },
 ];
 
-function imagesFor(spell: number): CorpusImage[] | undefined {
-  const found = IMAGES.filter((image) => image.spell === spell).map((image) => {
-    const copy: CorpusImage & { spell?: number; manuscriptKey?: string } = { ...image };
+/** The coffin photographs above, then the related objects, scenes and iconography beside them. */
+const ALL_IMAGES: Placed[] = [...IMAGES, ...CT_RELATED_IMAGES];
+
+/** Pictures placed at a spell, or (with `passageKey`) at another passage such as one of Breasted's extracts. */
+function imagesFor(where: { spell: number } | { passageKey: string }): CorpusImage[] | undefined {
+  const found = ALL_IMAGES.filter((image) =>
+    "spell" in where ? image.spell === where.spell : image.passageKey === where.passageKey
+  ).map((image) => {
+    const copy: Placed = { ...image };
     delete copy.spell;
+    delete copy.passageKey;
     delete copy.manuscriptKey;
     return copy;
   });
@@ -381,7 +391,7 @@ function spellPassage(spell: number, parentKey: string): CorpusPassage {
     notes: known?.notes,
     layers,
     themes: known?.themes?.map(([themeKey, note]) => ({ themeKey, note })),
-    images: imagesFor(spell),
+    images: imagesFor({ spell }),
   };
 }
 
@@ -414,6 +424,7 @@ function buildPassages(): CorpusPassage[] {
           notes: "The span usually given for the Book of Two Ways in de Buck's numbering. Coffins carry different versions of it.",
           layers: [],
           themes: [{ themeKey: "underworld", note: "The earliest surviving map of the next world." }],
+          images: imagesFor({ passageKey: `${PREFIX}.two-ways` }),
         });
       }
       const inTwoWays = spell >= TWO_WAYS.first && spell <= TWO_WAYS.last;
@@ -435,8 +446,9 @@ function buildPassages(): CorpusPassage[] {
   });
   for (const [chapter, lacau, page, title, titleIsBreasted, quote, themes] of BREASTED) {
     const text = [titleIsBreasted ? `${title}.` : null, quote].filter(Boolean).join("\n\n");
+    const lacauKey = `${PREFIX}.lacau-${chapter.toLowerCase().replace("–", "-")}`;
     passages.push({
-      key: `${PREFIX}.lacau-${chapter.toLowerCase().replace("–", "-")}`,
+      key: lacauKey,
       parentKey: breastedKey,
       divisionKind: "chapter",
       label: `Lacau ${chapter}: ${title}`,
@@ -465,6 +477,7 @@ function buildPassages(): CorpusPassage[] {
           ]
         : [],
       themes: themes.length > 0 ? themes.map((themeKey) => ({ themeKey, note: `${title}.` })) : undefined,
+      images: imagesFor({ passageKey: lacauKey }),
     });
   }
   for (const other of BREASTED_OTHER) {
@@ -499,9 +512,10 @@ export const COFFIN_TEXTS_CORPUS: TextCorpusFile = {
   revision: "faulkner-ref-2026-10",
   sources: SOURCES,
   manuscripts: MANUSCRIPTS,
-  images: IMAGES.filter((image) => image.spell == null).map((image) => {
-    const copy: CorpusImage & { spell?: number; manuscriptKey?: string } = { ...image };
+  images: ALL_IMAGES.filter((image) => image.spell == null && image.passageKey == null).map((image) => {
+    const copy: Placed = { ...image };
     delete copy.spell;
+    delete copy.passageKey;
     return copy;
   }),
   passages: buildPassages(),

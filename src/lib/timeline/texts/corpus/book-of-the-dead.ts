@@ -21,6 +21,7 @@
 import type { CorpusImage, CorpusLayer, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
 import { BD_ANI, BD_RENUMBERED, BD_TEXT, BD_THEBAN } from "./book-of-the-dead-text";
+import { BD_RELATED_IMAGES } from "./book-of-the-dead-related-images";
 
 const PREFIX = "egy.bd";
 
@@ -285,8 +286,11 @@ const IMAGES: Placed[] = [
   },
 ];
 
+/** The manuscript photographs above, then the vignettes, objects and places beside them. */
+const ALL_IMAGES: Placed[] = [...IMAGES, ...BD_RELATED_IMAGES];
+
 function imagesFor(chapter: string): CorpusImage[] | undefined {
-  const found = IMAGES.filter((image) => image.chapter === chapter).map((image) => {
+  const found = ALL_IMAGES.filter((image) => image.chapter === chapter).map((image) => {
     const copy: Placed = { ...image };
     delete copy.chapter;
     delete copy.manuscriptKey;
@@ -463,7 +467,7 @@ export const BOOK_OF_THE_DEAD_CORPUS: TextCorpusFile = {
   revision: "budge-ani-2026-10",
   sources: SOURCES,
   manuscripts: MANUSCRIPTS,
-  images: IMAGES.filter((image) => image.chapter == null).map((image) => {
+  images: ALL_IMAGES.filter((image) => image.chapter == null).map((image) => {
     const copy: Placed = { ...image };
     delete copy.chapter;
     return copy;

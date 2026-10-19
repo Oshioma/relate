@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ALL_CORPORA } from "..";
 import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY, plainWordsBasis } from ".";
+import { PLAIN_AMENEMOPE } from "./amenemope";
 import { PLAIN_ASCLEPIUS } from "./asclepius";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./coffin-texts";
@@ -11,6 +12,9 @@ import { PLAIN_EMERALD_TABLET } from "./emerald-tablet";
 import { PLAIN_GOSPEL_OF_THOMAS } from "./gospel-of-thomas";
 import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_HERMETICA } from "./hermetica";
+import { PLAIN_KAGEMNI } from "./kagemni";
+import { PLAIN_MEMPHITE_THEOLOGY } from "./memphite-theology";
+import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_TIMAEUS } from "./timaeus";
 
@@ -18,6 +22,10 @@ const PLAIN: Record<string, Record<string, string>> = {
   "egy.pyramid-texts": PLAIN_PYRAMID_TEXTS,
   "egy.coffin-texts": PLAIN_COFFIN_TEXTS,
   "egy.book-of-the-dead": PLAIN_BOOK_OF_THE_DEAD,
+  "egy.kagemni": PLAIN_KAGEMNI,
+  "egy.ptahhotep": PLAIN_PTAHHOTEP,
+  "egy.amenemope": PLAIN_AMENEMOPE,
+  "egy.memphite-theology": PLAIN_MEMPHITE_THEOLOGY,
   "greek.timaeus": PLAIN_TIMAEUS,
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,

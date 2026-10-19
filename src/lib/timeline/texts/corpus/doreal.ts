@@ -9,10 +9,14 @@
 //
 // This book is not the historical Emerald Tablet (arab.emerald-tablet). It
 // borrows the name. No physical tablets have ever been produced, so there are
-// no images of "the tablets", and none may be added as if there were.
+// no images of "the tablets", and none may be added as if there were. The
+// pictures the work carries (doreal-related-images.ts) are context only —
+// places and older maps the book draws on — never Doreal's own illustrations,
+// which are in copyright, and never on a tablet as if they showed it.
 
 import type { CorpusLink, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { DOREAL_RELATED_IMAGES } from "./doreal-related-images";
 
 // [title, summary written for this archive, quotation]. The quotations are
 // short passages chosen to show what each tablet actually says, checked word
@@ -212,6 +216,7 @@ export const DOREAL_CORPUS: TextCorpusFile = {
   workKey: "modern.doreal-emerald-tablets",
   revision: "2026-10-17-quotes",
   sources: INVENTORY_SOURCES.filter((s) => s.key === "doreal-tablets"),
+  images: DOREAL_RELATED_IMAGES,
   passages: PASSAGES,
   links: LINKS,
 };

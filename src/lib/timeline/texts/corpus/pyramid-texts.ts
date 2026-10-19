@@ -13,6 +13,7 @@
 
 import type { CorpusImage, CorpusManuscript, CorpusPassage, TextCorpusFile } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { PT_RELATED_IMAGES } from "./pyramid-texts-related-images";
 import { PYRAMID_UTTERANCES } from "./pyramid-texts-text";
 
 const PREFIX = "egy.pt";
@@ -127,7 +128,9 @@ const MANUSCRIPTS: CorpusManuscript[] = [
   },
 ];
 
-const IMAGES: (CorpusImage & { manuscriptKey?: string; utterance?: number })[] = [
+type Placed = CorpusImage & { manuscriptKey?: string; utterance?: number; chapter?: number };
+
+const IMAGES: Placed[] = [
   {
     key: "unas-burial-chamber-west-gable",
     manuscriptKey: "pyramid-unas",
@@ -350,13 +353,22 @@ const IMAGES: (CorpusImage & { manuscriptKey?: string; utterance?: number })[] =
   },
 ];
 
-function imagesFor(utterance: number) {
-  const found = IMAGES.filter((image) => image.utterance === utterance).map((image) => {
-    const copy: CorpusImage & { manuscriptKey?: string; utterance?: number } = { ...image };
-    delete copy.utterance;
-    delete copy.manuscriptKey;
-    return copy;
-  });
+/** The wall photographs above, then the related objects, places and iconography beside them. */
+const ALL_IMAGES: Placed[] = [...IMAGES, ...PT_RELATED_IMAGES];
+
+function strip(image: Placed): CorpusImage {
+  const copy: Placed = { ...image };
+  delete copy.utterance;
+  delete copy.chapter;
+  delete copy.manuscriptKey;
+  return copy;
+}
+
+/** Pictures placed at an utterance, or (with `chapter`) at one of Mercer's chapters. */
+function imagesFor(where: { utterance: number } | { chapter: number }) {
+  const found = ALL_IMAGES.filter((image) =>
+    "utterance" in where ? image.utterance === where.utterance : image.chapter === where.chapter
+  ).map(strip);
   return found.length > 0 ? found : undefined;
 }
 
@@ -390,6 +402,7 @@ function buildPassages(): CorpusPassage[] {
       notes: "Mercer's grouping of the utterances by subject. Sethe's numbering, not Mercer's chapters, is the reference.",
       layers: [],
       themes: CHAPTER_THEMES[chapter]?.map(([themeKey, note]) => ({ themeKey, note })),
+      images: imagesFor({ chapter }),
     });
     for (const [utterance, through, , , english] of [...rows].sort((a, b) => a[0] - b[0])) {
       const themes = [...(CHAPTER_THEMES[chapter] ?? []), ...(UTTERANCE_THEMES[utterance] ?? [])];
@@ -426,7 +439,7 @@ function buildPassages(): CorpusPassage[] {
               },
         ],
         themes: themes.length > 0 ? themes.map(([themeKey, note]) => ({ themeKey, note })) : undefined,
-        images: imagesFor(utterance),
+        images: imagesFor({ utterance }),
       });
     }
   }
@@ -438,9 +451,10 @@ export const PYRAMID_TEXTS_CORPUS: TextCorpusFile = {
   revision: "mercer-2026-10",
   sources: SOURCES,
   manuscripts: MANUSCRIPTS,
-  images: IMAGES.filter((image) => image.utterance == null).map((image) => {
-    const copy: CorpusImage & { manuscriptKey?: string; utterance?: number } = { ...image };
+  images: ALL_IMAGES.filter((image) => image.utterance == null && image.chapter == null).map((image) => {
+    const copy: Placed = { ...image };
     delete copy.utterance;
+    delete copy.chapter;
     return copy;
   }),
   passages: buildPassages(),

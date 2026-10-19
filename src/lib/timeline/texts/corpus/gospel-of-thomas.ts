@@ -50,6 +50,7 @@ import type {
   TextCorpusFile,
 } from "../corpus-types";
 import { INVENTORY_SOURCES } from "../inventory";
+import { THOMAS_RELATED_IMAGES } from "./gospel-of-thomas-related-images";
 
 const PREFIX = "gnostic.thom";
 
@@ -340,6 +341,7 @@ const IMAGES: Placed[] = [
     identificationStatus: "secure",
     verificationStatus: "unverified",
   },
+  ...THOMAS_RELATED_IMAGES,
 ];
 
 function imagesFor(test: (image: Placed) => boolean): CorpusImage[] | undefined {
