@@ -1,5 +1,6 @@
 import type { Hotel } from "./types";
 import { AREA } from "./photos";
+import { HOTEL_PHOTOS } from "./hotel-photos";
 
 // THE HOTELS — 12 featured, 10 shorter "more gems".
 //
@@ -10,10 +11,10 @@ import { AREA } from "./photos";
 // judgement — positioning, style, atmosphere, best for, "why it's here" — is
 // the editors', and never claims anyone from Mzungu Zanzibar stayed.
 //
-// No freely licensed photograph of any of these hotels exists on Wikimedia
-// Commons, so `photos` is empty throughout and the gallery shows the
-// surrounding area, labelled as such. Admins can add licensed hotel photos
-// (e.g. with a hotel's written permission) from the guide's edit page.
+// `photos` are the venues' own promotional photos (hotel-photos.ts), shared
+// to promote them and taken down on request. A venue without usable photos
+// falls back to `areaPhotos`, labelled as the area; admins can replace any
+// hotel's photos from the guide's edit page.
 
 const CHECKED = "2026-10-18";
 
@@ -59,7 +60,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://passion-zanzibar.com/",
     mapsUrl: maps("Passion Boutique Hotel", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["passion"] ?? [],
     areaPhotos: [AREA.jambianiBeach, AREA.jambianiHarvest, AREA.jambianiVillage],
     verification: {
       status: "partial",
@@ -112,7 +113,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://elewanacollection.com/kilindi-zanzibar/at-a-glance",
     mapsUrl: maps("Kilindi Zanzibar", "Kendwa"),
-    photos: [],
+    photos: HOTEL_PHOTOS["kilindi"] ?? [],
     areaPhotos: [AREA.kendwaSunset, AREA.kendwaBeach],
     verification: {
       status: "partial",
@@ -163,7 +164,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.amanizanzibar.com/",
     mapsUrl: maps("Amani Boutique Hotel", "Paje"),
-    photos: [],
+    photos: HOTEL_PHOTOS["amani"] ?? [],
     areaPhotos: [AREA.pajeLowTide, AREA.pajeCows],
     verification: {
       status: "verified",
@@ -208,7 +209,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.thezanzibari.com/",
     mapsUrl: maps("The Zanzibari", "Nungwi"),
-    photos: [],
+    photos: HOTEL_PHOTOS["zanzibari"] ?? [],
     areaPhotos: [AREA.nungwiWhite, AREA.nungwiDhow],
     verification: {
       status: "partial",
@@ -254,7 +255,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://xanadu-villas.com/",
     mapsUrl: maps("Xanadu Luxury Villas", "Dongwe"),
-    photos: [],
+    photos: HOTEL_PHOTOS["xanadu"] ?? [],
     areaPhotos: [AREA.dongweFootsteps, AREA.bwejuuLow, AREA.bwejuuHigh],
     verification: {
       status: "partial",
@@ -303,7 +304,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.sharazadzanzibar.com/",
     mapsUrl: maps("Sharazad Boutique Hotel", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["sharazad"] ?? [],
     areaPhotos: [AREA.jambianiUnicycle, AREA.jambianiAlgae],
     verification: {
       status: "partial",
@@ -354,7 +355,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.palms-zanzibar.com/",
     mapsUrl: maps("The Palms Zanzibar", "Bwejuu"),
-    photos: [],
+    photos: HOTEL_PHOTOS["the-palms"] ?? [],
     areaPhotos: [AREA.bwejuuHigh, AREA.bwejuuNgalawa, AREA.bwejuuLow],
     verification: {
       status: "verified",
@@ -404,7 +405,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.theislandpongwe.com/",
     mapsUrl: maps("The Island Pongwe Lodge", "Pongwe"),
-    photos: [],
+    photos: HOTEL_PHOTOS["pongwe-island"] ?? [],
     areaPhotos: [AREA.pongweLow, AREA.pongweBeach],
     verification: {
       status: "partial",
@@ -454,7 +455,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.whitesandvillas.com/en",
     mapsUrl: maps("Zanzibar White Sand Luxury Villas", "Paje"),
-    photos: [],
+    photos: HOTEL_PHOTOS["white-sand"] ?? [],
     areaPhotos: [AREA.pajeCows, AREA.pajeLowTide, AREA.pajeKanga],
     verification: {
       status: "verified",
@@ -503,7 +504,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.qambani.com/",
     mapsUrl: maps("Qambani Luxury Resort", "Michamvi"),
-    photos: [],
+    photos: HOTEL_PHOTOS["qambani"] ?? [],
     areaPhotos: [AREA.rockLow],
     verification: {
       status: "partial",
@@ -547,7 +548,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://upendozanzibar.com/upendobeach/",
     mapsUrl: maps("Upendo Beach", "Michamvi Pingwe"),
-    photos: [],
+    photos: HOTEL_PHOTOS["upendo"] ?? [],
     areaPhotos: [AREA.rock1, AREA.rockLow],
     verification: {
       status: "partial",
@@ -595,7 +596,7 @@ export const FEATURED_HOTELS: Hotel[] = [
     ],
     website: "https://www.zanziresort.com/",
     mapsUrl: maps("Zanzi Resort", "Kama"),
-    photos: [],
+    photos: HOTEL_PHOTOS["zanzi"] ?? [],
     areaPhotos: [AREA.mangapwaniRocks],
     verification: {
       status: "verified",
@@ -633,7 +634,7 @@ export const MORE_GEMS: Hotel[] = [
     ],
     website: "https://www.thezhotel.com/",
     mapsUrl: maps("The Z Hotel", "Nungwi"),
-    photos: [],
+    photos: HOTEL_PHOTOS["z-hotel"] ?? [],
     areaPhotos: [AREA.nungwiDhow],
     verification: {
       status: "partial",
@@ -665,7 +666,7 @@ export const MORE_GEMS: Hotel[] = [
     considerations: ["Not directly on the sand.", "Room counts differ between sources; it's one of the larger properties in this guide."],
     website: "https://www.dhowinn.com/",
     mapsUrl: maps("Dhow Inn", "Paje"),
-    photos: [],
+    photos: HOTEL_PHOTOS["dhow-inn"] ?? [],
     areaPhotos: [AREA.pajeCows],
     verification: {
       status: "partial",
@@ -698,7 +699,7 @@ export const MORE_GEMS: Hotel[] = [
     website: "https://www.booking.com/hotel/tz/african-bungalows.html",
     websiteLabel: "Booking.com listing",
     mapsUrl: maps("African Bungalows", "Nungwi"),
-    photos: [],
+    photos: HOTEL_PHOTOS["african-bungalows"] ?? [],
     areaPhotos: [AREA.nungwiMain],
     verification: {
       status: "partial",
@@ -734,7 +735,7 @@ export const MORE_GEMS: Hotel[] = [
     website: "https://www.tripadvisor.com/Hotel_Review-g635745-d15355394-Reviews-Savera_Beach_Houses-Jambiani_Zanzibar_Island_Zanzibar_Archipelago.html",
     websiteLabel: "Tripadvisor listing",
     mapsUrl: maps("Savera Beach Houses", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["savera"] ?? [],
     areaPhotos: [AREA.jambianiSeaweedFarm],
     verification: {
       status: "unverified",
@@ -767,7 +768,7 @@ export const MORE_GEMS: Hotel[] = [
     considerations: ["At low tide the sea can be out of reach for much of the afternoon.", "Dining is expensive by local standards."],
     website: "https://www.casaparadis.com/",
     mapsUrl: maps("Casa Paradis", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["casa-paradis"] ?? [],
     areaPhotos: [AREA.jambianiVillage],
     verification: {
       status: "partial",
@@ -799,7 +800,7 @@ export const MORE_GEMS: Hotel[] = [
     considerations: ["Very quiet in the evenings.", "One reviewer noted early-morning calls to prayer from a nearby mosque, part of village life here."],
     website: "https://www.kupagavillas.com/",
     mapsUrl: maps("Kupaga Villas", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["kupaga"] ?? [],
     areaPhotos: [AREA.jambianiAlgae],
     verification: {
       status: "partial",
@@ -832,7 +833,7 @@ export const MORE_GEMS: Hotel[] = [
     website: "https://www.tripadvisor.co.za/Hotel_Review-g616017-d23381856-Reviews-Marafiki_Beach_Hotel_Spa-Matemwe_Zanzibar_Island_Zanzibar_Archipelago.html",
     websiteLabel: "Tripadvisor listing",
     mapsUrl: maps("Marafiki Beach Hotel", "Matemwe"),
-    photos: [],
+    photos: HOTEL_PHOTOS["marafiki"] ?? [],
     areaPhotos: [AREA.matemweBeach],
     verification: {
       status: "partial",
@@ -865,7 +866,7 @@ export const MORE_GEMS: Hotel[] = [
     considerations: ["No pool or spa on site, as far as we could find.", "Best for one to three nights."],
     website: "https://neelacollection.com/",
     mapsUrl: maps("The Neela Boutique Hotel", "Stone Town"),
-    photos: [],
+    photos: HOTEL_PHOTOS["neela"] ?? [],
     areaPhotos: [AREA.shanganiStreet],
     verification: {
       status: "verified",
@@ -897,7 +898,7 @@ export const MORE_GEMS: Hotel[] = [
     considerations: ["Dongwe is quiet, with very little independent nightlife.", "One booking site lists a family room, so check the policy if a strictly adults-only stay matters."],
     website: "https://www.oceanzanzibar.com/",
     mapsUrl: maps("Ocean Boutique Hotel", "Dongwe"),
-    photos: [],
+    photos: HOTEL_PHOTOS["ocean-boutique"] ?? [],
     areaPhotos: [AREA.dongweFootsteps],
     verification: {
       status: "partial",
@@ -935,7 +936,7 @@ export const MORE_GEMS: Hotel[] = [
     ],
     website: "https://bezanzibar.com/",
     mapsUrl: maps("Be Zanzibar", "Jambiani"),
-    photos: [],
+    photos: HOTEL_PHOTOS["be-zanzibar"] ?? [],
     areaPhotos: [AREA.jambianiUnicycle],
     verification: {
       status: "verified",

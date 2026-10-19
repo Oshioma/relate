@@ -18,8 +18,12 @@ const url = z.string().trim().url().max(2000);
 const optionalUrl = url.nullish().or(z.literal("").transform(() => null));
 const text = (max: number) => z.string().trim().max(max);
 
+// A photo is a full URL, or a path to a file the app itself serves (e.g. a
+// guide's own photos under /guides/…).
+const photoSrc = url.or(z.string().trim().max(500).regex(/^\/[^/\s][^\s]*$/, "Use a full image URL or a path starting with /"));
+
 export const photoSchema = z.object({
-  src: url,
+  src: photoSrc,
   alt: text(300).min(1),
   caption: text(500),
   credit: text(200),

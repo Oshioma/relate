@@ -36,6 +36,11 @@ export const HOW_TO_READ: { label: string; body: string }[] = [
   },
 ];
 
+// Shown with the hotel photographs. The venues' own photos are used to
+// promote them, and any venue can have one removed.
+export const VENUE_PHOTO_NOTE =
+  "Hotel photographs are the venues' own, shared here to promote them, and credited beneath each one. We're happy to take any photo down — if you represent a venue and would like a photo removed or replaced, please contact us.";
+
 export const CATEGORIES: StayCategory[] = [
   {
     id: "romantic-honeymoon",

@@ -8,9 +8,9 @@ import { PhotoCredit, UPDATE_KIND_LABELS, formatDate } from "./destination-secti
 
 // One hotel on the boutique hotels guide. "featured" hotels get the full
 // magazine treatment (large photo, gallery, every editorial section);
-// "gem" hotels a shorter entry with the same honesty rules: the hotel's own
-// photo or a clear "no licensed photo yet", never a borrowed picture, and the
-// area photo always labelled as the area.
+// "gem" hotels a shorter entry. The venue's own photos lead, credited to it;
+// photos of the surrounding beach or village follow, always labelled as the
+// area, and stand in when a venue has no photos of its own.
 
 const PRICE_LABELS: Record<Hotel["price"], string> = {
   $$: "$$ · Mid-range boutique",
@@ -35,7 +35,7 @@ function NoHotelPhotoNote({ hotel }: { hotel: Hotel }) {
     <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
       <ImageOff className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
       <span>
-        {`We don't yet have a photograph of ${hotel.name} that we're licensed to publish${hotel.areaPhotos.length > 0 ? `, so these show the surrounding area instead` : ""}.`}
+        {`We don't have photographs of ${hotel.name} yet${hotel.areaPhotos.length > 0 ? `, so these show the surrounding area instead` : ""}.`}
         {hotel.website && (
           <>
             {" "}
@@ -86,6 +86,21 @@ function Gallery({ hotel }: { hotel: Hotel }) {
           ))}
         </div>
       )}
+      {own && hotel.areaPhotos.length > 0 && <AroundStrip hotel={hotel} />}
+    </div>
+  );
+}
+
+// The surrounding beach or village, under a venue's own photos.
+function AroundStrip({ hotel }: { hotel: Hotel }) {
+  return (
+    <div className="border-t border-border pt-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Around {hotel.area}</p>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {hotel.areaPhotos.slice(0, 2).map((photo) => (
+          <Figure key={photo.src} photo={photo} area sizes="(min-width: 768px) 210px, 50vw" className="aspect-[4/3] rounded-md" clamp />
+        ))}
+      </div>
     </div>
   );
 }
@@ -99,6 +114,18 @@ function CompactPhoto({ hotel }: { hotel: Hotel }) {
         <Figure photo={photo} area={!own} sizes="(min-width: 768px) 256px, 100vw" className="aspect-[4/3] rounded-lg" clamp />
       ) : (
         <div className="aspect-[4/3] rounded-lg border border-dashed border-border bg-muted" aria-hidden />
+      )}
+      {own && hotel.photos.length > 1 && (
+        <div className="grid grid-cols-2 gap-2">
+          {hotel.photos.slice(1, 3).map((p) => (
+            <figure key={p.src}>
+              <GuideImage src={p.src} alt={p.alt} width={p.width} sizes="(min-width: 768px) 125px, 50vw" className="aspect-[4/3] rounded-md" />
+              <figcaption className="sr-only">
+                <PhotoCredit photo={p} />
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       )}
       {!own && <NoHotelPhotoNote hotel={hotel} />}
     </div>
