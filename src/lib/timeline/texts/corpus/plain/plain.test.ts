@@ -14,6 +14,8 @@ import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
 import { PLAIN_MEMPHITE_THEOLOGY } from "./memphite-theology";
+import { PLAIN_AMDUAT } from "./amduat";
+import { PLAIN_BOOK_OF_GATES } from "./book-of-gates";
 import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_TIMAEUS } from "./timaeus";
@@ -26,6 +28,8 @@ const PLAIN: Record<string, Record<string, string>> = {
   "egy.ptahhotep": PLAIN_PTAHHOTEP,
   "egy.amenemope": PLAIN_AMENEMOPE,
   "egy.memphite-theology": PLAIN_MEMPHITE_THEOLOGY,
+  "egy.amduat": PLAIN_AMDUAT,
+  "egy.book-of-gates": PLAIN_BOOK_OF_GATES,
   "greek.timaeus": PLAIN_TIMAEUS,
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,
