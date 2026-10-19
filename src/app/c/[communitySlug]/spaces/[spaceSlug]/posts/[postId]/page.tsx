@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
@@ -22,13 +22,21 @@ export default async function PostDetailPage({
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
+  // An invite-only community, or a members-only space or post, resolves to
+  // null for a signed-out visitor (RLS), who may well be a member following a
+  // notification link — ask them to sign in and bring them back, rather than 404.
+  const signInFirst = () => redirect(`/login?next=${encodeURIComponent(`/c/${communitySlug}/spaces/${spaceSlug}/posts/${postId}`)}`);
+
   const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community && !user) signInFirst();
   if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  if (!space && !user) signInFirst();
   if (!space) notFound();
 
   const post = await getPostById(supabase, postId);
+  if (!post && !user) signInFirst();
   if (!post || post.space_id !== space.id) notFound();
 
   const [membership, comments, crops, editorProfile, editorFarmCrops, reactions] = await Promise.all([

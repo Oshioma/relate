@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MessageSquare, Pin, ExternalLink, NotebookPen, Flag, ScanLine, LayoutTemplate } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { RichText, toPlainText } from "@/components/ui/rich-text";
@@ -121,12 +121,18 @@ export default async function SpaceDetailPage({
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
+  // RLS hides an invite-only community, and a members/private space, from a
+  // guest, so notFound doubles as the access gate. A signed-out visitor — say,
+  // a member opening an email link on their phone — may well be allowed in,
+  // so ask them to sign in and bring them back, rather than 404.
+  const signInFirst = () => redirect(`/login?next=${encodeURIComponent(`/c/${communitySlug}/spaces/${spaceSlug}`)}`);
+
   const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community && !user) signInFirst();
   if (!community) notFound();
 
   const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
-  // RLS only returns the space to a guest when it's public; members/private
-  // resolve to null here, so notFound doubles as the access gate.
+  if (!space && !user) signInFirst();
   if (!space) notFound();
 
   // Gated space gate: a space is gated when it has a per-space price OR belongs
