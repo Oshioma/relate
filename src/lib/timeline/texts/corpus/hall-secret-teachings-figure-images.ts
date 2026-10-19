@@ -1,0 +1,487 @@
+// HALL'S OWN ILLUSTRATIONS, AS PICTURES.
+//
+// The 1928 book's figures (line drawings and plates) on the figure passages
+// that carry their captions, and on the text passage that discusses them.
+// Each copy's match to the e-text figure was checked by looking at it.
+//
+// Two kinds of copy are used, and they are kept apart:
+//
+//   - copies TAKEN FROM HALL'S BOOK (photographed from the 1928 printing, or
+//     taken from the sacred-texts.com e-text's own image of the figure, as the
+//     Commons record says). These are Hall's figures, identified securely.
+//   - copies of the SAME OLDER PRINT Hall reproduced (Kircher, Lévi, Fludd,
+//     Bryant, ...), scanned from the original book or another copy. Hall's
+//     figure may be a redrawing, a crop or a different state, so these are
+//     marked UNVERIFIED and say so.
+//
+// sacred-texts.com itself could not be reached from the machine that built
+// this file (its Cloudflare challenge host is blocked there), so no e-text
+// image was copied directly; figures with no Commons copy are left without a
+// picture rather than guessed at.
+
+import type { CorpusImage } from "../corpus-types";
+
+const P = "modern.hall";
+
+const FROM_HALL = "Wikimedia Commons (photographed from Hall's 1928 book)";
+const FROM_ETEXT = "sacred-texts.com e-text (J. B. Hare, 2001), via Wikimedia Commons";
+const NOT_FROM_HALL =
+  "This copy was not taken from Hall's book: it is a scan of the older print his caption credits, so it is not verified that Hall's figure reproduces this very engraving (rather than a redrawing, a crop or another state of it).";
+
+export const HALL_FIGURE_IMAGES: (CorpusImage & { chapter?: string; passageKey?: string })[] = [
+  // ---------------------------------------------------------------------------
+  // COPIES TAKEN FROM HALL'S BOOK OR FROM THE E-TEXT'S IMAGE OF THE FIGURE
+  // ---------------------------------------------------------------------------
+  {
+    key: "hall-fig-2-4",
+    passageKey: `${P}.2.fig4`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Serapis_on_crocodile.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Serapis_on_crocodile.png",
+    objectDate: "1700 (the etching); reproduced 1928",
+    caption:
+      "Hall's figure 'The Alexandrian Serapis' (p. 27), after Willem Goeree's Mosaize Historie der Hebreeuwse Kerke (1700): a bearded Serapis wearing a basket-crown with a bird on it, holding a measuring rule, one hand on a beast-headed emblem, and standing on a crocodile. Photographed for Commons from Hall's book. A seventeenth-century etching, not an ancient image.",
+    creator: "Willem Goeree; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-4-2",
+    passageKey: `${P}.4.fig2`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/1/18/Pan_%28Kircher%29.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Pan_%28Kircher%29.png",
+    objectDate: "1652–54 (Kircher's engraving); reproduced 1928",
+    caption:
+      "Hall's figure 'The Great God Pan' (p. 35), after Kircher's Œdipus Ægyptiacus: a horned, winged Pan with a crook, holding a disc of the seven planetary spheres and a set of pipes, his body lettered A to O, with Hall's English key 'Hieroglyphical Representation of Jupiter or Pan'. Photographed for Commons from Hall's book.",
+    creator: "After Athanasius Kircher; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-8-1",
+    passageKey: `${P}.8.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f3/Lion_and_sun-_Mogul_Empure-India.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Lion_and_sun-_Mogul_Empure-India.jpg",
+    objectDate: "c. 1800 (Maurice's plate); reproduced 1928",
+    caption:
+      "Hall's figure 'The Lion of the Sun' (p. 49), from Maurice's Indian Antiquities: a lion couchant before a rayed sun with a face, under a banner reading 'Imperial Standard of the Great Mogul' and over the motto 'Sol oriens in dorso Leonis'. Commons took it from the sacred-texts.com e-text of this chapter. An eighteenth-century engraving.",
+    creator: "From Thomas Maurice, Indian Antiquities; reproduced by Manly P. Hall",
+    credit: FROM_ETEXT,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-10-1",
+    passageKey: `${P}.10.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/51/Bembine_Levi.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Bembine_Levi.png",
+    objectDate: "1860 (Lévi); reproduced 1928",
+    caption:
+      "Hall's figure 'Levi's Key to the Bembine Table' (p. 57), from Lévi's History of Magic: a chart of triangles and crescents labelled Mendes, Ammon, Momphta, Omphta, Hermes, Ops, Nephta, the triple Serapis and triple Hecate, with the four quarters Orient, Nord, Midi and Occident and Hebrew letters. Photographed for Commons from Hall's book.",
+    creator: "Éliphas Lévi; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-10-2",
+    passageKey: `${P}.10.fig2`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/73/Bembine_Table_of_Isis.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Bembine_Table_of_Isis.png",
+    objectDate: "1654 (Kircher's engraving); reproduced 1928",
+    caption:
+      "Hall's plate 'The Bembine Table of Isis' (p. 57): Kircher's engraving of the Mensa Isiaca from Œdipus Ægyptiacus, three registers of Egyptianising figures round an enthroned goddess, in a border of small figures, under a Latin title naming Cardinal Bembo and Kircher. Photographed for Commons from Hall's book. A seventeenth-century copy of a Roman-period bronze table now in Turin.",
+    creator: "After Athanasius Kircher; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-10-3",
+    passageKey: `${P}.10.fig3`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Bembine_Westcott.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Bembine_Westcott.png",
+    objectDate: "1887 (Westcott); reproduced 1928",
+    caption:
+      "Hall's figure 'Westcott's Key to the Bembine Table' (p. 59), from Westcott's The Isiac Tablet: a chart dividing the table into the four seasons under Mendes, Ammon, Momphta and Omphta, the triads of Hecate, Ibimorphos, the central Iynx, Nephtha and Serapis, and the four gates under Horus, Pandochus, Thoth and Ælurus. Photographed for Commons from Hall's book.",
+    creator: "William Wynn Westcott; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-14-1",
+    passageKey: `${P}.14.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/93/Boehme-heart.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Boehme-heart.jpg",
+    objectDate: "1730 (Böhme's Libri Apologetici); reproduced 1928",
+    caption:
+      "Hall's figure 'The Tetragrammaton in the Human Heart' (p. 73), from Böhme's Libri Apologetici: an inverted, flaming heart holding a tetractys of the Hebrew letters of the Name, with the Name changed into Jehoshua by a radiant Shin below, in a rayed circle lettered CHRISTUS. Commons took it from the sacred-texts.com e-text of this chapter.",
+    creator: "After Jakob Böhme (1730 edition); reproduced by Manly P. Hall",
+    credit: FROM_ETEXT,
+    licence: "Public domain (PD-old-100-expired; PD-Art; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-22-1",
+    passageKey: `${P}.22.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/01/Salamander_%28Paracelsus%29.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Salamander_%28Paracelsus%29.jpg",
+    objectDate: "16th-century woodcut; reproduced 1928",
+    caption:
+      "Hall's figure 'A Salamander, According to Paracelsus' (p. 105), from Paracelsus' Auslegung von 30 magischen Figuren: a winged, scaly creature with a bearded human head in a papal tiara, crouched among flames under a crescent moon and stars. Photographed for Commons from Hall's book. The Commons record notes that the woodcut is an older anti-papal image Paracelsus commented on, not a drawing of a salamander made for him.",
+    creator: "Anonymous woodcut; reproduced by Manly P. Hall",
+    credit: FROM_HALL,
+    licence: "Public domain (PD-old; PD-Art; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-23-3",
+    passageKey: `${P}.23.fig3`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Nicholas_Culpeper2.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Nicholas_Culpeper2.jpg",
+    objectDate: "17th-century engraving; reproduced 1928",
+    caption:
+      "Hall's figure 'Nicholas Culpeper' (p. 111), from Culpeper's Semeiotica Uranica: a half-length portrait of Culpeper with long hair and a moustache, in an oval laurel frame, his hand on a skull, with a celestial globe behind him and a coat of arms above. Commons took it from the sacred-texts.com e-text of this chapter.",
+    creator: "Anonymous engraver; reproduced by Manly P. Hall",
+    credit: FROM_ETEXT,
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-34-1",
+    passageKey: `${P}.34.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0f/The_Leaves_of_Hermes_Sacred_Tree.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:The_Leaves_of_Hermes_Sacred_Tree.jpg",
+    objectDate: "1928 (redrawn from a manuscript dated 1577)",
+    caption:
+      "Hall's figure 'The Leaves of Hermes' Sacred Tree' (p. 153), redrawn from a manuscript dated 1577: 'The Tree of Alchimi', a sun with a face surrounded by fourteen numbered leaves (Solutione, Filtration, Evaporation, Distillation, Separation, Rectification, Calcination, Comixtion, Purification, Inhibition, Fermentation, Fixation, Multiplication, Projection), on a trunk rising from a crescent, with a figure of Mercury holding a caduceus. Commons took it from the e-text's image of this figure (15300).",
+    creator: "Redrawn for Manly P. Hall",
+    credit: FROM_ETEXT,
+    licence: "Public domain in the US (published 1928, before 1931; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "secure",
+    verificationStatus: "unverified",
+  },
+
+  // ---------------------------------------------------------------------------
+  // COPIES OF THE OLDER PRINT HALL REPRODUCED — UNVERIFIED AS HALL'S FIGURE
+  // ---------------------------------------------------------------------------
+  {
+    key: "hall-fig-intro-1",
+    passageKey: `${P}.intro.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/29/Babbitt-atom.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Babbitt-atom.png",
+    objectDate: "1878",
+    caption:
+      "UNVERIFIED — Edwin D. Babbitt's drawing of 'the general form of an atom' from his Principles of Light and Color (1878, fig. 135, p. 102): a heart-shaped coil of spirals with labelled bands of thermal and electrical colours, a vortex at the negative end and a torrent at the positive end. Hall's figure on p. 13, 'Babbitt's Atom', is credited to this book; this copy is from Babbitt, not from Hall.",
+    creator: "Edwin D. Babbitt",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-70; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 13 is this drawing of Babbitt's (his caption credits the book but not the figure number). ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-intro-8",
+    passageKey: `${P}.intro.fig8`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Orphic-egg.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Orphic-egg.png",
+    objectDate: "1774",
+    caption:
+      "UNVERIFIED — Jacob Bryant's plate of the serpent-entwined egg, 'Ophis et ovum mundanum Tyriorum', engraved by James Basire for A New System, or An Analysis of Ancient Mythology (vol. II, pl. IV, 1774). Hall's figure 'The Orphic Egg' on p. 20 is credited to Bryant's book; this copy is from Bryant, not from Hall. An eighteenth-century engraving.",
+    creator: "James Basire, for Jacob Bryant",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-100-expired; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 20 is this plate of Bryant's. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-1-2",
+    passageKey: `${P}.1.fig2`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f1/An_Arch_Druid_in_His_Judicial_Habit.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:An_Arch_Druid_in_His_Judicial_Habit.jpg",
+    objectDate: "1815",
+    caption:
+      "UNVERIFIED — 'An Arch Druid in his Judicial Habit', a coloured plate from Meyrick and Smith's The Costume of the Original Inhabitants of the British Islands (1815): a white-robed, white-bearded druid with a rayed crown, a gold breastplate and a belt buckle, standing by a stone with a vessel and a tablet. Hall's figure on p. 22, 'The Arch-Druid in his Ceremonial Robes', is credited to Wellcome's Ancient Cymric Medicine, and his caption describes the same breastplate, tiara and buckle. An imaginative nineteenth-century picture, not evidence of druid dress.",
+    creator: "Samuel Rush Meyrick and Charles Hamilton Smith",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-70; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure (which he credits to Wellcome's Ancient Cymric Medicine, not to Meyrick and Smith) is a reproduction of this plate; the match rests on the subject and on the regalia his caption lists. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-2-1",
+    passageKey: `${P}.2.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/5/50/Death_of_simon_magus.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Death_of_simon_magus.jpg",
+    objectDate: "1493",
+    caption:
+      "UNVERIFIED — The Nuremberg Chronicle's woodcut of the death of Simon Magus (1493), in a hand-coloured copy: Simon carried into the air by winged demons while an angel strikes them, and below, St Peter and a crowd watching. Hall's figure 'The Death of Simon the Magician' on p. 25 is credited to the Nuremberg Chronicle; this copy is from a copy of the Chronicle, not from Hall, and its colouring is not in Hall's book.",
+    creator: "Workshop of Michael Wolgemut and Wilhelm Pleydenwurff (Nuremberg Chronicle)",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-100; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 25 reproduces this woodcut (the Chronicle's Simon Magus woodcut, here hand-coloured in one copy). ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-16-2",
+    passageKey: `${P}.16.fig2`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/08/Fotothek_df_tg_0006468_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Fotothek_df_tg_0006468_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik.jpg",
+    institution: "Deutsche Fotothek, SLUB Dresden",
+    accessionNumber: "df_tg_0006468",
+    objectDate: "1617",
+    caption:
+      "UNVERIFIED — Robert Fludd's engraving 'Mundi dispositionis ad Monochordi proportiones suscipiendas apta descriptio' (1617): a sector of the cosmos from the earth up through the elements, the sphere of equality and the sun to the lower, middle and upper Empyrean, crossed by two opposed pyramids under a radiant triangle. Hall's figure 'The Consonances of the Mundane Monochord' on p. 81, credited to Fludd's De Musica Mundana, describes this scheme of spheres and pyramids.",
+    creator: "Robert Fludd (engraved for Johann Theodor de Bry)",
+    credit: "Deutsche Fotothek, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That this is the plate Hall reproduced on p. 81; the match rests on his caption's description (fifteen spheres from earth to the Empyrean, energy and substance as two pyramids). ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-16-3",
+    passageKey: `${P}.16.fig3`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Fotothek_df_tg_0006469_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Fotothek_df_tg_0006469_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg",
+    institution: "Deutsche Fotothek, SLUB Dresden",
+    accessionNumber: "df_tg_0006469",
+    objectDate: "1617",
+    caption:
+      "UNVERIFIED — Robert Fludd's 'monochordum mundanum cum suis proportionibus, consonantiis & intervallis' (De Metaphysico Macrocosmi, 1617, p. 90): a one-stringed instrument stretched from Terra to the Empyrean and tuned by a hand from a cloud, with the elements, planets and fixed stars along it and the proportions and diapasons drawn as arcs. Hall's figure 'The Mundane Monochord with its Proportions and Intervals' on p. 82 is credited to Fludd's De Musica Mundana.",
+    creator: "Robert Fludd (engraved for Johann Theodor de Bry)",
+    credit: "Deutsche Fotothek, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That this is the plate Hall reproduced on p. 82; the title engraved above it matches his. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-16-4",
+    passageKey: `${P}.16.fig4`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Fotothek_df_tg_0006472_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Fotothek_df_tg_0006472_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik.jpg",
+    institution: "Deutsche Fotothek, SLUB Dresden",
+    accessionNumber: "df_tg_0006472",
+    objectDate: "1617",
+    caption:
+      "UNVERIFIED — Robert Fludd's page 'De Musica Mundana' (1617, p. 97): two interpenetrating pyramids, one of fire from the heavens and one of earth from the globe below, with the regions of fire, air and water between and the proportions (dupla, sesquitertia, quadrupla) marked as arcs. Hall's figure 'The Theory of Elemental Music' on p. 83 describes two such pyramids, of fire and of earth.",
+    creator: "Robert Fludd (engraved for Johann Theodor de Bry)",
+    credit: "Deutsche Fotothek, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That this is the plate Hall reproduced on p. 83; the match rests on his caption's description. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-16-5",
+    passageKey: `${P}.16.fig5`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Fotothek_df_tg_0006473_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Fotothek_df_tg_0006473_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg",
+    institution: "Deutsche Fotothek, SLUB Dresden",
+    accessionNumber: "df_tg_0006473",
+    objectDate: "1617",
+    caption:
+      "UNVERIFIED — Robert Fludd's elemental monochord (1617, p. 100): a monochord stretched over the regions of earth, water, air and fire, each region divided into three (prima, secunda, tertia), with tones and semitones along the string and the diapasons drawn as arcs. Hall's figure 'The Four Elements and their Consonantal Intervals' on p. 84 describes each element divided into three.",
+    creator: "Robert Fludd (engraved for Johann Theodor de Bry)",
+    credit: "Deutsche Fotothek, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That this is the plate Hall reproduced on p. 84; the match rests on his caption's description. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-17-1",
+    passageKey: `${P}.17.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/84/1723_Picart_-_Religious_images_of_India_p.116.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:1723_Picart_-_Religious_images_of_India_p.116.jpg",
+    objectDate: "1723",
+    caption:
+      "UNVERIFIED — Bernard Picart's plate of the first four incarnations of Vishnu (1723). The 'Premiere incarnation' at top left shows Vishnu emerging from the mouth of a great fish before kneeling worshippers and a four-headed Brahma; the other three panels show the second, third and fourth incarnations. Hall's figure 'The First Incarnation, or Matsya Avatar, of Vishnu' on p. 85 is credited to Picart's Religious Ceremonials. A European engraving, not an Indian image.",
+    creator: "Bernard Picart",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure is the top-left panel of this plate (he shows the first incarnation only). ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-21-1",
+    passageKey: `${P}.21.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Baphomet.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Baphomet.png",
+    objectDate: "1856",
+    caption:
+      "UNVERIFIED — Éliphas Lévi's Baphomet, the 'Sabbatic Goat', from Dogme et Rituel de la Haute Magie (vol. 2, 1856): a winged, goat-headed hermaphrodite with a torch between the horns and a pentagram on the brow, arms marked SOLVE and COAGULA, a caduceus at the lap, seated on a globe between two crescents. Hall's figure 'Baphomet, the Goat of Mendes' on p. 101 is credited to Lévi's Transcendental Magic (the English translation of the same book). A nineteenth-century occultist's drawing.",
+    creator: "Éliphas Lévi",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-100-expired; PD-Art; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 101 is this drawing as printed in the French edition. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-21-4",
+    passageKey: `${P}.21.fig4`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/9/93/Pentagram_%28Levi%29.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Pentagram_%28Levi%29.jpg",
+    objectDate: "1855",
+    caption:
+      "UNVERIFIED — Éliphas Lévi's pentagram, 'the figure of the microcosm', from Dogme et Rituel de la Haute Magie (1855): a five-pointed star with eyes, Hebrew words and planetary signs inside it, surrounded by the letters TETRAGRAMMATON and magical implements. Hall's figure 'The Pentagram' on p. 103 is credited to Lévi's Transcendental Magic.",
+    creator: "Éliphas Lévi",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 103 is this pentagram of Lévi's (Lévi printed more than one). ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-24-1",
+    passageKey: `${P}.24.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/8/8c/The_72_Names_of_God_%28Oedipus_Aegyptiacus%2C_1652%E2%80%9354%29.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:The_72_Names_of_God_%28Oedipus_Aegyptiacus%2C_1652%E2%80%9354%29.jpg",
+    objectDate: "1652–54",
+    caption:
+      "UNVERIFIED — Athanasius Kircher's plate of the seventy-two names of God from Œdipus Ægyptiacus (1652–54), here in a scan retouched to a sepia tone: a sunburst of seventy-two rays bearing the four-letter names of God in many languages round a central IHS and the Hebrew Name, framed by trees bearing Hebrew names. Hall's figure 'The Seventy-two Names of God' on p. 113 is credited to this book.",
+    creator: "Athanasius Kircher",
+    credit: "Polona (National Library of Poland), via Wikimedia Commons",
+    licence: "Public domain (PD-old-70; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "diagram",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 113 is this plate; the colour is the Commons uploader's retouching, not Kircher's or Hall's. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-36-1",
+    passageKey: `${P}.36.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Chymische_Hochzeit_Christiani_Rosencreutz_anno_1459.png",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Chymische_Hochzeit_Christiani_Rosencreutz_anno_1459.png",
+    objectDate: "1616",
+    caption:
+      "UNVERIFIED — The title page of the first edition of Chymische Hochzeit: Christiani Rosencreutz. Anno 1459 (Strassburg: Lazarus Zetzner, 1616), with the mottoes 'Arcana publicata vilescunt' and 'ne Margaritas obijce porcis, seu Asino substerne rosas' and a printer's device. Hall's figure on p. 161 is the title page of the 1616 edition.",
+    creator: "Lazarus Zetzner (printer)",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-70; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `Where this copy comes from: Commons gives a page of a Russian site that appears to translate Hall, so it may itself be taken from Hall's figure, but that is not established. The text matches the 1616 title page Hall names.`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-37-6",
+    passageKey: `${P}.37.fig6`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/3/36/Shakespeare_Droeshout_1623.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Shakespeare_Droeshout_1623.jpg",
+    institution: "Bodleian Library, Oxford",
+    objectDate: "1623",
+    caption:
+      "UNVERIFIED — Martin Droeshout's engraved portrait of Shakespeare from the First Folio (1623), scanned from the Bodleian Library's copy: the head and the wide collar of the familiar portrait. Hall's figure 'The Droeshout Portrait of Shakspere' on p. 167, from the Folio of 1623, reproduces this engraving; this copy is the Bodleian's, not Hall's.",
+    creator: "Martin Droeshout",
+    credit: "Bodleian Library First Folio scan, via Wikimedia Commons",
+    licence: "Public domain (PD-old-100-expired; PD-Art; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall printed the whole engraving from this state of it; the engraving itself is the one he names. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-38-1",
+    passageKey: `${P}.38.fig1`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Gustavus_Selenus.jpg",
+    sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Gustavus_Selenus.jpg",
+    objectDate: "1624",
+    caption:
+      "UNVERIFIED — The engraved title page of Gustavus Selenus' Cryptomenytices et Cryptographiae (1624): the title in a cartouche between scenes of a nobleman handing a letter to a messenger and a rider, with a harbour above and two men at a writing desk below. Hall's figure 'A Famous Cryptic Title Page' on p. 169 is this title page.",
+    creator: "Anonymous engraver",
+    credit: "Wikimedia Commons",
+    licence: "Public domain (PD-old-70; Creative Commons Public Domain Mark 1.0)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `Which copy this is; the title page is the one Hall names and translates. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+  {
+    key: "hall-fig-conclusion-2",
+    passageKey: `${P}.conclusion.fig2`,
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Plate_3_from_Amphitheatrum_Sapientiae_Aeternae%2C_Solius%2C_Verae_%28Amphitheatre_of_the_Only_True_Eternal_Wisdom%29_-_DPLA_-_c734ba6de2253c9744da5c3a88b1d19d.jpg",
+    sourcePageUrl:
+      "https://commons.wikimedia.org/wiki/File:Plate_3_from_Amphitheatrum_Sapientiae_Aeternae%2C_Solius%2C_Verae_%28Amphitheatre_of_the_Only_True_Eternal_Wisdom%29_-_DPLA_-_c734ba6de2253c9744da5c3a88b1d19d.jpg",
+    institution: "Science History Institute, Philadelphia",
+    objectDate: "1609 (the plate dated 1602)",
+    caption:
+      "UNVERIFIED — Heinrich Khunrath's plate 'Porta Amphitheatri Sapientiae Aeternae' from Amphitheatrum Sapientiae Aeternae, photographed in a copy at the Science History Institute: seven steps rising into a rock-cut tunnel whose walls carry seven rayed inscriptions, with 'Procul hinc abiste profani' over the entrance. Hall's figure 'The Entrance to the House of the Mysteries' on p. 203 is this plate, which his caption describes as the portal reached by seven steps under seven oracular laws.",
+    creator: "Heinrich Khunrath",
+    credit: "Science History Institute, via Wikimedia Commons",
+    licence: "Public Domain Mark 1.0 (public domain in the United States)",
+    licenceStatus: "open",
+    shows: "later_artwork",
+    identificationStatus: "unverified",
+    whatIsUnverified: `That Hall's figure on p. 203 reproduces this plate whole and in this state. ${NOT_FROM_HALL}`,
+    verificationStatus: "unverified",
+  },
+];
