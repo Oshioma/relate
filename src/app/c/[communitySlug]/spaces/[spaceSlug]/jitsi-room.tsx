@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getJitsiToken } from "./live-events-actions";
+import { MediaPermissions } from "./media-permissions";
 
 // The video embed. In production it points at JaaS (8x8.vc) with a signed,
 // per-participant JWT — no time limit, no demo banner. When JaaS isn't
@@ -86,6 +87,9 @@ export function JitsiRoom({
     getTokenRef.current = getToken;
   });
   const [error, setError] = useState<string | null>(null);
+  // Bumped when camera/mic access is granted from our page, so the meeting
+  // rebuilds and picks the newly allowed devices up.
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,9 +147,9 @@ export function JitsiRoom({
         // ignore — the iframe may already be gone
       }
     };
-    // Only re-init when the room actually changes.
+    // Only re-init when the room actually changes (or access was just granted).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomName, communityId]);
+  }, [roomName, communityId, reloadKey]);
 
   if (error) {
     return (
@@ -156,9 +160,12 @@ export function JitsiRoom({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="h-[70vh] min-h-[420px] w-full overflow-hidden rounded-lg border border-border bg-black"
-    />
+    <div>
+      <MediaPermissions onGranted={() => setReloadKey((k) => k + 1)} />
+      <div
+        ref={containerRef}
+        className="h-[70vh] min-h-[420px] w-full overflow-hidden rounded-lg border border-border bg-black"
+      />
+    </div>
   );
 }
