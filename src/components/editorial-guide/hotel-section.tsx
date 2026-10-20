@@ -4,13 +4,16 @@ import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 import type { EditorialGuideUpdate } from "@/types/database";
 import { ShareMenu } from "@/components/ui/share-menu";
 import { GuideImage } from "./guide-image";
-import { PhotoCredit, UPDATE_KIND_LABELS, formatDate } from "./destination-section";
+import { UPDATE_KIND_LABELS, formatDate } from "./destination-section";
+import { PhotoCredit } from "./photo-credit";
+import { PhotoGallery, PhotoOpener, type ViewerPhoto } from "./photo-viewer";
 
 // One hotel on the boutique hotels guide. "featured" hotels get the full
 // magazine treatment (large photo, gallery, every editorial section);
 // "gem" hotels a shorter entry. The venue's own photos lead, credited to it;
 // photos of the surrounding beach or village follow, always labelled as the
-// area, and stand in when a venue has no photos of its own.
+// area, and stand in when a venue has no photos of its own. Clicking any
+// photo opens the viewer on all of the hotel's photos, own then area.
 
 const PRICE_LABELS: Record<Hotel["price"], string> = {
   $$: "$$ · Mid-range boutique",
@@ -50,12 +53,19 @@ function NoHotelPhotoNote({ hotel }: { hotel: Hotel }) {
   );
 }
 
-function Figure({ photo, area, sizes, className, clamp }: { photo: GuidePhoto; area: boolean; sizes: string; className: string; clamp?: boolean }) {
+// Everything the viewer steps through for one hotel: its own photos, then the
+// area photos (labelled as such), in the order the page shows them.
+export function viewerPhotos(hotel: Hotel): ViewerPhoto[] {
+  return [...hotel.photos, ...hotel.areaPhotos.map((p) => ({ ...p, area: true }))];
+}
+
+function Figure({ photo, index, area, sizes, className, clamp }: { photo: GuidePhoto; index: number; area: boolean; sizes: string; className: string; clamp?: boolean }) {
   return (
     <figure>
       <div className="relative">
         <GuideImage src={photo.src} alt={photo.alt} width={photo.width} sizes={sizes} className={className} />
         {area && <AreaBadge />}
+        <PhotoOpener index={index} alt={photo.alt} />
       </div>
       <figcaption className={`mt-1 text-[11px] leading-snug text-muted-foreground ${clamp ? "line-clamp-3" : ""}`}>
         <PhotoCredit photo={photo} />
@@ -67,6 +77,8 @@ function Figure({ photo, area, sizes, className, clamp }: { photo: GuidePhoto; a
 function Gallery({ hotel }: { hotel: Hotel }) {
   const own = hotel.photos.length > 0;
   const photos = own ? hotel.photos : hotel.areaPhotos;
+  // Area photos follow the hotel's own in the viewer.
+  const offset = own ? 0 : hotel.photos.length;
   const [main, ...rest] = photos;
   if (!main) {
     return (
@@ -78,11 +90,11 @@ function Gallery({ hotel }: { hotel: Hotel }) {
   return (
     <div className="space-y-3">
       {!own && <NoHotelPhotoNote hotel={hotel} />}
-      <Figure photo={main} area={!own} sizes="(min-width: 1024px) 860px, 100vw" className="aspect-[16/9] rounded-lg" />
+      <Figure photo={main} index={offset} area={!own} sizes="(min-width: 1024px) 860px, 100vw" className="aspect-[16/9] rounded-lg" />
       {rest.length > 0 && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {rest.slice(0, 4).map((photo) => (
-            <Figure key={photo.src} photo={photo} area={!own} sizes="(min-width: 768px) 210px, 50vw" className="aspect-[4/3] rounded-md" clamp />
+          {rest.slice(0, 4).map((photo, i) => (
+            <Figure key={photo.src} photo={photo} index={offset + i + 1} area={!own} sizes="(min-width: 768px) 210px, 50vw" className="aspect-[4/3] rounded-md" clamp />
           ))}
         </div>
       )}
@@ -97,8 +109,8 @@ function AroundStrip({ hotel }: { hotel: Hotel }) {
     <div className="border-t border-border pt-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Around {hotel.area}</p>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {hotel.areaPhotos.slice(0, 2).map((photo) => (
-          <Figure key={photo.src} photo={photo} area sizes="(min-width: 768px) 210px, 50vw" className="aspect-[4/3] rounded-md" clamp />
+        {hotel.areaPhotos.slice(0, 2).map((photo, i) => (
+          <Figure key={photo.src} photo={photo} index={hotel.photos.length + i} area sizes="(min-width: 768px) 210px, 50vw" className="aspect-[4/3] rounded-md" clamp />
         ))}
       </div>
     </div>
@@ -111,15 +123,16 @@ function CompactPhoto({ hotel }: { hotel: Hotel }) {
   return (
     <div className="space-y-2">
       {photo ? (
-        <Figure photo={photo} area={!own} sizes="(min-width: 768px) 256px, 100vw" className="aspect-[4/3] rounded-lg" clamp />
+        <Figure photo={photo} index={own ? 0 : hotel.photos.length} area={!own} sizes="(min-width: 768px) 256px, 100vw" className="aspect-[4/3] rounded-lg" clamp />
       ) : (
         <div className="aspect-[4/3] rounded-lg border border-dashed border-border bg-muted" aria-hidden />
       )}
       {own && hotel.photos.length > 1 && (
         <div className="grid grid-cols-2 gap-2">
-          {hotel.photos.slice(1, 3).map((p) => (
-            <figure key={p.src}>
+          {hotel.photos.slice(1, 3).map((p, i) => (
+            <figure key={p.src} className="relative">
               <GuideImage src={p.src} alt={p.alt} width={p.width} sizes="(min-width: 768px) 125px, 50vw" className="aspect-[4/3] rounded-md" />
+              <PhotoOpener index={i + 1} alt={p.alt} />
               <figcaption className="sr-only">
                 <PhotoCredit photo={p} />
               </figcaption>
@@ -241,7 +254,9 @@ export function HotelSection({
       {featured ? (
         <>
           <div className="mt-6">
-            <Gallery hotel={hotel} />
+            <PhotoGallery photos={viewerPhotos(hotel)} title={hotel.name}>
+              <Gallery hotel={hotel} />
+            </PhotoGallery>
           </div>
           <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem]">
             <div className="space-y-6">
@@ -286,7 +301,9 @@ export function HotelSection({
         </>
       ) : (
         <div className="mt-5 grid gap-6 md:grid-cols-[16rem_minmax(0,1fr)]">
-          <CompactPhoto hotel={hotel} />
+          <PhotoGallery photos={viewerPhotos(hotel)} title={hotel.name}>
+            <CompactPhoto hotel={hotel} />
+          </PhotoGallery>
           <div className="space-y-4">
             {hotel.description.map((p) => (
               <p key={p} className="text-[16px] leading-relaxed text-foreground">
