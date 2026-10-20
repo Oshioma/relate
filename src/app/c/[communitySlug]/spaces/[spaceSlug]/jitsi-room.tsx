@@ -145,6 +145,10 @@ export function JitsiRoom({
           prejoinPageEnabled: false,
           disableDeepLinking: true,
           startWithAudioMuted: false,
+          // The side strip of small videos starts at twice Jitsi's 120px, and
+          // its drag handle always shows so people can widen it further (Jitsi
+          // only allows that when the room is at least ~920px wide).
+          filmstrip: { initialWidth: 240, alwaysShowResizeBar: true },
         },
         interfaceConfigOverwrite: {
           MOBILE_APP_PROMO: false,
