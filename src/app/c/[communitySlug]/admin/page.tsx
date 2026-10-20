@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, ListTree, Inbox, BarChart3, Eye } from "lucide-react";
+import { CalendarDays, Sparkles, ListTree, Inbox, BarChart3, Eye, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -227,6 +227,7 @@ export default async function AdminPage({
     { id: "landing", label: "Landing page", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
     { id: "contact", label: "Contact", group: "Profile & pages" },
+    { id: "emails", label: "Emails", group: "Profile & pages" },
     { id: "public-access", label: "Public access", group: "Profile & pages" },
     { id: "spaces", label: "Spaces", group: "Spaces & sidebar" },
     { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
@@ -359,6 +360,24 @@ export default async function AdminPage({
                   {openMessageCount}
                 </span>
               )}
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <h2 id="emails" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Emails</h2>
+      <div className="mb-8">
+        <Link href={`/c/${community.slug}/admin/emails`}>
+          <Card className="transition-shadow hover:shadow-sm">
+            <CardContent className="flex items-center gap-3 pt-5">
+              <Mail className="h-4 w-4 shrink-0 text-accent" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">Invitation and welcome emails</p>
+                <p className="text-xs text-muted-foreground">
+                  Write your own invites (for people new to Relate and people already on it) and welcome email, with
+                  your logo and pictures
+                </p>
+              </div>
             </CardContent>
           </Card>
         </Link>

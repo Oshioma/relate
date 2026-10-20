@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isInviteActive } from "@/lib/data/invites";
-import { isResendConfigured, sendCommunityInviteEmail } from "@/lib/email";
+import { isResendConfigured, sendCommunityInviteEmail, sendCommunityTemplateEmail } from "@/lib/email";
+import { firstNameOf, renderCommunityEmail } from "@/lib/email-templates";
 import type { MembershipRole } from "@/types/database";
 
 export type InviteFormState = { error: string } | undefined;
@@ -79,6 +80,9 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
   const communityId = String(formData.get("community_id") ?? "");
   const communitySlug = String(formData.get("community_slug") ?? "");
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  // Optional: fills {First_Name} in a community's own invite wording when the
+  // invitee has no Relate profile to take it from.
+  const givenFirstName = String(formData.get("first_name") ?? "").trim().slice(0, 80);
   const roleRaw = String(formData.get("role") ?? "member");
   const role = INVITE_ROLES.includes(roleRaw as (typeof INVITE_ROLES)[number]) ? (roleRaw as (typeof INVITE_ROLES)[number]) : "member";
 
@@ -129,13 +133,32 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
       supabase.from("profiles").select("full_name, username").eq("id", user.id).maybeSingle(),
     ]);
 
-    const sent = await sendCommunityInviteEmail({
-      to: email,
-      communityName: community?.name ?? "our community",
+    const communityName = community?.name ?? "our community";
+    const inviterName = inviter?.full_name || inviter?.username || null;
+    const inviteUrl = `${origin}/invite/${code}`;
+
+    // A community can word its own invites (Admin → Emails), with one version
+    // for people new to Relate and one for people who already use it.
+    const custom = await customInviteEmail({
+      communityId,
+      communityName,
       communityLogoUrl: community?.logo_url ?? null,
-      inviterName: inviter?.full_name || inviter?.username || null,
-      inviteUrl: `${origin}/invite/${code}`,
+      email,
+      givenFirstName,
+      hostName: inviterName,
+      hostEmail: user.email ?? null,
+      inviteUrl,
     });
+
+    const sent = custom
+      ? await sendCommunityTemplateEmail({ to: email, communityName, subject: custom.subject, html: custom.html })
+      : await sendCommunityInviteEmail({
+          to: email,
+          communityName,
+          communityLogoUrl: community?.logo_url ?? null,
+          inviterName,
+          inviteUrl,
+        });
 
     if (!sent.ok) {
       // The invite link exists and is copyable from the list either way.
@@ -218,6 +241,58 @@ export async function sendEmailInvite(_prevState: InviteFormState, formData: For
 
   revalidatePath(`/c/${communitySlug}/members`);
   return undefined;
+}
+
+// The community's own invite email for this address, or null to send the
+// built-in one: there is no saved wording for this kind of invitee, or the
+// lookup failed (an invite should still go out). Whether the address already
+// has a Relate account decides which wording applies; that lookup needs the
+// service role, so it runs only after the RLS-checked insert above.
+async function customInviteEmail(input: {
+  communityId: string;
+  communityName: string;
+  communityLogoUrl: string | null;
+  email: string;
+  givenFirstName: string;
+  hostName: string | null;
+  hostEmail: string | null;
+  inviteUrl: string;
+}) {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return null;
+  }
+
+  const { data: existingUserId } = await admin.rpc("find_user_id_by_email", { p_email: input.email });
+  const kind = existingUserId ? "invite_existing" : "invite_new";
+
+  const { data: template } = await admin
+    .from("community_email_templates")
+    .select("*")
+    .eq("community_id", input.communityId)
+    .eq("kind", kind)
+    .maybeSingle();
+  if (!template || !template.enabled) return null;
+
+  let firstName = input.givenFirstName || null;
+  if (existingUserId && !firstName) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("full_name, username")
+      .eq("id", existingUserId as string)
+      .maybeSingle();
+    firstName = firstNameOf(profile?.full_name) ?? profile?.username ?? null;
+  }
+
+  return renderCommunityEmail({
+    template,
+    communityName: input.communityName,
+    communityLogoUrl: input.communityLogoUrl,
+    values: { firstName, hostName: input.hostName, hostEmail: input.hostEmail },
+    buttonUrl: input.inviteUrl,
+  });
 }
 
 export async function revokeInvite(inviteId: string, communitySlug: string) {

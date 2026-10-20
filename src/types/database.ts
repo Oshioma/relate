@@ -586,6 +586,24 @@ export type CommunityInvite = {
   email: string | null;
 };
 
+// A community's own wording for one of its emails. No row = the built-in
+// email. See 20261020221900_community_email_templates.sql and
+// src/lib/email-templates.ts.
+export type CommunityEmailTemplateKind = "invite_new" | "invite_existing" | "welcome";
+export type CommunityEmailTemplate = {
+  community_id: string;
+  kind: CommunityEmailTemplateKind;
+  enabled: boolean;
+  subject: string;
+  body_html: string;
+  footer_html: string;
+  button_label: string;
+  logo_url: string | null;
+  banner_url: string | null;
+  updated_at: string;
+  updated_by: string | null;
+};
+
 // A sidebar section in one community. spaces.nav_group holds its key. See
 // src/lib/nav-groups.ts and 20261009143443_community_nav_groups.sql.
 export type CommunityNavGroup = {
@@ -3327,6 +3345,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_email_templates: {
+        Row: CommunityEmailTemplate;
+        Insert: Partial<CommunityEmailTemplate> & { community_id: string; kind: CommunityEmailTemplateKind };
+        Update: Partial<CommunityEmailTemplate>;
       } & NoRel;
       community_nav_groups: {
         Row: CommunityNavGroup;
