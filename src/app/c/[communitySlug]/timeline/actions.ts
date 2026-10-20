@@ -70,6 +70,12 @@ import type { SeedEvent, SeedEventLink, SeedSource, SeedTrack } from "@/lib/time
 import { SACRED_TREES_EVENTS, SACRED_TREES_SOURCES, SACRED_TREES_TRACK } from "@/lib/timeline/sacred-trees-seed";
 import { OKOMILO_EVENTS, OKOMILO_LINKS, OKOMILO_SOURCES, OKOMILO_TRACK } from "@/lib/timeline/okomilo-avhianwu-benin-seed";
 import { MOORS_EVENTS, MOORS_LINKS, MOORS_SOURCES, MOORS_TRACK } from "@/lib/timeline/moors-origins-seed";
+import {
+  SERPENT_CIVILIZATIONS_TRACK,
+  SERPENT_EVENTS,
+  SERPENT_LINKS,
+  SERPENT_SOURCES,
+} from "@/lib/timeline/serpent-civilizations-seed";
 import { BENIN_DEEP_PAST_EVENTS, BENIN_DEEP_PAST_LINKS, BENIN_DEEP_PAST_SOURCES, BENIN_DEEP_PAST_TRACK } from "@/lib/timeline/benin-deep-past-seed";
 import { BENIN_DAHOMEY_EVENTS, BENIN_DAHOMEY_LINKS, BENIN_DAHOMEY_SOURCES, BENIN_DAHOMEY_TRACK } from "@/lib/timeline/benin-dahomey-seed";
 import { BENIN_VODUN_EVENTS, BENIN_VODUN_LINKS, BENIN_VODUN_SOURCES, BENIN_VODUN_TRACK } from "@/lib/timeline/benin-vodun-seed";
@@ -2110,6 +2116,7 @@ const SEEDED_DATASETS: SeedDatasetSpec[] = [
   { label: "Vodun: cosmology, ritual, Fa, and the Atlantic", track: BENIN_VODUN_TRACK, events: BENIN_VODUN_EVENTS, sources: BENIN_VODUN_SOURCES, links: BENIN_VODUN_LINKS },
   { label: "Ouidah, the Atlantic, colonial rule and modern B\u00e9nin", track: BENIN_ATLANTIC_TRACK, events: BENIN_ATLANTIC_EVENTS, sources: BENIN_ATLANTIC_SOURCES, links: BENIN_ATLANTIC_LINKS },
   ...VODUN_DIASPORA_DATASETS.map(({ label, track, events, sources, links }) => ({ label, track, events, sources, links })),
+  { label: "The Serpent Across Civilizations", track: SERPENT_CIVILIZATIONS_TRACK, events: SERPENT_EVENTS, sources: SERPENT_SOURCES, links: SERPENT_LINKS },
   { label: "Sacred trees and sefirotic diagrams", track: SACRED_TREES_TRACK, events: SACRED_TREES_EVENTS, sources: SACRED_TREES_SOURCES },
   { label: "The Great Pyramid worked example", events: [{ ...SHOWCASE_EVENT, claims: SHOWCASE_CLAIMS }], sources: SHOWCASE_SOURCES },
   { label: "Hannibal", track: HANNIBAL_TRACK, events: HANNIBAL_EVENTS, sources: HANNIBAL_SOURCES },
@@ -3516,6 +3523,32 @@ export async function seedMoorsOriginsDataset(communitySlug: string) {
     links: MOORS_LINKS,
     label: "Origins of the Moors",
     // 278 pictures: staff press "Bring hotlinked pictures in" afterwards.
+    copyPicturesLater: true,
+  });
+  revalidatePath(timelinePath(community.slug));
+  return result;
+}
+
+/**
+ * The Serpent Across Civilizations: the tribe of Dan, Egyptian and Kushite
+ * serpent religion, and the Dan and Dangbé traditions of the Gbe coast, with
+ * the comparisons and the evidence assessment. It links into the Bénin, Vodun,
+ * Set and serpent collections, so it is best taken after them; links to
+ * records not yet present are added later by "Bring the seeded datasets back
+ * up to date". See serpent-civilizations-seed.ts.
+ */
+export async function seedSerpentCivilizationsDataset(communitySlug: string) {
+  const context = await requireTimelineWriter(communitySlug);
+  if ("error" in context) return context;
+  const { supabase, community, userId, isStaff } = context;
+  if (!isStaff) return { error: "Only staff can add this dataset." };
+  const result = await seedDataset(supabase, community, userId, {
+    events: SERPENT_EVENTS,
+    sources: SERPENT_SOURCES,
+    track: SERPENT_CIVILIZATIONS_TRACK,
+    links: SERPENT_LINKS,
+    label: "The Serpent Across Civilizations",
+    // Too many pictures to copy in one request: staff press "Bring hotlinked pictures in" afterwards.
     copyPicturesLater: true,
   });
   revalidatePath(timelinePath(community.slug));

@@ -29,6 +29,7 @@ import { RelatedRecords } from "./related-records";
 import { EvidenceChainPanel } from "./evidence-chain-panel";
 import { workPath } from "@/lib/timeline/texts/paths";
 import { ClaimGenealogyPanel } from "./claim-genealogy-panel";
+import { PictureComparison } from "./picture-comparison";
 import { deleteTimelineEvent, reviewTimelineEvent, setEventProminence } from "./actions";
 import { PROMINENCE_LABELS, type Prominence } from "@/lib/timeline/prominence";
 import {
@@ -445,6 +446,41 @@ export function EventDetail({
         </div>
       )}
 
+      {/* WE HOLD THIS TEXT. When the record is the marker for a text in the
+          archive, say so straight under the description, in a box of its own
+          colour, so a reader who came for the text sees at once that the words
+          themselves are here and not only a date for them. Draws nothing for
+          the many records that are not texts. */}
+      {archiveWorks.length > 0 && (
+        <div className="mt-4 max-w-4xl rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <div className="flex gap-3">
+            <BookOpenText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                We have the text itself: {archiveWorks.map((work) => work.title).join(", ")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Read it in the archive, passage by passage, with its manuscripts and translations.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {archiveWorks.map((work) => (
+                  <Link
+                    key={work.workKey}
+                    href={workPath(communitySlug, work.workKey)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                  >
+                    <BookOpenText className="h-4 w-4" />
+                    Read the original text{archiveWorks.length > 1 ? `: ${work.title}` : ""}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <PictureComparison eventSlug={event.slug} media={event.media} />
+
       {/* THE REST OF THE PICTURES.
           The media column has been on this table since the feature shipped and
           nothing has ever drawn it — an event could carry a dozen images and a
@@ -684,26 +720,6 @@ export function EventDetail({
           says. Placed after the dates and before the relationships: the dates
           are what the page is FOR, and this is the answer to the question a
           reader asks next. Draws nothing when the record has no passages. */}
-      {archiveWorks.length > 0 && (
-        <div className="mt-8 rounded-xl border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">
-            The full text is in the archive, passage by passage, with its manuscripts and translations.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {archiveWorks.map((work) => (
-              <Link
-                key={work.workKey}
-                href={workPath(communitySlug, work.workKey)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground"
-              >
-                <BookOpenText className="h-4 w-4" />
-                Read the original text{archiveWorks.length > 1 ? `: ${work.title}` : ""}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
       <EvidenceChainPanel passages={passages} sourcesById={sourcesById} />
 
       {/* And the chain that runs the other way: forwards, through whoever
