@@ -4399,6 +4399,14 @@ export type Database = {
         // jsonb — parsed and typed in src/lib/data/community-analytics.ts.
         Returns: unknown;
       };
+      record_editorial_guide_view: {
+        Args: { p_guide_id: string; p_visitor_id: string };
+        Returns: undefined;
+      };
+      editorial_guide_view_stats: {
+        Args: { p_community_id: string };
+        Returns: { guide_id: string; today: number; last_7_days: number; last_30_days: number; all_time: number; readers_30_days: number }[];
+      };
       community_has_feature: {
         Args: { p_community_id: string; p_feature: string };
         Returns: boolean;
