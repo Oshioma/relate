@@ -36,7 +36,7 @@ export function CommunityGuidelinesForm({ community }: { community: Community })
   // the saved draft afterwards — so there's no mismatch.
   const savedRaw = useSyncExternalStore(noSubscription, () => readJsonDraft(draftKey), () => "");
   const saved = useMemo(() => parseDraft(savedRaw), [savedRaw]);
-  const stored: GuidelinesDraft = { guidelines: community.guidelines ?? "", showInNav: community.guidelines_show_in_nav };
+  const stored: GuidelinesDraft = { guidelines: community.guidelines ?? "", showInNav: community.guidelines_show_in_nav !== false };
 
   // What's been changed this visit; until then, the saved draft or the stored values.
   const [edited, setEdited] = useState<GuidelinesDraft | null>(null);
