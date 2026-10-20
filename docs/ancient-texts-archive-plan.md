@@ -407,3 +407,80 @@ The two great New Kingdom books of the sun's night journey, each attached to the
 - **Plain words** — 57 for the Amduat (25 with "Other possible readings") and 49 for the Book of Gates (29), each 20–1,500 characters. The readings record Budge's own "(?)", his alternatives "(or, …)" and his rival translations; where his printed text and his errata differ, the paraphrase says so.
 - **Images** — twelve from Commons file pages, each downloaded and looked at; the licence is recorded as each page states it. Amduat (five): the burial chamber of KV35 (Ignati, CC BY-SA 3.0, secure, a file-level picture of the witness); two KV34 walls (Gerd Eichmann 1982, CC BY-SA 4.0) placed at hours 1 and 4 by matching their figures to Budge; the Marseille "Papyrus A" (Ismoon, GFDL/CC BY-SA) at hour 12 as related evidence, its label doubted in the record; and an uncredited twelfth-hour photograph (PD-Art claimed, `licenceStatus` "unknown" because the page contradicts itself on KV34/KV35). Book of Gates (seven): Seti I's sarcophagus in the Soane Museum (Djehouty 2023, CC BY-SA 4.0, secure) and KV57's unfinished drawings (Dalbéra, CC BY 2.0, secure) as file-level witness pictures; the KV57 Judgment Hall (Soutekh67, CC BY-SA 3.0) at 6, hall-1; the KV17 boat of the sun under Mehen (Carole Raddato, CC BY-SA 2.0) at 5, middle; KV9's tank of the drowned (R Prazeres, CC BY-SA 4.0) at 8, middle; the KV11 enemies bound to a jackal standard (PD-Art claimed, source TMP, status "unknown") at 6, seti-middle; and Weidenbach's drawing for Lepsius of the four peoples (PD) at 5, lower. Nine are `UNVERIFIED`, each because its hour, division or tomb rests on an uploader's label or on matching to Budge's description; the hour numbers on Commons need not follow Budge's count. The pictures already on the two markers are not repeated. No Apep picture was added.
 - **Not done** — `inventoryVerified` stays false for both: the twelve hours have not been checked against Hornung's editions, and Budge's divisions of the Book of Gates are not aligned with Hornung's hours. Budge's drawings and his hieroglyphic text are not reproduced. The Amduat papyri of the Third Intermediate Period (one is pictured, none imported), the other royal copies (KV9's Amduat, Ramesses VI's Book of Gates outside division 6) and the Osireion are not imported. The Met's CC0 Amduat fragment (553717) and further KV34 views were found but not downloaded before Commons' image server began refusing requests.
+
+## 17. Stage 11: Stobaeus's Hermetic excerpts and Pistis Sophia
+
+Two works in G. R. S. Mead's English, both public domain and imported in full. Each is attached to the marker the inventory already defines for it (`stobaeus-hermetic-excerpts`, `pistis-sophia`); no new markers. The Greek of Stobaeus is cited only. Copenhaver gives no Stobaeus, so he is a source for the dates only and not a layer. Nock–Festugière, Litwa and Schmidt–MacDermot are `copyrighted_reference` layers with no content. Six sources were added to the inventory: Mead's *Thrice-Greatest Hermes* III, Litwa's *Hermetica II*, the Wachsmuth–Hense, Gaisford and Meineke editions of Stobaeus, and Schmidt–MacDermot (1978).
+
+Files:
+- `corpus/stobaeus.ts` and the generated `corpus/stobaeus-text.ts` (`scripts/texts/mead-stobaeus.py`);
+- `corpus/pistis-sophia.ts` and the generated `corpus/pistis-sophia-text.ts` (`scripts/texts/mead-pistis-sophia.py`);
+- plain words in `corpus/plain/stobaeus.ts` and `corpus/plain/pistis-sophia.ts`.
+
+### Stobaeus (`herm.stobaeus`)
+
+- **Source and checking** — Mead, *Thrice-Greatest Hermes* vol. III (1906), "Excerpts by Stobaeus". The base is the archive.org OCR of the Toronto copy (`thricegreatesthe03hermuoft`). It was compared word by word with:
+  - the University of Michigan e-text (`afx0734.0003.001`);
+  - the archive.org OCR of a different scan of the three volumes.
+
+  The majority reading is taken; each hand correction is listed in the script. Of 22,900 words, 97.9% agree with the Michigan text and 95.6% with the second OCR. The few short excerpts that agree less (V, VII, XII, XV) are places where one copy splices in footnote matter or loses a line; each was judged by hand. Mead's source notes, footnotes and commentary are left out. The few Greek words he prints inside the English of Excerpt VI are marked '(Greek word omitted)', and the excerpt's notes say so.
+- **Units** — Mead's 27 excerpts (`herm.sh.ex1` … `herm.sh.ex27`, `fragment`), in his order and with his numbering. Nock–Festugière count 29 (SH 1–29), so the work is partial (`expectedUnits` 29). Only Excerpt XXV, the Korē Kosmou, is matched to its SH number (23); the other concordances are not checked. Mead's numbered paragraphs are sections (`herm.sh.ex1.1` …), 164 passages with text. Mead prints no ¶7 in Excerpt III and no ¶37 in Excerpt XXV. Each excerpt carries Mead's references to Wachsmuth–Hense, Gaisford and Meineke.
+- **Witnesses** — Naples III D 15 (F, 14th c.) and Paris gr. 2129 (P, 15th c.), listed for the excerpts from the Eclogae, with dates "as usually given; not checked".
+- **Dates** (on `herm.sh.ex1`):
+  - composition: 1st–3rd c. CE, disputed (Copenhaver);
+  - earliest evidence: the Anthology, 5th c.;
+  - the two manuscripts;
+  - translation: 1906.
+- **Links** — four `close_conceptual_parallel` links, all `proposed`, none claiming borrowing:
+  - Excerpt I.8 ("First God; second the Cosmos") → Asclepius 10.2;
+  - Excerpt II → *Timaeus* 28c;
+  - Excerpt XXIV (the seven planets) → Poimandres §9;
+  - Korē Kosmou ¶23 → Asclepius 12.
+- **Images** — three from Commons, each downloaded and looked at:
+  - an early printed opening of the Florilegium, `UNVERIFIED` because the Trincavelli 1536 attribution comes only from the Commons record;
+  - the cover of Meineke's 1855 Teubner volume;
+  - the Met's CC0 statuette of Isis with the child Horus (45.2.10). It is on Excerpt XXV as related evidence for the Korē Kosmou's two speakers and is labelled "not an illustration of it".
+- **Plain words** — 164, of which 36 have "Other possible readings".
+
+### Pistis Sophia (`gnostic.pistis-sophia`)
+
+- **Source and checking** — Mead, *Pistis Sophia* (2nd ed., 1921). The base is the Global Grey e-text. It was compared word by word with two independent OCRs of the printed book: the Celephais Press e-text and the archive.org OCR of the BYU copy. Agreement is 96.5% and 97.2% of 89,000 words.
+  - The script lists every short reading where both OCRs agree against the e-text (111) and every place where the e-text stands alone (about 800). These were judged by hand and not applied automatically.
+  - While the plain words were written, every chapter was read again. The remaining certain errors were corrected as `FIXES` and `REGEX_FIXES` and checked against the OCRs: misread letters, stray marks, line-break hyphens, quotation marks and colons dropped or set in the wrong order, and side-headings run into the text.
+  - The e-text had lost the first paragraph of chapter 20 and a sentence of chapter 142; both are restored from the OCRs.
+  - The long-vowel marks on the magical names are lost. Greek letter-names in the scribe's note that no copy gives legibly are marked "(Greek letters omitted)".
+  - Mead's footnotes and introduction are left out. His 425 side-headings are kept in the notes; 352 of them are confirmed in the OCRs' margins or his table of contents.
+- **Units** — Mead's 148 chapters (`gnostic.ps.1` … `gnostic.ps.148`), under his books:
+  - book-1: 1–62;
+  - book-2: 63–100;
+  - "A portion of the books of the Saviour" (another-book): 101;
+  - book-3: 102–125;
+  - book-4: 126–135;
+  - book-5: 136–143;
+  - book-6: 144–148.
+
+  The text of each chapter is Mead's paragraphs. A chapter of more than about 6,000 characters is split into parts (`gnostic.ps.86.1` …) and holds no text itself; there are 18 such chapters.
+
+  The scribe's note after chapter 62, the two subscriptions and the postscript are their own passages. That makes 174 passages with text. Mead's marks for the lacunae (after chapter 125 and chapter 143) are kept, and the notes explain them.
+- **Witness** — the Codex Askew (BL Add MS 5114), 4th–5th c., disputed, as Mead's introduction reports.
+- **Dates** (on `gnostic.ps.1`):
+  - composition: 3rd c., disputed (Harnack, Schmidt, Legge, via Mead);
+  - the manuscript;
+  - Mead's translations of 1896 and 1921.
+- **Themes** — on 23 chapters (for example the dragon of the outer darkness, the cup of forgetfulness and rebirth, the five planetary regents and the rulers of the way of the midst).
+- **Links** — two `close_conceptual_parallel` links to Gospel of Thomas 114, both `proposed`: Peter's complaints against Mary in chapters 36 and 72.
+- **Images** — two from Commons, each downloaded and looked at:
+  - Allan Ramsay's portrait of Anthony Askew (Emmanuel College, PD Mark), secure;
+  - a printed reproduction of a magical diagram from the Books of Jeu in the Bruce Codex (PD-1923), on chapter 99, where the Books of Yew are named. It is `UNVERIFIED`: the edition and page are named only by the Commons title, and whether the Books of Yew are these books is debated. It is related evidence, not this codex.
+
+  There is no image of the Codex Askew on Commons.
+- **Plain words** — 174, of which 18 have "Other possible readings".
+
+### Not done
+
+- `inventoryVerified` stays false for both works:
+  - Mead's 27 excerpts are not aligned with SH 1–29 beyond the Korē Kosmou;
+  - Mead's chapters are not checked against Schmidt's Coptic edition.
+- No Greek or Coptic text is given.
+- The Stobaeus manuscripts are not looked at.
+- The Pistis Sophia text has not been read against page images of the printed book; the OCRs were the only check.
