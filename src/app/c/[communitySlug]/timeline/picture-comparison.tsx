@@ -119,7 +119,7 @@ export function PictureComparison({ eventSlug, media }: { eventSlug: string; med
         {columns.map((column, index) => {
           const reading = feature.readings[column.fileName];
           return (
-            <div key={column.fileName} className="grid min-w-0 content-start gap-2">
+            <div key={column.fileName} className="grid min-w-0 grid-cols-1 content-start gap-2">
               <div>
                 <h3 className="text-sm font-semibold">{column.title}</h3>
                 <p className="font-mono text-xs text-muted-foreground">{column.meta}</p>
@@ -137,7 +137,7 @@ export function PictureComparison({ eventSlug, media }: { eventSlug: string; med
                 <Markers reading={reading} />
               </div>
               <p className={cn("text-sm", reading.notVisible && "italic text-muted-foreground")}>{reading.text}</p>
-              <p className="break-words text-[11px] leading-snug text-muted-foreground">
+              <p className="[overflow-wrap:anywhere] text-[11px] leading-snug text-muted-foreground">
                 {column.item.credit}
                 {column.item.sourcePageUrl && (
                   <>
