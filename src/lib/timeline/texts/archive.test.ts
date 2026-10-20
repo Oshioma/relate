@@ -736,6 +736,118 @@ test("every picture of the Heavenly Cow is from Commons, the witnesses come firs
   }
 });
 
+test("the Secret of Secrets has Ismail Ali's English of the Arabic in full, by discourse, and cites Manzalaoui and Badawi only", () => {
+  const file = assertOpenTextOnly("arab.secretum-secretorum", ["eng-ismail-ali"]);
+  const work = INVENTORY.find((w) => w.workKey === "arab.secretum-secretorum")!;
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, null);
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "secretum-secretorum");
+  const discourses = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind).map((p) => p.key);
+  assert.deepEqual(discourses, Array.from({ length: 10 }, (_, i) => `arab.secretum.${i + 1}`));
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 10, verifiedUnits: 0 }), "verified_against_edition");
+  assert.equal(file.passages[0].key, "arab.secretum.0");
+  assert.equal(file.passages[0].divisionKind, "section");
+  // The long discourses are split into the archive's parts and hold no text themselves; V–VIII are whole.
+  for (const [d, parts] of [[0, 2], [1, 2], [2, 20], [3, 2], [4, 7], [9, 3], [10, 9]] as const) {
+    const key = `arab.secretum.${d}`;
+    const discourse = file.passages.find((p) => p.key === key)!;
+    assert.equal(discourse.layers.some((l) => l.content), false, key);
+    const children = file.passages.filter((p) => p.parentKey === key);
+    assert.equal(children.length, parts, key);
+    assert.ok(children.every((p) => p.divisionKind === "part"), key);
+  }
+  for (const d of [5, 6, 7, 8]) {
+    const key = `arab.secretum.${d}`;
+    assert.ok(file.passages.find((p) => p.key === key)!.layers.some((l) => l.key === "eng-ismail-ali" && l.content), key);
+    assert.equal(file.passages.filter((p) => p.parentKey === key).length, 0, key);
+  }
+  const withText = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-ismail-ali" && l.content));
+  assert.equal(withText.length, 49);
+  for (const passage of withText) {
+    const layer = passage.layers.find((l) => l.key === "eng-ismail-ali")!;
+    assert.match(layer.evidence, /footnotes \(the variants of the other manuscripts\), marginal notes and apparatus are left out/, passage.key);
+    assert.match(layer.evidence, /three printed copies/, passage.key);
+    assert.equal(passage.witnesses?.length, 1, passage.key);
+    // No OCR debris: a figure 0 for the vocative O, a stray asterisk or a footnote figure.
+    assert.doesNotMatch(layer.content!, /\b0 Alexander|\*|[a-z][0-9]\b/, passage.key);
+  }
+  // The two passages Steele's footnotes give to one other manuscript only.
+  assert.deepEqual(file.passages.find((p) => p.key === "arab.secretum.10.3")!.witnesses!.map((w) => w.manuscriptKey), ["gotha-1870"]);
+  assert.deepEqual(file.passages.find((p) => p.key === "arab.secretum.10.4")!.witnesses!.map((w) => w.manuscriptKey), ["bl-or-3118"]);
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-ismail-ali")!.content!;
+  assert.match(text("arab.secretum.0.1"), /^In the name of God, the Merciful, the Compassionate\./);
+  assert.match(text("arab.secretum.0.1"), /known as Dhu ’l-Karnain/);
+  assert.match(text("arab.secretum.1.1"), /^Discourse I\.\n\nOn the Kinds of Kings\./);
+  assert.match(text("arab.secretum.10.7"), /^And truly has our ancestor Hermes Trismegistus said:/);
+  assert.match(text("arab.secretum.10.7"), /Whose father is the Sun and mother the Moon\./);
+  assert.match(text("arab.secretum.10.9"), /Praise be to God, Lord of the worlds\. Amen\.$/);
+  // Readings the OCRs lost, restored from the page images.
+  assert.match(text("arab.secretum.2.8"), /23⅓ hours/);
+  assert.match(text("arab.secretum.2.9"), /88 days and 17 1\/12 hours/);
+  assert.match(text("arab.secretum.9.3"), /^On the Victorious and the Defeated\.\n\n.*\n\nA \(1\)\. B \(2\)\. J \(3\)\./);
+  // Only Manzalaoui and Badawi are cited, on every discourse.
+  for (const discourse of file.passages.filter((p) => p.parentKey == null)) {
+    const cited = discourse.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key);
+    assert.deepEqual(cited, ["ara-badawi", "eng-manzalaoui"], discourse.key);
+  }
+  const dates = file.passages[0].dates!;
+  assert.deepEqual(
+    dates.map((d) => d.role),
+    ["composition", "translation_publication", "translation_publication", "manuscript", "manuscript", "translation_publication"]
+  );
+  assert.match(dates[0].originalDateText, /disputed/);
+  assert.match(dates[0].evidence, /Yuhanna ibn al-Batrik/);
+  assert.equal(dates[2].endYear, 1254);
+  assert.equal(dates[5].startYear, 1920);
+  assert.equal(file.manuscripts![0].key, "gotha-1869");
+  assert.equal(file.manuscripts![0].startYear, undefined);
+});
+
+test("the Secret of Secrets' Emerald Tablet has a key of its own, linked to the Tablet's versions as proposed parallels only", () => {
+  const file = corpusFor("arab.secretum-secretorum")!;
+  const tablet = file.passages.find((p) => p.key === "arab.secretum.10.7")!;
+  assert.match(tablet.label, /Emerald Tablet/);
+  assert.ok(tablet.layers.some((l) => l.key === "lat-philip" && l.content == null && /arab\.tab\.secretum/.test(l.contentAbsentReason!)));
+  const links = file.links ?? [];
+  const targets = links.map((l) => l.to);
+  for (const to of ["arab.tab.secretum", "arab.tab.arabic", "arab.tab.secretum.17"]) assert.ok(targets.includes(to), to);
+  const tabletKeys = new Set(corpusFor("arab.emerald-tablet")!.passages.map((p) => p.key));
+  for (const link of links) {
+    assert.equal(link.from, "arab.secretum.10.7", link.key);
+    assert.ok(tabletKeys.has(link.to), link.key);
+    assert.equal(link.connectionClass, "close_conceptual_parallel", link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.transmissionEvidence, /^None shown( here)?\..*never as transmission/, link.key);
+  }
+});
+
+test("every picture of the Secret of Secrets is from Commons, none repeats the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("arab.secretum-secretorum")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 5);
+  assert.equal(images[0].key, "secretum-bl-add-47680-alexander-aristotle");
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // The three pictures already on the marker are not repeated.
+    assert.doesNotMatch(image.url, /Tabula_ex_Secretum_Secretorum|Canon\._Class\._Lat\._135|Secret_of_secrets_a/, image.key);
+  }
+  assert.equal(unverified, 2);
+  // The Latin and Russian pictures say they are not the Arabic translated here.
+  for (const image of images.filter((i) => i.identificationStatus === "secure")) {
+    assert.match(image.caption, /not the Arabic translated here|not this Arabic text/, image.key);
+  }
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);
