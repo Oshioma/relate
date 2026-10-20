@@ -21,6 +21,7 @@ import { PLAIN_BOOK_OF_GATES } from "./book-of-gates";
 import { PLAIN_HEAVENLY_COW } from "./heavenly-cow";
 import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
+import { PLAIN_SECRETUM } from "./secretum";
 import { PLAIN_TIMAEUS } from "./timaeus";
 
 const PLAIN: Record<string, Record<string, string>> = {
@@ -44,6 +45,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.hall": PLAIN_HALL,
   "herm.stobaeus": PLAIN_STOBAEUS,
   "gnostic.pistis-sophia": PLAIN_PISTIS_SOPHIA,
+  "arab.secretum-secretorum": PLAIN_SECRETUM,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -51,6 +53,15 @@ test("every passage of the Book of the Heavenly Cow with Budge's English has pla
   const withText = cow.passages.filter((p) => p.layers.some((l) => l.key === "eng-budge")).map((p) => p.key);
   assert.deepEqual(Object.keys(PLAIN_HEAVENLY_COW).sort(), [...withText].sort());
   assert.equal(withText.length, 12);
+});
+
+test("every passage of the Secret of Secrets with Ismail Ali's English has plain words, and only those", () => {
+  const secretum = ALL_CORPORA.find((c) => c.workKey === "arab.secretum-secretorum")!;
+  const withText = secretum.passages.filter((p) => p.layers.some((l) => l.key === "eng-ismail-ali")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_SECRETUM).sort(), [...withText].sort());
+  assert.equal(withText.length, 49);
+  // The Tablet's plain words say that its wording is uncertain.
+  assert.match(PLAIN_SECRETUM["arab.secretum.10.7"], /Other possible readings:\n- The English is a literal translation/);
 });
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {

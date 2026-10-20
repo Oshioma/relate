@@ -23,6 +23,7 @@ import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PTAHHOTEP_CORPUS } from "./ptahhotep";
 import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
 import { PYRAMID_TEXTS_CORPUS } from "./pyramid-texts";
+import { SECRETUM_CORPUS } from "./secretum";
 import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
@@ -43,6 +44,7 @@ import { PLAIN_HEAVENLY_COW } from "./plain/heavenly-cow";
 import { PLAIN_PISTIS_SOPHIA } from "./plain/pistis-sophia";
 import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
+import { PLAIN_SECRETUM } from "./plain/secretum";
 import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
@@ -65,6 +67,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(GOSPEL_OF_THOMAS_CORPUS, PLAIN_GOSPEL_OF_THOMAS),
   withPlainWords(PISTIS_SOPHIA_CORPUS, PLAIN_PISTIS_SOPHIA),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
+  withPlainWords(SECRETUM_CORPUS, PLAIN_SECRETUM),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
   withPlainWords(HALL_CORPUS, PLAIN_HALL),
 ];
