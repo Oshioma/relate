@@ -18,6 +18,7 @@ import { PLAIN_KAGEMNI } from "./kagemni";
 import { PLAIN_MEMPHITE_THEOLOGY } from "./memphite-theology";
 import { PLAIN_AMDUAT } from "./amduat";
 import { PLAIN_BOOK_OF_GATES } from "./book-of-gates";
+import { PLAIN_HEAVENLY_COW } from "./heavenly-cow";
 import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_TIMAEUS } from "./timaeus";
@@ -32,6 +33,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "egy.memphite-theology": PLAIN_MEMPHITE_THEOLOGY,
   "egy.amduat": PLAIN_AMDUAT,
   "egy.book-of-gates": PLAIN_BOOK_OF_GATES,
+  "egy.heavenly-cow": PLAIN_HEAVENLY_COW,
   "greek.timaeus": PLAIN_TIMAEUS,
   "greek.critias": PLAIN_CRITIAS,
   "herm.corpus-hermeticum": PLAIN_HERMETICA,
@@ -43,6 +45,13 @@ const PLAIN: Record<string, Record<string, string>> = {
   "herm.stobaeus": PLAIN_STOBAEUS,
   "gnostic.pistis-sophia": PLAIN_PISTIS_SOPHIA,
 };
+
+test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
+  const cow = ALL_CORPORA.find((c) => c.workKey === "egy.heavenly-cow")!;
+  const withText = cow.passages.filter((p) => p.layers.some((l) => l.key === "eng-budge")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_HEAVENLY_COW).sort(), [...withText].sort());
+  assert.equal(withText.length, 12);
+});
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
   for (const [workKey, plain] of Object.entries(PLAIN)) {

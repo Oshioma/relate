@@ -644,6 +644,98 @@ test("every picture of Stobaeus and the Pistis Sophia is from Commons, and the u
   }
 });
 
+test("the Book of the Heavenly Cow has Budge's five sections in full, and cites Hornung and Lichtheim only", () => {
+  const file = assertOpenTextOnly("egy.heavenly-cow", ["eng-budge"]);
+  const sections = file.passages.filter((p) => p.divisionKind === "section").map((p) => p.key);
+  assert.deepEqual(sections, ["egy.cow.1", "egy.cow.2", "egy.cow.3", "egy.cow.4", "egy.cow.5"]);
+  const work = INVENTORY.find((w) => w.workKey === "egy.heavenly-cow")!;
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, null);
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "book-of-the-heavenly-cow");
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 5, verifiedUnits: 0 }), "verified_against_edition");
+  // Sections I and V are split into the archive's parts and hold no text themselves.
+  for (const [key, parts] of [["egy.cow.1", 5], ["egy.cow.5", 4]] as const) {
+    const section = file.passages.find((p) => p.key === key)!;
+    assert.equal(section.layers.some((l) => l.content), false, key);
+    const children = file.passages.filter((p) => p.parentKey === key);
+    assert.equal(children.length, parts, key);
+    assert.ok(children.every((p) => p.divisionKind === "part"), key);
+  }
+  const withBudge = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-budge" && l.content));
+  assert.equal(withBudge.length, 12);
+  for (const passage of withBudge) {
+    const layer = passage.layers.find((l) => l.key === "eng-budge")!;
+    assert.equal(layer.licence, "public_domain", passage.key);
+    assert.match(layer.evidence, /hieroglyphic text, transliteration and footnotes are left out/, passage.key);
+    assert.deepEqual(passage.witnesses?.map((w) => w.manuscriptKey), ["kv17"], passage.key);
+    // No footnote marker or transcriber's heading left in the text.
+    assert.doesNotMatch(layer.content!, /FN#|CHAPTER [IVX]|\{|\}/, passage.key);
+  }
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-budge")!.content!;
+  assert.match(text("egy.cow.1.1"), /^\[Here is the story of Ra,\] the god who was self-begotten and self-created/);
+  assert.match(text("egy.cow.2"), /^II\. This Chapter shall be said over \[a figure of\] the cow\./);
+  assert.match(text("egy.cow.5.4"), /by means of words of power\.$/);
+  // The majority readings of the two printed copies over the e-text.
+  assert.match(text("egy.cow.1.3"), /Now when the Majesty of Ra, the King/);
+  assert.match(text("egy.cow.5.3"), /step forth in the evening/);
+  assert.match(text("egy.cow.1.4"), /and avenge \(\?\) him/);
+  for (const section of file.passages.filter((p) => p.divisionKind === "section")) {
+    const cited = section.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key);
+    assert.deepEqual(cited, section.key === "egy.cow.1" ? ["deu-hornung", "eng-lichtheim"] : ["deu-hornung"], section.key);
+  }
+  const dates = file.passages[0].dates!;
+  assert.equal(file.passages[0].key, "egy.cow.1");
+  assert.deepEqual(
+    dates.map((d) => d.role),
+    ["composition", "earliest_evidence", "manuscript", "manuscript", "manuscript", "manuscript", "translation_publication"]
+  );
+  assert.match(dates[0].originalDateText, /disputed/);
+  assert.match(dates[1].originalDateText, /Tutankhamun/);
+  assert.equal(dates[6].startYear, 1912);
+  assert.deepEqual(file.manuscripts!.map((m) => m.key), ["kv62-shrine", "kv17", "kv7", "kv11", "kv9"]);
+});
+
+test("the Heavenly Cow's links are proposed parallels to passages that exist, never transmission", () => {
+  const links = corpusFor("egy.heavenly-cow")!.links ?? [];
+  assert.ok(links.length >= 5);
+  const targets = links.map((l) => l.to);
+  for (const to of ["egy.bd.175", "egy.bd.17", "egy.bd.110", "egy.amd.12.lower", "egy.gates.12.gate", "egy.ct.1130"]) assert.ok(targets.includes(to), to);
+  for (const link of links) {
+    assert.ok(link.from.startsWith("egy.cow."), link.key);
+    assert.equal(link.connectionClass, "close_conceptual_parallel", link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.transmissionEvidence, /^None shown\..*never as transmission/, link.key);
+  }
+});
+
+test("every picture of the Heavenly Cow is from Commons, the witnesses come first, and the unverified ones say so first", () => {
+  const file = corpusFor("egy.heavenly-cow")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 5);
+  assert.equal(images[0].key, "cow-kv62-outermost-shrine-burton-1923");
+  assert.equal(images[0].identificationStatus, "secure");
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // The two pictures already on the marker are not repeated.
+    assert.doesNotMatch(image.url, /Himmelskuh_grab_sethos|Book_of_the_Heavenly_Cow_KV62/, image.key);
+  }
+  assert.equal(unverified, 2);
+  // Related evidence says it is not an illustration of the book.
+  for (const image of images.filter((i) => i.key.startsWith("cow-hathor") || i.key.startsWith("cow-sekhmet"))) {
+    assert.match(image.caption, /^Related evidence, not an illustration of this book/, image.key);
+  }
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);

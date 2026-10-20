@@ -484,3 +484,48 @@ Files:
 - No Greek or Coptic text is given.
 - The Stobaeus manuscripts are not looked at.
 - The Pistis Sophia text has not been read against page images of the printed book; the OCRs were the only check.
+
+## 18. Stage 12: the Book of the Heavenly Cow
+
+The myth of the destruction of mankind and Ra's withdrawal to the sky on the back of the celestial cow (`egy.heavenly-cow`, prefix `egy.cow`). It is attached to the marker the inventory already defines for it (`book-of-the-heavenly-cow`); no new marker. The text is Budge's English in *Legends of the Gods* (1912), "The Legend of the Destruction of Mankind", public domain (Budge died in 1934), imported in full. Hornung's edition (*Der ägyptische Mythos von der Himmelskuh*, OBO 46, 1982) and Lichtheim's English (*Ancient Egyptian Literature* II, 1976) are `copyrighted_reference` layers with no content. One source was added to the inventory: `budge-legends-1912`.
+
+Files:
+- `corpus/heavenly-cow.ts` and the generated `corpus/heavenly-cow-text.ts` (`scripts/texts/budge-heavenly-cow.py`);
+- `corpus/heavenly-cow-related-images.ts`;
+- plain words in `corpus/plain/heavenly-cow.ts`.
+
+- **Source and checking** — Budge prints the hieroglyphic text on the even pages 14–40 and his English on the odd pages 15–41; his introduction (pp. xxiii–xxxiii) summarises the legend and is not imported. Three copies of the 1912 English were compared word by word:
+  - the base: the Project Gutenberg e-text no. 9411 (archive.org `legendsofthegods09411gut`), a proofread transcription;
+  - the archive.org OCR of a scan of the printed book from the Sandeman Library, Perth (`egyptianliteratu0001eawa`);
+  - the archive.org OCR of a second printed copy, from the Digital Library of India (`india.history.resource.91924`).
+
+  Of the e-text's 3,496 words, 98.6% line up with the first OCR, 98.0% with the second and 97.3% with both (the OCRs also carry the hieroglyphic pages, which line up with nothing). Where the two printed copies agree against the e-text, their reading is taken: two words (the e-text's "Re" for "Ra", "stop" for "step") and eight marks of punctuation. Eight places where both OCRs misread the same printed word alike (small capitals, italic transliterations, footnote numbers read as "!" or "?", a stray bracket) are listed in the script's `REJECT` and the e-text kept. Eleven corrections by hand, each checked in both OCRs, are in `FIXES`: eight of quotation marks (stray marks the e-text made of Budge's line-initial ones, Nu's speech and Nut's question in the cow episode, "Shu himself", "The Aged One", Seb's summons), "avenue" for "avenge", a capital ("[Power]") and a comma ("Ra, said"). A fourth archive.org file (`LegendsOfTheGods`) was set aside as an OCR of a printout of the Gutenberg text. Budge's English of 1904 in *The Gods of the Egyptians* I (archive.org `godsofegyptianso00budg`) is an interlinear word-for-word version, a different translation, and was not used for the comparison. No page image was read by eye, so nothing is marked verified. Budge's hieroglyphic text, transliteration and footnotes are left out (the evidence of every layer says so); the few Egyptian words he gives in brackets in the English are kept without their long-vowel marks, and his rows of dots for gaps are kept.
+- **Units** — Budge's five sections (`egy.cow.1` … `egy.cow.5`, `section`): the first, which he prints without a numeral, then II–V. Sections II (the Chapter of the Cow: how the picture is to be painted), III (Seb and the serpents) and IV (Thoth made Ra's deputy) carry their text. Sections I and V hold no text; beneath them are the archive's own cuts (`part`), at a change of scene: I.1 Ra's council, I.2 the Eye goes out as Hathor, I.3 the beer, I.4 Ra's weariness and Nut becomes a cow, I.5 the fields, the stars and the supports of heaven; V.1 the rule for the reciter, V.2 the soul of Ra, V.3 the reciter's words of power, V.4 the hymn to the lord of eternity and the close. That makes 12 passages with text; each records Budge's printed pages, read from the running heads of the Perth scan. `expectedUnits` stays null and `inventoryVerified` false: Budge's five sections are not Hornung's division, which was not checked.
+- **Witnesses** — the outermost gilded shrine of Tutankhamun (Carter no. 207, Egyptian Museum, Cairo, as usually given), the oldest copy; the tomb of Seti I (KV17), Budge's copy after Lefébure (*Le tombeau de Séti Ier* IV, pls. 15–18), the witness of every passage; and the later royal copies in the tombs of Ramesses II (KV7), Ramesses III (KV11; Budge's "second copy, very much mutilated" published by Naville in 1885 is usually identified with it, not checked here) and Ramesses VI (KV9), listed without loci. Regnal dates are approximate.
+- **Dates** (on `egy.cow.1`):
+  - composition: Middle Kingdom to late Eighteenth Dynasty, marked disputed;
+  - earliest evidence: Tutankhamun's shrine, c. 1332–1323 BCE;
+  - manuscripts: KV17, KV7, KV11, KV9;
+  - translation: 1912.
+- **Themes** — on 8 passages (for example the gods' council on mankind's rebellion, Ra's ascent on the cow, the creation of the fields and stars, Thoth and the moon, Heka).
+- **Links** — six `close_conceptual_parallel` links, all `proposed`, with transmission evidence "None shown … never as transmission":
+  - I.4 (Ra weary of mankind) → Book of the Dead 175 (the strife of the children of Nut; Tmu's doing away with what he made);
+  - I.2 (the slaughter begins at Suten-henen) → BD 17 (Ra first rises as king in Suten-henen before the pillars of Shu were made), a connection Budge himself suggests (p. xxvi);
+  - I.5 (Sekhet-hetep and Sekhet-aaru made) → BD 110 (the Field of Peace and the Field of Reeds);
+  - I.5 (Shu set under Nut, the Heh supports) → Amduat hour 12, lower register (the image Shu lifts beneath the sky, with Hehu and Hehut);
+  - II (the sun's boat on the cow's belly) → Book of Gates division 12, the gate ("Nut receiveth Ra");
+  - I.1 (mankind's plot against Ra) → Coffin Text 1130 (the creator says wrongdoing came from people's hearts).
+- **Images** — five from Commons file pages, each looked at; the licence is recorded as each page states it. The two pictures already on the marker (Hay's watercolour of the KV17 cow; the cow inside Tutankhamun's first shrine) are not repeated.
+  - Harry Burton's photograph of 16 December 1923 of the roof of the outermost shrine being lifted in KV62 (PD), a file-level picture of the oldest witness, secure; the text itself is inside the shrine and not visible.
+  - A photograph of the painted cow that the file page places in KV17 (Edward Piercy, PD-Art claimed), at section II: `UNVERIFIED`, because the tomb rests on the file page alone and the public-domain claim is for a photograph of a relief (`licenceStatus` "unknown").
+  - A drawing of the cow that the file page says is Budge's plate "The Cow-goddess Nut" from *The Gods of the Egyptians* I (1904), at I.5: `UNVERIFIED`, because the scan has not been compared with the book and the page's licence tag does not fit (`licenceStatus` "unknown").
+  - Related evidence, labelled "not an illustration of this book", at I.2: Naville's 1907 photograph of the Hathor cow in the chapel of Thutmose III at Deir el-Bahari (Cairo JE 38574–38575, PD), and the Louvre's two Sekhmet statues of Amenhotep III (A 7, A 8; Janmad, CC BY 3.0).
+- **Plain words** — 12, of which 10 have "Other possible readings" (Budge's own "(?)" and "(or, …)", and his restorations in brackets).
+
+### Not done
+
+- `inventoryVerified` stays false and `expectedUnits` null: Budge's sections are not aligned with Hornung's edition.
+- The text has not been read against page images of the printed book; the two OCRs and the e-text were the only check.
+- Only Seti I's copy is translated. The Tutankhamun shrine and the Ramesside copies are listed, not compared, and the extent of each is not recorded.
+- No photograph of the cow in the tombs of Ramesses II, III or VI was found on Commons, and the cow on the outermost shrine is shown only on the marker.
+- Budge's 1904 interlinear version and Naville's 1874 and 1885 translations are not imported.
