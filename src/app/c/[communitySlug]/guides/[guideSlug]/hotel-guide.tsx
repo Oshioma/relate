@@ -2,30 +2,18 @@ import { BedDouble, CalendarCheck, Compass, ExternalLink, Gem, Heart, ListChecks
 import type { Community, EditorialGuide, EditorialGuideUpdate } from "@/types/database";
 import type { FeedItemActionsProps } from "@/app/c/[communitySlug]/feed-item-actions";
 import { FeedItemActions } from "@/app/c/[communitySlug]/feed-item-actions";
-import type { ResolvedBoutiqueGuide } from "@/lib/guides/boutique-hotels/content";
-import { BOUTIQUE_HOTELS_DESCRIPTION, BOUTIQUE_HOTELS_SUBTITLE, BOUTIQUE_HOTELS_TITLE, photoCount } from "@/lib/guides/boutique-hotels/content";
-import {
-  AREAS,
-  BOOKING_ADVICE,
-  CALL_TO_ACTION,
-  CATEGORIES,
-  CATEGORY_CAVEAT,
-  EDITORIAL_STANDARDS,
-  HOW_TO_READ,
-  INTRODUCTION,
-  ITINERARY,
-  VENUE_PHOTO_NOTE,
-} from "@/lib/guides/boutique-hotels/advice";
-import { TRAVELLER_RECOMMENDATIONS, TRAVELLER_SOURCE } from "@/lib/guides/boutique-hotels/community";
+import type { HotelGuideDefinition } from "@/lib/guides/hotel-guide/types";
+import { photoCount, type ResolvedHotelGuide } from "@/lib/guides/hotel-guide/content";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { PhotoCredit } from "@/components/editorial-guide/destination-section";
 import { HotelSection } from "@/components/editorial-guide/hotel-section";
 
-// /guides/best-boutique-hotels-zanzibar — "Zanzibar's Best Boutique Hotels &
-// Hidden Gems". Server-rendered and public; the only client islands are the
-// section nav, the photos and the comment thread, which is the guide's own
-// feed card thread (comments here and on the feed card are the same).
+// A hotel guide page (/guides/best-boutique-hotels-zanzibar,
+// /guides/best-luxury-resorts-zanzibar): the same layout for every
+// HotelGuideDefinition. Server-rendered and public; the only client islands
+// are the section nav, the photos and the comment thread, which is the guide's
+// own feed card thread (comments here and on the feed card are the same).
 
 const ROLE_LABELS = { traveller: "Traveller", "local-guide": "Local guide", "travel-tip": "Travel tip" } as const;
 
@@ -46,7 +34,8 @@ function SectionTitle({ id, icon: Icon, children }: { id: string; icon: typeof G
   );
 }
 
-export function BoutiqueHotelsGuide({
+export function HotelGuide({
+  def,
   community,
   guide,
   content,
@@ -57,9 +46,10 @@ export function BoutiqueHotelsGuide({
   links,
   comments,
 }: {
+  def: HotelGuideDefinition;
   community: Community;
   guide: EditorialGuide;
-  content: ResolvedBoutiqueGuide;
+  content: ResolvedHotelGuide;
   updates: EditorialGuideUpdate[];
   pageUrl: string | null;
   canEdit: boolean;
@@ -67,8 +57,8 @@ export function BoutiqueHotelsGuide({
   links: { recommend: string; stay: string; ask: string };
   comments: Omit<FeedItemActionsProps, "itemTitle">;
 }) {
-  const { featured, gems, heroPhoto, editorsNote } = content;
-  const all = [...featured, ...gems];
+  const { featured, more, heroPhoto, editorsNote } = content;
+  const all = [...featured, ...more];
   const byKey = new Map(all.map((h) => [h.key, h]));
   const reviewed = formatDate(guide.last_reviewed_on);
   const photos = photoCount(content);
@@ -81,8 +71,8 @@ export function BoutiqueHotelsGuide({
     {
       "@context": "https://schema.org",
       "@type": "Article",
-      headline: BOUTIQUE_HOTELS_TITLE,
-      description: BOUTIQUE_HOTELS_DESCRIPTION,
+      headline: def.title,
+      description: def.description,
       inLanguage: "en-GB",
       ...(heroPhoto ? { image: [heroPhoto.src] } : {}),
       ...(guide.last_reviewed_on ? { dateModified: guide.last_reviewed_on } : {}),
@@ -92,7 +82,7 @@ export function BoutiqueHotelsGuide({
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: BOUTIQUE_HOTELS_TITLE,
+      name: def.title,
       itemListElement: all.map((h, i) => ({
         "@type": "ListItem",
         position: i + 1,
@@ -109,12 +99,12 @@ export function BoutiqueHotelsGuide({
   const sections: NavSection[] = [
     { id: "introduction", label: "Introduction", group: "Start here" },
     { id: "find-your-stay", label: "Find your perfect stay", group: "Start here" },
-    ...featured.map((h, i) => ({ id: h.key, label: `${i + 1}. ${h.name}`, group: "Featured hotels" })),
-    { id: "more-gems", label: "More boutique gems", group: "More hotels" },
-    { id: "travellers", label: "Recommended by travellers", group: "More hotels" },
+    ...featured.map((h, i) => ({ id: h.key, label: `${i + 1}. ${h.name}`, group: def.featuredSection.navGroup })),
+    ...(more.length > 0 ? [{ id: "more-hotels", label: def.moreSection.navLabel, group: "More hotels" }] : []),
+    ...(def.travellers ? [{ id: "travellers", label: "Recommended by travellers", group: "More hotels" }] : []),
     { id: "before-you-book", label: "Before you book", group: "Plan your stay" },
-    { id: "honeymoon", label: "Seven-night honeymoon", group: "Plan your stay" },
-    { id: "hidden-gem", label: "Share a hidden gem", group: "Plan your stay" },
+    { id: "itinerary", label: def.itinerary.navLabel, group: "Plan your stay" },
+    { id: "share", label: def.callToAction.navLabel, group: "Plan your stay" },
   ];
 
   return (
@@ -133,8 +123,8 @@ export function BoutiqueHotelsGuide({
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-black/35 to-black/10" aria-hidden />
         <div className="mx-auto flex min-h-[68vh] max-w-5xl flex-col justify-end px-4 pb-10 pt-24 text-white sm:px-6 sm:pb-14">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">{community.name} guide</p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-6xl">{BOUTIQUE_HOTELS_TITLE}</h1>
-          <p className="mt-3 max-w-2xl text-lg text-white/90 sm:text-xl">{BOUTIQUE_HOTELS_SUBTITLE}</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight sm:text-6xl">{def.title}</h1>
+          <p className="mt-3 max-w-2xl text-lg text-white/90 sm:text-xl">{def.subtitle}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="#find-your-stay" className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-white/90">
               <Sparkles className="h-4 w-4" aria-hidden /> Find your perfect stay
@@ -174,8 +164,8 @@ export function BoutiqueHotelsGuide({
           {/* Introduction */}
           <section id="introduction" aria-label="Introduction" className="mt-8 scroll-mt-24">
             <div className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-foreground">
-              <p className="text-2xl font-medium leading-snug tracking-tight sm:text-[1.7rem]">{INTRODUCTION[0]}</p>
-              {INTRODUCTION.slice(1).map((p) => (
+              <p className="text-2xl font-medium leading-snug tracking-tight sm:text-[1.7rem]">{def.introduction[0]}</p>
+              {def.introduction.slice(1).map((p) => (
                 <p key={p}>{p}</p>
               ))}
               <p>
@@ -191,7 +181,7 @@ export function BoutiqueHotelsGuide({
                   <a href={`/signup?next=${encodeURIComponent(guidePath)}`} className="font-semibold text-accent hover:underline">
                     Join {community.name}
                   </a>{" "}
-                  to share your own hidden gems and ask locals for advice. The guide itself is free to read.
+                  {def.callToAction.joinPrompt}
                 </p>
               )}
             </div>
@@ -201,7 +191,7 @@ export function BoutiqueHotelsGuide({
                 <ShieldCheck className="h-5 w-5 text-accent" aria-hidden /> How to read this guide
               </h2>
               <dl className="mt-3 grid gap-4 sm:grid-cols-2">
-                {HOW_TO_READ.map((item) => (
+                {def.howToRead.map((item) => (
                   <div key={item.label}>
                     <dt className="text-sm font-semibold text-foreground">{item.label}</dt>
                     <dd className="mt-0.5 text-sm text-muted-foreground">{item.body}</dd>
@@ -209,7 +199,7 @@ export function BoutiqueHotelsGuide({
                 ))}
               </dl>
               <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">About the photographs.</span> {VENUE_PHOTO_NOTE}{" "}
+                <span className="font-semibold text-foreground">About the photographs.</span> {def.venuePhotoNote}{" "}
                 <a href={contactHref} className="font-medium text-accent hover:underline">
                   Contact {community.name}
                 </a>
@@ -222,9 +212,9 @@ export function BoutiqueHotelsGuide({
             <SectionTitle id="find-your-stay-title" icon={Sparkles}>
               Find your perfect Zanzibar stay
             </SectionTitle>
-            <p className="mt-2 max-w-3xl text-muted-foreground">{CATEGORY_CAVEAT}</p>
+            <p className="mt-2 max-w-3xl text-muted-foreground">{def.categoryCaveat}</p>
             <div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-              {CATEGORIES.map((c) => (
+              {def.categories.map((c) => (
                 <div key={c.id} id={c.id} className="scroll-mt-24 border-l-2 border-accent pl-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">{c.title}</h3>
                   <p className="mt-0.5 text-sm text-muted-foreground">{c.blurb}</p>
@@ -250,11 +240,9 @@ export function BoutiqueHotelsGuide({
           {/* Featured hotels */}
           <section id="featured-hotels" aria-labelledby="featured-title" className="mt-16 scroll-mt-24">
             <SectionTitle id="featured-title" icon={BedDouble}>
-              Featured boutique hotels
+              {def.featuredSection.title}
             </SectionTitle>
-            <p className="mt-2 max-w-3xl text-muted-foreground">
-              Twelve exceptional small hotels and villa retreats, from an eight-room adults-only hideaway to architectural landmarks. Listed in no particular order of merit.
-            </p>
+            <p className="mt-2 max-w-3xl text-muted-foreground">{def.featuredSection.blurb}</p>
             <div className="mt-8 space-y-16">
               {featured.map((h, i) => (
                 <HotelSection key={h.key} hotel={h} number={i + 1} updates={updates.filter((u) => u.destination_key === h.key)} shareUrl={pageUrl ? `${pageUrl}#${h.key}` : null} />
@@ -262,27 +250,30 @@ export function BoutiqueHotelsGuide({
             </div>
           </section>
 
-          {/* More gems */}
-          <section id="more-gems" aria-labelledby="more-gems-title" className="mt-20 scroll-mt-24">
-            <SectionTitle id="more-gems-title" icon={Gem}>
-              More boutique gems worth discovering
-            </SectionTitle>
-            <p className="mt-2 max-w-3xl text-muted-foreground">Shorter entries for ten more characterful places to stay, from Stone Town to the quiet villages of the south-east.</p>
-            <div className="mt-6 space-y-10">
-              {gems.map((h, i) => (
-                <HotelSection key={h.key} hotel={h} number={featured.length + i + 1} updates={updates.filter((u) => u.destination_key === h.key)} shareUrl={pageUrl ? `${pageUrl}#${h.key}` : null} />
-              ))}
-            </div>
-          </section>
+          {/* More hotels */}
+          {more.length > 0 && (
+            <section id="more-hotels" aria-labelledby="more-hotels-title" className="mt-20 scroll-mt-24">
+              <SectionTitle id="more-hotels-title" icon={Gem}>
+                {def.moreSection.title}
+              </SectionTitle>
+              <p className="mt-2 max-w-3xl text-muted-foreground">{def.moreSection.blurb}</p>
+              <div className="mt-6 space-y-10">
+                {more.map((h, i) => (
+                  <HotelSection key={h.key} hotel={h} number={featured.length + i + 1} updates={updates.filter((u) => u.destination_key === h.key)} shareUrl={pageUrl ? `${pageUrl}#${h.key}` : null} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Travellers */}
+          {def.travellers && (
           <section id="travellers" aria-labelledby="travellers-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
             <SectionTitle id="travellers-title" icon={Users}>
-              Recommended by travellers who&apos;ve actually stayed
+              {def.travellers.title}
             </SectionTitle>
-            <p className="mt-2 max-w-3xl text-muted-foreground">{TRAVELLER_SOURCE}</p>
+            <p className="mt-2 max-w-3xl text-muted-foreground">{def.travellers.source}</p>
             <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-              {TRAVELLER_RECOMMENDATIONS.map((r) => (
+              {def.travellers.items.map((r) => (
                 <li key={r.id} className="flex flex-col rounded-lg border border-border bg-card p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-accent">{ROLE_LABELS[r.role]}</p>
                   <p className="mt-1 font-semibold text-foreground">{r.person}</p>
@@ -325,6 +316,7 @@ export function BoutiqueHotelsGuide({
               ))}
             </ul>
           </section>
+          )}
 
           {/* Before you book */}
           <section id="before-you-book" aria-labelledby="before-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
@@ -332,14 +324,14 @@ export function BoutiqueHotelsGuide({
               Things you should know before booking
             </SectionTitle>
             <nav aria-label="Booking advice topics" className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-              {BOOKING_ADVICE.map((b) => (
+              {def.bookingAdvice.map((b) => (
                 <a key={b.id} href={`#advice-${b.id}`} className="text-accent hover:underline">
                   {b.title}
                 </a>
               ))}
             </nav>
             <div className="mt-6 grid gap-x-10 gap-y-8 md:grid-cols-2">
-              {BOOKING_ADVICE.map((b, i) => (
+              {def.bookingAdvice.map((b, i) => (
                 <div key={b.id} id={`advice-${b.id}`} className={`min-w-0 scroll-mt-24 ${b.id === "location" ? "md:col-span-2" : ""}`}>
                   <h3 className="text-lg font-semibold text-foreground">
                     <span className="mr-1.5 text-accent">{String.fromCharCode(65 + i)}.</span>
@@ -362,7 +354,7 @@ export function BoutiqueHotelsGuide({
                           </tr>
                         </thead>
                         <tbody>
-                          {AREAS.map((a) => (
+                          {def.areas.map((a) => (
                             <tr key={a.name} className="border-t border-border align-top">
                               <th scope="row" className="whitespace-nowrap px-3 py-2.5 font-medium text-foreground">{a.name}</th>
                               <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">{a.coast}</td>
@@ -378,14 +370,14 @@ export function BoutiqueHotelsGuide({
             </div>
           </section>
 
-          {/* Honeymoon */}
-          <section id="honeymoon" aria-labelledby="honeymoon-title" className="mt-20 scroll-mt-24 rounded-2xl bg-muted p-5 sm:p-8">
-            <SectionTitle id="honeymoon-title" icon={Heart}>
-              The perfect seven-night Zanzibar honeymoon
+          {/* Itinerary */}
+          <section id="itinerary" aria-labelledby="itinerary-title" className="mt-20 scroll-mt-24 rounded-2xl bg-muted p-5 sm:p-8">
+            <SectionTitle id="itinerary-title" icon={Heart}>
+              {def.itinerary.title}
             </SectionTitle>
-            <p className="mt-2 max-w-3xl text-foreground/90">{ITINERARY.intro}</p>
+            <p className="mt-2 max-w-3xl text-foreground/90">{def.itinerary.intro}</p>
             <ol className="mt-6 grid gap-4 md:grid-cols-2">
-              {ITINERARY.legs.map((leg, i) => (
+              {def.itinerary.legs.map((leg, i) => (
                 <li key={leg.where} className="rounded-lg border border-border bg-card p-5">
                   <p className="text-xs font-semibold uppercase tracking-wide text-accent">
                     Part {i + 1} · {leg.nights}
@@ -416,26 +408,28 @@ export function BoutiqueHotelsGuide({
                 </li>
               ))}
             </ol>
-            <p className="mt-5 max-w-3xl text-[15px] leading-relaxed text-foreground/90">
-              <strong className="font-semibold text-foreground">Why split the stay?</strong> {ITINERARY.why}
-            </p>
+            {def.itinerary.why && (
+              <p className="mt-5 max-w-3xl text-[15px] leading-relaxed text-foreground/90">
+                <strong className="font-semibold text-foreground">{def.itinerary.why.title}</strong> {def.itinerary.why.body}
+              </p>
+            )}
             <h3 className="mt-6 flex items-center gap-2 text-base font-semibold text-foreground">
-              <Route className="h-4 w-4 text-accent" aria-hidden /> Prefer not to change hotels?
+              <Route className="h-4 w-4 text-accent" aria-hidden /> {def.itinerary.alternatives.title}
             </h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-foreground/90">
-              {ITINERARY.singleBase.map((s) => (
+              {def.itinerary.alternatives.items.map((s) => (
                 <li key={s}>{s}</li>
               ))}
             </ul>
           </section>
 
           {/* Call to action + comments */}
-          <section id="hidden-gem" aria-labelledby="hidden-gem-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
-            <SectionTitle id="hidden-gem-title" icon={MessageCircleHeart}>
-              {CALL_TO_ACTION.title}
+          <section id="share" aria-labelledby="share-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
+            <SectionTitle id="share-title" icon={MessageCircleHeart}>
+              {def.callToAction.title}
             </SectionTitle>
             <div className="mt-3 max-w-3xl space-y-3 text-[17px] leading-relaxed text-foreground">
-              {CALL_TO_ACTION.paragraphs.map((p) => (
+              {def.callToAction.paragraphs.map((p) => (
                 <p key={p}>{p}</p>
               ))}
             </div>
@@ -453,7 +447,7 @@ export function BoutiqueHotelsGuide({
             <div className="mt-8 max-w-3xl overflow-hidden rounded-lg border border-border bg-card">
               <p className="px-4 pt-4 text-sm font-semibold text-foreground">Comments on this guide</p>
               <p className="px-4 text-xs text-muted-foreground">
-                {comments.canInteract ? "Tell us about your favourite boutique hotel — it also appears on the guide's card in the community feed." : signedIn ? "Join the community to add a comment." : "Log in and join the community to add a comment."}
+                {comments.canInteract ? def.callToAction.commentPrompt : signedIn ? "Join the community to add a comment." : "Log in and join the community to add a comment."}
               </p>
               <FeedItemActions {...comments} itemTitle={guide.title} />
             </div>
@@ -463,9 +457,9 @@ export function BoutiqueHotelsGuide({
             <h2 id="standards-title" className="flex items-center gap-2 text-lg font-semibold text-foreground">
               <ShieldCheck className="h-5 w-5 text-accent" aria-hidden /> How this guide is made
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">{EDITORIAL_STANDARDS}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{def.editorialStandards}</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              This guide has {photos} photographs, {venuePhotos} of them from the venues themselves, each linked to the page it came from. {VENUE_PHOTO_NOTE}{" "}
+              This guide has {photos} photographs, {venuePhotos} of them from the venues themselves, each linked to the page it came from. {def.venuePhotoNote}{" "}
               <a href={contactHref} className="font-medium text-accent hover:underline">
                 Contact us
               </a>

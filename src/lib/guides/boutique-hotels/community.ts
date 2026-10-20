@@ -1,4 +1,4 @@
-import type { TravellerRecommendation } from "./types";
+import type { TravellerRecommendation } from "@/lib/guides/hotel-guide/types";
 
 // "Recommended by travellers who've actually stayed" — from a public
 // discussion in the Facebook group "Travelling to Zanzibar", started by a

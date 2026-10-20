@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityStaff } from "@/lib/data/community";
 import { getEditorialGuide } from "@/lib/data/editorial-guides";
 import { destinationOverrideSchema, defaultDestination, overridesSchema, photoSchema } from "@/lib/guides/where-to-stay/content";
-import { BOUTIQUE_HOTELS_SLUG, boutiqueOverridesSchema, defaultHotel, hotelPhotosSchema } from "@/lib/guides/boutique-hotels/content";
+import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { guideHotel, hotelOverridesSchema, hotelPhotosSchema } from "@/lib/guides/hotel-guide/content";
 
 // Admin actions for an editorial guide. RLS is the real gate (only community
 // admins can write editorial_guides, only staff can write local updates);
@@ -46,10 +47,10 @@ function storedOverrides(content: unknown) {
   return parsed.success ? parsed.data : {};
 }
 
-// The boutique hotels guide keeps its own override shape; parsing it with the
-// Where to Stay schema would silently drop its hotel photos on the next save.
-function storedBoutiqueOverrides(content: unknown) {
-  const parsed = boutiqueOverridesSchema.safeParse(content ?? {});
+// Hotel guides keep their own override shape; parsing one with the Where to
+// Stay schema would silently drop its hotel photos on the next save.
+function storedHotelOverrides(content: unknown) {
+  const parsed = hotelOverridesSchema.safeParse(content ?? {});
   return parsed.success ? parsed.data : {};
 }
 
@@ -67,7 +68,7 @@ export async function saveGuideSettings(communitySlug: string, guideSlug: string
   const parsed = settingsSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
 
-  const overrides = guideSlug === BOUTIQUE_HOTELS_SLUG ? storedBoutiqueOverrides(ctx.guide.content) : storedOverrides(ctx.guide.content);
+  const overrides = hotelGuideFor(guideSlug) ? storedHotelOverrides(ctx.guide.content) : storedOverrides(ctx.guide.content);
   const { error } = await ctx.supabase
     .from("editorial_guides")
     .update({
@@ -88,7 +89,7 @@ export async function saveDestination(communitySlug: string, guideSlug: string, 
   const ctx = await context(communitySlug, guideSlug);
   if ("error" in ctx) return { error: ctx.error ?? "Something went wrong." };
   if (!ctx.isAdmin) return { error: "Only community admins can edit this guide." };
-  if (guideSlug === BOUTIQUE_HOTELS_SLUG || !defaultDestination(key)) return { error: "Unknown destination." };
+  if (hotelGuideFor(guideSlug) || !defaultDestination(key)) return { error: "Unknown destination." };
 
   const parsed = destinationOverrideSchema.required({ name: true, rank: true, panel: true }).safeParse(input);
   if (!parsed.success) {
@@ -107,13 +108,14 @@ export async function saveDestination(communitySlug: string, guideSlug: string, 
   return { ok: true };
 }
 
-// Boutique hotels guide: replace one hotel's photos (e.g. once a hotel has
+// Hotel guides: replace one hotel's photos (e.g. once a hotel has
 // given written permission). An empty list restores the built-in photos.
 export async function saveHotelPhotos(communitySlug: string, guideSlug: string, key: string, input: unknown): Promise<Result> {
   const ctx = await context(communitySlug, guideSlug);
   if ("error" in ctx) return { error: ctx.error ?? "Something went wrong." };
   if (!ctx.isAdmin) return { error: "Only community admins can edit this guide." };
-  if (guideSlug !== BOUTIQUE_HOTELS_SLUG || !defaultHotel(key)) return { error: "Unknown hotel." };
+  const hotelGuide = hotelGuideFor(guideSlug);
+  if (!hotelGuide || !guideHotel(hotelGuide, key)) return { error: "Unknown hotel." };
 
   const parsed = hotelPhotosSchema.safeParse(input);
   if (!parsed.success) {
@@ -121,7 +123,7 @@ export async function saveHotelPhotos(communitySlug: string, guideSlug: string, 
     return { error: issue ? `${issue.path.join(" › ") || "Photos"}: ${issue.message}` : "Please check the photos." };
   }
 
-  const overrides = storedBoutiqueOverrides(ctx.guide.content);
+  const overrides = storedHotelOverrides(ctx.guide.content);
   const hotelPhotos = { ...(overrides.hotelPhotos ?? {}) };
   if (parsed.data.length > 0) hotelPhotos[key] = parsed.data;
   else delete hotelPhotos[key];
@@ -138,7 +140,7 @@ export async function resetDestination(communitySlug: string, guideSlug: string,
   const ctx = await context(communitySlug, guideSlug);
   if ("error" in ctx) return { error: ctx.error ?? "Something went wrong." };
   if (!ctx.isAdmin) return { error: "Only community admins can edit this guide." };
-  if (guideSlug === BOUTIQUE_HOTELS_SLUG) return { error: "Unknown destination." };
+  if (hotelGuideFor(guideSlug)) return { error: "Unknown destination." };
   const overrides = storedOverrides(ctx.guide.content);
   const destinations = { ...(overrides.destinations ?? {}) };
   delete destinations[key];
