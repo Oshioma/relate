@@ -8,6 +8,9 @@ import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { PhotoCredit } from "@/components/editorial-guide/destination-section";
 import { HotelSection } from "@/components/editorial-guide/hotel-section";
+import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
+import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
+import type { GuideViewStats } from "@/lib/data/editorial-guides";
 
 // A hotel guide page (/guides/best-boutique-hotels-zanzibar,
 // /guides/best-luxury-resorts-zanzibar): the same layout for every
@@ -42,6 +45,7 @@ export function HotelGuide({
   updates,
   pageUrl,
   canEdit,
+  viewStats,
   signedIn,
   links,
   comments,
@@ -53,6 +57,7 @@ export function HotelGuide({
   updates: EditorialGuideUpdate[];
   pageUrl: string | null;
   canEdit: boolean;
+  viewStats: GuideViewStats | null;
   signedIn: boolean;
   links: { recommend: string; stay: string; ask: string };
   comments: Omit<FeedItemActionsProps, "itemTitle">;
@@ -109,6 +114,7 @@ export function HotelGuide({
 
   return (
     <article className="pb-16">
+      <GuideViewBeacon guideId={guide.id} />
       {structuredData.map((data, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={jsonLd(data)} />
       ))}
@@ -151,7 +157,8 @@ export function HotelGuide({
               <CalendarCheck className="h-4 w-4" aria-hidden />
               {reviewed ? <>Last reviewed by our editors on {reviewed}</> : <>Written by the {community.name} editors</>}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {canEdit && <GuideViewStatsBadge stats={viewStats} />}
               {guide.status === "draft" && <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">Draft — only staff can see this</span>}
               {canEdit && (
                 <a href={`${guidePath}/edit`} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted">

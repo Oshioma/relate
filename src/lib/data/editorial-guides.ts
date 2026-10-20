@@ -31,6 +31,23 @@ export async function getCommunityEditorialGuides(supabase: Client, communityId:
   return data ?? [];
 }
 
+// Readers per guide (see the editorial_guide_views migration): daily readers
+// today, over the last 7 and 30 days and all time, and distinct readers over
+// 30 days. Staff only — the RPC returns nothing to anyone else — and a failure
+// (e.g. migration not yet applied) yields an empty map rather than an error.
+export type GuideViewStats = { today: number; last7: number; last30: number; allTime: number; readers30: number };
+
+export async function getEditorialGuideViewStats(supabase: Client, communityId: string): Promise<Map<string, GuideViewStats>> {
+  const { data, error } = await supabase.rpc("editorial_guide_view_stats", { p_community_id: communityId });
+  if (error || !data) return new Map();
+  return new Map(
+    data.map((r) => [
+      r.guide_id,
+      { today: Number(r.today), last7: Number(r.last_7_days), last30: Number(r.last_30_days), allTime: Number(r.all_time), readers30: Number(r.readers_30_days) },
+    ])
+  );
+}
+
 export async function getEditorialGuideUpdates(supabase: Client, guideId: string): Promise<EditorialGuideUpdate[]> {
   const { data, error } = await supabase
     .from("editorial_guide_updates")

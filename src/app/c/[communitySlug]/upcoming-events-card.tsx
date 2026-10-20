@@ -3,10 +3,10 @@ import { CalendarDays } from "lucide-react";
 import type { Event } from "@/types/database";
 import { Card } from "@/components/ui/card";
 import { placesLeftLabel } from "@/lib/event-places";
-import { DEFAULT_EVENT_IMAGE_URL } from "@/lib/events/default-image";
+import { EventThumb } from "./event-thumb";
 
 // Sidebar list of the next few events, each with a calendar-page date badge
-// and its photo (or the default event photo when it has none).
+// and its photo (or the default event photo when it has none or it won't load).
 export function UpcomingEventsCard({
   events,
   href,
@@ -40,12 +40,7 @@ export function UpcomingEventsCard({
             return (
               <li key={event.id}>
                 <Link href={href} className="group flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={event.image_url || DEFAULT_EVENT_IMAGE_URL}
-                    alt=""
-                    className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                  />
+                  <EventThumb src={event.image_url} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
                   <span className="flex w-10 shrink-0 flex-col items-center leading-none">
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-danger">
                       {start.toLocaleDateString("en-GB", { month: "short" })}

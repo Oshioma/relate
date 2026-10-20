@@ -5,7 +5,7 @@ import { ArrowDown, CalendarCheck, Columns3, Compass, Map as MapIcon, Pencil, Sp
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityMember } from "@/lib/data/community";
-import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "@/lib/data/editorial-guides";
+import { getEditorialGuide, getEditorialGuideUpdates, getEditorialGuideViewStats, getGuideDirectory, type GuideViewStats } from "@/lib/data/editorial-guides";
 import { communityShareOrigin } from "@/lib/custom-domain";
 import { WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
 import { communityLinksFor, guideUrl, loadGuide } from "@/lib/guides/where-to-stay/page-data";
@@ -29,6 +29,8 @@ import { DestinationSection, PhotoCredit } from "@/components/editorial-guide/de
 import { LinkedText, plainText } from "@/components/editorial-guide/linked-text";
 import { TAG_ICONS } from "@/components/editorial-guide/guide-icons";
 import { summarise } from "@/components/editorial-guide/types";
+import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
+import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 import { feedInteractionFor, getFeedInteractions } from "@/lib/data/feed-interactions";
 import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
 import { loadHotelGuide } from "@/lib/guides/hotel-guide/content";
@@ -142,12 +144,14 @@ export default async function EditorialGuidePage({ params }: { params: Params })
   if (!guide) notFound();
 
   if (hotelGuide) {
-    const [membership, updates, { links }, interactions, viewerProfile] = await Promise.all([
+    const [membership, updates, { links }, interactions, viewerProfile, viewStats] = await Promise.all([
       user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
       getEditorialGuideUpdates(supabase, guide.id),
       communityLinksFor(supabase, community, Boolean(user)),
       getFeedInteractions(supabase, community.id, [{ type: "editorial_guide", id: guide.id }], user?.id),
       user ? getProfile(supabase, user.id) : Promise.resolve(null),
+      // Guests are never staff, so only signed-in visitors ask for the stats.
+      user ? getEditorialGuideViewStats(supabase, community.id) : Promise.resolve(new Map<string, GuideViewStats>()),
     ]);
     const host = (await headers()).get("host");
     const { absolute } = guideUrl(host, community.slug, guide.slug, communityShareOrigin(community));
@@ -161,6 +165,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
         updates={updates.filter((u) => !u.expires_on || u.expires_on >= today)}
         pageUrl={absolute}
         canEdit={isCommunityAdmin(community, membership, user?.id)}
+        viewStats={viewStats.get(guide.id) ?? null}
         signedIn={Boolean(user)}
         links={{ recommend: links.restaurant, stay: links.stay, ask: links.ask }}
         comments={{
@@ -178,11 +183,12 @@ export default async function EditorialGuidePage({ params }: { params: Params })
     );
   }
 
-  const [membership, { content, updates }, directory, community_links] = await Promise.all([
+  const [membership, { content, updates }, directory, community_links, viewStats] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     loadGuide(supabase, guide),
     getGuideDirectory(supabase, community.id, community.slug),
     communityLinksFor(supabase, community, Boolean(user)),
+    user ? getEditorialGuideViewStats(supabase, community.id) : Promise.resolve(new Map<string, GuideViewStats>()),
   ]);
   const { links, tidesHref, accommodationHref } = community_links;
   const canEdit = isCommunityAdmin(community, membership, user?.id);
@@ -236,6 +242,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
 
   return (
     <article className="pb-16">
+      <GuideViewBeacon guideId={guide.id} />
       {structuredData.map((data, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={jsonLd(data)} />
       ))}
@@ -286,7 +293,8 @@ export default async function EditorialGuidePage({ params }: { params: Params })
             <CalendarCheck className="h-4 w-4" aria-hidden />
             {reviewed ? <>Last reviewed by our editors on {reviewed}</> : <>Written by the {community.name} editors</>}
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {canEdit && <GuideViewStatsBadge stats={viewStats.get(guide.id)} />}
             {guide.status === "draft" && <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">Draft — only staff can see this</span>}
             {canEdit && (
               <a href={`/c/${community.slug}/guides/${guide.slug}/edit`} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted">
