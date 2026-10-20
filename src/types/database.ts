@@ -182,6 +182,9 @@ export type Community = {
   // community admin page and shown at /c/<slug>/guidelines. Sanitised HTML or
   // Markdown, rendered through <RichText>. Null = none set yet.
   guidelines: string | null;
+  // Whether the guidelines link shows in the sidebar and mobile menu. False
+  // keeps the page live (reachable by its link) but out of the nav.
+  guidelines_show_in_nav: boolean;
   // Contact details the owner shows above their community's contact form
   // (/c/<slug>/contact) — phone, hours, address, etc. Sanitised HTML/Markdown
   // rendered through <RichText>. Null = nothing shown above the form.
