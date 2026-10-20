@@ -413,6 +413,18 @@ export const INVENTORY_SOURCES: SeedSource[] = [
     notes: "Edition of the Book of the Heavenly Cow from its royal copies; in copyright, cited for witnesses and dating.",
   },
   {
+    key: "budge-legends-1912",
+    title: "Legends of the Gods: The Egyptian Texts, Edited with Translations",
+    author: "E. A. Wallis Budge",
+    publisher: "Kegan Paul, Trench, Trübner, London (Books on Egypt and Chaldaea; Egyptian Literature, vol. I)",
+    publishedYear: 1912,
+    reference: "II. The Legend of the Destruction of Mankind: summary pp. xxiii–xxxiii; hieroglyphic text and English pp. 14–41 (English on the odd pages)",
+    url: "https://archive.org/details/egyptianliteratu0001eawa",
+    sourceType: "academic_book",
+    notes:
+      "Public domain (published 1912; Budge died in 1934). Budge's English of the Book of the Heavenly Cow, from Lefébure's copy of the text in the tomb of Seti I. The archive imports it in full from the Project Gutenberg e-text (no. 9411, archive.org legendsofthegods09411gut), compared word by word with archive.org OCRs of two printed copies (egyptianliteratu0001eawa; india.history.resource.91924). Budge's hieroglyphic text, transliteration and footnotes are not reproduced.",
+  },
+  {
     key: "burnet-plato",
     title: "Platonis Opera, Tomus IV",
     author: "John Burnet (ed.)",
@@ -1604,11 +1616,12 @@ export const INVENTORY: InventoryWork[] = [
     expectedUnits: null,
     unitLabel: "sections",
     unitDivisionKind: "section",
-    inventoryBasis: "Sections per Hornung 1982.",
+    inventoryBasis:
+      "Sections per Hornung 1982. The imported text is Budge 1912, who prints the book in five sections (the first unnumbered, then II–V) after Lefébure's copy in the tomb of Seti I; the archive's units are Budge's five. Hornung's own division has not been checked against them, so no total is given and the count is not verified.",
     inventoryConfidence: "low",
     inventoryVerified: false,
-    copyrightSummary: "Budge and Naville translations public domain; Hornung in copyright.",
-    fullTextEditions: ["Naville 1876 (TSBA 4)", "Budge 1904 (Gods of the Egyptians)"],
+    copyrightSummary: "Budge (1904, 1912) and Naville translations public domain; Hornung and Lichtheim in copyright.",
+    fullTextEditions: ["Budge 1912 (Legends of the Gods)", "Naville 1876 (TSBA 4)", "Budge 1904 (Gods of the Egyptians)"],
     referenceOnlyEditions: ["Hornung 1982", "Lichtheim 1976"],
     imageCollections: ["Egyptian Museum, Cairo: shrine of Tutankhamun", "Wikimedia Commons: KV17 (Seti I)"],
     anchor: {
