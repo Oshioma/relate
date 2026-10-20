@@ -72,3 +72,19 @@ If the exact image-to-object, image-to-claim, attribution, or identification can
 Do not downgrade a securely identified image merely because it is contextual. A securely identified site photograph can remain `secure` when the site identification is secure; however, if the UI or record could reasonably make a reader think it is the exact unverified object being discussed, use the `UNVERIFIED` treatment above.
 
 The goal is broad visual coverage with transparent provenance, not empty records caused by an exact-image-only rule and not misleading galleries caused by weak images being presented as primary evidence.
+
+# Image galleries open in the photo viewer
+
+Whenever a page shows a group of images (a hotel's photos, a destination's
+photos, any gallery or set of thumbnails), clicking one must open it in a
+full-screen pop-up with previous/next arrows that step through every image in
+that group (arrow keys and swipe too, wrapping at the ends, Escape to close),
+with each image's caption and credit shown underneath.
+
+Don't build a new one: wrap the group in `PhotoGallery` and lay a
+`PhotoOpener` over each image, from
+`src/components/editorial-guide/photo-viewer.tsx` (see `hotel-section.tsx`
+and `destination-section.tsx` for examples). The viewer takes the whole set,
+including photos the page doesn't show as thumbnails, so readers can see them all.
+Keep any labels such as "The area, not the hotel" on the photo in the viewer.
+A single image on its own (a hero, a card that links elsewhere) doesn't need it.

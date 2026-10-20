@@ -6,7 +6,13 @@ import { photoSchema } from "../where-to-stay/content";
 import type { GuidePhoto } from "../where-to-stay/types";
 import { FEATURED_HOTELS, MORE_GEMS } from "./hotels";
 import { BOUTIQUE_HERO_PHOTO } from "./photos";
-import { ALL_HOTELS, BOUTIQUE_HOTELS_SLUG, boutiqueCardImage, parseBoutiqueOverrides, photoCount, resolveBoutiqueContent } from "./content";
+import { BOUTIQUE_GUIDE, BOUTIQUE_HOTELS_SLUG } from "./content";
+import { guideHotels, hotelGuideCardImage, parseHotelOverrides, photoCount, resolveHotelGuide } from "../hotel-guide/content";
+
+const ALL_HOTELS = guideHotels(BOUTIQUE_GUIDE);
+const parseBoutiqueOverrides = (raw: unknown) => parseHotelOverrides(BOUTIQUE_GUIDE, raw);
+const resolveBoutiqueContent = (o: ReturnType<typeof parseBoutiqueOverrides>) => resolveHotelGuide(BOUTIQUE_GUIDE, o);
+const boutiqueCardImage = (content: unknown) => hotelGuideCardImage(BOUTIQUE_GUIDE, content);
 import { BOOKING_ADVICE, CALL_TO_ACTION, CATEGORIES, INTRODUCTION, ITINERARY } from "./advice";
 import { TRAVELLER_RECOMMENDATIONS } from "./community";
 import { editorialGuideEntry } from "../registry";
