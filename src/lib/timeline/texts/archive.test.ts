@@ -848,6 +848,145 @@ test("every picture of the Secret of Secrets is from Commons, none repeats the m
   }
 });
 
+test("Blavatsky's Stanzas of Dzyan are imported stanza by stanza, apart from her commentary, with twenty passages of her prose, each cited by first-edition volume and page", () => {
+  const file = assertOpenTextOnly("modern.blavatsky", ["eng-blavatsky"]);
+  const work = INVENTORY.find((w) => w.workKey === "modern.blavatsky")!;
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, null);
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "blavatsky-isis-unveiled");
+  // The selection is listed by volume and page, yet is the archive's choice, not a stated count.
+  assert.match(work.inventoryBasis, /vol\. I pp\. 27–34/);
+  assert.match(work.inventoryBasis, /vol\. II pp\. 15–21/);
+  assert.match(work.inventoryBasis, /39 units/);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.equal(units.length, 39);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 39, verifiedUnits: 0 }), "verified_against_edition");
+  // Five parts, holding no text of their own.
+  const parts = file.passages.filter((p) => p.divisionKind === "part").map((p) => p.key);
+  assert.deepEqual(parts, ["modern.hpb.isis", "modern.hpb.sd.1", "modern.hpb.cosmo", "modern.hpb.anthro", "modern.hpb.sd.2"]);
+  for (const key of parts) assert.equal(file.passages.find((p) => p.key === key)!.layers.length, 0, key);
+  // One unit per stanza: seven of Cosmogenesis, twelve of Anthropogenesis holding slokas 1–49.
+  const stanzas = (book: string) => file.passages.filter((p) => p.parentKey === `modern.hpb.${book}`).map((p) => p.key);
+  assert.deepEqual(stanzas("cosmo"), Array.from({ length: 7 }, (_, i) => `modern.hpb.cosmo.${i + 1}`));
+  assert.deepEqual(stanzas("anthro"), Array.from({ length: 12 }, (_, i) => `modern.hpb.anthro.${i + 1}`));
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-blavatsky")!.content!;
+  const slokas = stanzas("anthro").flatMap((key) => [...text(key).matchAll(/(?:^|\n\n)(\d+)\. /g)].map((m) => Number(m[1])));
+  assert.deepEqual(slokas, Array.from({ length: 49 }, (_, i) => i + 1));
+  assert.match(text("modern.hpb.cosmo.1"), /^1\. The eternal parent wrapped in her ever invisible robes/);
+  assert.match(text("modern.hpb.cosmo.7"), /descend on radiant earth and reign over men — who are themselves\. \. \. \.$/);
+  assert.match(text("modern.hpb.anthro.1"), /^1\. The Lha which turns the fourth/);
+  assert.match(text("modern.hpb.anthro.12"), /who taught and instructed it\. \. \. \. \. \.$/);
+  // The Stanzas are the Stanzas only: her commentary and closing words are not in them.
+  for (const key of [...stanzas("cosmo"), ...stanzas("anthro")]) {
+    assert.doesNotMatch(text(key), /Thus ends this portion|STANZA|Commentary|\(a\)/, key);
+    assert.match(file.passages.find((p) => p.key === key)!.reference, /^The Secret Doctrine \(1888\), vol\. II?, pp?\. \d+/, key);
+  }
+  // Readings restored from the page images, and first-edition misprints kept.
+  assert.match(text("modern.hpb.cosmo.4"), /enclosed within the ◯ are the sacred four/);
+  assert.match(text("modern.hpb.cosmo.4"), /which is:\n\n5\. “Darkness” the boundless/);
+  assert.match(text("modern.hpb.cosmo.3"), /the white brillant son/);
+  assert.match(text("modern.hpb.anthro.4"), /were I to give it mine\.” said the Great Fire/);
+  // The selected passages: nine from Isis Unveiled, eleven from The Secret Doctrine.
+  const selected = file.passages.filter((p) => p.divisionKind === "section" && !/\.(cosmo|anthro)\./.test(p.key));
+  assert.equal(selected.length, 20);
+  assert.equal(selected.filter((p) => p.sourceKey === "blavatsky-isis").length, 9);
+  for (const passage of selected) {
+    assert.match(passage.reference, /^(Isis Unveiled \(1877\)|The Secret Doctrine \(1888\)), vol\. II?, pp?\. [0-9ivxlc]+/, passage.key);
+  }
+  assert.match(text("modern.hpb.isis.1.507"), /^Tradition declares that on the dead body of Hermes, at Hebron/);
+  assert.match(text("modern.hpb.isis.1.507"), /"By it the world was formed\."$/);
+  assert.match(text("modern.hpb.sd.1.viii"), /who has ever even heard ot the book of Dzyan\?/);
+  assert.match(text("modern.hpb.sd.1.viii"), /the charge of having invented the whole of it/);
+  assert.match(text("modern.hpb.sd.1.xxii"), /utterly unknown to our Philologists/);
+  assert.match(text("modern.hpb.sd.1.xx"), /^\[Footnote\] Dan, now become/);
+  assert.match(text("modern.hpb.sd.2.1"), /\n\n\[Footnote\] Thus saith Pymander/);
+  assert.match(text("modern.hpb.sd.2.6"), /\[Greek, given in the online edition's transliteration: [^\]]+\]/);
+  assert.match(text("modern.hpb.sd.2.6"), /some 12,000 years ago, and was followed by the submersion/);
+  for (const passage of file.passages) {
+    const layer = passage.layers.find((l) => l.key === "eng-blavatsky");
+    if (!layer) continue;
+    assert.match(layer.evidence, /first edition, 18(77|88)/, passage.key);
+    assert.match(layer.evidence, /compared word by word with the archive\.org OCRs/, passage.key);
+    // No page lines, footnote marks or a paragraph broken by a page.
+    assert.doesNotMatch(layer.content!, /Vol\. \d, Page|Footnote\(s\)|[†‡§¶]|\[\[|[a-z,;]\n\n[a-z]|(?<!\n)\n(?!\n)/, passage.key);
+  }
+});
+
+test("the Book of Dzyan's antiquity is recorded as Blavatsky's claim, its composition in the 1880s, and Coleman's verdict is cited", () => {
+  const file = corpusFor("modern.blavatsky")!;
+  const dates = (key: string) => file.passages.find((p) => p.key === key)!.dates!;
+  assert.deepEqual(dates("modern.hpb.isis").map((d) => [d.role, d.startYear]), [["translation_publication", 1877]]);
+  assert.deepEqual(dates("modern.hpb.sd.1").map((d) => [d.role, d.startYear]), [["translation_publication", 1888]]);
+  const dzyan = dates("modern.hpb.cosmo");
+  assert.deepEqual(dzyan.map((d) => d.role), ["claimed", "composition", "translation_publication"]);
+  const [claimed, composition] = dzyan;
+  assert.equal(claimed.startYear, undefined, "a claim of antiquity is given no year");
+  assert.match(claimed.evidence, /Blavatsky's claim, not a date/);
+  assert.match(claimed.evidence, /No manuscript has ever been produced/);
+  assert.deepEqual([composition.startYear, composition.endYear], [1880, 1888]);
+  assert.equal(composition.sourceKey, "coleman-1895");
+  assert.match(composition.evidence, /The Book of Dzyan was the work of Madame Blavatsky/);
+  assert.match(composition.evidence, /London, October 1888/);
+  const coleman = INVENTORY_SOURCES.find((s) => s.key === "coleman-1895")!;
+  assert.equal(coleman.publishedYear, 1895);
+  assert.match(coleman.reference!, /A Modern Priestess of Isis.*pp\. 353–366/);
+  assert.ok(file.sources.some((s) => s.key === "coleman-1895"));
+  // The parts and her own preface frame the Stanzas' claim honestly.
+  assert.match(file.passages.find((p) => p.key === "modern.hpb.cosmo")!.notes!, /no manuscript has ever been produced, and Coleman \(1895\)/);
+  assert.match(file.passages.find((p) => p.key === "modern.hpb.anthro")!.notes!, /Only forty-nine Slokas out of several hundred/);
+});
+
+test("Blavatsky's links say she quotes, cites or retells the earlier text, and none claims ancient transmission", () => {
+  const file = corpusFor("modern.blavatsky")!;
+  const links = file.links ?? [];
+  assert.ok(links.length >= 10);
+  const targets = new Set(links.map((l) => l.to));
+  for (const to of ["arab.tab.vulgate", "herm.ch.1.16", "herm.ascl.24.3", "egy.bd.125", "greek.tim.25d", "greek.crit.113c", "modern.doreal.01"]) {
+    assert.ok(targets.has(to), to);
+  }
+  for (const link of links) {
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.hpb\./, link.key);
+    assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+    if (link.to.startsWith("modern.")) {
+      assert.equal(link.connectionClass, "broad_thematic_resemblance", link.key);
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    } else {
+      assert.equal(link.connectionClass, "later_reinterpretation", link.key);
+      assert.match(link.transmissionEvidence, /^She (names|attributes)/, link.key);
+      assert.match(link.transmissionEvidence, /not a witness to the earlier text/, link.key);
+    }
+  }
+});
+
+test("Blavatsky's pictures are first-edition pages and portraits from Commons, none repeats the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("modern.blavatsky")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 9);
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // The picture already on the marker is not repeated, nor the modern paperback cover.
+    assert.doesNotMatch(image.url, /Isis_Unveiled\.jpg|The_Secret_Doctrine\.gif/, image.key);
+    // There is no manuscript of the Book of Dzyan to show.
+    assert.notEqual(image.shows, "manuscript", image.key);
+  }
+  assert.equal(unverified, 2);
+  const pages = images.filter((i) => i.shows === "historical_document");
+  assert.equal(pages.length, 4);
+  for (const image of pages) assert.match(image.url, /\.pdf\/page\d+-960px-/, image.key);
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);

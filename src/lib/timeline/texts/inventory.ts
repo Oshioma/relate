@@ -763,21 +763,41 @@ export const INVENTORY_SOURCES: SeedSource[] = [
   },
   {
     key: "blavatsky-isis",
-    title: "Isis Unveiled",
+    title: "Isis Unveiled: A Master-Key to the Mysteries of Ancient and Modern Science and Theology",
     author: "H. P. Blavatsky",
     publisher: "J. W. Bouton, New York",
     publishedYear: 1877,
+    reference: "First edition, 2 vols. (I: Science; II: Theology), cited by volume and page; selected passages from vol. I pp. 1, 3, xxxi–xxxii, 507, 589–593 and vol. II pp. 360–361, 364",
+    url: "https://archive.org/details/cu31924092304579",
     sourceType: "modern_interpretation",
-    notes: "Public domain. Cited for its treatment of Hermes, Egypt and the Smaragdine Tablet.",
+    notes:
+      "Public domain. Nine passages imported (Hermes, Egypt, the Smaragdine Tablet, Atlantis, the 'old Book'), from the Theosophical University Press online edition, which keeps the first edition's pages, compared word by word with the OCRs of Cornell's 1877 copies (archive.org cu31924092304579, -587), the Wellcome Library's 1878 printing (b24886154) and a third copy (india.history.resource.85989–90). Every correction is listed in scripts/texts/blavatsky-dzyan.py.",
   },
   {
     key: "blavatsky-sd",
-    title: "The Secret Doctrine",
+    title: "The Secret Doctrine: The Synthesis of Science, Religion, and Philosophy",
     author: "H. P. Blavatsky",
     publisher: "Theosophical Publishing Company, London",
     publishedYear: 1888,
+    reference:
+      "First edition, 2 vols. (I: Cosmogenesis; II: Anthropogenesis), cited by volume and page; the Stanzas of Dzyan vol. I pp. 27–34 and vol. II pp. 15–21; selected passages from vol. I pp. viii, xx, xxii–xxiii, xliii, 1 and vol. II pp. 1–2, 6–9, 109, 113, 556, 743",
+    url: "https://archive.org/details/b24886142",
     sourceType: "modern_interpretation",
-    notes: "Public domain. Cited for root races, Atlantis and the Stanzas of Dzyan.",
+    notes:
+      "Public domain. The Stanzas of Cosmogenesis (I–VII) and Anthropogenesis (I–XII) are imported in full, as first printed before the commentary, with eleven passages of her prose, from the Theosophical University Press online edition, which keeps the first edition's pages, compared word by word with the OCRs of separate copies (vol. I: archive.org secretdoctrinesy0001hpbl_w8r1, the 1977 TUP facsimile bwb_C0-ADX-874, the 1925 Theosophy Company facsimile in.ernet.dli.2015.62045; vol. II: the Wellcome Library's 1888 copy b24886142, secretdoctrinesy0002hpbl_o5q6, bwb_Y0-BMG-596, in.ernet.dli.2015.62045). The revised third edition (1893) is not used. Every correction is listed in scripts/texts/blavatsky-dzyan.py.",
+  },
+  {
+    key: "coleman-1895",
+    title: "The Sources of Madame Blavatsky's Writings",
+    author: "William Emmette Coleman",
+    publisher: "Longmans, Green, and Co., London",
+    publishedYear: 1895,
+    reference:
+      "Appendix C to V. S. Solovyoff, A Modern Priestess of Isis, tr. Walter Leaf (London: Longmans, Green, 1895), pp. 353–366; on the Book of Dzyan, p. 359",
+    url: "https://archive.org/details/cu31924031226792",
+    sourceType: "secondary",
+    notes:
+      "Public domain. A critic's study of Blavatsky's borrowings, written after April 1893 (it cites the Theosophist of January and April 1893). It says that 'The Book of Dzyan was the work of Madame Blavatsky, — a compilation, in her own language, from a variety of sources', containing 'statements copied from nineteenth-century books'. Cited for that judgment; not quoted at length.",
   },
   {
     key: "hall-secret-teachings",
@@ -2843,7 +2863,8 @@ export const INVENTORY: InventoryWork[] = [
     expectedUnits: null,
     unitLabel: "passages (selection)",
     unitDivisionKind: "section",
-    inventoryBasis: "A selection, not the whole books: each selected passage is listed by volume and page when imported.",
+    inventoryBasis:
+      "A selection, not the whole books, listed by volume and page of the first editions. The Secret Doctrine (1888): the Stanzas of Cosmogenesis I–VII (vol. I pp. 27–34) and of Anthropogenesis I–XII (vol. II pp. 15–21), one unit per stanza; and vol. I pp. viii, xx (footnote), xxii–xxiii, xliii, 1; vol. II pp. 1–2, 6–9, 109, 113, 556, 743. Isis Unveiled (1877): vol. I pp. 1, 3, xxxi–xxxii, 507, 589–591, 592–593; vol. II pp. 360, 361, 364. 39 units in all (19 stanzas, 20 passages). The list is the archive's choice, not a count stated by an edition, so it is not marked verified.",
     inventoryConfidence: "high",
     inventoryVerified: false,
     copyrightSummary: "Public domain: selected passages may be reproduced in full.",

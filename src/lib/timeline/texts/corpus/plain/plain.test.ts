@@ -4,6 +4,7 @@ import { ALL_CORPORA } from "..";
 import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY, plainWordsBasis } from ".";
 import { PLAIN_AMENEMOPE } from "./amenemope";
 import { PLAIN_ASCLEPIUS } from "./asclepius";
+import { PLAIN_BLAVATSKY } from "./blavatsky";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./coffin-texts";
 import { PLAIN_CRITIAS } from "./critias";
@@ -46,6 +47,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "herm.stobaeus": PLAIN_STOBAEUS,
   "gnostic.pistis-sophia": PLAIN_PISTIS_SOPHIA,
   "arab.secretum-secretorum": PLAIN_SECRETUM,
+  "modern.blavatsky": PLAIN_BLAVATSKY,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -62,6 +64,16 @@ test("every passage of the Secret of Secrets with Ismail Ali's English has plain
   assert.equal(withText.length, 49);
   // The Tablet's plain words say that its wording is uncertain.
   assert.match(PLAIN_SECRETUM["arab.secretum.10.7"], /Other possible readings:\n- The English is a literal translation/);
+});
+
+test("every Stanza of Dzyan and every selected passage of Blavatsky has plain words, and only those", () => {
+  const hpb = ALL_CORPORA.find((c) => c.workKey === "modern.blavatsky")!;
+  const withText = hpb.passages.filter((p) => p.layers.some((l) => l.key === "eng-blavatsky")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_BLAVATSKY).sort(), [...withText].sort());
+  assert.equal(withText.length, 39);
+  // Her claims are reported as hers, and the racial ranking of the Stanzas is named as the text's own.
+  assert.match(PLAIN_BLAVATSKY["modern.hpb.sd.1.xliii"], /^She identifies|^She says/);
+  assert.match(PLAIN_BLAVATSKY["modern.hpb.anthro.10"], /Other possible readings:\n- The colours and 'black with sin'.*the text's racial hierarchy/);
 });
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
