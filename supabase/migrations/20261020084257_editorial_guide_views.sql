@@ -101,4 +101,6 @@ as $$
 $$;
 
 revoke all on function public.editorial_guide_view_stats(uuid) from public;
+-- Supabase grants new functions to anon directly, not only via public.
+revoke execute on function public.editorial_guide_view_stats(uuid) from anon;
 grant execute on function public.editorial_guide_view_stats(uuid) to authenticated;
