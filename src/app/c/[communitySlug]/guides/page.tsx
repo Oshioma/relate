@@ -13,7 +13,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 export const metadata: Metadata = { title: "Guides" };
 
 // /guides — the community's editorial guides, plus a pointer to its
-// member-written Guides space when it has one the visitor can see.
+// member-written Guides space when it has one the visitor can see and the
+// admins haven't taken it out of the menu.
 export default async function GuidesIndexPage({ params }: { params: Promise<{ communitySlug: string }> }) {
   const { communitySlug } = await params;
   const supabase = await createClient();
@@ -21,7 +22,9 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ co
   if (!community) notFound();
 
   const [guides, spaces] = await Promise.all([getCommunityEditorialGuides(supabase, community.id), getCommunitySpaces(supabase, community.id)]);
-  const memberGuides = spaces.find((s) => s.space_type === "guides") ?? null;
+  // Only point at the member-written space while it's in the menu: an admin
+  // who has taken it out of the nav doesn't want visitors sent there.
+  const memberGuides = spaces.find((s) => s.space_type === "guides" && s.show_in_nav) ?? null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
