@@ -18,6 +18,7 @@ import { KAGEMNI_CORPUS } from "./kagemni";
 import { MEMPHITE_THEOLOGY_CORPUS } from "./memphite-theology";
 import { AMDUAT_CORPUS } from "./amduat";
 import { BOOK_OF_GATES_CORPUS } from "./book-of-gates";
+import { HEAVENLY_COW_CORPUS } from "./heavenly-cow";
 import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PTAHHOTEP_CORPUS } from "./ptahhotep";
 import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
@@ -38,6 +39,7 @@ import { PLAIN_KAGEMNI } from "./plain/kagemni";
 import { PLAIN_MEMPHITE_THEOLOGY } from "./plain/memphite-theology";
 import { PLAIN_AMDUAT } from "./plain/amduat";
 import { PLAIN_BOOK_OF_GATES } from "./plain/book-of-gates";
+import { PLAIN_HEAVENLY_COW } from "./plain/heavenly-cow";
 import { PLAIN_PISTIS_SOPHIA } from "./plain/pistis-sophia";
 import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
@@ -54,6 +56,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(MEMPHITE_THEOLOGY_CORPUS, PLAIN_MEMPHITE_THEOLOGY),
   withPlainWords(AMDUAT_CORPUS, PLAIN_AMDUAT),
   withPlainWords(BOOK_OF_GATES_CORPUS, PLAIN_BOOK_OF_GATES),
+  withPlainWords(HEAVENLY_COW_CORPUS, PLAIN_HEAVENLY_COW),
   withPlainWords(TIMAEUS_CORPUS, PLAIN_TIMAEUS),
   withPlainWords(CRITIAS_CORPUS, PLAIN_CRITIAS),
   withPlainWords(HERMETICA_CORPUS, PLAIN_HERMETICA),

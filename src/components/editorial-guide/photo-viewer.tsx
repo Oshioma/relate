@@ -126,7 +126,7 @@ function PhotoViewer({ photos, title, start, onClose }: { photos: ViewerPhoto[];
         </button>
       </div>
 
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 sm:px-16">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 sm:px-24">
         {failed.has(photo.src) ? (
           <div className="flex flex-col items-center gap-2 text-white/70" onClick={(e) => e.stopPropagation()}>
             <ImageOff className="h-8 w-8" aria-hidden />
@@ -158,9 +158,9 @@ function PhotoViewer({ photos, title, start, onClose }: { photos: ViewerPhoto[];
                 e.stopPropagation();
                 step(-1);
               }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2.5 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:left-4"
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-3 ring-1 ring-white/25 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:left-4 sm:p-4"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-8 w-8 sm:h-10 sm:w-10" strokeWidth={2.5} />
             </button>
             <button
               type="button"
@@ -169,9 +169,9 @@ function PhotoViewer({ photos, title, start, onClose }: { photos: ViewerPhoto[];
                 e.stopPropagation();
                 step(1);
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2.5 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-4"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-3 ring-1 ring-white/25 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-4 sm:p-4"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-8 w-8 sm:h-10 sm:w-10" strokeWidth={2.5} />
             </button>
           </>
         )}
