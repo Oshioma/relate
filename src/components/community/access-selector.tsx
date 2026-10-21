@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   ACCESS_CHOICES,
   accessChoiceOf,
+  accessShifts,
   describeSpaceAccess,
   formatMonthly,
   settingsForChoice,
@@ -65,6 +66,8 @@ export function AccessSelector({
   const before = { visibility: space.visibility, price_cents: space.price_cents, tierIds: space.tierIds };
   const preview: AccessSpace = { ...space, ...after };
   const losing = tiersLosingAccess(before, after, tiers);
+  const { widens, narrows } = accessShifts(community, space, preview);
+  const onSaleNames = tiers.filter((t) => !t.archived_at).map((t) => t.name);
   const visibleTiers = tiers.filter((t) => !t.archived_at || space.tierIds.includes(t.id));
 
   // A paid choice can't be newly picked without payments, and "Paid members"
@@ -78,7 +81,13 @@ export function AccessSelector({
     return null;
   }
 
-  const options = ACCESS_CHOICES.map((c) => ({ ...c, disabledReason: unavailable(c.value) }));
+  const options = ACCESS_CHOICES.map((c) => ({
+    ...c,
+    // "Paid members" is the memberships on sale now; a membership created
+    // later never unlocks this space unless someone ticks it there.
+    description: c.value === "paid" && onSaleNames.length ? `Anyone on ${onSaleNames.join(", ")}. New memberships aren't added automatically.` : c.description,
+    disabledReason: unavailable(c.value),
+  }));
   const enabledIndexes = options.map((o, i) => (o.disabledReason ? -1 : i)).filter((i) => i >= 0);
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>, index: number) {
@@ -202,6 +211,28 @@ export function AccessSelector({
         {viewers.map((v) => `${v.label} ${STATE_WORDS[v.state]}`).join(" · ")}.
         {choice !== initialChoice || after.tierIds.join() !== space.tierIds.join() ? ` Now: ${describeSpaceAccess(preview, tiers)}.` : ""}
       </p>
+      {narrows.length > 0 && (
+        <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger">
+          {narrows.map((n) => `${n.who} will ${n.to === "locked" ? "see it locked" : "no longer see it"}`).join(" and ")} when you save.
+        </p>
+      )}
+      {widens.length > 0 && (
+        // Opening restricted content to more people is never one click: the
+        // form won't submit until this is ticked (the browser enforces
+        // `required`, and keyboard users reach it in order).
+        <label htmlFor={`${idPrefix}-confirm-widen`} className="flex items-start gap-2 rounded-lg border border-accent bg-accent-soft px-3 py-2 text-xs text-foreground">
+          <input
+            id={`${idPrefix}-confirm-widen`}
+            type="checkbox"
+            required
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-[var(--accent)]"
+          />
+          <span>
+            I understand {widens.map((w) => w.who.toLowerCase()).join(" and ")} will be able to open everything in &ldquo;{space.name}&rdquo;
+            {space.price_cents > 0 || space.tierIds.length > 0 ? ", including content people paid for" : ""}.
+          </span>
+        </label>
+      )}
       {losing.length > 0 && (
         <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger">
           People on {losing.map((t) => t.name).join(", ")} will lose access to this space when you save.

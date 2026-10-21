@@ -178,7 +178,12 @@ export function describeSpaceAccess(space: AccessSpace, tiers: AccessTier[]): st
   if (choice === "everyone") return "Everyone";
   if (choice === "members") return "All members";
   if (choice === "team") return "Admins only";
-  if (choice === "paid") return "Paid members";
+  if (choice === "paid") {
+    // Name the tiers that actually unlock it: "Paid members" is a snapshot of
+    // the tiers on sale when it was chosen, and a newer tier may not be one.
+    const names = tiers.filter((t) => space.tierIds.includes(t.id) && !t.archived_at).map((t) => t.name);
+    return `Paid members: ${names.join(", ")}`;
+  }
   const names = tiers.filter((t) => space.tierIds.includes(t.id)).map((t) => t.name);
   const ownPrice = space.price_cents > 0 ? `${formatMonthly(space.price_cents, space.currency)} on its own` : null;
   if (names.length && ownPrice) return `Members on ${names.join(", ")}, or ${ownPrice}`;
@@ -288,4 +293,66 @@ export function findAccessIssues(community: AccessCommunity, spaces: AccessSpace
 export function tiersLosingAccess(before: SpaceAccessSettings, after: SpaceAccessSettings, tiers: AccessTier[]): AccessTier[] {
   if (after.visibility === "public") return [];
   return tiers.filter((t) => before.tierIds.includes(t.id) && !after.tierIds.includes(t.id));
+}
+
+// --- Why ------------------------------------------------------------------------
+
+export type AccessReason =
+  | "team"
+  | "hidden_community"
+  | "public_space"
+  | "members_only"
+  | "team_only"
+  | "free_for_members"
+  | "unlocked_by_purchase"
+  | "needs_purchase";
+
+export const ACCESS_REASON_TEXT: Record<AccessReason, string> = {
+  team: "Owners, admins and moderators can open everything.",
+  hidden_community: "The community is invitation only, so nothing shows until they're a member.",
+  public_space: "The space is open to everyone.",
+  members_only: "Only members can see this space.",
+  team_only: "Only the team can see this space.",
+  free_for_members: "Members can open this space for free.",
+  unlocked_by_purchase: "Their membership or purchase unlocks it.",
+  needs_purchase: "Members see it, but it needs a membership or purchase to open.",
+};
+
+// The state plus the rule that decided it, for the overview and Access Check.
+export function explainSpaceAccess(
+  community: AccessCommunity,
+  space: AccessSpace,
+  viewer: AccessViewer
+): { state: AccessState; reason: AccessReason } {
+  const state = spaceAccessFor(community, space, viewer);
+  if (viewer.kind === "team") return { state, reason: "team" };
+  if (state === "hidden") {
+    if (space.visibility === "private") return { state, reason: "team_only" };
+    if (space.visibility === "public") return { state, reason: "hidden_community" };
+    return { state, reason: "members_only" };
+  }
+  if (space.visibility === "public") return { state, reason: "public_space" };
+  if (state === "locked") return { state, reason: "needs_purchase" };
+  return { state, reason: isGated(space) ? "unlocked_by_purchase" : "free_for_members" };
+}
+
+// --- Before you save -------------------------------------------------------------
+
+const RANK: Record<AccessState, number> = { hidden: 0, locked: 1, open: 2 };
+
+export type AccessShift = { who: "Visitors" | "Free members"; from: AccessState; to: AccessState };
+
+// How a change moves the two audiences everyone has: signed-out visitors and
+// members who haven't paid. Paid members are covered by tiersLosingAccess.
+export function accessShifts(community: AccessCommunity, before: AccessSpace, after: AccessSpace): { widens: AccessShift[]; narrows: AccessShift[] } {
+  const shifts: AccessShift[] = (
+    [
+      ["Visitors", { kind: "visitor" }],
+      ["Free members", { kind: "member" }],
+    ] as const
+  ).map(([who, viewer]) => ({ who, from: spaceAccessFor(community, before, viewer), to: spaceAccessFor(community, after, viewer) }));
+  return {
+    widens: shifts.filter((s) => s.to === "open" && s.from !== "open"),
+    narrows: shifts.filter((s) => s.from === "open" && RANK[s.to] < RANK[s.from]),
+  };
 }

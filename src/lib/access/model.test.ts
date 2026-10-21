@@ -8,6 +8,8 @@ import {
   settingsForChoice,
   spaceAccessFor,
   tiersLosingAccess,
+  explainSpaceAccess,
+  accessShifts,
   type AccessCommunity,
   type AccessSpace,
   type AccessTier,
@@ -113,7 +115,7 @@ test("who loses a space when its memberships change", () => {
 });
 
 test("plain English for a space and the community", () => {
-  assert.equal(describeSpaceAccess(spaces[3], tiers), "Paid members");
+  assert.equal(describeSpaceAccess(spaces[3], tiers), "Paid members: Insider");
   assert.equal(describeSpaceAccess(spaces[5], tiers), "Paid: $5/month on its own");
   assert.equal(describeSpaceAccess({ ...spaces[5], tierIds: ["insider"] }, tiers), "Members on Insider, or $5/month on its own");
   const lines = describeCommunityAccess(open, spaces, tiers);
@@ -163,4 +165,33 @@ test("existing communities read as the preset they match", () => {
   assert.equal(matchPreset(open, [space("a", "public"), space("b", "members", { tierIds: ["insider"] })], tiers), "paid");
   assert.equal(matchPreset({ ...open, privacy: "private", events_public: false }, [space("a", "members")], []), "private");
   assert.equal(matchPreset({ ...open, privacy: "private", feed_public: true }, [], []), "custom");
+});
+
+test("each answer comes with the rule that decided it", () => {
+  const why = (sp: AccessSpace, v: AccessViewer, c = open) => explainSpaceAccess(c, sp, v);
+  assert.deepEqual(why(spaces[0], viewers.visitor), { state: "open", reason: "public_space" });
+  assert.deepEqual(why(spaces[1], viewers.visitor), { state: "hidden", reason: "members_only" });
+  assert.deepEqual(why(spaces[2], viewers.free), { state: "hidden", reason: "team_only" });
+  assert.deepEqual(why(spaces[3], viewers.free), { state: "locked", reason: "needs_purchase" });
+  assert.deepEqual(why(spaces[3], viewers.paid), { state: "open", reason: "unlocked_by_purchase" });
+  assert.deepEqual(why(spaces[1], viewers.free), { state: "open", reason: "free_for_members" });
+  assert.deepEqual(why(spaces[0], viewers.visitor, hidden), { state: "hidden", reason: "hidden_community" });
+  assert.deepEqual(why(spaces[2], viewers.team), { state: "open", reason: "team" });
+});
+
+test("widening and narrowing are named before saving", () => {
+  const premium = spaces[3];
+  // Paid -> all members: free members gain it.
+  const toMembers = { ...premium, ...settingsForChoice("members", tiers) };
+  assert.deepEqual(accessShifts(open, premium, toMembers).widens.map((s) => s.who), ["Free members"]);
+  // Admins only -> everyone: both gain it.
+  const team = spaces[2];
+  const toEveryone = { ...team, ...settingsForChoice("everyone", tiers) };
+  assert.deepEqual(accessShifts(open, team, toEveryone).widens.map((s) => s.who), ["Visitors", "Free members"]);
+  // Members -> paid: free members lose it, nobody gains.
+  const chat = spaces[1];
+  const toPaid = { ...chat, ...settingsForChoice("paid", tiers) };
+  const shift = accessShifts(open, chat, toPaid);
+  assert.deepEqual(shift.widens, []);
+  assert.deepEqual(shift.narrows, [{ who: "Free members", from: "open", to: "locked" }]);
 });
