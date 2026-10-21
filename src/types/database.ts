@@ -4509,6 +4509,20 @@ export type Database = {
         Args: { p_domain: string };
         Returns: string | null;
       };
+      course_lesson_outline: {
+        Args: { p_course_ids: string[] };
+        Returns: {
+          id: string;
+          module_id: string;
+          course_id: string;
+          community_id: string;
+          title: string;
+          duration_minutes: number | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
       course_quiz_data: {
         Args: { p_course_id: string };
         Returns: {
