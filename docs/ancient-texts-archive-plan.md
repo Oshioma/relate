@@ -570,3 +570,141 @@ Files:
 - Philip of Tripoli's Latin (Steele pp. 1–172), Johannes Hispalensis's partial Latin and Steele's 1898 Middle English are not imported; only the Latin Tablet is, already, under the Emerald Tablet.
 - The text was compared across three OCRs and checked on page images only where the OCRs could not settle it; it has not been proofread page by page.
 - No picture of an Arabic manuscript whose identification could be verified was found on Commons.
+
+## 20. Stage 14: Blavatsky's Stanzas of Dzyan and selected passages
+
+Helena Blavatsky's *Isis Unveiled* (New York: J. W. Bouton, 1877) and *The Secret Doctrine* (London: The Theosophical Publishing Company, 1888), `modern.blavatsky`, prefix `modern.hpb`. It is a selection from the public-domain first editions, cited by volume and page, attached to the marker the inventory already defines (`blavatsky-isis-unveiled`); no new marker. The selection has 39 units (`section`):
+- the Stanzas of Dzyan, one unit per stanza: Cosmogenesis I–VII (SD I pp. 27–34) and Anthropogenesis I–XII, slokas 1–49 (SD II pp. 15–21);
+- twenty passages of her own prose.
+
+They sit under five `part` records with no text of their own: the Isis selection, the SD vol. I selection, the two sets of Stanzas, and the SD vol. II selection. One source was added to the inventory, `coleman-1895`. The two Blavatsky sources now record the selection's pages and the scans, and `inventoryBasis` lists the selection by volume and page.
+
+Files:
+- `corpus/blavatsky.ts` and the generated `corpus/blavatsky-text.ts` (`scripts/texts/blavatsky-dzyan.py`);
+- `corpus/blavatsky-related-images.ts`;
+- plain words in `corpus/plain/blavatsky.ts`.
+
+### Source and checking
+
+The base is the Theosophical University Press online edition (theosociety.org/pasadena), which reproduces the first editions page for page and is proofread. It is compared word by word with the archive.org OCRs of separate printed copies:
+
+| Volume | Copies |
+|---|---|
+| SD I | `secretdoctrinesy0001hpbl_w8r1` (1888); the 1977 TUP facsimile `bwb_C0-ADX-874`; the 1925 Theosophy Company facsimile `in.ernet.dli.2015.62045` |
+| SD II | the Wellcome Library's 1888 copy `b24886142`; `secretdoctrinesy0002hpbl_o5q6`; `bwb_Y0-BMG-596`; `in.ernet.dli.2015.62045` |
+| Isis | Cornell's 1877 copies `cu31924092304579` / `-587`; the Wellcome Library's 1878 printing `b24886154`; `india.history.resource.85989–90` |
+
+How the collation works:
+- Each OCR is located by difflib.
+- Words are compared on letters only.
+- Where at least two OCRs agree against the base, and outnumber it, their reading is taken. Closing punctuation is voted the same way.
+- Figures and sloka numerals are never changed.
+- In-order agreement with the base was 0.86–1.00 per copy and passage.
+
+Results:
+- The vote changed 3 words, all checked on page images and all first-edition misprints that are kept:
+  - "brillant" (SD I p. 29);
+  - "heard ot the book of Dzyan" (SD I p. viii);
+  - "autara" (Isis I p. 590).
+- It changed one comma ("And," in Cosmogenesis VII).
+- `REJECT` overrules 12 agreeing misreadings: small capitals, ligatures, a broken letter, line-break splits and a Greek word.
+- `FIXES` holds 7 corrections by hand, each asserted:
+  - the circle "◯" in Cosmogenesis IV.5, which the base omits (page image of SD I p. 31);
+  - sloka 5 of Cosmogenesis IV restored as its own paragraph;
+  - "He collects" (Cosmogenesis VI);
+  - a capital I, a full stop and a capital T in Anthropogenesis (page images of SD II pp. 17, 20);
+  - a line of the Odyssey in Greek type, given in the base's transliteration and marked as such.
+
+What is left out or changed:
+- Footnotes are left out, except two that are part of a selected passage, printed after it as "[Footnote]".
+- Small capitals are given in ordinary case, and accents are not reproduced.
+- The revised third edition (1893) is not used.
+
+### The Stanzas apart from the commentary
+
+Each Stanza is imported as first printed together, before the commentary that repeats it sloka by sloka. Her closing sentence ("Thus ends this portion …") is left out. Each stanza's notes give the heading and page of its commentary from the table of contents, for example "The Night of the Universe", p. 35. The commentary itself is not imported.
+
+### The Book of Dzyan
+
+The Book of Dzyan is framed as unsupported, and the corpus header and the part notes say so: no manuscript has ever been produced, and Blavatsky herself wrote that it was "utterly unknown to our Philologists" (SD I p. xxii). W. E. Coleman wrote (p. 359) that it was "the work of Madame Blavatsky, — a compilation, in her own language, from a variety of sources". His essay is "The Sources of Madame Blavatsky's Writings", Appendix C to Solovyoff, *A Modern Priestess of Isis*, London 1895, pp. 353–366; archive.org `cu31924031226792`, checked against a second copy, `modernpriestesso00solo`. The selection includes her own words on the book:
+- the preface, "who has ever even heard of the book of Dzyan?" and "the charge of having invented the whole of it";
+- the etymology footnote (p. xx);
+- p. xxii;
+- the claim of descent and Senzar (p. xliii);
+- the palm-leaf "Archaic Manuscript" of the Proem (p. 1).
+
+### Selection
+
+| Book | Volume | Pages |
+|---|---|---|
+| Isis | I | 1, 3, xxxi–xxxii, 507, 589–591, 592–593 |
+| Isis | II | 360, 361, 364 |
+| SD | I | viii, xx (footnote), xxii–xxiii, xliii, 1 |
+| SD | II | 1–2 (with a footnote quoting the Pymander), 6–9, 109, 113, 556, 743 |
+
+The topics are Hermes and the forty-two books, the Smaragdine Tablet (four passages), the Book of the Dead, the island of the "Sons of God", Atlantis and Thevetat, the continents of the root races, and the priests of Sais.
+
+### Dates
+
+- On `modern.hpb.isis`: publication 1877 (title page).
+- On `modern.hpb.sd.1`: publication 1888 (title page; preface signed "London, October, 1888").
+- On `modern.hpb.cosmo`:
+  - claimed: no year. Her claim (SD I p. xliii; Isis I p. 1) is that the book was taken down in Senzar at the beginning of her fifth race. It is recorded as "Blavatsky's claim, not a date".
+  - composition: 1880–1888, `decade`, approximate. The evidence is that the Stanzas were first printed in 1888, that no manuscript or earlier witness exists, her own admissions, and Coleman (written after April 1893, published 1895). The start of the span is not a finding.
+  - publication: 1888.
+
+### Links
+
+There are 14 links, all `proposed`.
+
+Thirteen are `later_reinterpretation`, each saying she quotes, cites or retells the text, "not a witness to the earlier text":
+- Isis I 507 → `arab.tab.vulgate`;
+- Isis I xxxi and SD II 109 → `arab.tab.vulgate.05`;
+- SD II 109 → `.06`;
+- SD II 113 → `.02`;
+- SD II 556 → `.10`;
+- SD II 1 → `herm.ch.1.16` (the Seven men);
+- Isis II 360 → `herm.ascl.24.3` (a free paraphrase of the lament);
+- Isis II 364 → `egy.bd.125`;
+- Isis I 589 → `greek.crit.113c`;
+- SD II 6 → `greek.tim.25d`;
+- SD II 743 → `greek.tim.23b` and `greek.tim.24e`.
+
+One is `broad_thematic_resemblance`, Anthropogenesis X → `modern.doreal.01` (Atlantis). Its transmission evidence is "None shown". None claims ancient transmission.
+
+### Images
+
+Nine images, all from Commons file pages, each looked at, all `licenceStatus` "open".
+
+Four are pages of the first editions, given as Commons PDF page thumbnails (960px) and checked against the archive.org page images:
+- the SD II 1888 title page (Wellcome copy);
+- SD II p. 15, the Stanzas of Anthropogenesis with the forty-nine-slokas footnote;
+- the Isis I 1877 title page (Cornell copy);
+- Isis I p. 507, the Smaragdine Tablet.
+
+Three are secure portraits:
+- the Library of Congress Bain photograph, LCCN 2005688465, undated;
+- Rijksmuseum RP-F-2001-7-67-105, a printed portrait captioned by hand "in all the majesty of her wrinkles", CC0;
+- Hermann Schmiechen's oil portrait.
+
+Two are `UNVERIFIED`:
+- `H.P.Blavatsky_1887.jpg`: its date, place (Norwood) and photographer rest on the file page;
+- `Tsseal1875.gif`: a modern redrawing of the Theosophical Society's emblem whose form at any date is not verified.
+
+Several pictures are not used:
+- `Isis_Unveiled.jpg` is on the marker and is not repeated.
+- `The_Secret_Doctrine.gif`, described as the 1888 cover, is a modern TUP paperback cover and was left out.
+- `Secretdoctrineblav.jpg` was left out.
+- No picture is filed as a manuscript: there is none.
+
+### Plain words
+
+There are 39 plain-words entries, 16 of which have "Other possible readings". These cover the obscure terms of the Stanzas, the bracketed readings that are hers, not the Stanzas', and her misprints. The racial hierarchy of Anthropogenesis VII and X ("narrow-headed", "black with sin") and her term "Aryan" are named in the notes and the plain words as the text's own.
+
+### Not done
+
+- `inventoryVerified` stays false and `expectedUnits` null. The selection is the archive's choice, listed by page, not a count stated by an edition.
+- The commentary on the Stanzas, the rest of both books and the 1893 edition are not imported.
+- Blavatsky's own footnotes are left out, except two. Footnotes recorded only in notes include the forty-nine-slokas note, the note on the Sanskrit numbers, and the note that Stanza VI.1 is "of a far later date".
+- Coleman is cited for his verdict only. The appendix promises its detailed proofs for "a work I am preparing for publication" and does not give them, and no later scholarship is cited here.
+- The text was checked on page images only where the OCRs disagreed or a reading was in doubt. It has not been proofread page by page.

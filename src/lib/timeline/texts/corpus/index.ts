@@ -7,6 +7,7 @@
 import type { TextCorpusFile } from "../corpus-types";
 import { AMENEMOPE_CORPUS } from "./amenemope";
 import { ASCLEPIUS_CORPUS } from "./asclepius";
+import { BLAVATSKY_CORPUS } from "./blavatsky";
 import { BOOK_OF_THE_DEAD_CORPUS } from "./book-of-the-dead";
 import { COFFIN_TEXTS_CORPUS } from "./coffin-texts";
 import { DOREAL_CORPUS } from "./doreal";
@@ -28,6 +29,7 @@ import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
 import { PLAIN_ASCLEPIUS } from "./plain/asclepius";
+import { PLAIN_BLAVATSKY } from "./plain/blavatsky";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./plain/book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./plain/coffin-texts";
 import { PLAIN_CRITIAS } from "./plain/critias";
@@ -70,6 +72,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(SECRETUM_CORPUS, PLAIN_SECRETUM),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
   withPlainWords(HALL_CORPUS, PLAIN_HALL),
+  withPlainWords(BLAVATSKY_CORPUS, PLAIN_BLAVATSKY),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {
