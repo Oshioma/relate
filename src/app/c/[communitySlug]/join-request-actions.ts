@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { planLimitMessage } from "@/lib/data/plan-limits";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 // Postgres unique_violation, raised by the (user_id, community_id) unique
 // constraint on community_memberships.
@@ -17,7 +18,8 @@ export type JoinRequestResult = { error: string | null };
 // 'active' or decline it, which deletes the row.
 //
 // Every refusal below is also enforced by RLS (memberships_insert only accepts
-// a self-authored 'requested' row on a community where privacy = 'private');
+// a self-authored 'requested' row on a community whose join policy is
+// approval — community_join_policy());
 // these checks exist to give a person a sentence they can act on instead of a
 // policy violation.
 export async function requestToJoinCommunity(communityId: string): Promise<JoinRequestResult> {
@@ -32,15 +34,15 @@ export async function requestToJoinCommunity(communityId: string): Promise<JoinR
 
   const { data: community, error: communityError } = await supabase
     .from("communities")
-    .select("id, privacy, slug")
+    .select("id, privacy, join_policy, slug")
     .eq("id", communityId)
     .maybeSingle();
 
   if (communityError) return { error: communityError.message };
   if (!community) return { error: "Community not found." };
-  if (community.privacy !== "private") {
-    // 'public' is a straight join and 'invite_only' doesn't take requests at
-    // all, so neither belongs on this path.
+  if (joinPolicyOf(community) !== "approval") {
+    // An open community is a straight join and an invite-only one doesn't
+    // take requests at all, so neither belongs on this path.
     return { error: "This community doesn't take join requests." };
   }
 

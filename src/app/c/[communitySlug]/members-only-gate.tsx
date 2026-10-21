@@ -1,8 +1,9 @@
 import { Lock } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
-import type { CommunityPrivacy, MembershipStatus } from "@/types/database";
+import type { CommunityPrivacy, JoinPolicy, MembershipStatus } from "@/types/database";
 import { CommunityJoinCta } from "./community-join-cta";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 // Shown in place of a members-only space or post the visitor can't see (RLS
 // hides it, so the page can't tell "members only" from "gone"). Never a bare
@@ -26,6 +27,7 @@ export function MembersOnlyGate({
     logo_url: string | null;
     logo_initials: string | null;
     privacy: CommunityPrivacy;
+    join_policy: JoinPolicy | null;
   };
   isLoggedIn: boolean;
   // The viewer's membership status, or null when they have no row at all.
@@ -84,7 +86,7 @@ export function MembersOnlyGate({
           <div className="mt-6">
             <CommunityJoinCta
               communityId={community.id}
-              privacy={community.privacy}
+              joinPolicy={joinPolicyOf(community)}
               membershipStatus={membershipStatus}
               size="lg"
             />

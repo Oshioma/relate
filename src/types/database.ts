@@ -15,6 +15,9 @@ export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 // into 'active' or decline it, which deletes the row.
 export type MembershipStatus = "active" | "invited" | "banned" | "requested";
 export type CommunityPrivacy = "public" | "private" | "invite_only";
+// How people join, separate from whether the community is listed. Null on a
+// community means "follow privacy". See src/lib/join-policy.ts.
+export type JoinPolicy = "open" | "approval" | "invite";
 export type SpaceVisibility = "public" | "members" | "private";
 export type SpaceType =
   | "discussion"
@@ -221,6 +224,10 @@ export type Community = {
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // How people join: null = follow privacy (public open, private approval,
+  // invite_only invite). Ignored for invite_only. See the
+  // community_join_policy migration and src/lib/join-policy.ts.
+  join_policy: JoinPolicy | null;
   // Who can see the Members list/page — independent of `privacy` above.
   // The page always requires a signed-in user regardless of this setting.
   // 'public' = any signed-in visitor (incl. guests who haven't joined),

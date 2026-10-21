@@ -44,6 +44,7 @@ import { communityAccentStyle } from "@/lib/accent-color";
 import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
 import { getPlanLapseNotice } from "@/lib/data/plan-limits";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 // The snippet a search engine shows under the result, and the text on a
 // social-share card, both come from the page's meta description. Without one,
@@ -656,9 +657,9 @@ export default async function CommunityLayout({
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               <span>
                 You&apos;re viewing {community.name} as a guest.{" "}
-                {community.privacy === "public"
+                {joinPolicyOf(community) === "open"
                   ? "Join to post and see member-only spaces."
-                  : community.privacy === "private"
+                  : joinPolicyOf(community) === "approval"
                     ? membership?.status === "requested"
                       ? "An admin is reviewing your request to join."
                       : "Ask to join to post and see member-only spaces."
@@ -666,7 +667,7 @@ export default async function CommunityLayout({
               </span>
               <CommunityJoinCta
                 communityId={community.id}
-                privacy={community.privacy}
+                joinPolicy={joinPolicyOf(community)}
                 membershipStatus={membership?.status ?? null}
                 size="sm"
               />
