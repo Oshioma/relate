@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Relate — access security fixes (before the access redesign builds on them)
 --
--- Three gaps found while mapping who can see what. None changes what an
+-- Four gaps found while mapping who can see what. None changes what an
 -- ordinary member, a paying member or the team can do through the app; each
 -- closes a path that only exists by calling the API directly.
 --
@@ -26,6 +26,9 @@
 --    branch now also requires can_see_space_shell — an active member for a
 --    members space, the team for a private one. The team still passes first,
 --    free spaces are unchanged, and public spaces stay open to everyone.
+--
+-- 2a. An invite-only community's Public spaces were readable by anyone
+--    through the API (see below).
 --
 -- 3. Paid course lessons were only hidden on screen.
 --    course_lessons_select let anyone with access to the course's space read
@@ -79,7 +82,39 @@ create trigger guard_membership_self_update
   before update on public.community_memberships
   for each row execute function public.guard_membership_self_update();
 
--- --- 2. Paid access needs the membership too ---------------------------------
+-- --- 2a. A hidden community's public spaces stay hidden ----------------------
+-- can_see_space_shell answered "public space" with a flat yes, so the posts,
+-- comments and every other space type in a Public space of an INVITE-ONLY
+-- community were readable by anyone calling the API, signed in or not — while
+-- the app answers "not found" for the community itself. Invite-only now means
+-- members only all the way down. Public and private communities are unchanged:
+-- a private community's public spaces are open by link, as the layout intends.
+create or replace function public.can_see_space_shell(p_space_id uuid, p_user_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select case s.visibility
+    when 'public' then c.privacy <> 'invite_only' or public.is_community_member(s.community_id, p_user_id)
+    when 'members' then public.is_community_member(s.community_id, p_user_id)
+    when 'private' then public.is_community_staff(s.community_id, p_user_id)
+    else false
+  end
+  from public.spaces s
+  join public.communities c on c.id = s.community_id
+  where s.id = p_space_id;
+$$;
+
+-- The anon shell policy tested visibility directly; route it through the same
+-- rule so a signed-out visitor can't list an invite-only community's spaces.
+drop policy if exists "spaces_select_anon" on public.spaces;
+create policy "spaces_select_anon" on public.spaces
+  for select to anon
+  using (visibility = 'public' and public.can_see_space_shell(id, null::uuid));
+
+-- --- 2b. Paid access needs the membership too --------------------------------
 -- Same chain as 20260730093203_membership_tiers (no recursion: the new call is
 -- to can_see_space_shell, which calls neither has_space_access nor
 -- can_view_space).

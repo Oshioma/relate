@@ -13,6 +13,7 @@
 -- banned, no moving into another community), paid content needs the
 -- membership as well as the subscription, paid course lessons need an
 -- enrolment, and the course outline stays readable. Also re-checks the
+-- invite-only communities keep even their Public spaces to members, and the
 -- behaviour those fixes must not change (free spaces, public spaces, the team,
 -- accepting an invite, free courses).
 -- =============================================================================
@@ -211,6 +212,16 @@ select pg_temp.expect('moderator reads paid course lessons', pg_temp.n(:moder::u
 select pg_temp.expect('free member still sees the paid course outline', pg_temp.n(:free::uuid, $q$select 1 from public.course_lesson_outline(array['e0000000-0000-0000-0000-000000000002'::uuid])$q$), 2::bigint);
 select pg_temp.expect('outsider gets no outline of a members-space course', pg_temp.n(:outsider::uuid, $q$select 1 from public.course_lesson_outline(array['e0000000-0000-0000-0000-000000000002'::uuid])$q$), 0::bigint);
 
+-- --- invite-only communities ------------------------------------------------
+insert into public.spaces (id, community_id, name, slug, visibility) values
+ ('50000000-0000-0000-0000-000000000007','c0000000-0000-0000-0000-000000000002','Lobby','lobby','public');
+insert into public.posts (community_id, space_id, author_id, title) values
+ ('c0000000-0000-0000-0000-000000000002','50000000-0000-0000-0000-000000000007','a0000000-0000-0000-0000-000000000001','Hidden lobby post');
+select pg_temp.expect('visitor cannot read a hidden community''s public space', pg_temp.n(null, $q$select 1 from public.posts where title = 'Hidden lobby post'$q$), 0::bigint);
+select pg_temp.expect('visitor cannot list a hidden community''s spaces', pg_temp.n(null, $q$select 1 from public.spaces where slug = 'lobby'$q$), 0::bigint);
+select pg_temp.expect('outsider cannot read a hidden community''s public space', pg_temp.n(:outsider::uuid, $q$select 1 from public.posts where title = 'Hidden lobby post'$q$), 0::bigint);
+select pg_temp.expect('owner reads their hidden community''s public space', pg_temp.n(:owner::uuid, $q$select 1 from public.posts where title = 'Hidden lobby post'$q$), 1::bigint);
+
 -- --- security-definer paths keep working -------------------------------------
 -- redeem_invite runs as its owner, so it may still turn an invite into a seat.
 insert into public.community_invites (community_id, code, created_by, role)
@@ -219,5 +230,6 @@ select set_config('request.jwt.claim.sub', 'a0000000-0000-0000-0000-000000000008
 set local role authenticated;
 select pg_temp.expect('outsider redeems an invite to the hidden community', (select error from public.redeem_invite('test-invite-code')), null::text);
 reset role;
+select pg_temp.expect('after redeeming, they read the hidden community''s public space', pg_temp.n(:outsider::uuid, $q$select 1 from public.posts where title = 'Hidden lobby post'$q$), 1::bigint);
 
 rollback;
