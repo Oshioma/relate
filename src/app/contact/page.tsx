@@ -2,15 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { ContactForm } from "./contact-form";
+import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";
 
 export const metadata: Metadata = { title: "Contact — Relate" };
-
-// WhatsApp support. The number is public-facing (a support line), unlike the
-// contact-form recipient, which stays server-side. wa.me wants the number in
-// international format with no "+", spaces or dashes.
-const WHATSAPP_NUMBER = "447951769553";
-const WHATSAPP_DISPLAY = "+44 7951 769553";
-const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi Relate, I'd like some help with…")}`;
 
 export default function ContactPage() {
   return (
