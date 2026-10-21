@@ -1352,11 +1352,11 @@ function ElsewhereCommunity({ community }: { community: LessonElsewhere }) {
         <Check className="h-3.5 w-3.5" />
         Request sent
       </span>
-    ) : community.privacy === "public" ? (
+    ) : community.joinPolicy === "open" ? (
       <Button size="sm" variant="secondary" disabled={pending} onClick={() => run(() => joinCommunity(community.communityId), "active")}>
         {pending ? "Joining…" : "Join"}
       </Button>
-    ) : community.privacy === "private" ? (
+    ) : community.joinPolicy === "approval" ? (
       <Button
         size="sm"
         variant="secondary"

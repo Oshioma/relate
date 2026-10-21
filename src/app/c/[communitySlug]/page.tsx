@@ -83,6 +83,7 @@ import { ExampleFeed } from "./example-feed";
 import { exampleFeedPosts } from "@/lib/feed-examples";
 import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { postGallery } from "@/lib/post-media";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 export default async function CommunityFeedPage({
   params,
@@ -627,7 +628,7 @@ export default async function CommunityFeedPage({
 
   // The hero's calls to action change with who's looking: a stranger is asked
   // to join (via signup), a signed-in non-member gets the join/request button
-  // their community's privacy allows, and a member is pointed at posting.
+  // their community's join policy allows, and a member is pointed at posting.
   const heroActions = !user ? (
     <>
       <HeroLink href={`/signup?next=${encodeURIComponent(base)}`} onPhoto={onPhoto}>
@@ -640,7 +641,7 @@ export default async function CommunityFeedPage({
   ) : !isMember ? (
     <CommunityJoinCta
       communityId={community.id}
-      privacy={community.privacy}
+      joinPolicy={joinPolicyOf(community)}
       membershipStatus={membership?.status ?? null}
       size="lg"
     />

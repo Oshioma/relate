@@ -29,6 +29,7 @@ import { getPublicTiers } from "@/lib/data/public-tiers";
 import { getPublicCrops } from "@/lib/data/public-crops";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { NaturesGardenersLanding } from "./natures-gardeners-landing";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
@@ -95,7 +96,8 @@ export default async function CommunityWelcomePage({
   const loginHref = `/login?next=${encodeURIComponent(base)}`;
   const guestsMayRead = community.is_public || (community.feed_public && community.privacy !== "invite_only");
   const lookAroundHref = guestsMayRead ? `${base}?view=feed` : `${base}/spaces`;
-  const joinLabel = community.privacy === "public" ? `Join ${community.name}` : "Request to join";
+  const joinPolicy = joinPolicyOf(community);
+  const joinLabel = joinPolicy === "open" ? `Join ${community.name}` : "Request to join";
 
   const upcoming = features.events ? splitUpcomingPast(events).upcoming.slice(0, 4) : [];
   if (BESPOKE_LANDINGS.has(community.slug)) {
@@ -236,7 +238,7 @@ export default async function CommunityWelcomePage({
                 <ArrowRight className="h-4 w-4" />
               </HeroLink>
             )}
-            {community.privacy !== "public" && (
+            {joinPolicy !== "open" && (
               <p className={`flex w-full items-center gap-1.5 text-sm ${onPhoto ? "text-white/85" : "text-muted-foreground"}`}>
                 <Lock className="h-4 w-4" />
                 Members-only community — an admin reviews each request.
