@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, Trash2, Plus, Lock, MoreHorizontal, Check } from "lucide-react";
+import { GripVertical, Trash2, Plus, MoreHorizontal, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { SpaceType } from "@/types/database";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { coverPath, coversForTemplate } from "@/lib/community-covers";
 import { headlineSuggestions } from "@/lib/headline-suggestions";
+import { WIZARD_ACCESS_OPTIONS, type WizardAccess } from "@/lib/access/presets";
 import { reorder, nextId } from "./types";
 import type { WizardState } from "./types";
 
@@ -45,7 +46,7 @@ export function StepCustomize({
 
   function addSpace() {
     const id = nextId("space");
-    update({ spaces: [...state.spaces, { id, name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, visibility: "members" }] });
+    update({ spaces: [...state.spaces, { id, name: "New Space", description: "", show_in_nav: true, space_type: defaultType, staff_post_only: false, access: "members", accessTouched: true }] });
     setActiveId(id);
   }
 
@@ -58,8 +59,8 @@ export function StepCustomize({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Customize your community</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">Choose what your members can do. You can change these anytime.</p>
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">Make it yours</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Headline, cover and spaces. The preview above updates as you go.</p>
       </div>
 
       {/* Headline: the big line over the cover on the feed, with the community's
@@ -196,9 +197,27 @@ export function StepCustomize({
                       <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:line-clamp-1 sm:text-sm">{space.description || "No description"}</p>
                     </button>
                   )}
-                  {space.visibility === "private" && (
-                    <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground"><Lock className="h-3 w-3" />Starts private — only invited people can see it.</p>
-                  )}
+                  {/* Who can open it: the wizard's version of the access picker.
+                      "Paid members" launches Admins only until a membership
+                      exists, and says so. */}
+                  <label className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground" onClick={(e) => e.stopPropagation()}>
+                    Who can open it
+                    <select
+                      aria-label={`Who can open ${space.name}`}
+                      value={space.access}
+                      onChange={(e) => patchSpace(space.id, { access: e.target.value as WizardAccess, accessTouched: true })}
+                      className="h-8 rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      {WIZARD_ACCESS_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                    {space.access === "paid" && (
+                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">
+                        Waiting for a membership: Admins only for now
+                      </span>
+                    )}
+                  </label>
                 </div>
 
                 {!isActive && <span className={cn("hidden rounded-full px-3 py-1 text-xs font-medium sm:inline-flex", tone)}>{meta.label}</span>}
