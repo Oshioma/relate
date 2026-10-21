@@ -56,7 +56,7 @@ import { TiersSection } from "./tiers-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
-import { getCommunityTiers } from "@/lib/data/tiers";
+import { getCommunityTiers, getTierSales } from "@/lib/data/tiers";
 import { isStripeConfigured } from "@/lib/stripe";
 
 export default async function AdminPage({
@@ -177,6 +177,7 @@ export default async function AdminPage({
   // Membership tiers (owner-only section, shown once payments are connected).
   // Public spaces are always free, so they can't be assigned to a tier.
   const tiers = isOwner && canCharge ? await getCommunityTiers(db, community.id) : [];
+  const tierSales = tiers.length > 0 ? Object.fromEntries(await getTierSales(db, community.id)) : {};
   const tierAssignableSpaces = spaces.filter((s) => s.visibility !== "public").map((s) => ({ id: s.id, name: s.name }));
 
   // A space's nav sub-links, grouped by space and kept in nav order (the query
@@ -557,7 +558,13 @@ export default async function AdminPage({
                 tier instead of paying for spaces one by one. Public spaces are always free and can&apos;t be tiered.
               </p>
               <div className="mb-8">
-                <TiersSection communityId={community.id} communitySlug={community.slug} tiers={tiers} spaces={tierAssignableSpaces} />
+                <TiersSection
+                  communityId={community.id}
+                  communitySlug={community.slug}
+                  tiers={tiers}
+                  sales={tierSales}
+                  spaces={tierAssignableSpaces}
+                />
               </div>
             </>
           ) : (

@@ -130,3 +130,38 @@ export async function getTiersForSpace(supabase: Client, spaceId: string): Promi
     spaceCount: counts.get(t.id) ?? 0,
   }));
 }
+
+export type TierSales = {
+  // Members currently paid up on the tier (active/trialing, period not over).
+  active: number;
+  // Of those, how many have asked to cancel at period end.
+  cancelling: number;
+  // Everyone who has ever subscribed, including lapsed and cancelled.
+  total: number;
+};
+
+// How each of a community's tiers is selling, keyed by tier id. Staff can read
+// every subscription row in their community (tier_subscriptions_select), so the
+// admin Tiers section uses this to show whether anyone has bought a tier.
+export async function getTierSales(supabase: Client, communityId: string): Promise<Map<string, TierSales>> {
+  const { data } = await supabase
+    .from("tier_subscriptions")
+    .select("tier_id, status, current_period_end, cancel_at_period_end")
+    .eq("community_id", communityId);
+
+  const now = new Date();
+  const map = new Map<string, TierSales>();
+  for (const s of data ?? []) {
+    const sales = map.get(s.tier_id) ?? { active: 0, cancelling: 0, total: 0 };
+    sales.total += 1;
+    const active =
+      (s.status === "active" || s.status === "trialing") &&
+      (!s.current_period_end || new Date(s.current_period_end) > now);
+    if (active) {
+      sales.active += 1;
+      if (s.cancel_at_period_end) sales.cancelling += 1;
+    }
+    map.set(s.tier_id, sales);
+  }
+  return map;
+}
