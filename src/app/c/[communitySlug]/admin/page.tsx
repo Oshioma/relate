@@ -342,6 +342,7 @@ export default async function AdminPage({
         tiers={accessTiers}
         canCharge={canCharge}
         isOwner={isOwner}
+        communitySlug={community.slug}
       />
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>

@@ -287,6 +287,56 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   return undefined;
 }
 
+// Who can open a space, and nothing else: the access overview's in-place
+// editor. Same fields and checks as the access picker inside updateSpace
+// (visibility, the space's own price, its tier links), without touching the
+// space's name, type or posting rules.
+export async function updateSpaceAccess(_prevState: SpaceFormState, formData: FormData): Promise<SpaceFormState> {
+  const spaceId = String(formData.get("space_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const visibility = parseVisibility(formData.get("visibility"));
+  if (!formData.has("access_choice")) return { error: "Pick who can open this space." };
+
+  // Public spaces are always free (spaces_public_is_free).
+  let priceUpdate: { price_cents: number; currency?: string } = { price_cents: 0 };
+  if (visibility !== "public") {
+    const amount = Number(String(formData.get("price") ?? "").trim());
+    const currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
+    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0, currency };
+  }
+
+  const supabase = await createClient();
+  const { data: current } = await supabase.from("spaces").select("community_id, price_cents").eq("id", spaceId).maybeSingle();
+  if (!current) return { error: "That space no longer exists." };
+
+  // Same plan gate as updateSpace: turning a price ON needs a plan that can
+  // charge; an already-paid space can still be edited after a downgrade.
+  if (priceUpdate.price_cents > 0 && current.price_cents === 0) {
+    const { data: canCharge } = await supabase.rpc("community_can_charge", { p_community_id: current.community_id });
+    if (!canCharge) return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
+  }
+
+  const failure = requireWrite(
+    await supabase.from("spaces").update({ visibility, ...priceUpdate }).eq("id", spaceId).select("id"),
+    "this space"
+  );
+  if (failure) return failure;
+
+  if (visibility === "public") {
+    const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
+    if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  } else {
+    const tierFailure = await syncSpaceTiers(supabase, spaceId, current.community_id, formData.getAll("tier_ids").map(String));
+    if (tierFailure) return tierFailure;
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces`);
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/admin/access`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
 // Make a space's tier links exactly `wanted`, keeping only tiers of the space's
 // own community. RLS (tier_spaces_write_admin) is the real check; this keeps a
 // tampered form from linking another community's tier.

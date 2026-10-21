@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ShieldCheck, AlertTriangle, Info, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { describeCommunityAccess, findAccessIssues, type AccessCommunity, type AccessSpace, type AccessTier } from "@/lib/access/model";
@@ -16,6 +17,7 @@ export function AccessSummaryCard({
   tiers,
   canCharge,
   isOwner,
+  communitySlug,
 }: {
   community: AccessCommunity;
   joinPolicy: JoinPolicy;
@@ -23,6 +25,7 @@ export function AccessSummaryCard({
   tiers: AccessTier[];
   canCharge: boolean;
   isOwner: boolean;
+  communitySlug: string;
 }) {
   const lines = describeCommunityAccess(community, spaces, tiers);
   const issues = findAccessIssues(community, spaces, tiers);
@@ -86,6 +89,14 @@ export function AccessSummaryCard({
             );
           })}
         </div>
+
+        <Link
+          href={`/c/${communitySlug}/admin/access`}
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+        >
+          See every space for every kind of person
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </CardContent>
     </Card>
   );
