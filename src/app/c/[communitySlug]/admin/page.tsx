@@ -17,6 +17,8 @@ import { getCommunityEvents } from "@/lib/data/events";
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { ViewAsMemberButton } from "./view-as-member-button";
 import { MonetizationChecklist, type ChecklistStep } from "./monetization-checklist";
+import { AccessSummaryCard } from "./access-summary-card";
+import { joinPolicyOf } from "@/lib/join-policy";
 import { MembersSection } from "./members-section";
 import { JoinRequestsSection } from "./join-requests-section";
 import { StaffManagementToggle } from "./staff-management-toggle";
@@ -191,6 +193,15 @@ export default async function AdminPage({
     members_visibility: community.members_visibility,
     stripe_charges_enabled: community.stripe_charges_enabled,
   };
+  const accessSpaces = spaces.map((s) => ({
+    id: s.id,
+    name: s.name,
+    visibility: s.visibility,
+    price_cents: s.price_cents,
+    currency: s.currency,
+    show_in_nav: s.show_in_nav,
+    tierIds: tierIdsBySpaceId[s.id] ?? [],
+  }));
   const tierSales = tiers.length > 0 ? Object.fromEntries(await getTierSales(db, community.id)) : {};
   const tierAssignableSpaces = spaces.filter((s) => s.visibility !== "public").map((s) => ({ id: s.id, name: s.name }));
 
@@ -238,13 +249,16 @@ export default async function AdminPage({
   const sections: NavSection[] = [
     { id: "overview", label: "Overview", group: "Community" },
     { id: "members", label: "Members", group: "Community" },
+    // Access settings in their four groups, after the summary that links to them.
+    { id: "who-can-see-what", label: "Who can see what?", group: "Access" },
+    { id: "discoverability", label: "Discoverability", group: "Access" },
+    { id: "joining", label: "Joining rules", group: "Access" },
+    { id: "spaces", label: "Spaces & content access", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
     { id: "contact", label: "Contact", group: "Profile & pages" },
     { id: "emails", label: "Emails", group: "Profile & pages" },
-    { id: "public-access", label: "Public access", group: "Profile & pages" },
-    { id: "spaces", label: "Spaces", group: "Spaces & sidebar" },
     { id: "sidebar-sections", label: "Sidebar sections", group: "Spaces & sidebar" },
     { id: "profile-fields", label: "Profile fields", group: "Spaces & sidebar" },
     { id: "sidebar-links", label: "Sidebar links", group: "Spaces & sidebar" },
@@ -255,6 +269,7 @@ export default async function AdminPage({
   }
   if (isOwner) {
     sections.push(
+      { id: "set-up-membership", label: "Memberships & payments", group: "Access" },
       { id: "plan", label: "Plan", group: "Plan & payments" },
       { id: "marketplace", label: "Marketplace", group: "Plan & payments" },
       { id: "payments", label: "Payments", group: "Plan & payments" },
@@ -319,6 +334,15 @@ export default async function AdminPage({
         <BarChart3 className="h-4 w-4" />
         View full analytics — active members, joins, posts and top members
       </Link>
+
+      <AccessSummaryCard
+        community={accessCommunity}
+        joinPolicy={joinPolicyOf(community)}
+        spaces={accessSpaces}
+        tiers={accessTiers}
+        canCharge={canCharge}
+        isOwner={isOwner}
+      />
 
       <h2 id="members" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Members</h2>
       <div className="mb-8 space-y-4">
@@ -398,16 +422,16 @@ export default async function AdminPage({
         </Link>
       </div>
 
-      <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Public access</h2>
+      <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Discoverability &amp; joining</h2>
       <p className="mb-3 text-sm text-muted-foreground">
-        Who can find this community, and what they can see before joining. Individual spaces have their own visibility
-        setting.
+        Who can find this community, what they see before joining, and how they get in. Who can open each space is under{" "}
+        <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces &amp; content access</a>.
       </p>
       <div className="mb-8">
         <PublicAccessForm community={community} />
       </div>
 
-      <h2 id="spaces" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces</h2>
+      <h2 id="spaces" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces &amp; content access</h2>
       <p className="mb-3 text-sm text-muted-foreground">
         Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top. A space with
         nav sub-links (like a business directory&apos;s featured categories) shows a{" "}
@@ -508,7 +532,12 @@ export default async function AdminPage({
         <>
           {/* The creation wizard lands here when a space is waiting for a
               membership ("Set up membership"). */}
-          <div id="set-up-membership" className="mb-8 mt-8 scroll-mt-20">
+          <h2 id="set-up-membership" className="mb-3 mt-8 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Memberships &amp; payments</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Charging takes three steps: a plan that allows it, a connected Stripe account, then memberships that unlock
+            spaces. A membership only unlocks the spaces you pick for it.
+          </p>
+          <div className="mb-8">
             <MonetizationChecklist steps={monetizationSteps} />
           </div>
 
