@@ -1,5 +1,6 @@
-import type { CommunityPrivacy, SpaceType, SpaceVisibility } from "@/types/database";
+import type { SpaceType, SpaceVisibility } from "@/types/database";
 import type { StarterActivity } from "@/lib/community-templates";
+import type { AccessPresetKey, CustomCommunityChoice, WizardAccess } from "@/lib/access/presets";
 
 export interface WizardSpace {
   id: string;
@@ -8,9 +9,17 @@ export interface WizardSpace {
   show_in_nav: boolean;
   space_type: SpaceType;
   staff_post_only: boolean;
-  // Seeded from the template. Not editable in the wizard — same as
-  // staff_post_only — because both are refined in Admin afterward.
-  visibility: SpaceVisibility;
+  // Who can open it, picked in Preview. Seeded from the access preset (and
+  // the template, for rooms it wants team-only) until the creator changes it.
+  access: WizardAccess;
+  // The template's own visibility for this space, so changing preset can
+  // re-seed access without losing a Staff Room's "team only".
+  templateVisibility?: SpaceVisibility;
+  // The creator picked access by hand; a later preset change leaves it alone.
+  accessTouched?: boolean;
+  // Added by the preset rather than the template (its "Start here" or
+  // "Premium" space), so switching preset can take it away again.
+  seed?: "welcome" | "premium";
 }
 
 export interface WizardState {
@@ -18,7 +27,12 @@ export interface WizardState {
   slug: string;
   slugTouched: boolean;
   description: string;
-  privacy: CommunityPrivacy;
+  // Which of the five access presets (src/lib/access/presets.ts) was picked.
+  presetKey: AccessPresetKey | "";
+  // Private preset only: invitation only and unlisted everywhere.
+  hideCompletely: boolean;
+  // Custom setup only: listing, joining and the visitor switches.
+  custom: CustomCommunityChoice;
   templateKey: string;
   // Place-Based Community only: "what kind of place is this?" plus the name
   // of the place itself (e.g. "Zanzibar, Tanzania"). Both stay empty for
@@ -57,12 +71,18 @@ export interface WizardState {
   taglineTouched: boolean;
 }
 
+// The wizard's draft, saved under the shared form-draft prefix so signing out
+// sweeps it with every other draft. Nothing in it is a password or card detail.
+export const WIZARD_DRAFT_KEY = "community-wizard";
+
 export const INITIAL_WIZARD_STATE: WizardState = {
   name: "",
   slug: "",
   slugTouched: false,
   description: "",
-  privacy: "public",
+  presetKey: "",
+  hideCompletely: false,
+  custom: { privacy: "public", joinPolicy: "open", feedPublic: false, eventsPublic: false },
   templateKey: "",
   locationType: "",
   locationName: "",

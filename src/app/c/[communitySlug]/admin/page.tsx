@@ -506,7 +506,9 @@ export default async function AdminPage({
 
       {isOwner && (
         <>
-          <div className="mb-8 mt-8">
+          {/* The creation wizard lands here when a space is waiting for a
+              membership ("Set up membership"). */}
+          <div id="set-up-membership" className="mb-8 mt-8 scroll-mt-20">
             <MonetizationChecklist steps={monetizationSteps} />
           </div>
 

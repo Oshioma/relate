@@ -1,11 +1,13 @@
 // The five ways to start a community, as presets of settings Relate already
-// has. Choosing one fills in privacy, the "show to visitors" switches and what
-// new spaces default to; it never creates a membership, a price or a post.
-// Everything a preset sets can be changed one by one afterwards.
+// has. Choosing one fills in privacy, how people join, the "show to visitors"
+// switches and who can open each seeded space; it never creates a membership,
+// a price or a post. Everything a preset sets can be changed one by one
+// afterwards.
 
-import type { CommunityPrivacy, SpaceVisibility } from "@/types/database";
+import type { CommunityPrivacy, JoinPolicy, SpaceVisibility } from "@/types/database";
 import type { AccessChoice, AccessCommunity, AccessSpace, AccessTier } from "./model";
 import { accessChoiceOf } from "./model";
+import { defaultJoinPolicy, storedJoinPolicy } from "@/lib/join-policy";
 
 export type AccessPresetKey = "open" | "private" | "paid" | "premium" | "custom";
 
@@ -21,8 +23,9 @@ export type AccessPreset = {
   defaultSpaceChoice: AccessChoice;
   // A first space open to everyone, so visitors have something to read.
   addsWelcomeSpace: boolean;
-  // A space set aside for paid members. Until a membership exists it opens to
-  // all members — a space nobody can open looks broken.
+  // A space set aside for paid members. With no membership yet it starts
+  // Admins only and says it's waiting for one: a paid space must never open
+  // to everyone just because nobody has set a price.
   addsPremiumSpace: boolean;
   // The first thing the launch summary suggests doing next.
   nextStep: string | null;
@@ -56,24 +59,24 @@ export const ACCESS_PRESETS: AccessPreset[] = [
     label: "Paid membership",
     description: "Visitors see your page and prices. Members pay to get in.",
     explainer:
-      "Listed on Relate. Anyone can join for free, but every space is for paid members, so people pay to open them. Nothing is charged until you set a price.",
+      "Listed on Relate and free to join, with every space for paid members. Until you set up a membership those spaces are Admins only, so nothing opens for free by accident. Nothing is charged until you do.",
     community: { privacy: "public", feed_public: true, events_public: false, members_visibility: "private" },
     defaultSpaceChoice: "paid",
     addsWelcomeSpace: true,
     addsPremiumSpace: false,
-    nextStep: "Set your membership price. Until then, members can open every space.",
+    nextStep: "Set up your membership. Your paid spaces stay Admins only until you do.",
   },
   {
     key: "premium",
     label: "Free + premium",
     description: "Free to join, with paid spaces for those who want more.",
     explainer:
-      "Listed on Relate and free to join. You get a Premium space ready for paid members. Nothing is charged until you create a membership.",
+      "Listed on Relate and free to join. You also get a Premium space for paid members, kept Admins only until you set up a membership. Nothing is charged until you do.",
     community: { privacy: "public", feed_public: true, events_public: true, members_visibility: "members" },
     defaultSpaceChoice: "members",
     addsWelcomeSpace: true,
     addsPremiumSpace: true,
-    nextStep: "Create your first membership to start charging for Premium.",
+    nextStep: "Set up a membership for Premium. It stays Admins only until you do.",
   },
   {
     key: "custom",
@@ -98,13 +101,93 @@ export function presetPrivacy(preset: AccessPreset, hideCompletely = false): Com
   return preset.key === "private" && hideCompletely ? "invite_only" : preset.community.privacy;
 }
 
-// What a seeded space's visibility becomes under a preset. "Paid members" can't
-// lock anything at launch (there's no membership yet), so it seeds as members
-// and is marked for paid members by the first membership the creator makes.
-export function seededVisibility(preset: AccessPreset, templateVisibility: SpaceVisibility | undefined): SpaceVisibility {
-  if (templateVisibility === "private") return "private";
-  if (preset.defaultSpaceChoice === "everyone") return "public";
-  return "members";
+// --- Seeded spaces ----------------------------------------------------------
+
+// Who can open a space in the wizard. There's no membership yet, so "paid"
+// can't be a real tier link: it means "for paid members once a membership
+// exists" and launches as Admins only (see launchVisibility).
+export type WizardAccess = "everyone" | "members" | "paid" | "team";
+
+export const WIZARD_ACCESS_OPTIONS: { value: WizardAccess; label: string; description: string }[] = [
+  { value: "everyone", label: "Everyone", description: "Including people who aren't signed in." },
+  { value: "members", label: "All members", description: "Anyone who has joined." },
+  { value: "paid", label: "Paid members", description: "Admins only until you set up a membership." },
+  { value: "team", label: "Admins only", description: "You, admins and moderators." },
+];
+
+// What a seeded space starts as under a preset. A template's team-only room
+// (a school's Staff Room) stays team-only whatever the preset says.
+export function seededAccess(preset: AccessPreset, templateVisibility: SpaceVisibility | undefined): WizardAccess {
+  if (templateVisibility === "private") return "team";
+  if (templateVisibility === "public") return "everyone";
+  const choice = preset.defaultSpaceChoice;
+  if (choice === "tiers") return "paid";
+  return choice;
+}
+
+// The visibility a wizard space is saved with. "Paid members" is private until
+// the first membership is set up, so the space is never free by accident.
+export function launchVisibility(access: WizardAccess): SpaceVisibility {
+  if (access === "everyone") return "public";
+  if (access === "members") return "members";
+  return "private";
+}
+
+// The extra spaces a preset adds on top of the template's own.
+export const WELCOME_SPACE = { name: "Start here", description: "What this community is and how to get the most from it." };
+export const PREMIUM_SPACE = { name: "Premium", description: "For paid members." };
+
+// --- Community settings -----------------------------------------------------
+
+// Listing, joining and visitor switches as a creator can set them under Custom
+// setup. Every other preset fills these in itself.
+export type CustomCommunityChoice = {
+  privacy: CommunityPrivacy;
+  joinPolicy: JoinPolicy;
+  feedPublic: boolean;
+  eventsPublic: boolean;
+};
+
+export type LaunchCommunitySettings = {
+  privacy: CommunityPrivacy;
+  // What to write to communities.join_policy: null when privacy implies it.
+  join_policy: JoinPolicy | null;
+  feed_public: boolean;
+  events_public: boolean;
+  members_visibility: SpaceVisibility;
+};
+
+// The community row a preset launches with. Used by the wizard's preview and
+// summary and, with the same inputs, by the server action that creates the
+// community, so what the creator saw is what gets saved.
+export function launchCommunitySettings(
+  preset: AccessPreset,
+  options: { hideCompletely?: boolean; custom?: Partial<CustomCommunityChoice> } = {}
+): LaunchCommunitySettings {
+  if (preset.key === "custom") {
+    const c = options.custom ?? {};
+    const privacy: CommunityPrivacy = c.privacy === "private" || c.privacy === "invite_only" ? c.privacy : "public";
+    const join: JoinPolicy = c.joinPolicy === "open" || c.joinPolicy === "approval" ? c.joinPolicy : defaultJoinPolicy(privacy);
+    // Nothing shows to visitors of a hidden community, so the switches stay off
+    // rather than saved as settings that do nothing.
+    const hidden = privacy === "invite_only";
+    return {
+      privacy,
+      join_policy: storedJoinPolicy(privacy, join),
+      feed_public: !hidden && Boolean(c.feedPublic),
+      events_public: !hidden && Boolean(c.eventsPublic),
+      members_visibility: preset.community.members_visibility,
+    };
+  }
+  const privacy = presetPrivacy(preset, options.hideCompletely);
+  const hidden = privacy === "invite_only";
+  return {
+    privacy,
+    join_policy: null,
+    feed_public: !hidden && preset.community.feed_public,
+    events_public: !hidden && preset.community.events_public,
+    members_visibility: preset.community.members_visibility,
+  };
 }
 
 // Which preset an existing community matches, for the settings summary. Most

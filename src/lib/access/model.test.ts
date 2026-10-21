@@ -15,7 +15,15 @@ import {
   type AccessTier,
   type AccessViewer,
 } from "./model";
-import { ACCESS_PRESETS, matchPreset, presetPrivacy, seededVisibility, getAccessPreset } from "./presets";
+import {
+  ACCESS_PRESETS,
+  matchPreset,
+  presetPrivacy,
+  seededAccess,
+  getAccessPreset,
+  launchVisibility,
+  launchCommunitySettings,
+} from "./presets";
 
 // The same community, spaces and viewers as supabase/tests/access_security.sql,
 // so the two can be read side by side.
@@ -154,9 +162,47 @@ test("presets fill in existing settings and never charge", () => {
   assert.equal(presetPrivacy(priv, true), "invite_only");
   assert.equal(presetPrivacy(getAccessPreset("open")!, true), "public");
   // A template's staff room stays team-only under every preset.
-  for (const p of ACCESS_PRESETS) assert.equal(seededVisibility(p, "private"), "private");
-  assert.equal(seededVisibility(getAccessPreset("paid")!, "members"), "members");
+  for (const p of ACCESS_PRESETS) assert.equal(seededAccess(p, "private"), "team");
+  assert.equal(seededAccess(getAccessPreset("paid")!, "members"), "paid");
+  assert.equal(seededAccess(getAccessPreset("premium")!, "members"), "members");
   assert.equal(getAccessPreset("nope"), undefined);
+});
+
+test("a paid space launches Admins only, never free", () => {
+  assert.equal(launchVisibility("paid"), "private");
+  assert.equal(launchVisibility("team"), "private");
+  assert.equal(launchVisibility("members"), "members");
+  assert.equal(launchVisibility("everyone"), "public");
+});
+
+test("launch settings: presets fill everything in, custom covers the five combinations", () => {
+  const custom = getAccessPreset("custom")!;
+  assert.deepEqual(launchCommunitySettings(getAccessPreset("open")!), {
+    privacy: "public",
+    join_policy: null,
+    feed_public: true,
+    events_public: true,
+    members_visibility: "members",
+  });
+  // Hiding a private community turns the visitor switches off.
+  const hidden = launchCommunitySettings(getAccessPreset("private")!, { hideCompletely: true });
+  assert.equal(hidden.privacy, "invite_only");
+  assert.equal(hidden.feed_public, false);
+  // A preset ignores custom answers.
+  assert.equal(launchCommunitySettings(getAccessPreset("open")!, { custom: { privacy: "invite_only" } }).privacy, "public");
+
+  const combo = (privacy: "public" | "private" | "invite_only", joinPolicy: "open" | "approval") =>
+    launchCommunitySettings(custom, { custom: { privacy, joinPolicy, feedPublic: true, eventsPublic: true } });
+  assert.equal(combo("public", "open").join_policy, null);
+  assert.equal(combo("public", "approval").join_policy, "approval");
+  assert.equal(combo("private", "open").join_policy, "open");
+  assert.equal(combo("private", "approval").join_policy, null);
+  assert.equal(combo("invite_only", "open").join_policy, null);
+  assert.equal(combo("invite_only", "open").feed_public, false);
+  // Nonsense from the client falls back to the safe defaults.
+  const junk = launchCommunitySettings(custom, { custom: { privacy: "everyone" as never, joinPolicy: "free" as never } });
+  assert.equal(junk.privacy, "public");
+  assert.equal(junk.join_policy, null);
 });
 
 test("existing communities read as the preset they match", () => {

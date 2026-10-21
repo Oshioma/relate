@@ -18,7 +18,8 @@ import { getTemplateDefaultsByTemplate } from "@/lib/data/template-defaults";
 import { getSpaceTypeDefaults } from "@/lib/data/space-type-pool";
 import { builtinsForTemplate } from "@/lib/template-defaults";
 import { OWNER_AGREEMENT_VERSION } from "@/lib/owner-agreement";
-import type { CommunityPrivacy, SpaceType, SpaceVisibility, FeatureKey } from "@/types/database";
+import { getAccessPreset, launchCommunitySettings, launchVisibility, type CustomCommunityChoice, type WizardAccess } from "@/lib/access/presets";
+import type { SpaceType, FeatureKey } from "@/types/database";
 
 export interface WizardSpaceInput {
   name: string;
@@ -26,10 +27,10 @@ export interface WizardSpaceInput {
   show_in_nav: boolean;
   space_type: SpaceType;
   staff_post_only: boolean;
-  // Optional: templates that need a space to start closed set it (the School
-  // template's Staff Room). Anything unrecognised falls back to 'members',
-  // which is what every seeded space used before this existed.
-  visibility?: SpaceVisibility;
+  // Who can open it. "paid" launches Admins only (private) until the first
+  // membership exists, so a paid space is never free by accident. Anything
+  // unrecognised falls back to "members", what every seeded space used to be.
+  access?: WizardAccess;
 }
 
 export interface WizardPayload {
@@ -43,7 +44,12 @@ export interface WizardPayload {
   name: string;
   slug: string;
   description: string;
-  privacy: CommunityPrivacy;
+  // The access preset (src/lib/access/presets.ts). The server works out
+  // privacy, joining and the visitor switches from it, the same way the
+  // wizard's preview did; only Custom setup reads `custom`.
+  presetKey: string;
+  hideCompletely?: boolean;
+  custom?: Partial<CustomCommunityChoice>;
   // The chosen template's key (COMMUNITY_TEMPLATES). Stored on the community
   // so type-specific features (e.g. AI event discovery) can gate on it.
   templateKey?: string;
@@ -76,8 +82,7 @@ export interface WizardPayload {
 
 export type WizardResult = { error: string };
 
-const PRIVACY_LEVELS: CommunityPrivacy[] = ["public", "private", "invite_only"];
-const SPACE_VISIBILITIES: SpaceVisibility[] = ["public", "members", "private"];
+const WIZARD_ACCESS: WizardAccess[] = ["everyone", "members", "paid", "team"];
 
 function uniqueSlugs(names: string[]): string[] {
   const used = new Set<string>();
@@ -127,7 +132,23 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
     return { error: "That URL is reserved — try a different one." };
   }
 
-  const privacy = PRIVACY_LEVELS.includes(payload.privacy) ? payload.privacy : "public";
+  const preset = getAccessPreset(payload.presetKey);
+  if (!preset) {
+    return { error: "Choose how people get into your community." };
+  }
+  // Every field is re-derived and validated here, never taken from the client
+  // as-is: an unknown privacy or joining rule falls back to the preset's own.
+  const access = launchCommunitySettings(preset, {
+    hideCompletely: payload.hideCompletely === true,
+    custom: payload.custom
+      ? {
+          privacy: payload.custom.privacy,
+          joinPolicy: payload.custom.joinPolicy,
+          feedPublic: payload.custom.feedPublic === true,
+          eventsPublic: payload.custom.eventsPublic === true,
+        }
+      : undefined,
+  });
   const templateKey = payload.templateKey && getCommunityTemplate(payload.templateKey) ? payload.templateKey : null;
   const locationType = payload.locationType && getPlaceLocationType(payload.locationType) ? payload.locationType : null;
   const locationName = locationType && payload.locationName?.trim() ? payload.locationName.trim() : null;
@@ -162,7 +183,11 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
       description: payload.description.trim() || null,
       tagline: (payload.tagline ?? "").trim().slice(0, 140) || null,
       owner_id: user.id,
-      privacy,
+      privacy: access.privacy,
+      join_policy: access.join_policy,
+      feed_public: access.feed_public,
+      events_public: access.events_public,
+      members_visibility: access.members_visibility,
       template_key: templateKey,
       location_type: locationType,
       location_name: locationName,
@@ -200,9 +225,9 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
         name: s.name.trim(),
         slug: slugs[i],
         description: s.description.trim() || null,
-        // Never trust the client with a visibility: an unrecognised value would
-        // otherwise reach the column as-is.
-        visibility: s.visibility && SPACE_VISIBILITIES.includes(s.visibility) ? s.visibility : "members",
+        // Never trust the client with a visibility: it's worked out here from
+        // a recognised access choice, and "paid" is always private.
+        visibility: launchVisibility(s.access && WIZARD_ACCESS.includes(s.access) ? s.access : "members"),
         sort_order: i,
         show_in_nav: s.show_in_nav,
         space_type: s.space_type,
@@ -305,6 +330,8 @@ export async function createCommunityFromWizard(payload: WizardPayload): Promise
   // and its subdomains). The path fallback covers dev and bare
   // *.vercel.app, where wildcard subdomains don't resolve; in production
   // the proxy would canonicalize the path form anyway.
+  // A space waiting for a membership lands on the "Set up membership" steps.
+  const anchor = spaces.some((s) => s.access === "paid") ? "#set-up-membership" : "";
   const subdomainUrl = communitySubdomainUrl(community.slug);
-  redirect(subdomainUrl ? `${subdomainUrl}/admin` : `/c/${community.slug}/admin`);
+  redirect(subdomainUrl ? `${subdomainUrl}/admin${anchor}` : `/c/${community.slug}/admin${anchor}`);
 }
