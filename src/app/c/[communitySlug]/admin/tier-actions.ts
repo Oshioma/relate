@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export type TierFormState = { error: string } | undefined;
+// `saved` carries the tier's name back so the form can say what it just saved.
+export type TierFormState = { error: string } | { saved: string } | undefined;
 
 // Whole currency units from the form → integer cents. Non-positive/blank = 0.
 function parsePriceCents(raw: FormDataEntryValue | null): number {
@@ -46,18 +47,30 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
     .limit(1)
     .maybeSingle();
 
-  const { error } = await supabase.from("community_tiers").insert({
-    community_id: communityId,
-    name,
-    description: description || null,
-    price_cents: priceCents,
-    currency,
-    sort_order: (maxSort?.sort_order ?? -1) + 1,
-  });
+  const { data: created, error } = await supabase
+    .from("community_tiers")
+    .insert({
+      community_id: communityId,
+      name,
+      description: description || null,
+      price_cents: priceCents,
+      currency,
+      sort_order: (maxSort?.sort_order ?? -1) + 1,
+    })
+    .select("id")
+    .single();
   if (error) return { error: error.message };
 
+  // Spaces ticked on the new-tier form are linked straight away, so the tier
+  // is ready to sell as soon as it's saved.
+  const spaceIds = formData.getAll("space_ids").map(String).filter(Boolean);
+  if (spaceIds.length > 0) {
+    const res = await setTierSpaces(created.id, spaceIds, communitySlug);
+    if (res.error) return { error: `The tier was saved, but its spaces weren't: ${res.error}` };
+  }
+
   revalidatePath(`/c/${communitySlug}/admin`);
-  return undefined;
+  return { saved: name };
 }
 
 export async function updateTier(_prevState: TierFormState, formData: FormData): Promise<TierFormState> {
@@ -85,7 +98,7 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   if (error) return { error: error.message };
 
   revalidatePath(`/c/${communitySlug}/admin`);
-  return undefined;
+  return { saved: name };
 }
 
 // Archive/unarchive: archived tiers stop accepting new subscribers but keep
