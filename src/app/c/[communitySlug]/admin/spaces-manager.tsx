@@ -8,6 +8,7 @@ import { BuiltinNavRow } from "./builtin-nav-row";
 import { reorderNavItems } from "./actions";
 import type { Space, SpaceJournalField, FeatureKey, SpaceType } from "@/types/database";
 import type { NavGroupOption } from "@/lib/nav-groups";
+import type { AccessCommunity, AccessTier } from "@/lib/access/model";
 
 // A space's nav sub-links — the indented items that render under it in the
 // sidebar. Today the only source is a business directory's featured categories
@@ -35,6 +36,9 @@ export function SpacesManager({
   allowedTypes,
   paymentsEnabled,
   navGroups,
+  tiers,
+  tierIdsBySpaceId,
+  accessCommunity,
 }: {
   items: NavManagerItem[];
   communityId: string;
@@ -47,6 +51,10 @@ export function SpacesManager({
   // per-space price control in the editor.
   paymentsEnabled: boolean;
   navGroups: NavGroupOption[];
+  // For each space's "Who can open it?" picker.
+  tiers: AccessTier[];
+  tierIdsBySpaceId: Record<string, string[]>;
+  accessCommunity: AccessCommunity;
 }) {
   const router = useRouter();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -98,6 +106,9 @@ export function SpacesManager({
             allowedTypes={allowedTypes}
             paymentsEnabled={paymentsEnabled}
             navGroups={navGroups}
+            tiers={tiers}
+            tierIds={tierIdsBySpaceId[item.space.id] ?? []}
+            accessCommunity={accessCommunity}
             isDragging={dragIndex === i}
             dragHandlers={dragHandlers}
           />

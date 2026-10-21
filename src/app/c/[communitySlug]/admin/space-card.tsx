@@ -17,7 +17,9 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
-import type { Space, SpaceVisibility, SpaceJournalField, SpaceType } from "@/types/database";
+import { AccessSelector } from "@/components/community/access-selector";
+import { describeSpaceAccess, type AccessCommunity, type AccessTier } from "@/lib/access/model";
+import type { Space, SpaceJournalField, SpaceType } from "@/types/database";
 
 function formatMonthlyPrice(cents: number, currency: string): string {
   try {
@@ -35,6 +37,9 @@ export function SpaceCard({
   allowedTypes,
   paymentsEnabled,
   navGroups,
+  tiers,
+  tierIds,
+  accessCommunity,
   dragHandlers,
   isDragging,
 }: {
@@ -52,6 +57,11 @@ export function SpaceCard({
   paymentsEnabled: boolean;
   // This community's sidebar sections, for the Section dropdown.
   navGroups: NavGroupOption[];
+  // The community's memberships, and the ones that unlock this space, for the
+  // "Who can open it?" picker.
+  tiers: AccessTier[];
+  tierIds: string[];
+  accessCommunity: AccessCommunity;
   dragHandlers: {
     draggable: boolean;
     onDragStart: DragEventHandler;
@@ -64,9 +74,6 @@ export function SpaceCard({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Watched so the price control can hide the moment the space is set public —
-  // public spaces are always free (see the spaces_public_is_free constraint).
-  const [visibility, setVisibility] = useState<SpaceVisibility>(space.visibility);
   // Watched so the "let members comment" sub-option only shows while the space
   // is one-way — it's meaningless otherwise (members can already comment).
   const [staffPostOnly, setStaffPostOnly] = useState(space.staff_post_only);
@@ -164,43 +171,33 @@ export function SpaceCard({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor={`type-${space.id}`}>Type</Label>
-              <select
-                id={`type-${space.id}`}
-                name="space_type"
-                defaultValue={space.space_type}
-                className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {typeGroups.map((group) => (
-                  <optgroup key={group.category.key} label={group.category.label}>
-                    {group.types.map((t) => (
-                      <option key={t.type} value={t.type}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label htmlFor={`visibility-${space.id}`}>Visibility</Label>
-              <select
-                id={`visibility-${space.id}`}
-                name="visibility"
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value as SpaceVisibility)}
-                className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {(["public", "members", "private"] as SpaceVisibility[]).map((v) => (
-                  <option key={v} value={v}>
-                    {v}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <Label htmlFor={`type-${space.id}`}>Type</Label>
+            <select
+              id={`type-${space.id}`}
+              name="space_type"
+              defaultValue={space.space_type}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {typeGroups.map((group) => (
+                <optgroup key={group.category.key} label={group.category.label}>
+                  {group.types.map((t) => (
+                    <option key={t.type} value={t.type}>
+                      {t.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
           </div>
+
+          <AccessSelector
+            idPrefix={`space-${space.id}`}
+            space={{ id: space.id, name: space.name, visibility: space.visibility, price_cents: space.price_cents, currency: space.currency, show_in_nav: space.show_in_nav, tierIds }}
+            tiers={tiers}
+            community={accessCommunity}
+            paymentsEnabled={paymentsEnabled}
+          />
 
           {(space.space_type === "discussion" || space.staff_post_only) && (
             <div className="space-y-2">
@@ -263,49 +260,6 @@ export function SpaceCard({
             </div>
           )}
 
-          {visibility === "public" ? (
-            // Public spaces are open to everyone, so they can't charge. Show why
-            // rather than a disabled control — and the action forces price to 0
-            // if a paid space is switched to public.
-            <p className="text-xs text-muted-foreground">
-              Public spaces are open to everyone and are always free. Set visibility to Members or Private to charge for
-              access.
-            </p>
-          ) : paymentsEnabled ? (
-            <div>
-              <Label htmlFor={`price-${space.id}`}>Monthly price</Label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input
-                    id={`price-${space.id}`}
-                    name="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    defaultValue={space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : ""}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="w-20 shrink-0">
-                  <Input aria-label="Currency" name="currency" defaultValue={space.currency || "usd"} maxLength={3} className="uppercase" />
-                </div>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Charge members this every month for access. Leave blank or 0 to keep the space free. Members pay you
-                directly through Stripe.
-              </p>
-            </div>
-          ) : (
-            // Payments not connected: omit the input so the action leaves the
-            // existing price untouched, but explain how to start charging.
-            space.price_cents > 0 && (
-              <p className="text-xs text-muted-foreground">
-                This space charges {formatMonthlyPrice(space.price_cents, space.currency)}, but payments aren&apos;t
-                connected right now — reconnect Stripe under Payments to collect.
-              </p>
-            )
-          )}
-
           {updateState?.error && <p className="text-sm text-danger">{updateState.error}</p>}
 
           <div className="flex gap-2">
@@ -315,10 +269,7 @@ export function SpaceCard({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => {
-                setVisibility(space.visibility);
-                setEditing(false);
-              }}
+              onClick={() => setEditing(false)}
             >
               Cancel
             </Button>
@@ -346,7 +297,7 @@ export function SpaceCard({
             <Badge>{meta.label}</Badge>
             {space.price_cents > 0 && <Badge tone="accent">{formatMonthlyPrice(space.price_cents, space.currency)}</Badge>}
           </div>
-          <p className="text-xs capitalize text-muted-foreground">{space.visibility}</p>
+          <p className="text-xs text-muted-foreground">{describeSpaceAccess({ ...space, tierIds }, tiers)}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />

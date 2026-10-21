@@ -16,7 +16,8 @@ import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/v
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
 import type { PostgrestError } from "@supabase/supabase-js";
 import type { NavSubItemKind } from "./spaces-manager";
-import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory } from "@/types/database";
+import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory, JoinPolicy } from "@/types/database";
+import { JOIN_POLICIES, defaultJoinPolicy, storedJoinPolicy } from "@/lib/join-policy";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -265,9 +266,54 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   );
   if (failure) return failure;
 
+  // A public space is always free, and that includes tiers: take it out of any
+  // it was in, so the tier stops advertising a space it no longer unlocks.
+  // Tiers only ever list non-public spaces (see tier-actions), so this is the
+  // one way a public space could end up in one.
+  if (visibility === "public") {
+    const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
+    if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  } else if (formData.has("access_choice") && current) {
+    // The access picker (src/components/community/access-selector.tsx) sends
+    // the full set of memberships that should unlock this space. Absent field ≠
+    // empty set: forms without the picker never touch tier links.
+    const failure = await syncSpaceTiers(supabase, spaceId, current.community_id, formData.getAll("tier_ids").map(String));
+    if (failure) return failure;
+  }
+
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// Make a space's tier links exactly `wanted`, keeping only tiers of the space's
+// own community. RLS (tier_spaces_write_admin) is the real check; this keeps a
+// tampered form from linking another community's tier.
+async function syncSpaceTiers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  spaceId: string,
+  communityId: string,
+  wanted: string[]
+): Promise<{ error: string } | undefined> {
+  const [{ data: tiers }, { data: links }] = await Promise.all([
+    supabase.from("community_tiers").select("id").eq("community_id", communityId),
+    supabase.from("tier_spaces").select("tier_id").eq("space_id", spaceId),
+  ]);
+  const known = new Set((tiers ?? []).map((t) => t.id));
+  const want = new Set(wanted.filter((id) => known.has(id)));
+  const have = new Set((links ?? []).map((l) => l.tier_id));
+
+  const remove = [...have].filter((id) => !want.has(id));
+  const add = [...want].filter((id) => !have.has(id));
+  if (remove.length) {
+    const { error } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId).in("tier_id", remove);
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
+  if (add.length) {
+    const { error } = await supabase.from("tier_spaces").insert(add.map((tier_id) => ({ tier_id, space_id: spaceId })));
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
   return undefined;
 }
 
@@ -649,6 +695,13 @@ export async function updatePublicAccess(
   const eventsPublic = formData.get("events_public") === "on";
   const feedPublic = formData.get("feed_public") === "on";
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
+  // Who can join, separate from listing. Absent field ≠ reset: a form without
+  // the control leaves join_policy alone. What's stored is null whenever the
+  // choice is what privacy implies anyway (storedJoinPolicy), so a community
+  // only ever carries an override it actually has.
+  const rawJoin = formData.get("join_policy");
+  const joinUpdate =
+    rawJoin === null ? {} : { join_policy: storedJoinPolicy(privacy, (JOIN_POLICIES as string[]).includes(String(rawJoin)) ? (String(rawJoin) as JoinPolicy) : defaultJoinPolicy(privacy)) };
 
   const supabase = await createClient();
   const failure = requireWrite(
@@ -656,6 +709,7 @@ export async function updatePublicAccess(
       .from("communities")
       .update({
         privacy,
+        ...joinUpdate,
         events_public: eventsPublic,
         feed_public: feedPublic,
         members_visibility: membersVisibility,

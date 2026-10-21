@@ -15,6 +15,9 @@ export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 // into 'active' or decline it, which deletes the row.
 export type MembershipStatus = "active" | "invited" | "banned" | "requested";
 export type CommunityPrivacy = "public" | "private" | "invite_only";
+// How people join, separate from whether the community is listed. Null on a
+// community means "follow privacy". See src/lib/join-policy.ts.
+export type JoinPolicy = "open" | "approval" | "invite";
 export type SpaceVisibility = "public" | "members" | "private";
 export type SpaceType =
   | "discussion"
@@ -221,6 +224,10 @@ export type Community = {
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // How people join: null = follow privacy (public open, private approval,
+  // invite_only invite). Ignored for invite_only. See the
+  // community_join_policy migration and src/lib/join-policy.ts.
+  join_policy: JoinPolicy | null;
   // Who can see the Members list/page — independent of `privacy` above.
   // The page always requires a signed-in user regardless of this setting.
   // 'public' = any signed-in visitor (incl. guests who haven't joined),
@@ -4508,6 +4515,20 @@ export type Database = {
       community_slug_for_domain: {
         Args: { p_domain: string };
         Returns: string | null;
+      };
+      course_lesson_outline: {
+        Args: { p_course_ids: string[] };
+        Returns: {
+          id: string;
+          module_id: string;
+          course_id: string;
+          community_id: string;
+          title: string;
+          duration_minutes: number | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        }[];
       };
       course_quiz_data: {
         Args: { p_course_id: string };

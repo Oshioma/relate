@@ -176,7 +176,21 @@ export default async function AdminPage({
 
   // Membership tiers (owner-only section, shown once payments are connected).
   // Public spaces are always free, so they can't be assigned to a tier.
-  const tiers = isOwner && canCharge ? await getCommunityTiers(db, community.id) : [];
+  // Every admin's space editor shows which memberships unlock each space (the
+  // access picker), so tiers load for all of them; managing the tiers
+  // themselves stays an owner section below.
+  const allTiers = await getCommunityTiers(db, community.id);
+  const tiers = isOwner && canCharge ? allTiers : [];
+  const accessTiers = allTiers.map((t) => ({ id: t.id, name: t.name, price_cents: t.price_cents, currency: t.currency, archived_at: t.archived_at }));
+  const tierIdsBySpaceId: Record<string, string[]> = {};
+  for (const tier of allTiers) for (const spaceId of tier.spaceIds) (tierIdsBySpaceId[spaceId] ??= []).push(tier.id);
+  const accessCommunity = {
+    privacy: community.privacy,
+    feed_public: community.feed_public,
+    events_public: community.events_public,
+    members_visibility: community.members_visibility,
+    stripe_charges_enabled: community.stripe_charges_enabled,
+  };
   const tierSales = tiers.length > 0 ? Object.fromEntries(await getTierSales(db, community.id)) : {};
   const tierAssignableSpaces = spaces.filter((s) => s.visibility !== "public").map((s) => ({ id: s.id, name: s.name }));
 
@@ -409,6 +423,9 @@ export default async function AdminPage({
             allowedTypes={allowedTypes}
             paymentsEnabled={canCharge && community.stripe_charges_enabled}
             navGroups={navGroupOptions}
+            tiers={accessTiers}
+            tierIdsBySpaceId={tierIdsBySpaceId}
+            accessCommunity={accessCommunity}
           />
         </div>
       )}
@@ -489,7 +506,9 @@ export default async function AdminPage({
 
       {isOwner && (
         <>
-          <div className="mb-8 mt-8">
+          {/* The creation wizard lands here when a space is waiting for a
+              membership ("Set up membership"). */}
+          <div id="set-up-membership" className="mb-8 mt-8 scroll-mt-20">
             <MonetizationChecklist steps={monetizationSteps} />
           </div>
 

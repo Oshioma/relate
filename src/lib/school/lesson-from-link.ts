@@ -14,10 +14,11 @@
 
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CommunityPrivacy, Database } from "@/types/database";
+import type { CommunityPrivacy, JoinPolicy, Database } from "@/types/database";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { lessonLinkKey } from "./lesson-link-key";
 import { parseVideoLink } from "./video-links";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 export type LessonHere = { id: string; title: string; href: string };
 
@@ -29,6 +30,8 @@ export type LessonElsewhere = {
   name: string | null;
   slug: string | null;
   privacy: CommunityPrivacy;
+  // How they'd get in: join, ask, or (invite) not offered.
+  joinPolicy: JoinPolicy;
   // The author's own standing there, so the offer fits: nothing to join when
   // they're already in, nothing to ask when they already have.
   membership: "active" | "requested" | null;
@@ -146,7 +149,7 @@ export async function findLessonsFromLink(
   if (otherIds.length === 0) return { here: null, elsewhere: [] };
 
   const [{ data: communities }, { data: memberships }] = await Promise.all([
-    admin.from("communities").select("id, name, slug, privacy").in("id", otherIds),
+    admin.from("communities").select("id, name, slug, privacy, join_policy").in("id", otherIds),
     admin
       .from("community_memberships")
       .select("community_id, status")
@@ -162,6 +165,7 @@ export async function findLessonsFromLink(
       name: listed ? community.name : null,
       slug: listed ? community.slug : null,
       privacy: community.privacy,
+      joinPolicy: joinPolicyOf(community),
       membership: status === "active" ? "active" : status === "requested" ? "requested" : null,
     };
   });

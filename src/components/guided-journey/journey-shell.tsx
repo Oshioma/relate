@@ -5,6 +5,7 @@ import { LinkButton } from "@/components/ui/button";
 import { CommunityJoinCta } from "@/app/c/[communitySlug]/community-join-cta";
 import type { GuidedJourneyContext } from "@/lib/data/guided-journey";
 import { cn } from "@/lib/utils";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 export type JourneyTab = "overview" | "mentors" | "requests" | "journeys" | "stories" | "manage";
 
@@ -103,7 +104,7 @@ export function JourneyGate({ ctx, next }: { ctx: GuidedJourneyContext; next: st
         Mentoring happens between members, so we know who everyone is. Join the community, then come back here.
       </p>
       <div className="mt-5 flex justify-center">
-        <CommunityJoinCta communityId={ctx.community.id} privacy={ctx.community.privacy} membershipStatus={ctx.membership?.status ?? null} size="lg" />
+        <CommunityJoinCta communityId={ctx.community.id} joinPolicy={joinPolicyOf(ctx.community)} membershipStatus={ctx.membership?.status ?? null} size="lg" />
       </div>
     </div>
   );
