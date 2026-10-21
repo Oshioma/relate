@@ -7,9 +7,9 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { defaultJoinPolicy, describeJoining, joinPolicyOf } from "@/lib/join-policy";
 import type { Community, CommunityPrivacy, JoinPolicy } from "@/types/database";
 
-// One home for the community's access controls: how discoverable it is at all
-// (privacy), and what a visitor can see before joining. Spaces have their own
-// per-space visibility; these are the community-wide switches.
+// Two of the four access groups in one form: Discoverability (who can find it,
+// what a visitor sees before joining, who sees the members list) and Joining
+// rules. Spaces have their own access, under Spaces & content access.
 export function PublicAccessForm({ community }: { community: Community }) {
   const [state, formAction] = useActionState<PublicAccessState, FormData>(updatePublicAccess, undefined);
   // Watched so the joining choice can follow listing: a hidden community is
@@ -26,8 +26,9 @@ export function PublicAccessForm({ community }: { community: Community }) {
       <input type="hidden" name="community_id" value={community.id} />
       <input type="hidden" name="community_slug" value={community.slug} />
 
+      <h3 id="discoverability" className="scroll-mt-20 text-sm font-semibold text-foreground">Discoverability</h3>
       <div>
-        <Label htmlFor="privacy">Community privacy</Label>
+        <Label htmlFor="privacy">Who can find it</Label>
         <select
           id="privacy"
           name="privacy"
@@ -50,33 +51,6 @@ export function PublicAccessForm({ community }: { community: Community }) {
           Whether a stranger who has the link can <span className="font-medium text-foreground">read</span> the feed is
           the next setting down.
         </p>
-      </div>
-
-      {/* Joining, asked on its own. Stored as join_policy only when it differs
-          from what the listing implies, so communities that never touch this
-          keep exactly the behaviour they had. */}
-      <div className="border-t border-border pt-4">
-        <Label htmlFor="join_policy">Who can join</Label>
-        {privacy === "invite_only" ? (
-          <p className="text-sm text-muted-foreground">Only people you invite. A hidden community is always invitation only.</p>
-        ) : (
-          <>
-            <select
-              id="join_policy"
-              name="join_policy"
-              value={joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy}
-              onChange={(e) => {
-                setJoinPolicy(e.target.value as JoinPolicy);
-                setJoinTouched(true);
-              }}
-              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="open">Anyone — they join straight away</option>
-              <option value="approval">Approval — people ask and an admin approves</option>
-            </select>
-            <p className="mt-1 text-xs text-muted-foreground">{describeJoining(joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy)}</p>
-          </>
-        )}
       </div>
 
       {/* Two questions that used to have one answer. Privacy above is about
@@ -137,6 +111,34 @@ export function PublicAccessForm({ community }: { community: Community }) {
           Controls who can see the Members list and link. Members always requires an account — signed-out visitors
           never see it. A paid-members-only tier is planned for later, once the platform supports paid memberships.
         </p>
+      </div>
+
+      {/* Joining, asked on its own. Stored as join_policy only when it differs
+          from what the listing implies, so communities that never touch this
+          keep exactly the behaviour they had. */}
+      <div className="border-t border-border pt-4">
+        <h3 id="joining" className="mb-3 scroll-mt-20 text-sm font-semibold text-foreground">Joining rules</h3>
+        <Label htmlFor="join_policy">Who can join</Label>
+        {privacy === "invite_only" ? (
+          <p className="text-sm text-muted-foreground">Only people you invite. A hidden community is always invitation only.</p>
+        ) : (
+          <>
+            <select
+              id="join_policy"
+              name="join_policy"
+              value={joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy}
+              onChange={(e) => {
+                setJoinPolicy(e.target.value as JoinPolicy);
+                setJoinTouched(true);
+              }}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="open">Anyone — they join straight away</option>
+              <option value="approval">Approval — people ask and an admin approves</option>
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">{describeJoining(joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy)}</p>
+          </>
+        )}
       </div>
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
