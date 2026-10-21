@@ -1,16 +1,25 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { updatePublicAccess, type PublicAccessState } from "./actions";
 import { Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
-import type { Community } from "@/types/database";
+import { defaultJoinPolicy, describeJoining, joinPolicyOf } from "@/lib/join-policy";
+import type { Community, CommunityPrivacy, JoinPolicy } from "@/types/database";
 
 // One home for the community's access controls: how discoverable it is at all
 // (privacy), and what a visitor can see before joining. Spaces have their own
 // per-space visibility; these are the community-wide switches.
 export function PublicAccessForm({ community }: { community: Community }) {
   const [state, formAction] = useActionState<PublicAccessState, FormData>(updatePublicAccess, undefined);
+  // Watched so the joining choice can follow listing: a hidden community is
+  // invitation only, whatever was picked before.
+  const [privacy, setPrivacy] = useState<CommunityPrivacy>(community.privacy);
+  const [joinPolicy, setJoinPolicy] = useState<JoinPolicy>(joinPolicyOf(community));
+  // Until the admin picks a joining rule themselves, changing the listing
+  // brings the joining rule that listing has always meant (listed: anyone;
+  // unlisted: approval), so switching privacy alone behaves as it always did.
+  const [joinTouched, setJoinTouched] = useState(community.join_policy !== null);
 
   return (
     <form action={formAction} className="space-y-4 rounded-lg border border-border bg-card p-4">
@@ -22,12 +31,17 @@ export function PublicAccessForm({ community }: { community: Community }) {
         <select
           id="privacy"
           name="privacy"
-          defaultValue={community.privacy}
+          value={privacy}
+          onChange={(e) => {
+            const next = e.target.value as CommunityPrivacy;
+            setPrivacy(next);
+            if (!joinTouched) setJoinPolicy(defaultJoinPolicy(next));
+          }}
           className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="public">Public — anyone can find and join it</option>
-          <option value="private">Private — anyone with the link can see it, but the feed is members-only</option>
-          <option value="invite_only">Invite only — hidden; members must be invited</option>
+          <option value="public">Listed — shown on Relate for anyone to find</option>
+          <option value="private">Unlisted — only people with the link can find it</option>
+          <option value="invite_only">Hidden — invitation only; doesn&apos;t open for anyone else</option>
         </select>
         <p className="mt-1 text-xs text-muted-foreground">
           This is about being <span className="font-medium text-foreground">found</span>: only a public community is
@@ -36,6 +50,33 @@ export function PublicAccessForm({ community }: { community: Community }) {
           Whether a stranger who has the link can <span className="font-medium text-foreground">read</span> the feed is
           the next setting down.
         </p>
+      </div>
+
+      {/* Joining, asked on its own. Stored as join_policy only when it differs
+          from what the listing implies, so communities that never touch this
+          keep exactly the behaviour they had. */}
+      <div className="border-t border-border pt-4">
+        <Label htmlFor="join_policy">Who can join</Label>
+        {privacy === "invite_only" ? (
+          <p className="text-sm text-muted-foreground">Only people you invite. A hidden community is always invitation only.</p>
+        ) : (
+          <>
+            <select
+              id="join_policy"
+              name="join_policy"
+              value={joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy}
+              onChange={(e) => {
+                setJoinPolicy(e.target.value as JoinPolicy);
+                setJoinTouched(true);
+              }}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="open">Anyone — they join straight away</option>
+              <option value="approval">Approval — people ask and an admin approves</option>
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">{describeJoining(joinPolicy === "invite" ? (privacy === "public" ? "open" : "approval") : joinPolicy)}</p>
+          </>
+        )}
       </div>
 
       {/* Two questions that used to have one answer. Privacy above is about
@@ -52,9 +93,9 @@ export function PublicAccessForm({ community }: { community: Community }) {
         <span>
           <span className="block font-medium text-foreground">Show the feed publicly</span>
           <span className="block text-muted-foreground">
-            {community.privacy === "public"
+            {privacy === "public"
               ? "A public community already shows its feed to everyone — this makes no difference until you switch to private."
-              : community.privacy === "invite_only"
+              : privacy === "invite_only"
                 ? "Ignored while the community is invite-only: it doesn't resolve at all for anyone who isn't a member."
                 : "Let signed-out visitors read the feed of this private community. It stays unlisted — people still need the link."}{" "}
             Guests only ever see content from spaces set to <span className="font-medium text-foreground">Public</span>;
