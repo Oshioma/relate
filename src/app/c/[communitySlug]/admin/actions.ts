@@ -265,6 +265,15 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   );
   if (failure) return failure;
 
+  // A public space is always free, and that includes tiers: take it out of any
+  // it was in, so the tier stops advertising a space it no longer unlocks.
+  // Tiers only ever list non-public spaces (see tier-actions), so this is the
+  // one way a public space could end up in one.
+  if (visibility === "public") {
+    const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
+    if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  }
+
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");

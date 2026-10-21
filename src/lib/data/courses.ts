@@ -107,6 +107,25 @@ export async function getCommunityRecentCourses(
   return (data ?? []) as unknown as CourseWithContext[];
 }
 
+type LessonOutlineRow = Omit<CourseLesson, "body" | "video_url">;
+
+// Every lesson's place in its course (titles, durations, order) without what
+// it teaches, for the courses the viewer can open. A paid course's lessons are
+// readable only once enrolled (course_lessons RLS), but its outline is shown to
+// everyone who can open the course. Falls back to the lessons the viewer can
+// read if the function isn't there yet (app deployed before the migration).
+async function getLessonOutline(supabase: Client, courseIds: string[]): Promise<{ data: LessonOutlineRow[]; error: null }> {
+  const { data, error } = await supabase.rpc("course_lesson_outline", { p_course_ids: courseIds });
+  if (!error) return { data: data ?? [], error: null };
+  const fallback = await supabase
+    .from("course_lessons")
+    .select("id, module_id, course_id, community_id, title, duration_minutes, sort_order, created_at, updated_at")
+    .in("course_id", courseIds)
+    .order("sort_order", { ascending: true });
+  if (fallback.error) throw fallback.error;
+  return { data: fallback.data ?? [], error: null };
+}
+
 export async function getSpaceCourses(supabase: Client, spaceId: string, viewerId: string): Promise<CourseListItem[]> {
   const { data: courses, error } = await supabase
     .from("courses")
@@ -121,7 +140,9 @@ export async function getSpaceCourses(supabase: Client, spaceId: string, viewerI
   const instructorIds = [...new Set(courses.map((c) => c.instructor_id).filter((id): id is string => Boolean(id)))];
 
   const [lessonsResult, enrollmentsResult, completionsResult, instructorsResult] = await Promise.all([
-    supabase.from("course_lessons").select("id, course_id").in("course_id", courseIds),
+    // The outline, not the lessons: a paid course's lessons are readable only
+    // once enrolled, but every card still counts them.
+    getLessonOutline(supabase, courseIds),
     supabase.from("course_enrollments").select("course_id, user_id").in("course_id", courseIds),
     // RLS returns only the viewer's own completions (plus staff-visible ones);
     // scoping to the viewer keeps the per-card progress unambiguous.
@@ -176,6 +197,7 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
   const [
     modulesResult,
     lessonsResult,
+    outlineResult,
     enrollmentsResult,
     completionsResult,
     instructorResult,
@@ -187,6 +209,10 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
   ] = await Promise.all([
       supabase.from("course_modules").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
       supabase.from("course_lessons").select("*").eq("course_id", courseId).order("sort_order", { ascending: true }),
+      // Titles and durations for everyone who can open the course, so a paid
+      // course still shows what's inside before someone enrols (RLS returns
+      // its full lessons only to the enrolled and the team).
+      getLessonOutline(supabase, [courseId]),
       supabase.from("course_enrollments").select("course_id, user_id").eq("course_id", courseId),
       viewerId
         ? supabase.from("lesson_completions").select("lesson_id").eq("course_id", courseId).eq("user_id", viewerId)
@@ -205,6 +231,7 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
 
   if (modulesResult.error) throw modulesResult.error;
   if (lessonsResult.error) throw lessonsResult.error;
+  if (outlineResult.error) throw outlineResult.error;
   if (enrollmentsResult.error) throw enrollmentsResult.error;
   if (completionsResult.error) throw completionsResult.error;
   if (instructorResult.error) throw instructorResult.error;
@@ -214,8 +241,15 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
   if (attemptsResult.error) throw attemptsResult.error;
   if (prereqRowsResult.error) throw prereqRowsResult.error;
 
+  // Every outline row, with its body and video filled in only where RLS
+  // returned the full lesson (enrolled, free course, or the team).
+  const fullLessons = new Map((lessonsResult.data ?? []).map((lesson) => [lesson.id, lesson]));
+  const lessons: CourseLesson[] = (outlineResult.data ?? []).map(
+    (row) => fullLessons.get(row.id) ?? { ...row, body: null, video_url: null }
+  );
+
   const lessonsByModule = new Map<string, CourseLesson[]>();
-  for (const lesson of lessonsResult.data ?? []) {
+  for (const lesson of lessons) {
     const list = lessonsByModule.get(lesson.module_id) ?? [];
     list.push(lesson);
     lessonsByModule.set(lesson.module_id, list);
@@ -280,7 +314,7 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     course,
     instructor: (instructorResult.data as Profile | null) ?? null,
     modules,
-    lessonCount: lessonsResult.data?.length ?? 0,
+    lessonCount: lessons.length,
     enrollmentCount: enrollments.length,
     viewerEnrolled: enrollments.some((e) => e.user_id === viewerId),
     completedLessonIds: (completionsResult.data ?? []).map((row) => row.lesson_id),
@@ -299,7 +333,7 @@ async function getPrerequisiteStatuses(supabase: Client, prerequisiteIds: string
 
   const [coursesResult, lessonsResult, completionsResult] = await Promise.all([
     supabase.from("courses").select("id, title").in("id", prerequisiteIds),
-    supabase.from("course_lessons").select("id, course_id").in("course_id", prerequisiteIds),
+    getLessonOutline(supabase, prerequisiteIds),
     viewerId
       ? supabase.from("lesson_completions").select("course_id").in("course_id", prerequisiteIds).eq("user_id", viewerId)
       : Promise.resolve({ data: [], error: null }),

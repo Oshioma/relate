@@ -150,7 +150,10 @@ export default async function SpaceDetailPage({
   // join options. RLS enforces the same rule via has_space_access() (this is the
   // UI side, and it covers space types whose content lives in their own tables).
   const spaceTiers = await getTiersForSpace(supabase, space.id);
-  const isGated = space.price_cents > 0 || spaceTiers.length > 0;
+  // A public space is never gated, whatever tiers still list it — the same
+  // rule has_space_access() applies, so the page can't show a paywall over
+  // content the database already opens to everyone.
+  const isGated = space.visibility !== "public" && (space.price_cents > 0 || spaceTiers.length > 0);
   if (isGated) {
     const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
     const gateIsStaff =
