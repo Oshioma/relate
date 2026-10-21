@@ -272,11 +272,47 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   if (visibility === "public") {
     const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
     if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  } else if (formData.has("access_choice") && current) {
+    // The access picker (src/components/community/access-selector.tsx) sends
+    // the full set of memberships that should unlock this space. Absent field ≠
+    // empty set: forms without the picker never touch tier links.
+    const failure = await syncSpaceTiers(supabase, spaceId, current.community_id, formData.getAll("tier_ids").map(String));
+    if (failure) return failure;
   }
 
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// Make a space's tier links exactly `wanted`, keeping only tiers of the space's
+// own community. RLS (tier_spaces_write_admin) is the real check; this keeps a
+// tampered form from linking another community's tier.
+async function syncSpaceTiers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  spaceId: string,
+  communityId: string,
+  wanted: string[]
+): Promise<{ error: string } | undefined> {
+  const [{ data: tiers }, { data: links }] = await Promise.all([
+    supabase.from("community_tiers").select("id").eq("community_id", communityId),
+    supabase.from("tier_spaces").select("tier_id").eq("space_id", spaceId),
+  ]);
+  const known = new Set((tiers ?? []).map((t) => t.id));
+  const want = new Set(wanted.filter((id) => known.has(id)));
+  const have = new Set((links ?? []).map((l) => l.tier_id));
+
+  const remove = [...have].filter((id) => !want.has(id));
+  const add = [...want].filter((id) => !have.has(id));
+  if (remove.length) {
+    const { error } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId).in("tier_id", remove);
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
+  if (add.length) {
+    const { error } = await supabase.from("tier_spaces").insert(add.map((tier_id) => ({ tier_id, space_id: spaceId })));
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
   return undefined;
 }
 

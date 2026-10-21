@@ -7,6 +7,7 @@ import {
   findAccessIssues,
   settingsForChoice,
   spaceAccessFor,
+  tiersLosingAccess,
   type AccessCommunity,
   type AccessSpace,
   type AccessTier,
@@ -100,6 +101,15 @@ test("each choice writes the settings it reads back as", () => {
   const selected = settingsForChoice("tiers", two, { tierIds: ["supporter", "unknown", "supporter"], priceCents: 700 });
   assert.deepEqual(selected, { visibility: "members", price_cents: 700, tierIds: ["supporter"] });
   assert.equal(settingsForChoice("everyone", two, { priceCents: 900 }).price_cents, 0);
+  // An archived tier already on the space stays when switching to "paid".
+  assert.deepEqual(settingsForChoice("paid", two, { currentTierIds: ["old"] }).tierIds, ["insider", "supporter", "old"]);
+});
+
+test("who loses a space when its memberships change", () => {
+  const before = { visibility: "members" as const, price_cents: 0, tierIds: ["insider"] };
+  assert.deepEqual(tiersLosingAccess(before, settingsForChoice("members", tiers), tiers).map((t) => t.name), ["Insider"]);
+  assert.deepEqual(tiersLosingAccess(before, settingsForChoice("everyone", tiers), tiers), []);
+  assert.deepEqual(tiersLosingAccess(before, settingsForChoice("paid", tiers), tiers), []);
 });
 
 test("plain English for a space and the community", () => {

@@ -125,13 +125,15 @@ export type SpaceAccessSettings = {
   tierIds: string[];
 };
 
-// Turn a choice back into settings. Tiers not on sale are kept for "Selected
-// memberships" (their subscribers keep access) and dropped for every other
-// choice, which is the creator saying the space works differently now.
+// Turn a choice back into settings. An archived tier the space is already in
+// stays in for "Paid members" — archived tiers keep their subscribers, so
+// switching between the two paid choices never quietly locks anyone out. Every
+// other choice drops tier links: that is the creator saying the space works
+// differently now (the picker says who loses access before saving).
 export function settingsForChoice(
   choice: AccessChoice,
   tiers: AccessTier[],
-  options: { tierIds?: string[]; priceCents?: number } = {}
+  options: { tierIds?: string[]; priceCents?: number; currentTierIds?: string[] } = {}
 ): SpaceAccessSettings {
   switch (choice) {
     case "everyone":
@@ -139,7 +141,11 @@ export function settingsForChoice(
     case "members":
       return { visibility: "members", price_cents: 0, tierIds: [] };
     case "paid":
-      return { visibility: "members", price_cents: 0, tierIds: onSaleTiers(tiers).map((t) => t.id) };
+      return {
+        visibility: "members",
+        price_cents: 0,
+        tierIds: tiers.filter((t) => !t.archived_at || options.currentTierIds?.includes(t.id)).map((t) => t.id),
+      };
     case "tiers": {
       const known = new Set(tiers.map((t) => t.id));
       return {
@@ -274,4 +280,12 @@ export function findAccessIssues(community: AccessCommunity, spaces: AccessSpace
   }
 
   return issues;
+}
+
+// The memberships whose subscribers would lose this space if the change were
+// saved, for the "before you save" line. Members and the team are covered by
+// the plain-English description of the new choice.
+export function tiersLosingAccess(before: SpaceAccessSettings, after: SpaceAccessSettings, tiers: AccessTier[]): AccessTier[] {
+  if (after.visibility === "public") return [];
+  return tiers.filter((t) => before.tierIds.includes(t.id) && !after.tierIds.includes(t.id));
 }
