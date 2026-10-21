@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users, Layers, CalendarDays, BookOpen } from "lucide-react";
+import { Users, Layers, CalendarDays, BookOpen, MessageCircle } from "lucide-react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { LinkButton } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import type { Community } from "@/types/database";
 import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
 import { communitySubdomainUrl } from "@/lib/custom-domain";
+import { WHATSAPP_DISPLAY, WHATSAPP_HREF } from "@/lib/support-contact";
 
 // How many public communities the showcase strip's fallback considers before
 // ranking them. How many it renders is SHOWCASE_COUNT, shared with the platform
@@ -110,6 +111,37 @@ export default async function LandingPage() {
           <p className="mt-4 text-sm text-muted-foreground">
             Spend less time managing your community and more time growing it.
           </p>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 pb-16">
+          <div className="rounded-2xl bg-accent px-6 py-12 text-center text-accent-foreground sm:px-12 sm:py-16">
+            <p className="text-sm font-semibold uppercase tracking-widest opacity-80">
+              We are for the budget crowd
+            </p>
+            <h2 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl">
+              24 hour support.
+            </h2>
+            <p className="mt-4 text-2xl font-bold tracking-tight sm:text-4xl">
+              Call me for improvements. Let&apos;s make this work together!
+            </p>
+            <p className="mx-auto mt-6 max-w-xl text-base font-medium opacity-90 sm:text-lg">
+              You want everything, but you don&apos;t want to pay the world.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a
+                href={WHATSAPP_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-background px-6 py-3 text-base font-semibold text-foreground shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <MessageCircle className="h-5 w-5" />
+                WhatsApp {WHATSAPP_DISPLAY}
+              </a>
+              <Link href="/contact" className="text-base font-semibold underline underline-offset-4 hover:opacity-90">
+                Or send a message
+              </Link>
+            </div>
+          </div>
         </section>
 
         <section className="mx-auto max-w-2xl px-6 pb-16 text-center">
