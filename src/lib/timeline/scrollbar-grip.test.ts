@@ -144,9 +144,12 @@ test("dragging the thumb or clicking the track arrives at each landmark, at any 
         // ends at the same function with the pointer's position.
         const next = windowWithThumbAt(base, barFraction(date), scale);
         const middle = middleDate(next, scale);
-        // Within a hundred-thousandth of the distance from now: a few hours at
-        // Rome, under a year at 100,000 BCE (the ends of time round a little).
-        const tolerance = Math.max(1e-6, Math.abs(date - presentPosition()) * 1e-5);
+        // Within two hundred-thousandths of the distance from now: under a day
+        // at Rome, under two years at 100,000 BCE. The round trip through a
+        // bar spanning 13.9 billion years rounds by up to about 1.1e-5 of that
+        // distance, depending on the clock's exact instant, so 1e-5 failed
+        // on roughly one run in sixty.
+        const tolerance = Math.max(1e-6, Math.abs(date - presentPosition()) * 2e-5);
         assert.ok(close(middle, date, tolerance), `${scale} ${base.from}: ${name} landed at ${middle}`);
       }
     }
