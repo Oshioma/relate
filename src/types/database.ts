@@ -4516,6 +4516,12 @@ export type Database = {
         Args: { p_domain: string };
         Returns: string | null;
       };
+      // Admin-only yes/no facts about one person and one space; see
+      // src/lib/access/check.ts for the shape and how it's explained.
+      access_check: {
+        Args: { p_space_id: string; p_user_id: string | null };
+        Returns: unknown;
+      };
       course_lesson_outline: {
         Args: { p_course_ids: string[] };
         Returns: {

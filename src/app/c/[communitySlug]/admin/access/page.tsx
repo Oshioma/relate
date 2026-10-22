@@ -13,6 +13,7 @@ import type { AccessIssue, AccessState } from "@/lib/access/model";
 import { describeListing } from "@/lib/access/summary";
 import { describeJoining, joinPolicyOf } from "@/lib/join-policy";
 import { SpaceAccessEditor } from "./space-access-editor";
+import { AccessCheck } from "./access-check";
 
 const STATE_LOOK: Record<AccessState, { label: string; icon: typeof Check; className: string }> = {
   open: { label: "Opens", icon: Check, className: "text-accent" },
@@ -62,11 +63,21 @@ export default async function AccessOverviewPage({ params }: { params: Promise<{
   const membership = await getMembership(supabase, community.id, user.id);
   if (!isCommunityAdmin(community, membership, user.id)) redirect(`/c/${community.slug}`);
 
-  const [spaces, allTiers, { data: canCharge }] = await Promise.all([
+  const [spaces, allTiers, { data: canCharge }, { data: memberRows }] = await Promise.all([
     getCommunitySpaces(supabase, community.id),
     getCommunityTiers(supabase, community.id),
     supabase.rpc("community_can_charge", { p_community_id: community.id }),
+    // Everyone connected to the community, banned and pending included: "why
+    // can't they get in?" is most often about exactly those people.
+    supabase
+      .from("community_memberships")
+      .select("user_id, status, profile:user_id (full_name, username)")
+      .eq("community_id", community.id)
+      .in("status", ["active", "invited", "requested", "banned"]),
   ]);
+  const people = ((memberRows ?? []) as unknown as { user_id: string; status: string; profile: { full_name: string | null; username: string } | null }[])
+    .map((m) => ({ id: m.user_id, status: m.status, name: m.profile?.full_name || m.profile?.username || "Unnamed member" }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const tiers = allTiers.map((t) => ({ id: t.id, name: t.name, price_cents: t.price_cents, currency: t.currency, archived_at: t.archived_at }));
   const tierIdsBySpaceId: Record<string, string[]> = {};
@@ -178,6 +189,8 @@ export default async function AccessOverviewPage({ params }: { params: Promise<{
           </table>
         </div>
       )}
+
+      <AccessCheck people={people} spaces={spaces.map((s) => ({ id: s.id, name: s.name }))} />
     </div>
   );
 }
