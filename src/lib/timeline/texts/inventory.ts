@@ -898,6 +898,57 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "A short review of 'Atlantis and Lemuria (3s 6d. net)', which quotes four phrases of the book. Cited for the date of publication and as the only independent check on the 1911 wording that could be reached.",
   },
   {
+    key: "kybalion-1908",
+    title: "The Kybalion: A Study of the Hermetic Philosophy of Ancient Egypt and Greece",
+    author: "Three Initiates (pseudonym; usually attributed to William Walker Atkinson)",
+    publisher: "The Yogi Publication Society, Masonic Temple, Chicago",
+    publishedYear: 1908,
+    reference:
+      "First edition, 223 pages: an Introduction (pp. 7–14) and fifteen chapters (pp. 15–223), imported in full and cited by printed page. 'Copyright 1908 by The Yogi Publication Society. Entered at Stationer's Hall' (title-page verso)",
+    url: "https://en.wikisource.org/wiki/The_Kybalion",
+    sourceType: "modern_interpretation",
+    notes:
+      "Taken from Wikisource's proofread transcription of the Brigham Young University copy (archive.org kybalionstudyofh00init, also on Wikimedia Commons as a DjVu), voted word by word against the archive.org OCRs of that copy and of three other 1908 copies (kybalionstudyofh00thre, kybalionstudyofh0000thre, and the Google scan of a Stanford copy, kybalionastudyh00unkngoog) and against Project Gutenberg #14209, a later printing. Every reading taken from the vote and every correction made by hand is listed in scripts/texts/kybalion.py; the doubtful places were read on the BYU page images. Public domain: published in the United States in 1908, and the work is pseudonymous (its usual attribution is to Atkinson, who died in 1932).",
+  },
+  {
+    key: "cce-1908",
+    title: "Catalog of Copyright Entries, new series, vol. 5 part 1 (Books), July–December 1908",
+    author: "Library of Congress, Copyright Office",
+    publisher: "Library of Congress, Copyright Office, Washington",
+    publishedYear: 1908,
+    reference:
+      "Entry 15439: 'The Kybalion; a study of the hermetic philosophy of ancient Egypt and Greece, by three initiates ... Chicago, Ill., The Yogi publication society [c1908] 223 p. 18½cm ... Copyright by Yogi publ. society, Chicago, Ill. Class A, XXc, no. 209612, June 13, 1908. 2 copies rec'd June 13, 1908' (archive.org catalogofcopyri51libr, read on the page image)",
+    url: "https://archive.org/details/catalogofcopyri51libr",
+    sourceType: "historical_document",
+    notes:
+      "The copyright register dates the book to June 1908 and names the claimant as the Yogi Publication Society, not a person. The same volume registers books by 'Yogi Ramacharaka' to the same society in the same weeks (for example Mystic Christianity, A 217436).",
+  },
+  {
+    key: "post-office-1919",
+    title: "Post Office Department, hearing in the matter of the Advanced Thought Publishing Company and the Yogi Publication Society",
+    author: "Solicitor for the Post Office Department (Roy L. Whitman, shorthand reporter)",
+    publisher: "Post Office Department, Washington",
+    publishedYear: 1919,
+    publishedDisplay: "4 April 1919 (typed transcript)",
+    reference:
+      "Typed transcript, in part, as scanned by IAPSOP ('1919 advanced thought yogi publication society fraud file partial'), read through its OCR and checked on the scan: Inspector Angier's report of his interviews with Mr and Mrs Arthur Gould in Chicago",
+    url: "https://iapsop.com/archive/materials/wing_lessons/1919__advanced_thought_yogi_publication_society_fraud_file_partial.pdf",
+    sourceType: "historical_document",
+    notes:
+      "Inspector Angier reports that Mrs Gould said the Yogi Publication Society 'had been in existence about 16 years; that it was founded by William Walker Atkinson', and that she 'finally bought the business from' Atkinson; that Atkinson 'is now editor of the Advanced Thought Magazine'; and that Mr Gould, asked who 'this Yogi Ramacharaka' was, 'stated that there was no such person'. The transcript does not mention the Kybalion: it shows who founded and owned the publisher, not who wrote this book.",
+  },
+  {
+    key: "deslippe-2011",
+    title: "The Kybalion: The Definitive Edition, with an introduction by Philip Deslippe",
+    author: "Three Initiates; Philip Deslippe (introduction)",
+    publisher: "Jeremy P. Tarcher/Penguin, New York",
+    publishedYear: 2011,
+    reference: "ISBN 9781585428748; Deslippe's introduction on the book's authorship, sources and reception",
+    sourceType: "academic_book",
+    notes:
+      "In copyright; cited only. Deslippe's introduction is the fullest study of the book's origins and is the usual citation for its attribution to William Walker Atkinson and its place in New Thought; it was not read for this import, so nothing here is quoted from it.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -3137,6 +3188,75 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 3,
   },
   {
+    workKey: "modern.kybalion",
+    passagePrefix: "modern.kyb",
+    briefItem: 33,
+    title: "Three Initiates, The Kybalion (1908)",
+    alternativeTitles: ["The Kybalion: A Study of the Hermetic Philosophy of Ancient Egypt and Greece"],
+    corpusGroup: "modern_esoteric",
+    traditionClass: "modern_claiming_ancient",
+    civilisation: "New Thought",
+    geographicalOrigin: "Chicago",
+    originalLanguage: "English",
+    attribution: "'Three Initiates' (pseudonym); usually attributed to William Walker Atkinson",
+    attributionNote:
+      "The book presents itself as the teaching of an unwritten collection of Hermetic maxims, 'THE KYBALION', handed down from Hermes Trismegistus, 'contemporary with Abraham', and its authors only as 'Three Initiates'; the archive records that as the book's claim. No such collection has been produced, the Seven Principles are not in the Corpus Hermeticum or the Asclepius, and the maxims it quotes have no known ancient source. It is a New Thought book of 1908, usually attributed to William Walker Atkinson (1862–1932): its publisher, the Yogi Publication Society of the Masonic Temple, Chicago, was Atkinson's own firm (a Post Office hearing of 1919 records that he founded it and later sold it), and it registered the copyright itself (Catalog of Copyright Entries, 1908). Neither document names the book's author, so the attribution is a scholarly inference, not a signature.",
+    summary:
+      "The Kybalion (Chicago, 1908), the whole book: an Introduction and fifteen chapters setting out 'Seven Hermetic Principles' (Mentalism, Correspondence, Vibration, Polarity, Rhythm, Cause and Effect, Gender) through maxims it quotes from an unwritten 'Kybalion', including 'As above, so below; as below, so above.'",
+    referenceEdition: "First edition, Chicago: Yogi Publication Society, 1908, cited by printed page",
+    expectedUnits: 16,
+    unitLabel: "chapters (with the Introduction)",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "The book's own Contents: an Introduction (p. 7) and fifteen chapters, I The Hermetic Philosophy to XV Hermetic Axioms, 16 units in all; checked against the chapter openings of the BYU copy and of the transcription. The Contents puts chapter XV at p. 212; it begins on p. 213, a right-hand page after a blank. The 38 sayings the book quotes as 'The Kybalion' are listed inside their chapters, not as units.",
+    inventoryConfidence: "high",
+    inventoryVerified: true,
+    copyrightSummary:
+      "Public domain: published in the United States in 1908 ('Copyright 1908 by The Yogi Publication Society'), and pseudonymous; its usual attributed author, Atkinson, died in 1932. The 2011 Definitive Edition's introduction by Philip Deslippe is in copyright and cited only.",
+    fullTextEditions: ["The Kybalion (Chicago, 1908)"],
+    referenceOnlyEditions: ["The Kybalion: The Definitive Edition, introduction by Philip Deslippe (2011)"],
+    imageCollections: ["Wikimedia Commons: the BYU copy of 1908 (DjVu), portraits of William Walker Atkinson, the 1919 Post Office transcript"],
+    anchor: {
+      event: {
+        slug: "kybalion-published",
+        title: "The Kybalion is published in Chicago",
+        summary: "A New Thought book by 'Three Initiates' sets out seven 'Hermetic Principles', among them 'As above, so below', as the teaching of Hermes Trismegistus.",
+        description:
+          "A modern book that presents its maxims as an unwritten ancient Hermetic tradition. Its claimed antiquity and its real date are shown side by side; it is usually attributed to William Walker Atkinson, whose Yogi Publication Society published it.",
+        category: "culture",
+        eventType: "historical",
+        tags: ["modern esoteric", "new thought", "hermes", "as above so below"],
+        civilisations: ["New Thought"],
+        people: ["Three Initiates", "William Walker Atkinson"],
+        claims: [
+          dated("claimed", {
+            qualifier: "the Hermetic teaching, as the book presents it",
+            sourceKey: "kybalion-1908",
+            temporalClaimType: "unknown",
+            datePrecision: "millennium",
+            chronology: "traditional",
+            originalDateText:
+              "Hermes Trismegistus 'dwelt in old Egypt in the days when the present race of men was in its infancy. Contemporary with Abraham' (Introduction); the Kybalion's maxims descended 'from mouth to ear' and 'have never been written down, or printed, so far as we know' (chapter I)",
+            evidence:
+              "The book's claim, not a date: it says its teaching goes back to Hermes, a contemporary of Abraham, through an oral collection of maxims never written down. No such collection has been produced, and the maxims have no known ancient source. Given no year.",
+          }),
+          dated("translation_publication", {
+            qualifier: "the first edition",
+            sourceKey: "cce-1908",
+            startYear: 1908,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "Copyright 1908 by The Yogi Publication Society (title-page verso); copyright entry of June 13, 1908",
+            datingMethod: "historical_record",
+            evidence:
+              "The title-page verso of the BYU copy ('Copyright 1908 by The Yogi Publication Society. Entered at Stationer's Hall'), and the Catalog of Copyright Entries for 1908, entry 15439, which records two copies received on June 13, 1908 (registration A 209612).",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
     workKey: "modern.other-authors",
     passagePrefix: "modern.other",
     briefItem: 33,
@@ -3154,7 +3274,7 @@ export const INVENTORY: InventoryWork[] = [
     inventoryConfidence: "medium",
     inventoryVerified: false,
     copyrightSummary: "The proposed members are public domain.",
-    fullTextEditions: ["Donnelly 1882", "Scott-Elliot 1896", "Kingsford & Maitland 1885", "The Kybalion 1908"],
+    fullTextEditions: ["Donnelly 1882", "Scott-Elliot 1896", "Kingsford & Maitland 1885"],
     referenceOnlyEditions: [],
     imageCollections: [],
     anchor: null,
@@ -3162,7 +3282,7 @@ export const INVENTORY: InventoryWork[] = [
       "Ignatius Donnelly, Atlantis: The Antediluvian World (1882)",
       "W. Scott-Elliot, The Story of Atlantis (1896)",
       "Anna Kingsford and Edward Maitland, The Virgin of the World (1885) — English of the Korē Kosmou and Asclepius",
-      "Three Initiates, The Kybalion (1908) — 'as above, so below'",
+      "Three Initiates, The Kybalion (1908) — 'as above, so below'; imported as its own work, modern.kybalion",
     ],
   },
 ];

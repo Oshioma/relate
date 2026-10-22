@@ -27,6 +27,7 @@ import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
 import { PYRAMID_TEXTS_CORPUS } from "./pyramid-texts";
 import { SECRETUM_CORPUS } from "./secretum";
 import { STEINER_CORPUS } from "./steiner";
+import { KYBALION_CORPUS } from "./kybalion";
 import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
@@ -51,6 +52,7 @@ import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
 import { PLAIN_SECRETUM } from "./plain/secretum";
 import { PLAIN_STEINER } from "./plain/steiner";
+import { PLAIN_KYBALION } from "./plain/kybalion";
 import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
@@ -79,6 +81,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(HALL_CORPUS, PLAIN_HALL),
   withPlainWords(BLAVATSKY_CORPUS, PLAIN_BLAVATSKY),
   withPlainWords(STEINER_CORPUS, PLAIN_STEINER),
+  withPlainWords(KYBALION_CORPUS, PLAIN_KYBALION),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {

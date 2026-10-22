@@ -8,6 +8,7 @@ import { PLAIN_LAYER_KEY } from "./corpus/plain";
 import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
 import { breadcrumb, historicalGap, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
+import { KYBALION_CHAPTERS, KYBALION_SAYINGS } from "./corpus/kybalion-text";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
@@ -1239,6 +1240,181 @@ test("Steiner's pictures are from Commons, none repeats the marker, and the unve
   const magazine = images.find((i) => i.key === "steiner-lucifer-gnosis-1904-06")!;
   assert.equal(magazine.identificationStatus, "secure");
   assert.match(magazine.objectDate!, /Juni 1904/);
+});
+
+test("the Kybalion is imported whole from the 1908 first edition, the Introduction and fifteen chapters, with the majority reading and the fixes by hand", () => {
+  const file = corpusFor("modern.kybalion")!;
+  const work = INVENTORY.find((w) => w.workKey === "modern.kybalion")!;
+  assert.equal(work.passagePrefix, "modern.kyb");
+  assert.equal(work.traditionClass, "modern_claiming_ancient");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 16);
+  assert.equal(work.inventoryVerified, true, "the count is the book's own Contents");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "kybalion-published");
+  assert.match(work.attributionNote!, /usually attributed to William Walker Atkinson/);
+  assert.match(work.attributionNote!, /not in the Corpus Hermeticum or the Asclepius/);
+  // The other-authors entry says the Kybalion now has its own.
+  const others = INVENTORY.find((w) => w.workKey === "modern.other-authors")!;
+  assert.ok(others.proposedMembers!.some((m) => /Kybalion.*imported as its own work, modern\.kybalion/.test(m)));
+  assert.ok(!others.fullTextEditions.some((e) => /Kybalion/.test(e)));
+  // One book record, holding only the cited Definitive Edition, and sixteen chapters with the text.
+  assert.equal(file.passages[0].key, "modern.kyb.1908");
+  assert.equal(file.passages[0].divisionKind, "book");
+  const deslippe = file.passages[0].layers.find((l) => l.key === "eng-deslippe-2011")!;
+  assert.equal(deslippe.licence, "copyrighted_reference");
+  assert.equal(deslippe.content, undefined);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.deepEqual(units.map((u) => u.key), ["modern.kyb.1908.intro", ...Array.from({ length: 15 }, (_, i) => `modern.kyb.1908.${i + 1}`)]);
+  assert.equal(file.passages.length, 17);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 16, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (id: string) => file.passages.find((p) => p.key === `modern.kyb.1908.${id}`)!.layers.find((l) => l.key === "eng-1908")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1908")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "primary_text", unit.key);
+    assert.match(layer.evidence, /compared word by word with the archive\.org OCRs of that copy and of three other 1908 copies/, unit.key);
+    assert.match(layer.evidence, /Project Gutenberg #14209/, unit.key);
+    assert.match(unit.reference, /^The Kybalion \(Chicago, 1908\), (Introduction|chapter [IVX]+, '.+'), pp\. \d+–\d+$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    // No page numbers, running heads, broken words or stray markup.
+    assert.doesNotMatch(layer.content!, /\[\d+\]|\{\d+\}|_|�|--|⟨|  |(?<!\n)\n(?!\n)|[a-z,;]\n\n[a-z]|Kyhalion|THE KYBALION\n|CHAPTER [IVX]/, unit.key);
+  }
+  assert.equal(file.passages.find((p) => p.key === "modern.kyb.1908.2")!.reference, "The Kybalion (Chicago, 1908), chapter II, 'The Seven Hermetic Principles', pp. 25–41");
+  assert.equal(file.passages.find((p) => p.key === "modern.kyb.1908.15")!.reference, "The Kybalion (Chicago, 1908), chapter XV, 'Hermetic Axioms', pp. 213–223");
+  assert.match(text("intro"), /^We take great pleasure in presenting to the attention of students/);
+  assert.match(text("intro"), /Contemporary with Abraham, and, if the legends be true, an instructor of that venerable sage/);
+  assert.match(text("intro"), /\n\nThe Three Initiates\.$/);
+  assert.match(text("1"), /^"The lips of wisdom are closed, except to the ears of Understanding\."—The Kybalion\./);
+  assert.match(text("1"), /Its precepts have never been written down, or printed, so far as we know\./);
+  assert.match(text("1"), /are printed herein, in quotation marks, the proper credit being given/);
+  assert.match(text("2"), /"As above, so below; as below, so above\."—The Kybalion\.\n\nThis Principle embodies the truth that there is always a Correspondence/);
+  assert.match(text("2"), /The old Hermetic axiom ran in these words: "As above, so below; as below, so above\."/);
+  assert.equal(text("2").match(/VII\. THE PRINCIPLE OF GENDER\./g)!.length, 3, "listed once, and printed twice over its section on p. 39");
+  assert.match(text("8"), /^"As above, so below; as below, so above\."—The Kybalion\./);
+  assert.match(text("14"), /^Students of psychology who have followed the modern trend/);
+  assert.match(text("15"), /"THE ALL is MIND; The Universe is Mental\."—The Kybalion\.\n\nFinis$/);
+  // The book never names the Emerald Tablet or the Corpus Hermeticum.
+  for (const unit of units) assert.doesNotMatch(text(unit.key.slice("modern.kyb.1908.".length)), /Emerald|Smaragd|Tabula|Pymander|Poimandres|Asclepius/, unit.key);
+  // Readings taken by the vote and corrections by hand.
+  assert.match(text("2"), /THE ALL is MIND; The Universe is Mental/);
+  assert.match(text("2"), /which exist, in accordance/);
+  assert.match(text("3"), /Underlying Reality of the Universe/);
+  assert.match(text("6"), /dark corners\./);
+  assert.match(text("4"), /hospitably received, and treated with respect\."—The Kybalion\./);
+  assert.match(text("4"), /if it had ever "not been," even for a moment/);
+  assert.match(text("2"), /begin\? What is the difference between "Large and Small"\?/);
+  assert.match(text("5"), /It projects its Will toward the Feminine Principle/);
+  assert.match(text("5"), /and on, and on, to higher and still higher planes of life/);
+  // 1908 misprints that every 1908 copy shares are kept, not silently corrected.
+  assert.match(text("9"), /the Princible of Vibration/);
+  assert.match(text("3"), /If the Universal is Mental/);
+  assert.match(text("12"), /There is no such things as Chance\./);
+  assert.match(text("14"), /directs a steam of Vibratory Energy/);
+  // The sayings quoted as 'The Kybalion' are listed with chapter and page.
+  assert.equal(KYBALION_SAYINGS.length, 39);
+  assert.deepEqual(KYBALION_SAYINGS.find((s) => s.text === "As above, so below; as below, so above."), { chapter: "2", page: 28, text: "As above, so below; as below, so above." });
+  assert.ok(KYBALION_SAYINGS.some((s) => s.chapter === "4" && /^But, the report of Reason/.test(s.text)));
+  assert.equal(KYBALION_CHAPTERS.find((c) => c.id === "15")!.firstPage, 213);
+  assert.match(file.passages.find((p) => p.key === "modern.kyb.1908.15")!.notes!, /The Contents puts this chapter at p\. 212/);
+  for (const unit of units.filter((u) => u.key !== "modern.kyb.1908.14" && u.key !== "modern.kyb.1908.intro")) {
+    assert.match(unit.notes!, /have no known ancient source/, unit.key);
+  }
+  for (const key of ["kybalion-1908", "cce-1908", "post-office-1919", "deslippe-2011"]) assert.ok(file.sources.some((s) => s.key === key), key);
+});
+
+test("the Kybalion's Hermetic antiquity is recorded as its claim, the book dated to 1908, and the Atkinson attribution given with its evidence", () => {
+  const file = corpusFor("modern.kybalion")!;
+  const dates = file.passages[0].dates!;
+  assert.deepEqual(dates.map((d) => d.role), ["claimed", "translation_publication"]);
+  const [claimed, published] = dates;
+  assert.equal(claimed.startYear, undefined, "a claim of descent from Hermes is given no year");
+  assert.match(claimed.evidence, /^The book's claim, not a date/);
+  assert.match(claimed.evidence, /have no known ancient source/);
+  assert.match(claimed.originalDateText, /Contemporary with Abraham/);
+  assert.deepEqual([published.startYear, published.endYear, published.isApproximate], [1908, 1908, false]);
+  assert.equal(published.sourceKey, "cce-1908");
+  assert.match(published.originalDateText, /June 13, 1908/);
+  assert.match(published.evidence, /entry 15439/);
+  // The attribution: evidence for the publisher, and no claim that a document names the author.
+  assert.match(published.evidence, /founded by William Walker Atkinson/);
+  assert.match(published.evidence, /Neither document names the author of the Kybalion/);
+  assert.match(published.evidence, /Deslippe \(2011\)/);
+  const cce = INVENTORY_SOURCES.find((s) => s.key === "cce-1908")!;
+  assert.match(cce.reference!, /no\. 209612, June 13, 1908/);
+  const hearing = INVENTORY_SOURCES.find((s) => s.key === "post-office-1919")!;
+  assert.match(hearing.notes!, /does not mention the Kybalion/);
+  const deslippe = INVENTORY_SOURCES.find((s) => s.key === "deslippe-2011")!;
+  assert.match(deslippe.notes!, /In copyright; cited only/);
+  // The marker shows the claim and the real date side by side.
+  const work = INVENTORY.find((w) => w.workKey === "modern.kybalion")!;
+  const claims = work.anchor && "event" in work.anchor ? work.anchor.event.claims : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["claimed", "translation_publication"]);
+  assert.equal(claims[0].startYear, undefined);
+  assert.equal(claims[1].startYear, 1908);
+});
+
+test("the Kybalion's links say it reinterprets the Tablet and Hermes, or only parallels the Hermetica and Blavatsky, and none claims ancient transmission", () => {
+  const file = corpusFor("modern.kybalion")!;
+  const links = file.links ?? [];
+  assert.ok(links.length >= 10);
+  const targets = new Set(links.map((l) => l.to));
+  for (const to of ["arab.tab.vulgate.02", "arab.tab.arabic.02", "arab.tab.vulgate.17", "arab.comm.hort.2", "herm.ch.11.20", "herm.ch.12.23", "modern.hpb.isis.1.507", "modern.hpb.sd.1.xliii"]) {
+    assert.ok(targets.has(to), to);
+  }
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.kyb\.1908\./, link.key);
+    assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+    assert.notEqual(link.connectionClass, "direct_textual_parallel", link.key);
+    if (link.connectionClass === "later_reinterpretation") {
+      // Only where the book invokes Hermes or the axiom, and never as a witness to the earlier text.
+      assert.match(link.to, /^arab\.tab\.vulgate\./, link.key);
+      assert.match(link.transmissionEvidence, /^The book (calls|names)/, link.key);
+      assert.match(link.transmissionEvidence, /not a witness to the earlier text/, link.key);
+    } else {
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    }
+  }
+  // The Tablet's Arabic is set beside it as a difference, not a source.
+  const arabic = links.find((l) => l.to === "arab.tab.arabic.02")!;
+  assert.match(arabic.differences, /FROM/);
+  for (const link of links.filter((l) => l.to.startsWith("herm.ch."))) assert.match(link.transmissionEvidence, /does not name or quote the Corpus Hermeticum/, link.key);
+});
+
+test("the Kybalion's pictures are pages of the 1908 copy, the 1919 transcript and portraits from Commons, none repeats the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("modern.kybalion")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 7);
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+      assert.equal(image.shows, "portrait", image.key);
+      assert.match(image.caption, /not evidence that he wrote it/, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // The title page is the marker's picture and is not repeated; there is no ancient object to show.
+    assert.doesNotMatch(image.url, /Kybalion_1908\.jpg|Kybalion_Book_Cover/, image.key);
+    assert.notEqual(image.shows, "manuscript", image.key);
+    assert.notEqual(image.shows, "artefact", image.key);
+  }
+  assert.equal(unverified, 3);
+  const pages = images.filter((i) => /\.djvu\/page\d+-960px-/.test(i.url));
+  assert.deepEqual(pages.map((i) => i.key), ["kybalion-1908-cover", "kybalion-1908-copyright-page", "kybalion-1908-dedication"]);
+  assert.match(images.find((i) => i.key === "kybalion-1908-copyright-page")!.caption, /Copyright 1908 by The Yogi Publication Society/);
+  const transcript = images.find((i) => i.key === "kybalion-post-office-transcript-1919")!;
+  assert.equal(transcript.identificationStatus, "secure");
+  assert.match(transcript.caption, /It does not mention the Kybalion\.$/);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
