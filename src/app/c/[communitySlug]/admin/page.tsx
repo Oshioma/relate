@@ -43,7 +43,6 @@ import { CommunityHeroForm } from "./community-hero-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
 import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
-import { PublicAccessForm } from "./public-access-form";
 import { ProfileFieldsSection } from "./profile-fields-section";
 import { NewNavLinkForm } from "./new-nav-link-form";
 import { NavLinksList } from "./nav-links-list";
@@ -251,8 +250,6 @@ export default async function AdminPage({
     { id: "members", label: "Members", group: "Community" },
     // Access settings in their four groups, after the summary that links to them.
     { id: "who-can-see-what", label: "Who can see what?", group: "Access" },
-    { id: "discoverability", label: "Discoverability", group: "Access" },
-    { id: "joining", label: "Joining rules", group: "Access" },
     { id: "spaces", label: "Spaces & content access", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
@@ -337,6 +334,8 @@ export default async function AdminPage({
 
       <AccessSummaryCard
         community={accessCommunity}
+        fullCommunity={community}
+        checklistSteps={monetizationSteps}
         joinPolicy={joinPolicyOf(community)}
         spaces={accessSpaces}
         tiers={accessTiers}
@@ -421,15 +420,6 @@ export default async function AdminPage({
             </CardContent>
           </Card>
         </Link>
-      </div>
-
-      <h2 id="public-access" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Discoverability &amp; joining</h2>
-      <p className="mb-3 text-sm text-muted-foreground">
-        Who can find this community, what they see before joining, and how they get in. Who can open each space is under{" "}
-        <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces &amp; content access</a>.
-      </p>
-      <div className="mb-8">
-        <PublicAccessForm community={community} />
       </div>
 
       <h2 id="spaces" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces &amp; content access</h2>

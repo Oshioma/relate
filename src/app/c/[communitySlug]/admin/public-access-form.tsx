@@ -7,10 +7,18 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { defaultJoinPolicy, describeJoining, joinPolicyOf } from "@/lib/join-policy";
 import type { Community, CommunityPrivacy, JoinPolicy } from "@/types/database";
 
-// Two of the four access groups in one form: Discoverability (who can find it,
-// what a visitor sees before joining, who sees the members list) and Joining
-// rules. Spaces have their own access, under Spaces & content access.
-export function PublicAccessForm({ community }: { community: Community }) {
+// Two of the four access groups: Discoverability (who can find it, what a
+// visitor sees before joining, who sees the members list) and Joining rules.
+// The "Who can see what?" card opens each on its own (`section`); both post to
+// updatePublicAccess, and the joining form carries the current discoverability
+// values along unchanged so saving one never resets the other.
+export function PublicAccessForm({
+  community,
+  section = "all",
+}: {
+  community: Community;
+  section?: "all" | "discoverability" | "joining";
+}) {
   const [state, formAction] = useActionState<PublicAccessState, FormData>(updatePublicAccess, undefined);
   // Watched so the joining choice can follow listing: a hidden community is
   // invitation only, whatever was picked before.
@@ -26,7 +34,18 @@ export function PublicAccessForm({ community }: { community: Community }) {
       <input type="hidden" name="community_id" value={community.id} />
       <input type="hidden" name="community_slug" value={community.slug} />
 
-      <h3 id="discoverability" className="scroll-mt-20 text-sm font-semibold text-foreground">Discoverability</h3>
+      {section === "joining" && (
+        <>
+          <input type="hidden" name="privacy" value={community.privacy} />
+          {community.feed_public && <input type="hidden" name="feed_public" value="on" />}
+          {community.events_public && <input type="hidden" name="events_public" value="on" />}
+          <input type="hidden" name="members_visibility" value={community.members_visibility} />
+        </>
+      )}
+
+      {section !== "joining" && (
+      <>
+      {section === "all" && <h3 className="text-sm font-semibold text-foreground">Discoverability</h3>}
       <div>
         <Label htmlFor="privacy">Who can find it</Label>
         <select
@@ -49,7 +68,7 @@ export function PublicAccessForm({ community }: { community: Community }) {
           listed for other people to discover and join. Private and invite-only are reachable by link only, so share the
           address yourself. Invite-only goes further: it doesn&apos;t resolve at all for anyone who isn&apos;t a member.
           Whether a stranger who has the link can <span className="font-medium text-foreground">read</span> the feed is
-          the next setting down.
+          {section === "all" ? "the next setting down" : "below"}.
         </p>
       </div>
 
@@ -113,11 +132,15 @@ export function PublicAccessForm({ community }: { community: Community }) {
         </p>
       </div>
 
+      </>
+      )}
+
       {/* Joining, asked on its own. Stored as join_policy only when it differs
           from what the listing implies, so communities that never touch this
           keep exactly the behaviour they had. */}
-      <div className="border-t border-border pt-4">
-        <h3 id="joining" className="mb-3 scroll-mt-20 text-sm font-semibold text-foreground">Joining rules</h3>
+      {section !== "discoverability" && (
+      <div className={section === "all" ? "border-t border-border pt-4" : undefined}>
+        {section === "all" && <h3 className="mb-3 text-sm font-semibold text-foreground">Joining rules</h3>}
         <Label htmlFor="join_policy">Who can join</Label>
         {privacy === "invite_only" ? (
           <p className="text-sm text-muted-foreground">Only people you invite. A hidden community is always invitation only.</p>
@@ -140,6 +163,7 @@ export function PublicAccessForm({ community }: { community: Community }) {
           </>
         )}
       </div>
+      )}
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 
