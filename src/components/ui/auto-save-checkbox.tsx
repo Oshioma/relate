@@ -18,11 +18,15 @@ export function AutoSaveCheckbox({
   defaultChecked,
   onSave,
   className,
+  variant = "checkbox",
 }: {
   label: string;
   defaultChecked: boolean;
   onSave: (checked: boolean) => Promise<string | null | undefined>;
   className?: string;
+  // "switch": a sliding on/off toggle before the label, left-aligned, with the
+  // save status beside it rather than under it (the Spaces list).
+  variant?: "checkbox" | "switch";
 }) {
   const [checked, setChecked] = useState(defaultChecked);
   const [status, setStatus] = useState<Status>("idle");
@@ -50,6 +54,45 @@ export function AutoSaveCheckbox({
       setStatus("saved");
       timer.current = setTimeout(() => setStatus("idle"), 2500);
     }
+  }
+
+  const statusText = (
+    <span aria-live="polite" className="flex h-4 items-center gap-1 text-xs">
+      {status === "saving" && (
+        <span className="inline-flex items-center gap-1 text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Saving…
+        </span>
+      )}
+      {status === "saved" && (
+        <span className="inline-flex items-center gap-1 font-medium text-accent">
+          <Check className="h-3 w-3" />
+          Saved
+        </span>
+      )}
+      {status === "error" && <span className="font-medium text-danger">Couldn&apos;t save — try again</span>}
+    </span>
+  );
+
+  if (variant === "switch") {
+    return (
+      <div className={cn("flex items-center gap-2", className)}>
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
+          <input type="checkbox" role="switch" checked={checked} disabled={status === "saving"} onChange={toggle} className="peer sr-only" />
+          <span
+            aria-hidden
+            className={cn(
+              "relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:opacity-60",
+              checked ? "bg-accent" : "bg-border"
+            )}
+          >
+            <span className={cn("h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
+          </span>
+          {label}
+        </label>
+        {statusText}
+      </div>
+    );
   }
 
   return (

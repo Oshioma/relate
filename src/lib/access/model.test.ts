@@ -7,6 +7,7 @@ import {
   findAccessIssues,
   settingsForChoice,
   spaceAccessFor,
+  spaceAccessCard,
   tiersLosingAccess,
   explainSpaceAccess,
   accessShifts,
@@ -240,4 +241,12 @@ test("widening and narrowing are named before saving", () => {
   const shift = accessShifts(open, chat, toPaid);
   assert.deepEqual(shift.widens, []);
   assert.deepEqual(shift.narrows, [{ who: "Free members", from: "open", to: "locked" }]);
+});
+
+test("the access box on a space row names what opens it", () => {
+  assert.deepEqual(spaceAccessCard(space("a", "public"), tiers), { choice: "everyone", title: "Everyone", detail: "Open to visitors" });
+  assert.equal(spaceAccessCard(space("b", "members"), tiers).detail, "Join to participate");
+  assert.equal(spaceAccessCard(space("c", "members", { tierIds: ["insider"] }), tiers).detail, "Insider");
+  assert.equal(spaceAccessCard(space("d", "members", { tierIds: ["insider"], price_cents: 500, currency: "usd" }), tiers).detail, "Insider · $5/month on its own");
+  assert.equal(spaceAccessCard(space("e", "private"), tiers).title, "Admins only");
 });
