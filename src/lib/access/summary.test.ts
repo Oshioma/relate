@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { describeListing, describeMemberships, describeSpaceMix, summarizeAccessGroups } from "./summary";
+import { describeAudiences, describeListing, describeMemberships, describeSpaceMix, summarizeAccessGroups } from "./summary";
 import type { AccessCommunity, AccessSpace, AccessTier } from "./model";
 
 const community: AccessCommunity = { privacy: "public", feed_public: false, events_public: true, members_visibility: "members", stripe_charges_enabled: true };
@@ -36,4 +36,21 @@ test("four groups in a fixed order, each pointing at its settings", () => {
     ["Spaces & content access", "spaces"],
   ]);
   assert.equal(groups[1].now, "People ask to join and an admin approves them.");
+});
+
+test("three audience lines never contradict each other", () => {
+  const spaces = [space("Wellness", "members", ["insider"]), space("Journal", "members", ["insider"]), space("Course", "members")];
+  const [visitors, members, paid] = describeAudiences(community, spaces, [insider]);
+  // Listed, feed readable, no public space: say the feed looks empty.
+  assert.match(visitors.text, /looks empty/);
+  assert.deepEqual(visitors.open, []);
+  assert.deepEqual(members.open, ["Course"]);
+  assert.deepEqual(members.locked, ["Wellness", "Journal"]);
+  assert.equal(paid.text, "On Insider, they also open:");
+  assert.deepEqual(paid.open, ["Wellness", "Journal"]);
+
+  const withPublic = describeAudiences(community, [space("Hello", "public"), ...spaces], []);
+  assert.deepEqual(withPublic[0].open, ["Hello"]);
+  assert.match(withPublic[2].text, /No membership is on sale/);
+  assert.match(describeAudiences({ ...community, privacy: "invite_only" }, spaces, [])[0].text, /invitation/);
 });

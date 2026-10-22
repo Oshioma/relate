@@ -3,7 +3,7 @@
 // the top of Admin. Built on the same model the access picker and the creation
 // wizard use, so the card can't disagree with them.
 
-import { accessChoiceOf, onSaleTiers, type AccessChoice, type AccessCommunity, type AccessSpace, type AccessTier } from "./model";
+import { accessChoiceOf, onSaleTiers, spaceAccessFor, type AccessChoice, type AccessCommunity, type AccessSpace, type AccessTier } from "./model";
 import { describeJoining } from "@/lib/join-policy";
 import type { JoinPolicy } from "@/types/database";
 
@@ -77,5 +77,67 @@ export function summarizeAccessGroups(input: {
     { key: "joining", label: ACCESS_GROUP_LABELS.joining, anchor: "joining", now: describeJoining(joinPolicy) },
     { key: "memberships", label: ACCESS_GROUP_LABELS.memberships, anchor: "set-up-membership", now: describeMemberships(community, tiers, canCharge) },
     { key: "spaces", label: ACCESS_GROUP_LABELS.spaces, anchor: "spaces", now: describeSpaceMix(spaces, tiers) },
+  ];
+}
+
+// --- Three audiences -----------------------------------------------------------
+
+export type AudienceLine = {
+  who: "Visitors" | "Free members" | "Paid members";
+  // One plain sentence; space names are listed separately as chips.
+  text: string;
+  open: string[];
+  locked: string[];
+};
+
+// What each kind of person gets, in three lines, worked out per space by the
+// same rule as everything else (spaceAccessFor) so the lines can't contradict
+// each other or the tiles below them.
+export function describeAudiences(community: AccessCommunity, spaces: AccessSpace[], tiers: AccessTier[]): AudienceLine[] {
+  const names = (viewer: Parameters<typeof spaceAccessFor>[2], state: "open" | "locked") =>
+    spaces.filter((s) => spaceAccessFor(community, s, viewer) === state).map((s) => s.name);
+
+  // Visitors.
+  let visitorText: string;
+  const visitorOpen = names({ kind: "visitor" }, "open");
+  if (community.privacy === "invite_only") {
+    visitorText = "Can't open the community at all. They need an invitation.";
+  } else {
+    const feed = community.privacy === "public" || community.feed_public;
+    const events = feed && community.events_public;
+    const extras = [feed ? "the feed" : null, events ? "upcoming events" : null].filter(Boolean).join(" and ");
+    if (visitorOpen.length) visitorText = `Can read these spaces before joining${extras ? `, plus ${extras}` : ""}:`;
+    else if (feed) visitorText = `Can open ${extras}, but no space is open to everyone, so the feed looks empty to them until they join.`;
+    else visitorText = "See the front page only. Every space needs them to join first.";
+  }
+
+  // Free members.
+  const memberOpen = names({ kind: "member" }, "open");
+  const memberLocked = names({ kind: "member" }, "locked");
+  const memberText = memberOpen.length
+    ? memberLocked.length
+      ? "Can open these, and see the paid ones locked:"
+      : "Can open these:"
+    : memberLocked.length
+      ? "Can't open any space for free. They see the paid ones locked:"
+      : "Can't open any space yet.";
+
+  // Paid members: everything a membership on sale unlocks beyond free members.
+  const selling = onSaleTiers(tiers);
+  const paidOpen = selling.length
+    ? names({ kind: "paid", tierIds: selling.map((t) => t.id) }, "open").filter((n) => !memberOpen.includes(n))
+    : [];
+  const paidText = !selling.length
+    ? memberLocked.length
+      ? "No membership is on sale yet, so nobody new can open the paid spaces."
+      : "No membership is on sale."
+    : paidOpen.length
+      ? `On ${selling.map((t) => t.name).join(" or ")}, they also open:`
+      : `${selling.map((t) => t.name).join(", ")} ${selling.length === 1 ? "doesn't" : "don't"} unlock any extra space yet.`;
+
+  return [
+    { who: "Visitors", text: visitorText, open: visitorOpen, locked: [] },
+    { who: "Free members", text: memberText, open: memberOpen, locked: memberLocked },
+    { who: "Paid members", text: paidText, open: paidOpen, locked: [] },
   ];
 }

@@ -210,7 +210,12 @@ export function describeCommunityAccess(community: AccessCommunity, spaces: Acce
   } else if (publicSpaces.length) {
     lines.push(`Visitors can read ${list(publicSpaces)}${community.events_public && visitorReadable ? " and see upcoming events" : ""}.`);
   } else {
-    lines.push("Visitors can't read any spaces before joining.");
+    // Don't say "can't read" when the feed is open: say what they'd actually find.
+    lines.push(
+      visitorReadable
+        ? "Visitors can open the feed, but no space is open to everyone, so it looks empty until they join."
+        : "Visitors can't read any spaces before joining."
+    );
   }
 
   const members = byChoice("members");
