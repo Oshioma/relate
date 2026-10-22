@@ -54,3 +54,11 @@ test("three audience lines never contradict each other", () => {
   assert.match(withPublic[2].text, /No membership is on sale/);
   assert.match(describeAudiences({ ...community, privacy: "invite_only" }, spaces, [])[0].text, /invitation/);
 });
+
+test("teased spaces show on the visitors line as locked", () => {
+  const spaces = [{ ...space("Wellness", "members", ["insider"]), when_locked: "teaser" as const }, space("Course", "members")];
+  const [visitors] = describeAudiences(community, spaces, [insider]);
+  assert.deepEqual(visitors.open, []);
+  assert.deepEqual(visitors.locked, ["Wellness"]);
+  assert.match(visitors.text, /see these locked/);
+});

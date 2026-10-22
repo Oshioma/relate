@@ -38,6 +38,7 @@ const STATE_WORDS: Record<AccessState, string> = { open: "can open it", locked: 
 //   price          — the space's own monthly price (whole units), "" = none
 //   currency
 //   tier_ids       — one field per tier the space should be in
+//   when_locked    — "teaser" to show it locked to visitors, "" for not
 // The server (updateSpace) re-derives and checks all of it; this is the
 // explanation, not the lock.
 export function AccessSelector({
@@ -59,12 +60,15 @@ export function AccessSelector({
   const [selectedTierIds, setSelectedTierIds] = useState<string[]>(space.tierIds);
   const [ownPrice, setOwnPrice] = useState(space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : "");
   const [currency, setCurrency] = useState(space.currency || "usd");
+  const [teaser, setTeaser] = useState(space.when_locked === "teaser");
   const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const ownPriceCents = Math.max(0, Math.round((Number(ownPrice) || 0) * 100));
   const after = settingsForChoice(choice, tiers, { tierIds: selectedTierIds, priceCents: ownPriceCents, currentTierIds: space.tierIds });
   const before = { visibility: space.visibility, price_cents: space.price_cents, tierIds: space.tierIds };
-  const preview: AccessSpace = { ...space, ...after };
+  // Only a members space in a community visitors can reach can be a teaser.
+  const teaserPossible = after.visibility === "members" && community.privacy !== "invite_only";
+  const preview: AccessSpace = { ...space, ...after, when_locked: teaserPossible && teaser ? "teaser" : null };
   const losing = tiersLosingAccess(before, after, tiers);
   const { widens, narrows } = accessShifts(community, space, preview);
   const onSaleNames = tiers.filter((t) => !t.archived_at).map((t) => t.name);
@@ -120,6 +124,7 @@ export function AccessSelector({
         <input key={id} type="hidden" name="tier_ids" value={id} />
       ))}
       {choice === "tiers" ? null : <input type="hidden" name="price" value="" />}
+      <input type="hidden" name="when_locked" value={preview.when_locked ?? ""} />
 
       <div role="radiogroup" aria-label="Who can open it?" className="grid gap-1.5">
         {options.map((option, index) => {
@@ -205,6 +210,25 @@ export function AccessSelector({
             <p className="text-xs text-danger">Pick at least one membership or set a price, or nobody new can get in.</p>
           )}
         </div>
+      )}
+
+      {teaserPossible && (
+        <label htmlFor={`${idPrefix}-teaser`} className="flex items-start gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground">
+          <input
+            id={`${idPrefix}-teaser`}
+            type="checkbox"
+            checked={teaser}
+            onChange={(e) => setTeaser(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-[var(--accent)]"
+          />
+          <span>
+            Show it locked to visitors
+            <span className="block text-xs text-muted-foreground">
+              People who haven&apos;t joined see its name, short description and cover picture with a lock, so they know
+              it&apos;s there. Nothing inside it is shown.
+            </span>
+          </span>
+        </label>
       )}
 
       <p className="rounded-lg bg-muted px-3 py-2 text-xs text-foreground" aria-live="polite">

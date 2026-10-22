@@ -1,7 +1,10 @@
 import { Lock } from "lucide-react";
+import { toPlainText } from "@/components/ui/rich-text";
+import { spaceImage } from "@/lib/space-images";
+import type { SpaceTeaser } from "@/lib/data/spaces";
 import { Avatar } from "@/components/ui/avatar";
 import { LinkButton } from "@/components/ui/button";
-import type { CommunityPrivacy, JoinPolicy, MembershipStatus } from "@/types/database";
+import type { CommunityPrivacy, JoinPolicy, MembershipStatus, SpaceType } from "@/types/database";
 import { CommunityJoinCta } from "./community-join-cta";
 import { joinPolicyOf } from "@/lib/join-policy";
 
@@ -18,6 +21,7 @@ export function MembersOnlyGate({
   isLoggedIn,
   membershipStatus,
   returnTo,
+  teaser = null,
 }: {
   community: {
     id: string;
@@ -34,22 +38,43 @@ export function MembersOnlyGate({
   membershipStatus: MembershipStatus | null;
   // The page they were trying to reach, so signing up or in brings them back.
   returnTo: string;
+  // When the space is a teaser (spaces.when_locked), what the community lets
+  // visitors see of it: its name, short description and cover. Nothing else.
+  teaser?: SpaceTeaser | null;
 }) {
   const isMember = membershipStatus === "active";
   const next = encodeURIComponent(returnTo);
+  const teaserBlurb = teaser?.description ? toPlainText(teaser.description) : null;
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-6 py-16 text-center sm:py-24">
-      <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={88} className="mb-5" />
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{community.name}</h1>
-      {community.description && (
-        <p className="mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>
+      {teaser ? (
+        <>
+          <div className="mb-5 aspect-[5/2] w-full overflow-hidden rounded-2xl bg-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={spaceImage({ image_url: teaser.image_url, space_type: teaser.space_type as SpaceType })} alt="" className="h-full w-full object-cover" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{teaser.name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">in {community.name}</p>
+          {teaserBlurb && <p className="mt-3 line-clamp-4 max-w-sm text-base leading-relaxed text-muted-foreground">{teaserBlurb}</p>}
+        </>
+      ) : (
+        <>
+          <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={88} className="mb-5" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{community.name}</h1>
+          {community.description && (
+            <p className="mt-3 max-w-sm text-base leading-relaxed text-muted-foreground">{community.description}</p>
+          )}
+        </>
       )}
 
       <div className="mt-8 flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-muted-foreground">
         <Lock className="h-4 w-4" />
-        {isMember ? "Not available" : "For members"}
+        {isMember ? "Not available" : teaser?.gated ? "For paid members" : "For members"}
       </div>
+      {teaser?.gated && !isMember && (
+        <p className="mt-3 max-w-sm text-xs text-muted-foreground">Join first, then you&apos;ll see the memberships that open it.</p>
+      )}
 
       {!isLoggedIn ? (
         <>

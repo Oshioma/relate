@@ -16,7 +16,7 @@ import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/v
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
 import type { PostgrestError } from "@supabase/supabase-js";
 import type { NavSubItemKind } from "./spaces-manager";
-import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory, JoinPolicy } from "@/types/database";
+import type { SpaceVisibility, SpaceWhenLocked, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory, JoinPolicy } from "@/types/database";
 import { JOIN_POLICIES, defaultJoinPolicy, storedJoinPolicy } from "@/lib/join-policy";
 
 export type SpaceFormState = { error: string } | undefined;
@@ -259,6 +259,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
         ...(locationName !== undefined && { location_name: locationName }),
         ...(imageUrl !== undefined && { image_url: imageUrl }),
         ...(priceUpdate ?? {}),
+        ...whenLockedUpdate(formData, visibility),
       })
       .eq("id", spaceId)
       .select("id"),
@@ -317,7 +318,7 @@ export async function updateSpaceAccess(_prevState: SpaceFormState, formData: Fo
   }
 
   const failure = requireWrite(
-    await supabase.from("spaces").update({ visibility, ...priceUpdate }).eq("id", spaceId).select("id"),
+    await supabase.from("spaces").update({ visibility, ...priceUpdate, ...whenLockedUpdate(formData, visibility) }).eq("id", spaceId).select("id"),
     "this space"
   );
   if (failure) return failure;
@@ -335,6 +336,15 @@ export async function updateSpaceAccess(_prevState: SpaceFormState, formData: Fo
   revalidatePath(`/c/${communitySlug}/admin/access`);
   revalidatePath(`/c/${communitySlug}`, "layout");
   return undefined;
+}
+
+// The access picker's "Show it locked to visitors". Absent field = leave it
+// alone (forms without the picker). Only a members space can be a teaser;
+// anything else clears it, so a space made public or Admins-only never keeps a
+// stale flag.
+function whenLockedUpdate(formData: FormData, visibility: SpaceVisibility): { when_locked?: SpaceWhenLocked | null } {
+  if (!formData.has("when_locked")) return {};
+  return { when_locked: visibility === "members" && formData.get("when_locked") === "teaser" ? "teaser" : null };
 }
 
 // Make a space's tier links exactly `wanted`, keeping only tiers of the space's

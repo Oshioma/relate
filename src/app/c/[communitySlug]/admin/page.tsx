@@ -199,6 +199,7 @@ export default async function AdminPage({
     price_cents: s.price_cents,
     currency: s.currency,
     show_in_nav: s.show_in_nav,
+    when_locked: s.when_locked,
     tierIds: tierIdsBySpaceId[s.id] ?? [],
   }));
   const tierSales = tiers.length > 0 ? Object.fromEntries(await getTierSales(db, community.id)) : {};

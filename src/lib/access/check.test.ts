@@ -62,3 +62,13 @@ test("nothing on sale says so instead of pointing at an archived tier", () => {
   const a = explainAccessCheck({ ...base, unlocking_tiers: [{ id: "b", name: "Founders", archived: true }] }, { visitor: false });
   assert.match(a.unlock ?? "", /Nothing on sale/);
 });
+
+test("a visitor on a teased space can find it locked but not open it", () => {
+  const facts = { ...base, membership_status: "none", role: null, is_member: false, can_discover: false };
+  const a = explainAccessCheck(facts as AccessCheckFacts, { visitor: true, teaser: true });
+  assert.deepEqual(a.lines.slice(0, 2).map((l) => l.yes), [true, false]);
+  assert.match(a.lines[0].because, /see it locked/);
+  assert.equal(a.lines[1].because, "They need to join first.");
+  // Without the teaser it stays hidden.
+  assert.equal(explainAccessCheck(facts as AccessCheckFacts, { visitor: true }).lines[0].yes, false);
+});
