@@ -1,4 +1,5 @@
 import { isImageUrl, isVideoUrl } from "@/lib/utils";
+import { isSpaceFileUrl } from "@/lib/space-files";
 
 // A post's media is media_url (the lead item: photo, video or document) plus
 // up to MAX_EXTRA_PHOTOS more photos in extra_media_urls.
@@ -13,7 +14,8 @@ export function tagsPlaceholder(growing: boolean): string {
   return growing ? "e.g. Chillies, First harvest" : "e.g. Update, Question";
 }
 
-const isHttp = (url: string) => /^https?:\/\//i.test(url);
+// A web link, or a file in a space's private folder (served from /api/files/).
+const isHttp = (url: string) => /^https?:\/\//i.test(url) || isSpaceFileUrl(url);
 
 // Extra photos are checked by elimination rather than by extension: a photo
 // from a crop guide or an image CDN often has no file extension at all, and

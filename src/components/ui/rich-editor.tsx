@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bold, Italic, Heading, List, ListOrdered, Link as LinkIcon, Code, Eye, Pencil, ImagePlus, Film, MonitorPlay, Loader2 } from "lucide-react";
 import { checkMemberFile, uploadMemberFile } from "./upload-button";
+import { useUploadTarget } from "./upload-target";
 import { parseVideoLink } from "@/lib/school/video-links";
 import { RichText } from "./rich-text";
 import { PROSE_CLASS } from "@/lib/prose";
@@ -195,9 +196,11 @@ export function RichEditor({
    *  their own FormData instead of relying on the hidden input. */
   onChange?: (value: string) => void;
   /** Adds Image, Video and Video-link buttons to the toolbar. Files go to the
-   *  writer's own folder of the 'uploads' bucket. */
+   *  writer's own folder of the 'uploads' bucket, or of the space's private
+   *  folder inside a space visitors can't open (see upload-target.tsx). */
   allowMedia?: boolean;
 }) {
+  const uploadTarget = useUploadTarget();
   const [value, setValue] = useState(defaultValue);
   const [mode, setMode] = useState<Mode>("write");
   const editorRef = useRef<HTMLDivElement>(null);
@@ -343,7 +346,7 @@ export function RichEditor({
     setMediaError(null);
     setUploading(kind);
     try {
-      const url = escapeAttr(await uploadMemberFile(file));
+      const url = escapeAttr(await uploadMemberFile(file, uploadTarget));
       insertMedia(kind === "image" ? `<img src="${url}" alt="">` : `<video controls preload="metadata" src="${url}"></video>`);
     } catch (err) {
       setMediaError(err instanceof Error ? err.message : "Upload failed. Try again.");
