@@ -205,6 +205,20 @@ export function describeDiscoverability(community: AccessCommunity): string {
   return "Hidden. Only people you invite can get in.";
 }
 
+// The access box on a space's row in Admin: a short title and one line under
+// it. Both paid choices read "Paid members", with the memberships that open it.
+export function spaceAccessCard(space: AccessSpace, tiers: AccessTier[]): { choice: AccessChoice; title: string; detail: string } {
+  const choice = accessChoiceOf(space, tiers);
+  if (choice === "everyone") return { choice, title: "Everyone", detail: "Open to visitors" };
+  if (choice === "members") return { choice, title: "All members", detail: "Join to participate" };
+  if (choice === "team") return { choice, title: "Admins only", detail: "Owners, admins and moderators" };
+  const unlocking = tiers.filter((t) => space.tierIds.includes(t.id));
+  const names = [...unlocking.filter((t) => !t.archived_at), ...unlocking.filter((t) => t.archived_at)].map((t) => t.name);
+  const own = space.price_cents > 0 ? `${formatMonthly(space.price_cents, space.currency)} on its own` : null;
+  const detail = [names.join(", "), own].filter(Boolean).join(" · ");
+  return { choice, title: "Paid members", detail: detail || "No membership opens it yet" };
+}
+
 // A short plain-English summary of the whole community, one sentence a line.
 export function describeCommunityAccess(community: AccessCommunity, spaces: AccessSpace[], tiers: AccessTier[]): string[] {
   const lines = [describeDiscoverability(community)];

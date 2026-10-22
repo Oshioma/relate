@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, type DragEventHandler } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, Pencil, Copy, Trash2, NotebookPen, ListTree, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Copy, Trash2, NotebookPen, ListTree, ArrowRight, MessageSquare } from "lucide-react";
 import { updateSpace, deleteSpace, duplicateSpace, type SpaceFormState } from "./actions";
 import { SpaceNavToggle, SpaceCardToggle } from "./space-nav-toggle";
 import { SpaceNavGroup } from "./space-nav-group";
@@ -15,19 +15,15 @@ import { RichEditor } from "@/components/ui/rich-editor";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Badge } from "@/components/ui/badge";
+import { toPlainText } from "@/components/ui/rich-text";
+import { spaceImage } from "@/lib/space-images";
+import { RowMenu, type RowMenuItem } from "./row-menu";
+import { AccessBox, DragHandle, ROW_GRID, TypeChip } from "./space-row-parts";
+import { SpaceAccessForm } from "./access/space-access-editor";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { AccessSelector } from "@/components/community/access-selector";
-import { describeSpaceAccess, type AccessCommunity, type AccessTier } from "@/lib/access/model";
+import { spaceAccessCard, type AccessCommunity, type AccessTier } from "@/lib/access/model";
 import type { Space, SpaceJournalField, SpaceType } from "@/types/database";
-
-function formatMonthlyPrice(cents: number, currency: string): string {
-  try {
-    return `${new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase() }).format(cents / 100)}/mo`;
-  } catch {
-    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}/mo`;
-  }
-}
 
 export function SpaceCard({
   space,
@@ -42,7 +38,10 @@ export function SpaceCard({
   accessCommunity,
   dragHandlers,
   isDragging,
+  stats = [],
 }: {
+  // Short counts shown under the description ("124 posts").
+  stats?: string[];
   space: Space;
   communitySlug: string;
   journalFields: SpaceJournalField[];
@@ -79,12 +78,12 @@ export function SpaceCard({
   const [staffPostOnly, setStaffPostOnly] = useState(space.staff_post_only);
   const [showJournalFields, setShowJournalFields] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
+  const [showAccess, setShowAccess] = useState(false);
   // Cover image lives in state so the uploader's result is submitted with the
   // form via a hidden input; empty string means "no cover" (the action → null).
   const [imageUrl, setImageUrl] = useState<string | null>(space.image_url);
   const [updateState, updateAction, isUpdating] = useActionState<SpaceFormState, FormData>(updateSpace, undefined);
   const meta = SPACE_TYPES[space.space_type];
-  const Icon = meta.icon;
 
   // Type choices: the allowed pool, plus this space's current type if the super
   // admin has since removed it from the pool (so it stays selectable/keepable).
@@ -279,62 +278,97 @@ export function SpaceCard({
     );
   }
 
+  const blurb = space.space_type === "custom" || !space.description ? null : toPlainText(space.description);
+  const access = spaceAccessCard({ ...space, tierIds }, tiers);
+  const menuItems: RowMenuItem[] = [
+    { label: "Edit space", icon: <Pencil className="h-4 w-4" />, onSelect: () => setEditing(true), disabled: busy },
+    ...(subItems.length > 0
+      ? [{ label: showSubNav ? "Hide nav sub-links" : "Nav sub-links", icon: <ListTree className="h-4 w-4" />, onSelect: () => setShowSubNav((v) => !v) }]
+      : []),
+    ...(space.space_type === "journal"
+      ? [{ label: showJournalFields ? "Hide journal fields" : "Journal fields", icon: <NotebookPen className="h-4 w-4" />, onSelect: () => setShowJournalFields((v) => !v) }]
+      : []),
+    { label: "Duplicate", icon: <Copy className="h-4 w-4" />, onSelect: handleDuplicate, disabled: busy },
+    { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onSelect: handleDelete, danger: true, disabled: busy },
+  ];
+
   return (
-    <div className={`rounded-lg border ${isDragging ? "border-accent" : "border-border"} bg-card`} {...dragHandlers}>
-      {/* WRAPS RATHER THAN CRUSHES. Everything on this row used to sit on one
-          line that could not wrap, so a narrow window squeezed the name away
-          to nothing and pushed the type badge over the checkbox beside it. The
-          name keeps a basis wide enough to read, and the controls move to a
-          second line when there is no room for them on the first. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
-        <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="min-w-0 flex-1 basis-48">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-medium text-foreground">{space.name}</p>
-            <Badge>{meta.label}</Badge>
-            {space.price_cents > 0 && <Badge tone="accent">{formatMonthlyPrice(space.price_cents, space.currency)}</Badge>}
+    <div
+      className={`rounded-2xl border ${isDragging ? "border-accent" : "border-border"} bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]`}
+      {...dragHandlers}
+    >
+      <div className={ROW_GRID}>
+        <DragHandle disabled={!dragHandlers.draggable} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={spaceImage(space)} alt="" className="h-16 w-16 rounded-xl object-cover lg:h-20 lg:w-20" />
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <p className="text-base font-semibold leading-snug text-foreground">{space.name}</p>
+            <TypeChip tone={meta.category}>{meta.label}</TypeChip>
           </div>
-          <p className="text-xs text-muted-foreground">{describeSpaceAccess({ ...space, tierIds }, tiers)}</p>
+          {blurb && <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{blurb}</p>}
+          {stats.length > 0 && (
+            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              {stats.map((stat) => (
+                <span key={stat} className="inline-flex items-center gap-1.5">
+                  <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+                  {stat}
+                </span>
+              ))}
+            </p>
+          )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} />
-          <SpaceCardToggle spaceId={space.id} defaultChecked={space.show_as_card} />
+
+        <AccessBox
+          choice={access.choice}
+          title={access.title}
+          detail={access.detail}
+          action={
+            <button
+              type="button"
+              onClick={() => setShowAccess((v) => !v)}
+              aria-expanded={showAccess}
+              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-foreground underline underline-offset-2 hover:text-accent"
+            >
+              Manage access
+              <ArrowRight className="h-3 w-3" aria-hidden />
+            </button>
+          }
+        />
+
+        <div className="col-span-3 flex flex-col gap-2 lg:col-span-1">
+          <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} variant="switch" />
+          <SpaceCardToggle spaceId={space.id} defaultChecked={space.show_as_card} variant="switch" />
+          <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} groups={navGroups} />
         </div>
-        <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} groups={navGroups} />
-        {subItems.length > 0 && (
-          <button type="button" onClick={() => setShowSubNav((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Nav sub-links">
-            <ListTree className="h-4 w-4" />
-            {showSubNav ? <ChevronUp className="ml-0.5 inline h-3 w-3" /> : <ChevronDown className="ml-0.5 inline h-3 w-3" />}
-          </button>
-        )}
-        {space.space_type === "journal" && (
-          <button type="button" onClick={() => setShowJournalFields((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" title="Journal fields">
-            <NotebookPen className="h-4 w-4" />
-            {showJournalFields ? <ChevronUp className="ml-0.5 inline h-3 w-3" /> : <ChevronDown className="ml-0.5 inline h-3 w-3" />}
-          </button>
-        )}
-        <button type="button" onClick={() => setEditing(true)} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button type="button" onClick={handleDuplicate} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted">
-          <Copy className="h-4 w-4" />
-        </button>
-        <button type="button" onClick={handleDelete} disabled={busy} className="rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger">
-          <Trash2 className="h-4 w-4" />
-        </button>
+
+        <div className="col-span-3 flex justify-end lg:col-span-1 lg:self-start">
+          <RowMenu label={`More for ${space.name}`} items={menuItems} />
+        </div>
       </div>
 
+      {showAccess && (
+        <div className="border-t border-border p-4">
+          <SpaceAccessForm
+            space={{ id: space.id, name: space.name, visibility: space.visibility, price_cents: space.price_cents, currency: space.currency, show_in_nav: space.show_in_nav, when_locked: space.when_locked, tierIds }}
+            tiers={tiers}
+            community={accessCommunity}
+            communitySlug={communitySlug}
+            paymentsEnabled={paymentsEnabled}
+            onDone={() => setShowAccess(false)}
+          />
+        </div>
+      )}
+
       {showSubNav && subItems.length > 0 && (
-        <div className="border-t border-border p-3">
+        <div className="border-t border-border p-4">
           <SpaceSubNavList spaceId={space.id} items={subItems} communitySlug={communitySlug} />
         </div>
       )}
 
       {showJournalFields && (
-        <div className="border-t border-border p-3">
+        <div className="border-t border-border p-4">
           <JournalFieldsSection spaceId={space.id} communitySlug={communitySlug} spaceSlug={space.slug} fields={journalFields} />
         </div>
       )}
