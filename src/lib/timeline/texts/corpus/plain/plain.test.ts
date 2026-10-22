@@ -23,6 +23,7 @@ import { PLAIN_HEAVENLY_COW } from "./heavenly-cow";
 import { PLAIN_PTAHHOTEP } from "./ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./pyramid-texts";
 import { PLAIN_SECRETUM } from "./secretum";
+import { PLAIN_HORTULANUS } from "./hortulanus";
 import { PLAIN_TIMAEUS } from "./timaeus";
 
 const PLAIN: Record<string, Record<string, string>> = {
@@ -47,6 +48,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "herm.stobaeus": PLAIN_STOBAEUS,
   "gnostic.pistis-sophia": PLAIN_PISTIS_SOPHIA,
   "arab.secretum-secretorum": PLAIN_SECRETUM,
+  "arab.tablet-commentaries": PLAIN_HORTULANUS,
   "modern.blavatsky": PLAIN_BLAVATSKY,
 };
 
@@ -64,6 +66,17 @@ test("every passage of the Secret of Secrets with Ismail Ali's English has plain
   assert.equal(withText.length, 49);
   // The Tablet's plain words say that its wording is uncertain.
   assert.match(PLAIN_SECRETUM["arab.secretum.10.7"], /Other possible readings:\n- The English is a literal translation/);
+});
+
+test("every passage of Hortulanus's commentary with the 1597 English has plain words, and only those", () => {
+  const hort = ALL_CORPORA.find((c) => c.workKey === "arab.tablet-commentaries")!;
+  const withText = hort.passages.filter((p) => p.layers.some((l) => l.key === "eng-1597")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_HORTULANUS).sort(), [...withText].sort());
+  assert.equal(withText.length, 16);
+  // The doubtful words are flagged: telesme, the 'firmament' that means ferment, the philosophical dung.
+  assert.match(PLAIN_HORTULANUS["arab.comm.hort.tablet"], /Other possible readings:\n- 'Telesme'/);
+  assert.match(PLAIN_HORTULANUS["arab.comm.hort.5"], /Other possible readings:\n- 'Which said firmament'/);
+  assert.match(PLAIN_HORTULANUS["arab.comm.hort.7"], /Other possible readings:\n- 'Philosophical dung'/);
 });
 
 test("every Stanza of Dzyan and every selected passage of Blavatsky has plain words, and only those", () => {
