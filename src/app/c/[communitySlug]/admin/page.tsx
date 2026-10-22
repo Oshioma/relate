@@ -465,7 +465,7 @@ export default async function AdminPage({
       <p className="mb-3 text-sm text-muted-foreground">
         {platformView
           ? "Switched off in platform view — sign in as this community's owner or admin to add one."
-          : "Give it a name, pick what kind of space it is, and it appears in the list above and in the sidebar."}
+          : "Pick a kind of space, then the type you want. Each card says what it can do. Name it, choose who can see it, and it appears in the list above and in the sidebar."}
       </p>
       <div className="mb-8">
         <NewSpaceForm communityId={community.id} communitySlug={community.slug} allowedTypes={allowedTypes} />
