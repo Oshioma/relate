@@ -36,6 +36,10 @@ import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
 import { loadHotelGuide } from "@/lib/guides/hotel-guide/content";
 import type { HotelGuideDefinition } from "@/lib/guides/hotel-guide/types";
 import { HotelGuide } from "./hotel-guide";
+import { placeGuideFor } from "@/lib/guides/place-guide/registry";
+import { loadPlaceGuide } from "@/lib/guides/place-guide/content";
+import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
+import { PlaceGuide } from "./place-guide";
 
 // /guides/where-to-stay-in-zanzibar on the community's host.
 //
@@ -53,7 +57,9 @@ const DESCRIPTION =
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { communitySlug, guideSlug } = await params;
   const hotelGuide = hotelGuideFor(guideSlug);
-  if (hotelGuide) return hotelGuideMetadata(communitySlug, hotelGuide);
+  if (hotelGuide) return hotelGuideMetadata(communitySlug, hotelGuide, (content) => loadHotelGuide(hotelGuide, content).heroPhoto);
+  const placeGuide = placeGuideFor(guideSlug);
+  if (placeGuide) return hotelGuideMetadata(communitySlug, placeGuide, (content) => loadPlaceGuide(placeGuide, content).heroPhoto);
   if (guideSlug !== WHERE_TO_STAY_SLUG) return {};
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
@@ -87,13 +93,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-async function hotelGuideMetadata(communitySlug: string, def: HotelGuideDefinition): Promise<Metadata> {
+// Metadata for a guide defined in code (hotel and place guides), from its own
+// SEO title, description and (possibly overridden) hero.
+async function hotelGuideMetadata(
+  communitySlug: string,
+  def: Pick<HotelGuideDefinition, "slug" | "seoTitle" | "description">,
+  heroFor: (content: unknown) => GuidePhoto | null
+): Promise<Metadata> {
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
   const guide = await getEditorialGuide(supabase, community.id, def.slug);
   if (!guide) return {};
-  const { heroPhoto } = loadHotelGuide(def, guide.content);
+  const heroPhoto = heroFor(guide.content);
   const host = (await headers()).get("host");
   const { absolute } = guideUrl(host, community.slug, def.slug, communityShareOrigin(community));
   const title = def.seoTitle;
@@ -133,7 +145,8 @@ function jsonLd(value: unknown) {
 export default async function EditorialGuidePage({ params }: { params: Params }) {
   const { communitySlug, guideSlug } = await params;
   const hotelGuide = hotelGuideFor(guideSlug);
-  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide) notFound();
+  const placeGuide = placeGuideFor(guideSlug);
+  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide && !placeGuide) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -143,7 +156,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
 
-  if (hotelGuide) {
+  if (hotelGuide || placeGuide) {
     const [membership, updates, { links }, interactions, viewerProfile, viewStats] = await Promise.all([
       user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
       getEditorialGuideUpdates(supabase, guide.id),
@@ -156,29 +169,36 @@ export default async function EditorialGuidePage({ params }: { params: Params })
     const host = (await headers()).get("host");
     const { absolute } = guideUrl(host, community.slug, guide.slug, communityShareOrigin(community));
     const today = new Date().toISOString().slice(0, 10);
+    const shared = {
+      community,
+      guide,
+      updates: updates.filter((u) => !u.expires_on || u.expires_on >= today),
+      pageUrl: absolute,
+      canEdit: isCommunityAdmin(community, membership, user?.id),
+      viewStats: viewStats.get(guide.id) ?? null,
+      signedIn: Boolean(user),
+      comments: {
+        communitySlug: community.slug,
+        communityId: community.id,
+        itemType: "editorial_guide" as const,
+        itemId: guide.id,
+        canInteract: isCommunityMember(community, membership, user?.id),
+        viewerId: user?.id ?? null,
+        viewer: viewerProfile ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url } : null,
+        isStaff: isCommunityAdmin(community, membership, user?.id),
+        ...feedInteractionFor(interactions, "editorial_guide", guide.id),
+      },
+    };
+    if (placeGuide) {
+      return <PlaceGuide def={placeGuide} content={loadPlaceGuide(placeGuide, guide.content)} links={{ recommend: links.restaurant, ask: links.ask }} {...shared} />;
+    }
+    if (!hotelGuide) notFound();
     return (
       <HotelGuide
         def={hotelGuide}
-        community={community}
-        guide={guide}
         content={loadHotelGuide(hotelGuide, guide.content)}
-        updates={updates.filter((u) => !u.expires_on || u.expires_on >= today)}
-        pageUrl={absolute}
-        canEdit={isCommunityAdmin(community, membership, user?.id)}
-        viewStats={viewStats.get(guide.id) ?? null}
-        signedIn={Boolean(user)}
         links={{ recommend: links.restaurant, stay: links.stay, ask: links.ask }}
-        comments={{
-          communitySlug: community.slug,
-          communityId: community.id,
-          itemType: "editorial_guide",
-          itemId: guide.id,
-          canInteract: isCommunityMember(community, membership, user?.id),
-          viewerId: user?.id ?? null,
-          viewer: viewerProfile ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url } : null,
-          isStaff: isCommunityAdmin(community, membership, user?.id),
-          ...feedInteractionFor(interactions, "editorial_guide", guide.id),
-        }}
+        {...shared}
       />
     );
   }

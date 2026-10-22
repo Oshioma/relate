@@ -2,6 +2,8 @@ import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 import { guideCardImage, parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
 import { hotelGuideCardImage, loadHotelGuide } from "@/lib/guides/hotel-guide/content";
 import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { loadPlaceGuide, placeGuideCardImage } from "@/lib/guides/place-guide/content";
+import { placeGuideFor } from "@/lib/guides/place-guide/registry";
 
 // The editorial guides the app knows how to render, keyed by slug. The
 // guides index, the community feed and the Guides space all describe a guide
@@ -23,6 +25,14 @@ const WHERE_TO_STAY: GuideEntry = {
 
 export function editorialGuideEntry(slug: string): GuideEntry | null {
   if (slug === WHERE_TO_STAY_SLUG) return WHERE_TO_STAY;
+  const places = placeGuideFor(slug);
+  if (places) {
+    return {
+      blurb: places.cardBlurb,
+      hero: (content) => loadPlaceGuide(places, content).heroPhoto,
+      cardImage: (content) => placeGuideCardImage(places, content),
+    };
+  }
   const hotels = hotelGuideFor(slug);
   if (!hotels) return null;
   return {
