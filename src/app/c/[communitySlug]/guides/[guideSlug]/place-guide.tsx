@@ -8,6 +8,7 @@ import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { PhotoCredit } from "@/components/editorial-guide/photo-credit";
 import { PlaceSection, KIND_LABELS } from "@/components/editorial-guide/place-section";
+import { PhotoGallery, PhotoOpener, type ViewerPhoto } from "@/components/editorial-guide/photo-viewer";
 import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 import type { GuideViewStats } from "@/lib/data/editorial-guides";
@@ -65,6 +66,14 @@ export function PlaceGuide({
   const photos = placePhotoCount(content);
   const unverified = new Set(places.flatMap((p) => p.photos).filter((p) => p.identificationStatus === "unverified").map((p) => p.src)).size;
   const contactHref = `/c/${community.slug}/contact`;
+  // The photo row at the top: one picture from each of a few places, each
+  // labelled with (and linking to) its place.
+  const mosaic = def.mosaic.flatMap(({ placeKey, photo = 0 }) => {
+    const place = byKey.get(placeKey);
+    const picture = place?.photos[photo] ?? place?.photos[0];
+    return place && picture ? [{ place, picture }] : [];
+  });
+  const mosaicPhotos: ViewerPhoto[] = mosaic.map((m) => m.picture);
   const guidePath = `/c/${community.slug}/guides/${guide.slug}`;
 
   const structuredData = [
@@ -161,6 +170,25 @@ export function PlaceGuide({
             </div>
           </div>
 
+          {/* Photo row */}
+          {mosaic.length > 0 && (
+            <PhotoGallery photos={mosaicPhotos} title={def.title}>
+              <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3" aria-label="A taste of the places in this guide">
+                {mosaic.map(({ place, picture }, i) => (
+                  <li key={place.key} className="min-w-0">
+                    <div className="relative">
+                      <GuideImage src={picture.src} alt={picture.alt} width={picture.width} priority={i < 4} sizes="(min-width: 1024px) 230px, (min-width: 640px) 25vw, 50vw" className="aspect-[4/3] rounded-md" />
+                      <PhotoOpener index={i} alt={picture.alt} />
+                    </div>
+                    <a href={`#${place.key}`} className="mt-1 block truncate text-xs font-medium text-accent hover:underline">
+                      {place.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </PhotoGallery>
+          )}
+
           {/* Introduction */}
           <section id="introduction" aria-label="Introduction" className="mt-8 scroll-mt-24">
             <div className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-foreground">
@@ -194,8 +222,9 @@ export function PlaceGuide({
               <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">About the photographs.</span> {def.photoNote}{" "}
                 <a href={contactHref} className="font-medium text-accent hover:underline">
-                  Contact {community.name}
+                  contact {community.name}
                 </a>
+                .
               </p>
             </div>
           </section>
@@ -346,11 +375,18 @@ export function PlaceGuide({
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">{def.editorialStandards}</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              This guide has {photos} photographs, each credited beneath it and linked to the page it came from. {def.photoNote}{" "}
+              This guide has {photos} photographs. {def.photoNote}{" "}
               <a href={contactHref} className="font-medium text-accent hover:underline">
-                Contact us
+                contact us
               </a>
-              .{unverified > 0 && <> Captions beginning &ldquo;UNVERIFIED&rdquo; ({unverified}) show something relevant whose exact spot we could not confirm.</>}
+              .
+              {unverified > 0 && (
+                <>
+                  {" "}
+                  {unverified === 1 ? "One caption begins" : `${unverified} captions begin`}{" "}
+                  &ldquo;UNVERIFIED&rdquo;: the photo is relevant, but we couldn&apos;t confirm it shows the exact spot.
+                </>
+              )}
             </p>
           </section>
         </div>

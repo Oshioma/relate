@@ -22,8 +22,9 @@ export const HOW_TO_READ: { label: string; body: string }[] = [
 
 export const CATEGORY_CAVEAT = "Groupings are our suggestions to help you choose, not a ranking — the places are listed roughly by area, from Stone Town around the island.";
 
+// Followed on the page by a "Contact us" link, so it ends with the ask.
 export const PHOTO_NOTE =
-  "The photographs come from many sources — photographers on Unsplash and Wikimedia Commons, tourism and tour sites, venues and travel writers — each credited beneath the picture and linked to where it came from. They're shared here to celebrate these places, and we're happy to take any photo down: if one is yours and you'd like it removed or credited differently, please contact us.";
+  "They come from photographers on Wikimedia Commons and Flickr and from venues' own websites, each credited beneath the picture and linked to where it came from. They're shared here to celebrate these places. If one is yours and you'd like it removed or credited differently, we'll gladly do it —";
 
 export const ADVICE: AdviceBlock[] = [
   {
@@ -95,4 +96,4 @@ export const CALL_TO_ACTION = {
 };
 
 export const EDITORIAL_STANDARDS =
-  "This guide is written by the Mzungu Zanzibar editors. No place or business paid to be included. Practical details — where each place is, how to visit, tide and timing advice — were checked against at least two current sources on the date shown; anything we could not confirm is listed with that place. Prices and fees are never given because they change. We have not claimed to visit any of these places ourselves.";
+  "This guide is written by the Mzungu Zanzibar editors. No place or business paid to be included. Practical details — where each place is, how to visit, tide and timing advice — were checked against at least two current sources on the date shown; anything we could not confirm is listed with that place. Prices and fees are never given because they change. The descriptions are not first-hand accounts: they draw on the sources listed with each place.";

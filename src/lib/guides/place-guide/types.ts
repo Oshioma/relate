@@ -64,6 +64,9 @@ export type PlaceGuideDefinition = {
   categories: StayCategory[];
   categoryCaveat: string;
   placesSection: { title: string; blurb: string; navGroup: string };
+  // A row of photos at the top of the article: which place, and which of its
+  // photos (default the first). Opens in the photo viewer.
+  mosaic: { placeKey: string; photo?: number }[];
   advice: AdviceBlock[];
   routes: { title: string; navLabel: string; intro: string; items: PlaceRoute[] };
   callToAction: { title: string; navLabel: string; paragraphs: string[]; commentPrompt: string; joinPrompt: string };
