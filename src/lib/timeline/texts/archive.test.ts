@@ -1092,6 +1092,155 @@ test("Blavatsky's pictures are first-edition pages and portraits from Commons, n
   for (const image of pages) assert.match(image.url, /\.pdf\/page\d+-960px-/, image.key);
 });
 
+test("Steiner's Atlantis and Lemuria is imported whole in the English of 1911, in 26 sections under ten chapters, with the German and Cosmic Memory cited", () => {
+  const file = corpusFor("modern.steiner")!;
+  const work = INVENTORY.find((w) => w.workKey === "modern.steiner")!;
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, null);
+  assert.equal(work.inventoryVerified, false, "the sections are the archive's division, listed by paragraph, not by page");
+  assert.equal(work.anchor && "existingSlug" in work.anchor && work.anchor.existingSlug, "steiner-lemurian-epoch");
+  assert.match(work.inventoryBasis, /26 sections/);
+  assert.match(work.copyrightSummary, /Gysi/);
+  // One book record and ten chapter records, holding no 1911 text of their own.
+  assert.equal(file.passages[0].key, "modern.steiner.1911");
+  assert.equal(file.passages[0].divisionKind, "book");
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((p) => p.key), Array.from({ length: 10 }, (_, i) => `modern.steiner.1911.${i + 1}`));
+  for (const chapter of chapters) assert.equal(chapter.layers.length, 0, chapter.key);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.equal(units.length, 26);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 26, verifiedUnits: 0 }), "verified_against_edition");
+  const perChapter = chapters.map((c) => units.filter((u) => u.parentKey === c.key).length);
+  assert.deepEqual(perChapter, [1, 4, 3, 2, 2, 3, 3, 3, 2, 3]);
+  // The 1911 English, public domain in the United States, with the method and its limits stated.
+  const text = (key: string) => file.passages.find((p) => p.key === `modern.steiner.1911.${key}`)!.layers.find((l) => l.key === "eng-1911")!.content!;
+  for (const unit of units) {
+    const layer = unit.layers.find((l) => l.key === "eng-1911")!;
+    assert.equal(layer.licence, "public_domain_us", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.match(layer.evidence, /Only one transcription of the 1911 English could be reached, and no page image of the book/, unit.key);
+    assert.match(layer.evidence, /Gysi's death date was not established/, unit.key);
+    assert.match(unit.reference, /^Atlantis and Lemuria \(London, 1911\), chapter [IVX]+, '.+', the Rudolf Steiner Archive's paragraphs.* \[\d+(–\d+)?\]$/, unit.key);
+    // No paragraph broken by a page, no stray markup.
+    assert.doesNotMatch(layer.content!, /[a-z,;]\n\n[a-z]|(?<!\n)\n(?!\n)|<|Not translated|⟦|⟧/, unit.key);
+  }
+  assert.match(text("1.1"), /^It is but a small part of prehistoric human experience which can be learnt by the methods of ordinary history\./);
+  assert.match(text("1.1"), /Plato still told of the last remnant of this land—the Island of Poseidonis/);
+  assert.match(text("1.1"), /In the little book, The Story of Atlantis, by W\. Scott-Elliot/);
+  assert.match(text("1.1"), /\n\n\[Footnote\] Published by the Theosophical Publishing Society, London\.$/);
+  assert.match(text("2.1"), /^Our Atlantean ancestors differed more/);
+  assert.match(text("2.2"), /According to the nomenclature of the “Secret Doctrine,” Lemurians, Atlanteans, and Âryans are Root-Races/);
+  assert.match(text("4.1"), /^The following contains a fragment from the Âkâshic Records/);
+  assert.match(text("5.1"), /^The development undergone by woman during the Lemurian era/);
+  assert.match(text("8.1"), /\[See An Outline Of Occult Science, by Rudolf Steiner, Ph\.D\.\]/);
+  assert.match(text("10.3"), /what we find in the worlds to-day\.$/);
+  // The two corrections by hand, and the disputed readings kept as the transcription has them.
+  assert.match(text("5.2"), /what had been done by the leaders/);
+  assert.doesNotMatch(text("5.2"), /clone/);
+  assert.match(text("10.1"), /is, of course, one which merely approaches/);
+  assert.match(text("4.2"), /mastery of natural forces was learnt/);
+  assert.match(text("1.1"), /palaeontology/);
+  const notes = (key: string) => file.passages.find((p) => p.key === `modern.steiner.1911.${key}`)!.notes ?? "";
+  assert.match(notes("4.2"), /The Bookman quoted the phrase in 1911 as 'were learnt'/);
+  assert.match(notes("1.1"), /'paleontology'/);
+  assert.match(notes("5"), /'Not translated'/);
+  assert.match(notes("10.3"), /English editor's/);
+  for (const key of ["2", "3", "4", "5", "7", "2.2", "2.4", "4.2", "5.2", "7.3"]) assert.match(notes(key), /the text's own racial theory/, key);
+  // The German and the later translation are cited, never reproduced.
+  const book = file.passages[0];
+  const german = book.layers.find((l) => l.key === "deu-akasha-chronik")!;
+  assert.equal(german.content, undefined);
+  assert.equal(german.licence, "public_domain");
+  assert.match(german.contentAbsentReason!, /only German text reached is a later edition's/);
+  const later = book.layers.find((l) => l.key === "eng-cosmic-memory")!;
+  assert.equal(later.licence, "copyrighted_reference");
+  assert.equal(later.content, undefined);
+  for (const key of ["steiner-atlantis-lemuria-1911", "steiner-akasha-chronik", "steiner-cosmic-memory-1959", "scott-elliot-atlantis-1896", "bookman-1911"]) {
+    assert.ok(file.sources.some((s) => s.key === key), key);
+  }
+});
+
+test("Steiner's Akashic Records are recorded as his claim, the writing dated to Lucifer-Gnosis 1904–08, the English to 1911", () => {
+  const file = corpusFor("modern.steiner")!;
+  const dates = file.passages.find((p) => p.key === "modern.steiner.1911")!.dates!;
+  assert.deepEqual(dates.map((d) => d.role), ["claimed", "composition", "translation_publication"]);
+  const [claimed, composition, english] = dates;
+  assert.equal(claimed.startYear, undefined, "a claim read from the Akashic Records is given no year");
+  assert.match(claimed.evidence, /^Steiner's claim, not a date/);
+  assert.match(claimed.evidence, /Scott-Elliot's The Story of Atlantis/);
+  assert.deepEqual([composition.startYear, composition.endYear], [1904, 1908]);
+  assert.equal(composition.sourceKey, "steiner-akasha-chronik");
+  assert.match(composition.originalDateText, /twenty articles between July 1904 and May 1908 in the magazine Lucifer-Gnosis/);
+  assert.deepEqual([english.startYear, english.endYear, english.isApproximate], [1911, 1911, false]);
+  assert.match(english.evidence, /The Bookman/);
+  assert.match(english.evidence, /Publishers Weekly, 21 October 1911/);
+  // The marker that already exists gets the claim and the English, not a second composition date.
+  const work = INVENTORY.find((w) => w.workKey === "modern.steiner")!;
+  const extra = work.anchor && "existingSlug" in work.anchor ? (work.anchor.extraClaims ?? []) : [];
+  assert.deepEqual(
+    extra.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)),
+    ["claimed", "translation_publication"]
+  );
+  assert.equal(extra[0].startYear, undefined);
+});
+
+test("Steiner's links say he retells Plato and the Theosophists, or only parallels them, and none claims ancient transmission", () => {
+  const file = corpusFor("modern.steiner")!;
+  const links = file.links ?? [];
+  assert.ok(links.length >= 12);
+  const targets = new Set(links.map((l) => l.to));
+  for (const to of ["greek.tim.24e", "greek.tim.25d", "greek.crit.113c", "modern.hpb.sd.2.6", "modern.hpb.anthro.12", "modern.doreal.01", "modern.doreal.05"]) {
+    assert.ok(targets.has(to), to);
+  }
+  for (const link of links) {
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.steiner\.1911\./, link.key);
+    assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+    if (link.to.startsWith("modern.doreal.")) {
+      assert.equal(link.connectionClass, "broad_thematic_resemblance", link.key);
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    } else if (link.connectionClass === "later_reinterpretation") {
+      // A retelling only where he names his source, and never as a witness to it.
+      assert.match(link.transmissionEvidence, /^He names /, link.key);
+      assert.match(link.transmissionEvidence, /not a witness to the earlier text/, link.key);
+    } else {
+      assert.equal(link.connectionClass, "close_conceptual_parallel", link.key);
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    }
+  }
+  // Plato is retold, through a name that is not Plato's.
+  const plato = links.filter((l) => l.to.startsWith("greek."));
+  assert.equal(plato.length, 3);
+  for (const link of plato) assert.equal(link.connectionClass, "later_reinterpretation", link.key);
+  assert.ok(plato.some((l) => /Poseidonis', a name that is not Plato's/.test(l.transmissionEvidence)));
+});
+
+test("Steiner's pictures are from Commons, none repeats the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("modern.steiner")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 6);
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    // The pictures already on the marker are not repeated.
+    assert.doesNotMatch(image.url, /Steiner_um_1905|Goetheanum_Dornach/, image.key);
+  }
+  assert.equal(unverified, 4);
+  const magazine = images.find((i) => i.key === "steiner-lucifer-gnosis-1904-06")!;
+  assert.equal(magazine.identificationStatus, "secure");
+  assert.match(magazine.objectDate!, /Juni 1904/);
+});
+
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
   const tablet = corpusFor("arab.emerald-tablet")!;
   const versions = tablet.passages.filter((p) => p.divisionKind === "version").map((p) => p.key);

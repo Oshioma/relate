@@ -866,3 +866,182 @@ They explain the alchemical terms as they are usually taken, without claiming to
 - The other medieval commentaries on the Tablet are not imported.
 - The two copies were collated only at disputed places. The Huntington microfilm was read in full, but the text has not been proofread against a second full collation.
 - The marker's caption for the Petreius p. 363 picture still says it is unchecked; it was not changed in this stage, although the page was looked at here.
+
+## 22. Stage 16: Steiner's Atlantis and Lemuria (1911)
+
+Rudolf Steiner's account of Atlantis and Lemuria (`modern.steiner`, prefix `modern.steiner`). It is attached to the marker that already exists (`steiner-lemurian-epoch`); there is no new marker. The inventory entry gained two extra claims for it: Steiner's claim (the Akashic Records, no year) and the English of 1911. The marker already has the 1904–1908 writing date, so no second composition claim was added.
+
+The text is *The Submerged Continents of Atlantis and Lemuria, Their History and Civilization, Being Chapters from the Akashic Records* (London: Theosophical Publishing Society, 1911), "authorized translation from the German", sold as *Atlantis and Lemuria*. It is the first English of the articles "Aus der Akasha-Chronik" (*Lucifer-Gnosis*, 1904–08). All ten chapters are imported in full.
+
+From the title page and the trade:
+- The title page, as transcribed, gives London, Theosophical Publishing Society, 1911. Its verso reads "Copyright 1911, Dr Weller Van Hook, in the United States of America" and names Max Gysi as editor. The title page names no translator.
+- *The Bookman* (London), September 1911, reviews "Atlantis and Lemuria (3s 6d. net)".
+- *Publishers Weekly*, 21 October 1911, lists the American issue: "auth. tr. from the German by Max Gysi. Chic., Rajput Press, '11".
+- The page counts reported disagree (202, 204, 223 and 241 pp.), and no page image was seen, so no page is cited.
+
+Copyright: the 1911 English is public domain in the United States, so its layer is `public_domain_us`. Gysi was alive in 1934 and his death date was not established, so its status elsewhere is flagged as unsettled.
+
+Two things are cited rather than imported:
+- **The German (GA 11).** It is public domain, and the layer `deu-akasha-chronik` carries a `contentAbsentReason`. The only German reached is the sixth edition's, on the Rudolf Steiner Archive's parallel pages, not the articles as first printed in *Lucifer-Gnosis*.
+- **Cosmic Memory (1959).** Karl E. Zimmer's complete translation is in copyright and is a `copyrighted_reference` layer (`eng-cosmic-memory`).
+
+The inventory gained five sources:
+- `steiner-atlantis-lemuria-1911`;
+- `steiner-akasha-chronik`;
+- `steiner-cosmic-memory-1959`;
+- `scott-elliot-atlantis-1896`;
+- `bookman-1911`.
+
+The work record was rewritten, with:
+- `unitDivisionKind` "section";
+- `expectedUnits` null;
+- `inventoryVerified` false.
+
+Files:
+- `corpus/steiner.ts`;
+- the generated `corpus/steiner-text.ts`, made by `scripts/texts/steiner-atlantis.py`;
+- `corpus/steiner-related-images.ts`;
+- plain words in `corpus/plain/steiner.ts`.
+
+### Source and checking
+
+**Only one transcription of the 1911 English could be reached.** No scan of the book was found:
+- archive.org holds none. It was searched by title, by creator and in full text for four distinctive sentences, and every hit was S or a later book quoting it;
+- HathiTrust refused the request (403);
+- Google Books offers no full view;
+- Project Gutenberg and Wikisource have no copy;
+- sacred-texts.com refused the request (403).
+
+The witnesses are:
+
+| Siglum | Witness | Notes |
+|---|---|---|
+| R | The Rudolf Steiner Archive's e-text (rsarchive.org, `GA011/English/TPS1911`, pages `_c01` to `_c10`; chapter V is the second half of `_c04`) | The base. |
+| S | archive.org `ste-11_202012`, a PDF print-out of the same e-text ("On-line since: 15th August, 2011"), read through archive.org's OCR | The same transcription at an earlier date. It is not an independent copy. |
+| B | *The Bookman*, September 1911 (archive.org `sim_bookman_the-bookman_1911-09_40_240`) | Quotes four phrases of the book. Independent, but short. |
+| G | The Archive's German–English parallel pages (`Compare_P1.php` … `Compare_08.php?version=TPS`) | Used for the paragraph structure and for the two corrections. |
+
+No majority of independent witnesses could be formed, and no reading could be checked on a page. What was done instead:
+- R was compared word by word with S (difflib on letters and figures). Every difference is settled in `REJECT`, where S is wrong (4: OCR run-togethers and rows of stars), or in `DISPUTED`.
+- Two readings are left `DISPUTED`, and R's is kept:
+  - "palaeontology" (S "paleontology", chapter I);
+  - "mastery of natural forces was learnt" (B "were learnt", chapter IV).
+- Errors common to R and S were looked for by listing every word not found in the archive's other English texts and by reading the whole text. Two were found and are corrected in `FIXES`, each on the sense and on the German:
+  - "clone" becomes "done" ("was die Führer getan hatten", chapter V);
+  - "on which" becomes "one which" ("eine solche, die", chapter X).
+- B's four quotations are asserted to stand in the result: three in the same words, and one as the disputed reading.
+- G's paragraphs match R's in every chapter, with two exceptions:
+  - the last paragraph of "Die lemurische Rasse", which the Archive marks "Not translated";
+  - the last paragraph of "Austritt des Mondes", where the English prints an editor's note on *An Outline of Occult Science* instead.
+- R renumbers paragraphs to match the German. S's paragraph breaks are restored inside R's paragraphs wherever both texts align and the break follows the end of a sentence.
+
+The text keeps the 1911 spellings ("Âkâshic", "Âryan", "to-day"). The book's three footnotes, all in chapter I, are printed after the text as "[Footnote]". Italic is not marked. The generator reproduces `steiner-text.ts` byte for byte from its three inputs.
+
+### Units
+
+`modern.steiner.1911` (`book`) holds no text. It carries:
+- the cited German and Cosmic Memory layers;
+- the dates;
+- the portrait.
+
+Under it are ten `chapter` records, `modern.steiner.1911.1` … `.10`. Each gives its German chapter title and holds no text.
+
+Under the chapters are 26 `section` passages, `modern.steiner.1911.N.M`, which carry the text. They follow the Archive's paragraph numbers:
+
+| Chapter | Sections (Archive paragraphs) |
+|---|---|
+| I From the Âkâshic Records | [1–2] |
+| II Our Atlantean Forefathers | [1–4], [5–10], [11–16], [17–22] |
+| III Transition of the Atlantean into the Âryan Root-Race | [1–4], [5–8], [9–12] |
+| IV The Lemurian Era | [1–3], [4–7] |
+| V Woman in the Third Root-Race | [8–12], [13–18] (numbered on from IV) |
+| VI Humanity Before the Division of Sex | [1–6], [7–8], [9] |
+| VII The Beginnings of Sex Duality | [1–5], [6–10], [11–12] |
+| VIII Man's First Ancestors | [1–2], [3–7], [8–10] |
+| IX The First, or Polar, Race | [1–4], [5–8] |
+| X The Second, or Hyperborean, Race | [1–3], [4–5], [6–8] |
+
+The 1911 headings of IX and X do not translate the German ones ("Anfang der gegenwärtigen Erde: Austritt der Sonne", "Austritt des Mondes"); the chapter records say so. The selection is listed by chapter and paragraph, not by page, so `inventoryVerified` stays false.
+
+### The Akashic Records, Steiner's sources, and the racial theory
+
+Steiner says the chapters repeat the "Akashic Records", a record of the past that he says trained seers can read. This is recorded as his claim and given no year.
+
+He names his Theosophical sources:
+- W. Scott-Elliot's *The Story of Atlantis* (1896), in chapter I, for the outer history of Atlantis. His seven Atlantean sub-races (Rmoahal to Mongolian) are Scott-Elliot's, and so are his figures (a million years; the last remnant sunk "nearly 10,000 years B.C.").
+- the "Secret Doctrine", for the root races (chapter II);
+- "Theosophical literature" or "Theosophical books", for the Lemurian continent "from Ceylon to Madagascar", the Manu, the Polar and Hyperborean races, Prâna and Kâma.
+
+He wrote the articles as General Secretary of the German Section of the Theosophical Society.
+
+The book ranks human groups as advanced or degenerate races. Examples:
+- the "so-called savages" as Lemurian descendants;
+- the Mongolians' "blind faith";
+- the "animal-men";
+- "monkeys are retrograde human beings";
+- "savage" tribes as "degraded descendants";
+- the descendants of the last Lemurians and Atlanteans "dying out".
+
+The notes on chapters II–V and VII, and on the five sections concerned, say plainly that this is the text's own racial theory. The plain words say the same.
+
+### Dates
+
+On `modern.steiner.1911`:
+- **Claimed: no year, `millennium`.** "Steiner's claim, not a date": he says he reads the Akashic Records and must "for the present" be silent about his sources. His Atlantis figures are Scott-Elliot's.
+- **Composition: 1904–1908.** The Rudolf Steiner Archive's GA 11 note gives "a series of twenty articles between July 1904 and May 1908 in the magazine Lucifer-Gnosis": monthly to the sixteenth instalment, then yearly; collected 1908–10; the first part issued separately in 1908. The 1911 English adds two references to *An Outline of Occult Science* (1910) that the German articles do not have.
+- **English: 1911**, not approximate. The title page as transcribed, *The Bookman* and *Publishers Weekly*.
+
+### Links
+
+There are 14 links, all `proposed`, none `documented_transmission`:
+- **Plato, three `later_reinterpretation` links** from chapter I: to `greek.tim.24e` (the island in the Atlantic), `greek.tim.25d` (the sinking) and `greek.crit.113c` (Poseidon's island). They say that "Poseidonis" is not Plato's name but Scott-Elliot's, and that Steiner quotes nothing of Plato.
+- **Blavatsky, `later_reinterpretation`, where he names a Theosophical source:**
+  - 2.2 → `modern.hpb.sd.2.6` (the root races, "Secret Doctrine");
+  - 4.1 → `modern.hpb.sd.2.6` (Lemuria, "Theosophical books");
+  - 3.2 → `modern.hpb.anthro.12` (the Manu and the fifth race);
+  - 8.2 → `modern.hpb.anthro.5` (the Polar and Hyperborean races).
+- **Blavatsky, `close_conceptual_parallel`, "None shown", where he names none:**
+  - 6.1 and 7.1 → `modern.hpb.anthro.6` (the two-sexed race; the egg);
+  - 7.3 → `modern.hpb.anthro.8` (the mindless and the apes);
+  - 8.3 → `modern.hpb.anthro.10` (the one eye and the Third Eye);
+  - 2.3 → `modern.hpb.isis.1.592` (Atlantis falls by the misuse of power).
+- **Doreal, two `broad_thematic_resemblance` links**, "None shown": 1.1 → `modern.doreal.01` and 3.1 → `modern.doreal.05`.
+
+Every `later_reinterpretation` says that Steiner's book is "not a witness to the earlier text".
+
+### Images
+
+There are six images, all from Commons file pages, each looked at, all `licenceStatus` "open". No page of the 1911 book could be shown.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| *Lucifer-Gnosis* no. 13, June 1904, the cover ("Herausgeber: Dr. Rudolf Steiner"; contents open with "Wie erlangt man Erkenntnisse der höheren Welten?") | 1.1 | secure |
+| Steiner, head and shoulders, "when he was 46" (about 1907) | the book | `UNVERIFIED` |
+| Steiner with Annie Besant, Munich 1907 (after Vögele 2005, p. 167) | 2.2 | `UNVERIFIED` |
+| The first Goetheanum under construction, "1. April 1914" written on the print | the file | secure, context |
+| Steiner with the model of the first Goetheanum, attributed to Otto Rietmann | the file | `UNVERIFIED` |
+| The first Goetheanum finished, in colour, undated | the file | `UNVERIFIED` |
+
+Why the four are `UNVERIFIED`:
+- the 1907 portrait: its date rests on the file page alone, and so does its attribution to Ita Wegman;
+- the Besant photograph: its date and place rest on a book that was not checked;
+- the model photograph: the file page gives both 16 June and 16 May 1914;
+- the colour photograph: it has no date, no photographer and an unclear colouring.
+
+`Steiner_um_1905.jpg` and `Goetheanum_Dornach.jpg` are on the marker and are not repeated. The fire ruin of 1923 was looked at and left out as too far from the text.
+
+### Plain words
+
+There are 26 plain-words entries, one per section. Each reports the account as Steiner's ("Steiner says", "According to Steiner"), and each passage with racial ranking names it as the text's own racial theory. Five have "Other possible readings":
+- "Poseidonis" is not Plato's word (1.1);
+- what "Theosophical literature" refers to (2.2);
+- the disputed "was learnt"/"were learnt" (4.2);
+- the corrections "clone"/"done" (5.2) and "on which"/"one which" (10.1).
+
+### Not done
+
+- No page image of the 1911 book was reached, so no reading could be checked on the page. If a scan turns up, the two disputed readings and the two corrections should be read there, and pages added to the references.
+- The German is cited, not transcribed. The *Lucifer-Gnosis* issues were not seen, so the 1904–1908 span rests on the Archive's note.
+- *An Outline of Occult Science* (1910), named in the old inventory summary, is not imported.
+- Gysi's death date, and so the 1911 English's copyright outside the United States, was not established.
+- Scott-Elliot's *The Story of Atlantis* is cited as a source, not imported, so Steiner's dependence on it cannot be linked passage to passage.
