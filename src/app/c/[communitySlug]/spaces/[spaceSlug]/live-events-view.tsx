@@ -2,24 +2,26 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus, Mail } from "lucide-react";
+import { Radio, Video, History, LogOut, ShieldCheck, TriangleAlert, CalendarClock, Trash2, Check, UserPlus, Mail, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
+import { useFormDraft, clearFormDraft } from "@/lib/use-form-draft";
 import {
   startLiveSession,
   scheduleLiveSession,
   goLiveSession,
+  updateLiveSession,
   endLiveSession,
   deleteLiveSession,
   rsvpToLiveSession,
   cancelLiveRsvp,
 } from "./live-events-actions";
 import { JitsiRoom } from "./jitsi-room";
+import { LiveSessionFields, localInputToIso } from "./live-session-fields";
 import { InviteMembersModal } from "./invite-members-modal";
 import { MessageMembersModal } from "./message-members-modal";
 import type { LiveSessionWithStarter, LiveRsvpWithAttendee, LiveInviteWithMember } from "@/lib/data/live-events";
@@ -72,9 +74,8 @@ export function LiveEventsView({
   // ends and `active` goes null the iframe unmounts on its own. Set true up
   // front when staff go live so the host lands straight in the room.
   const [roomOpen, setRoomOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [mode, setMode] = useState<"now" | "schedule">("now");
-  const [scheduledStart, setScheduledStart] = useState("");
+  // The scheduled session whose edit form is open, if any.
+  const [editingId, setEditingId] = useState<string | null>(null);
   // The session the "invite members" picker is currently open for, if any.
   const [inviteFor, setInviteFor] = useState<LiveSessionWithStarter | null>(null);
   // Whether the "email members" composer is open.
@@ -93,26 +94,46 @@ export function LiveEventsView({
     });
   }
 
-  function handleStartNow() {
-    run(
-      () => startLiveSession({ spaceId, communityId, communitySlug, spaceSlug, title: title.trim() || spaceName }),
-      () => {
-        setTitle("");
-        setRoomOpen(true);
-      }
-    );
+  function handleCompose(e: React.FormEvent<HTMLFormElement>, mode: ComposerMode, clearDraft: () => void) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fields = readSessionFields(form);
+    const title = fields.title || spaceName;
+    const reset = () => {
+      clearDraft();
+      form.reset();
+    };
+
+    if (mode === "now") {
+      run(
+        () => startLiveSession({ spaceId, communityId, communitySlug, spaceSlug, ...fields, title }),
+        () => {
+          reset();
+          setRoomOpen(true);
+        }
+      );
+      return;
+    }
+
+    if (!fields.scheduledStart) {
+      setError("Pick a date and time for the event.");
+      return;
+    }
+    run(() => scheduleLiveSession({ spaceId, communityId, communitySlug, spaceSlug, ...fields, title }), reset);
   }
 
-  function handleSchedule() {
-    if (!scheduledStart) {
+  function handleEdit(e: React.FormEvent<HTMLFormElement>, sessionId: string) {
+    e.preventDefault();
+    const fields = readSessionFields(e.currentTarget);
+    if (!fields.scheduledStart) {
       setError("Pick a date and time for the event.");
       return;
     }
     run(
-      () => scheduleLiveSession({ spaceId, communityId, communitySlug, spaceSlug, title: title.trim() || spaceName, scheduledStart }),
+      () => updateLiveSession({ sessionId, communitySlug, spaceSlug, ...fields, title: fields.title || spaceName }),
       () => {
-        setTitle("");
-        setScheduledStart("");
+        clearFormDraft(editDraftKey(sessionId));
+        setEditingId(null);
       }
     );
   }
@@ -219,6 +240,9 @@ export function LiveEventsView({
                   )}
                   <span>{formatRelativeTime(active.started_at)}</span>
                 </div>
+                {active.description && (
+                  <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{active.description}</p>
+                )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {!roomOpen ? (
@@ -266,53 +290,7 @@ export function LiveEventsView({
 
       {/* Staff: start now or schedule ahead. Hidden while a session is live to
           keep the one-session-per-space model simple. */}
-      {isStaff && !active && (
-        <Card>
-          <CardContent className="pt-5">
-            <div className="mb-3 inline-flex rounded-md border border-border p-0.5 text-sm">
-              <button
-                type="button"
-                onClick={() => setMode("now")}
-                className={cn("rounded px-3 py-1", mode === "now" ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
-              >
-                Start now
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("schedule")}
-                className={cn("rounded px-3 py-1", mode === "schedule" ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
-              >
-                Schedule
-              </button>
-            </div>
-
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={`e.g. ${spaceName} — welcome call`}
-              className="mb-2"
-            />
-
-            {mode === "now" ? (
-              <Button type="button" onClick={handleStartNow} disabled={pending} className="w-full sm:w-auto">
-                <Radio className="h-4 w-4" /> {pending ? "Going live…" : "Go live"}
-              </Button>
-            ) : (
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input type="datetime-local" value={scheduledStart} onChange={(e) => setScheduledStart(e.target.value)} className="sm:max-w-xs" />
-                <Button type="button" onClick={handleSchedule} disabled={pending} className="shrink-0">
-                  <CalendarClock className="h-4 w-4" /> {pending ? "Scheduling…" : "Schedule event"}
-                </Button>
-              </div>
-            )}
-            <p className="mt-2 text-xs text-muted-foreground">
-              {mode === "now"
-                ? "Members get a “live now — join” notification when you go live."
-                : "Members are notified now, can RSVP, and get a “live now” alert when you start."}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {isStaff && !active && <SessionComposer spaceId={spaceId} spaceName={spaceName} pending={pending} onSubmit={handleCompose} />}
 
       {/* Upcoming scheduled events, soonest first. */}
       {scheduled.length > 0 && (
@@ -326,77 +304,107 @@ export function LiveEventsView({
               const going = rsvps.some((r) => r.user_id === currentUserId);
               const visible = rsvps.slice(0, 5);
               return (
-                <Card key={session.id}>
+                <Card key={session.id} className="overflow-hidden">
+                  {session.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={session.image_url} alt="" className="h-40 w-full object-cover" />
+                  )}
                   <CardContent className="pt-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3 className="text-base font-semibold text-foreground">{session.title}</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {session.scheduled_start ? formatDateTime(session.scheduled_start) : "Time to be announced"}
-                        </p>
-                        {session.starter && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Hosted by {session.starter.full_name || session.starter.username}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {canJoin && (
-                          <Button
-                            type="button"
-                            variant={going ? "secondary" : "primary"}
-                            onClick={() => handleRsvp(session.id, going)}
-                            disabled={pending}
-                          >
-                            {going ? (
-                              <>
-                                <Check className="h-4 w-4" /> Going
-                              </>
-                            ) : (
-                              "RSVP"
+                    {editingId === session.id ? (
+                      <EditSessionForm
+                        session={session}
+                        spaceName={spaceName}
+                        pending={pending}
+                        onSubmit={(e) => handleEdit(e, session.id)}
+                        onCancel={() => {
+                          clearFormDraft(editDraftKey(session.id));
+                          setEditingId(null);
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="text-base font-semibold text-foreground">{session.title}</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {session.scheduled_start ? formatTimeRange(session.scheduled_start, session.scheduled_end) : "Time to be announced"}
+                            </p>
+                            {session.starter && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Hosted by {session.starter.full_name || session.starter.username}
+                              </p>
                             )}
-                          </Button>
-                        )}
-                        {isStaff && (
-                          <>
-                            <Button type="button" variant="secondary" onClick={() => setInviteFor(session)} disabled={pending}>
-                              <UserPlus className="h-4 w-4" /> Invite
-                            </Button>
-                            <Button type="button" onClick={() => handleGoLive(session.id)} disabled={pending}>
-                              <Radio className="h-4 w-4" /> Go live
-                            </Button>
-                            <button
-                              type="button"
-                              title="Cancel event"
-                              onClick={() => handleDelete(session.id)}
-                              className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-danger"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <InvitedRow invites={invitesBySession[session.id] ?? []} isStaff={isStaff} />
-
-                    {rsvps.length > 0 && (
-                      <div className="mt-3 flex items-center gap-2">
-                        <div className="flex -space-x-2">
-                          {visible.map((r) => (
-                            <Avatar
-                              key={r.id}
-                              src={r.attendee?.avatar_url}
-                              name={r.attendee?.full_name || r.attendee?.username}
-                              size={24}
-                              className="border-2 border-card"
-                            />
-                          ))}
+                            {session.description && (
+                              <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{session.description}</p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            {canJoin && (
+                              <Button
+                                type="button"
+                                variant={going ? "secondary" : "primary"}
+                                onClick={() => handleRsvp(session.id, going)}
+                                disabled={pending}
+                              >
+                                {going ? (
+                                  <>
+                                    <Check className="h-4 w-4" /> Going
+                                  </>
+                                ) : (
+                                  "RSVP"
+                                )}
+                              </Button>
+                            )}
+                            {isStaff && (
+                              <>
+                                <Button type="button" variant="secondary" onClick={() => setInviteFor(session)} disabled={pending}>
+                                  <UserPlus className="h-4 w-4" /> Invite
+                                </Button>
+                                <Button type="button" onClick={() => handleGoLive(session.id)} disabled={pending}>
+                                  <Radio className="h-4 w-4" /> Go live
+                                </Button>
+                                <button
+                                  type="button"
+                                  title="Edit event"
+                                  onClick={() => setEditingId(session.id)}
+                                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Cancel event"
+                                  onClick={() => handleDelete(session.id)}
+                                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-danger"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {rsvps.length} going{rsvps.length > visible.length ? ` (+${rsvps.length - visible.length} more)` : ""}
-                        </p>
-                      </div>
+
+                        <InvitedRow invites={invitesBySession[session.id] ?? []} isStaff={isStaff} />
+
+                        {rsvps.length > 0 && (
+                          <div className="mt-3 flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {visible.map((r) => (
+                                <Avatar
+                                  key={r.id}
+                                  src={r.attendee?.avatar_url}
+                                  name={r.attendee?.full_name || r.attendee?.username}
+                                  size={24}
+                                  className="border-2 border-card"
+                                />
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {rsvps.length} going{rsvps.length > visible.length ? ` (+${rsvps.length - visible.length} more)` : ""}
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
                   </CardContent>
                 </Card>
@@ -568,4 +576,137 @@ function InvitedRow({ invites, isStaff }: { invites: LiveInviteWithMember[]; isS
       </p>
     </div>
   );
+}
+
+
+type ComposerMode = "now" | "schedule";
+
+// Staff: start a session now or schedule one ahead. Its own component so the
+// draft hook attaches whenever the form appears — it's hidden while a session
+// is live, and comes back when that session ends. What's typed survives a
+// refresh (the house rule for forms), one draft per space.
+function SessionComposer({
+  spaceId,
+  spaceName,
+  pending,
+  onSubmit,
+}: {
+  spaceId: string;
+  spaceName: string;
+  pending: boolean;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>, mode: ComposerMode, clearDraft: () => void) => void;
+}) {
+  const [mode, setMode] = useState<ComposerMode>("now");
+  const { formRef, clearDraft } = useFormDraft(`live:${spaceId}`);
+  return (
+    <Card>
+      <CardContent className="pt-5">
+        <div className="mb-3 inline-flex rounded-md border border-border p-0.5 text-sm">
+          <button
+            type="button"
+            onClick={() => setMode("now")}
+            className={cn("rounded px-3 py-1", mode === "now" ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
+          >
+            Start now
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("schedule")}
+            className={cn("rounded px-3 py-1", mode === "schedule" ? "bg-accent text-accent-foreground" : "text-muted-foreground")}
+          >
+            Schedule
+          </button>
+        </div>
+
+        <form ref={formRef} onSubmit={(e) => onSubmit(e, mode, clearDraft)} className="space-y-3">
+          <LiveSessionFields idPrefix="live_new" spaceName={spaceName} showTimes={mode === "schedule"} />
+          {mode === "now" ? (
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+              <Radio className="h-4 w-4" /> {pending ? "Going live…" : "Go live"}
+            </Button>
+          ) : (
+            <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+              <CalendarClock className="h-4 w-4" /> {pending ? "Scheduling…" : "Schedule event"}
+            </Button>
+          )}
+        </form>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {mode === "now"
+            ? "Members get a “live now — join” notification when you go live."
+            : "Members are notified now, can RSVP, and get a “live now” alert when you start."}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Reads the shared session fields off a composer or edit form. Times go to the
+// server as full ISO timestamps, converted in the browser's time zone.
+function readSessionFields(form: HTMLFormElement) {
+  const data = new FormData(form);
+  const text = (name: string) => String(data.get(name) ?? "").trim();
+  return {
+    title: text("title"),
+    description: text("description"),
+    imageUrl: text("image_url"),
+    scheduledStart: localInputToIso(text("scheduled_start")),
+    scheduledEnd: localInputToIso(text("scheduled_end")),
+  };
+}
+
+function editDraftKey(sessionId: string) {
+  return `live-edit:${sessionId}`;
+}
+
+// The edit form for one scheduled session, in place of its card body. Its
+// typing survives a refresh like the composer's; Cancel throws the draft away.
+function EditSessionForm({
+  session,
+  spaceName,
+  pending,
+  onSubmit,
+  onCancel,
+}: {
+  session: LiveSessionWithStarter;
+  spaceName: string;
+  pending: boolean;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onCancel: () => void;
+}) {
+  const { formRef } = useFormDraft(editDraftKey(session.id));
+  return (
+    <form ref={formRef} onSubmit={onSubmit} className="space-y-3">
+      <LiveSessionFields
+        idPrefix={`live_edit_${session.id}`}
+        spaceName={spaceName}
+        showTimes
+        defaults={{
+          title: session.title,
+          description: session.description,
+          imageUrl: session.image_url,
+          scheduledStart: session.scheduled_start,
+          scheduledEnd: session.scheduled_end,
+        }}
+      />
+      <div className="flex gap-2">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save changes"}
+        </Button>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={pending}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// "Oct 20, 11:00 AM – 11:30 AM": the start as formatDateTime shows it, then
+// just the end time when it's the same day (or the full end when it isn't).
+function formatTimeRange(start: string, end: string | null): string {
+  if (!end) return formatDateTime(start);
+  const s = new Date(start);
+  const e = new Date(end);
+  const sameDay = s.toDateString() === e.toDateString();
+  const endText = sameDay ? e.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : formatDateTime(end);
+  return `${formatDateTime(start)} – ${endText}`;
 }

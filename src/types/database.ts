@@ -1586,6 +1586,12 @@ export type LiveSession = {
   // Set when the session was scheduled ahead of time; null for ad-hoc
   // "go live now" sessions.
   scheduled_start: string | null;
+  // When a scheduled session is planned to finish (after scheduled_start), or
+  // null. The real started_at / ended_at are stamped by Go live / End.
+  scheduled_end: string | null;
+  // What the session is about, and a cover image — both optional.
+  description: string | null;
+  image_url: string | null;
   // Stamped by the reminder job once a scheduled session's pre-start reminder
   // has been sent, so it fires at most once.
   reminder_sent_at: string | null;
