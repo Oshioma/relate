@@ -6,7 +6,7 @@ import { ArrowRight, Search } from "lucide-react";
 import { setNavItemVisibility } from "./actions";
 import { AutoSaveCheckbox } from "@/components/ui/auto-save-checkbox";
 import type { FeatureKey } from "@/types/database";
-import { AccessBox, DragHandle, ROW_GRID, TypeChip } from "./space-row-parts";
+import { AccessBox, DragHandle, ROW_ABOUT, ROW_GRID, ROW_SETTINGS, TypeChip } from "./space-row-parts";
 
 export type NextEventSummary = { title: string; when: string; month: string; day: string };
 
@@ -57,7 +57,7 @@ export function BuiltinNavRow({
       <div className={ROW_GRID}>
         <DragHandle disabled={!dragHandlers.draggable} />
         {isEvents ? (
-          <div className="relative h-16 w-16 lg:h-20 lg:w-20">
+          <div className="relative h-16 w-16 @5xl:h-20 @5xl:w-20">
             {eventsCoverUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={eventsCoverUrl} alt="" className="h-full w-full rounded-xl object-cover" />
@@ -72,12 +72,12 @@ export function BuiltinNavRow({
             )}
           </div>
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-muted-foreground lg:h-20 lg:w-20">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-muted-foreground @5xl:h-20 @5xl:w-20">
             <Search className="h-6 w-6" aria-hidden />
           </div>
         )}
 
-        <div className="min-w-0">
+        <div className={ROW_ABOUT}>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <p className="text-base font-semibold leading-snug text-foreground">{label}</p>
             <TypeChip tone="builtin">Built-in</TypeChip>
@@ -104,7 +104,7 @@ export function BuiltinNavRow({
           }
         />
 
-        <div className="col-span-3 flex flex-col gap-2 lg:col-span-1">
+        <div className={`${ROW_SETTINGS} flex flex-col gap-2`}>
           <AutoSaveCheckbox
             label="Show in navigation"
             variant="switch"
@@ -116,7 +116,7 @@ export function BuiltinNavRow({
             }}
           />
         </div>
-        <div className="hidden lg:block" />
+        <div className="hidden @5xl:block" />
       </div>
     </div>
   );

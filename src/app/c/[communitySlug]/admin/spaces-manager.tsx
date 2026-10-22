@@ -6,7 +6,7 @@ import { CalendarDays, GraduationCap, Home, LayoutGrid, List, ListFilter, Move, 
 import { SpaceCard } from "./space-card";
 import { BuiltinNavRow, type NextEventSummary } from "./builtin-nav-row";
 import { reorderNavItems } from "./actions";
-import { AccessBox, DragHandle, ROW_GRID, TypeChip } from "./space-row-parts";
+import { AccessBox, DragHandle, ROW_ABOUT, ROW_GRID, TypeChip } from "./space-row-parts";
 import { cn } from "@/lib/utils";
 import type { Space, SpaceJournalField, FeatureKey, SpaceType } from "@/types/database";
 import type { NavGroupOption } from "@/lib/nav-groups";
@@ -190,7 +190,7 @@ export function SpacesManager({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 @container">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 id="spaces" className="scroll-mt-20 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -295,10 +295,10 @@ export function SpacesManager({
         <div className="rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className={ROW_GRID}>
             <DragHandle disabled />
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-foreground lg:h-20 lg:w-20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-foreground @5xl:h-20 @5xl:w-20">
               <Home className="h-7 w-7" aria-hidden />
             </div>
-            <div className="min-w-0">
+            <div className={ROW_ABOUT}>
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                 <p className="text-base font-semibold text-foreground">Community Feed</p>
                 <TypeChip tone="pinned">Always at top</TypeChip>
@@ -310,7 +310,7 @@ export function SpacesManager({
               title={accessCommunity.privacy === "public" || (accessCommunity.feed_public && accessCommunity.privacy !== "invite_only") ? "Everyone" : "Members"}
               detail={accessCommunity.privacy === "public" || (accessCommunity.feed_public && accessCommunity.privacy !== "invite_only") ? "Open to visitors" : "Visitors see the front page"}
             />
-            <div className="col-span-3 flex items-start gap-3 rounded-xl bg-accent-soft/60 px-4 py-3 lg:col-span-2">
+            <div className="col-span-3 flex items-start gap-3 rounded-xl bg-accent-soft/60 px-4 py-3 @2xl:col-span-2">
               <Pin className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />
               <div>
                 <p className="text-sm font-medium text-foreground">Fixed at top</p>
