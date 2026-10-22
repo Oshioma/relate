@@ -7,7 +7,7 @@ import { RichText, toPlainText } from "@/components/ui/rich-text";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { MembersOnlyGate } from "../../members-only-gate";
 import { getCommunityBySlug, getMembership, getCommunityMembers } from "@/lib/data/community";
-import { getSpaceBySlug, isGrowingCommunity } from "@/lib/data/spaces";
+import { getSpaceBySlug, getSpaceTeasers, isGrowingCommunity } from "@/lib/data/spaces";
 import { hasActiveSpaceSubscription, hasActiveTierForSpace } from "@/lib/data/space-access";
 import { getTiersForSpace } from "@/lib/data/tiers";
 import { SpacePaywall } from "./space-paywall";
@@ -132,12 +132,16 @@ export default async function SpaceDetailPage({
   if (!space) {
     const gateMembership = user ? await getMembership(supabase, community.id, user.id) : null;
     if (gateMembership?.status === "banned") notFound();
+    // A space the community chose to show locked: its name, description and
+    // cover, and nothing from inside it.
+    const teaser = (await getSpaceTeasers(supabase, community.id)).find((t) => t.slug === spaceSlug) ?? null;
     return (
       <MembersOnlyGate
         community={community}
         isLoggedIn={Boolean(user)}
         membershipStatus={gateMembership?.status ?? null}
         returnTo={`/c/${community.slug}/spaces/${spaceSlug}`}
+        teaser={teaser}
       />
     );
   }

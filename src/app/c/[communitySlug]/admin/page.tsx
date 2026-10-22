@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarDays, Sparkles, ListTree, Inbox, BarChart3, Eye, Mail } from "lucide-react";
+import { CalendarDays, Sparkles, Inbox, BarChart3, Eye, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
@@ -140,6 +140,26 @@ export default async function AdminPage({
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
   const newThisWeek = members.filter((m) => new Date(m.created_at).getTime() >= weekAgo).length;
   const upcomingEvents = events.filter((e) => new Date(e.start_time).getTime() >= now).length;
+  const nextEvent =
+    events
+      .filter((e) => new Date(e.start_time).getTime() >= now)
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0] ?? null;
+
+  // Formatted here in the admin's own time zone (saved from their browser),
+  // so server and browser render the same text.
+  const viewerTimeZone = (await getProfile(supabase, user.id))?.timezone ?? "UTC";
+  const nextEventSummary = nextEvent ? summarizeNextEvent(nextEvent, viewerTimeZone) : null;
+
+  // Post counts for the Spaces list ("124 posts"). One small count per space.
+  const postCounts = await Promise.all(
+    spaces.map(async (s) => {
+      const { count } = await db.from("posts").select("id", { count: "exact", head: true }).eq("space_id", s.id);
+      return [s.id, count ?? 0] as const;
+    })
+  );
+  const statsBySpaceId: Record<string, string[]> = Object.fromEntries(
+    postCounts.map(([id, n]) => [id, n > 0 ? [`${n} ${n === 1 ? "post" : "posts"}`] : []])
+  );
 
   const stats: { label: string; value: number; sub?: string }[] = [
     { label: "Members", value: members.length },
@@ -199,6 +219,7 @@ export default async function AdminPage({
     price_cents: s.price_cents,
     currency: s.currency,
     show_in_nav: s.show_in_nav,
+    when_locked: s.when_locked,
     tierIds: tierIdsBySpaceId[s.id] ?? [],
   }));
   const tierSales = tiers.length > 0 ? Object.fromEntries(await getTierSales(db, community.id)) : {};
@@ -250,7 +271,7 @@ export default async function AdminPage({
     { id: "members", label: "Members", group: "Community" },
     // Access settings in their four groups, after the summary that links to them.
     { id: "who-can-see-what", label: "Who can see what?", group: "Access" },
-    { id: "spaces", label: "Spaces & content access", group: "Access" },
+    { id: "spaces", label: "Spaces & Content", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
@@ -422,28 +443,24 @@ export default async function AdminPage({
         </Link>
       </div>
 
-      <h2 id="spaces" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Spaces &amp; content access</h2>
-      <p className="mb-3 text-sm text-muted-foreground">
-        Drag to reorder. Events and Search can be moved among your spaces too — Feed always stays at the top. A space with
-        nav sub-links (like a business directory&apos;s featured categories) shows a{" "}
-        <ListTree className="inline h-3.5 w-3.5 align-text-bottom" /> button to expand and reorder them.
-      </p>
-      {navManagerItems.length > 0 && (
-        <div className="mb-4">
-          <SpacesManager
-            items={navManagerItems}
-            communityId={community.id}
-            communitySlug={community.slug}
-            journalFieldsBySpaceId={journalFieldsBySpaceId}
-            allowedTypes={allowedTypes}
-            paymentsEnabled={canCharge && community.stripe_charges_enabled}
-            navGroups={navGroupOptions}
-            tiers={accessTiers}
-            tierIdsBySpaceId={tierIdsBySpaceId}
-            accessCommunity={accessCommunity}
-          />
-        </div>
-      )}
+      <div className="mb-4">
+        <SpacesManager
+          items={navManagerItems}
+          communityId={community.id}
+          communitySlug={community.slug}
+          journalFieldsBySpaceId={journalFieldsBySpaceId}
+          allowedTypes={allowedTypes}
+          paymentsEnabled={canCharge && community.stripe_charges_enabled}
+          navGroups={navGroupOptions}
+          tiers={accessTiers}
+          tierIdsBySpaceId={tierIdsBySpaceId}
+          accessCommunity={accessCommunity}
+          statsBySpaceId={statsBySpaceId}
+          eventsCoverUrl={community.events_cover_url}
+          nextEvent={nextEventSummary}
+          previewButton={platformView ? undefined : <ViewAsMemberButton communityId={community.id} communitySlug={community.slug} label="Preview as member" />}
+        />
+      </div>
       <h3 id="add-space" className="mb-1 scroll-mt-20 text-base font-semibold text-foreground">Add a space</h3>
       <p className="mb-3 text-sm text-muted-foreground">
         {platformView
@@ -627,4 +644,21 @@ export default async function AdminPage({
       </fieldset>
     </div>
   );
+}
+
+function summarizeNextEvent(event: { title: string; start_time: string }, timeZone: string) {
+  const date = new Date(event.start_time);
+  const format = (options: Intl.DateTimeFormatOptions) => {
+    try {
+      return date.toLocaleString("en-GB", { ...options, timeZone });
+    } catch {
+      return date.toLocaleString("en-GB", { ...options, timeZone: "UTC" });
+    }
+  };
+  return {
+    title: event.title,
+    when: format({ weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }),
+    month: format({ month: "short" }),
+    day: format({ day: "numeric" }),
+  };
 }

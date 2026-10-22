@@ -39,6 +39,8 @@ export type AccessSpace = {
   price_cents: number;
   currency?: string;
   show_in_nav?: boolean;
+  // 'teaser': visitors see it locked (name, description, cover only).
+  when_locked?: "teaser" | null;
   // Every tier this space is in (tier_spaces), archived ones included.
   tierIds: string[];
 };
@@ -81,8 +83,14 @@ function holdsAccess(space: AccessSpace, viewer: AccessViewer): boolean {
   return space.tierIds.some((id) => viewer.tierIds.includes(id)) || Boolean(viewer.spaceIds?.includes(space.id));
 }
 
+// A members space shown, locked, to people who haven't joined (space_teasers).
+export function showsTeaser(community: AccessCommunity, space: AccessSpace): boolean {
+  return space.when_locked === "teaser" && space.visibility === "members" && community.privacy !== "invite_only";
+}
+
 export function spaceAccessFor(community: AccessCommunity, space: AccessSpace, viewer: AccessViewer): AccessState {
   if (viewer.kind === "team") return "open";
+  if ((viewer.kind === "visitor" || viewer.kind === "outsider") && showsTeaser(community, space)) return "locked";
   if (!seesShell(community, space, viewer)) return "hidden";
   if (!isGated(space)) return "open";
   return holdsAccess(space, viewer) ? "open" : "locked";
@@ -195,6 +203,20 @@ export function describeDiscoverability(community: AccessCommunity): string {
   if (community.privacy === "public") return "Listed on Relate. Anyone can find it and join for free.";
   if (community.privacy === "private") return "Not listed. People with the link can ask to join, and you approve them.";
   return "Hidden. Only people you invite can get in.";
+}
+
+// The access box on a space's row in Admin: a short title and one line under
+// it. Both paid choices read "Paid members", with the memberships that open it.
+export function spaceAccessCard(space: AccessSpace, tiers: AccessTier[]): { choice: AccessChoice; title: string; detail: string } {
+  const choice = accessChoiceOf(space, tiers);
+  if (choice === "everyone") return { choice, title: "Everyone", detail: "Open to visitors" };
+  if (choice === "members") return { choice, title: "All members", detail: "Join to participate" };
+  if (choice === "team") return { choice, title: "Admins only", detail: "Owners, admins and moderators" };
+  const unlocking = tiers.filter((t) => space.tierIds.includes(t.id));
+  const names = [...unlocking.filter((t) => !t.archived_at), ...unlocking.filter((t) => t.archived_at)].map((t) => t.name);
+  const own = space.price_cents > 0 ? `${formatMonthly(space.price_cents, space.currency)} on its own` : null;
+  const detail = [names.join(", "), own].filter(Boolean).join(" · ");
+  return { choice, title: "Paid members", detail: detail || "No membership opens it yet" };
 }
 
 // A short plain-English summary of the whole community, one sentence a line.
@@ -310,7 +332,8 @@ export type AccessReason =
   | "team_only"
   | "free_for_members"
   | "unlocked_by_purchase"
-  | "needs_purchase";
+  | "needs_purchase"
+  | "teaser";
 
 export const ACCESS_REASON_TEXT: Record<AccessReason, string> = {
   team: "Owners, admins and moderators can open everything.",
@@ -321,6 +344,7 @@ export const ACCESS_REASON_TEXT: Record<AccessReason, string> = {
   free_for_members: "Members can open this space for free.",
   unlocked_by_purchase: "Their membership or purchase unlocks it.",
   needs_purchase: "Members see it, but it needs a membership or purchase to open.",
+  teaser: "Shown locked to visitors (name, description and cover only); they join to open it.",
 };
 
 // The state plus the rule that decided it, for the overview and Access Check.
@@ -337,6 +361,7 @@ export function explainSpaceAccess(
     return { state, reason: "members_only" };
   }
   if (space.visibility === "public") return { state, reason: "public_space" };
+  if ((viewer.kind === "visitor" || viewer.kind === "outsider") && state === "locked") return { state, reason: "teaser" };
   if (state === "locked") return { state, reason: "needs_purchase" };
   return { state, reason: isGated(space) ? "unlocked_by_purchase" : "free_for_members" };
 }

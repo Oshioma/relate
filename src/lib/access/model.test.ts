@@ -7,6 +7,7 @@ import {
   findAccessIssues,
   settingsForChoice,
   spaceAccessFor,
+  spaceAccessCard,
   tiersLosingAccess,
   explainSpaceAccess,
   accessShifts,
@@ -86,6 +87,23 @@ test("an invite-only community keeps even its public spaces from non-members", (
   assert.equal(openSpaces(hidden, viewers.visitor), "");
   assert.equal(openSpaces(hidden, viewers.outsider), "");
   assert.equal(openSpaces(hidden, viewers.free), "chat,start-here");
+});
+
+test("a teaser shows a members space locked to people who haven't joined, and opens nothing", () => {
+  const teased = space("premium", "members", { tierIds: ["insider"], when_locked: "teaser" });
+  const freeTeased = space("chat", "members", { when_locked: "teaser" });
+  assert.equal(spaceAccessFor(open, teased, viewers.visitor), "locked");
+  assert.equal(spaceAccessFor(open, teased, viewers.outsider), "locked");
+  // A free members space still needs joining.
+  assert.equal(spaceAccessFor(open, freeTeased, viewers.visitor), "locked");
+  assert.equal(spaceAccessFor(open, freeTeased, viewers.free), "open");
+  assert.equal(spaceAccessFor(open, teased, viewers.free), "locked");
+  assert.equal(explainSpaceAccess(open, teased, viewers.visitor).reason, "teaser");
+  // Never in a hidden community, never for an Admins-only space.
+  assert.equal(spaceAccessFor(hidden, teased, viewers.visitor), "hidden");
+  assert.equal(spaceAccessFor(open, space("team-room", "private", { when_locked: "teaser" }), viewers.visitor), "hidden");
+  // Turning it on never counts as opening the space to anyone.
+  assert.deepEqual(accessShifts(open, space("premium", "members", { tierIds: ["insider"] }), teased).widens, []);
 });
 
 test("a public space is never gated, whatever tiers list it", () => {
@@ -240,4 +258,12 @@ test("widening and narrowing are named before saving", () => {
   const shift = accessShifts(open, chat, toPaid);
   assert.deepEqual(shift.widens, []);
   assert.deepEqual(shift.narrows, [{ who: "Free members", from: "open", to: "locked" }]);
+});
+
+test("the access box on a space row names what opens it", () => {
+  assert.deepEqual(spaceAccessCard(space("a", "public"), tiers), { choice: "everyone", title: "Everyone", detail: "Open to visitors" });
+  assert.equal(spaceAccessCard(space("b", "members"), tiers).detail, "Join to participate");
+  assert.equal(spaceAccessCard(space("c", "members", { tierIds: ["insider"] }), tiers).detail, "Insider");
+  assert.equal(spaceAccessCard(space("d", "members", { tierIds: ["insider"], price_cents: 500, currency: "usd" }), tiers).detail, "Insider · $5/month on its own");
+  assert.equal(spaceAccessCard(space("e", "private"), tiers).title, "Admins only");
 });

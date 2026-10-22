@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Space } from "@/types/database";
+import type { Database, Space, SpaceType } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -28,6 +28,27 @@ export async function getSpaceBySlug(
 
   if (error) throw error;
   return data;
+}
+
+export type SpaceTeaser = Database["public"]["Functions"]["space_teasers"]["Returns"][number];
+
+// Members spaces this community shows, locked, to people who haven't joined
+// (spaces.when_locked = 'teaser'). Only name, description, cover and position
+// come back; the spaces table itself stays closed to visitors. Leaves out any
+// space the viewer can already see, so callers can simply append these.
+export async function getSpaceTeasers(supabase: Client, communityId: string, visibleIds: string[] = []): Promise<SpaceTeaser[]> {
+  const { data, error } = await supabase.rpc("space_teasers", { p_community_id: communityId });
+  // A teaser is a nice-to-have: never fail the page over it.
+  if (error || !data) return [];
+  const seen = new Set(visibleIds);
+  return data.filter((t) => !seen.has(t.id));
+}
+
+// A teaser in the shape the space cards and lists draw, marked locked.
+export type LockableSpace = Pick<Space, "id" | "name" | "slug" | "description" | "space_type" | "image_url"> & { locked?: boolean };
+
+export function teaserAsSpace(t: SpaceTeaser): LockableSpace {
+  return { id: t.id, name: t.name, slug: t.slug, description: t.description, space_type: t.space_type as SpaceType, image_url: t.image_url, locked: true };
 }
 
 // The farming template's "Growing Journey" is an ordinary discussion space

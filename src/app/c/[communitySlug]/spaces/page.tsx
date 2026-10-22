@@ -5,7 +5,7 @@ import { History, Layers, Lock, Users as UsersIcon, Globe } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
-import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toPlainText } from "@/components/ui/rich-text";
@@ -32,6 +32,9 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
     getCommunitySpaces(supabase, community.id),
   ]);
 
+  // Members spaces the community shows, locked, to people who haven't joined.
+  const teasers = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id))).map(teaserAsSpace);
+
   const isStaff = membership?.status === "active" && (membership.role === "owner" || membership.role === "admin");
 
   // THE TIMELINE IS NOT A SPACE, AND THAT IS WHY NOBODY COULD FIND IT.
@@ -56,7 +59,7 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
         )}
       </div>
 
-      {spaces.length === 0 && !showTimeline ? (
+      {spaces.length === 0 && teasers.length === 0 && !showTimeline ? (
         <EmptyState icon={<Layers className="h-6 w-6" />} title="No spaces yet" description="Spaces will show up here once they're created." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -99,6 +102,34 @@ export default async function SpacesPage({ params }: { params: Promise<{ communi
                       <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                         {visibilityIcon[space.visibility]}
                         {space.visibility}
+                      </span>
+                    </div>
+                    {space.description && (
+                      <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{toPlainText(space.description)}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+          {teasers.map((space) => {
+            const TypeIcon = SPACE_TYPES[space.space_type]?.icon ?? Layers;
+            return (
+              <Link key={space.id} href={`/c/${community.slug}/spaces/${space.slug}`} className="group">
+                <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-sm">
+                  <div className="relative aspect-[5/2] w-full overflow-hidden bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={spaceImage(space)} alt="" className="h-full w-full object-cover" />
+                  </div>
+                  <CardContent className="pt-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <TypeIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <h3 className="truncate text-sm font-semibold text-foreground">{space.name}</h3>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                        <Lock className="h-3.5 w-3.5" />
+                        Join to open
                       </span>
                     </div>
                     {space.description && (

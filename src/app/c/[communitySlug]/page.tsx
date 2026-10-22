@@ -34,7 +34,7 @@ import {
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
-import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
+import { getGrowingJourneySpace, getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
 import { getCommunityFeatures } from "@/lib/data/features";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { SPACE_TYPES } from "@/lib/space-types";
@@ -187,6 +187,10 @@ export default async function CommunityFeedPage({
   // The feed's photo cards are chosen separately from the sidebar (Admin →
   // Spaces → "Show as card on feed"), so tidying one doesn't empty the other.
   const cardSpaces = spaces.filter((s) => s.show_as_card);
+  // Members spaces the community shows, locked, to people who haven't joined.
+  const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
+    .filter((t) => t.show_as_card)
+    .map(teaserAsSpace);
   const discoverShortcuts: DiscoverShortcut[] = navSpaces.flatMap((space) => {
     const SpaceIcon = SPACE_TYPES[space.space_type].icon;
     const spaceLabelOverrides = labelOverrides.filter((o) => o.space_id === space.id);
@@ -713,7 +717,7 @@ export default async function CommunityFeedPage({
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} />
+        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} />
 
         {/* `min-w-0` on every column is load-bearing, not decoration. A grid
             item defaults to `min-width: auto`, so its track can't shrink below

@@ -96,6 +96,7 @@ export default async function AccessOverviewPage({ params }: { params: Promise<{
     price_cents: s.price_cents,
     currency: s.currency,
     show_in_nav: s.show_in_nav,
+    when_locked: s.when_locked,
     tierIds: tierIdsBySpaceId[s.id] ?? [],
   }));
   const { viewers, rows, communityIssues } = buildAccessOverview(accessCommunity, accessSpaces, tiers);
@@ -190,7 +191,7 @@ export default async function AccessOverviewPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <AccessCheck people={people} spaces={spaces.map((s) => ({ id: s.id, name: s.name }))} />
+      <AccessCheck people={people} spaces={spaces.map((s) => ({ id: s.id, name: s.name, teaser: s.when_locked === "teaser" }))} />
     </div>
   );
 }
