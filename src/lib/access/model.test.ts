@@ -88,6 +88,23 @@ test("an invite-only community keeps even its public spaces from non-members", (
   assert.equal(openSpaces(hidden, viewers.free), "chat,start-here");
 });
 
+test("a teaser shows a members space locked to people who haven't joined, and opens nothing", () => {
+  const teased = space("premium", "members", { tierIds: ["insider"], when_locked: "teaser" });
+  const freeTeased = space("chat", "members", { when_locked: "teaser" });
+  assert.equal(spaceAccessFor(open, teased, viewers.visitor), "locked");
+  assert.equal(spaceAccessFor(open, teased, viewers.outsider), "locked");
+  // A free members space still needs joining.
+  assert.equal(spaceAccessFor(open, freeTeased, viewers.visitor), "locked");
+  assert.equal(spaceAccessFor(open, freeTeased, viewers.free), "open");
+  assert.equal(spaceAccessFor(open, teased, viewers.free), "locked");
+  assert.equal(explainSpaceAccess(open, teased, viewers.visitor).reason, "teaser");
+  // Never in a hidden community, never for an Admins-only space.
+  assert.equal(spaceAccessFor(hidden, teased, viewers.visitor), "hidden");
+  assert.equal(spaceAccessFor(open, space("team-room", "private", { when_locked: "teaser" }), viewers.visitor), "hidden");
+  // Turning it on never counts as opening the space to anyone.
+  assert.deepEqual(accessShifts(open, space("premium", "members", { tierIds: ["insider"] }), teased).widens, []);
+});
+
 test("a public space is never gated, whatever tiers list it", () => {
   const odd = space("odd", "public", { tierIds: ["insider"] });
   assert.equal(spaceAccessFor(open, odd, viewers.visitor), "open");
