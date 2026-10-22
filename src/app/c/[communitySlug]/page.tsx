@@ -75,6 +75,7 @@ import { FeedHero, HeroLink, type HeroStat } from "./feed-hero";
 import { SpaceCards } from "./space-cards";
 import type { CategorySlide } from "./category-carousel-card";
 import { FeedComposer } from "./feed-composer";
+import { getUpcomingCommunityLiveSessions } from "@/lib/data/live-events";
 import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
@@ -533,7 +534,7 @@ export default async function CommunityFeedPage({
   // one per card. Guests get the tallies but no controls.
   const sidebarEvents = upcoming.slice(0, 4);
   const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
-  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount, categoryPreviews] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount, categoryPreviews, upcomingLive] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -557,6 +558,9 @@ export default async function CommunityFeedPage({
     getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
     community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
     getFeaturedCategoryPreviews(supabase, featuredCategories.filter((f) => cardSpaces.some((sp) => sp.id === f.space_id))),
+    // Scheduled live sessions join the "Upcoming events" card, in the spaces
+    // the viewer can see (RLS).
+    getUpcomingCommunityLiveSessions(supabase, community.id),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -794,7 +798,13 @@ export default async function CommunityFeedPage({
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
             <div className="min-w-0 space-y-6">
-              <UpcomingEventsCard events={sidebarEvents} href={`${base}/events`} going={eventGoing} />
+              <UpcomingEventsCard
+                events={sidebarEvents}
+                liveSessions={upcomingLive}
+                href={`${base}/events`}
+                communityBase={base}
+                going={eventGoing}
+              />
               <NewMembersCard
                 members={recentMembers}
                 href={`${base}/members`}

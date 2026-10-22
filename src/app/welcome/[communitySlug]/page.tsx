@@ -282,7 +282,7 @@ export default async function CommunityWelcomePage({
           </Card>
 
           {features.events && community.events_public && (
-            <UpcomingEventsCard events={upcoming} href={`${base}/events`} going={eventGoing} />
+            <UpcomingEventsCard events={upcoming} href={`${base}/events`} communityBase={base} going={eventGoing} />
           )}
         </div>
       </main>

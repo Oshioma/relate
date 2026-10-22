@@ -119,3 +119,34 @@ export function groupInvitesBySession(invites: LiveInviteWithMember[]): Map<stri
   }
   return map;
 }
+
+// A scheduled live session for the community home page's "Upcoming events"
+// card, with the space it's in so the card can link there.
+export type UpcomingLiveSession = Pick<LiveSession, "id" | "title" | "scheduled_start" | "scheduled_end" | "image_url"> & {
+  space: { slug: string; name: string };
+};
+
+// The next few scheduled live sessions across a community, soonest first. RLS
+// (live_sessions_select → can_view_space) limits it to spaces the viewer may
+// see. One due within the last hour that hasn't gone live yet still counts —
+// the reminder job treats it as current for that long too.
+export async function getUpcomingCommunityLiveSessions(
+  supabase: Client,
+  communityId: string,
+  limit = 4
+): Promise<UpcomingLiveSession[]> {
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("live_sessions")
+    .select("id, title, scheduled_start, scheduled_end, image_url, space:space_id (slug, name)")
+    .eq("community_id", communityId)
+    .eq("status", "scheduled")
+    .gte("scheduled_start", since)
+    .order("scheduled_start", { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  return ((data ?? []) as unknown as (UpcomingLiveSession & { space: UpcomingLiveSession["space"] | null })[]).filter(
+    (s): s is UpcomingLiveSession => Boolean(s.space?.slug)
+  );
+}
