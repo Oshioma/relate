@@ -848,6 +848,111 @@ test("every picture of the Secret of Secrets is from Commons, none repeats the m
   }
 });
 
+test("Hortulanus's commentary is imported in the English of 1597, with the Tablet as that book prints it, and the Latin cited", () => {
+  const file = assertOpenTextOnly("arab.tablet-commentaries", ["eng-1597"]);
+  const work = INVENTORY.find((w) => w.workKey === "arab.tablet-commentaries")!;
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, null);
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "hortulanus-emerald-tablet-commentary");
+  const chapters = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind).map((p) => p.key);
+  assert.deepEqual(chapters, Array.from({ length: 13 }, (_, i) => `arab.comm.hort.${i + 1}`));
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 13, verifiedUnits: 0 }), "verified_against_edition");
+  assert.equal(file.passages[0].key, "arab.comm.hort");
+  assert.equal(file.passages[0].divisionKind, "treatise");
+  // The treatise holds no text; the Latin is cited, not transcribed, and Linden only cited.
+  const top = file.passages[0];
+  assert.equal(top.layers.some((l) => l.content), false);
+  assert.ok(top.layers.some((l) => l.key === "lat-de-alchemia-1541" && l.contentAbsentReason && /only one copy/.test(l.contentAbsentReason)));
+  assert.deepEqual(top.layers.filter((l) => l.licence === "copyrighted_reference").map((l) => l.key), ["eng-linden"]);
+  const withText = file.passages.filter((p) => p.layers.some((l) => l.key === "eng-1597" && l.content));
+  assert.equal(withText.length, 16);
+  for (const passage of withText) {
+    assert.equal(passage.parentKey, "arab.comm.hort", passage.key);
+    const layer = passage.layers.find((l) => l.key === "eng-1597")!;
+    assert.match(layer.evidence, /EEBO-TCP A01683/, passage.key);
+    assert.match(layer.evidence, /translator is not named/, passage.key);
+    assert.deepEqual(passage.witnesses!.map((w) => w.manuscriptKey), ["huntington-1597", "countway-1597"], passage.key);
+    // No transcription debris: long s, gap markers, brackets or a page number.
+    assert.doesNotMatch(layer.content!, /ſ|〈|\[|\]|\bp\. \d/, passage.key);
+  }
+  const text = (key: string) => file.passages.find((p) => p.key === key)!.layers.find((l) => l.key === "eng-1597")!.content!;
+  assert.match(text("arab.comm.hort.tablet"), /^The Smaragdine Table of Hermes, Trismegistus of Alchimy\.\n\nTHe wordes of the secrets of Hermes/);
+  assert.match(text("arab.comm.hort.tablet"), /His father is the sun, his mother is the moone/);
+  assert.match(text("arab.comm.hort.tablet"), /Here endeth the Table of Hermes\.$/);
+  assert.match(text("arab.comm.hort.prayer"), /^A briefe Commentarie of Hortulanus the Philosopher/);
+  assert.match(text("arab.comm.hort.preface"), /wrapped in a Iacobin skinne/);
+  assert.match(text("arab.comm.hort.1"), /^CHAP\. I\.\n\nThat the Art of Alchimy is true and certaine\.\n\nTHe Philosopher saith\./);
+  assert.match(text("arab.comm.hort.10"), /^CHAP X\.\n\n/);
+  assert.match(text("arab.comm.hort.13"), /Thus endeth the Commentarie of Hortulanus, vppon the Smaragdine table of Hermes, the father of Philosophers\.$/);
+  // The printer's misprints are kept, and the other copy's press variants recorded.
+  assert.match(text("arab.comm.hort.tablet"), /and and againe/);
+  assert.match(text("arab.comm.hort.tablet"), /adatpations/);
+  assert.match(file.passages.find((p) => p.key === "arab.comm.hort.tablet")!.witnesses![1].variantNote!, /tha gently/);
+  // Dates: Hortulanus disputed; the Latin printed in 1541; the English in 1597.
+  const dates = top.dates!;
+  assert.deepEqual(dates.map((d) => d.role), ["composition", "translation_publication", "translation_publication"]);
+  assert.match(dates[0].originalDateText, /disputed/);
+  assert.match(dates[0].evidence, /^Disputed\./);
+  assert.equal(dates[1].startYear, 1541);
+  assert.equal(dates[2].startYear, 1597);
+  // The Bacon attribution is reported as the title page's claim, and doubted.
+  assert.match(dates[2].evidence, /attribution is a claim, which scholars doubt/);
+  assert.equal(work.inventoryVerified, false);
+});
+
+test("Hortulanus's chapters are linked to the Tablet lines they explain, as proposed later readings only", () => {
+  const file = corpusFor("arab.tablet-commentaries")!;
+  const links = file.links ?? [];
+  const keys = new Set(ALL_CORPORA.flatMap((c) => c.passages.map((p) => p.key)));
+  for (const link of links) {
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.ok(keys.has(link.from), `${link.key}: ${link.from}`);
+    assert.ok(keys.has(link.to), `${link.key}: ${link.to}`);
+  }
+  const glosses = links.filter((l) => /^hortulanus-\d+-explains-vulgate-\d\d$/.test(l.key));
+  assert.equal(glosses.length, 21);
+  for (const link of glosses) {
+    assert.match(link.from, /^arab\.comm\.hort\.\d+$/, link.key);
+    assert.match(link.to, /^arab\.tab\.vulgate\.\d\d$/, link.key);
+    assert.equal(link.connectionClass, "later_reinterpretation", link.key);
+  }
+  // Every chapter explains at least one line, and every line of the vulgate is explained.
+  assert.equal(new Set(glosses.map((l) => l.from)).size, 13);
+  assert.deepEqual(
+    [...new Set(glosses.map((l) => l.to))].sort(),
+    Array.from({ length: 18 }, (_, i) => `arab.tab.vulgate.${String(i + 1).padStart(2, "0")}`)
+  );
+  const secretum = links.find((l) => l.to === "arab.secretum.10.7")!;
+  assert.match(secretum.transmissionEvidence, /^None shown\..*never as transmission/);
+  for (const link of links.filter((l) => l.from.startsWith("modern.hpb."))) {
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+  }
+  assert.equal(links.length, 25);
+});
+
+test("every picture of Hortulanus and the 1597 book is from Commons, none repeats the marker or the Tablet, and the unverified one says so first", () => {
+  const file = corpusFor("arab.tablet-commentaries")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 4);
+  assert.equal(images[0].key, "hortulanus-mirror-1597-title-page");
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.ok(image.licence, image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else {
+      assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    }
+    assert.doesNotMatch(image.url, /Emerald_Tablet_Johannes_Petreius|Smaragdtafel|Chrysogonus|M0012393/, image.key);
+  }
+  assert.equal(unverified, 1);
+  assert.equal(images.find((i) => i.key === "hortulanus-mirror-1597-printers-device")!.duplicateOf, "hortulanus-mirror-1597-title-page");
+});
+
 test("Blavatsky's Stanzas of Dzyan are imported stanza by stanza, apart from her commentary, with twenty passages of her prose, each cited by first-edition volume and page", () => {
   const file = assertOpenTextOnly("modern.blavatsky", ["eng-blavatsky"]);
   const work = INVENTORY.find((w) => w.workKey === "modern.blavatsky")!;

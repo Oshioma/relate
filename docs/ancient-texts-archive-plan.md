@@ -708,3 +708,161 @@ There are 39 plain-words entries, 16 of which have "Other possible readings". Th
 - Blavatsky's own footnotes are left out, except two. Footnotes recorded only in notes include the forty-nine-slokas note, the note on the Sanskrit numbers, and the note that Stanza VI.1 is "of a far later date".
 - Coleman is cited for his verdict only. The appendix promises its detailed proofs for "a work I am preparing for publication" and does not give them, and no later scholarship is cited here.
 - The text was checked on page images only where the OCRs disagreed or a reading was in doubt. It has not been proofread page by page.
+
+## 21. Stage 15: Hortulanus and the Mirror of Alchimy
+
+The medieval commentaries on the Emerald Tablet (`arab.tablet-commentaries`, prefix `arab.comm`). This stage imports one of them, Hortulanus's commentary, as a treatise, `arab.comm.hort`. It is attached to the marker the inventory already defines (`hortulanus-emerald-tablet-commentary`); there is no new marker.
+
+The text is the English of *The Mirror of Alchimy* (London: Thomas Creede for Richard Olive, 1597; STC 1182, ESTC S100517), which is public domain. Two pieces are imported in full, in the 1597 spelling:
+- the Smaragdine Table of Hermes as the book prints it (pp. 16–17), since the archive had no English of 1597;
+- "A briefe Commentarie of Hortulanus the Philosopher" (pp. 17–27).
+
+Three things are cited rather than imported:
+- **Bacon's *Mirror* proper (pp. 1–16).** It is not imported. The only second transcription found is in modernised spelling, so it is left for a later stage.
+- **The Latin of *De Alchemia* (Nuremberg: Petreius, 1541).** It is public domain, and the layer `lat-de-alchemia-1541` carries a `contentAbsentReason`. Only one copy's page images could be reached (e-rara, doi:10.3931/e-rara-5596), and nothing was available to check a reading against.
+- **Linden's edition (1992).** It is in copyright and is a `copyrighted_reference` layer (`eng-linden`).
+
+The inventory gained three sources: `mirror-alchimy-1597`, `de-alchemia-1541` and `linden-1992`. The work record was rewritten, with:
+- `unitDivisionKind` "chapter";
+- `expectedUnits` null;
+- `inventoryVerified` false;
+- dates with evidence.
+
+Files:
+- `corpus/hortulanus.ts`;
+- the generated `corpus/hortulanus-text.ts`, made by `scripts/texts/hortulanus-mirror.py`;
+- `corpus/hortulanus-related-images.ts`;
+- plain words in `corpus/plain/hortulanus.ts`.
+
+### Source and checking
+
+The witnesses are:
+
+| Siglum | Witness | Notes |
+|---|---|---|
+| T | EEBO-TCP A01683 (CC0), in the EarlyPrint Project's tokenised edition | The base. Keyed from the microfilm of the Huntington Library copy; "not fully proofread". Its original spellings are used, never EarlyPrint's regularised ones. |
+| M | Adam McLean's transcription (alchemywebsite.com/hortulan.html) | The commentary only, in modern u/v and i/j. |
+| C | archive.org OCR of the Countway Library copy (`mirrorofalchimy00baco`) | A second physical copy. |
+| H | archive.org OCR of the Huntington microfilm (`bim_early-english-books-1475-1640_the-mirror-of-alchimy-_bacon-roger_1597`) | |
+
+How the collation works:
+- The words are aligned with difflib on letters only (long s and f as s, u = v, i = j).
+- In the commentary, a reading is taken against T only where at least two witnesses agree, M is one of them, and they outnumber T. Agreements between the two OCRs alone are logged and not taken.
+- In the Tablet, which M does not have, the OCRs' agreements are only logged.
+- In-order agreement with T was:
+  - M: 0.98;
+  - C: 0.54 in the commentary, 0.53 in the Tablet;
+  - H: 0.48 in the commentary, 0.41 in the Tablet.
+- The vote changed one word: "Sunue" became "Sunne" on p. 20.
+- Every place where M and T differ (47) was logged and read on the page images, as were the OCR-only agreements (4).
+- The microfilm images of the Huntington copy (pp. 16–27) were read in full against the output.
+- The Countway scan was read for pp. 16–17, 21–23 and 26, and wherever the microfilm was faint.
+- `FIXES` holds 20 corrections by hand, each asserted to apply the stated number of times.
+
+The two copies are of different states of the sheet, so `VARIANTS` records three Countway press variants:
+- "tha gently";
+- "discendeth";
+- "adabtations".
+
+The Huntington readings are kept. The copies were not collated in full, so these are the differences seen, not all there are.
+
+The printer's misprints are kept:
+- "and and againe" across pp. 16–17;
+- "adatpations";
+- "beeause";
+- "seperate";
+- "CHAP X." without its stop.
+
+Long s is printed s, and abbreviations are expanded. Running heads, page numbers, signatures and catchwords are left out. The book has no editorial apparatus. The generator reproduces `hortulanus-text.ts` byte for byte from the four inputs.
+
+### Units
+
+`arab.comm.hort` (`treatise`) holds no text. It carries:
+- the cited Latin and Linden layers;
+- the dates;
+- the two title-page pictures.
+
+Its 16 children carry the text:
+
+| Key | Division | Content |
+|---|---|---|
+| `arab.comm.hort.tablet` | `version` | The Tablet as printed |
+| `.prayer` | `section` | The commentary's title and Hortulanus's prayer |
+| `.preface` | `section` | The preface |
+| `.1` … `.13` | `chapter` | The thirteen chapters |
+
+Each child records:
+- its printed pages;
+- both copies as witnesses: `huntington-1597`, the base, and `countway-1597`, which has the variant note on the Tablet.
+
+Themes are on 14 passages, including above-and-below, Sun and Moon, ascension, creation, and death and rebirth.
+
+### Attribution and dates
+
+The title page attributes the book to "the thrice-famous and learned Fryer, Roger Bachon". This is recorded as the title page's claim, which scholars doubt, and it does not extend to Hortulanus. The translator is not named.
+
+The dates on `arab.comm.hort`:
+- **Composition: 1300–1400, `century`, marked disputed.**
+  - It is the usual fourteenth-century dating (Ruska 1926).
+  - The commentary gives no date. Its author names himself only as "Hortulanus, so called for the Gardens bordering vpon the sea coast, wrapped in a Iacobin skinne".
+  - The e-rara catalogue record of *De Alchemia* gives "14. Jht., bzw. 11./12. Jht".
+- **Latin first printing: 1541.** This is the imprint of *De Alchemia*. Its p. 363, seen on Commons, has the whole Tablet and ends with the catchword "Hortula-".
+- **English translation: 1597.** This is from the title page and the colophon (Thomas Creede).
+
+### Links
+
+There are 25 links, all `proposed`:
+- **Gloss links: 21 `later_reinterpretation` links**, from each chapter to the vulgate line or lines whose words it quotes as its lemma (`hortulanus-N-explains-vulgate-NN`). Every chapter explains at least one line, and all 18 lines are explained. Each link says what the Tablet itself does and does not say. Two examples:
+  - "telesme" renders an Arabic word for talismans, which Hortulanus did not know;
+  - the commentary's "Thou shalt separate" stands against the vulgate's "separabit".
+- **`arab.comm.hort.tablet` → `arab.tab.vulgate`:** `direct_textual_parallel`. The links note:
+  - the 1597 opening narrative and "philosophy" agree with the 1541 Latin and not with the archive's vulgate;
+  - that the translator used the 1541 printing is likely but not shown.
+- **`arab.comm.hort.tablet` → `arab.secretum.10.7`:** `close_conceptual_parallel`, with "None shown … never as transmission".
+- **`modern.hpb.sd.2.109` → `arab.comm.hort.4`:** `symbolic_similarity`, on the Sun and Moon.
+- **`modern.hpb.sd.2.113` → `arab.comm.hort.2`:** `close_conceptual_parallel`, on the Lapis Philosophorum.
+
+Both Blavatsky links say "None shown": she does not cite Hortulanus.
+
+### Images
+
+There are four images, all from Commons file pages, each looked at, all `licenceStatus` "open":
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The 1597 title page, the Countway copy (owners' signatures Comstock and Neile) | `arab.comm.hort` | secure |
+| Creede's printer's device ("VIRESCIT VULNERE VERITAS", "TC"), cut from the same title page | `arab.comm.hort` | secure, marked `duplicateOf` the title page |
+| Kriegsmann's *Tabula Smaragdina* title (1657, SLUB Dresden / Deutsche Fotothek) | the Tablet | secure, related and later evidence |
+| Zentralbibliothek Zürich Ms. Rh. 172 f. 3r (*Aurora consurgens*), an old man holding a painted board | the Tablet | `UNVERIFIED` |
+
+The Zürich picture is `UNVERIFIED` because "the discovery of the Emerald Tablet" is the file page's description only. The board carries pictures, not the Tablet's words.
+
+The following are not repeated, because they are already used elsewhere:
+- on the marker: the Petreius p. 363 page and Khunrath's Smaragdtafel;
+- on the vulgate: the Chrysogonus page and Wellcome M0012393.
+
+The Mirror's ornamental initials and fleuron were looked at and left out, because they belong to Bacon's text. No picture of Hortulanus's Latin commentary, or of a manuscript of it, was found on Commons.
+
+### Plain words
+
+There are 16 plain-words entries, of which 11 have "Other possible readings". These cover:
+- telesme;
+- meditation/mediation and adaptation;
+- "perfect man" in the prayer;
+- the "Iacobin skinne" and the name;
+- "firmament" for ferment (Chapters V and VIII);
+- philosophical dung as gentle heat;
+- obscurity;
+- adaptations;
+- philosophers' Mercury.
+
+They explain the alchemical terms as they are usually taken, without claiming to know Hortulanus's laboratory practice.
+
+### Not done
+
+- `inventoryVerified` stays false and `expectedUnits` null. The thirteen chapters have not been checked against a stated inventory of the Latin.
+- The 1541 Latin is cited, not transcribed. Whether the 1597 translator used that printing is not shown.
+- Bacon's *Mirror* proper, Calid's *Booke of the secrets of alchimie* and the rest of the 1597 book are not imported.
+- The other medieval commentaries on the Tablet are not imported.
+- The two copies were collated only at disputed places. The Huntington microfilm was read in full, but the text has not been proofread against a second full collation.
+- The marker's caption for the Petreius p. 363 picture still says it is unchecked; it was not changed in this stage, although the page was looked at here.

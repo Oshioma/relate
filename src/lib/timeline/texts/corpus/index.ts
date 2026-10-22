@@ -20,6 +20,7 @@ import { MEMPHITE_THEOLOGY_CORPUS } from "./memphite-theology";
 import { AMDUAT_CORPUS } from "./amduat";
 import { BOOK_OF_GATES_CORPUS } from "./book-of-gates";
 import { HEAVENLY_COW_CORPUS } from "./heavenly-cow";
+import { HORTULANUS_CORPUS } from "./hortulanus";
 import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PTAHHOTEP_CORPUS } from "./ptahhotep";
 import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
@@ -43,6 +44,7 @@ import { PLAIN_MEMPHITE_THEOLOGY } from "./plain/memphite-theology";
 import { PLAIN_AMDUAT } from "./plain/amduat";
 import { PLAIN_BOOK_OF_GATES } from "./plain/book-of-gates";
 import { PLAIN_HEAVENLY_COW } from "./plain/heavenly-cow";
+import { PLAIN_HORTULANUS } from "./plain/hortulanus";
 import { PLAIN_PISTIS_SOPHIA } from "./plain/pistis-sophia";
 import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
@@ -70,6 +72,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(PISTIS_SOPHIA_CORPUS, PLAIN_PISTIS_SOPHIA),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
   withPlainWords(SECRETUM_CORPUS, PLAIN_SECRETUM),
+  withPlainWords(HORTULANUS_CORPUS, PLAIN_HORTULANUS),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
   withPlainWords(HALL_CORPUS, PLAIN_HALL),
   withPlainWords(BLAVATSKY_CORPUS, PLAIN_BLAVATSKY),
