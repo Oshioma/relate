@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import type { Space } from "@/types/database";
+import { ArrowRight, Lock } from "lucide-react";
+import type { LockableSpace } from "@/lib/data/spaces";
 import { SPACE_TYPES } from "@/lib/space-types";
 import { toPlainText } from "@/components/ui/rich-text";
 import { spaceImage } from "@/lib/space-images";
@@ -21,7 +21,8 @@ export function SpaceCards({
   carousels = {},
   showOnMobile = false,
 }: {
-  spaces: Space[];
+  // Locked ones are teasers: members spaces shown to people who haven't joined.
+  spaces: LockableSpace[];
   base: string;
   // space id → its featured-category slides. A space with two or more shows
   // them one at a time (CategoryCarouselCard) instead of a single card.
@@ -72,6 +73,12 @@ export function SpaceCards({
                 alt=""
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+              {space.locked && (
+                <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+                  <Lock className="h-3 w-3" />
+                  Members
+                </span>
+              )}
             </span>
 
             {/* The panel rides up over the photo's foot, so the card reads as

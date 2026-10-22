@@ -192,7 +192,7 @@ export function SpaceCard({
 
           <AccessSelector
             idPrefix={`space-${space.id}`}
-            space={{ id: space.id, name: space.name, visibility: space.visibility, price_cents: space.price_cents, currency: space.currency, show_in_nav: space.show_in_nav, tierIds }}
+            space={{ id: space.id, name: space.name, visibility: space.visibility, price_cents: space.price_cents, currency: space.currency, show_in_nav: space.show_in_nav, when_locked: space.when_locked, tierIds }}
             tiers={tiers}
             community={accessCommunity}
             paymentsEnabled={paymentsEnabled}

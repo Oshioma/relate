@@ -476,8 +476,16 @@ export type Space = {
   // code. See 20260729185900_space_paywall.sql.
   price_cents: number;
   currency: string;
+  // What someone who can't open the space sees of it. null = today's rule
+  // (members see it locked, visitors don't see it); 'teaser' = visitors also
+  // see its name, description and cover, locked. Read by visitors through
+  // space_teasers(), never through the spaces table. See
+  // 20261022090133_space_locked_teaser.sql.
+  when_locked: SpaceWhenLocked | null;
   created_at: string;
 };
+
+export type SpaceWhenLocked = "teaser";
 
 // A post can optionally be pinned to a place on the community's Explore Map
 // (a beach, a landmark, a neighbourhood) — the start of the "Living Map":
@@ -4521,6 +4529,24 @@ export type Database = {
       access_check: {
         Args: { p_space_id: string; p_user_id: string | null };
         Returns: unknown;
+      };
+      // A members space marked as a teaser, as a visitor may see it: name,
+      // short description, cover and where it sits. Nothing inside it.
+      space_teasers: {
+        Args: { p_community_id: string };
+        Returns: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          image_url: string | null;
+          space_type: string;
+          sort_order: number;
+          show_in_nav: boolean;
+          show_as_card: boolean;
+          nav_group: string | null;
+          gated: boolean;
+        }[];
       };
       course_lesson_outline: {
         Args: { p_course_ids: string[] };

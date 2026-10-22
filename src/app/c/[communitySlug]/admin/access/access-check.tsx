@@ -19,7 +19,7 @@ export function AccessCheck({
   spaces,
 }: {
   people: { id: string; name: string; status: string }[];
-  spaces: { id: string; name: string }[];
+  spaces: { id: string; name: string; teaser?: boolean }[];
 }) {
   const [personId, setPersonId] = useState("");
   const [spaceId, setSpaceId] = useState(spaces[0]?.id ?? "");
@@ -39,7 +39,7 @@ export function AccessCheck({
       setAnswer({
         who: people.find((p) => p.id === personId)?.name ?? "A visitor",
         space: spaces.find((s) => s.id === spaceId)?.name ?? "this space",
-        result: explainAccessCheck(res.facts, { visitor: !personId }),
+        result: explainAccessCheck(res.facts, { visitor: !personId, teaser: spaces.find((s) => s.id === spaceId)?.teaser }),
       });
     });
   }

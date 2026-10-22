@@ -37,8 +37,12 @@ function membershipWords(f: AccessCheckFacts, visitor: boolean): string | null {
   return null;
 }
 
-export function explainAccessCheck(f: AccessCheckFacts, options: { visitor: boolean }): AccessCheckAnswer {
+// `teaser`: the space is shown locked to people who haven't joined
+// (spaces.when_locked). The database's can_discover is about the space itself,
+// so a non-member's preview is added here.
+export function explainAccessCheck(f: AccessCheckFacts, options: { visitor: boolean; teaser?: boolean }): AccessCheckAnswer {
   const visitor = options.visitor;
+  const sawTeaser = Boolean(options.teaser) && !f.can_discover && f.visibility === "members" && f.community_privacy !== "invite_only";
   const status = membershipWords(f, visitor);
   const notMember = !f.is_member;
 
@@ -50,7 +54,11 @@ export function explainAccessCheck(f: AccessCheckFacts, options: { visitor: bool
       ? "The space is open to everyone."
       : "The space is open to everyone, but the community is invitation only, so only members see it.";
   } else if (f.visibility === "members") {
-    discoverBecause = f.can_discover ? "They're a member, and the space is for members." : (status ?? "The space is for members, and they aren't one.");
+    discoverBecause = f.can_discover
+      ? "They're a member, and the space is for members."
+      : sawTeaser
+        ? `They see it locked (name, description and cover only), because it's shown to people who haven't joined. ${status ?? "They aren't a member."}`
+        : (status ?? "The space is for members, and they aren't one.");
   } else {
     discoverBecause = "The space is Admins only.";
   }
@@ -58,6 +66,7 @@ export function explainAccessCheck(f: AccessCheckFacts, options: { visitor: bool
   // 2. Can they open it?
   let openBecause: string;
   if (f.is_staff) openBecause = "They're on the team, which can open everything.";
+  else if (sawTeaser) openBecause = "They need to join first.";
   else if (!f.can_discover) openBecause = "They can't see the space, so they can't open it.";
   else if (!f.gated) openBecause = f.visibility === "public" ? "The space is open to everyone." : "Members open this space for free.";
   else if (f.can_open) {
@@ -68,7 +77,7 @@ export function explainAccessCheck(f: AccessCheckFacts, options: { visitor: bool
   } else openBecause = "It needs a membership or purchase, and they don't have an active one.";
 
   const lines: AccessCheckLine[] = [
-    { label: "Can find it", yes: f.can_discover, because: discoverBecause },
+    { label: "Can find it", yes: f.can_discover || sawTeaser, because: discoverBecause },
     { label: "Can open it", yes: f.can_open, because: openBecause },
   ];
 

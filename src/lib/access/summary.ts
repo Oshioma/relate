@@ -100,13 +100,16 @@ export function describeAudiences(community: AccessCommunity, spaces: AccessSpac
   // Visitors.
   let visitorText: string;
   const visitorOpen = names({ kind: "visitor" }, "open");
+  // Teasers: members spaces shown to visitors locked.
+  const visitorLocked = names({ kind: "visitor" }, "locked");
   if (community.privacy === "invite_only") {
     visitorText = "Can't open the community at all. They need an invitation.";
   } else {
     const feed = community.privacy === "public" || community.feed_public;
     const events = feed && community.events_public;
     const extras = [feed ? "the feed" : null, events ? "upcoming events" : null].filter(Boolean).join(" and ");
-    if (visitorOpen.length) visitorText = `Can read these spaces before joining${extras ? `, plus ${extras}` : ""}:`;
+    if (visitorOpen.length) visitorText = `Can read these spaces before joining${extras ? `, plus ${extras}` : ""}${visitorLocked.length ? ", and see the locked ones" : ""}:`;
+    else if (visitorLocked.length) visitorText = `${feed ? `Can open ${extras}. ` : ""}No space is open to everyone, but they see these locked until they join:`;
     else if (feed) visitorText = `Can open ${extras}, but no space is open to everyone, so the feed looks empty to them until they join.`;
     else visitorText = "See the front page only. Every space needs them to join first.";
   }
@@ -136,7 +139,7 @@ export function describeAudiences(community: AccessCommunity, spaces: AccessSpac
       : `${selling.map((t) => t.name).join(", ")} ${selling.length === 1 ? "doesn't" : "don't"} unlock any extra space yet.`;
 
   return [
-    { who: "Visitors", text: visitorText, open: visitorOpen, locked: [] },
+    { who: "Visitors", text: visitorText, open: visitorOpen, locked: visitorLocked },
     { who: "Free members", text: memberText, open: memberOpen, locked: memberLocked },
     { who: "Paid members", text: paidText, open: paidOpen, locked: [] },
   ];

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
 import { communityShareOrigin } from "@/lib/custom-domain";
@@ -14,7 +14,7 @@ import {
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
-import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceTeasers } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -201,6 +201,8 @@ export default async function CommunityLayout({
   const showMembersLink = Boolean(user) && canViewMembers(community, membership, user?.id);
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
+  // Members spaces shown, locked, to people who haven't joined (teasers).
+  const navTeasers = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id))).filter((t) => t.show_in_nav);
   // Guests only get the Events link when the community has opted its events
   // into public view; signed-in visitors always do.
   const canSeeEvents = Boolean(user) || community.events_public;
@@ -248,6 +250,11 @@ export default async function CommunityLayout({
             sub: true,
           })),
       ],
+    })),
+    ...navTeasers.map((teaser) => ({
+      sort: teaser.sort_order,
+      group: sectionFor(teaser.nav_group),
+      items: [{ href: `${base}/spaces/${teaser.slug}`, label: teaser.name, icon: <Lock className="h-4 w-4" /> }],
     })),
     // The built-in links have no group column of their own — there is no row to
     // put one on — so they take the section their purpose implies. Events is

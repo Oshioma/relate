@@ -5,7 +5,7 @@ import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRoun
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
-import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
 import { getCommunityEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import {
   getCommunityBusinessCategoryLabelOverrides,
@@ -129,6 +129,10 @@ export default async function CommunityWelcomePage({
   // directory slideshow), the upcoming-events card — so a visitor sees what
   // members see, with Join / Log in in place of the composer.
   const cardSpaces = spaces.filter((space) => space.show_as_card);
+  // Members spaces the community shows, locked, to people who haven't joined.
+  const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
+    .filter((t) => t.show_as_card)
+    .map(teaserAsSpace);
   const [customCategories, labelOverrides, featuredCategories, eventGoing] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
@@ -249,7 +253,7 @@ export default async function CommunityWelcomePage({
       />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} showOnMobile />
+        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="flex flex-col justify-center gap-5 bg-accent-soft p-6 sm:p-8">
