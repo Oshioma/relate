@@ -110,3 +110,37 @@ export function groupSpaceTypesByCategory(types: SpaceTypeMeta[] = SPACE_TYPE_LI
     types: types.filter((t) => t.category === category.key),
   })).filter((group) => group.types.length > 0);
 }
+
+// What each type lets people do, in a few short lines, for the "add a space"
+// cards. Keep these to what the type really does today.
+export const SPACE_TYPE_FEATURES: Record<SpaceType, string[]> = {
+  discussion: ["Members post with photos, videos and files", "Comments and reactions on every post", "Pin announcements; staff-only posting if you want"],
+  journal: ["Members log dated entries", "You choose the fields each entry has", "Everyone sees their own history build up"],
+  gallery: ["A feed for the photos members share", "Comments and reactions on each one"],
+  resources: ["Links, files and player links in one place", "Upload audio, video and documents up to 200MB", "Members find everything without scrolling a feed"],
+  directory: ["A searchable list of the community's members", "Profiles with the fields you ask for"],
+  qa: ["Members ask questions", "Others answer and discuss in the comments"],
+  custom: ["A page you write yourself, in HTML or Markdown", "No posting or feed, just your page"],
+  meetups: ["Members post a time, meeting point and pace", "Others tap \"I'm in\" and go together"],
+  challenges: ["Time-boxed programs with daily and weekly tasks", "Members join and tick off progress together"],
+  growth_journey: ["Members share progress over time", "Ask questions and cheer each other on"],
+  course: ["Modules and lessons members work through in order", "Quizzes, completion tracking and announcements", "Free or paid enrolment"],
+  crop_guides: ["A searchable library of organic growing guides", "From seed to harvest, aware of region and climate"],
+  plant_scanner: ["Members upload a plant photo", "AI diagnoses pests, diseases and deficiencies", "Organic treatments suggested"],
+  my_crops: ["Each member's crops, synced from shamba.online", "Read-only, filterable by farm"],
+  plant_id: ["Upload a photo to identify a plant", "Its name, whether it's edible and a link to its guide"],
+  live: ["Staff go live on video", "Members join the meeting right in the community", "Schedule sessions with reminders"],
+  lessons: ["Staff paste source material", "Claude writes an age-appropriate lesson from it", "Members read, print and re-use lessons"],
+  guided_journey: ["Experienced members adopt a beginner", "Matching, milestones and photo updates", "A gallery of finished stories"],
+  arts_board: ["The 64 classical arts on an 8×8 board", "Each square explains the art and offers a family activity", "An Under 15s switch; families mark what they've done"],
+  books_media: ["Paste a link; Claude fills in title, age range and notes", "Members file it as good for kids or not, and why", "Shareable across communities"],
+  map: ["An interactive map of the community's places"],
+  marketplace: ["Members list things to buy, sell or trade", "Photos, prices and location on each listing"],
+  business_directory: ["Local businesses with profiles", "Opening hours, photos and reviews", "Categories you can feature"],
+  guides: ["Member-written guides to the best of the place", "Rich pages with photos and video"],
+  clubs: ["Groups members can join around shared interests"],
+  volunteer_hub: ["Projects and causes members can help with"],
+  jobs: ["Local jobs, volunteering and internships", "Each listing links to how to apply"],
+  accommodation: ["Places to stay, short lets to long-term", "Photos, prices and booking links"],
+  recommendations: ["Members recommend restaurants, services and more"],
+};
