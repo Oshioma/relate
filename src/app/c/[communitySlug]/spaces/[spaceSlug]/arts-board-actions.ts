@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SIXTY_FOUR_ARTS, isArtNumber } from "@/lib/arts/sixty-four-arts";
 import { getArtsShareTarget } from "@/lib/data/arts-board";
 import { splitPostMedia } from "@/lib/post-media";
+import { isOwnSpaceFileUrl } from "@/lib/space-files";
 
 const MAX_PHOTOS = 4;
 
@@ -40,10 +41,13 @@ async function boardMember(spaceId: string, artNumber: number): Promise<Ctx> {
 
 // Photos must be the member's own uploads (see PhotoPicker): anything else is
 // dropped rather than stored, so a board can't be made to show a stranger's
-// image or an arbitrary link.
-function ownPhotos(urls: string[], userId: string): string[] {
+// image or an arbitrary link. In a space visitors can't open they sit in the
+// space's private folder (see src/lib/space-files.ts).
+function ownPhotos(urls: string[], userId: string, spaceId: string): string[] {
   const prefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/${userId}/`;
-  return urls.filter((u) => typeof u === "string" && u.startsWith(prefix)).slice(0, MAX_PHOTOS);
+  return urls
+    .filter((u) => typeof u === "string" && (u.startsWith(prefix) || isOwnSpaceFileUrl(u, spaceId, userId)))
+    .slice(0, MAX_PHOTOS);
 }
 
 // A family's tick, note and photos on one square of a 64 Arts board: one row
@@ -61,7 +65,7 @@ export async function setArtMark(
   const { supabase, userId } = ctx;
 
   const note = mark.note.trim().slice(0, 1000) || null;
-  const photoUrls = ownPhotos(mark.photoUrls, userId);
+  const photoUrls = ownPhotos(mark.photoUrls, userId, spaceId);
 
   const { data: existing } = await supabase
     .from("arts_board_marks")

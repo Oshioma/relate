@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { SPACE_FILES_BUCKET, spaceFilePath, spaceFileUrl, type UploadTarget } from "@/lib/space-files";
+import { useUploadTarget } from "./upload-target";
 
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
@@ -31,8 +33,8 @@ const DOCUMENT_TYPES = [
   "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 ];
 
-// Keep in sync with the 'uploads' bucket in supabase/storage.sql — the bucket
-// enforces the same type list and size limit server-side.
+// Keep in sync with the 'uploads' and 'space-files' buckets (supabase/migrations) — they
+// enforce the same type list and size limit server-side.
 const KINDS = {
   image: { types: IMAGE_TYPES, maxBytes: 10 * 1024 * 1024, hint: "an image (max 10MB)" },
   media: { types: [...IMAGE_TYPES, ...VIDEO_TYPES], maxBytes: 50 * 1024 * 1024, hint: "an image or video (max 50MB)" },
@@ -55,14 +57,23 @@ export function checkMemberFile(file: File, kind: keyof typeof KINDS): string | 
   return null;
 }
 
-// Puts a file in the signed-in member's folder of the 'uploads' bucket and
-// returns its public URL. Throws on failure.
-export async function uploadMemberFile(file: File): Promise<string> {
+// Puts a file in the signed-in member's folder and returns the link pages
+// should use. In a space visitors can't open (`target` set) that's the space's
+// private folder and an /api/files/ link; otherwise the public 'uploads'
+// bucket and its public URL. Throws on failure.
+export async function uploadMemberFile(file: File, target: UploadTarget = null): Promise<string> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You need to be signed in.");
+
+  if (target) {
+    const path = spaceFilePath(target.spaceId, user.id, file.name, crypto.randomUUID());
+    const { error: uploadError } = await supabase.storage.from(SPACE_FILES_BUCKET).upload(path, file, { contentType: file.type });
+    if (uploadError) throw uploadError;
+    return spaceFileUrl(path);
+  }
 
   const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").slice(0, 60) || "file";
   const path = `${user.id}/${crypto.randomUUID()}-${safeName}`;
@@ -82,6 +93,7 @@ export function UploadButton({
   kind = "image",
   label = "Upload image",
   className,
+  publicFile = false,
 }: {
   // Second arg carries the uploaded file's MIME + name so callers can, e.g.,
   // infer a resource type. Existing callers that take only the URL still work.
@@ -89,7 +101,12 @@ export function UploadButton({
   kind?: keyof typeof KINDS;
   label?: string;
   className?: string;
+  // Always the public bucket, even inside a private space: for a file the
+  // server has to fetch by its link (the plant scanner), not one members share.
+  publicFile?: boolean;
 }) {
+  const spaceTarget = useUploadTarget();
+  const target = publicFile ? null : spaceTarget;
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +130,7 @@ export function UploadButton({
 
     setIsUploading(true);
     try {
-      onUploaded(await uploadMemberFile(file), { type: file.type, name: file.name });
+      onUploaded(await uploadMemberFile(file, target), { type: file.type, name: file.name });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
