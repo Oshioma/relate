@@ -18,7 +18,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { toPlainText } from "@/components/ui/rich-text";
 import { spaceImage } from "@/lib/space-images";
 import { RowMenu, type RowMenuItem } from "./row-menu";
-import { AccessBox, DragHandle, ROW_GRID, TypeChip } from "./space-row-parts";
+import { AccessBox, DragHandle, ROW_ABOUT, ROW_GRID, ROW_MENU, ROW_SETTINGS, TypeChip } from "./space-row-parts";
 import { SpaceAccessForm } from "./access/space-access-editor";
 import { SPACE_TYPES, groupSpaceTypesByCategory } from "@/lib/space-types";
 import { AccessSelector } from "@/components/community/access-selector";
@@ -300,9 +300,9 @@ export function SpaceCard({
       <div className={ROW_GRID}>
         <DragHandle disabled={!dragHandlers.draggable} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={spaceImage(space)} alt="" className="h-16 w-16 rounded-xl object-cover lg:h-20 lg:w-20" />
+        <img src={spaceImage(space)} alt="" className="h-16 w-16 rounded-xl object-cover @5xl:h-20 @5xl:w-20" />
 
-        <div className="min-w-0">
+        <div className={ROW_ABOUT}>
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <p className="text-base font-semibold leading-snug text-foreground">{space.name}</p>
             <TypeChip tone={meta.category}>{meta.label}</TypeChip>
@@ -337,13 +337,13 @@ export function SpaceCard({
           }
         />
 
-        <div className="col-span-3 flex flex-col gap-2 lg:col-span-1">
+        <div className={`${ROW_SETTINGS} flex flex-col gap-2`}>
           <SpaceNavToggle spaceId={space.id} defaultChecked={space.show_in_nav} variant="switch" />
           <SpaceCardToggle spaceId={space.id} defaultChecked={space.show_as_card} variant="switch" />
           <SpaceNavGroup spaceId={space.id} spaceType={space.space_type} value={space.nav_group} groups={navGroups} />
         </div>
 
-        <div className="col-span-3 flex justify-end lg:col-span-1 lg:self-start">
+        <div className={ROW_MENU}>
           <RowMenu label={`More for ${space.name}`} items={menuItems} />
         </div>
       </div>
