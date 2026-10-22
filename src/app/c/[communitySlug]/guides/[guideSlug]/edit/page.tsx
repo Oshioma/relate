@@ -9,6 +9,8 @@ import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "
 import { parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
 import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
 import { parseHotelOverrides, resolveHotelGuide } from "@/lib/guides/hotel-guide/content";
+import { placeGuideFor } from "@/lib/guides/place-guide/registry";
+import { parsePlaceOverrides, resolvePlaceGuide } from "@/lib/guides/place-guide/content";
 import { cn } from "@/lib/utils";
 import { DestinationEditor } from "./destination-editor";
 import { GuideSettingsForm, GuideUpdatesManager } from "./guide-settings-form";
@@ -30,7 +32,8 @@ export default async function EditGuidePage({
   const { communitySlug, guideSlug } = await params;
   const { d } = await searchParams;
   const hotelGuide = hotelGuideFor(guideSlug);
-  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide) notFound();
+  const placeGuide = placeGuideFor(guideSlug);
+  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide && !placeGuide) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -45,10 +48,19 @@ export default async function EditGuidePage({
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
 
-  if (hotelGuide) {
-    const stored = parseHotelOverrides(hotelGuide, guide.content);
-    const { featured, more } = resolveHotelGuide(hotelGuide, stored);
-    const hotels = [...featured, ...more];
+  // Hotel and place guides share one admin layout: settings, local updates
+  // and a photo list per entry (hotel or place).
+  if (hotelGuide || placeGuide) {
+    const stored = hotelGuide ? parseHotelOverrides(hotelGuide, guide.content) : placeGuide ? parsePlaceOverrides(placeGuide, guide.content) : {};
+    const hotels = hotelGuide
+      ? (() => {
+          const { featured, more } = resolveHotelGuide(hotelGuide, stored);
+          return [...featured, ...more];
+        })()
+      : placeGuide
+        ? resolvePlaceGuide(placeGuide, stored).places
+        : [];
+    const noun = placeGuide ? "place" : "hotel";
     const hotelUpdates = await getEditorialGuideUpdates(supabase, guide.id);
     const hotel = hotels.find((h) => h.key === d) ?? hotels[0];
     const href = `/c/${community.slug}/guides/${guide.slug}`;
@@ -59,7 +71,7 @@ export default async function EditGuidePage({
         </Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">Edit: {guide.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Changes appear on the public guide as soon as they&apos;re saved. Unsaved edits are kept in this browser if you refresh. Hotel write-ups ship with the app; here you manage publishing, the editor&apos;s note, the hero, hotel photos and dated local updates.
+          Changes appear on the public guide as soon as they&apos;re saved. Unsaved edits are kept in this browser if you refresh. {placeGuide ? "Place" : "Hotel"} write-ups ship with the app; here you manage publishing, the editor&apos;s note, the hero, {noun} photos and dated local updates.
         </p>
 
         {isAdmin && (
@@ -80,7 +92,11 @@ export default async function EditGuidePage({
 
         <section className="mt-10">
           <h2 className="text-lg font-semibold text-foreground">Local knowledge updates</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Short, dated notes shown under a hotel: a renovation, a new restaurant, a change to beach access. Set a hide-after date for anything temporary.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {placeGuide
+              ? "Short, dated notes shown under a place: a closure, new access rules, a road washed out. Set a hide-after date for anything temporary."
+              : "Short, dated notes shown under a hotel: a renovation, a new restaurant, a change to beach access. Set a hide-after date for anything temporary."}
+          </p>
           <div className="mt-3">
             <GuideUpdatesManager communitySlug={community.slug} guideSlug={guide.slug} destinations={hotels.map((h) => ({ key: h.key, name: h.name }))} updates={hotelUpdates} />
           </div>
@@ -89,12 +105,12 @@ export default async function EditGuidePage({
         {isAdmin && hotel && (
           <section className="mt-10">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold text-foreground">Hotel photographs</h2>
+              <h2 className="text-lg font-semibold text-foreground">{placeGuide ? "Place" : "Hotel"} photographs</h2>
               <a href={`${href}#${hotel.key}`} className="inline-flex items-center gap-1 text-sm text-accent hover:underline">
                 View {hotel.name} on the guide <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
-            <nav aria-label="Choose a hotel" className="mt-3 flex flex-wrap gap-2">
+            <nav aria-label={`Choose a ${noun}`} className="mt-3 flex flex-wrap gap-2">
               {hotels.map((h) => (
                 <Link
                   key={h.key}
