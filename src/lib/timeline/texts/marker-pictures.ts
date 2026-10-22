@@ -886,4 +886,20 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "kybalion-published": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Kybalion_1908.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The title page of the 1908 first edition of The Kybalion, in the Brigham Young University copy: 'The Kybalion. A study of the Hermetic philosophy of ancient Egypt and Greece, by Three Initiates', with the motto 'The lips of wisdom are closed, except to the ears of Understanding' and the imprint 'The Yogi Publication Society, Masonic Temple, Chicago, Ill.' The file page calls it the cover; it is the title page, with a library shelf-mark in pencil.",
+      credit: "Three Initiates (book), Public domain, via Wikimedia Commons (from the Internet Archive, kybalionstudyofh00init)",
+      licence: "Public domain in the United States (PD-1923)",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Kybalion_1908.jpg",
+      institution: "Brigham Young University Library (the scanned copy)",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+  ],
 };
