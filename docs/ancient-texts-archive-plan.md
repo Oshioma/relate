@@ -1242,3 +1242,176 @@ There are 16 plain-words entries, one per unit. Each begins "The book" or "The a
 - Deslippe's introduction (2011) was not read. The attribution here rests on the copyright register and the 1919 hearing. The hearing transcript is partial, and the OCR of its first pages is poor.
 - The *Suggestion* portrait's source and date were not checked against the IAPSOP scan of *Suggestion* vol. 7.
 - The 1912 and later printings are used only as a witness (G). Their differences are listed in the generator, not recorded as a separate edition.
+
+## 24. Stage 18: Donnelly's Atlantis (1882) and Scott-Elliot's Story of Atlantis (1896)
+
+Two members of `modern.other-authors` (brief item 33) are imported, each as its own work. That entry's list of proposed members now says so, and its full-text editions keep only Kingsford & Maitland.
+
+- **`modern.scott-elliot`** (prefix `modern.scott`): W. Scott-Elliot, *The Story of Atlantis: A Geographical, Historical, and Ethnological Sketch*, with a preface by A. P. Sinnett (London: Theosophical Publishing Society, 7 Duke Street, Adelphi, 1896). The whole book: the Preface and the text, 24 units. Tradition class `modern`. Marker `story-of-atlantis-published`.
+- **`modern.donnelly`** (prefix `modern.donnelly`): Ignatius Donnelly, *Atlantis: The Antediluvian World* (New York: Harper & Brothers, 1882). A selection of five chapters. Tradition class `modern`. Marker `donnelly-atlantis-published`.
+
+The inventory gained one source, `donnelly-atlantis-1882`. The source `scott-elliot-atlantis-1896`, which the Steiner stage had added as a cited source, now describes the witnesses.
+
+Files:
+- `corpus/scott-elliot.ts`, `corpus/donnelly.ts`;
+- the generated `corpus/scott-elliot-text.ts` and `corpus/donnelly-text.ts`, both made by `scripts/texts/atlantis-authors.py`, which records the method, every reading the vote took, the wrong majorities rejected and every correction by hand with the page it was read on;
+- `corpus/scott-elliot-related-images.ts`, `corpus/donnelly-related-images.ts`;
+- plain words in `corpus/plain/scott-elliot.ts` and `corpus/plain/donnelly.ts`.
+
+Copyright: both are public domain (1896, Scott-Elliot died 1930, Sinnett 1921; 1882, Donnelly died 1901). Donnelly quotes Plato in Jowett's translation, also public domain. The text layers are `public_domain`.
+
+### Source and checking
+
+No proofread transcription of a copy of either first printing could be reached (Wikisource refused or did not resolve). So the base of each is a Project Gutenberg e-text of a later printing (G), voted word by word against archive.org's OCRs of independent copies of the reference printing. G's words are aligned with each witness (difflib on letters and figures only, after removing running heads, page numbers and headings and joining words broken at line ends). A reading is taken where at least three witnesses agree on it and outnumber those agreeing with G (G counting as one). Punctuation and capitals are not voted.
+
+**Scott-Elliot.**
+
+| Siglum | Witness |
+|---|---|
+| G | Project Gutenberg #21796, a later Theosophical Publishing House printing ("first printed 1896"). The base. |
+| U | University of California (Los Angeles) copy of 1896 (`storyofatlantisg00scot`), with its page images; its leaves give the pages. |
+| D | Digital Library of India copy of 1896 (`in.ernet.dli.2015.204900`). |
+| M | Digital Library of India (Ministry) copy with the 1896 title page (`dli.ministry.23349`). |
+| E | The "second and revised edition" (London, 1909; `in.ernet.dli.2015.38206`): a witness only, revised in sections 16–17. |
+
+- Taken by the vote: "colonized" for G's "colonial" (p. 1), and the 1896 misprint "goverment" (p. 61, seen on U).
+- Rejected majorities: three OCR misreadings of the figure 1 ("nth", "i", "ist").
+- Corrected by hand, on U's page images: "him self" → "himself" (p. vii), "were-filled" → "were filled" (p. 43).
+- 1896 misprints kept: "goverment", "an Intitiate emperor", "the various savages races", "while other travelled west".
+
+**Donnelly.**
+
+| Siglum | Witness |
+|---|---|
+| G | Project Gutenberg #4032. The base. (#3607, sometimes cited for this book, is Baker's *Ismailia*.) |
+| K | Duke University copy, "Eleventh Edition" (`atlantisantedil00donn`, also on Commons as a DjVu), with its page images; its page list gives the pages. |
+| U | `atlantisantedilu0000unse`, "Eleventh Edition". |
+| A | `Atlantis1882` (Google scan), "Eleventh Edition". |
+| S | `atlantisantedilu0000igna_s0m2`, "Twenty-fourth Edition", 1904, from the same plates. |
+
+- Taken by the vote (the copies against G): "hearing" for "bearing" (Timaeus 22a); "hear" for "bear" twice (Critias 113a); Jowett's "ii., 517" for G's 617; a phrase of Critias 116c ("the royal palace; and then") back in its place; "Poseidon's"; "others"; "Hea, Anu, and Bel" for "Idea" (p. 283, seen); "Manual"; "falling"; "ship".
+- Corrected by hand, on K's page images: Oppert's two tables, which G sets as text boxes, given from the print (pp. 29–30; G's "1,822" is "1,322"), with "[together]" for the brace and "[rule]" for the rule; "judgment" (p. 20); a dash (p. 3); "poem" (p. 5), "population" (p. 65), "R. P." (p. 67).
+- No copy of the very first printing was reached; Harper reprinted the 1882 plates as numbered "editions". The Toronto copy could not be read.
+
+Neither text has been proofread page by page.
+
+### Units
+
+**Scott-Elliot.** `modern.scott.1896` (`book`) holds no text. It carries the dates, the list of the four maps, and notes. Under it are 24 `section` units with the text (layer `eng-1896`). The book has no chapters. The archive divides it at the five classes of evidence ("First" to "Fifth"), at the six side-headings, and where the subject changes inside the longer heads. `expectedUnits` is 24 and `inventoryVerified` is false.
+
+| Unit | Section | Pages |
+|---|---|---|
+| `.preface` | Preface, by A. P. Sinnett | iii–xi |
+| `.1` | The Fifth Race, the four catastrophes, five kinds of evidence | 1–3 |
+| `.2` | First: the deep-sea soundings | 3–4 |
+| `.3` | Second: fauna and flora | 4–7 |
+| `.4` | Third: language and ethnological types (names Donnelly) | 7–9 |
+| `.5` | Fourth: religion, ritual and architecture | 9–12 |
+| `.6` | Fifth: ancient writers, traditions, flood legends (quotes Plato) | 12–16 |
+| `.7` | The "contemporary records" and the four maps | 16–19 |
+| `.8` | The Manus and the seven sub-races | 19–26 |
+| `.9` | Political Institutions: the Toltecs and sorcery | 26–31 |
+| `.10` | The later sub-races' governments | 31–33 |
+| `.11` | Emigrations: Rmoahals, Tlavatli, Toltecs (with a footnote) | 33–37 |
+| `.12` | Egypt | 37–38 |
+| `.13` | Emigrations of the later sub-races | 39–41 |
+| `.14` | Arts and Sciences | 41–44 |
+| `.15` | Education | 44–46 |
+| `.16` | Agriculture and animal breeding | 46–49 |
+| `.17` | The City of the Golden Gates | 49–51 |
+| `.18` | Air-ships | 51–55 |
+| `.19` | Manners and Customs | 55–58 |
+| `.20` | Land tenure | 58–61 |
+| `.21` | Religion (quotes the "Book of Dzyan") | 62–65 |
+| `.22` | Religion: Trinity, elementals, sacrifice | 65–68 |
+| `.23` | Conclusion | 68–71 |
+
+The maps (`SCOTT_ELLIOT_MAPS`) are No. 1 "Atlantis at its Prime", No. 2 "Atlantis in its Decadence", No. 3 "Ruta & Daitya" and No. 4 "Poseidonis". Nos. 3 and 4 were read on the UCLA copy and the British Library copy's scans. Nos. 1 and 2 were not found in any 1896 copy reached, and their titles are G's.
+
+**Donnelly.** `modern.donnelly.1882` (`book`) holds no text. It carries the dates, the selection and what was not imported. Under it are 5 `chapter` units (layer `eng-1882`); `expectedUnits` is null, because this is a selection.
+
+| Unit | Chapter | Pages |
+|---|---|---|
+| `.1.1` | Part I ch. I, The Purpose of the Book | 1–4 |
+| `.1.2` | Part I ch. II, Plato's History of Atlantis (Jowett's Timaeus and Critias) | 5–21 |
+| `.1.3` | Part I ch. III, The Probabilities of Plato's Story | 22–30 |
+| `.2.1` | Part II ch. I, The Destruction of Atlantis described in the Deluge Legends | 65–67 |
+| `.4.2` | Part IV ch. II, The Kings of Atlantis become the Gods of the Greeks | 283–307 |
+
+Part I chs. I–III were asked for. The rest of the book was searched for quotations of the Timaeus or Critias, and the two chapters that retell or quote the dialogues' story as their subject were added. Not imported, because they quote Plato only in passing: Part I ch. IV; Part II chs. V, VI; Part III chs. II, IV; Part IV ch. V; Part V chs. II, IX, X.
+
+### Framing
+
+- **Scott-Elliot's sources are his claim.** Sinnett's Preface says the facts were read by "astral clairvoyance" from "the memory of Nature", with access to "maps and other records physically preserved". The text says they were "drawn ... from contemporary records". This is recorded as the book's claim and given no year. No such record has been produced, and every map caption says the maps are Scott-Elliot's own of 1896.
+- **Donnelly's thesis is rejected by geology and archaeology.** This is said plainly and neutrally in the work entry, the source, the book record, the chapter notes and the map's caption: no sunken continent lies under the Atlantic, whose ridge is a spreading ridge, and the likenesses he draws do not show a common origin.
+- **The racial theory is the text's own.** Scott-Elliot's sections 1, 4, 8–13, 22 and 23 and their plain words say so; Donnelly's notes on 1.1 and 2.1 do the same.
+- Other modern claims are flagged in notes: the Troano manuscript (in Madrid, not the British Museum, and Le Plongeon's reading is not accepted), the dates for Giza, Karnak and Stonehenge, and the Mid-Atlantic Ridge.
+
+### Dates
+
+- **Scott-Elliot**, on `modern.scott.1896`:
+  - claimed, the occult records (no year, `millennium`);
+  - claimed, the sinking of Poseidonis in 9564 BC (−9563, `year`);
+  - publication 1896 (the UCLA and Ministry title pages).
+  The marker carries the 9564 BC claim and 1896.
+- **Donnelly**, on `modern.donnelly.1882`:
+  - claimed, about 9600 BC (−9599, `century`, approximate), Plato's figure taken as history (p. 29, seen);
+  - publication 1882 ("Entered according to Act of Congress, in the year 1882", seen on the Duke copy's title-page verso).
+  The marker carries the same two.
+
+### Links
+
+All are `proposed`; none claims ancient transmission.
+
+**Scott-Elliot (16).**
+- `later_reinterpretation`, where he names or quotes Plato ("not a witness to the earlier text"): 1 → `greek.tim.25d` (Poseidonis, a name that is not Plato's); 6 → `greek.tim.24e`, `greek.tim.25a`, `greek.crit.114d`, `greek.crit.115a` (his quotation of the Timaeus and Critias, in an older English close to Taylor's).
+- `close_conceptual_parallel`, "None shown": 17 → `greek.crit.113d` (the ringed capital); 8 → `modern.hpb.sd.2.6`; 9 → `modern.hpb.isis.1.592`.
+- `documented_transmission`, between modern books only:
+  - 1 → `modern.steiner.1911.1.1` (Steiner names the book), 8 → `modern.steiner.1911.2.2` and 10 → `modern.steiner.1911.2.4` (Steiner's sub-races);
+  - 21 → `modern.hpb.anthro.10`, `modern.hpb.anthro.11` (he quotes the "Book of Dzyan", slokas 40 and 43, whose only text is Blavatsky's);
+  - 4 → `modern.donnelly.1882.1.1` (he names Donnelly); 6 → `modern.donnelly.1882.1.3` (the same list of ancient writers, with the same reference to *Pre-Adamites*, p. 380).
+- `broad_thematic_resemblance`, "None shown": 12 → `modern.doreal.01` (Atlantean wisdom carried to Egypt).
+
+**Donnelly (19).**
+- `later_reinterpretation`, 17 links, each where he names Plato or quotes him in Jowett's English:
+  - 1.2 → `greek.tim.20d`, `22b`, `24e`, `25d`, `greek.crit.108e`, `113c`, `116c`, `119c`, `121b`;
+  - 1.3 → `greek.tim.23e` (the 9,000 years made a date), `greek.crit.116a` (the three stones), `117a` (hot springs), `118a` (the lofty coast);
+  - 2.1 → `greek.tim.23b` ("the great deluge of all");
+  - 4.2 → `greek.crit.120e`, `121b`, `greek.tim.40e` (Oceanus and Tethys).
+- `close_conceptual_parallel`, "None shown": 1.2 → `modern.hpb.sd.2.743` (both quote the priests of Sais).
+- `broad_thematic_resemblance`, "None shown": 1.1 → `modern.doreal.01`.
+
+### Images
+
+All are from Commons file pages and each was looked at; all have `licenceStatus` "open".
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Map 4 of 1896, British Library copy ("... the final submergence of Poseidonis in 9564 B.C.") | marker `story-of-atlantis-published` (cover) | secure |
+| Front cover of the British Library copy (the file page calls it page 1) | marker | secure |
+| Map 3 of 1896, British Library copy ("Ruta & Daitya") | Scott-Elliot 7 | secure |
+| A Russian redrawing of map 1 ("Атлантида во времена расцвета"), said to be of 1910 | Scott-Elliot 7 | `UNVERIFIED`: edition and redrawer |
+| A Spanish map of Lemuria, No. 2, which its file page assigns to this book | Scott-Elliot 8 | `UNVERIFIED`: probably *The Lost Lemuria* (1904) |
+| A. P. Sinnett, from blavatskyarchives.com | Scott-Elliot Preface | `UNVERIFIED`: date, photographer, source |
+| The frontispiece, "The Profile of Atlantis" | marker `donnelly-atlantis-published` (cover) | secure |
+| Donnelly, Mathew Brady studio, 1860–65 (NARA 526051) | marker | secure |
+| Duke copy, DjVu pages 11 (title page), 12 (verso, "in the year 1882"), 19 (p. 1), 23 (p. 5), 47 (p. 29) | Donnelly book, 1.1, 1.2, 1.3 | secure |
+| "The Empire of Atlantis", the full-page map (pp. 295–296 in the Duke copy) | Donnelly 4.2 | secure |
+| Donnelly, F. Gutekunst, about 1898, Minnesota Historical Society | Donnelly book | `UNVERIFIED`: date, photographer, record |
+
+No portrait of Scott-Elliot was found on Commons.
+
+### Plain words
+
+There are 24 entries for Scott-Elliot, each beginning "The book says" or "Sinnett says". There are 5 for Donnelly, each beginning "Donnelly says" and following his quotation of Plato, not the Greek. "Other possible readings" cover:
+- the kept misprints ("goverment", "Intitiate", "savages races");
+- the name Poseidonis, the "Book of Dzyan", the Troano manuscript and the maps' claimed source;
+- Jowett's page 517, the bracketed table marks, and Donnelly's identification of "the great deluge of all".
+
+### Not done
+
+- Neither text has been proofread page by page. Punctuation and capitals were not voted, only checked where seen.
+- No copy of Donnelly's very first printing was reached; the Duke copy is an "Eleventh Edition" from the 1882 plates.
+- Scott-Elliot's maps 1 and 2 were not found in any 1896 copy; their titles are from the later printing.
+- The identification of Scott-Elliot's Plato as Taylor's translation rests on the wording, not on a statement in the book.
+- Donnelly's other chapters that quote Plato in passing are listed, not imported.

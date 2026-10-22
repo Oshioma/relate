@@ -902,4 +902,63 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "story-of-atlantis-published": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",
+      kind: "image",
+      shows: "map",
+      caption:
+        "Map 4 of the 1896 first edition of The Story of Atlantis, in the British Library copy: '4. The World after the catastrophe of 80000 years ago and up to the final submergence of Poseidonis in 9564 B.C.', with the island of Poseidonis in the mid-Atlantic and the imprint of the Theosophical Publishing Society, 7 Duke St., Adelphi, London. The book says its maps copy maps among occult records read by clairvoyance; the map is Scott-Elliot's own of 1896, not a record of the sea floor.",
+      credit: "W. Scott-Elliot (1896), Public domain, via Wikimedia Commons (British Library, HMNTS 10007.dd.2, from its Flickr scans)",
+      licence: "Public domain (PD-old-70-expired) and Public Domain Mark",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:ELLIOT(1896)_Atlantis,_Map4.jpg",
+      institution: "British Library (the scanned copy)",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/ELLIOT%281896%29_Atlantis%2C_a_geographical%2C_historical%2C_and_ethnological_sketch.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The front cover of the British Library's copy of The Story of Atlantis (1896), stamped in gilt 'The Story of Atlantis' and 'W. Scott-Elliot', with the Library's shelfmark label 10007.dd.2. The file page calls it page 1 of the scan; it is the cover.",
+      credit: "Public domain, via Wikimedia Commons (British Library, from its Flickr scans)",
+      licence: "Public domain (PD-old-70-expired) and Public Domain Mark",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:ELLIOT(1896)_Atlantis,_a_geographical,_historical,_and_ethnological_sketch.jpg",
+      institution: "British Library (the scanned copy)",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+  ],
+  "donnelly-atlantis-published": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Atlantis_-_The_Antediluvian_World_1882_Frontispiece.jpg",
+      kind: "image",
+      shows: "historical_document",
+      caption:
+        "The frontispiece of Donnelly's Atlantis: The Antediluvian World (1882), 'The Profile of Atlantis': a section across the Atlantic from the Bermudas to the Azores and Madeira, drawn from the deep-sea soundings, with the ridge in mid-ocean labelled 'Atlantis' and '1000 Nautical Miles wide'. It shows Donnelly's reading of the Mid-Atlantic Ridge, which geology rejects: the ridge is where new ocean floor forms, not a sunken land.",
+      credit: "Ignatius Donnelly (1882), Public domain, via Wikimedia Commons",
+      licence: "Public domain in the United States (PD-1923)",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Atlantis_-_The_Antediluvian_World_1882_Frontispiece.jpg",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/12/Hon._Ignatius_Donnelly%2C_Minn.jpg",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "Ignatius Donnelly as a congressman from Minnesota, a photograph from the Mathew Brady studio, 1860–1865 (U.S. National Archives, 526051), some twenty years before he wrote Atlantis: The Antediluvian World.",
+      credit: "Mathew Brady studio, Public domain, via Wikimedia Commons (U.S. National Archives)",
+      licence: "Public domain in the United States (PD-1923)",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Hon._Ignatius_Donnelly,_Minn.jpg",
+      institution: "U.S. National Archives and Records Administration",
+      identificationStatus: "secure",
+      verifiedIdentity: true,
+      depictsActualRemains: false,
+    },
+  ],
 };
