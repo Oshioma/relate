@@ -55,9 +55,13 @@ test("each place leads with a different photo, and the hero is one of them", () 
   assert.ok(PLACES.some((p) => p.photos.some((x) => x.src === PICTURESQUE_GUIDE.heroPhoto.src)));
 });
 
-test("categories and routes only point at places in the guide", () => {
+test("categories, routes and the photo row only point at places in the guide", () => {
   for (const c of PICTURESQUE_GUIDE.categories) for (const k of c.hotelKeys) assert.ok(keys.has(k), `${c.id} → ${k}`);
   for (const r of PICTURESQUE_GUIDE.routes.items) for (const s of r.stops) assert.ok(keys.has(s.placeKey), `${r.id} → ${s.placeKey}`);
+  for (const m of PICTURESQUE_GUIDE.mosaic) {
+    const place = PLACES.find((p) => p.key === m.placeKey);
+    assert.ok(place && place.photos[m.photo ?? 0], `mosaic → ${m.placeKey}`);
+  }
 });
 
 const allCopy = [

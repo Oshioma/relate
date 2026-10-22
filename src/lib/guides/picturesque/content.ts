@@ -114,6 +114,16 @@ export const PICTURESQUE_GUIDE: PlaceGuideDefinition = {
     blurb: "Twenty-one of the island's most beautiful spots, from Stone Town round the north and down the east coast to the south. Tap any photo to see them all.",
     navGroup: "The places",
   },
+  mosaic: [
+    { placeKey: "nakupenda" },
+    { placeKey: "stone-town" },
+    { placeKey: "kendwa" },
+    { placeKey: "jozani" },
+    { placeKey: "menai-bay" },
+    { placeKey: "kuza-cave" },
+    { placeKey: "mnemba" },
+    { placeKey: "the-rock", photo: 2 },
+  ],
   advice: ADVICE,
   routes: {
     title: "Picturesque days out",
