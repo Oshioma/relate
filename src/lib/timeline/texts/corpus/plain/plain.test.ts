@@ -13,6 +13,7 @@ import { PLAIN_EMERALD_TABLET } from "./emerald-tablet";
 import { PLAIN_GOSPEL_OF_THOMAS } from "./gospel-of-thomas";
 import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_PISTIS_SOPHIA } from "./pistis-sophia";
+import { PLAIN_STEINER } from "./steiner";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -50,6 +51,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "arab.secretum-secretorum": PLAIN_SECRETUM,
   "arab.tablet-commentaries": PLAIN_HORTULANUS,
   "modern.blavatsky": PLAIN_BLAVATSKY,
+  "modern.steiner": PLAIN_STEINER,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -87,6 +89,20 @@ test("every Stanza of Dzyan and every selected passage of Blavatsky has plain wo
   // Her claims are reported as hers, and the racial ranking of the Stanzas is named as the text's own.
   assert.match(PLAIN_BLAVATSKY["modern.hpb.sd.1.xliii"], /^She identifies|^She says/);
   assert.match(PLAIN_BLAVATSKY["modern.hpb.anthro.10"], /Other possible readings:\n- The colours and 'black with sin'.*the text's racial hierarchy/);
+});
+
+test("every section of Steiner's 1911 English has plain words, and only those", () => {
+  const steiner = ALL_CORPORA.find((c) => c.workKey === "modern.steiner")!;
+  const withText = steiner.passages.filter((p) => p.layers.some((l) => l.key === "eng-1911")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_STEINER).sort(), [...withText].sort());
+  assert.equal(withText.length, 26);
+  // His account is reported as his, and the racial theory is named as the text's own.
+  for (const [key, words] of Object.entries(PLAIN_STEINER)) assert.match(words, /^(Steiner|According to Steiner|At the end of Atlantis, Steiner|This chapter, Steiner)/, key);
+  for (const key of ["2.2", "2.4", "4.2", "5.2", "7.3"]) assert.match(PLAIN_STEINER[`modern.steiner.1911.${key}`], /the text's own racial theory/, key);
+  // The corrections and the disputed reading are shown as other readings.
+  assert.match(PLAIN_STEINER["modern.steiner.1911.4.2"], /Other possible readings:\n- The transcription reads 'the knowledge and mastery of natural forces was learnt'/);
+  assert.match(PLAIN_STEINER["modern.steiner.1911.5.2"], /Other possible readings:\n- The transcription reads 'what had been clone/);
+  assert.match(PLAIN_STEINER["modern.steiner.1911.10.1"], /Other possible readings:\n- The transcription reads 'on which/);
 });
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
