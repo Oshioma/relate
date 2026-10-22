@@ -1045,3 +1045,200 @@ There are 26 plain-words entries, one per section. Each reports the account as S
 - *An Outline of Occult Science* (1910), named in the old inventory summary, is not imported.
 - Gysi's death date, and so the 1911 English's copyright outside the United States, was not established.
 - Scott-Elliot's *The Story of Atlantis* is cited as a source, not imported, so Steiner's dependence on it cannot be linked passage to passage.
+
+## 23. Stage 17: The Kybalion (1908)
+
+*The Kybalion: A Study of the Hermetic Philosophy of Ancient Egypt and Greece*, by "Three Initiates" (Chicago: The Yogi Publication Society, Masonic Temple, 1908).
+
+It has its own work entry, `modern.kybalion`, with the prefix `modern.kyb`. It is filed under brief item 33 beside `modern.other-authors`. That entry's list of proposed members now says the Kybalion is imported as its own work, and it is no longer listed among that entry's full-text editions.
+
+Its tradition class is `modern_claiming_ancient`: a modern book that presents its maxims as an unwritten ancient tradition, never produced for examination. It creates its own marker, `kybalion-published`, which shows the claimed antiquity and the 1908 publication side by side. The marker's picture is the 1908 title page (`Kybalion_1908.jpg`, added to `marker-pictures.ts`).
+
+The whole book is imported from the 1908 first edition: the Introduction and the fifteen chapters, 16 units in all.
+
+The inventory gained four sources:
+- `kybalion-1908`, the book;
+- `cce-1908`, the Catalog of Copyright Entries for 1908, entry 15439;
+- `post-office-1919`, the Post Office hearing of 4 April 1919 on the Advanced Thought Publishing Company and the Yogi Publication Society;
+- `deslippe-2011`, Philip Deslippe's introduction to *The Kybalion: The Definitive Edition* (Tarcher/Penguin, 2011), which is in copyright and cited only.
+
+Files:
+- `corpus/kybalion.ts`;
+- the generated `corpus/kybalion-text.ts`, made by `scripts/texts/kybalion.py`;
+- `corpus/kybalion-related-images.ts`;
+- plain words in `corpus/plain/kybalion.ts`.
+
+Copyright: public domain. The book was published in the United States in 1908 and is pseudonymous; its usual attributed author died in 1932. The text layer is `public_domain`.
+
+### Source and checking
+
+Four 1908 copies and one later printing could be reached. The witnesses are:
+
+| Siglum | Witness | Notes |
+|---|---|---|
+| W | Wikisource's proofread transcription (`en.wikisource.org/wiki/The_Kybalion`) of the Brigham Young University copy (archive.org `kybalionstudyofh00init`; also on Commons as a DjVu) | The base. It is the only transcription of a 1908 copy read by a person, and it gives the pages. |
+| B | archive.org's OCR of the same BYU copy | An independent reading of the same copy. |
+| T | archive.org's OCR of the Internet Archive's own 1908 copy (`kybalionstudyofh00thre`) | An independent copy. |
+| C | archive.org's OCR of the Claremont School of Theology's 1908 copy (`kybalionstudyofh0000thre`) | An independent copy. |
+| K | archive.org's OCR of Google's scan of a Stanford copy (`kybalionastudyh00unkngoog`) | An independent copy. |
+| G | Project Gutenberg #14209 | An e-text of a later printing ("Copyright 1912"). Its setting differs from 1908's in small ways. |
+
+**The vote.** W's words were aligned with each witness (difflib on letters and figures only). Running heads, page numbers and chapter headings were removed first, and words broken at line ends were joined. Where witnesses agree on another reading and outnumber those agreeing with W (W counts as one), the majority reading is taken.
+
+The vote changed seven places, each asserted in `EXPECTED_TAKEN`:
+- "Kyhalion", twice;
+- "EXILE" (the page has "RULE");
+- "Kelative";
+- "conscionsness";
+- "refusings" (the page has "refusing");
+- a "to" that W leaves out.
+
+One wrong majority is rejected: three OCRs read the "O," of "O, let not the flame die out!" as a zero.
+
+**Joins.** Thirty-five words that W splits at a page break or at a leftover hyphen are joined where G has the whole word.
+
+**Corrections by hand.** `FIXES` holds eight:
+- three more "Kyhalion". These were ties, because B and K misread the italic b too; the page image of p. 26 shows the b;
+- "Eeality";
+- "comers" (the page image of p. 90 has "corners");
+- a misplaced comma on p. 36;
+- four of W's quotation marks.
+
+Punctuation is not voted, so every paragraph with an odd number of quotation marks was compared by hand with the other witnesses. At the four corrected marks, the other 1908 copies all read otherwise. One of the four closes the saying "But, the report of Reason must be hospitably received, and treated with respect."
+
+**1908 misprints kept.** Every 1908 copy shares these, so they stay; G corrects most of them:
+- "understading";
+- "Princible";
+- "phenomennon";
+- "resistence";
+- "Appollo";
+- "They they";
+- "a steam of Vibratory Energy";
+- "If the Universal is Mental";
+- "no such things as Chance".
+
+**G's own changes are not taken.** In 76 places G follows its later setting, for example:
+- Arabic numerals in lists;
+- "scepter" and "centers";
+- "in italics" for 1908's "in quotation marks";
+- "biggest" and "whenever".
+
+**Page images.** These were read wherever the decision turned on the print: pp. 26, 27, 36, 39, 90, 213 and 218 of the BYU copy. The text has not been proofread page by page.
+
+**How the text is given:**
+- W's paragraphs and straight quotation marks are kept;
+- dashes are closed up as the book sets them;
+- italic and small capitals are not marked;
+- the heading "VII. THE PRINCIPLE OF GENDER." is printed twice on p. 39 (seen on the page image), and both are kept;
+- the Introduction's signature, "The Three Initiates.", and the closing "Finis" are kept.
+
+### Units
+
+`modern.kyb.1908` (`book`) holds no text. It carries:
+- the cited Definitive Edition layer (`eng-deslippe-2011`, `copyrighted_reference`);
+- the dates;
+- six of the pictures.
+
+Under it are 16 `chapter` units, which carry the text (layer `eng-1908`, `primary_text`):
+
+| Unit | Chapter | Pages |
+|---|---|---|
+| `.intro` | Introduction | 7–14 |
+| `.1` | I The Hermetic Philosophy | 15–24 |
+| `.2` | II The Seven Hermetic Principles | 25–41 |
+| `.3` | III Mental Transmutation | 43–51 |
+| `.4` | IV The All | 53–63 |
+| `.5` | V The Mental Universe | 65–76 |
+| `.6` | VI The Divine Paradox | 77–93 |
+| `.7` | VII "The All" in All | 95–111 |
+| `.8` | VIII The Planes of Correspondence | 113–135 |
+| `.9` | IX Vibration | 137–147 |
+| `.10` | X Polarity | 149–158 |
+| `.11` | XI Rhythm | 159–170 |
+| `.12` | XII Causation | 171–182 |
+| `.13` | XIII Gender | 183–192 |
+| `.14` | XIV Mental Gender | 193–211 |
+| `.15` | XV Hermetic Axioms | 213–223 |
+
+The count comes from the book's own Contents, so `expectedUnits` is 16 and `inventoryVerified` is true. The Contents puts chapter XV at p. 212, but it begins on p. 213, a right-hand page after a blank. No passage is marked verified, so the work is not "verified against edition".
+
+The book prints 39 sayings as quotations from "The Kybalion". They stay inside their chapters, and `KYBALION_SAYINGS` lists each with its chapter and page.
+
+### The claim, the attribution, and "As above, so below"
+
+**The claim.** The book says its teaching goes back to Hermes Trismegistus, "contemporary with Abraham". It came down through "THE KYBALION", a collection of maxims handed on "from mouth to ear", whose precepts "have never been written down, or printed, so far as we know". This is recorded as the book's claim and given no year.
+
+No such collection has been produced. The Seven Principles are not in the Corpus Hermeticum or the Asclepius, and the sayings have no known ancient source. Every chapter that quotes them says so.
+
+**The attribution.** The book is signed only "The Three Initiates". It is usually attributed to William Walker Atkinson (1862–1932), and the archive gives the attribution with its evidence:
+- The Catalog of Copyright Entries for 1908 (entry 15439, seen on the page image) registers the copyright on June 13, 1908 to "The Yogi publication society, Chicago", not to a person. The same volume registers books by "Yogi Ramacharaka" to the same society.
+- The 1919 Post Office hearing (an IAPSOP scan, read in full) records an inspector's report that the society "was founded by William Walker Atkinson", and that its owner had bought the business from him. It also reports that "Yogi Ramacharaka" was "no such person".
+- Deslippe (2011) argues the attribution most fully. It is cited, not quoted, and was not read for this import.
+
+Neither document names the author of the Kybalion, so the attribution is a scholarly inference, not a signature. The work's `attribution` field says "usually attributed".
+
+**"As above, so below".** "As above, so below; as below, so above" is the book's second principle. It calls it "the old Hermetic axiom" (chapter II) and "this centuries old Hermetic axiom" (chapter VIII). The book never names the Emerald Tablet, the Corpus Hermeticum or Blavatsky. "Secret Doctrine(s)" appears only as a general phrase.
+
+### Dates
+
+On `modern.kyb.1908`:
+- **Claimed: no year, `millennium`.** "The book's claim, not a date": Hermes in Egypt at the time of Abraham, and an unwritten Kybalion.
+- **Publication: 1908**, not approximate. The source is `cce-1908` (two copies received June 13, 1908, registration A 209612), together with the title-page verso of the BYU copy. Its evidence also gives the attribution and its limits.
+
+The marker `kybalion-published` carries the same two claims.
+
+### Links
+
+There are 10 links, all `proposed`. None is `documented_transmission` or `direct_textual_parallel`.
+
+**Emerald Tablet and Hermes, `later_reinterpretation`.** These are used only where the book invokes Hermes or the axiom, and each says the book is "not a witness to the earlier text":
+- 2 → `arab.tab.vulgate.02`. "The old Hermetic axiom" is a short form of the Latin line, given a new meaning: a law of correspondence between planes.
+- 8 → `arab.tab.vulgate.02`. The planes of correspondence.
+- 1 → `arab.tab.vulgate.17`. Hermes Trismegistus and his title: "thrice-great" in the book, "three parts of the wisdom" in the Tablet.
+
+**Contrasts, `broad_thematic_resemblance`, "None shown":**
+- 2 → `arab.tab.arabic.02`. The Arabic says the upper is FROM the lower; the wording "as above, so below" belongs to the Latin.
+- 2 → `arab.comm.hort.2`. Hortulanus reads the same line as the two parts of the Stone.
+
+**Hermetica and Blavatsky, `close_conceptual_parallel`, "None shown":**
+- 5 → `herm.ch.11.20`. God holds all things in himself as thoughts; the Universe is held in the Mind of THE ALL.
+- 7 → `herm.ch.11.18`. "All are in God".
+- 7 → `herm.ch.12.23`. "In the All is naught that is not God".
+- 2 → `modern.hpb.isis.1.507`. The Tablet's axiom as the essence of Hermetic wisdom.
+- intro → `modern.hpb.sd.1.xliii`. All sacred teaching from one hidden source.
+
+### Images
+
+There are seven images in the corpus. All are from Commons file pages, each was looked at, and all have `licenceStatus` "open". The 1908 title page is on the marker and is not repeated. The book has no ancient object to show.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The front cover of the BYU copy (DjVu page 1): gilt "The KYBALION / Hermetic Philosophy" | the book | secure |
+| The title-page verso (DjVu page 6): "Copyright 1908 by The Yogi Publication Society. Entered at Stationer's Hall" | the book | secure |
+| The dedication "To Hermes Trismegistus" (DjVu page 7) | Introduction | secure |
+| A typed page of the 1919 Post Office transcript ("Yogi Ramacharaka ... no such person") | the book | secure; its 1919 date was checked against the transcript itself |
+| Atkinson, an oval portrait over the printed signature "William Walker Atkinson" | the book | `UNVERIFIED` |
+| Atkinson, an oval portrait, "Chicago, 1900", said to be from *Suggestion* | the book | `UNVERIFIED` |
+| Atkinson, captioned "WILLIAM WALKER ATKINSON", said to be from 1901 | the book | `UNVERIFIED` |
+
+The three portraits are `UNVERIFIED` because their dates and printed sources rest on their file pages alone. Each caption says the portrait is context for the usual attribution, "not evidence that he wrote it".
+
+Left out:
+- `William_Walker_Atkinson,_1900.jpg`, a colourised copy of the *Suggestion* portrait;
+- `William_Walker_Atkinson.jpg`, which has no description;
+- `Kybalion_Book_Cover.jpg`, a modern French cover.
+
+### Plain words
+
+There are 16 plain-words entries, one per unit. Each begins "The book" or "The authors" and reports the book's account of Hermes and the Kybalion as the book's. Each has "Other possible readings", covering one of these:
+- a 1908 misprint that is kept;
+- the corrected quotation mark (chapter V);
+- whether "the old Hermetic axiom" means the Latin Emerald Tablet (chapters II and VIII);
+- a phrase of the book's that can be taken more than one way.
+
+### Not done
+
+- The text has not been proofread page by page against the page images. Punctuation was not voted; only quotation marks were checked across witnesses.
+- Deslippe's introduction (2011) was not read. The attribution here rests on the copyright register and the 1919 hearing. The hearing transcript is partial, and the OCR of its first pages is poor.
+- The *Suggestion* portrait's source and date were not checked against the IAPSOP scan of *Suggestion* vol. 7.
+- The 1912 and later printings are used only as a witness (G). Their differences are listed in the generator, not recorded as a separate edition.

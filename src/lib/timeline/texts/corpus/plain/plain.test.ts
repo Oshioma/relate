@@ -14,6 +14,7 @@ import { PLAIN_GOSPEL_OF_THOMAS } from "./gospel-of-thomas";
 import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_PISTIS_SOPHIA } from "./pistis-sophia";
 import { PLAIN_STEINER } from "./steiner";
+import { PLAIN_KYBALION } from "./kybalion";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -52,6 +53,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "arab.tablet-commentaries": PLAIN_HORTULANUS,
   "modern.blavatsky": PLAIN_BLAVATSKY,
   "modern.steiner": PLAIN_STEINER,
+  "modern.kybalion": PLAIN_KYBALION,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -103,6 +105,21 @@ test("every section of Steiner's 1911 English has plain words, and only those", 
   assert.match(PLAIN_STEINER["modern.steiner.1911.4.2"], /Other possible readings:\n- The transcription reads 'the knowledge and mastery of natural forces was learnt'/);
   assert.match(PLAIN_STEINER["modern.steiner.1911.5.2"], /Other possible readings:\n- The transcription reads 'what had been clone/);
   assert.match(PLAIN_STEINER["modern.steiner.1911.10.1"], /Other possible readings:\n- The transcription reads 'on which/);
+});
+
+test("the Introduction and every chapter of the Kybalion have plain words, and only those", () => {
+  const kyb = ALL_CORPORA.find((c) => c.workKey === "modern.kybalion")!;
+  const withText = kyb.passages.filter((p) => p.layers.some((l) => l.key === "eng-1908")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_KYBALION).sort(), [...withText].sort());
+  assert.equal(withText.length, 16);
+  // The book's account is reported as the book's, never as history.
+  for (const [key, words] of Object.entries(PLAIN_KYBALION)) assert.match(words, /^The (book|authors)/, key);
+  assert.match(PLAIN_KYBALION["modern.kyb.1908.intro"], /at the time of Abraham/);
+  // The echo of the Emerald Tablet and the kept misprints are shown as other readings.
+  assert.match(PLAIN_KYBALION["modern.kyb.1908.2"], /Other possible readings:\n- 'The old Hermetic axiom' may mean the second line of the Latin Emerald Tablet/);
+  assert.match(PLAIN_KYBALION["modern.kyb.1908.3"], /Other possible readings:\n- 'If the Universal is Mental in its nature': a 1908 misprint/);
+  assert.match(PLAIN_KYBALION["modern.kyb.1908.9"], /'Principle', a 1908 misprint/);
+  assert.match(PLAIN_KYBALION["modern.kyb.1908.14"], /'stream', a 1908 misprint/);
 });
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
