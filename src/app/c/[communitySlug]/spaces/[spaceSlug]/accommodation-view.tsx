@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ACCOMMODATION_TYPES, ACCOMMODATION_AMENITIES, amenityLabel, STAY_TERMS, stayTermForType, type StayTerm } from "@/lib/accommodation-types";
 import { NewAccommodationForm } from "./new-accommodation-form";
 import { AccommodationCard } from "./accommodation-card";
+import { PartnerStayCard } from "./partner-stay-card";
+import { mergeDirectory, placePartnerStays, type PartnerStay } from "@/lib/zanzibar-rooms/directory";
 import type { AccommodationListingWithStats, BusinessLinkOption } from "@/lib/data/accommodation";
 import type { AccommodationType } from "@/types/database";
 
@@ -36,6 +38,7 @@ export function AccommodationView({
   userId,
   businesses,
   importUrl,
+  partnerStays,
 }: {
   listings: AccommodationListingWithStats[];
   communityId: string;
@@ -47,6 +50,9 @@ export function AccommodationView({
   businesses: BusinessLinkOption[];
   // Arriving from the directory's add form with a link to autofill from.
   importUrl?: string;
+  // Zanzibar Rooms partner stays, on the one directory that shows them (see
+  // lib/zanzibar-rooms/directory). Null or absent when the feed is off or failed.
+  partnerStays?: PartnerStay[] | null;
 }) {
   const [term, setTerm] = useState<StayTerm | "all">("all");
   const [location, setLocation] = useState<string>("all");
@@ -60,6 +66,13 @@ export function AccommodationView({
   const [maxPrice, setMaxPrice] = useState("");
   const [amenityFilters, setAmenityFilters] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+
+  // Partner stays join the location chip their area names, if the directory
+  // already has one; otherwise they show only under "All locations".
+  const partners = useMemo(() => {
+    const labels = [...new Set(listings.flatMap((l) => (l.location_label ? [l.location_label] : [])))];
+    return placePartnerStays(partnerStays, labels);
+  }, [listings, partnerStays]);
 
   const savedCount = useMemo(() => listings.filter((l) => l.saved).length, [listings]);
 
@@ -106,14 +119,24 @@ export function AccommodationView({
     return sorted;
   }, [listings, term, type, location, query, showUnavailable, savedOnly, minPrice, maxPrice, amenityFilters, sort]);
 
+  // The list grid: the members' listings with matching partner stays merged
+  // in. The map stays members-only (the feed's cards carry no coordinates).
+  const gridItems = useMemo(() => {
+    const min = minPrice.trim() ? Number(minPrice) : null;
+    const max = maxPrice.trim() ? Number(maxPrice) : null;
+    return mergeDirectory(visible, partners, { term, type, location, query, min, max, amenities: amenityFilters, savedOnly, sort });
+  }, [visible, partners, term, type, location, query, minPrice, maxPrice, amenityFilters, savedOnly, sort]);
+  const showsPartners = gridItems.some((item) => item.kind === "partner");
+
   const countByType = useMemo(() => {
     const counts = new Map<string, number>();
     for (const l of listings) {
       if (l.status === "unavailable" && !showUnavailable) continue;
       counts.set(l.accommodation_type, (counts.get(l.accommodation_type) ?? 0) + 1);
     }
+    for (const p of partners) counts.set(p.type, (counts.get(p.type) ?? 0) + 1);
     return counts;
-  }, [listings, showUnavailable]);
+  }, [listings, partners, showUnavailable]);
 
   const locations = useMemo(() => {
     const counts = new Map<string, number>();
@@ -122,8 +145,10 @@ export function AccommodationView({
       if (!l.location_label) continue;
       counts.set(l.location_label, (counts.get(l.location_label) ?? 0) + 1);
     }
+    // Partner stays only ever join a chip that's already there.
+    for (const p of partners) if (p.location && counts.has(p.location)) counts.set(p.location, (counts.get(p.location) ?? 0) + 1);
     return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [listings, showUnavailable]);
+  }, [listings, partners, showUnavailable]);
 
   const countByTerm = useMemo(() => {
     const counts = new Map<StayTerm, number>();
@@ -132,8 +157,9 @@ export function AccommodationView({
       const t = stayTermForType(l.accommodation_type);
       counts.set(t, (counts.get(t) ?? 0) + 1);
     }
+    for (const p of partners) counts.set(p.term, (counts.get(p.term) ?? 0) + 1);
     return counts;
-  }, [listings, showUnavailable]);
+  }, [listings, partners, showUnavailable]);
 
   // Picking a term narrows the type chips to that term's types, and clears a
   // type selection that no longer belongs to it.
@@ -219,7 +245,7 @@ export function AccommodationView({
           onClick={() => setType("all")}
           className={`rounded-full border px-3 py-1 text-xs font-medium ${type === "all" ? "border-accent bg-accent-soft text-accent" : "border-border text-muted-foreground hover:border-muted-foreground/40"}`}
         >
-          All ({term === "all" ? listings.filter((l) => showUnavailable || l.status !== "unavailable").length : countByTerm.get(term) ?? 0})
+          All ({term === "all" ? listings.filter((l) => showUnavailable || l.status !== "unavailable").length + partners.length : countByTerm.get(term) ?? 0})
         </button>
         {ACCOMMODATION_TYPES.map((t) => {
           const count = countByType.get(t.value) ?? 0;
@@ -347,18 +373,27 @@ export function AccommodationView({
             description="None of the matching stays have a location set yet. Add coordinates when posting to show them here."
           />
         )
-      ) : visible.length === 0 ? (
+      ) : gridItems.length === 0 ? (
         <EmptyState
           icon={<BedDouble className="h-6 w-6" />}
-          title={listings.length === 0 ? "No places to stay yet" : "Nothing matches"}
-          description={listings.length === 0 ? "Hotels, guesthouses, rentals and camping members list will show up here." : "Try a different search or type."}
+          title={listings.length === 0 && partners.length === 0 ? "No places to stay yet" : "Nothing matches"}
+          description={listings.length === 0 && partners.length === 0 ? "Hotels, guesthouses, rentals and camping members list will show up here." : "Try a different search or type."}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((listing) => (
-            <AccommodationCard key={listing.id} listing={listing} communitySlug={communitySlug} spaceSlug={spaceSlug} canSave={canPost} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {gridItems.map((item) =>
+              item.kind === "listing" ? (
+                <AccommodationCard key={item.listing.id} listing={item.listing} communitySlug={communitySlug} spaceSlug={spaceSlug} canSave={canPost} />
+              ) : (
+                <PartnerStayCard key={`zr-${item.stay.id}`} stay={item.stay} />
+              )
+            )}
+          </div>
+          {showsPartners && (
+            <p className="mt-3 text-xs text-muted-foreground">Partner listings from Zanzibar Rooms, a separate site; listed and priced by their hosts.</p>
+          )}
+        </>
       )}
     </div>
   );

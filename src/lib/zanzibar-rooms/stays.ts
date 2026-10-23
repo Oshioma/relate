@@ -41,7 +41,9 @@ export type ZanzibarRoomsStay = {
 
 export type StaysQuery =
   | { by: "area"; area: string; near?: { lat: number; lng: number } }
-  | { by: "near"; lat: number; lng: number };
+  | { by: "near"; lat: number; lng: number }
+  // Every area: the community's accommodation directory.
+  | { by: "all" };
 
 function httpsUrl(value: string): URL | null {
   try {
@@ -167,9 +169,11 @@ export function stayQueryFor(place: { name: string; lat?: number | null; lng?: n
 
 const NEAR_RADIUS_KM = 8;
 
-export function feedUrl(base: string, query: { area: string } | { lat: number; lng: number }, limit = MAX_STAYS): string {
+export function feedUrl(base: string, query: { area: string } | { lat: number; lng: number } | null, limit = MAX_STAYS): string {
   const url = new URL(base);
-  if ("area" in query) url.searchParams.set("area", query.area);
+  if (!query) {
+    // No filter: everything, up to `limit`.
+  } else if ("area" in query) url.searchParams.set("area", query.area);
   else {
     url.searchParams.set("near", `${query.lat.toFixed(4)},${query.lng.toFixed(4)}`);
     url.searchParams.set("radius_km", String(NEAR_RADIUS_KM));
@@ -195,7 +199,7 @@ export function feedBase(env: Env): string | null {
 type FetchLike = (url: string, init: RequestInit & { next?: { revalidate?: number } }) => Promise<Response>;
 
 // [] only for a feed that answered with nothing usable; null for any failure.
-async function fetchFeed(url: string, fetchImpl: FetchLike, timeoutMs: number): Promise<ZanzibarRoomsStay[] | null> {
+async function fetchFeed(url: string, fetchImpl: FetchLike, timeoutMs: number, limit: number): Promise<ZanzibarRoomsStay[] | null> {
   try {
     const res = await fetchImpl(url, {
       headers: { accept: "application/json" },
@@ -203,7 +207,7 @@ async function fetchFeed(url: string, fetchImpl: FetchLike, timeoutMs: number): 
       next: { revalidate: FEED_REVALIDATE },
     });
     if (!res.ok) return null;
-    return feedItems(await res.json(), MAX_STAYS);
+    return feedItems(await res.json(), limit);
   } catch {
     return null;
   }
@@ -214,13 +218,19 @@ async function fetchFeed(url: string, fetchImpl: FetchLike, timeoutMs: number): 
 // (a failed request doesn't: one timeout is enough).
 export async function getZanzibarRoomsStays(
   query: StaysQuery | null,
-  { env = process.env, fetchImpl = fetch, timeoutMs = FEED_TIMEOUT_MS }: { env?: Env; fetchImpl?: FetchLike; timeoutMs?: number } = {}
+  {
+    env = process.env,
+    fetchImpl = fetch,
+    timeoutMs = FEED_TIMEOUT_MS,
+    limit = MAX_STAYS,
+  }: { env?: Env; fetchImpl?: FetchLike; timeoutMs?: number; limit?: number } = {}
 ): Promise<ZanzibarRoomsStay[] | null> {
   if (!query || !staysEnabled(env)) return null;
   const base = feedBase(env);
   if (!base) return null;
-  let stays = await fetchFeed(feedUrl(base, query.by === "near" ? query : { area: query.area }), fetchImpl, timeoutMs);
-  if (stays?.length === 0 && query.by === "area" && query.near) stays = await fetchFeed(feedUrl(base, query.near), fetchImpl, timeoutMs);
+  const filter = query.by === "all" ? null : query.by === "near" ? query : { area: query.area };
+  let stays = await fetchFeed(feedUrl(base, filter, limit), fetchImpl, timeoutMs, limit);
+  if (stays?.length === 0 && query.by === "area" && query.near) stays = await fetchFeed(feedUrl(base, query.near, limit), fetchImpl, timeoutMs, limit);
   return stays && stays.length > 0 ? stays : null;
 }
 
