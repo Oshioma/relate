@@ -37,9 +37,9 @@ const DIRECTORY_SLUGS = new Set([
   "the-fifth",
 ]);
 
-test("the guide has 20 restaurants with unique keys, The Rock and Forodhani among them", () => {
-  assert.equal(R.length, 20);
-  assert.equal(keys.size, 20);
+test("the guide has 21 restaurants with unique keys, The Rock and Forodhani among them", () => {
+  assert.equal(R.length, 21);
+  assert.equal(keys.size, 21);
   for (const k of ["the-rock", "forodhani-night-market", "lukmaan", "emerson-spice-tea-house"]) assert.ok(keys.has(k), k);
 });
 
