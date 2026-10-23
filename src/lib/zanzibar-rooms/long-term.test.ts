@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getLongTermStays, showsLongTermStays } from "./long-term";
+import { getLongTermStays, LIST_YOUR_ROOM_URL, showsLongTermStays } from "./long-term";
 
 function item(over: Record<string, unknown> = {}) {
   return {
@@ -54,4 +54,10 @@ test("drops nightly stays, and hides when none are monthly", async () => {
   const mixed = await getLongTermStays({ env: {}, fetchImpl: json(feed([item(), item({ id: "n", price_unit: "night", from_price: 50 })])) });
   assert.deepEqual(mixed?.map((s) => s.priceUnit), ["month"]);
   assert.equal(await getLongTermStays({ env: {}, fetchImpl: json(feed([item({ price_unit: "night" })])) }), null);
+});
+
+test("the list-your-room link goes to Zanzibar Rooms' host sign-up", () => {
+  const url = new URL(LIST_YOUR_ROOM_URL);
+  assert.equal(url.origin, "https://www.zanzibarrooms.com");
+  assert.equal(url.pathname, "/list-your-property");
 });
