@@ -2,7 +2,7 @@ import type { GuidePhoto, ListingRef } from "@/lib/guides/where-to-stay/types";
 import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory } from "@/lib/guides/hotel-guide/types";
 
 // The shape of an editorial guide to places rather than hotels ("Zanzibar's
-// Most Picturesque Places"). Each guide is one PlaceGuideDefinition; the page,
+// Picture-Perfect Places"). Each guide is one PlaceGuideDefinition; the page,
 // admin page and actions are shared, as with the hotel guides.
 //
 // Every place keeps the editors' judgement (why it's here, what you see)
