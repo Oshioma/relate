@@ -15,7 +15,7 @@ import {
 } from "./advice";
 import { TRAVELLER_RECOMMENDATIONS, TRAVELLER_SOURCE } from "./community";
 
-// "Zanzibar's Best Boutique Hotels & Hidden Gems", as a hotel guide
+// "Hidden Gems: Zanzibar's Boutique Hotels", as a hotel guide
 // definition (see hotel-guide/types.ts). The page, admin page and override
 // handling are shared with the other hotel guides.
 
@@ -23,11 +23,11 @@ export const BOUTIQUE_HOTELS_SLUG = "best-boutique-hotels-zanzibar";
 
 export const BOUTIQUE_GUIDE: HotelGuideDefinition = {
   slug: BOUTIQUE_HOTELS_SLUG,
-  title: "Zanzibar's Best Boutique Hotels & Hidden Gems",
+  title: "Hidden Gems: Zanzibar's Boutique Hotels",
   subtitle: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
-  seoTitle: "Best Boutique Hotels in Zanzibar | Hidden Gems & Luxury Stays",
+  seoTitle: "Hidden Gems: Boutique Hotels in Zanzibar | Beachfront Hideaways & Private Villas",
   description:
-    "Discover Zanzibar's best boutique hotels, romantic beachfront hideaways, private villas and hidden gems. Independent recommendations and practical local advice.",
+    "Discover Zanzibar's boutique hotels, romantic beachfront hideaways, private villas and hidden gems. Independent recommendations and practical local advice.",
   cardBlurb: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
   heroPhoto: BOUTIQUE_HERO_PHOTO,
   introduction: INTRODUCTION,

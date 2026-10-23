@@ -5,7 +5,7 @@ import { NORTH_EAST_PLACES } from "./places-north-east";
 import { SOUTH_PLACES } from "./places-south";
 import { STONE_TOWN_PLACES } from "./places-stone-town";
 
-// "Zanzibar's Most Picturesque Places", as a place guide definition (see
+// "Postcards from Zanzibar: The Island's Picture-Perfect Places", as a place guide definition (see
 // place-guide/types.ts). The page, admin page and override handling are
 // shared with any other place guide.
 
@@ -98,11 +98,11 @@ const CATEGORIES: StayCategory[] = [
 
 export const PICTURESQUE_GUIDE: PlaceGuideDefinition = {
   slug: PICTURESQUE_SLUG,
-  title: "Zanzibar's Most Picturesque Places",
+  title: "Postcards from Zanzibar: The Island's Picture-Perfect Places",
   subtitle: "Sandbanks and sunsets, carved doors and coral caves — the island's most beautiful places, and when to be there.",
-  seoTitle: "Most Picturesque Places in Zanzibar | Beaches, Sandbanks & Photo Spots",
+  seoTitle: "Postcards from Zanzibar | Picture-Perfect Beaches, Sandbanks & Photo Spots",
   description:
-    "The most picturesque places in Zanzibar: The Rock, Nakupenda sandbank, Stone Town's carved doors, Kendwa sunsets, Mnemba, Jozani forest and more — with the best time of day, tide advice and how to visit.",
+    "Zanzibar's picture-perfect places: The Rock, Nakupenda sandbank, Stone Town's carved doors, Kendwa sunsets, Mnemba, Jozani forest and more — with the best time of day, tide advice and how to visit.",
   cardBlurb: "Sandbanks and sunsets, carved doors and coral caves — the island's most beautiful places, and when to be there.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? PLACES.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,

@@ -5,7 +5,7 @@ import { NORTH_RESTAURANTS } from "./restaurants-north";
 import { SOUTH_RESTAURANTS } from "./restaurants-south";
 import { STONE_TOWN_RESTAURANTS } from "./restaurants-stone-town";
 
-// "Zanzibar's Best Restaurants", as a place guide (see place-guide/types.ts),
+// "Spice, Sea & Supper: Where to Eat in Zanzibar", as a place guide (see place-guide/types.ts),
 // with restaurant section headings, price bands, links to the community
 // directory and a live list of every restaurant in it.
 
@@ -103,11 +103,11 @@ const CATEGORIES: StayCategory[] = [
 
 export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   slug: RESTAURANTS_SLUG,
-  title: "Zanzibar's Best Restaurants",
+  title: "Spice, Sea & Supper: Where to Eat in Zanzibar",
   subtitle: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
-  seoTitle: "Best Restaurants in Zanzibar | Where to Eat in Stone Town, Nungwi & Paje",
+  seoTitle: "Spice, Sea & Supper: Zanzibar Restaurants | Where to Eat in Stone Town, Nungwi & Paje",
   description:
-    "The best restaurants in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
+    "Where to eat in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
   cardBlurb: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? RESTAURANTS.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,
