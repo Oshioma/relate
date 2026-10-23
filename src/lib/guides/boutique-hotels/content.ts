@@ -25,9 +25,9 @@ export const BOUTIQUE_GUIDE: HotelGuideDefinition = {
   slug: BOUTIQUE_HOTELS_SLUG,
   title: "Hidden Gems: Zanzibar's Boutique Hotels",
   subtitle: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
-  seoTitle: "Hidden Gems: Boutique Hotels in Zanzibar | Beachfront Hideaways & Private Villas",
+  seoTitle: "Best Boutique Hotels in Zanzibar | Hidden Gems & Luxury Stays",
   description:
-    "Discover Zanzibar's boutique hotels, romantic beachfront hideaways, private villas and hidden gems. Independent recommendations and practical local advice.",
+    "Discover Zanzibar's best boutique hotels, romantic beachfront hideaways, private villas and hidden gems. Independent recommendations and practical local advice.",
   cardBlurb: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
   heroPhoto: BOUTIQUE_HERO_PHOTO,
   introduction: INTRODUCTION,

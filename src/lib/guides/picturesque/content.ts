@@ -100,9 +100,9 @@ export const PICTURESQUE_GUIDE: PlaceGuideDefinition = {
   slug: PICTURESQUE_SLUG,
   title: "Postcards from Zanzibar: The Island's Picture-Perfect Places",
   subtitle: "Sandbanks and sunsets, carved doors and coral caves — the island's most beautiful places, and when to be there.",
-  seoTitle: "Postcards from Zanzibar | Picture-Perfect Beaches, Sandbanks & Photo Spots",
+  seoTitle: "Most Picturesque Places in Zanzibar | Beaches, Sandbanks & Photo Spots",
   description:
-    "Zanzibar's picture-perfect places: The Rock, Nakupenda sandbank, Stone Town's carved doors, Kendwa sunsets, Mnemba, Jozani forest and more — with the best time of day, tide advice and how to visit.",
+    "The most picturesque places in Zanzibar: The Rock, Nakupenda sandbank, Stone Town's carved doors, Kendwa sunsets, Mnemba, Jozani forest and more — with the best time of day, tide advice and how to visit.",
   cardBlurb: "Sandbanks and sunsets, carved doors and coral caves — the island's most beautiful places, and when to be there.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? PLACES.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,

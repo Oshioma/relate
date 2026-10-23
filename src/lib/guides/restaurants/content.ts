@@ -105,9 +105,9 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   slug: RESTAURANTS_SLUG,
   title: "Spice, Sea & Supper: Where to Eat in Zanzibar",
   subtitle: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
-  seoTitle: "Spice, Sea & Supper: Zanzibar Restaurants | Where to Eat in Stone Town, Nungwi & Paje",
+  seoTitle: "Best Restaurants in Zanzibar | Where to Eat in Stone Town, Nungwi & Paje",
   description:
-    "Where to eat in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
+    "The best restaurants in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
   cardBlurb: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? RESTAURANTS.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,

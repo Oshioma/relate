@@ -73,9 +73,9 @@ export const LUXURY_GUIDE: HotelGuideDefinition = {
   slug: LUXURY_RESORTS_SLUG,
   title: "Barefoot Luxury: Zanzibar's Five-Star Escapes",
   subtitle: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when you want to be spoilt.",
-  seoTitle: "Barefoot Luxury: Zanzibar's Five-Star Resorts | Private Islands & Beach Villas",
+  seoTitle: "Best Luxury Resorts in Zanzibar | Five-Star Hotels & Private Islands",
   description:
-    "Zanzibar's luxury resorts, from a private island and villa resorts to five-star all-inclusives and Stone Town's historic hotels. Independent recommendations and practical local advice.",
+    "Zanzibar's best luxury resorts, from a private island and villa resorts to five-star all-inclusives and Stone Town's historic hotels. Independent recommendations and practical local advice.",
   cardBlurb: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when you want to be spoilt.",
   heroPhoto: RESORT_PHOTOS["mnemba"][0],
   introduction: INTRODUCTION,
