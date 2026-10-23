@@ -5,11 +5,11 @@ import { EAST_BARS } from "./bars-east";
 import { NORTH_WEST_BARS } from "./bars-north-west";
 import { SOUTH_BARS } from "./bars-south";
 
-// "Zanzibar's Best Beach Bars", as a place guide (see place-guide/types.ts):
+// "Sundowners & Full Moons: Zanzibar's Beach Bars", as a place guide (see place-guide/types.ts):
 // sunset bars, parties, chilled and local bars, with price bands, entry
 // rules and links to the same places in the restaurant guide.
 
-export const BEACH_BARS_SLUG = "best-beach-bars-zanzibar";
+export const BEACH_BARS_SLUG = "zanzibar-beach-bars";
 
 const byKey = new Map([...NORTH_WEST_BARS, ...EAST_BARS, ...SOUTH_BARS].map((p) => [p.key, p]));
 
@@ -97,11 +97,11 @@ const CATEGORIES: StayCategory[] = [
 
 export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
   slug: BEACH_BARS_SLUG,
-  title: "Zanzibar's Best Beach Bars",
+  title: "Sundowners & Full Moons: Zanzibar's Beach Bars",
   subtitle: "Sunsets over the sea, the full moon party, reggae by the fishing boats and hammocks on the lagoon — where to drink on the island, and when.",
-  seoTitle: "Best Beach Bars in Zanzibar | Sunset Bars, Full Moon Party, Nungwi, Kendwa & Paje",
+  seoTitle: "Zanzibar Beach Bars: Sundowners & Full Moons | Sunset Bars, Full Moon Party, Nungwi, Kendwa & Paje",
   description:
-    "The best beach bars in Zanzibar: sunset bars in Nungwi and Stone Town, the Kendwa Rocks full moon party, Kae Funk, Paje's beach clubs and chilled Jambiani bars — with party nights, entry rules and tide tips.",
+    "Zanzibar's beach bars: sunset bars in Nungwi and Stone Town, the Kendwa Rocks full moon party, Kae Funk, Paje's beach clubs and chilled Jambiani bars — with party nights, entry rules and tide tips.",
   cardBlurb: "Sunsets over the sea, the full moon party, reggae by the fishing boats and hammocks on the lagoon — where to drink on the island, and when.",
   // Sunset from the rooftop of The Z Hotel, Nungwi.
   heroPhoto: (byKey.get("z-rooftops")?.photos ?? [])[1] ?? BARS.flatMap((p) => p.photos)[0],

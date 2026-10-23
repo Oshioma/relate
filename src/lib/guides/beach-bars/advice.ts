@@ -6,7 +6,7 @@ import type { AdviceBlock } from "@/lib/guides/hotel-guide/types";
 export const INTRODUCTION: string[] = [
   "Zanzibar does sundowners better than almost anywhere.",
   "The sun drops into the sea off the west coast in a blaze of orange, dhows slide past with their sails up, and on the east coast the tide pulls out across a lagoon the colour of mint. In between there's a beach bar for every mood — swings over the water, reggae on the sand, cocktails on a rooftop, DJs until late and a monthly full moon party.",
-  "This guide picks the island's best beach bars, from sunset spots and party bars to hammock-and-a-juice hideaways and the local bars where Zanzibaris drink — with when to go, what people order and what to know before you set off.",
+  "This guide picks twenty-one beach bars worth the journey, from sunset spots and party bars to hammock-and-a-juice hideaways and the local bars where Zanzibaris drink — with when to go, what people order and what to know before you set off.",
 ];
 
 export const HOW_TO_READ: { label: string; body: string }[] = [

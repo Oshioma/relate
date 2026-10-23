@@ -1,5 +1,5 @@
 -- =============================================================================
--- Relate — "Zanzibar's Best Beach Bars" editorial guide
+-- Relate — "Sundowners & Full Moons: Zanzibar's Beach Bars" editorial guide
 --
 -- Mzungu Zanzibar's beach-bar guide, built on the place-guide template. The
 -- content ships with the app (src/lib/guides/beach-bars/…); this row records
@@ -13,7 +13,7 @@
 -- =============================================================================
 
 insert into public.editorial_guides (community_id, slug, title, status, last_reviewed_on)
-select c.id, 'best-beach-bars-zanzibar', 'Zanzibar''s Best Beach Bars', 'published', current_date
+select c.id, 'zanzibar-beach-bars', 'Sundowners & Full Moons: Zanzibar''s Beach Bars', 'published', current_date
 from public.communities c
 where c.slug = 'mzunguzanzibar'
 on conflict (community_id, slug) do nothing;

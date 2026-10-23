@@ -7,4 +7,4 @@ export function maps(query: string): string {
 }
 
 // The beach bars guide, for restaurants that are in both.
-export const BEACH_BARS_SLUG = "best-beach-bars-zanzibar";
+export const BEACH_BARS_SLUG = "zanzibar-beach-bars";
