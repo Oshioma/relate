@@ -1,4 +1,4 @@
-import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
+import type { GuidePhoto, ListingRef } from "@/lib/guides/where-to-stay/types";
 import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory } from "@/lib/guides/hotel-guide/types";
 
 // The shape of an editorial guide to places rather than hotels ("Zanzibar's
@@ -10,7 +10,7 @@ import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory 
 // verified against current sources on the date in `verification`. Nothing
 // here claims the editors visited, and there are never prices or fees.
 
-export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint";
+export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food";
 
 export type Place = {
   key: string;
@@ -40,6 +40,23 @@ export type Place = {
   mapsUrl: string;
   photos: GuidePhoto[];
   verification: HotelVerification;
+  // Restaurant guides: a relative price band (never a price), checked facts
+  // for the at-a-glance panel (cuisine, booking, alcohol…), and the
+  // community directory listing, matched by slug at request time.
+  price?: "$" | "$$" | "$$$" | "$$$$";
+  facts?: { label: string; value: string }[];
+  listing?: ListingRef | null;
+};
+
+// Section headings on each entry. Defaults suit places; a restaurant guide
+// renames them ("What to order", "Booking and practicalities"…).
+export type PlaceSectionLabels = {
+  whyGo: string;
+  bestTime: string;
+  howToVisit: string;
+  photoTips: string;
+  considerations: string;
+  fromStoneTown: string;
 };
 
 // A suggested day: an ordered list of places with what to do there.
@@ -73,6 +90,12 @@ export type PlaceGuideDefinition = {
   editorialStandards: string;
   photoNote: string;
   places: Place[];
+  labels?: Partial<PlaceSectionLabels>;
+  // Lists every listing in the community's directory with this category,
+  // live, under the guide's own picks (e.g. all directory restaurants).
+  directorySection?: { title: string; navLabel: string; blurb: string; category: string } | null;
+  // The hero's call-to-action button into the entries.
+  heroCta?: string;
 };
 
 // Stored overrides use the hotel guides' shape, with `hotelPhotos` keyed by

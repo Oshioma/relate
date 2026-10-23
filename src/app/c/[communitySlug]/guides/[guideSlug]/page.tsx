@@ -190,7 +190,10 @@ export default async function EditorialGuidePage({ params }: { params: Params })
       },
     };
     if (placeGuide) {
-      return <PlaceGuide def={placeGuide} content={loadPlaceGuide(placeGuide, guide.content)} links={{ recommend: links.restaurant, ask: links.ask }} {...shared} />;
+      // Only guides that link to the community directory pay for reading it.
+      const linksDirectory = Boolean(placeGuide.directorySection) || placeGuide.places.some((p) => p.listing);
+      const directory = linksDirectory ? await getGuideDirectory(supabase, community.id, community.slug) : null;
+      return <PlaceGuide def={placeGuide} content={loadPlaceGuide(placeGuide, guide.content)} links={{ recommend: links.restaurant, ask: links.ask }} directory={directory} {...shared} />;
     }
     if (!hotelGuide) notFound();
     return (
