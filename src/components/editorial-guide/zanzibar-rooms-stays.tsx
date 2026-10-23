@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { BedDouble, ExternalLink, MapPin, Users } from "lucide-react";
-import { formatFromPrice, getZanzibarRoomsStays, stayQueryFor, type ZanzibarRoomsStay } from "@/lib/zanzibar-rooms/stays";
+import { formatFromPrice, getZanzibarRoomsStays, LIST_YOUR_ROOM_URL, stayQueryFor, type ZanzibarRoomsStay } from "@/lib/zanzibar-rooms/stays";
 
 // "Stay with Zanzibar Rooms": a few partner listings from
 // www.zanzibarrooms.com under a destination's own stay recommendations.
@@ -17,6 +17,7 @@ export async function ZanzibarRoomsStays({ place }: { place: { name: string; lat
       heading="Stay with Zanzibar Rooms"
       headingId={`zr-stays-${place.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
       note="Listed and priced by their hosts on Zanzibar Rooms, a separate site; prices can change. Not reviewed by our editors."
+      action={<ListYourRoom prompt="Have a room or home to let in Zanzibar?" />}
     />
   );
 }
@@ -96,5 +97,23 @@ export function ZanzibarRoomsStayCards({
       <p className="mt-3 text-xs text-muted-foreground">{note}</p>
       {action}
     </section>
+  );
+}
+
+// The link for hosts to list their own place, under the partner cards.
+export function ListYourRoom({ prompt }: { prompt: string }) {
+  return (
+    <p className="mt-3 text-sm text-foreground">
+      {prompt}{" "}
+      <a
+        href={LIST_YOUR_ROOM_URL}
+        target="_blank"
+        rel="noopener"
+        className="inline-flex items-center gap-1 font-medium text-accent hover:underline"
+      >
+        Add your room to ZanzibarRooms.com <ExternalLink className="h-3 w-3" aria-hidden />
+        <span className="sr-only">(opens in a new tab)</span>
+      </a>
+    </p>
   );
 }
