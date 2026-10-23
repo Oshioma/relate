@@ -10,6 +10,9 @@ import { z } from "zod";
 // JSON, nothing left) comes back as null so the section simply doesn't render.
 // This file is plain TypeScript (no Next imports) so the tests can run it.
 
+// Where a host signs up to list a place on Zanzibar Rooms.
+export const LIST_YOUR_ROOM_URL = "https://www.zanzibarrooms.com/list-your-property?utm_source=mzunguzanzibar&utm_medium=referral";
+
 export const DEFAULT_FEED_URL = "https://www.zanzibarrooms.com/api/public/stays";
 const LISTING_ORIGIN = "https://www.zanzibarrooms.com";
 // Hosts next.config.ts allows for next/image. A photo anywhere else is dropped

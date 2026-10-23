@@ -1,5 +1,7 @@
 import { getZanzibarRoomsStays, type ZanzibarRoomsStay } from "./stays";
 
+export { LIST_YOUR_ROOM_URL } from "./stays";
+
 // The "Long Term" section at the foot of a community's accommodation
 // directory: monthly lets from Zanzibar Rooms, shown on their own and never
 // mixed into the directory's grid, filters or counts.
@@ -9,8 +11,6 @@ import { getZanzibarRoomsStays, type ZanzibarRoomsStay } from "./stays";
 // than by space type.
 export const LONG_TERM_SPACE = { communitySlug: "mzunguzanzibar", spaceSlug: "accomodation" } as const;
 export const LONG_TERM_LIMIT = 24;
-// Where a host signs up to list a place on Zanzibar Rooms.
-export const LIST_YOUR_ROOM_URL = "https://www.zanzibarrooms.com/list-your-property?utm_source=mzunguzanzibar&utm_medium=referral";
 
 export function showsLongTermStays(communitySlug: string, spaceSlug: string): boolean {
   return communitySlug === LONG_TERM_SPACE.communitySlug && spaceSlug === LONG_TERM_SPACE.spaceSlug;
