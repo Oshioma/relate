@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { BedDouble, ExternalLink, MapPin, Users } from "lucide-react";
 import { formatFromPrice, getZanzibarRoomsStays, stayQueryFor, type ZanzibarRoomsStay } from "@/lib/zanzibar-rooms/stays";
@@ -28,6 +29,7 @@ export function ZanzibarRoomsStayCards({
   headingId,
   headingLevel = "h4",
   note,
+  action,
   className = "mt-8",
 }: {
   stays: ZanzibarRoomsStay[];
@@ -35,6 +37,8 @@ export function ZanzibarRoomsStayCards({
   headingId: string;
   headingLevel?: "h2" | "h3" | "h4";
   note: string;
+  // Shown under the note, e.g. a link for hosts to list their own place.
+  action?: ReactNode;
   className?: string;
 }) {
   const Heading = headingLevel;
@@ -90,6 +94,7 @@ export function ZanzibarRoomsStayCards({
         ))}
       </ul>
       <p className="mt-3 text-xs text-muted-foreground">{note}</p>
+      {action}
     </section>
   );
 }
