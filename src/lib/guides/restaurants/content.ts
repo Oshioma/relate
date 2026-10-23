@@ -25,6 +25,7 @@ const ORDER = [
   "sexy-fish",
   "fishermans-seafood-grill",
   "fish-market-nungwi",
+  "kajibange",
   "makofi",
   "hanoi-house-nungwi",
   "passion-thyme",
@@ -54,7 +55,7 @@ const CATEGORIES: StayCategory[] = [
     id: "sunset",
     title: "Dinner with a sunset",
     blurb: "West-facing tables where the sun goes down over the water.",
-    hotelKeys: ["6-degrees-south", "emerson-spice-tea-house", "sexy-fish", "fishermans-seafood-grill", "kae-funk", "cape-town-fish-market"],
+    hotelKeys: ["6-degrees-south", "emerson-spice-tea-house", "sexy-fish", "fishermans-seafood-grill", "kajibange", "kae-funk", "cape-town-fish-market"],
   },
   {
     id: "seafood",
@@ -81,6 +82,12 @@ const CATEGORIES: StayCategory[] = [
     hotelKeys: ["mr-kahawa", "passion-thyme", "organzibar", "boho-social"],
   },
   {
+    id: "burgers",
+    title: "A change from seafood",
+    blurb: "Burgers, pizza and the island's other kitchens, for when you've had your fill of grilled fish.",
+    hotelKeys: ["makofi", "hanoi-house-nungwi", "abyssinian-maritim"],
+  },
+  {
     id: "budget",
     title: "Good value",
     blurb: "Eating well without spending much.",
@@ -90,7 +97,7 @@ const CATEGORIES: StayCategory[] = [
     id: "drinks",
     title: "Cocktails and a view",
     blurb: "For sundowners as much as dinner.",
-    hotelKeys: ["6-degrees-south", "the-fifth", "kae-funk", "boho-social"],
+    hotelKeys: ["6-degrees-south", "the-fifth", "kajibange", "makofi", "kae-funk", "boho-social"],
   },
 ];
 
@@ -109,7 +116,7 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   categoryCaveat: CATEGORY_CAVEAT,
   placesSection: {
     title: "The restaurants",
-    blurb: "Twenty places to eat, by area: Stone Town, the north, then the east and south coasts. Tap any photo to see them all.",
+    blurb: "Twenty-one places to eat, by area: Stone Town, the north, then the east and south coasts. Tap any photo to see them all.",
     navGroup: "The restaurants",
   },
   mosaic: [
@@ -141,11 +148,11 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
       {
         id: "nungwi",
         title: "Nungwi",
-        summary: "Juice and a deli lunch, then seafood at sunset.",
+        summary: "Juice and a deli lunch, an afternoon on the beach, then burgers and music.",
         stops: [
           { placeKey: "passion-thyme", when: "Breakfast or lunch", note: "Paninis, salads and fresh juices." },
-          { placeKey: "fish-market-nungwi", when: "Late lunch", note: "Pick your fish from the morning's catch." },
-          { placeKey: "sexy-fish", when: "Sunset dinner", note: "Book the deck over the sand." },
+          { placeKey: "kajibange", when: "Afternoon", note: "Swim, eat, then chill with a cocktail as the sun goes down." },
+          { placeKey: "makofi", when: "Dinner", note: "Burgers and pizza in the garden, with great music." },
         ],
       },
       {
