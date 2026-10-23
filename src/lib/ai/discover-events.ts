@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { meterClaude } from "@/lib/usage/ai-meter";
+import type { GuideVenue } from "@/lib/events/guide-venues";
 
 // Cheap-and-fast configuration while the feature bakes: Haiku costs ~5x less
 // than Sonnet per token and finishes in well under a minute, which also
@@ -85,6 +86,8 @@ Rules:
 export async function discoverEventsWithAI(opts: {
   locationName: string;
   existingTitles: string[];
+  // Venues the community's guides recommend, checked for events of their own.
+  venues?: GuideVenue[];
 }): Promise<DiscoveryResult> {
   const anthropic = getClient();
   if (!anthropic) return { status: "unconfigured" };
@@ -94,14 +97,17 @@ export async function discoverEventsWithAI(opts: {
     .slice(0, 50)
     .map((t) => `- ${t}`)
     .join("\n");
+  const venues = (opts.venues ?? []).map((v) => `- ${v.name} (${v.area})${v.website ? ` — ${v.website}` : ""}`).join("\n");
 
   const startedAt = Date.now();
   const messages: Anthropic.MessageParam[] = [
     {
       role: "user",
       content: `Today's date is ${today}. Find upcoming public events in ${opts.locationName} over the next 60 days.${
-        existing ? `\n\nAlready on our calendar (skip these):\n${existing}` : ""
-      }`,
+        venues
+          ? `\n\nVenues our community recommends — as well as the listings sites, use a search or two on their own pages for upcoming events (parties, DJ and live-music nights, brunches):\n${venues}`
+          : ""
+      }${existing ? `\n\nAlready on our calendar (skip these):\n${existing}` : ""}`,
     },
   ];
 
