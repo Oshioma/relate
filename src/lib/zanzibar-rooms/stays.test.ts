@@ -50,7 +50,7 @@ test("malformed items are dropped, the rest kept", () => {
       item({ id: "b", name: "" }),
       item({ id: "c", from_price: "85" }),
       item({ id: "d", price_unit: "week" }),
-      item({ id: "e", lat: null }),
+      item({ id: "e", lat: "-6.2" }),
       item({ id: "f", currency: "dollars" }),
       null,
       "nope",
@@ -60,6 +60,11 @@ test("malformed items are dropped, the rest kept", () => {
     ])
   );
   assert.deepEqual(stays?.map((s) => s.id), ["a", "h"]);
+});
+
+test("listings without a map position are kept", () => {
+  const stays = parseStaysFeed(feed([item({ id: "nulls", lat: null, lng: null }), item({ id: "missing", lat: undefined, lng: undefined })]));
+  assert.deepEqual(stays?.map((s) => s.id), ["nulls", "missing"]);
 });
 
 test("links that aren't Zanzibar Rooms itself are rejected", () => {

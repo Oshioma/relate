@@ -61,8 +61,9 @@ const itemSchema = z.object({
   id: z.string().trim().min(1).max(100),
   name: z.string().trim().min(1).max(200),
   area: z.string().nullish(),
-  lat: z.number().finite().min(-90).max(90),
-  lng: z.number().finite().min(-180).max(180),
+  // Null for listings without a map position yet. Cards don't use them.
+  lat: z.number().finite().min(-90).max(90).nullish(),
+  lng: z.number().finite().min(-180).max(180).nullish(),
   from_price: z.number().finite().positive(),
   currency: z.string().regex(/^[A-Z]{3}$/),
   price_unit: z.enum(["night", "month"]),
