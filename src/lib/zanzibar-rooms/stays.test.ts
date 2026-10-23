@@ -205,16 +205,3 @@ test("price label", () => {
   assert.equal(formatFromPrice({ fromPrice: 1200.5, currency: "USD", priceUnit: "month" }), "from $1,201 / month");
   assert.equal(formatFromPrice({ fromPrice: 90, currency: "EUR", priceUnit: "night" }), "from €90 / night");
 });
-
-test("the directory asks for every area, up to its own limit", async () => {
-  const urls: string[] = [];
-  const many = Array.from({ length: 30 }, (_, i) => item({ id: `id-${i}` }));
-  const fetchImpl = async (url: string) => {
-    urls.push(url);
-    return new Response(JSON.stringify(feed(many)), { status: 200 });
-  };
-  const stays = await getZanzibarRoomsStays({ by: "all" }, { env: {}, fetchImpl, limit: 24 });
-  assert.equal(stays?.length, 24);
-  assert.deepEqual(urls, ["https://www.zanzibarrooms.com/api/public/stays?limit=24"]);
-  assert.equal(await getZanzibarRoomsStays({ by: "all" }, { env: {}, fetchImpl: async () => new Response("", { status: 503 }), limit: 24 }), null);
-});

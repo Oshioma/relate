@@ -42,8 +42,9 @@ export type ZanzibarRoomsStay = {
 export type StaysQuery =
   | { by: "area"; area: string; near?: { lat: number; lng: number } }
   | { by: "near"; lat: number; lng: number }
-  // Every area: the community's accommodation directory.
-  | { by: "all" };
+  // Every area, optionally monthly lets only: the community's accommodation
+  // directory's "Long Term" section.
+  | { by: "all"; monthly?: boolean };
 
 function httpsUrl(value: string): URL | null {
   try {
@@ -169,7 +170,12 @@ export function stayQueryFor(place: { name: string; lat?: number | null; lng?: n
 
 const NEAR_RADIUS_KM = 8;
 
-export function feedUrl(base: string, query: { area: string } | { lat: number; lng: number } | null, limit = MAX_STAYS): string {
+export function feedUrl(
+  base: string,
+  query: { area: string } | { lat: number; lng: number } | null,
+  limit = MAX_STAYS,
+  { monthly = false }: { monthly?: boolean } = {}
+): string {
   const url = new URL(base);
   if (!query) {
     // No filter: everything, up to `limit`.
@@ -178,6 +184,7 @@ export function feedUrl(base: string, query: { area: string } | { lat: number; l
     url.searchParams.set("near", `${query.lat.toFixed(4)},${query.lng.toFixed(4)}`);
     url.searchParams.set("radius_km", String(NEAR_RADIUS_KM));
   }
+  if (monthly) url.searchParams.set("type", "monthly");
   url.searchParams.set("limit", String(limit));
   return url.href;
 }
@@ -229,7 +236,7 @@ export async function getZanzibarRoomsStays(
   const base = feedBase(env);
   if (!base) return null;
   const filter = query.by === "all" ? null : query.by === "near" ? query : { area: query.area };
-  let stays = await fetchFeed(feedUrl(base, filter, limit), fetchImpl, timeoutMs, limit);
+  let stays = await fetchFeed(feedUrl(base, filter, limit, { monthly: query.by === "all" && query.monthly }), fetchImpl, timeoutMs, limit);
   if (stays?.length === 0 && query.by === "area" && query.near) stays = await fetchFeed(feedUrl(base, query.near, limit), fetchImpl, timeoutMs, limit);
   return stays && stays.length > 0 ? stays : null;
 }

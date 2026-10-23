@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { BedDouble, ExternalLink, MapPin, Users } from "lucide-react";
-import { formatFromPrice, getZanzibarRoomsStays, stayQueryFor } from "@/lib/zanzibar-rooms/stays";
+import { formatFromPrice, getZanzibarRoomsStays, stayQueryFor, type ZanzibarRoomsStay } from "@/lib/zanzibar-rooms/stays";
 
 // "Stay with Zanzibar Rooms": a few partner listings from
 // www.zanzibarrooms.com under a destination's own stay recommendations.
@@ -10,14 +10,40 @@ import { formatFromPrice, getZanzibarRoomsStays, stayQueryFor } from "@/lib/zanz
 export async function ZanzibarRoomsStays({ place }: { place: { name: string; lat?: number | null; lng?: number | null } }) {
   const stays = await getZanzibarRoomsStays(stayQueryFor(place));
   if (!stays) return null;
-  const headingId = `zr-stays-${place.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-
   return (
-    <section aria-labelledby={headingId} className="mt-8 rounded-lg border border-border bg-card p-4">
+    <ZanzibarRoomsStayCards
+      stays={stays}
+      heading="Stay with Zanzibar Rooms"
+      headingId={`zr-stays-${place.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+      note="Listed and priced by their hosts on Zanzibar Rooms, a separate site; prices can change. Not reviewed by our editors."
+    />
+  );
+}
+
+// The partner cards themselves, shared with the "Long Term" section of the
+// community accommodation directory.
+export function ZanzibarRoomsStayCards({
+  stays,
+  heading,
+  headingId,
+  headingLevel = "h4",
+  note,
+  className = "mt-8",
+}: {
+  stays: ZanzibarRoomsStay[];
+  heading: string;
+  headingId: string;
+  headingLevel?: "h2" | "h3" | "h4";
+  note: string;
+  className?: string;
+}) {
+  const Heading = headingLevel;
+  return (
+    <section aria-labelledby={headingId} className={`${className} rounded-lg border border-border bg-card p-4`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h4 id={headingId} className="flex items-center gap-2 text-base font-semibold text-foreground">
-          <BedDouble className="h-4 w-4 text-accent" aria-hidden /> Stay with Zanzibar Rooms
-        </h4>
+        <Heading id={headingId} className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <BedDouble className="h-4 w-4 text-accent" aria-hidden /> {heading}
+        </Heading>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Partner listings from Zanzibar Rooms</p>
       </div>
       <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,9 +89,7 @@ export async function ZanzibarRoomsStays({ place }: { place: { name: string; lat
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Listed and priced by their hosts on Zanzibar Rooms, a separate site; prices can change. Not reviewed by our editors.
-      </p>
+      <p className="mt-3 text-xs text-muted-foreground">{note}</p>
     </section>
   );
 }

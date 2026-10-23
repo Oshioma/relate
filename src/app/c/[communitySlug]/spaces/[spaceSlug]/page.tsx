@@ -81,8 +81,8 @@ import { ExploreMapLoader } from "./explore-map-loader";
 import { MarketplaceView } from "./marketplace-view";
 import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
-import { formatFromPrice, getZanzibarRoomsStays } from "@/lib/zanzibar-rooms/stays";
-import { DIRECTORY_STAYS_LIMIT, showsPartnerStays } from "@/lib/zanzibar-rooms/directory";
+import { LongTermStays } from "./long-term-stays";
+import { showsLongTermStays } from "@/lib/zanzibar-rooms/long-term";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { MeetupsView } from "./meetups-view";
@@ -291,7 +291,6 @@ export default async function SpaceDetailPage({
     liveSessions,
     meetups,
     editorialGuideRows,
-    zanzibarRoomsStays,
   ] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     isDiscussionLike ? getSpacePosts(supabase, space.id, viewerId) : Promise.resolve([]),
@@ -325,14 +324,7 @@ export default async function SpaceDetailPage({
     // A Guides space also points to the editors' own guides (RLS shows drafts
     // to staff only).
     isGuidesSpace ? getCommunityEditorialGuides(supabase, community.id) : Promise.resolve([]),
-    // Zanzibar Rooms partner stays, only in Mzungu Zanzibar's accommodation
-    // directory. Fetched alongside everything else (cached, 3s timeout) and
-    // null on any failure, so the directory then renders as it always has.
-    isAccommodationSpace && showsPartnerStays(community.slug, space.slug)
-      ? getZanzibarRoomsStays({ by: "all" }, { limit: DIRECTORY_STAYS_LIMIT })
-      : Promise.resolve(null),
   ]);
-  const partnerStays = zanzibarRoomsStays?.map((stay) => ({ ...stay, priceLabel: formatFromPrice(stay) })) ?? null;
   const editorialGuides = editorialGuideRows.map((g) => {
     const entry = editorialGuideEntry(g.slug);
     return { slug: g.slug, title: g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
@@ -780,18 +772,26 @@ export default async function SpaceDetailPage({
           userId={viewerId}
         />
       ) : isAccommodationSpace ? (
-        <AccommodationView
-          listings={accommodationListings}
-          communityId={community.id}
-          communitySlug={community.slug}
-          spaceId={space.id}
-          spaceSlug={space.slug}
-          canPost={canPost}
-          userId={viewerId}
-          businesses={accommodationBusinessOptions}
-          importUrl={importUrl}
-          partnerStays={partnerStays}
-        />
+        <>
+          <AccommodationView
+            listings={accommodationListings}
+            communityId={community.id}
+            communitySlug={community.slug}
+            spaceId={space.id}
+            spaceSlug={space.slug}
+            canPost={canPost}
+            userId={viewerId}
+            businesses={accommodationBusinessOptions}
+            importUrl={importUrl}
+          />
+          {/* Zanzibar Rooms monthly lets, on Mzungu Zanzibar's directory only.
+              Streams in after the page; renders nothing if the feed fails. */}
+          {showsLongTermStays(community.slug, space.slug) && (
+            <Suspense fallback={null}>
+              <LongTermStays />
+            </Suspense>
+          )}
+        </>
       ) : isRecommendationsSpace ? (
         <RecommendationsView
           recommendations={recommendations}
