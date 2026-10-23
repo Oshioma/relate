@@ -1,4 +1,4 @@
-import { CalendarCheck, Camera, Compass, ListChecks, MapPinned, MessageCircleHeart, Pencil, Route, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { BookOpen, CalendarCheck, Camera, Compass, ListChecks, MapPinned, MessageCircleHeart, Pencil, Route, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import type { Community, EditorialGuide, EditorialGuideUpdate } from "@/types/database";
 import type { FeedItemActionsProps } from "@/app/c/[communitySlug]/feed-item-actions";
 import { FeedItemActions } from "@/app/c/[communitySlug]/feed-item-actions";
@@ -7,11 +7,11 @@ import { placePhotoCount, type ResolvedPlaceGuide } from "@/lib/guides/place-gui
 import { SectionNav, type NavSection } from "@/components/ui/section-nav";
 import { GuideImage } from "@/components/editorial-guide/guide-image";
 import { PhotoCredit } from "@/components/editorial-guide/photo-credit";
-import { PlaceSection, KIND_LABELS } from "@/components/editorial-guide/place-section";
+import { PlaceSection, KIND_LABELS, DEFAULT_PLACE_LABELS } from "@/components/editorial-guide/place-section";
 import { PhotoGallery, PhotoOpener, type ViewerPhoto } from "@/components/editorial-guide/photo-viewer";
 import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
-import type { GuideViewStats } from "@/lib/data/editorial-guides";
+import { listingKey, type GuideDirectory, type GuideViewStats } from "@/lib/data/editorial-guides";
 
 // A place guide page (/guides/most-picturesque-places-zanzibar): the same
 // layout for every PlaceGuideDefinition. Server-rendered and public; the only
@@ -47,6 +47,7 @@ export function PlaceGuide({
   signedIn,
   links,
   comments,
+  directory = null,
 }: {
   def: PlaceGuideDefinition;
   community: Community;
@@ -59,6 +60,8 @@ export function PlaceGuide({
   signedIn: boolean;
   links: { recommend: string; ask: string };
   comments: Omit<FeedItemActionsProps, "itemTitle">;
+  // The community directory, when this guide links to it (restaurant guides).
+  directory?: GuideDirectory | null;
 }) {
   const { places, heroPhoto, editorsNote } = content;
   const byKey = new Map(places.map((p) => [p.key, p]));
@@ -105,10 +108,21 @@ export function PlaceGuide({
     },
   ];
 
+  const labels = { ...DEFAULT_PLACE_LABELS, ...def.labels };
+  const listingFor = (ref: (typeof places)[number]["listing"]) => (ref && directory ? (directory.bySlug.get(listingKey(ref)) ?? null) : null);
+  // Every directory listing in the section's category, live — a listing
+  // added to the directory tomorrow appears here without a code change.
+  const directoryListings =
+    def.directorySection && directory
+      ? [...directory.bySlug.values()].filter((l) => l.kind === "business" && l.category === def.directorySection!.category).sort((a, b) => a.name.localeCompare(b.name))
+      : [];
+  const directoryHref = directory?.directorySpaceSlug ? `/c/${community.slug}/spaces/${directory.directorySpaceSlug}` : null;
+
   const sections: NavSection[] = [
     { id: "introduction", label: "Introduction", group: "Start here" },
     { id: "find-your-spot", label: "Find your spot", group: "Start here" },
     ...places.map((p, i) => ({ id: p.key, label: `${i + 1}. ${p.name}`, group: def.placesSection.navGroup })),
+    ...(def.directorySection && directoryListings.length > 0 ? [{ id: "directory", label: def.directorySection.navLabel, group: def.placesSection.navGroup }] : []),
     { id: "before-you-go", label: "Before you go", group: "Plan your trip" },
     { id: "routes", label: def.routes.navLabel, group: "Plan your trip" },
     { id: "share", label: def.callToAction.navLabel, group: "Plan your trip" },
@@ -138,7 +152,7 @@ export function PlaceGuide({
               <Sparkles className="h-4 w-4" aria-hidden /> Find your spot
             </a>
             <a href="#places" className="inline-flex items-center gap-2 rounded-md bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/40 backdrop-blur hover:bg-white/25">
-              <MapPinned className="h-4 w-4" aria-hidden /> The places
+              <MapPinned className="h-4 w-4" aria-hidden /> {def.heroCta ?? "The places"}
             </a>
           </div>
           {heroPhoto && (
@@ -277,10 +291,58 @@ export function PlaceGuide({
             </ol>
             <div className="mt-10 space-y-16">
               {places.map((p, i) => (
-                <PlaceSection key={p.key} place={p} number={i + 1} updates={updates.filter((u) => u.destination_key === p.key)} shareUrl={pageUrl ? `${pageUrl}#${p.key}` : null} />
+                <PlaceSection
+                  key={p.key}
+                  place={p}
+                  number={i + 1}
+                  updates={updates.filter((u) => u.destination_key === p.key)}
+                  shareUrl={pageUrl ? `${pageUrl}#${p.key}` : null}
+                  labels={labels}
+                  listing={listingFor(p.listing)}
+                />
               ))}
             </div>
           </section>
+
+          {/* Everything in the community directory */}
+          {def.directorySection && directoryListings.length > 0 && (
+            <section id="directory" aria-labelledby="directory-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
+              <SectionTitle id="directory-title" icon={BookOpen}>
+                {def.directorySection.title}
+              </SectionTitle>
+              <p className="mt-2 max-w-3xl text-muted-foreground">{def.directorySection.blurb}</p>
+              <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {directoryListings.map((l) => (
+                  <li key={l.slug}>
+                    <a href={l.href} className="group flex h-full gap-3 rounded-lg border border-border bg-card p-3 hover:shadow-md">
+                      {l.imageUrl ? (
+                        <GuideImage src={l.imageUrl} alt="" sizes="64px" className="h-16 w-16 shrink-0 rounded-md" />
+                      ) : (
+                        <div className="h-16 w-16 shrink-0 rounded-md bg-muted" aria-hidden />
+                      )}
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-foreground group-hover:text-accent">{l.name}</span>
+                        {l.locationLabel && <span className="block truncate text-xs text-muted-foreground">{l.locationLabel}</span>}
+                        {l.avgRating !== null && l.ratingCount > 0 && (
+                          <span className="mt-0.5 inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+                            <Star className="h-3 w-3" aria-hidden /> {l.avgRating.toFixed(1)} ({l.ratingCount})
+                          </span>
+                        )}
+                        {places.some((p) => p.listing?.slug === l.slug) && <span className="mt-0.5 block text-xs font-medium text-accent">In this guide</span>}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {directoryHref && (
+                <p className="mt-4 text-sm">
+                  <a href={directoryHref} className="font-medium text-accent hover:underline">
+                    See the whole directory
+                  </a>
+                </p>
+              )}
+            </section>
+          )}
 
           {/* Before you go */}
           <section id="before-you-go" aria-labelledby="before-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">

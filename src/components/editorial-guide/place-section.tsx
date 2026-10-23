@@ -1,5 +1,6 @@
-import { BadgeCheck, Camera, CircleAlert, Clock, ExternalLink, MapPin, Navigation, Sparkles, Waves } from "lucide-react";
-import type { Place, PlaceKind } from "@/lib/guides/place-guide/types";
+import { BadgeCheck, BookOpen, Camera, CircleAlert, Clock, ExternalLink, MapPin, Navigation, Sparkles, Star, Waves } from "lucide-react";
+import type { Place, PlaceKind, PlaceSectionLabels } from "@/lib/guides/place-guide/types";
+import type { GuideListing } from "@/lib/data/editorial-guides";
 import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 import type { EditorialGuideUpdate } from "@/types/database";
 import { ShareMenu } from "@/components/ui/share-menu";
@@ -23,6 +24,24 @@ export const KIND_LABELS: Record<PlaceKind, string> = {
   nature: "Nature",
   cave: "Cave",
   viewpoint: "Viewpoint",
+  restaurant: "Restaurant",
+  "street-food": "Street food",
+};
+
+export const DEFAULT_PLACE_LABELS: PlaceSectionLabels = {
+  whyGo: "Why it's in this guide",
+  bestTime: "When to go",
+  howToVisit: "How to visit",
+  photoTips: "Photography tips",
+  considerations: "Worth knowing",
+  fromStoneTown: "From Stone Town",
+};
+
+const PRICE_LABELS: Record<NonNullable<Place["price"]>, string> = {
+  $: "$ · Budget",
+  $$: "$$ · Mid-range",
+  $$$: "$$$ · Upscale",
+  $$$$: "$$$$ · Top end",
 };
 
 const VERIFICATION_LABELS: Record<Place["verification"]["status"], string> = {
@@ -67,7 +86,7 @@ function Gallery({ place }: { place: Place }) {
   );
 }
 
-function AtAGlance({ place }: { place: Place }) {
+function AtAGlance({ place, labels, listing }: { place: Place; labels: PlaceSectionLabels; listing: GuideListing | null }) {
   const v = place.verification;
   return (
     <aside aria-label={`${place.name} at a glance`} className="rounded-lg border border-border bg-card p-4 text-sm">
@@ -76,20 +95,44 @@ function AtAGlance({ place }: { place: Place }) {
           <dt className="text-xs uppercase tracking-wide text-muted-foreground">Type</dt>
           <dd className="font-medium text-foreground">{KIND_LABELS[place.kind]}</dd>
         </div>
+        {place.price && (
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Price</dt>
+            <dd className="font-medium text-foreground">{PRICE_LABELS[place.price]}</dd>
+          </div>
+        )}
+        {place.facts?.map((f) => (
+          <div key={f.label}>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">{f.label}</dt>
+            <dd className="font-medium text-foreground">{f.value}</dd>
+          </div>
+        ))}
         <div>
           <dt className="text-xs uppercase tracking-wide text-muted-foreground">Best for</dt>
           <dd className="font-medium text-foreground">{place.bestFor.join(", ")}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">From Stone Town</dt>
+          <dt className="text-xs uppercase tracking-wide text-muted-foreground">{labels.fromStoneTown}</dt>
           <dd className="font-medium text-foreground">{place.fromStoneTown}</dd>
         </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tide matters?</dt>
-          <dd className="font-medium text-foreground">{place.tide ? "Yes — see When to go" : "No"}</dd>
-        </div>
+        {(place.tide || !place.price) && (
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tide matters?</dt>
+            <dd className="font-medium text-foreground">{place.tide ? `Yes — see ${labels.bestTime}` : "No"}</dd>
+          </div>
+        )}
       </dl>
       <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
+        {listing && (
+          <a href={listing.href} className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
+            <BookOpen className="h-4 w-4" aria-hidden /> In our directory
+            {listing.avgRating !== null && listing.ratingCount > 0 && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-normal text-muted-foreground">
+                · <Star className="h-3 w-3" aria-hidden /> {listing.avgRating.toFixed(1)} ({listing.ratingCount})
+              </span>
+            )}
+          </a>
+        )}
         {place.website && (
           <a href={place.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
             <ExternalLink className="h-4 w-4" aria-hidden /> {place.websiteLabel ?? "Official website"}
@@ -120,7 +163,21 @@ function Prose({ icon: Icon, title, children }: { icon: typeof Waves; title: str
   );
 }
 
-export function PlaceSection({ place, number, updates, shareUrl }: { place: Place; number: number; updates: EditorialGuideUpdate[]; shareUrl: string | null }) {
+export function PlaceSection({
+  place,
+  number,
+  updates,
+  shareUrl,
+  labels = DEFAULT_PLACE_LABELS,
+  listing = null,
+}: {
+  place: Place;
+  number: number;
+  updates: EditorialGuideUpdate[];
+  shareUrl: string | null;
+  labels?: PlaceSectionLabels;
+  listing?: GuideListing | null;
+}) {
   return (
     <section id={place.key} aria-labelledby={`${place.key}-title`} className="scroll-mt-24 border-t border-border pt-12">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -147,10 +204,10 @@ export function PlaceSection({ place, number, updates, shareUrl }: { place: Plac
               <p key={p}>{p}</p>
             ))}
           </div>
-          <Prose icon={Sparkles} title="Why it's in this guide">
+          <Prose icon={Sparkles} title={labels.whyGo}>
             <p>{place.whyGo}</p>
           </Prose>
-          <Prose icon={Clock} title="When to go">
+          <Prose icon={Clock} title={labels.bestTime}>
             <p>{place.bestTime}</p>
             {place.tide && (
               <p className="mt-2 flex gap-1.5">
@@ -162,13 +219,13 @@ export function PlaceSection({ place, number, updates, shareUrl }: { place: Plac
               </p>
             )}
           </Prose>
-          <Prose icon={Navigation} title="How to visit">
+          <Prose icon={Navigation} title={labels.howToVisit}>
             <p>{place.howToVisit}</p>
           </Prose>
-          <Prose icon={Camera} title="Photography tips">
+          <Prose icon={Camera} title={labels.photoTips}>
             <p>{place.photoTips}</p>
           </Prose>
-          <Prose icon={CircleAlert} title="Worth knowing">
+          <Prose icon={CircleAlert} title={labels.considerations}>
             <ul className="list-disc space-y-1 pl-5">
               {place.considerations.map((c) => (
                 <li key={c}>{c}</li>
@@ -177,7 +234,7 @@ export function PlaceSection({ place, number, updates, shareUrl }: { place: Plac
           </Prose>
         </div>
         <div>
-          <AtAGlance place={place} />
+          <AtAGlance place={place} labels={labels} listing={listing} />
         </div>
       </div>
 
