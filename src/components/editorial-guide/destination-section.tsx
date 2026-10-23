@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CalendarClock, Lightbulb, MessageCircleQuestion, BedDouble, UtensilsCrossed, Info } from "lucide-react";
 import type { Destination } from "@/lib/guides/where-to-stay/types";
 import {
@@ -20,6 +21,7 @@ import { PhotoGallery, PhotoOpener } from "./photo-viewer";
 export { PhotoCredit };
 import { PANEL_ICONS, TAG_ICONS } from "./guide-icons";
 import { RestaurantCard, StayCard, DirectoryChips } from "./recommendation-cards";
+import { ZanzibarRoomsStays } from "./zanzibar-rooms-stays";
 
 export type CommunityLinks = {
   tip: string;
@@ -258,6 +260,9 @@ export function DestinationSection({
         <p className="mt-3 text-xs text-muted-foreground">
           Price categories are relative ($ budget-friendly, $$ mid-range, $$$ upper range); we do not quote nightly rates, which change constantly.
         </p>
+        <Suspense fallback={null}>
+          <ZanzibarRoomsStays place={d} />
+        </Suspense>
       </div>
 
       <div className="mt-10 rounded-xl border border-accent/30 bg-accent-soft p-5">
