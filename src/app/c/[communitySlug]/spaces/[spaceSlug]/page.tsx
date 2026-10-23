@@ -81,6 +81,8 @@ import { ExploreMapLoader } from "./explore-map-loader";
 import { MarketplaceView } from "./marketplace-view";
 import { JobsBoardView } from "./jobs-board-view";
 import { AccommodationView } from "./accommodation-view";
+import { LongTermStays } from "./long-term-stays";
+import { showsLongTermStays } from "@/lib/zanzibar-rooms/long-term";
 import { RecommendationsView } from "./recommendations-view";
 import { ClubsView } from "./clubs-view";
 import { MeetupsView } from "./meetups-view";
@@ -770,17 +772,26 @@ export default async function SpaceDetailPage({
           userId={viewerId}
         />
       ) : isAccommodationSpace ? (
-        <AccommodationView
-          listings={accommodationListings}
-          communityId={community.id}
-          communitySlug={community.slug}
-          spaceId={space.id}
-          spaceSlug={space.slug}
-          canPost={canPost}
-          userId={viewerId}
-          businesses={accommodationBusinessOptions}
-          importUrl={importUrl}
-        />
+        <>
+          <AccommodationView
+            listings={accommodationListings}
+            communityId={community.id}
+            communitySlug={community.slug}
+            spaceId={space.id}
+            spaceSlug={space.slug}
+            canPost={canPost}
+            userId={viewerId}
+            businesses={accommodationBusinessOptions}
+            importUrl={importUrl}
+          />
+          {/* Zanzibar Rooms monthly lets, on Mzungu Zanzibar's directory only.
+              Streams in after the page; renders nothing if the feed fails. */}
+          {showsLongTermStays(community.slug, space.slug) && (
+            <Suspense fallback={null}>
+              <LongTermStays />
+            </Suspense>
+          )}
+        </>
       ) : isRecommendationsSpace ? (
         <RecommendationsView
           recommendations={recommendations}
