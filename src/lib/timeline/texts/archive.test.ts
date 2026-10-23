@@ -9,6 +9,8 @@ import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
 import { breadcrumb, historicalGap, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
 import { KYBALION_CHAPTERS, KYBALION_SAYINGS } from "./corpus/kybalion-text";
+import { SCOTT_ELLIOT_MAPS, SCOTT_ELLIOT_SECTIONS } from "./corpus/scott-elliot-text";
+import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
@@ -1415,6 +1417,274 @@ test("the Kybalion's pictures are pages of the 1908 copy, the 1919 transcript an
   const transcript = images.find((i) => i.key === "kybalion-post-office-transcript-1919")!;
   assert.equal(transcript.identificationStatus, "secure");
   assert.match(transcript.caption, /It does not mention the Kybalion\.$/);
+});
+
+test("Scott-Elliot's Story of Atlantis is imported whole from the 1896 first edition, the Preface and 23 sections, with the majority reading and the fixes by hand", () => {
+  const file = corpusFor("modern.scott-elliot")!;
+  const work = INVENTORY.find((w) => w.workKey === "modern.scott-elliot")!;
+  assert.equal(work.passagePrefix, "modern.scott");
+  assert.equal(work.traditionClass, "modern");
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, 24);
+  assert.equal(work.inventoryVerified, false, "the sections are the archive's division");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "story-of-atlantis-published");
+  assert.match(work.attributionNote!, /astral clairvoyance/);
+  const others = INVENTORY.find((w) => w.workKey === "modern.other-authors")!;
+  assert.ok(others.proposedMembers!.some((m) => /Scott-Elliot.*imported as its own work, modern\.scott-elliot/.test(m)));
+  assert.ok(others.proposedMembers!.some((m) => /Donnelly.*imported as its own work, modern\.donnelly/.test(m)));
+  assert.ok(!others.fullTextEditions.some((e) => /Scott-Elliot|Donnelly/.test(e)));
+  // One book record with no text of its own, and 24 units with the 1896 text.
+  assert.equal(file.passages[0].key, "modern.scott.1896");
+  assert.equal(file.passages[0].divisionKind, "book");
+  assert.equal(file.passages[0].layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.deepEqual(units.map((u) => u.key), ["modern.scott.1896.preface", ...Array.from({ length: 23 }, (_, i) => `modern.scott.1896.${i + 1}`)]);
+  assert.equal(file.passages.length, 25);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 24, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (id: string) => file.passages.find((p) => p.key === `modern.scott.1896.${id}`)!.layers.find((l) => l.key === "eng-1896")!.content!;
+  const notes = (id: string) => file.passages.find((p) => p.key === `modern.scott.1896.${id}`)!.notes ?? "";
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1896")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "primary_text", unit.key);
+    assert.match(layer.evidence, /compared word by word with the archive\.org OCRs of three copies of 1896/, unit.key);
+    assert.match(layer.evidence, /Project Gutenberg #21796/, unit.key);
+    assert.match(unit.reference, /^The Story of Atlantis \(London, 1896\), (the Preface by A\. P\. Sinnett|the archive's section \d+(, at the side-heading '.+')?), pp\. [ivx\d]+–[ivx\d]+$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /\[\d+\]|_|�|--|  |(?<!\n)\n(?!\n)|[a-z,;]\n\n[a-z]|STORY OF ATLANTIS\n/, unit.key);
+  }
+  assert.equal(file.passages.find((p) => p.key === "modern.scott.1896.preface")!.reference, "The Story of Atlantis (London, 1896), the Preface by A. P. Sinnett, pp. iii–xi");
+  assert.match(text("preface"), /^For readers unacquainted with the progress/);
+  assert.match(text("preface"), /allowed access to some maps and other records physically preserved/);
+  assert.match(text("preface"), /\n\nA\. P\. Sinnett\.$/);
+  assert.match(text("1"), /submerged in the fourth and final great catastrophe of 9,564 B\.C\./);
+  assert.match(text("4"), /see also Atlantis, by Ignatius Donnelly/);
+  assert.match(text("6"), /But the greatest authority on this subject is Plato/);
+  assert.match(text("7"), /Drawn as they have been from contemporary records/);
+  assert.match(text("8"), /^Some reference to the very mystical subject of the Manus/);
+  assert.match(text("11"), /\n\n\[Footnote\] Students of geology and palæontology/);
+  assert.match(text("21"), /As is written in the Book of Dzyan, "Then the Fourth became tall with pride/);
+  assert.match(text("23"), /stand themselves as Masters of Wisdom to help the race in its upward progress\.$/);
+  // The vote's readings and the corrections by hand.
+  assert.match(text("1"), /colonized Egypt in prehistoric times/);
+  assert.match(text("preface"), /with which he himself is in normal relationship/);
+  assert.match(text("14"), /The window-spaces were filled/);
+  // 1896 misprints that every 1896 copy shares are kept, not silently corrected.
+  assert.match(text("20"), /machinery of goverment\./);
+  assert.match(text("9"), /an Intitiate emperor/);
+  assert.match(text("4"), /the various savages races/);
+  // The claim and the racial theory are named as the book's own.
+  for (const key of ["1", "4", "8", "9", "10", "11", "12", "13", "22", "23"]) assert.match(notes(key), /the text's own racial theory/, key);
+  assert.match(notes("7"), /no such record has been produced/);
+  assert.match(notes("2"), /not a sunken continent/);
+  // The four maps are listed with the book.
+  assert.equal(SCOTT_ELLIOT_MAPS.length, 4);
+  assert.deepEqual(SCOTT_ELLIOT_MAPS.map((m) => m.name), ["Atlantis at its Prime", "Atlantis in its Decadence", "Ruta & Daitya", "Poseidonis"]);
+  assert.match(file.passages[0].notes!, /No\. 4, 'The World after the catastrophe of 80,000 years ago/);
+  assert.match(file.passages[0].notes!, /The maps are Scott-Elliot's own of 1896/);
+  assert.equal(SCOTT_ELLIOT_SECTIONS.find((s) => s.id === "21")!.firstPage, "62");
+  assert.ok(file.sources.some((s) => s.key === "scott-elliot-atlantis-1896"));
+});
+
+test("Scott-Elliot's clairvoyant records and 9564 BC are recorded as the book's claims, the book dated to 1896", () => {
+  const file = corpusFor("modern.scott-elliot")!;
+  const dates = file.passages[0].dates!;
+  assert.deepEqual(dates.map((d) => d.role), ["claimed", "claimed", "translation_publication"]);
+  const [records, poseidonis, published] = dates;
+  assert.equal(records.startYear, undefined, "a claim read by clairvoyance is given no year");
+  assert.match(records.evidence, /^The book's claim, not a date/);
+  assert.match(records.originalDateText, /physically preserved/);
+  assert.equal(poseidonis.startYear, -9563, "9564 BC");
+  assert.match(poseidonis.evidence, /^The book's claim, not a date/);
+  assert.match(poseidonis.evidence, /No geological or archaeological evidence/);
+  assert.deepEqual([published.startYear, published.endYear, published.isApproximate], [1896, 1896, false]);
+  assert.match(published.originalDateText, /Theosophical Publishing Society, 7, Duke Street, Adelphi/);
+  const work = INVENTORY.find((w) => w.workKey === "modern.scott-elliot")!;
+  const claims = work.anchor && "event" in work.anchor ? work.anchor.event.claims : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["claimed", "translation_publication"]);
+  assert.equal(claims[0].startYear, -9563);
+  assert.equal(claims[1].startYear, 1896);
+});
+
+test("Scott-Elliot's links retell Plato, are named by Steiner, quote Blavatsky and name Donnelly, and none claims ancient transmission", () => {
+  const file = corpusFor("modern.scott-elliot")!;
+  const links = file.links ?? [];
+  assert.ok(links.length >= 14);
+  const targets = new Set(links.map((l) => l.to));
+  for (const to of ["greek.tim.25d", "greek.tim.24e", "greek.crit.114d", "modern.steiner.1911.1.1", "modern.steiner.1911.2.2", "modern.steiner.1911.2.4", "modern.hpb.anthro.10", "modern.hpb.anthro.11", "modern.hpb.sd.2.6", "modern.hpb.isis.1.592", "modern.doreal.01", "modern.donnelly.1882.1.1"]) {
+    assert.ok(targets.has(to), to);
+  }
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.scott\.1896\./, link.key);
+    if (link.to.startsWith("greek.")) {
+      // Plato is never a documented source: a retelling where he names Plato, else a parallel.
+      assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+      if (link.connectionClass === "later_reinterpretation") {
+        assert.match(link.transmissionEvidence, /^He names Plato/, link.key);
+        assert.match(link.transmissionEvidence, /not a witness to the earlier text/, link.key);
+      } else assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    } else if (link.connectionClass === "documented_transmission") {
+      // Only between modern books, and only where one names or quotes the other.
+      assert.match(link.to, /^modern\.(steiner|hpb|donnelly)\./, link.key);
+      assert.match(link.transmissionEvidence, /^(A named source|A quotation|He names)/, link.key);
+      assert.match(link.transmissionEvidence, /between two modern books/, link.key);
+    } else {
+      assert.match(link.transmissionEvidence, /^None shown/, link.key);
+    }
+    if (link.to.startsWith("modern.doreal.")) assert.equal(link.connectionClass, "broad_thematic_resemblance", link.key);
+  }
+  assert.match(links.find((l) => l.key === "se-1-poseidonis-timaeus-25d")!.transmissionEvidence, /Plato gives it no such name/);
+  const steiner = links.find((l) => l.to === "modern.steiner.1911.1.1")!;
+  assert.equal(steiner.connectionClass, "documented_transmission");
+  assert.match(steiner.transmissionEvidence, /In the little book, The Story of Atlantis, by W\. Scott-Elliot/);
+});
+
+test("Scott-Elliot's pictures are the British Library map, related maps and a portrait from Commons, none repeats the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("modern.scott-elliot")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 4);
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    // Every map is said to be the author's own, not a record.
+    if (image.shows === "map") assert.match(image.caption, /author's own|Scott-Elliot's own/, image.key);
+    // The marker's pictures (the cover and map 4) are not repeated.
+    assert.doesNotMatch(image.url, /Map4|ethnological_sketch/, image.key);
+  }
+  assert.equal(unverified, 3);
+  assert.equal(images.find((i) => i.key === "scott-elliot-1896-map-3")!.identificationStatus, "secure");
+});
+
+test("Donnelly's Atlantis is imported as a selection of five chapters of the 1882 setting, with Plato as he quotes him and the fixes by hand", () => {
+  const file = corpusFor("modern.donnelly")!;
+  const work = INVENTORY.find((w) => w.workKey === "modern.donnelly")!;
+  assert.equal(work.passagePrefix, "modern.donnelly");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, null, "a selection, not the whole book");
+  assert.equal(work.inventoryVerified, false);
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "donnelly-atlantis-published");
+  assert.match(work.attributionNote!, /rejected by modern geology and archaeology/);
+  assert.match(work.inventoryBasis, /Part I ch\. I, The Purpose of the Book \(pp\. 1–4\)/);
+  assert.equal(file.passages[0].key, "modern.donnelly.1882");
+  assert.equal(file.passages[0].divisionKind, "book");
+  assert.match(file.passages[0].notes!, /Not imported: the chapters that quote Plato only in passing/);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.deepEqual(units.map((u) => u.key), ["1.1", "1.2", "1.3", "2.1", "4.2"].map((id) => `modern.donnelly.1882.${id}`));
+  assert.deepEqual(units.map((u) => u.reference.match(/pp\. (\d+–\d+)$/)![1]), ["1–4", "5–21", "22–30", "65–67", "283–307"]);
+  const text = (id: string) => file.passages.find((p) => p.key === `modern.donnelly.1882.${id}`)!.layers.find((l) => l.key === "eng-1882")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1882")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.match(layer.evidence, /compared word by word with the archive\.org OCRs of four printed copies of the 1882 setting/, unit.key);
+    assert.match(layer.evidence, /No copy of the very first printing was reached/, unit.key);
+    assert.match(unit.reference, /^Atlantis: The Antediluvian World \(New York, 1882\), Part [IV]+, chapter [IV]+, '.+', pp\. \d+–\d+$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /\[\d+\]|_|�|--|\+-|  |(?<!\n)\n(?!\n)|[a-z,;]\n\n[a-z]|THE EMPIRE OF ATLANTIS\.|POSEIDON, OR NEPTUNE\./, unit.key);
+    assert.match(unit.notes ?? "", /rejected by modern geology and archaeology|Jowett/, unit.key);
+  }
+  assert.match(text("1.1"), /^This book is an attempt to demonstrate several distinct and novel propositions/);
+  assert.match(text("1.1"), /our fundamental ideas—the men/);
+  assert.match(text("1.2"), /such as no other story, fable, or poem ever had/);
+  assert.match(text("1.2"), /\("Plato's Dialogues," ii\., 517, Timæus\.\)/);
+  assert.match(text("1.2"), /made a passage into and out of the royal palace; and then they began to build the palace/);
+  assert.match(text("1.2"), /passed judgment on him accordingly/);
+  assert.match(text("1.2"), /\n\n\[Here Plato's story abruptly ends\.\]$/);
+  assert.match(text("1.3"), /about 9600 years before the Christian era/);
+  assert.match(text("1.3"), /12 × 1460 = 17,520 \/ 12 × 1805 = 21,660 \/ \[together\] = 39,180\./);
+  assert.match(text("1.3"), /1,460 — 1,805 \/ 1,322 — 712/);
+  assert.match(text("2.1"), /the Rev\. R\. P\. Bellynck/);
+  assert.match(text("2.1"), /regarded this as "the great deluge of all\."$/);
+  assert.match(text("4.2"), /^Lord Bacon said:/);
+  assert.match(text("4.2"), /The Babylonian trinity was composed of Hea, Anu, and Bel/);
+  assert.match(text("4.2"), /\("Dialogues," Timæus, vol\. ii\., p\. 533\)/);
+  assert.match(text("4.2"), /\n\n7\. They existed during the Bronze Age/);
+  assert.equal(DONNELLY_CHAPTERS.length, 5);
+  assert.ok(file.sources.some((s) => s.key === "donnelly-atlantis-1882"));
+});
+
+test("Donnelly's 9600 BC is recorded as his claim after Plato, the book dated to 1882", () => {
+  const file = corpusFor("modern.donnelly")!;
+  const dates = file.passages[0].dates!;
+  assert.deepEqual(dates.map((d) => d.role), ["claimed", "translation_publication"]);
+  const [claimed, published] = dates;
+  assert.equal(claimed.startYear, -9599, "about 9600 BC");
+  assert.equal(claimed.datePrecision, "century");
+  assert.equal(claimed.isApproximate, true);
+  assert.match(claimed.evidence, /^The book's claim, not a date/);
+  assert.match(claimed.evidence, /The figure is Plato's/);
+  assert.match(claimed.originalDateText, /p\. 29/);
+  assert.deepEqual([published.startYear, published.endYear, published.isApproximate], [1882, 1882, false]);
+  assert.match(published.originalDateText, /Entered according to Act of Congress, in the year 1882/);
+  const work = INVENTORY.find((w) => w.workKey === "modern.donnelly")!;
+  const claims = work.anchor && "event" in work.anchor ? work.anchor.event.claims : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["claimed", "translation_publication"]);
+  assert.equal(claims[1].startYear, 1882);
+});
+
+test("Donnelly's links say he retells Plato as history, or only parallels Blavatsky and Doreal, and none claims ancient transmission", () => {
+  const file = corpusFor("modern.donnelly")!;
+  const links = file.links ?? [];
+  assert.ok(links.length >= 15);
+  const targets = new Set(links.map((l) => l.to));
+  for (const to of ["greek.tim.22b", "greek.tim.23b", "greek.tim.23e", "greek.tim.24e", "greek.tim.25d", "greek.tim.40e", "greek.crit.113c", "greek.crit.120e", "greek.crit.121b", "modern.hpb.sd.2.743", "modern.doreal.01"]) {
+    assert.ok(targets.has(to), to);
+  }
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.donnelly\.1882\./, link.key);
+    assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+    assert.notEqual(link.connectionClass, "direct_textual_parallel", link.key);
+    if (link.connectionClass === "later_reinterpretation") {
+      assert.match(link.to, /^greek\.(tim|crit)\./, link.key);
+      assert.match(link.transmissionEvidence, /^He names Plato/, link.key);
+      assert.match(link.transmissionEvidence, /not a witness to the earlier text/, link.key);
+    } else {
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    }
+  }
+  // Scott-Elliot's link to this book, which he names, is documented.
+  const se = corpusFor("modern.scott-elliot")!.links!.find((l) => l.to === "modern.donnelly.1882.1.1")!;
+  assert.equal(se.connectionClass, "documented_transmission");
+  assert.match(se.transmissionEvidence, /see also Atlantis, by Ignatius Donnelly/);
+});
+
+test("Donnelly's pictures are pages of the Duke copy, his map and a portrait from Commons, none repeats the marker, and the unverified one says so first", () => {
+  const file = corpusFor("modern.donnelly")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  assert.equal(images.length, 7);
+  let unverified = 0;
+  for (const image of images) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      unverified++;
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+      assert.equal(image.shows, "portrait", image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    // The frontispiece and the Brady portrait are the marker's and are not repeated.
+    assert.doesNotMatch(image.url, /Frontispiece|Hon\._Ignatius_Donnelly/, image.key);
+  }
+  assert.equal(unverified, 1);
+  const pages = images.filter((i) => /\.djvu\/page\d+-960px-/.test(i.url));
+  assert.deepEqual(pages.map((i) => i.key), ["donnelly-1882-title-page", "donnelly-1882-copyright-page", "donnelly-1882-page-1", "donnelly-1882-page-5", "donnelly-1882-page-29"]);
+  assert.match(images.find((i) => i.key === "donnelly-1882-copyright-page")!.caption, /in the year 1882, by Harper & Brothers/);
+  assert.match(images.find((i) => i.key === "donnelly-1882-empire-map")!.caption, /modern geology and archaeology reject/);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

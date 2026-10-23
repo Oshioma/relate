@@ -15,6 +15,8 @@ import { PLAIN_HALL } from "./hall-secret-teachings";
 import { PLAIN_PISTIS_SOPHIA } from "./pistis-sophia";
 import { PLAIN_STEINER } from "./steiner";
 import { PLAIN_KYBALION } from "./kybalion";
+import { PLAIN_DONNELLY } from "./donnelly";
+import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -54,6 +56,8 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.blavatsky": PLAIN_BLAVATSKY,
   "modern.steiner": PLAIN_STEINER,
   "modern.kybalion": PLAIN_KYBALION,
+  "modern.donnelly": PLAIN_DONNELLY,
+  "modern.scott-elliot": PLAIN_SCOTT_ELLIOT,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -120,6 +124,34 @@ test("the Introduction and every chapter of the Kybalion have plain words, and o
   assert.match(PLAIN_KYBALION["modern.kyb.1908.3"], /Other possible readings:\n- 'If the Universal is Mental in its nature': a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.9"], /'Principle', a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.14"], /'stream', a 1908 misprint/);
+});
+
+test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {
+  const se = ALL_CORPORA.find((c) => c.workKey === "modern.scott-elliot")!;
+  const withText = se.passages.filter((p) => p.layers.some((l) => l.key === "eng-1896")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_SCOTT_ELLIOT).sort(), [...withText].sort());
+  assert.equal(withText.length, 24);
+  // What the book reports of Atlantis is reported as the book's, never as history.
+  for (const [key, words] of Object.entries(PLAIN_SCOTT_ELLIOT)) assert.match(words, /^(The book says|Sinnett says)/, key);
+  for (const key of ["1", "4", "8", "9", "10", "11", "13", "22"]) assert.match(PLAIN_SCOTT_ELLIOT[`modern.scott.1896.${key}`], /the text's own racial theory/, key);
+  // The kept misprints and the doubtful phrases are shown as other readings.
+  assert.match(PLAIN_SCOTT_ELLIOT["modern.scott.1896.20"], /Other possible readings:\n- 'All the machinery of goverment': 'goverment' is an 1896 misprint/);
+  assert.match(PLAIN_SCOTT_ELLIOT["modern.scott.1896.9"], /'An Intitiate emperor or king' is an 1896 misprint/);
+  assert.match(PLAIN_SCOTT_ELLIOT["modern.scott.1896.1"], /Other possible readings:\n- 'To which Plato gave the name of Poseidonis': Plato gives the island no such name/);
+  assert.match(PLAIN_SCOTT_ELLIOT["modern.scott.1896.21"], /Blavatsky's Stanzas of Dzyan/);
+});
+
+test("every imported chapter of Donnelly's Atlantis has plain words, and only those", () => {
+  const don = ALL_CORPORA.find((c) => c.workKey === "modern.donnelly")!;
+  const withText = don.passages.filter((p) => p.layers.some((l) => l.key === "eng-1882")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_DONNELLY).sort(), [...withText].sort());
+  assert.equal(withText.length, 5);
+  // His thesis is reported as his argument.
+  for (const [key, words] of Object.entries(PLAIN_DONNELLY)) assert.match(words, /^Donnelly says/, key);
+  for (const words of Object.values(PLAIN_DONNELLY)) assert.match(words, /\n\nOther possible readings:\n- /);
+  assert.match(PLAIN_DONNELLY["modern.donnelly.1882.1.2"], /'Plato's Dialogues, ii\., 517'/);
+  assert.match(PLAIN_DONNELLY["modern.donnelly.1882.1.3"], /'\[together\]' and '\[rule\]' stand for a brace and a rule/);
+  assert.match(PLAIN_DONNELLY["modern.donnelly.1882.2.1"], /the identification is Donnelly's reading/);
 });
 
 test("plain words are written only for passages that exist and have text to paraphrase", () => {
