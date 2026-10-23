@@ -10,7 +10,7 @@ import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory 
 // verified against current sources on the date in `verification`. Nothing
 // here claims the editors visited, and there are never prices or fees.
 
-export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food";
+export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar";
 
 export type Place = {
   key: string;
@@ -46,6 +46,9 @@ export type Place = {
   price?: "$" | "$$" | "$$$" | "$$$$";
   facts?: { label: string; value: string }[];
   listing?: ListingRef | null;
+  // The same place in another of the community's guides (e.g. a beach bar
+  // that is also in the restaurant guide), linked from the at-a-glance panel.
+  seeAlso?: { label: string; guideSlug: string; placeKey: string }[];
 };
 
 // Section headings on each entry. Defaults suit places; a restaurant guide

@@ -26,6 +26,7 @@ export const KIND_LABELS: Record<PlaceKind, string> = {
   viewpoint: "Viewpoint",
   restaurant: "Restaurant",
   "street-food": "Street food",
+  bar: "Beach bar",
 };
 
 export const DEFAULT_PLACE_LABELS: PlaceSectionLabels = {
@@ -133,6 +134,12 @@ function AtAGlance({ place, labels, listing }: { place: Place; labels: PlaceSect
             )}
           </a>
         )}
+        {place.seeAlso?.map((s) => (
+          // A sibling guide's URL, relative so it works on custom domains too.
+          <a key={`${s.guideSlug}#${s.placeKey}`} href={`${s.guideSlug}#${s.placeKey}`} className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
+            <Sparkles className="h-4 w-4" aria-hidden /> {s.label}
+          </a>
+        ))}
         {place.website && (
           <a href={place.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
             <ExternalLink className="h-4 w-4" aria-hidden /> {place.websiteLabel ?? "Official website"}
