@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 
 import { TIMELINE_SOURCE_TYPES } from "../taxonomy";
 import { ALL_CORPORA, corpusFor } from "./corpus";
-import { PLAIN_LAYER_KEY } from "./corpus/plain";
+import { OUR_TRANSLATION_LAYER_KEY, PLAIN_LAYER_KEY } from "./corpus/plain";
 import { INVENTORY, INVENTORY_SOURCES, workForPassageKey } from "./inventory";
 import { buildManifest, coverageText, deriveCompleteness } from "./manifest";
-import { breadcrumb, historicalGap, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
+import { breadcrumb, historicalGap, layerDisplayOrder, neighbours, readingOrder, RUN_ON_MAX_CHARS, sentenceRunsInFrom, sentenceRunsOnInto } from "./reading";
 import { KYBALION_CHAPTERS, KYBALION_SAYINGS } from "./corpus/kybalion-text";
 import { SCOTT_ELLIOT_MAPS, SCOTT_ELLIOT_SECTIONS } from "./corpus/scott-elliot-text";
 import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
@@ -1762,4 +1762,19 @@ test("a sentence cut by a section boundary is finished from the next section and
   assert.equal(sentenceRunsInFrom("and deceptive sketch.", "Ends cleanly."), null);
   const long = sentenceRunsOnInto("no stop", "word ".repeat(400));
   assert.ok(long!.length <= RUN_ON_MAX_CHARS + 2 && long!.endsWith("…"));
+});
+
+test("an opened passage shows our own translation first and cited-only layers last", () => {
+  const layer = (id: string, import_key: string | null, content: string | null) => ({ id, import_key, content });
+  const ordered = layerDisplayOrder([
+    layer("coptic", "cop", null),
+    layer("lambdin", "eng-lambdin", null),
+    layer("greek", "grc", "words"),
+    layer("ours", OUR_TRANSLATION_LAYER_KEY, "our words"),
+    layer("plain", PLAIN_LAYER_KEY, "plain words"),
+  ]);
+  assert.deepEqual(
+    ordered.map((l) => l.id),
+    ["ours", "greek", "plain", "coptic", "lambdin"]
+  );
 });
