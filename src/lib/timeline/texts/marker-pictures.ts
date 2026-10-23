@@ -902,6 +902,34 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "virgin-of-the-world-published": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/9/90/Anna_Kingsford_2.JPG",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A half-length photograph of a young woman with her hair piled high in curls, in a dark brocade dress with a high black collar, a medal hanging from a ribbon on her breast. The file page identifies her as Anna Kingsford (1846–1888), co-translator of The Virgin of the World, and takes the picture from Maitland's life of her; that book, its date and the photographer are not verified.",
+      credit: "Wikimedia Commons (from a book by Edward Maitland, as the file page states)",
+      licence: "Public domain (PD-1923, PD-US), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Anna_Kingsford_2.JPG",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/f/fc/Edward_Maitland.JPG",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A head-and-shoulders photograph of an elderly man with white hair and a white moustache, in a dark coat, waistcoat and bow tie. The file page identifies him as Edward Maitland (1824–1897), co-translator of The Virgin of the World; its source is given as Maitland's life of Anna Kingsford, but the date and the photographer are unknown and not verified.",
+      credit: "Wikimedia Commons (unknown photographer, as the file page states)",
+      licence: "Public domain (PD-1923), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Edward_Maitland.JPG",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",
