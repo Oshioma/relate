@@ -1,6 +1,6 @@
 import type { Place } from "@/lib/guides/place-guide/types";
 import { RESTAURANT_PHOTOS } from "./photos";
-import { CHECKED, maps } from "./shared";
+import { BEACH_BARS_SLUG, CHECKED, maps } from "./shared";
 
 // The east and south: the Michamvi peninsula, Paje, Jambiani and Kizimkazi.
 // Pompetti (Jambiani) is in the community directory and listed there, but
@@ -41,6 +41,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Kae Funk, Michamvi Kae"),
     photos: RESTAURANT_PHOTOS["kae-funk"] ?? [],
     listing: null,
+    seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "kae-funk" }],
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -78,6 +79,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Upendo Beach, Michamvi Pingwe"),
     photos: RESTAURANT_PHOTOS["boho-social"] ?? [],
     listing: null,
+    seeAlso: [{ label: "Boho Lounge in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "boho-lounge" }],
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -155,6 +157,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Mr Kahawa, Paje"),
     photos: RESTAURANT_PHOTOS["mr-kahawa"] ?? [],
     listing: null,
+    seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "mr-kahawa" }],
     verification: {
       status: "verified",
       checkedOn: CHECKED,
