@@ -9,7 +9,7 @@ import { UPDATE_KIND_LABELS, formatDate } from "./destination-section";
 import { PhotoCredit } from "./photo-credit";
 import { PhotoGallery, PhotoOpener } from "./photo-viewer";
 
-// One place on a place guide ("Zanzibar's Most Picturesque Places"): a
+// One place on a place guide ("Postcards from Zanzibar"): a
 // gallery that opens in the photo viewer, the editors' description, when to
 // go (light and tide), how to visit, photography tips and honest caveats,
 // with an at-a-glance panel of the checked practicalities.
