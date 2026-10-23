@@ -10,7 +10,7 @@ import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory 
 // verified against current sources on the date in `verification`. Nothing
 // here claims the editors visited, and there are never prices or fees.
 
-export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food";
+export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar";
 
 export type Place = {
   key: string;

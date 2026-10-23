@@ -6,6 +6,7 @@ import { scrapeWebsiteImages } from "@/lib/scrape-website-image";
 import type { Community, Database } from "@/types/database";
 import { checkAiAllowance } from "@/lib/usage/ai-spend";
 import { meteredFor } from "@/lib/usage/ai-meter";
+import { guideVenues } from "./guide-venues";
 
 // AI event discovery, shared by the staff "Discover events" button and the
 // weekly Supabase cron run (/api/events/discover-weekly). The caller decides
@@ -59,13 +60,15 @@ export async function runEventDiscovery(
   community: Pick<Community, "id" | "name" | "location_name">,
   actorId: string,
 ): Promise<{ imported: number; added: AddedEvent[] } | { error: string }> {
-  const [{ data: upcoming, error }, { data: imaged, error: imagedError }] = await Promise.all([
+  const [{ data: upcoming, error }, { data: imaged, error: imagedError }, { data: guides }] = await Promise.all([
     supabase
       .from("events")
       .select("title")
       .eq("community_id", community.id)
       .gte("start_time", new Date().toISOString()),
     supabase.from("events").select("image_url").eq("community_id", community.id).not("image_url", "is", null),
+    // Best-effort: without the guides, discovery still searches the listings.
+    supabase.from("editorial_guides").select("slug").eq("community_id", community.id).eq("status", "published"),
   ]);
   if (error) return { error: error.message };
   if (imagedError) return { error: imagedError.message };
@@ -77,7 +80,7 @@ export async function runEventDiscovery(
   if (!allowance.allowed) return { error: allowance.message };
 
   const result = await meteredFor({ communityId: community.id, userId: actorId }, () =>
-    discoverEventsWithAI({ locationName, existingTitles })
+    discoverEventsWithAI({ locationName, existingTitles, venues: guideVenues((guides ?? []).map((g) => g.slug)) })
   );
   if (result.status !== "ok") {
     // Shown to staff (or logged by the cron route), so include the raw
