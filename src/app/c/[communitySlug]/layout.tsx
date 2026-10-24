@@ -561,7 +561,7 @@ export default async function CommunityLayout({
                 the room. Shown to anyone who can see the session (RLS-scoped). */}
             {liveSession && (
               <Link
-                href={`${base}/spaces/${liveSession.spaceSlug}`}
+                href={`${base}/spaces/${liveSession.spaceSlug}?join=1`}
                 title={`${liveSession.title} is live now — join`}
                 className="inline-flex items-center gap-1.5 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-danger-foreground shadow-sm transition-opacity hover:opacity-90"
               >

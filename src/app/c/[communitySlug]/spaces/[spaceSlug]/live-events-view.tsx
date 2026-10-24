@@ -45,6 +45,7 @@ export function LiveEventsView({
   canJoin,
   displayName,
   jaasConfigured,
+  autoJoin = false,
 }: {
   active: LiveSessionWithStarter | null;
   scheduled: LiveSessionWithStarter[];
@@ -67,6 +68,9 @@ export function LiveEventsView({
   // Whether JaaS env is set — decides which video backend the meeting uses.
   // Shown only to staff as a small status line.
   jaasConfigured: boolean;
+  // Open the room straight away (the page was reached through a "Join now" /
+  // "Live now!" link), so there's no second Join click.
+  autoJoin?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -74,7 +78,17 @@ export function LiveEventsView({
   // The room only ever renders inside the `active` branch, so when a session
   // ends and `active` goes null the iframe unmounts on its own. Set true up
   // front when staff go live so the host lands straight in the room.
-  const [roomOpen, setRoomOpen] = useState(false);
+  // Also true on arrival from a "Join now" link (autoJoin) for anyone who can
+  // take part.
+  const [roomOpen, setRoomOpen] = useState(autoJoin && canJoin);
+  // A "Join now" link followed while already on this page changes the prop
+  // without remounting; open the room then too. Adjusted during render, not in
+  // an effect, as React recommends for resetting state on a prop change.
+  const [prevAutoJoin, setPrevAutoJoin] = useState(autoJoin);
+  if (prevAutoJoin !== autoJoin) {
+    setPrevAutoJoin(autoJoin);
+    if (autoJoin && canJoin) setRoomOpen(true);
+  }
   // The scheduled session whose edit form is open, if any.
   const [editingId, setEditingId] = useState<string | null>(null);
   // The session the "invite members" picker is currently open for, if any.
