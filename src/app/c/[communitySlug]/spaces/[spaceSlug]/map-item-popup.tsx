@@ -2,13 +2,24 @@
 
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
-import { MAP_ITEM_KINDS, type MapItem } from "@/lib/map-item-kinds";
+import { MAP_ITEM_KINDS, dayStart, eventDayWord, type MapItem, type MapItemLink } from "@/lib/map-item-kinds";
+
+export { isEventTodayOrTomorrow } from "@/lib/map-item-kinds";
 
 // Formatted client-side so times show in the viewer's locale/timezone.
-function formatEventTime(startIso: string, endIso: string | null): string {
+export function formatEventTime(startIso: string, endIso: string | null): string {
   const start = new Date(startIso);
-  const day = start.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
   const time = start.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  const word = eventDayWord(startIso, endIso);
+  if (word === "On now" && endIso) {
+    const end = new Date(endIso);
+    const sameDay = end.getTime() < dayStart(new Date(), 1);
+    const until = sameDay
+      ? end.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+      : end.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+    return `On now · until ${until}`;
+  }
+  const day = word ?? start.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
   if (!endIso) return `${day} · ${time}`;
   const end = new Date(endIso);
   const endTime = end.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -32,6 +43,31 @@ export function isEventSoon(item: MapItem): boolean {
   const end = item.endTime ? new Date(item.endTime).getTime() : start;
   const now = Date.now();
   return end >= now && start - now < 24 * 60 * 60 * 1000;
+}
+
+// What the guides pick out in a guide area pin, grouped by guide.
+function GuideLinks({ links }: { links: MapItemLink[] }) {
+  const groups = new Map<string, MapItemLink[]>();
+  for (const link of links) groups.set(link.group, [...(groups.get(link.group) ?? []), link]);
+  return (
+    <div className="mt-2.5 space-y-2 border-t border-border pt-2">
+      {[...groups.entries()].map(([group, list]) => (
+        <div key={group}>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{group}</p>
+          <ul className="mt-0.5 space-y-0.5">
+            {list.map((link) => (
+              <li key={link.href} className="text-xs leading-snug">
+                <Link href={link.href} className="font-medium text-foreground hover:underline">
+                  {link.label}
+                </Link>
+                {link.note && <span className="text-muted-foreground"> · {link.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // Popup for every Living Map pin that isn't a business or landmark — those
@@ -70,12 +106,14 @@ export function MapItemPopup({ item }: { item: MapItem }) {
           </span>
         </p>
 
+        {item.links && item.links.length > 0 && <GuideLinks links={item.links} />}
+
         <Link
           href={item.href}
           className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium hover:underline"
           style={{ color: "var(--accent)" }}
         >
-          View
+          {item.kind === "guide" ? "Read the guide" : "View"}
           <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
