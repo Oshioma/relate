@@ -5,6 +5,8 @@ import { jobTypeLabel } from "@/lib/job-types";
 import { accommodationTypeLabel } from "@/lib/accommodation-types";
 import { recommendationCategoryLabel } from "@/lib/recommendation-categories";
 import { meetupPhase } from "@/lib/meetups";
+import { matchZanzibarPlace } from "@/lib/zanzibar-places";
+import { guideMapItems } from "@/lib/guides/map-pins";
 
 type Client = SupabaseClient<Database>;
 
@@ -20,10 +22,14 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
   // be running are fetched (see MEETUP_DEFAULT_DURATION_MINUTES for the window
   // a meetup with no stated duration gets).
   const meetupsSince = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+  const nowIso = new Date().toISOString();
 
-  const [spacesRes, eventsRes, listingsRes, jobsRes, staysRes, recsRes, clubsRes, volunteerRes, postsRes, meetupsRes] = await Promise.all([
+  const [spacesRes, guidesRes, eventsRes, listingsRes, jobsRes, staysRes, recsRes, clubsRes, volunteerRes, postsRes, meetupsRes] = await Promise.all([
     supabase.from("spaces").select("id, slug").eq("community_id", communityId),
-    supabase.from("events").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null),
+    supabase.from("editorial_guides").select("slug, content").eq("community_id", communityId).eq("status", "published"),
+    // Every event that isn't over yet, located or not — one the geocoder
+    // couldn't place may still name a village we know (see below).
+    supabase.from("events").select("*").eq("community_id", communityId).or(`end_time.gte."${nowIso}",and(end_time.is.null,start_time.gte."${nowIso}")`),
     supabase.from("marketplace_listings").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null).eq("status", "active"),
     supabase.from("job_listings").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null).eq("status", "open"),
     supabase.from("accommodation_listings").select("*").eq("community_id", communityId).not("lat", "is", null).not("lng", "is", null).eq("status", "available"),
@@ -46,7 +52,7 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
   // Every kind here gets its pin from a human placing it (map click, or a
   // typed coordinate) — "exact" by default. Events are the one exception,
   // overridden below, since a typed Location is geocoded to a general area.
-  const base: Pick<MapItem, "description" | "imageUrl" | "startTime" | "endTime" | "price" | "currency" | "meta" | "locationPrecision"> = {
+  const base: Pick<MapItem, "description" | "imageUrl" | "startTime" | "endTime" | "price" | "currency" | "meta" | "locationPrecision" | "links"> = {
     description: null,
     imageUrl: null,
     startTime: null,
@@ -55,20 +61,29 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
     currency: null,
     meta: null,
     locationPrecision: "exact",
+    links: null,
   };
 
   const now = Date.now();
   for (const event of eventsRes.data ?? []) {
     const stillOn = new Date(event.end_time ?? event.start_time).getTime() >= now;
     if (!stillOn) continue;
+    // No coordinates means the geocoder found nothing for the Location text
+    // (it only knows bigger places — "HI Skybar, Paje Beach" defeats it).
+    // Fall back to the village the text names, at its rough centre; an
+    // event naming nowhere we know ("Zanzibar Beach") stays off the map.
+    const area = event.lat !== null && event.lng !== null ? null : matchZanzibarPlace(event.location);
+    const lat = event.lat ?? area?.lat;
+    const lng = event.lng ?? area?.lng;
+    if (lat === undefined || lng === undefined) continue;
     items.push({
       ...base,
       kind: "event",
       id: event.id,
       title: event.title,
       description: event.description,
-      lat: event.lat!,
-      lng: event.lng!,
+      lat,
+      lng,
       locationLabel: event.location_label ?? event.location,
       href: `/c/${communitySlug}/events`,
       startTime: event.start_time,
@@ -222,6 +237,10 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       href: `${href}/posts/${post.id}`,
     });
   }
+
+  // Guides are community-wide, not space content — RLS returns published
+  // guides to everyone, so these pins show for guests too.
+  items.push(...guideMapItems(guidesRes.data ?? [], communitySlug));
 
   return items;
 }

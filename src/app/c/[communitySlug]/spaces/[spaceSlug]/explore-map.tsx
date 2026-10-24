@@ -11,7 +11,7 @@ import { Input, Textarea, Label } from "@/components/ui/input";
 import { colorForCategory } from "@/lib/map-pin-colors";
 import { businessCategoryLabel } from "@/lib/business-categories";
 import { createLandmark, deleteLandmark } from "./map-actions";
-import { MapItemPopup, isEventSoon } from "./map-item-popup";
+import { MapItemPopup, isEventSoon, isEventTodayOrTomorrow, formatEventTime } from "./map-item-popup";
 import { MAP_ITEM_KINDS, MAP_ITEM_KIND_ORDER, type MapItem } from "@/lib/map-item-kinds";
 import { UNGUJA_BOUNDS_LNGLAT } from "@/lib/map-bounds";
 import type { MapCategory, Landmark } from "@/types/database";
@@ -385,6 +385,9 @@ export default function ExploreMap({
   const [businessCategory, setBusinessCategory] = useState<string>("all");
   const [location, setLocation] = useState<string>("all");
   const [localOnly, setLocalOnly] = useState(false);
+  // Events default to what's on tonight and tomorrow — the map is for
+  // deciding where to go next; "All dates" brings the rest of the calendar.
+  const [eventWindow, setEventWindow] = useState<"soon" | "all">("soon");
   const [addMode, setAddMode] = useState(false);
   const [pending, setPending] = useState<{ lat: number; lng: number } | null>(null);
   const [satellite, setSatellite] = useState(false);
@@ -452,6 +455,11 @@ export default function ExploreMap({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [mappableBusinesses]);
 
+  const eventCounts = useMemo(() => {
+    const events = items.filter((i) => i.kind === "event");
+    return { soon: events.filter((i) => isEventTodayOrTomorrow(i)).length, all: events.length };
+  }, [items]);
+
   const localCount = useMemo(() => mappableBusinesses.filter((b) => b.is_local).length, [mappableBusinesses]);
 
   // Location chips, also directory-style: each distinct location_label with a
@@ -493,7 +501,12 @@ export default function ExploreMap({
     });
     const visibleItems = businessFilterActive
       ? []
-      : items.filter((i) => !hiddenKeys.has(`__kind:${i.kind}`) && (location === "all" || i.locationLabel === location));
+      : items.filter(
+          (i) =>
+            !hiddenKeys.has(`__kind:${i.kind}`) &&
+            (location === "all" || i.locationLabel === location) &&
+            (i.kind !== "event" || eventWindow === "all" || isEventTodayOrTomorrow(i))
+        );
 
     return [
       ...visibleLandmarks.map((landmark) => ({
@@ -541,13 +554,18 @@ export default function ExploreMap({
         pulseColor: isEventSoon(item) ? MAP_ITEM_KINDS[item.kind].color : undefined,
         searchText: `${item.title} ${MAP_ITEM_KINDS[item.kind].label} ${item.description ?? ""}`.toLowerCase(),
         title: item.title,
-        subtitle: item.meta ? `${MAP_ITEM_KINDS[item.kind].label} · ${item.meta}` : MAP_ITEM_KINDS[item.kind].label,
+        subtitle:
+          item.kind === "event" && item.startTime
+            ? formatEventTime(item.startTime, item.endTime)
+            : item.meta
+              ? `${MAP_ITEM_KINDS[item.kind].label} · ${item.meta}`
+              : MAP_ITEM_KINDS[item.kind].label,
         thumbUrl: item.imageUrl,
         thumbIcon: MAP_ITEM_KINDS[item.kind].emoji,
         popup: <MapItemPopup item={item} />,
       })),
     ];
-  }, [landmarks, mappableBusinesses, businessCategory, location, localOnly, businessFilterActive, items, hiddenKeys, categories, communitySlug, spaceSlug, isAdmin, userId]);
+  }, [landmarks, mappableBusinesses, businessCategory, location, localOnly, businessFilterActive, items, hiddenKeys, eventWindow, categories, communitySlug, spaceSlug, isAdmin, userId]);
 
   const q = query.trim().toLowerCase();
   const filteredPins = useMemo(() => (q ? pins.filter((p) => p.searchText.includes(q)) : pins), [pins, q]);
@@ -676,6 +694,32 @@ export default function ExploreMap({
               </button>
             );
           })}
+        {/* When the Events layer is on: tonight & tomorrow, or every date. */}
+        {!businessFilterActive && eventCounts.all > 0 && !hiddenKeys.has("__kind:event") && (
+          <span className="inline-flex overflow-hidden rounded-full border text-xs font-medium" style={{ borderColor: MAP_ITEM_KINDS.event.color }}>
+            {(
+              [
+                ["soon", `Tonight & tomorrow (${eventCounts.soon})`],
+                ["all", `All dates (${eventCounts.all})`],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setEventWindow(value)}
+                aria-pressed={eventWindow === value}
+                className="px-2.5 py-1"
+                style={
+                  eventWindow === value
+                    ? { background: MAP_ITEM_KINDS.event.color, color: "#fff" }
+                    : { color: MAP_ITEM_KINDS.event.color }
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </span>
+        )}
 
         <div className="ml-auto flex items-center gap-1.5">
           {canPost && (
