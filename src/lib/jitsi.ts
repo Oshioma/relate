@@ -60,6 +60,10 @@ export interface JaasTokenInput {
   name: string;
   // Staff join as moderators (can mute others, manage the room); members don't.
   moderator: boolean;
+  // Whether this participant gets the Record button. Only hosts of a course's
+  // live lesson on a plan with session_recording; the JaaS account must have
+  // recording switched on too.
+  recording?: boolean;
   email?: string | null;
   avatar?: string | null;
 }
@@ -93,7 +97,7 @@ export function mintJaasToken(input: JaasTokenInput): string {
     context: {
       features: {
         livestreaming: false,
-        recording: false,
+        recording: Boolean(input.recording),
         transcription: false,
         "outbound-call": false,
       },

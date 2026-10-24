@@ -63,6 +63,8 @@ export function CoursePlayer({
   nowMs: initialNowMs,
   justPurchased,
   viewerName,
+  playbackUrls,
+  canRecord,
 }: {
   detail: CourseDetail;
   communityId: string;
@@ -80,6 +82,10 @@ export function CoursePlayer({
   // Back from Stripe Checkout; the webhook may not have unlocked it yet.
   justPurchased: boolean;
   viewerName: string | null;
+  // Saved recordings of live lessons, by lesson id (short-lived links).
+  playbackUrls: Record<string, string>;
+  // The viewer hosts, on a plan that records live lessons.
+  canRecord: boolean;
 }) {
   const { course, instructor, modules, announcements } = detail;
   const router = useRouter();
@@ -458,6 +464,8 @@ export function CoursePlayer({
                         nowMs={nowMs}
                         canJoinLive={access.canJoinLive}
                         isStaff={isStaff}
+                        canRecord={canRecord}
+                        recordingUrl={playbackUrls[selected.id] ?? null}
                         displayName={viewerName}
                         liveUpsell={tierLink ? <>Joining live comes with {tierLink}.</> : null}
                       />

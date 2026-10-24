@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { arePrerequisitesMet } from "@/lib/data/courses";
 import { getMembership } from "@/lib/data/community";
 import { getProfile, getProfileByUsername } from "@/lib/data/profile";
-import { communityCanCharge } from "@/lib/data/plan-limits";
+import { communityCanCharge, communityHasFeature } from "@/lib/data/plan-limits";
+import { rememberLessonRoom } from "@/lib/courses/lesson-recordings";
 import { isStripeConfigured, createCourseCheckoutSession } from "@/lib/stripe";
 import { courseLessonRoomName, getJaasAppId, isJaasConfigured, mintJaasToken } from "@/lib/jitsi";
 import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
@@ -683,12 +684,19 @@ export async function joinCourseLiveLesson(lessonId: string): Promise<CourseLive
   const roomName = courseLessonRoomName(lesson.id);
   if (!isJaasConfigured()) return { roomName, config: { mode: "public" } };
 
-  const profile = await getProfile(supabase, user.id);
+  // So a recording of this room can be matched back to the lesson.
+  await rememberLessonRoom(roomName, lesson.id);
+
+  const [profile, canRecord] = await Promise.all([
+    getProfile(supabase, user.id),
+    isStaff ? communityHasFeature(supabase, lesson.community_id, "session_recording") : Promise.resolve(false),
+  ]);
   const token = mintJaasToken({
     room: roomName,
     userId: user.id,
     name: profile?.full_name || profile?.username || "Member",
     moderator: isStaff,
+    recording: canRecord,
     email: user.email,
     avatar: profile?.avatar_url,
   });
