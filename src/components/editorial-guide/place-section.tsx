@@ -28,6 +28,7 @@ export const KIND_LABELS: Record<PlaceKind, string> = {
   "street-food": "Street food",
   bar: "Beach bar",
   activity: "Adventure",
+  transport: "Getting around",
 };
 
 export const DEFAULT_PLACE_LABELS: PlaceSectionLabels = {
