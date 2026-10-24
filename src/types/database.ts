@@ -1600,6 +1600,9 @@ export type LiveSession = {
   // What the session is about, and a cover image — both optional.
   description: string | null;
   image_url: string | null;
+  // A still taken from the meeting while it ran (see saveLiveSessionSnapshot),
+  // shown on the Past sessions card; null when none was captured.
+  thumbnail_url: string | null;
   // Stamped by the reminder job once a scheduled session's pre-start reminder
   // has been sent, so it fires at most once.
   reminder_sent_at: string | null;

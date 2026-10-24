@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getMembership } from "@/lib/data/community";
 import { getProfile } from "@/lib/data/profile";
 import { isJaasConfigured, getJaasAppId, mintJaasToken } from "@/lib/jitsi";
+import { decodeSnapshot, publicSnapshotPath } from "@/lib/live-snapshot";
+import { SPACE_FILES_BUCKET, spaceFilePath, spaceFileUrl, uploadTargetFor } from "@/lib/space-files";
 
 export type LiveActionResult = { error: string } | { error: null };
 
@@ -272,6 +274,70 @@ export async function endLiveSession(input: {
   if (error) return { error: error.message };
 
   revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}
+
+// Staff-only: keep a still from the running meeting as the session's picture
+// for the Past sessions card. The host's browser sends a small JPEG a few
+// times during the call (see JitsiRoom's onSnapshot); each replaces the last.
+// The still goes where the space's own uploads go: the public 'uploads' bucket
+// when anyone can open the space, otherwise its private 'space-files' folder.
+export async function saveLiveSessionSnapshot(input: {
+  sessionId: string;
+  communitySlug: string;
+  spaceSlug: string;
+  image: string;
+}): Promise<LiveActionResult> {
+  const bytes = decodeSnapshot(input.image);
+  if (!bytes) return { error: "That picture couldn't be read." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { data: session } = await supabase
+    .from("live_sessions")
+    .select("id, status, community_id, space:space_id (id, visibility), community:community_id (privacy)")
+    .eq("id", input.sessionId)
+    .maybeSingle();
+  if (!session) return { error: "That session no longer exists." };
+  const row = session as unknown as {
+    id: string;
+    status: string;
+    community_id: string;
+    space: { id: string; visibility: string } | null;
+    community: { privacy: string } | null;
+  };
+  if (row.status !== "live" || !row.space || !row.community) return { error: "The session isn't live." };
+
+  const membership = await getMembership(supabase, row.community_id, user.id);
+  if (!(membership?.status === "active" && isStaffRole(membership.role))) {
+    return { error: "Only hosts can set the session's picture." };
+  }
+
+  // Checks are done; the service client writes so a repeat still can
+  // overwrite the earlier file without needing an update rule on Storage.
+  const admin = createAdminClient();
+  const target = uploadTargetFor(row.space, row.community);
+  const bucket = target ? SPACE_FILES_BUCKET : "uploads";
+  const path = target
+    ? spaceFilePath(target.spaceId, user.id, "session.jpg", row.id)
+    : publicSnapshotPath(user.id, row.id);
+  const { error: uploadError } = await admin.storage
+    .from(bucket)
+    .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
+  if (uploadError) return { error: uploadError.message };
+
+  // The ?v= makes browsers fetch the newer still instead of a cached one.
+  const base = target ? spaceFileUrl(path) : admin.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  const { error } = await admin
+    .from("live_sessions")
+    .update({ thumbnail_url: `${base}?v=${Date.now()}` })
+    .eq("id", row.id);
+  if (error) return { error: error.message };
+
   return { error: null };
 }
 
