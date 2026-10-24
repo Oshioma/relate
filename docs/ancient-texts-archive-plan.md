@@ -1567,3 +1567,142 @@ There are 45 entries, one per unit:
   - Mead's excerpt XV is not in the 1885 book.
 - The rest of Kingsford's Introduction, Maitland's essays and the footnotes are listed, not imported.
 - The 1885 title page and frontispiece could not be shown.
+
+## 26. Stage 20: the "Mithras Liturgy" (PGM IV 475–829) in Mead's A Mithriac Ritual (1907)
+
+The first proposed member of `greek.related` (brief item 18), "Mithras Liturgy (PGM IV 475–829)", is imported as its own work. The English is G. R. S. Mead's, in *A Mithriac Ritual*, vol. VI of his series *Echoes from the Gnosis* (London and Benares: Theosophical Publishing Society, 1907). The `greek.related` entry's proposed member now ends "imported as its own work, greek.mithras-liturgy".
+
+- **`greek.mithras-liturgy`** (prefix `greek.mithras`). Tradition class `ancient_primary` (the text survives in a fourth-century papyrus), corpus group `greek_hermetic`. Marker `mithras-liturgy-papyrus`.
+
+The inventory gained three sources:
+- `mead-mithriac-ritual-1907`, the book, which describes the witnesses;
+- `dieterich-mithrasliturgie-1903`, Albrecht Dieterich's *Eine Mithrasliturgie* (Leipzig, 1903), the Greek text Mead translated. It is public domain but was not read, so it is cited only;
+- `bnf-suppl-grec-574`, the papyrus itself, in the BnF's digitisation as it appears on Wikimedia Commons.
+
+Files:
+- `corpus/mithras-liturgy.ts`;
+- the generated `corpus/mithras-liturgy-text.ts`, made by `scripts/texts/mead-mithriac-ritual.py`. The script records the method, the readings the vote took and every correction by hand with the page it was read on;
+- `corpus/mithras-liturgy-related-images.ts`;
+- plain words in `corpus/plain/mithras-liturgy.ts`;
+- the marker's picture in `marker-pictures.ts`.
+
+Copyright: public domain (1907; Mead died 1933). The text layers are `public_domain`.
+
+### What the text is
+
+A Greek ritual of ascent and immortalisation, in the first person, preserved only in the Great Paris Magical Papyrus (Bibliothèque nationale de France, Supplément grec 574), a fourth-century book of magical texts. Dieterich named it a "Mithrasliturgie" because its prayer names "Sun Mithras, the Great God". Mead agrees that it is Mithraic, but reports that Cumont rejected it "as a genuine Mithriac document" (p. 10). Whether it belongs to the Roman cult of Mithras is therefore recorded as disputed.
+
+Mead translates Dieterich's Greek and leaves out the magical names and vowel-strings that he takes for later insertions by "a school of Egyptian magicians". The names he keeps are marked by obeli (†), and he prints one block of vowels (VII.2). His Preamble and Comments read the rite in Theosophical terms, as "a yoga-rite" of "prāṇa's" and "Ātmic Energy". The archive records that reading as his: in the Preamble's notes and plain words, and in the work entry.
+
+### Source and checking
+
+No proofread transcription of the 1907 book, and no Gutenberg or Wikisource text, could be reached. Sacred-texts.com and Gallica refused the requests.
+
+| Siglum | Witness |
+|---|---|
+| H | archive.org's OCR of the University of Toronto copy (`amythicritu06meaduoft`). The base; its page images were read. |
+| G | archive.org's OCR of Google's scan of a copy from an unnamed library (`amithriacritual00meadgoog`). |
+| S | archive.org's OCR of the Servants of Knowledge scan (`ult.mithriacritualvo0000grsm`), of a copy stamped as a Bangalore library's. |
+
+A fourth item (`MeadGRSEchoesFromTheGnosisVolVIAMithriacRitual1907`) carries the same Robarts call number as H, so it is another OCR of the Toronto copy. It was not used.
+
+- **The vote.** H, G and S were aligned word by word. Where G and S agreed against H, their reading was taken: 42 times.
+- **Proofreading.** Because the text is short, every page of the Preamble and the Ritual (pp. 9–33) was then read line by line against H's page images. The 60 corrections made by hand are listed in the script with their pages. They include:
+  - the obeli, which the OCRs read as "f", "4" or "/";
+  - the Greek words ἄσημα ὀνόματα (p. 10) and συριγμὸς, ποππυσμός (p. 15);
+  - Æ, the Sanskrit diacritics of the Preamble, and "S̄! S̄!" (p. 23);
+  - the macrons of the vowel block (p. 26), read at high resolution;
+  - "leave me not" (p. 33), which H's OCR misread as "learn".
+- Ten line-end hyphens are kept as compounds ("vowel-combinations", "thunder-clap" and others); the rest are joined.
+
+Italic is not marked (Mead prints the prayers in italic and the instructions in roman). His square brackets, his supplements, are kept. So are his paragraph numbers.
+
+### Units
+
+`greek.mithras.1907` (`book`) holds no text. It carries Dieterich as a cited layer (`grc-dieterich-1903`, no content), the 1907 date, and notes on what is not imported.
+
+Under it come:
+- `greek.mithras.1907.preamble`, Mead's Preamble (pp. 9–17), layer `eng-1907`, kind `interpretation`: Mead's own words, not a translation;
+- `greek.mithras.1907.ritual` (`part`), which holds no text. It carries the papyrus as its witness (`PGM IV 475–829`) and the papyrus and composition dates;
+- `greek.mithras.1907.1`–`.14`, Mead's fourteen sections (pp. 18–33), layer `eng-1907`, kind `translation`, each with the papyrus as witness.
+
+That makes 15 `section` units and 17 passages.
+
+| Section | Mead's heading | Pages |
+|---|---|---|
+| I | [The Father's Prayer.] | 18 |
+| II | The Invocatory Utterance (Logos). | 18–21 |
+| III | [The First Instruction.] | 21–22 |
+| IV | [The First Utterance.] | 22–23 |
+| V | [The Second Instruction.] | 23 |
+| VI | The [Second] Utterance (Logos). | 24 |
+| VII | The Third Utterance (Logos). | 25–27 |
+| VIII–XIV | [The Fourth Utterance.] to [The Tenth Utterance.] | 27–33 |
+
+**Why the Preamble is imported.** It is nine small pages, and it is where Mead names the papyrus, gives its date and Dieterich's dating, and states his method.
+
+**Listed, not imported:**
+- Mead's Comments (pp. 34–77), a running commentary without headings. It compares the rite with the "Trismegistic sermons", the "Virgin of the World" (p. 44), the Naassene document, the Oracles, Plato, Proclus and Empedocles;
+- the front matter.
+
+The papyrus line numbers of Mead's sections were not established, and none are given. Whether his fourteen sections cover every line to PGM IV 829 was not checked against an edition of the Greek. For both reasons the inventory is not marked verified.
+
+### Manuscript
+
+`bnf-suppl-gr-574`: Paris, BnF, Supplément grec 574, papyrus, 300–400 CE (`century`, approximate). The date is the library's own, from its label ("IVe siècle"), seen on its digitisation; the label does not state its grounds. Mead narrows it to "the earliest years of the fourth century A.D." (p. 10). The label also gives "36 feuillets. 305 sur 130 millimètres ... Acquis en 1857". A printed note on the labels refers to the sale of d'Anastasi's collection in Paris, 23–27 June 1857, lot 1073. The BnF catalogue record was not reached.
+
+### Dates
+
+- **Publication:** 1907, on `greek.mithras.1907`, from the title page, seen in two scans.
+- **Manuscript:** 300–400 CE, on `greek.mithras.1907.ritual`, from the BnF's label. The papyrus is the only witness, so this is also the earliest evidence for the text.
+- **Composition:** 100–150 CE (`century`, approximate), on the same record. This is Dieterich's dating as Mead reports it (p. 13: "first made in Egypt about 100-150 A.D., and was used in the Mysteries until 200 A.D."). It is shown as one scholar's view. The date of composition is debated, and no other dating was read for this import.
+- **Marker:** carries all three.
+
+### Links
+
+All 7 are `proposed`, and all say "None shown." for transmission. None claims that one text knew another.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 2 | `herm.ch.13.3` | `close_conceptual_parallel` | "re-born in Mind" / "I am born in Mind", into a body that cannot die |
+| 14 | `herm.ch.13.10` | `close_conceptual_parallel` | rebirth that lifts a mortal beyond birth / "by this Birth we are made into Gods" |
+| 2 | `herm.sh.ex25.4` | `symbolic_similarity` | "the Deep of the [New] Dawn" / "that New Dawn" (Korē Kosmou) |
+| 3 | `herm.ch.1.25` | `broad_thematic_resemblance` | ascent through the heavens; Poimandres' ascent is after death, through seven zones |
+| 7 | `gnostic.ps.136` | `symbolic_similarity` | vowel-strings in a prayer to the highest power, then a vision of the sky |
+| 7 | `modern.hall.2.s1.p3` | `broad_thematic_resemblance` | Hall's "the priests chanted the seven vowels" (Serapis) |
+| 11 | `modern.hall.36.s7.p2` | `broad_thematic_resemblance` | seven heavenly powers; Hall's Mithraic "seven steps" |
+
+**Mead translated both sides** of the three Hermetic links, so the shared English may be his. The links say so. In the Korē Kosmou link, the shared word "New" is Mead's own bracketed supplement in the Ritual; the link says that too. Mead himself sets the Ritual beside the Hermetic sermons (p. 43) and quotes the Korē Kosmou (p. 44). These are recorded as his view (`scholarlyView`, `sourceKey` Mead 1907), not as evidence of transmission.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive. The Sidon and London tauroctonies are already with Hall's Mithras chapter.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| G. R. S. Mead, portrait | marker `mithras-liturgy-papyrus` | `UNVERIFIED`: photographer, date and source |
+| BnF labels of Supplément grec 574 ("IVe siècle", "Acquis en 1857"), Commons image 1 of 73 | `greek.mithras.1907.ritual` | secure |
+| Leaf "7" of the papyrus, Commons image 14 of 73, holding (as read here) the opening of the Ritual: "ἵλαθί μοι πρόνοια ... ψυχή, τάδε γράφοντι" and Ἥλιος Μίθρας | `greek.mithras.1907.1` | `UNVERIFIED`: the identification rests on reading the image, not on a catalogue or the edition's line numbers |
+| Fiano Romano relief (Louvre Ma 3441), Sol and Mithras banqueting, PD | `greek.mithras.1907.9` | secure; captioned "Related evidence, not the Ritual" |
+| Vatican tauroctony with heads of Helios and Selene (inv. 870), CC BY-SA 4.0 | `greek.mithras.1907.preamble` | secure; captioned "Related evidence, not the Ritual" |
+
+The papyrus's vowel block (p. 26 of Mead) was not found among the leaves examined. The Commons API rate-limited the search, and only leaves 1–9, 11–14, 16 and 17 were downloaded and examined.
+
+### Plain words
+
+There are 15 entries, one per unit:
+- The rite's instructions are reported as instructions ("The instructions say ..."), never as things that happen.
+- Mead's Theosophical reading in the Preamble is reported as his, "not history".
+- Where Mead leaves out a name, the paraphrase says so.
+- "Other possible readings" cover:
+  - Mead's bracketed "[a Son]" and "[as I am, by mine own self]" (I);
+  - "[New] Dawn" (II);
+  - "[O Lord]" and "[remain]" (XIII).
+
+### Not done
+
+- Dieterich's Greek, Preisendanz's edition and later scholarship were not read. The composition date is Dieterich's view as Mead reports it.
+- The papyrus line numbers of Mead's sections were not established. It was not checked whether Mead leaves out instructions from the end of the papyrus text.
+- The identification of the papyrus leaf with the Ritual's opening is the archive's own reading, so it is marked `UNVERIFIED`.
+- Mead's Comments (pp. 34–77) are listed, not imported.
+- Gallica and the BnF catalogue record could not be reached; the digitisation was seen through Commons.

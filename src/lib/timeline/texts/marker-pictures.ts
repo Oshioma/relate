@@ -930,6 +930,21 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "mithras-liturgy-papyrus": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/c8/George_Robert_Stow_Mead.001.jpg",
+      kind: "image",
+      shows: "portrait",
+      caption:
+        "UNVERIFIED — A half-length photograph of a man with dark hair, a moustache and a pointed beard, in a light jacket, with his arms folded. The file page identifies him as G. R. S. Mead (1863–1933), whose English of the ritual (1907) is the one given here, and takes the picture from a website; the photographer, the date and the original source are unknown and not verified. Mead is not an ancient witness; the papyrus itself is shown on the Ritual's records.",
+      credit: "Wikimedia Commons (photographer unknown, as the file page states)",
+      licence: "Public domain (PD-old), as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:George_Robert_Stow_Mead.001.jpg",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",
