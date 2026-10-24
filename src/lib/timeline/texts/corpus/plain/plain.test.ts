@@ -18,6 +18,7 @@ import { PLAIN_KYBALION } from "./kybalion";
 import { PLAIN_DONNELLY } from "./donnelly";
 import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
 import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
+import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -60,6 +61,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.donnelly": PLAIN_DONNELLY,
   "modern.scott-elliot": PLAIN_SCOTT_ELLIOT,
   "modern.kingsford-maitland": PLAIN_VIRGIN_OF_THE_WORLD,
+  "greek.mithras-liturgy": PLAIN_MITHRAS_LITURGY,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -144,6 +146,18 @@ test("the Introduction's first section and every part of The Virgin of the World
   assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.frag.7"], /share out the gifts differently/);
   // The kept misprint is shown as another reading.
   assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.def.2"], /Other possible readings:\n- 'Incorporeal corporealites' \(p\. 107\) is a misprint of 1885/);
+});
+
+test("the Preamble and every section of the Mithras Liturgy have plain words, and only those", () => {
+  const ml = ALL_CORPORA.find((c) => c.workKey === "greek.mithras-liturgy")!;
+  const withText = ml.passages.filter((p) => p.layers.some((l) => l.key === "eng-1907")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_MITHRAS_LITURGY).sort(), [...withText].sort());
+  assert.equal(withText.length, 15);
+  // Mead's Theosophical reading is reported as his, not as the rite's.
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.preamble"], /In his own interpretation, which is a Theosophical one and not history/);
+  // The instructions are reported as instructions, and Mead's bracketed words as his.
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.3"], /^The instructions say/);
+  assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.2"], /Other possible readings:\n- 'the Deep of the \[New\] Dawn': the word 'New' is Mead's addition/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

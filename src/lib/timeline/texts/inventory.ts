@@ -988,6 +988,43 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Cited as the intermediary of the 1885 English: Kingsford and Maitland say on p. ii that they used Ménard's version 'but not entirely followed' it, and that the notes not initialled are his. It was not read for this import; nothing here is quoted from it, and which of its editions (1866, or the second of 1867) they used is not established.",
   },
   {
+    key: "mead-mithriac-ritual-1907",
+    title: "A Mithriac Ritual",
+    author: "G. R. S. Mead",
+    publisher: "The Theosophical Publishing Society, London and Benares",
+    publishedYear: 1907,
+    publishedDisplay: "1907 (title page)",
+    reference:
+      "Echoes from the Gnosis, vol. VI: Preamble (pp. 9–17), The Ritual in fourteen sections (pp. 18–33), Comments (pp. 34–77); cited by printed page. Read in the University of Toronto copy (archive.org amythicritu06meaduoft), with the Google scan (amithriacritual00meadgoog) and the Servants of Knowledge scan (ult.mithriacritualvo0000grsm)",
+    url: "https://archive.org/details/amythicritu06meaduoft",
+    sourceType: "primary",
+    notes:
+      "Mead's English of the Greek ritual from the Great Paris Magical Papyrus that Dieterich published as 'Eine Mithrasliturgie' (1903), translated from Dieterich's text ('Text: Dieterich (A.), Eine Mithrasliturgie (Leipzig, 1903)', contents page), with the magical names and most vowel-strings left out and the rest marked by obeli. Its Preamble and Comments read the rite in Theosophical terms, as a 'yoga-rite'. The import is taken from the archive.org OCR of the three scans, voted word by word and read page by page against the Toronto page images; every correction made by hand is listed in scripts/texts/mead-mithriac-ritual.py. No e-text was found on Project Gutenberg or Wikisource, and sacred-texts.com and Gallica refused the requests, so the three scans of the printed book are the witnesses. Public domain: published in 1907; Mead died in 1933.",
+  },
+  {
+    key: "dieterich-mithrasliturgie-1903",
+    title: "Eine Mithrasliturgie",
+    author: "Albrecht Dieterich",
+    publisher: "Leipzig",
+    publishedYear: 1903,
+    reference: "The Greek text Mead translated, as his contents page names it ('Text: Dieterich (A.), Eine Mithrasliturgie (Leipzig, 1903)')",
+    sourceType: "academic_book",
+    notes:
+      "The edition of the ritual as a work of its own; Dieterich gave it the name 'Mithrasliturgie'. Public domain (Dieterich died in 1908), but not read for this import: its dating of the ritual is given only as Mead reports it (A Mithriac Ritual, p. 13), and nothing here is quoted from it.",
+  },
+  {
+    key: "bnf-suppl-grec-574",
+    title: "Supplément grec 574 (Grand papyrus magique, PGM IV)",
+    author: "Bibliothèque nationale de France, Département des Manuscrits",
+    publisher: "Bibliothèque nationale de France (Gallica digitisation, also on Wikimedia Commons)",
+    reference:
+      "The papyrus itself, in the library's digitisation (Gallica ark:/12148/btv1b525030475), 73 images on Wikimedia Commons, category 'Grand papyrus magique (PGM IV) - btv1b525030475'; the library's labels are image 1",
+    url: "https://commons.wikimedia.org/wiki/Category:Grand_papyrus_magique_(PGM_IV)_-_btv1b525030475",
+    sourceType: "historical_document",
+    notes:
+      "The only witness of the ritual. The library's label reads 'Opuscules magiques (Papyrus Anastasi) (IVe siècle.) Ms. Supplément grec 574. Papyrus. 36 feuillets. 305 sur 130 millimètres. Demi-reliure. Acquis en 1857'. The Commons file pages give the licence as public domain (PD-France) and cite Preisendanz's edition (Papyri Graecae Magicae I, 1928, pp. 64–180) for the text. Gallica itself and the BnF catalogue record were not reached (the requests were refused), so the digitisation was seen through Commons.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2325,7 +2362,7 @@ export const INVENTORY: InventoryWork[] = [
     imageCollections: [],
     anchor: null,
     proposedMembers: [
-      "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain",
+      "Mithras Liturgy (PGM IV 475–829) — ascent through the heavens; Mead 1907 public domain; imported as its own work, greek.mithras-liturgy",
       "Plutarch, On Isis and Osiris — already a timeline record (plutarch-on-isis-and-osiris)",
       "Iamblichus, On the Mysteries — Taylor 1821 public domain",
       "Chaldean Oracles",
@@ -2333,6 +2370,84 @@ export const INVENTORY: InventoryWork[] = [
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
       "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates",
     ],
+  },
+  {
+    workKey: "greek.mithras-liturgy",
+    passagePrefix: "greek.mithras",
+    briefItem: 18,
+    title: "The 'Mithras Liturgy' (PGM IV 475–829), in Mead's A Mithriac Ritual (1907)",
+    alternativeTitles: ["A Mithriac Ritual", "Eine Mithrasliturgie", "PGM IV 475–829"],
+    corpusGroup: "greek_hermetic",
+    traditionClass: "ancient_primary",
+    civilisation: "Roman Egypt",
+    geographicalOrigin: "Egypt",
+    originalLanguage: "Koine Greek",
+    attribution: "Anonymous; the rite's own prayer names 'Sun Mithras, the Great God'",
+    attributionNote:
+      "A Greek ritual of ascent and immortalisation preserved in one papyrus, the Great Paris Magical Papyrus (BnF, Supplément grec 574), a fourth-century book of magical texts. Albrecht Dieterich edited it in 1903 as 'Eine Mithrasliturgie' and took it for a Mithraic rite; Mead (1907) agrees, and thinks it was later worked over by Egyptian magicians, but reports that Cumont rejected it 'as a genuine Mithriac document', so whether it belongs to the Roman cult of Mithras is disputed. The English here is Mead's, from Dieterich's Greek, with most of the magical names and vowels left out; his Preamble and Comments read it in Theosophical terms, and the archive records that reading as his.",
+    summary:
+      "Mead's A Mithriac Ritual (London, 1907): his Preamble and his English of the Ritual in fourteen sections, from the Father's prayer to the final utterance 'being born again, I pass away ... I die'.",
+    referenceEdition:
+      "Mead's English (London, 1907), cited by printed page and by his section numbers; the papyrus lines as PGM IV 475–829 (Preisendanz's numbering, not checked against the edition)",
+    expectedUnits: 15,
+    unitLabel: "sections (with the Preamble)",
+    unitDivisionKind: "section",
+    inventoryBasis:
+      "The book's own divisions: the Preamble (pp. 9–17) and The Ritual in sections I–XIV (pp. 18–33), each with its heading, all imported and each checked against its opening on the page images, 15 units. Not imported, and listed here: Mead's Comments (pp. 34–77), which have no sections of their own, and the front matter. Whether Mead's fourteen sections cover every line of PGM IV 475–829 was not checked against an edition of the Greek, and including the Preamble is the archive's choice, so the count is not marked verified.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Mead's book was published in 1907 and he died in 1933; Dieterich's edition (1903) is public domain too (he died in 1908) but is cited only. The papyrus images are public domain (PD-France), as their Commons file pages state.",
+    fullTextEditions: ["Mead, A Mithriac Ritual (London, 1907): the Preamble and the Ritual"],
+    referenceOnlyEditions: ["Dieterich, Eine Mithrasliturgie (Leipzig, 1903), the Greek text Mead translated, cited only"],
+    imageCollections: ["Wikimedia Commons: the BnF's digitisation of Supplément grec 574 (73 images); Mithraic reliefs in the Louvre and the Vatican Museums; a photograph identified as Mead"],
+    anchor: {
+      event: {
+        slug: "mithras-liturgy-papyrus",
+        title: "The 'Mithras Liturgy' survives in the Great Paris Magical Papyrus",
+        summary: "A Greek ritual of ascent to the Sun-god and of rebirth into immortality, copied in a fourth-century Egyptian book of magic.",
+        description:
+          "The ritual survives in one papyrus book of the fourth century CE, now in the Bibliothèque nationale de France (Supplément grec 574). When it was composed is debated: Dieterich, as Mead reports him, put its making in Egypt about 100–150 CE. Whether it is a rite of the Roman cult of Mithras is also disputed. It reached English readers in G. R. S. Mead's translation of 1907, made for his Theosophical series 'Echoes from the Gnosis'.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "greek magical papyri", "mithras", "ascent", "immortality"],
+        civilisations: ["Roman Egypt"],
+        people: ["Albrecht Dieterich", "G. R. S. Mead"],
+        claims: [
+          dated("composition", {
+            qualifier: "Dieterich's dating, as Mead reports it",
+            sourceKey: "mead-mithriac-ritual-1907",
+            startYear: 100,
+            endYear: 150,
+            datePrecision: "century",
+            originalDateText: "'Dieterich thinks that this Greek ritual was first made in Egypt about 100-150 A.D.' (Mead, p. 13)",
+            evidence:
+              "One scholar's judgement of 1903, read only in Mead's report of it; the date of composition is debated and no other dating was read for this import.",
+          }),
+          dated("manuscript", {
+            qualifier: "the Great Paris Magical Papyrus, BnF Supplément grec 574",
+            sourceKey: "bnf-suppl-grec-574",
+            startYear: 300,
+            endYear: 400,
+            datePrecision: "century",
+            originalDateText: "'Opuscules magiques (Papyrus Anastasi) (IVe siècle.)' (the BnF's label)",
+            evidence:
+              "The date the holding library gives the papyrus on its label, seen on its digitisation; the label does not state its grounds. Mead (p. 10) puts it in 'the earliest years of the fourth century A.D.'. The only witness of the ritual.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Mead's English",
+            sourceKey: "mead-mithriac-ritual-1907",
+            startYear: 1907,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "'The Theosophical Publishing Society, London and Benares, 1907' (title page)",
+            datingMethod: "historical_record",
+            evidence: "The title page of the 1907 book, seen in two of the scans.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
   },
 
   // ======================================================================

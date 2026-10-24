@@ -12,6 +12,7 @@ import { KYBALION_CHAPTERS, KYBALION_SAYINGS } from "./corpus/kybalion-text";
 import { SCOTT_ELLIOT_MAPS, SCOTT_ELLIOT_SECTIONS } from "./corpus/scott-elliot-text";
 import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
 import { VIRGIN_UNITS } from "./corpus/virgin-of-the-world-text";
+import { MITHRIAC_UNITS } from "./corpus/mithras-liturgy-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -1854,6 +1855,139 @@ test("The Virgin of the World's pictures are Patrizi pages from Commons and the 
     assert.equal(picture.identificationStatus, "unverified");
     assert.match(picture.caption ?? "", /^UNVERIFIED — /);
   }
+});
+
+test("The Mithras Liturgy is imported from Mead's 1907 book, the Preamble and the fourteen sections of the Ritual, voted over three scans", () => {
+  const file = corpusFor("greek.mithras-liturgy")!;
+  const work = INVENTORY.find((w) => w.workKey === "greek.mithras-liturgy")!;
+  assert.equal(work.passagePrefix, "greek.mithras");
+  assert.equal(work.traditionClass, "ancient_primary");
+  assert.equal(work.corpusGroup, "greek_hermetic");
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, 15);
+  assert.equal(work.inventoryVerified, false, "the sections' coverage of the papyrus lines is not checked");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "mithras-liturgy-papyrus");
+  assert.match(work.attributionNote!, /Cumont rejected it 'as a genuine Mithriac document'/);
+  assert.match(work.attributionNote!, /Theosophical/);
+  const related = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(related.proposedMembers!.some((m) => /^Mithras Liturgy.*imported as its own work, greek\.mithras-liturgy$/.test(m)));
+  for (const key of ["mead-mithriac-ritual-1907", "dieterich-mithrasliturgie-1903", "bnf-suppl-grec-574"]) assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  // One book record (citing Dieterich only), the Preamble, a Ritual record without text, and fourteen sections.
+  const book = file.passages[0];
+  assert.equal(book.key, "greek.mithras.1907");
+  assert.equal(book.divisionKind, "book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "grc-dieterich-1903" && l.content == null));
+  assert.match(book.notes!, /Not imported, and listed here: Mead's Comments \(pp\. 34–77\)/);
+  const ritual = file.passages.find((p) => p.key === "greek.mithras.1907.ritual")!;
+  assert.equal(ritual.layers.length, 0);
+  assert.deepEqual(ritual.witnesses, [{ manuscriptKey: "bnf-suppl-gr-574", locus: "PGM IV 475–829" }]);
+  assert.deepEqual(file.manuscripts!.map((m) => [m.key, m.objectKind, m.accessionNumber]), [["bnf-suppl-gr-574", "papyrus", "Supplément grec 574"]]);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.deepEqual(units.map((u) => u.key), ["preamble", ...Array.from({ length: 14 }, (_, i) => `${i + 1}`)].map((id) => `greek.mithras.1907.${id}`));
+  assert.equal(MITHRIAC_UNITS.length, 15);
+  assert.equal(file.passages.length, 17);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 15, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (id: string) => file.passages.find((p) => p.key === `greek.mithras.1907.${id}`)!.layers.find((l) => l.key === "eng-1907")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1907")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, unit.key.endsWith(".preamble") ? "interpretation" : "translation", unit.key);
+    assert.match(layer.evidence, /three independent scans/, unit.key);
+    assert.match(layer.evidence, /read page by page against the Toronto page images/, unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/mead-mithriac-ritual\.py/, unit.key);
+    assert.match(unit.reference, /^A Mithriac Ritual \(London, 1907\), (Preamble, pp\. 9–17|The Ritual, section [IVX]+, (p\. \d+|pp\. \d+–\d+))$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /_|�|--|  |(?<!\n)\n(?!\n)|[a-z,;]\n\n[a-z]|¦|\b0\b|MITHRIAC|RITUAL\./, unit.key);
+  }
+  assert.match(text("preamble"), /^The last little volume gave the reader/);
+  assert.match(text("preamble"), /Dieterich thinks that this Greek ritual was first made in Egypt about 100-150 A\.D\./);
+  assert.match(text("preamble"), /ἄσημα ὀνόματα/);
+  assert.match(text("preamble"), /συριγμὸς and ποππυσμός/);
+  assert.match(text("1"), /^O Providence, O Fortune, bestow on me Thy Grace/);
+  assert.match(text("1"), /Sun Mithras, the Great God/);
+  assert.match(text("2"), /re-born in Mind/);
+  assert.match(text("4"), /S̄! S̄!/);
+  assert.match(text("7"), /\n\nĒeō · oēeō · iōō · .+ · ooouiōē!\n\n/);
+  assert.match(text("13"), /Oh! leave me not!/);
+  assert.match(text("14"), /made the Mystery\.$/);
+  // The Preamble's Theosophical reading is recorded as Mead's.
+  assert.match(file.passages.find((p) => p.key === "greek.mithras.1907.preamble")!.notes!, /Mead's Theosophical interpretation, recorded as such/);
+});
+
+test("The Mithras Liturgy is dated by its papyrus and by Dieterich's view as Mead reports it, and Mead's book to 1907", () => {
+  const file = corpusFor("greek.mithras-liturgy")!;
+  const book = file.passages[0];
+  assert.deepEqual(book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.isApproximate]), [["translation_publication", 1907, 1907, false]]);
+  assert.match(book.dates![0].evidence, /not of the papyrus or of the Greek ritual/);
+  const ritual = file.passages.find((p) => p.key === "greek.mithras.1907.ritual")!;
+  const [papyrus, composition] = ritual.dates!;
+  assert.deepEqual([papyrus.role, papyrus.startYear, papyrus.endYear, papyrus.datePrecision, papyrus.sourceKey], ["manuscript", 300, 400, "century", "bnf-suppl-grec-574"]);
+  assert.match(papyrus.originalDateText, /IVe siècle/);
+  assert.deepEqual([composition.role, composition.startYear, composition.endYear, composition.datePrecision, composition.isApproximate], ["composition", 100, 150, "century", true]);
+  assert.match(composition.originalDateText, /about 100-150 A\.D\./);
+  assert.match(composition.evidence, /one scholar's judgement and the date of composition is debated/);
+  const manuscript = file.manuscripts![0];
+  assert.deepEqual([manuscript.startYear, manuscript.endYear], [300, 400]);
+  const work = INVENTORY.find((w) => w.workKey === "greek.mithras-liturgy")!;
+  const claims = work.anchor && "event" in work.anchor ? work.anchor.event.claims : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["composition", "manuscript", "translation_publication"]);
+  assert.deepEqual(claims.map((c) => [c.startYear, c.endYear ?? null]), [[100, 150], [300, 400], [1907, null]]);
+});
+
+test("The Mithras Liturgy's links are proposed resemblances, and none claims one text knew another", () => {
+  const file = corpusFor("greek.mithras-liturgy")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 7);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^greek\.mithras\.1907\./, link.key);
+    assert.ok(["close_conceptual_parallel", "symbolic_similarity", "broad_thematic_resemblance"].includes(link.connectionClass), link.key);
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+  }
+  const to = (from: string) => links.filter((l) => l.from === `greek.mithras.1907.${from}`).map((l) => l.to);
+  assert.deepEqual(to("2"), ["herm.ch.13.3", "herm.sh.ex25.4"]);
+  assert.deepEqual(to("3"), ["herm.ch.1.25"]);
+  assert.deepEqual(to("7"), ["gnostic.ps.136", "modern.hall.2.s1.p3"]);
+  assert.deepEqual(to("11"), ["modern.hall.36.s7.p2"]);
+  assert.deepEqual(to("14"), ["herm.ch.13.10"]);
+  // Mead translated both, and the shared 'New' is his own supplement: the links say so.
+  for (const link of links.filter((l) => l.to.startsWith("herm.ch.13") || l.to.startsWith("herm.sh."))) assert.match(link.differences, /Mead translated both texts/, link.key);
+  assert.match(links.find((l) => l.to === "herm.sh.ex25.4")!.differences, /The word 'New' in the Ritual is Mead's own addition/);
+  assert.match(links.find((l) => l.to === "herm.sh.ex25.4")!.scholarlyView!, /p\. 44/);
+});
+
+test("The Mithras Liturgy's pictures are the BnF papyrus and Mithraic reliefs from Commons, with Mead as the marker, and the unverified ones say so first", () => {
+  const file = corpusFor("greek.mithras-liturgy")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, 4);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "greek.mithras-liturgy").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+  }
+  assert.equal(seen.get("mithras-bnf-suppl-gr-574-labels")!.identificationStatus, "secure");
+  assert.equal(seen.get("mithras-bnf-suppl-gr-574-leaf-7")!.identificationStatus, "unverified");
+  assert.match(seen.get("mithras-bnf-suppl-gr-574-leaf-7")!.whatIsUnverified!, /not on the library's catalogue or on an edition's line numbers/);
+  for (const key of ["mithras-fiano-romano-banquet-sol", "mithras-vatican-tauroctony-helios-selene"]) assert.match(seen.get(key)!.caption, /^Related evidence, not the Ritual: /, key);
+  const marker = MARKER_PICTURES["mithras-liturgy-papyrus"];
+  assert.equal(marker.length, 1);
+  assert.match(marker[0].url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/.+\/George_Robert_Stow_Mead\.001\.jpg$/);
+  assert.equal(marker[0].identificationStatus, "unverified");
+  assert.match(marker[0].caption ?? "", /^UNVERIFIED — /);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
