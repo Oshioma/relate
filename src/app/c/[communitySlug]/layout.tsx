@@ -346,7 +346,10 @@ export default async function CommunityLayout({
           live space see it too. */}
       <LiveSessionWatcher communityId={community.id} />
 
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
+      {/* Sticky at full window height, so the nav stays in view while a long
+          page (a directory, a timeline) scrolls past it; the link list inside
+          already scrolls on its own when it is taller than the window. */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:sticky md:top-0 md:flex md:h-screen">
         {/* Sidebar header: the logo on the plain card background. The cover
             photo was tried here and pulled back out — a tinted crop behind a
             logo made the sidebar compete with the hero rather than support it,
