@@ -9,6 +9,7 @@ import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-typ
 import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
 import { seedGuidedJourneySpace, copyGuidedJourneySpace } from "@/lib/data/guided-journey-seed";
 import { communityHasFeature } from "@/lib/data/plan-limits";
+import { getCommunityCurrency } from "@/lib/data/community";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName, communitySubdomainUrl, wwwCounterpart } from "@/lib/custom-domain";
@@ -211,9 +212,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
     priceUpdate = { price_cents: 0 };
   } else if (rawPrice !== null) {
     const amount = Number(String(rawPrice).trim());
-    const priceCents = Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
-    const currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
-    priceUpdate = { price_cents: priceCents, currency };
+    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0 };
   }
 
   if (!name) {
@@ -245,6 +244,10 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
     if (!canCharge) {
       return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
     }
+  }
+  // A space's own price is charged in the community's currency (Admin -> Payments).
+  if (current && priceUpdate && priceUpdate.price_cents > 0) {
+    priceUpdate.currency = await getCommunityCurrency(supabase, current.community_id);
   }
 
   const failure = requireWrite(
@@ -303,8 +306,7 @@ export async function updateSpaceAccess(_prevState: SpaceFormState, formData: Fo
   let priceUpdate: { price_cents: number; currency?: string } = { price_cents: 0 };
   if (visibility !== "public") {
     const amount = Number(String(formData.get("price") ?? "").trim());
-    const currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
-    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0, currency };
+    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0 };
   }
 
   const supabase = await createClient();
@@ -317,6 +319,8 @@ export async function updateSpaceAccess(_prevState: SpaceFormState, formData: Fo
     const { data: canCharge } = await supabase.rpc("community_can_charge", { p_community_id: current.community_id });
     if (!canCharge) return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
   }
+
+  if (priceUpdate.price_cents > 0) priceUpdate.currency = await getCommunityCurrency(supabase, current.community_id);
 
   const failure = requireWrite(
     await supabase.from("spaces").update({ visibility, ...priceUpdate, ...whenLockedUpdate(formData, visibility) }).eq("id", spaceId).select("id"),

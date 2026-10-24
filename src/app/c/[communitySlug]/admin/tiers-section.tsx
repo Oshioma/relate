@@ -16,6 +16,7 @@ export function TiersSection({
   tiers,
   sales,
   spaces,
+  currency,
 }: {
   communityId: string;
   communitySlug: string;
@@ -24,6 +25,8 @@ export function TiersSection({
   sales: Record<string, TierSales>;
   // Assignable spaces (non-public) in this community.
   spaces: { id: string; name: string }[];
+  // The community's currency (Admin -> Payments): every tier is charged in it.
+  currency: string;
 }) {
   const [state, action, isPending] = useActionState<TierFormState, FormData>(createTier, undefined);
   const formRef = useRef<HTMLFormElement>(null);
@@ -62,7 +65,12 @@ export function TiersSection({
               </div>
               <div>
                 <Label htmlFor="tier-currency">Currency</Label>
-                <Input id="tier-currency" name="currency" defaultValue="usd" maxLength={3} />
+                <p id="tier-currency" className="py-2 text-sm text-foreground">
+                  {currency.toUpperCase()}{" "}
+                  <a href="#payments" className="text-xs text-accent underline-offset-2 hover:underline">
+                    Change
+                  </a>
+                </p>
               </div>
             </div>
             <div>

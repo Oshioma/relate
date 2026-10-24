@@ -36,7 +36,6 @@ const STATE_WORDS: Record<AccessState, string> = { open: "can open it", locked: 
 //   access_choice  — marks the form as using the picker
 //   visibility     — public | members | private
 //   price          — the space's own monthly price (whole units), "" = none
-//   currency
 //   tier_ids       — one field per tier the space should be in
 //   when_locked    — "teaser" to show it locked to visitors, "" for not
 // The server (updateSpace) re-derives and checks all of it; this is the
@@ -59,7 +58,6 @@ export function AccessSelector({
   const [choice, setChoice] = useState<AccessChoice>(initialChoice);
   const [selectedTierIds, setSelectedTierIds] = useState<string[]>(space.tierIds);
   const [ownPrice, setOwnPrice] = useState(space.price_cents > 0 ? (space.price_cents / 100).toFixed(2) : "");
-  const [currency, setCurrency] = useState(space.currency || "usd");
   const [teaser, setTeaser] = useState(space.when_locked === "teaser");
   const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -203,7 +201,9 @@ export function AccessSelector({
                 disabled={!paymentsEnabled && space.price_cents === 0}
                 className="flex-1"
               />
-              <Input aria-label="Currency" name="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} maxLength={3} className="w-20 uppercase" />
+              <span className="flex items-center px-1 text-sm text-muted-foreground" title="Your community's currency, set in Admin → Payments">
+                {(space.currency || "usd").toUpperCase()}
+              </span>
             </div>
           </div>
           {selectedTierIds.length === 0 && ownPriceCents === 0 && (
