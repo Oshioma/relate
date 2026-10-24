@@ -18,6 +18,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import type { NavSubItemKind } from "./spaces-manager";
 import type { SpaceVisibility, SpaceWhenLocked, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory, JoinPolicy } from "@/types/database";
 import { JOIN_POLICIES, defaultJoinPolicy, storedJoinPolicy } from "@/lib/join-policy";
+import { parseTestimonialsInput } from "@/lib/testimonials";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -669,6 +670,35 @@ export async function updateCommunityHero(
 
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`);
+  return { ok: true };
+}
+
+export type CommunityTestimonialsState = { error: string } | { ok: true } | undefined;
+
+// Save the landing page testimonials: the whole ordered list at once, as JSON
+// from the admin form. Empty rows are dropped; an empty list hides the section.
+export async function updateCommunityTestimonials(
+  _prevState: CommunityTestimonialsState,
+  formData: FormData
+): Promise<CommunityTestimonialsState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const parsed = parseTestimonialsInput(String(formData.get("testimonials") ?? ""));
+  if (!parsed.ok) return { error: parsed.error };
+
+  const supabase = await createClient();
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({ testimonials: parsed.testimonials })
+      .eq("id", communityId)
+      .select("id"),
+    "the testimonials"
+  );
+  if (failure) return failure;
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/welcome/${communitySlug}`);
   return { ok: true };
 }
 
