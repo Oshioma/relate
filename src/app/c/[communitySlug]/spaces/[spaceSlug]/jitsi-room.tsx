@@ -142,7 +142,13 @@ export function JitsiRoom({
         height: "100%",
         userInfo: displayName ? { displayName } : undefined,
         configOverwrite: {
+          // Go straight into the call: no "Join meeting" screen asking for a
+          // name. Our name comes from the JaaS token (or userInfo), and the
+          // camera/mic bar above already handles device access. JaaS only
+          // honours the newer prejoinConfig; the old flag stays for meet.jit.si.
+          prejoinConfig: { enabled: false },
           prejoinPageEnabled: false,
+          requireDisplayName: false,
           disableDeepLinking: true,
           startWithAudioMuted: false,
           // The side strip of small videos starts at twice Jitsi's 120px, and
