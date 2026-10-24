@@ -66,6 +66,8 @@ export function CourseLiveLesson({
   nowMs,
   canJoinLive,
   isStaff,
+  canRecord,
+  recordingUrl,
   displayName,
   liveUpsell,
 }: {
@@ -73,6 +75,11 @@ export function CourseLiveLesson({
   nowMs: number;
   canJoinLive: boolean;
   isStaff: boolean;
+  // The host may record (plan feature); the Record button is in the call.
+  canRecord: boolean;
+  // The saved recording of this lesson, when there is one. Wins over a
+  // pasted playback link.
+  recordingUrl: string | null;
   displayName: string | null;
   // Shown to people who can watch but not join, e.g. "Live sessions come with
   // Tier 2." Null hides it.
@@ -95,6 +102,7 @@ export function CourseLiveLesson({
   const when = lesson.live_starts_at ? formatDateTime(lesson.live_starts_at) : null;
   const ends = lesson.live_ends_at ? formatDateTime(lesson.live_ends_at) : null;
   const mayOpenRoom = canJoinLive && (state === "open" || isStaff);
+  const playback = recordingUrl ?? lesson.video_url;
 
   return (
     <div className="mt-4 space-y-4">
@@ -135,6 +143,13 @@ export function CourseLiveLesson({
         </div>
       )}
 
+      {room && canRecord && (
+        <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+          To record, open the call&apos;s ⋯ menu and choose <span className="font-medium text-foreground">Start recording</span>. When the session
+          ends, the recording is saved here as the playback within a few minutes.
+        </p>
+      )}
+
       {room && (
         <JitsiRoom
           roomName={room.roomName}
@@ -145,10 +160,10 @@ export function CourseLiveLesson({
         />
       )}
 
-      {lesson.video_url ? (
+      {playback ? (
         <div>
           {state !== "ended" && <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Playback</p>}
-          <CourseLessonVideo url={lesson.video_url} title={`${lesson.title} (playback)`} />
+          <CourseLessonVideo url={playback} title={`${lesson.title} (playback)`} />
         </div>
       ) : (
         state === "ended" && (

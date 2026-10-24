@@ -82,6 +82,9 @@ export type CourseDetail = {
   viewerPaid: boolean;
   viewerHasTier: boolean;
   includedInTiers: { id: string; name: string }[];
+  // Lessons the viewer can open in full (RLS returned them), e.g. to hand out
+  // playback links for exactly those.
+  readableLessonIds: string[];
 };
 
 // RLS hides draft courses from non-staff, so this returns only what the viewer
@@ -335,6 +338,7 @@ export async function getCourseDetail(supabase: Client, courseId: string, viewer
     enrollmentCount: enrollments.length,
     viewerEnrolled: enrollments.some((e) => e.user_id === viewerId),
     viewerPaid: enrollments.some((e) => e.user_id === viewerId && e.paid),
+    readableLessonIds: [...fullLessons.keys()],
     viewerHasTier,
     includedInTiers,
     completedLessonIds: (completionsResult.data ?? []).map((row) => row.lesson_id),
