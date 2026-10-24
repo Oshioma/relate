@@ -1025,6 +1025,67 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "The only witness of the ritual. The library's label reads 'Opuscules magiques (Papyrus Anastasi) (IVe siècle.) Ms. Supplément grec 574. Papyrus. 36 feuillets. 305 sur 130 millimètres. Demi-reliure. Acquis en 1857'. The Commons file pages give the licence as public domain (PD-France) and cite Preisendanz's edition (Papyri Graecae Magicae I, 1928, pp. 64–180) for the text. Gallica itself and the BnF catalogue record were not reached (the requests were refused), so the digitisation was seen through Commons.",
   },
   {
+    key: "anf-1885-irenaeus",
+    title: "The Ante-Nicene Fathers, vol. I: The Apostolic Fathers. Justin Martyr. Irenaeus",
+    author: "Alexander Roberts and W. H. Rambaut (trans. of Irenaeus); Alexander Roberts and James Donaldson (eds.); A. Cleveland Coxe (American edition)",
+    publisher: "The Christian Literature Publishing Company, Buffalo",
+    publishedYear: 1885,
+    publishedDisplay: "1885 (title page of the Toronto copy; 'Copyright, 1885')",
+    reference:
+      "Irenaeus, Against Heresies, Book I, chapters 29–31, pp. 353–358, cited by the edition's chapter and section numbers and printed page; the Introductory Note to Irenaeus (its dating of the work, p. 312); III.3.3, p. 416. Read in the CCEL transcription (ccel.org/ccel/schaff/anf01, anf01.ix.ii.xxx–xxxii) and in three scans of the 1885 plates on archive.org: the University of Toronto copy (antenicenefather01buff, title page 1885), the UCLA copy (antenicenefathers01robe, title page 1887) and a copy scanned by the Internet Archive (antenicenefather0001unse_s4g9, title page 1885)",
+    url: "https://archive.org/details/antenicenefather01buff",
+    sourceType: "primary",
+    notes:
+      "The American reprint, 'revised and chronologically arranged, with brief prefaces and occasional notes, by A. Cleveland Coxe', of Roberts and Rambaut's translation first printed in Edinburgh in 1868; Coxe's notes are in square brackets. The text of I.29–31 is the CCEL transcription voted against the archive.org OCR of the three scans and read column by column against the Toronto page images; every correction made by hand is listed in scripts/texts/irenaeus-against-heresies.py. New Advent's text of the same translation silently modernises it and was compared, not used. The editors' footnotes are listed, not imported. Its Introductory Note dates the work to the episcopate of Eleutherus at Rome, 'between A.D. 182 and A.D. 188', and calls the old Latin version, in which these chapters survive, 'barbarous'. Public domain: published in 1885, and the translation first in 1868.",
+  },
+  {
+    key: "ancl-1868-irenaeus",
+    title: "Ante-Nicene Christian Library, vol. V: The Writings of Irenaeus, vol. I",
+    author: "Alexander Roberts and W. H. Rambaut (trans.); Alexander Roberts and James Donaldson (eds.)",
+    publisher: "T. and T. Clark, Edinburgh",
+    publishedYear: 1868,
+    reference: "Against Heresies I.29–31, about pp. 101–115 (from the running heads of the OCR, not checked on the page images); archive.org AnteNiceneChristianLibraryV05",
+    url: "https://archive.org/details/AnteNiceneChristianLibraryV05",
+    sourceType: "primary",
+    notes:
+      "The translators' own first printing, compared word by word (on its archive.org OCR) with the 1885 text to see which printing the CCEL transcription follows. In these chapters the two differ in one place only: I.29.1, 1868 'in the conception', 1885 'in conception'. The translators' unbracketed footnotes are all in it. Public domain.",
+  },
+  {
+    key: "schmidt-irenaeus-quelle-1907",
+    title: "Irenäus und seine Quelle in adv. haer. I, 29",
+    author: "Carl Schmidt",
+    publisher: "Philotesia: Paul Kleinert zum LXX. Geburtstag (Trowitzsch, Berlin)",
+    publishedYear: 1907,
+    reference: "pp. 315–336; read in the University of Chicago copy on archive.org (MN40088ucmf_0)",
+    url: "https://archive.org/details/MN40088ucmf_0",
+    sourceType: "academic_book",
+    notes:
+      "The study that set Irenaeus's chapter 29 beside the Apocryphon of John in the Coptic Berlin codex (P. Berol. 8502), which Schmidt had announced in 1896. He corrects his first report: the work's title is 'Apocryphon Johannis', not 'Evangelium Mariä' (p. 318); sets the Latin of I.29 beside his German of the Coptic (pp. 318–333); notes that the Protarchon's offspring Kakia, Zelos, Phthonos, Erinnys and Epithymia have no parallel in the manuscript, and that Irenaeus leaves out the seven planetary powers (p. 333); holds that chapter 30 excerpts another writing of a related sect, the Sethians to whom Theodoret ascribes it, and that this is why Irenaeus broke off chapter 29 'um der lästigen Wiederholung zu entgehen' (p. 334); and concludes that 'es nach den obigen Parallelen keinem Zweifel [unterliegt], daß die von Irenäus exzerpierte gnostische Schrift mit unserm Apokryphon Johannis identisch ist' (p. 335). He suggests Egypt as its place of origin and that the Greek reached Irenaeus 'um 185' (p. 336). Public domain (Schmidt died in 1938).",
+  },
+  {
+    key: "mead-fragments-1906",
+    title: "Fragments of a Faith Forgotten",
+    author: "G. R. S. Mead",
+    publisher: "The Theosophical Publishing Society, London and Benares",
+    publishedYear: 1906,
+    reference: "'The Akhmîm Codex', pp. 579–586; read in the University of Toronto copy on archive.org (fragmentsoffaith00meaduoft)",
+    url: "https://archive.org/details/fragmentsoffaith00meaduoft",
+    sourceType: "modern_interpretation",
+    notes:
+      "Mead's English summary of Schmidt's communication to the Prussian Academy of 16 July 1896, 'Ein vorirenäisches gnostisches Originalwerk in koptischer Sprache': that the Berlin codex holds 'a work which was known to Irenaeus ... from which he made extracts' for Against Heresies I.29 (p. 583), with a comparison of the two point by point. Following Schmidt's first report, Mead calls the work 'The Gospel of Mary' and takes it and the Apocryphon of John to be one piece (p. 580); Schmidt corrected this in 1907. Cited for the history of the identification, not for its conclusions. Public domain (Mead died in 1933).",
+  },
+  {
+    key: "kirsch-eleutherius-1909",
+    title: "Pope St. Eleutherius (Eleutheros)",
+    author: "Johann Peter Kirsch",
+    publisher: "The Catholic Encyclopedia, vol. 5 (Robert Appleton Company, New York)",
+    publishedYear: 1909,
+    url: "https://www.newadvent.org/cathen/05378a.htm",
+    sourceType: "encyclopedia",
+    notes:
+      "Gives Eleutherius's episcopate at Rome as 'c. 174-189', succeeding Soter 'about 174'. Cited for the range within which Irenaeus wrote Against Heresies III, which names Eleutherius as the bishop of Rome 'now' (III.3.3). Read in New Advent's transcription.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2471,8 +2532,9 @@ export const INVENTORY: InventoryWork[] = [
     inventoryBasis: "About eighty synoptic sections, each held separately for NHC II,1 and IV,1 (long) and NHC III,1 and BG 8502,2 (short); exact counts per version to be fixed from the synopsis.",
     inventoryConfidence: "medium",
     inventoryVerified: false,
-    copyrightSummary: "No public-domain English of the Coptic. Irenaeus (ANF, public domain) for the parallel in Against Heresies I.29.",
-    fullTextEditions: ["Irenaeus, Against Heresies I.29 (ANF 1885)"],
+    copyrightSummary:
+      "No public-domain English of the Coptic. Irenaeus's report of a closely related system, Against Heresies I.29 (ANF 1885, public domain), is not the Apocryphon itself; it is imported as a work of its own, gnostic.irenaeus-against-heresies, together with chapters 30 and 31.",
+    fullTextEditions: ["Irenaeus, Against Heresies I.29 (ANF 1885), a hostile report of a closely related system, not the Apocryphon; imported as its own work, gnostic.irenaeus-against-heresies"],
     referenceOnlyEditions: ["Waldstein & Wisse 1995", "Robinson NHL 1977", "King 2006"],
     imageCollections: ["Coptic Museum, Cairo / Claremont Colleges Digital Library", "Staatliche Museen zu Berlin: BG 8502"],
     anchor: {
@@ -2507,6 +2569,60 @@ export const INVENTORY: InventoryWork[] = [
       },
     },
     prominence: 2,
+  },
+  {
+    // Irenaeus's report is not the Apocryphon of John, so it is a work of its
+    // own; but it is the earliest evidence for the system the Apocryphon sets
+    // out, so it hangs off the Apocryphon's marker rather than making a second
+    // one (as the Critias hangs off the Timaeus's).
+    workKey: "gnostic.irenaeus-against-heresies",
+    passagePrefix: "gnostic.iren",
+    briefItem: 19,
+    title: "Irenaeus, Against Heresies I.29–31: his report of the Barbeliotes, the Ophites and Sethians, and the Cainites",
+    alternativeTitles: ["Adversus haereses I.29–31", "A Refutation and Subversion of Knowledge Falsely So Called"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Gaul",
+    geographicalOrigin: "Lyons (Lugdunum), Gaul",
+    originalLanguage: "Greek (these chapters survive in the old Latin version)",
+    attribution: "Irenaeus, bishop of Lyons",
+    attributionNote:
+      "A hostile report, not a Gnostic text. Irenaeus, bishop of Lyons, wrote Against Heresies in Greek about 180 CE to expose and refute the Gnostic teachers; the last three chapters of Book I summarise the doctrines of further sects, in his words and to his purpose ('Such are the falsehoods which these people invent'). Chapter 29's report of the Barbelo system is the scholarly-standard parallel to the Apocryphon of John: Carl Schmidt, who announced it in 1896 from the Coptic Berlin codex, concluded in 1907 that the writing Irenaeus excerpts there is the Apocryphon of John, while noting where the two differ. Chapter 30 reports a different, related system; chapter 31 the 'Cainites'. The English is Roberts and Rambaut's, as reprinted in The Ante-Nicene Fathers, vol. I (1885), from the old Latin version, in which these chapters survive.",
+    summary:
+      "Irenaeus's hostile summary (c. 180 CE) of three Gnostic systems, in the English of The Ante-Nicene Fathers (1885): the Barbelo system of chapter 29, which Schmidt (1907) identified with the source of the Apocryphon of John; the Ialdabaoth myth of chapter 30, with its seven rulers, Sophia and the serpent; and the Cainites of chapter 31.",
+    referenceEdition: "The Ante-Nicene Fathers, vol. I (Buffalo, 1885), Book I, chapters 29–31, by the edition's chapter and section numbers",
+    expectedUnits: 23,
+    unitLabel: "sections (I.29.1–4, I.30.1–15, I.31.1–4)",
+    unitDivisionKind: "section",
+    inventoryBasis:
+      "The edition's own sections of the three chapters, read on the page images of the 1885 printing (pp. 353–358): four in chapter 29, fifteen in chapter 30 and four in chapter 31, 23 in all, all imported. The rest of Against Heresies (five books) is outside this import and is not inventoried, and the section numbers are the editors', not Irenaeus's, so the count is not marked verified. Listed, not imported: the editors' 23 footnotes.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Roberts and Rambaut's translation was printed in 1868 and reprinted in 1885. Schmidt's study (1907) and Mead's summary (1906) are public domain too and are cited. The pictures are public domain or CC BY-SA 4.0, as their Commons file pages state.",
+    fullTextEditions: ["Roberts and Rambaut's English, The Ante-Nicene Fathers, vol. I (Buffalo, 1885): Book I, chapters 29–31"],
+    referenceOnlyEditions: [
+      "The old Latin version, in the editions of Grabe (1702) and Harvey (1857) the translators' notes cite, not read",
+      "Ante-Nicene Christian Library, vol. V (Edinburgh, 1868), the first printing, compared only",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: Erasmus's first edition (Basel, 1526); a Latin manuscript page; P. Oxy. 405 (Cambridge University Library); P. Berol. 8502 (Staatliche Museen zu Berlin)",
+    ],
+    anchor: {
+      existingSlug: "apocryphon-of-john",
+      extraClaims: [
+        dated("earliest_evidence", {
+          qualifier: "Irenaeus's report of a closely related system, Against Heresies I.29",
+          sourceKey: "anf-1885-irenaeus",
+          startYear: 174,
+          endYear: 189,
+          datePrecision: "decade",
+          originalDateText: "'Eleutherius does now, in the twelfth place from the apostles, hold the inheritance of the episcopate' (Against Heresies III.3.3)",
+          evidence:
+            "Irenaeus names Eleutherius as bishop of Rome at the time of writing Book III (III.3.3, ANF vol. I, p. 416), so the work was written during his episcopate, c. 174–189 (Kirsch, Catholic Encyclopedia, 1909); the ANF's Introductory Note (p. 312) narrows it to 'between A.D. 182 and A.D. 188'. Book I came before Book III (it ends by promising to refute these teachers 'in the following book', I.31.4), so it may be somewhat earlier than the date III.3.3 gives; the range is approximate, and 'c. 180' is the usual round figure. Irenaeus reports a system closely related to the Apocryphon of John, which Schmidt (1907) identified with his source; his report is not the Apocryphon itself.",
+        }),
+      ],
+    },
   },
   {
     workKey: "gnostic.pistis-sophia",
