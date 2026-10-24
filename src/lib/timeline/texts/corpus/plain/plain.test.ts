@@ -22,6 +22,7 @@ import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
 import { PLAIN_IRENAEUS } from "./irenaeus";
 import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./origen-contra-celsum";
 import { PLAIN_ASCENSION_OF_ISAIAH } from "./ascension-of-isaiah";
+import { PLAIN_SECRETS_OF_ENOCH } from "./secrets-of-enoch";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -68,6 +69,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "gnostic.irenaeus-against-heresies": PLAIN_IRENAEUS,
   "gnostic.origen-contra-celsum": PLAIN_ORIGEN_CONTRA_CELSUM,
   "gnostic.ascension-of-isaiah": PLAIN_ASCENSION_OF_ISAIAH,
+  "gnostic.secrets-of-enoch": PLAIN_SECRETS_OF_ENOCH,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -219,6 +221,32 @@ test("every verse of the Ascension of Isaiah vi–xi has plain words, with the n
   assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.6.9"], /'who had bestowed such an excellence of words on a man in the world'/);
   assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.9.16"], /five hundred and forty-five days[\s\S]*Irenaeus I\.3\.2 and I\.30\.14/);
   assert.match(PLAIN_ASCENSION_OF_ISAIAH["gnostic.ascisa.11.34"], /'I preserve thee'/);
+});
+
+test("the prologue and every verse of 2 Enoch have plain words, with the narrator, Enoch and the Lord kept apart, and only those", () => {
+  const en = ALL_CORPORA.find((c) => c.workKey === "gnostic.secrets-of-enoch")!;
+  const withText = en.passages.filter((p) => p.layers.some((l) => l.key === "eng-1896")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_SECRETS_OF_ENOCH).sort(), [...withText].sort());
+  assert.equal(withText.length, 357);
+  // Every entry says whose words it reports.
+  for (const [key, words] of Object.entries(PLAIN_SECRETS_OF_ENOCH)) {
+    assert.match(words, /^(The narrator|Enoch|The Lord) (says|goes on|tells|asks|gives)/, key);
+  }
+  // The narrator: the prologue, the frame of i. 1, lvi–lvii, lxiv and lxvii–lxviii.
+  for (const key of ["prologue", "1.1", "56.1", "57.2", "64.1", "64.5", "67.2", "68.1", "68.7"]) {
+    assert.match(PLAIN_SECRETS_OF_ENOCH[`gnostic.2en.${key}`], /^The narrator/, key);
+  }
+  // Enoch tells his ascent and teaches his sons; the Lord's speech runs from xxiv. 2 to xxxvi.
+  for (const key of ["1.2", "7.5", "22.10", "24.1", "37.1", "39.3", "52.1", "58.4", "66.8"]) {
+    assert.match(PLAIN_SECRETS_OF_ENOCH[`gnostic.2en.${key}`], /^Enoch/, key);
+  }
+  for (const key of ["24.2", "25.1", "29.4", "30.3", "33.1", "36.2"]) {
+    assert.match(PLAIN_SECRETS_OF_ENOCH[`gnostic.2en.${key}`], /^The Lord/, key);
+  }
+  // Words Charles prints in square brackets inside a verse are said to be bracketed.
+  for (const key of ["1.10", "16.5", "37.1", "37.2", "57.2"]) assert.match(PLAIN_SECRETS_OF_ENOCH[`gnostic.2en.${key}`], /square brackets/, key);
+  assert.match(PLAIN_SECRETS_OF_ENOCH["gnostic.2en.30.3"], /Kruno; in the second, Aphrodite; in the third, Ares; in the fourth, the Sun; in the fifth, Zeus; in the sixth, Hermes; and in the seventh, the moon/);
+  assert.match(PLAIN_SECRETS_OF_ENOCH["gnostic.2en.47.5"], /breaks off as printed/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

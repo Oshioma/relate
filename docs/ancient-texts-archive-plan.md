@@ -2114,3 +2114,138 @@ There are 197 entries, one per verse:
 - No Coptic witness is documented here.
 - Charles's footnotes are not imported, and his Critical Notes (pp. 107–139 and elsewhere), to which several footnotes refer, were not read.
 - The Commons API and image server rate-limited the searches; other candidates (Ethiopic manuscripts generally, illustrations of the seven heavens) were not examined.
+
+## 30. Stage 24: the Book of the Secrets of Enoch (2 Enoch), chapters i–lxviii, in Morfill's English edited by R. H. Charles (1896)
+
+Brief item 23 ("Other ancient texts on planetary rulers, archons and ascent") listed "2 Enoch — the seven heavens" among its proposed members, and its full-text editions list "Morfill & Charles 1896 (2 Enoch)". The whole book, chapters i–lxviii, is now imported, verse by verse, in *The Book of the Secrets of Enoch, translated from the Slavonic by W. R. Morfill*, edited by R. H. Charles (Oxford: Clarendon Press, 1896), pp. 1–84. The proposed-member line now ends "imported as its own work, gnostic.secrets-of-enoch".
+
+- **`gnostic.secrets-of-enoch`** (prefix `gnostic.2en`), brief item 23. Tradition class `ancient_late_transmission`, corpus group `gnostic`, the group that holds item 23. It is not a Gnostic text (Charles held it Jewish; others have argued Christian), and the work's summary, notes and links say so. It has a marker of its own, `secrets-of-enoch-seven-heavens`: the only Enoch event on the timeline is 1 Enoch's Watchers (`watchers-book-of-enoch`), a different book, so it was not reused.
+
+**What it is.** An apocalypse told in Enoch's name. Two angels take him through seven heavens: the treasuries of snow and dew and the rulers of the stars in the first; the imprisoned apostate angels in the second; Paradise, with the tree of life, and in its north a place of torment, in the third; the courses of the sun and moon, with the phoenixes and chalkydri, in the fourth; the silent Grigori in the fifth; the seven bands of ordering archangels in the sixth; and the Lord on his throne in the seventh. There Michael takes off his earthly robe, anoints him and clothes him in glory, and the archangel Vretil dictates to him for thirty days and nights; he writes 366 books. The Lord tells him how he made the world (Adoil and Arkhas, the seven crystal circles, the seven planets from Kruno to the moon, man from seven substances, the fall of Satanail) and that the days of the world are "after the fashion of seven thousand", with an eighth thousand without reckoning. Sent back for thirty days, Enoch instructs his sons and the people, and is taken up again.
+
+**How it survives.** Charles (§1): "preserved only in Slavonic". Morfill (§2, which he signs) describes the manuscripts:
+- A, Khludov's, South Russian, second half of the seventeenth century, published by Popov (1880), complete but "in many places very corrupt";
+- a Bulgarian manuscript at Belgrade, probably sixteenth century, with the Melchizedek legend printed as the Appendix;
+- the shortened redaction: B, Serbian, at Belgrade, sixteenth century, printed by Novaković (1884); a Vienna manuscript almost identical with it; Barsov's, seventeenth century;
+- fragments, one cited by Tikhonravov from "a fourteenth century MS".
+
+A modern summary read for this stage (Andrei Orlov's introduction on his website) counts "more than twenty Slavonic manuscripts and fragments dated from 14th to 18th centuries C.E.", the oldest being copies of chapters 40–65 in the judicial codex *Merilo Pravednoe*. Wikipedia reports four Coptic fragments of chapters 36–42 identified in 2009; that report was not checked, and the records say the book survives *complete* only in Slavonic.
+
+The inventory gained three sources:
+- `morfill-charles-1896-enoch`, the edition imported, also the source for the manuscripts, the recensions and Charles's date;
+- `orlov-2enoch-intro`, Orlov's website introduction, for the manuscripts as now counted, the recensions, and the late datings of Vaillant and Milik, which were not read themselves;
+- `wikipedia-2-enoch`, for the range of proposed dates and the Coptic report only.
+
+Files:
+- `corpus/secrets-of-enoch.ts`;
+- the generated `corpus/secrets-of-enoch-text.ts`, made by `scripts/texts/secrets-of-enoch.py`, which records the method and every correction by hand with its page and kind;
+- `corpus/secrets-of-enoch-related-images.ts`;
+- plain words in `corpus/plain/secrets-of-enoch.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (published 1896; Morfill died in 1909, Charles in 1931). The text layers are `public_domain`.
+
+### The recensions: what was decided
+
+2 Enoch exists in a longer and a shorter recension. Charles did not print either: he made **one eclectic text**, following A (longer) in the main, B (shorter, "a short résumé of the work ... about half the length of A") where it is "obviously better", and Sokolov's text where both are corrupt, with the rejected readings in his footnotes (§3). He relegated what he took for A's interpolations to the footnotes or printed them in square brackets: notably A's xxi. 6 (an eighth heaven, Muzaloth, and a ninth, Kukhavim), xxii. 1–3 (the tenth heaven, Aravoth, with the face of the Lord "like iron burnt in the fire") and A's addition to xx. 3 ("In the tenth heaven, in the tenth heaven is God. In the Hebrew language it is called Avarat."); so his chapter xxii begins at verse 4.
+
+This stage imports **Charles's printed text as it stands**, signs and all, and says so on every verse's evidence: it is neither the longer nor the shorter recension, B was not read, and the longer recension's eighth to tenth heavens are reported (in the chapter and verse notes, from Charles's footnotes, read on the page images) but not imported. Charles's own judgements are kept as his: chapter xxxvii is printed wholly in brackets ("xxxvii seems foreign to the entire text", §6); xxviii. 5 "should be read after xxix" (§6) but is kept where he prints it; A's chapter titles, which he brackets as having "no claim to antiquity", are kept at the head of the verse they stand before. A later edition from either recension would need its own work or version, not a change to this one.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | archive.org's OCR (djvu.xml) of the Cornell University Library copy (`cu31924014633568`); printed page = leaf − 51. The base; its page images (n52–n135) were read. |
+| W | archive.org's OCR of the Wellesley College copy (`bookofsecretsofe00morf`); page = leaf − 51. |
+| G | archive.org's OCR of a Google scan of a University of Michigan copy (`booksecretsenoc00morfgoog`); page = leaf − 51. |
+
+No proofread transcription with Charles's signs was reachable (Wikisource answered HTTP 429, sacred-texts.com 403; pseudepigrapha.com did not resolve; earlychristianwritings.com has no 2 Enoch page), so the three scans of the one printing were voted. Charles's later English (APOT, 1913) was not used.
+
+- **The text block** of each page was cut from the OCR by type size: the critical and exegetical notes are set smaller.
+- **The vote.** C is the base; W and G are aligned with it word by word. Where W and G agree against C, their reading was taken: 187 times. 333 places where W or G differ were kept as C has them and settled on the page images.
+- **The signs.** The OCR reads Charles's raised note numbers as stray digits or marks and often loses his asterisks, so they were found on the Cornell page images (runs of ink above each line's baseline), numbered afresh on each page as Charles numbers his notes, and then checked by eye; 13 places where two scans suggested a raised number the image did not show were looked at.
+- **Proofreading.** Every page, 1 to 84, was read against the Cornell page images. The differences are the generator's `FIXES`, 259 entries: 124 restore or move signs (asterisks, raised numbers, brackets), 118 mend misread words or marks (among them a verse number read as "g." at xlviii. 9), 14 spacing, 2 remove note lines or a running head the page split took for text, 1 the small-capital opening word.
+- **The structure** was then checked by the generator: chapters i–lxviii present, verse numbers consecutive in every chapter, and no Cyrillic, Greek or stray OCR marks left in the text.
+
+**Charles's signs** are kept as printed and explained in each verse's notes and the layer evidence: `*` opens the words a footnote covers and a raised number closes them (a span can run on into the next verse; a raised number alone refers to the word before it; Charles numbers his notes afresh on each page and sometimes points a later word back to an earlier note's number); `[ ]` enclose A's chapter titles and words he holds to be later additions in A (the "great circle" of 532 years at xvi. 5, Gaidal's name at i. 10 and lvii. 2, all of xxxvii); `( )` enclose words supplied in translation. The heading of the book and the short opening ("Concerning the Life and the Dream of Enoch"), which Charles's note says is "entirely wanting in B", are one more unit, the prologue.
+
+**The notes** are listed, not imported. A few are reported in the notes because they carry the recension story (xx. 1, xx. 3, xxi. 5, xxii) or Charles's own arguments (xix. 1, xxx. 13, lix. 2).
+
+### Units
+
+- **`gnostic.2en.book`** (`part`) holds no text. It carries the Slavonic as a cited layer (`chu`, no content), the dates, and notes on what is not imported.
+- **`gnostic.2en.prologue`** (`section`), the heading and opening before chapter i.
+- 68 **`chapter`** records, `gnostic.2en.1` to `gnostic.2en.68`, with summaries, themes and notes and no text.
+- Under them, 356 **`verse`** units, `gnostic.2en.1.1` to `gnostic.2en.68.7`, each with layer `eng-1896`, kind `translation`. Chapter xxii runs from verse 4 to 12; chapter liv is printed without verse numbers and is one verse.
+
+That makes 357 units with text and 426 passages. `expectedUnits` is 357, Charles's own numbering read on the page images; `inventoryVerified` stays false, since other editions number and divide differently.
+
+**Listed, not imported:** Charles's footnotes, exegetical notes and Introduction (pp. xi–xlvii); the Appendix, the Melchizedekian fragment (pp. 85–93), of which Morfill says "this legend does not belong to this Book of Enoch"; the Additional Note on the Phoenixes (p. 94); the Indices (pp. 95–100); the Slavonic of A, B and Sokolov.
+
+### Dates
+
+On `gnostic.2en.book`; all approximate except the publication. The date is debated, and the record does not let Charles's stand alone:
+
+- **Composition, as Charles dated it:** 1–50 CE (`decade`): "We may, therefore, with reasonable certainty assign the composition of our text to the period 1-50 A.D." (§7, p. xxvi). His grounds: an earlier limit "probably between 30 B.C. and the Christian era", from the author's use of Ecclesiasticus, Wisdom and the Ethiopic Enoch; a later limit before 70 A.D., because "the temple is still standing; see lix. 2", because some New Testament writers probably knew it, and because Barnabas and "the latter half of the Ascension of Isaiah" did. He held some sections to rest on Hebrew originals "at latest pre-Christian", the rest written in Greek in Egypt, probably Alexandria, by "an orthodox Hellenistic Jew".
+- **Composition, as Milik dated it (reported by Orlov):** ninth century (`century`, source `orlov-2enoch-intro`): "Milik who argued that the apocalypse was written by a Byzantine monk in the ninth century C.E. (Milik, 1976)". Orlov reports that this and Vaillant's case for Christian provenance (1952) "generated substantial critical responses", most readers holding a Jewish origin and an early date argued from the Temple. Wikipedia's range ("from the 1st century BCE to the 10th century CE") is quoted in the evidence.
+- **Earliest evidence:** the fourteenth century (`earliest_evidence`): Morfill's "Tikhonravov cites from a fourteenth century MS" and Orlov's manuscripts "from 14th to 18th centuries". Charles's arguments that Barnabas, the Ascension of Isaiah, Irenaeus and Origen used the book are arguments from resemblance and allusion, and are not entered as evidence.
+- **Manuscript B:** sixteenth century; **manuscript A:** second half of the seventeenth (`manuscript`), as Morfill dates them.
+- **Translation and publication:** 1896.
+
+The marker carries both compositions, the fourteenth-century earliest evidence and the 1896 publication.
+
+### Links
+
+All 11 are `proposed`, all go from 2 Enoch's verses, and all say "None shown." for transmission. Where Charles himself compares (the Ascension of Isaiah, the Timaeus, the Mithraic ladder), the link says the comparison is his, not evidence; where the date matters, the link says 2 Enoch's date is debated.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| xix. 1 | `gnostic.ascisa.8.16` | `close_conceptual_parallel` | the angels of the sixth heaven all alike; Charles's own comparison (p. xx) |
+| xxii. 8 | `gnostic.ascisa.9.9` | `close_conceptual_parallel` | Enoch's earthly robe taken off and garments of glory put on, made like the angels |
+| xxii. 10 | `herm.ch.1.26` | `symbolic_similarity` | the one who reaches the top made like those who live there |
+| xxxiii. 11 | `gnostic.ps.134` | `close_conceptual_parallel` | books Enoch wrote, set under a guardian on account of the flood |
+| xxx. 3 | `gnostic.origen.6.22` | `symbolic_similarity` | the seven planets in a fixed order, one to each level (both begin with Saturn and Venus); the orders then differ |
+| xxx. 3 | `greek.tim.38d` | `broad_thematic_resemblance` | a creator sets the seven planets in seven circles; the orders differ |
+| xxix. 4 | `gnostic.iren.1.30.6` | `broad_thematic_resemblance` | a created power that would be equal to, or above, God |
+| xxv. 3 | `herm.ch.1.4` | `broad_thematic_resemblance` | creation begins with a great light and then a darkness below |
+| iii. 2 | `greek.mithras.1907.3` | `broad_thematic_resemblance` | a living man's ascent begins by rising through the air |
+| lxviii. 1 | `modern.hall.39.p2` | `speculative_connection` | Hall reads Enoch's 365 years as solar; 2 Enoch never does |
+| lxiv. 5 | `modern.hall.5.s1` | `speculative_connection` | Enoch as heavenly scribe; Hall's report that Enoch was Hermes, which 2 Enoch does not support |
+
+No passage of Blavatsky in the archive mentions Enoch or the seven heavens closely enough to link, and none was made. Origen's *de Principiis* i. 3. 2, which Charles takes as a reference to this book, is not in the archive.
+
+### Images
+
+All are from Commons file pages, and each was looked at as a thumbnail; the image server rate-limited downloads, so several took repeated, spaced attempts. All have `licenceStatus` "open", and none repeats a picture shown elsewhere. No picture of a Slavonic manuscript of 2 Enoch, of either recension, was found on Commons. The three pages of the 1896 edition are `secure`; everything else is `UNVERIFIED`, with the caption beginning "UNVERIFIED —" and `whatIsUnverified` saying what was not checked.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| The title page of Morfill and Charles 1896 (PDF page 9 of the Cornell scan, the copy the text was proofread against), PD-old-100-expired | `gnostic.2en.book`; the marker's cover | `secure`, `historical_document` |
+| Page 1 of the same: the heading, A's bracketed title, the opening and Charles's footnote that the introduction "is entirely wanting in B" (PDF page 53) | `gnostic.2en.prologue` | `secure`, `historical_document` |
+| Page 37 of the same, xxix. 4–xxx. 3 (the planets in their circles), showing the text, the textual footnotes and the two-column commentary (PDF page 89) | `gnostic.2en.30` | `secure`, `historical_document` |
+| Leaf 2 of the Troitsky codex of *Merilo Pravednoe*, fourteenth century as the file page says, photographed from the facsimile in Grekov's *Pravda Russkaya* III (1963), PD | `gnostic.2en.book` | `UNVERIFIED`, `manuscript`, "Related evidence, not a page of 2 Enoch": the leaf is the codex's title and contents; whether this copy is one of the Merilo manuscripts holding the Enoch extracts was not checked. |
+| William Blake, "Enoch", lithograph, 1806–7 (British Museum 1874,0711.1028, as the file page says), PD | `gnostic.2en.23` | `UNVERIFIED`, `later_artwork`: Enoch enthroned with a book among the arts; Blake cannot have known 2 Enoch. |
+| An icon of the prophets Elijah and Enoch, seventeenth century, Historical Museum in Sanok (as the file page says), PD | `gnostic.2en.67`; the marker's second picture | `UNVERIFIED`, `later_artwork`: the biblical Enoch, labelled in Cyrillic. |
+| "God took Enoch", Figures de la Bible (The Hague, 1728), after Gerard Hoet and others (University of Oklahoma copy, as the file page says), PD | `gnostic.2en.67` | `UNVERIFIED`, `later_artwork`: illustrates Genesis 5:24. |
+| "Enoch", autotype after F. J. Shields, 1877 (Wellcome V0034407), CC BY 4.0 | `gnostic.2en.67` | `UNVERIFIED`, `later_artwork`: illustrates Hebrews 11:5. |
+
+Left out: the Met's file of Blake's "Enoch" (DP830189), which is the back of the sheet with Blake's handwritten recipe; a CC BY-SA photograph of the same Merilo leaf (the same evidence again); another icon and a fresco of Elijah and Enoch; and a Schnorr von Carolsfeld woodcut catalogued under Enoch that shows Cain's city of Henoch, a different Enoch.
+
+### Plain words
+
+There are 357 entries, one for the prologue and one per verse. Three voices are kept apart, as the text keeps them:
+- "The narrator says" (or "goes on") for the prologue, the opening words of i. 1, lvi–lvii, lxiv and lxvii–lxviii;
+- "Enoch says" (or "tells", "asks", "goes on") where Enoch speaks in the first person;
+- "The Lord says" (or "tells", "goes on") for the Lord's long speech, xxiv. 2–xxxvi.
+
+A's bracketed chapter titles are left out of the paraphrase. Where Charles's square brackets enclose verse text (i. 10, xvi. 5, xxxvii, lvii. 2), the paraphrase gives it and says it is bracketed. xlvii. 5 is said to break off as printed, and the spelling "Thevad" at xlviii. 2 is kept and marked.
+
+### Not done
+
+- The Slavonic was not read: not A, not B, not Sokolov's text, and none of the manuscripts. The English is checked against its own printing only, and nothing is marked verified.
+- B and the shorter recension were not read; the recension story rests on Charles's and Morfill's account and Orlov's summary.
+- Charles's footnotes, exegetical notes and Introduction are not imported (a few are reported in the notes), nor the Melchizedek Appendix, the note on the phoenixes or the Indices.
+- The Coptic fragments Wikipedia reports were not checked; Vaillant (1952), Milik (1976), Andersen (1983), Böttrich and Macaskill were not read, so the late dating is reported second-hand.
+- Charles's later English (APOT, 1913) was not used, even for comparison; chapter and verse numbers here are his of 1896, not Popov's 73-chapter numbering used by later scholars (so Orlov's "chapters 40–65" do not map one to one onto these chapters).
+- The Commons API and image server rate-limited the searches; the Merilo Pravednoe copies were not identified, and illustrations of the seven heavens were not examined further.
+- `inventoryVerified` stays false.

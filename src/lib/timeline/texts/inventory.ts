@@ -1183,6 +1183,41 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "A transcription of Charles's English without his signs and with modern double quotation marks, used only as the third witness in the vote that made the imported text, and then compared with the result: it differs in 44 places, all slips or omissions of the transcription on the page images (for example 'descent' for 'descend', 'forth' for 'fourth', 'astonished' for Charles's 'astonied', and no 'for these are great things' in xi. 34). Not imported.",
   },
   {
+    key: "morfill-charles-1896-enoch",
+    title: "The Book of the Secrets of Enoch, translated from the Slavonic by W. R. Morfill, M.A., and edited, with introduction, notes and indices, by R. H. Charles, M.A.",
+    author: "W. R. Morfill (trans.) and R. H. Charles (ed.)",
+    publisher: "Clarendon Press, Oxford",
+    publishedYear: 1896,
+    reference:
+      "The English text, pp. 1–84, cited by Charles's chapter and verse; the Preface (pp. vii–viii) and Introduction (pp. xi–xlvii; §2 on the Slavonic manuscripts is Morfill's) for the manuscripts, the recensions and the date. Read in three scans on archive.org: the Cornell University Library copy (cu31924014633568, page images n52–n135 for pp. 1–84), the Wellesley College copy (bookofsecretsofe00morf) and a Google scan of a University of Michigan copy (booksecretsenoc00morfgoog)",
+    url: "https://archive.org/details/cu31924014633568",
+    sourceType: "primary",
+    notes:
+      "The edition and English imported: the first edition and first English translation of 2 Enoch. Morfill translated manuscripts A (Khludov's, longer, seventeenth century) and B (Belgrade, shorter, sixteenth century) and Sokolov's text; Charles formed an eclectic text, following A in the main, B where it is better and Sokolov where both are corrupt, putting A's apparent interpolations (among them xxi. 6 and xxii. 1–3, on an eighth, ninth and tenth heaven) in his footnotes or in square brackets, and printing A's chapter titles in brackets as having 'no claim to antiquity'. His Introduction dates the book 'with reasonable certainty' to 1–50 A.D. and places it in Egypt, probably Alexandria; that is one editor's view of 1896. The text was voted from the OCR of the three scans and read against the Cornell page images; every correction made by hand is in scripts/texts/secrets-of-enoch.py. Public domain (Morfill died in 1909, Charles in 1931).",
+  },
+  {
+    key: "orlov-2enoch-intro",
+    title: "2 (Slavonic) Enoch: Introduction",
+    author: "Andrei A. Orlov",
+    publisher: "Marquette University (Orlov's website on 2 Enoch)",
+    reference: "https://www.marquette.edu/maqom/2enoch.html, the sections on manuscripts and recensions, authorship and date; read on 2026-10-24",
+    url: "https://www.marquette.edu/maqom/2enoch.html",
+    sourceType: "website",
+    notes:
+      "A modern scholar's summary, cited for what Charles could not know or did not hold: that 2 Enoch 'has survived in more than twenty Slavonic manuscripts and fragments dated from 14th to 18th centuries C.E.', the oldest being copies of chapters 40–65 in the judicial codex Merilo Pravednoe; that 'Scholarly consensus holds that 2 Enoch exists in longer and shorter recensions' (in Orlov's sigla, which are not Charles's, R, J and P longer; U, A, B, V, N, B2 and L shorter); and that the Christian provenance argued by Vaillant (1952) and the ninth-century Byzantine date argued by Milik (1976) met 'substantial critical responses', most readers holding a Jewish origin and an early date argued from the Temple. Orlov is reported, not Vaillant or Milik, who were not read.",
+  },
+  {
+    key: "wikipedia-2-enoch",
+    title: "Second Book of Enoch",
+    author: "Wikipedia contributors",
+    publisher: "Wikipedia",
+    reference: "https://en.wikipedia.org/wiki/Second_Book_of_Enoch, read on 2026-10-24",
+    url: "https://en.wikipedia.org/wiki/Second_Book_of_Enoch",
+    sourceType: "website",
+    notes:
+      "Cited only for two reports, neither checked at its source: that 'Dates ranging from the 1st century BCE to the 10th century CE have been proposed', and that 'In 2009, four fragments in Coptic from Chapters 36–42 were identified', following the short recension (its own source for this is a blog post). Nothing in the import rests on it.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2895,6 +2930,104 @@ export const INVENTORY: InventoryWork[] = [
     prominence: 2,
   },
   {
+    // 2 Enoch is a Jewish or Christian apocalypse (scholars disagree), not a
+    // Gnostic text; it is a proposed member of item 23 ("Other ancient texts
+    // on planetary rulers, archons and ascent") for its seven heavens and its
+    // seven planets, so it is shelved in the group that holds item 23 and
+    // given its own work. The only existing Enoch event is 1 Enoch's Watchers,
+    // a different book, so a new event anchors it.
+    workKey: "gnostic.secrets-of-enoch",
+    passagePrefix: "gnostic.2en",
+    briefItem: 23,
+    title: "The Book of the Secrets of Enoch (2 Enoch), chapters I–LXVIII",
+    alternativeTitles: ["2 Enoch", "Slavonic Enoch", "The Secret Books of God which were shown to Enoch (title in manuscript B, as Charles reports)"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek (lost), as Charles argued, with some sections perhaps from Hebrew; survives complete only in Slavonic",
+    attribution: "Pseudepigraphal: told in the name of the patriarch Enoch; author unknown",
+    attributionNote:
+      "R. H. Charles (1896) held the author 'a Jew who lived in Egypt, probably in Alexandria' and 'belonged to the orthodox Hellenistic Judaism of his day', writing in Greek in 1–50 A.D. Later scholars disagree: Orlov reports Vaillant's (1952) case for Christian provenance and Milik's (1976) for a Byzantine monk of the ninth century, both widely criticised, most readers holding a Jewish origin and an early date. The book survives complete only in Slavonic manuscripts of the fourteenth to eighteenth centuries, in a longer and a shorter recension. The English is Morfill's, in the eclectic text Charles formed mainly from A (longer) with B (shorter).",
+    summary:
+      "Enoch is taken up by two angels through seven heavens, anointed and clothed in glory before the Lord, writes 366 books at an archangel's dictation, and hears the secrets of creation, the seven planetary circles and the seven thousand years of the world; sent back for thirty days, he instructs his sons and is taken up again. In W. R. Morfill's English from the Slavonic, edited by R. H. Charles (1896).",
+    referenceEdition: "W. R. Morfill and R. H. Charles, The Book of the Secrets of Enoch (Oxford, 1896), chapters i–lxviii, by Charles's chapter and verse",
+    expectedUnits: 357,
+    unitLabel: "units: the prologue and 356 verses (i. 1–lxviii. 7; xxii from verse 4; liv one verse)",
+    unitDivisionKind: "verse",
+    inventoryBasis:
+      "Charles's own chapters and verses, read on the page images of the 1896 printing (pp. 1–84): 68 chapters, 356 verses, every one imported, with the heading and short opening before chapter i as one more unit. Chapter xxii begins at verse 4 because Charles puts A's xxii. 1–3 (the tenth heaven) in his notes; chapter liv is printed without verse numbers and counts as one. Other editions (from the longer or shorter recension, or later critical texts) number and divide differently, so the count is not marked verified. Listed, not imported: Charles's footnotes, commentary and Introduction, the Appendix (the Melchizedekian fragment, pp. 85–93), the Additional Note on the Phoenixes (p. 94) and the Indices.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Morfill's translation and Charles's edition were published in 1896 (Morfill died in 1909, Charles in 1931). The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["W. R. Morfill and R. H. Charles, The Book of the Secrets of Enoch (Oxford, 1896): the English of chapters i–lxviii"],
+    referenceOnlyEditions: [
+      "Manuscript A (longer), printed by A. Popov (Moscow, 1880), not read",
+      "Manuscript B (shorter), printed by S. Novaković, Starine 16 (Agram, 1884), not read",
+      "M. I. Sokolov's Slavonic text, used by Morfill and Charles, not read",
+      "R. H. Charles's later English, in The Apocrypha and Pseudepigrapha of the Old Testament, vol. 2 (Oxford, 1913), not used",
+      "The Appendix of the 1896 edition, the Melchizedekian fragment (pp. 85–93), listed and not imported",
+    ],
+    imageCollections: ["Wikimedia Commons: icons and miniatures of the prophet Enoch, and pictures of Enoch taken up to heaven"],
+    anchor: {
+      event: {
+        slug: "secrets-of-enoch-seven-heavens",
+        title: "The Book of the Secrets of Enoch: Enoch's ascent through the seven heavens",
+        summary:
+          "An apocalypse surviving only in Slavonic tells of Enoch's ascent through seven heavens, his transformation before the Lord, and the secrets of creation revealed to him.",
+        description:
+          "The Book of the Secrets of Enoch (2 Enoch, the Slavonic Enoch) tells how two angels took the patriarch Enoch through seven heavens, where he saw imprisoned angels, Paradise and a place of torment, the courses of the sun and moon, the silent Grigori and the ordering archangels, and came before the Lord, who had him anointed and clothed in glory, dictated 366 books to him, and told him how the world was made and how long it would last. R. H. Charles, who edited Morfill's first English translation (1896), dated it to 1–50 A.D. and held it the work of an Alexandrian Jew; later scholars have argued for other dates, as late as the ninth century. It survives complete only in Slavonic manuscripts, none earlier than the fourteenth century.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "apocalypse", "seven heavens", "ascent", "pseudepigrapha", "Enoch"],
+        civilisations: ["Roman Empire"],
+        people: ["R. H. Charles", "W. R. Morfill"],
+        claims: [
+          dated("composition", {
+            qualifier: "2 Enoch, as R. H. Charles dated it",
+            sourceKey: "morfill-charles-1896-enoch",
+            startYear: 1,
+            endYear: 50,
+            datePrecision: "decade",
+            originalDateText: "'We may, therefore, with reasonable certainty assign the composition of our text to the period 1-50 A.D.' (Charles 1896, p. xxvi)",
+            evidence:
+              "Charles argues an earlier limit 'probably between 30 B.C. and the Christian era' from the author's use of Ecclesiasticus, Wisdom and the Ethiopic Enoch, and a later limit before 70 A.D. because 'the temple is still standing; see lix. 2' and because, he holds, the New Testament, Barnabas and the Ascension of Isaiah knew the book. One editor's dating of 1896, approximate and debated.",
+          }),
+          dated("composition", {
+            qualifier: "2 Enoch, as J. T. Milik dated it (reported by Orlov)",
+            sourceKey: "orlov-2enoch-intro",
+            startYear: 800,
+            endYear: 900,
+            datePrecision: "century",
+            originalDateText: "'Milik who argued that the apocalypse was written by a Byzantine monk in the ninth century C.E. (Milik, 1976)' (Orlov)",
+            evidence:
+              "A late Christian dating, reported second-hand; Orlov says it and Vaillant's case for Christian provenance 'generated substantial critical responses'. Milik was not read. Given so that the early date does not stand alone.",
+          }),
+          dated("earliest_evidence", {
+            qualifier: "the oldest Slavonic copies",
+            sourceKey: "orlov-2enoch-intro",
+            startYear: 1300,
+            endYear: 1400,
+            datePrecision: "century",
+            originalDateText: "'more than twenty Slavonic manuscripts and fragments dated from 14th to 18th centuries C.E.' (Orlov); 'Tikhonravov cites from a fourteenth century MS.' (Morfill, in Charles 1896, p. xiv)",
+            evidence: "No copy older than the fourteenth century is named by either source; the oldest are copies of chapters 40–65 in the judicial codex Merilo Pravednoe. Not seen.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Morfill's English, edited by Charles",
+            sourceKey: "morfill-charles-1896-enoch",
+            startYear: 1896,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "Oxford: at the Clarendon Press, 1896",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in three scans: the first English translation.",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
+  },
+  {
     workKey: "gnostic.pistis-sophia",
     passagePrefix: "gnostic.ps",
     briefItem: 20,
@@ -3198,7 +3331,7 @@ export const INVENTORY: InventoryWork[] = [
       "Irenaeus, Against Heresies I (c. 180) — Gnostic systems and their archons",
       "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons; imported as its own work, gnostic.origen-contra-celsum",
       "Ascension of Isaiah 6–11 — ascent through seven heavens; imported as its own work, gnostic.ascension-of-isaiah",
-      "2 Enoch — the seven heavens",
+      "2 Enoch — the seven heavens; imported as its own work, gnostic.secrets-of-enoch",
     ],
   },
 
