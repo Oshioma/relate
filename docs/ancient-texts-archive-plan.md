@@ -1861,3 +1861,146 @@ There are 23 entries, one per section:
 - The 1868 page numbers (about pp. 101–115) come from the OCR's running heads and were not checked on the page images.
 - The Latin manuscript picture's shelfmark and date, P. Oxy. 405's date, and whether Mead's "p. 22" is the museum's page 22 were not established.
 - The Commons API rate-limited the image searches. Other candidate files (further Berlin codex pages, portraits) were not examined.
+
+## 28. Stage 22: Origen, Against Celsus VI.22–38, in the Ante-Nicene Fathers (1885)
+
+Brief item 23 ("Other ancient texts on planetary rulers, archons and ascent") listed "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons" among its proposed members, and item 18 listed "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates". Book VI, chapters 22–38 are now imported, whole, in the English of Frederick Crombie as reprinted in *The Ante-Nicene Fathers*, vol. IV (Buffalo: The Christian Literature Publishing Company, 1885), pp. 583–590. Both proposed-member lines now end "imported as its own work, gnostic.origen-contra-celsum" (item 18's: "imported with VI.23–38 as its own work, ...").
+
+- **`gnostic.origen-contra-celsum`** (prefix `gnostic.origen`), brief item 23. Tradition class `ancient_late_transmission`, corpus group `gnostic`. It has a marker of its own, `origen-against-celsus-ophite-diagram`: no record existed for Origen, Celsus or the Ophites.
+
+**Why a work of its own.** These chapters are not an Ophite text. They are a hostile report inside a refutation, and three voices run through them, which the archive keeps apart in every summary, note, plain-words entry and link:
+
+- **Celsus**, whose *True Word* (c. 175–180, debated) attacked the Christians. The book is lost and survives only in Origen's quotations. Celsus describes the Mithraic ladder (VI.22), a diagram of circles (VI.25, 38), a "seal" (VI.27), seven animal-faced ruling demons (VI.30) and a list of phrases (VI.34).
+- **Origen**, writing about 248. He says Celsus half understood "a very insignificant sect called Ophites" (VI.24), says he has seen the diagram himself, describes it (VI.25, 30, 33, 38), sets it beside Celsus's account, and rejects all of it as no part of Christian teaching.
+- **The prayers** at the gates of the rulers (VI.31), which Origen gives as what the sect's members "are taught to say". They are the nearest thing to the sect's own words here, and they come only through Origen.
+
+The inventory gained five sources:
+- `anf-1885-origen`, the 1885 volume, which describes the witnesses;
+- `ancl-1872-origen`, the Edinburgh first printing (Ante-Nicene Christian Library, vol. XXIII, 1872), compared only;
+- `eusebius-he-npnf-1890`, McGiffert's Eusebius (*Nicene and Post-Nicene Fathers*, 2nd series, vol. 1, 1890), VI.34 and VI.36 with his notes, read on CCEL;
+- `turner-celsus-1908`, William Turner, "Celsus the Platonist", *Catholic Encyclopedia* vol. 3 (1908);
+- `witte-ophitendiagramm-1993`, Bernd Witte, *Das Ophitendiagramm nach Origenes Contra Celsum* (Altenberge, 1993), cited only as the source of the reconstruction drawing, as its Commons file page asks; the book was not read.
+
+Files:
+- `corpus/origen-contra-celsum.ts`;
+- the generated `corpus/origen-contra-celsum-text.ts`, made by `scripts/texts/origen-contra-celsum.py`. The script records the method, the reading the vote took, the stops it reported and how each was settled, every correction by hand with its page, and the footnotes;
+- `corpus/origen-contra-celsum-related-images.ts`;
+- plain words in `corpus/plain/origen-contra-celsum.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (the translation was printed in 1872 and reprinted in 1885). McGiffert (1890) and Turner (1908) are public domain and briefly quoted. The text layers are `public_domain`.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | The CCEL transcription of ANF vol. IV (`anf04.vi.ix.vi.xxii`–`xxxviii`). The base. Its page anchors run one page ahead of the printed pages (checked on the page images: p. 584 begins "the book of Moses entitled Numbers"), so the script subtracts one. It carries the American edition's bracketed notes, so it is of the 1885 printing. |
+| T | archive.org's OCR of the University of Toronto copy (`antenicenefather04robeuoft`, Buffalo, 1885). Its page images (leaves n594–n601 = pp. 583–590) were read. |
+| Q | archive.org's OCR of a second copy of the 1885 printing (`antenicenefather0004reva_q8u8`). |
+| B | archive.org's OCR of a third copy (`bwb_S0-AWY-298_4`, with a University of the Pacific stamp). |
+| E | archive.org's OCR of the Edinburgh first printing (`writingsoforigen02origuoft`, 1872). Compared, not voted; pp. 367 and 373 were seen as page images. |
+| N | New Advent's text (newadvent.org/fathers/04166.htm). Compared, not used. |
+
+Two later printings found on archive.org (New York, 1890; Scribner's, 1913) were not used.
+
+- **Normalised before the vote:** the OCRs' misreadings of the Æ in Astaphæus, Aloæus, Horæus, Eloæus, Adonæus, Phænon and Ægina, and their reading of footnote marks as words or letters.
+- **The vote.** C, T, Q and B were aligned word by word. Where two or three scans agreed against C, their reading was taken: once, "takes" for C's "take" (VI.22, p. 583, "that which takes place among the planets"), confirmed on the page image.
+- **Stops.** Where the scans agree on a stop that C lacks, the script reports it and does not apply it. Each was looked up on the page images. Two were real and are corrected by hand: "uttered, instead" (VI.26, p. 585) and "was also different." (VI.32, p. 588). The others the scans proposed (around 'works of darkness', 'tree,' and 'a greater and a less,') are quotation marks the book prints and C keeps.
+- **Words split at a page break** in C, corrected by hand: "mat ters" (VI.32) and "efflu ent" (VI.35).
+- **Proofreading.** Every column of pp. 583–590 was read against T's page images. The translator's round brackets, his supplements, are kept. Italic is dropped: C marks four italic words (*rational*, *name*, *not*, *we*); the book also sets "seven" in VI.27 in italic; the small capitals of LORD are not marked.
+- **Which printing.** Compared word by word, the 1872 and 1885 printings differ in three places, each confirmed on the 1872 page images: VI.28, 1872 "or admit even that He was a wise man", 1885 "or omit even" (the 1885 reading looks like a misprint, but it is the printing imported and is kept); VI.34, 1872 "a carpenter by trade", 1885 "by craft"; VI.35, 1872 "show from the prophetic writings that the events", 1885 without "that". The 1872 printing puts the translator's supplements in square brackets, the 1885 in round. All three are in the chapter notes and in the plain words' "Other possible readings".
+- **New Advent** modernises the translation and drops some of the edition's quotation marks. It is not a witness of the printing.
+
+**The footnotes** are the editors', not Origen's. There are 79:
+- 74 by the translator (Scripture references and the Greek of words, with the editors' conjectures);
+- 3 in square brackets, added in the American edition of 1885 (two signed "S.", not identified);
+- 2 by the translator with a bracketed addition of 1885 (one signed "S.").
+
+They are listed, not imported: each chapter's notes give each footnote's place (the words its mark follows), page and author. The eight that say the Greek is uncertain or emended at that point are quoted there:
+
+| Chapter | The translator's note |
+|---|---|
+| VI.22 | κλίμαξ ἱψίπυλος (as the book prints it); "Boherellus conjectures ἑπτάπυλος" ("ladder with lofty gates") |
+| VI.22 | "For ὕλης, another reading is πύλης" ("the rest of matter") |
+| VI.22 | Spencer's οὐδ᾽ for ὡς "has been adopted in the translation" ("dissatisfied even with these") |
+| VI.29 | "Boherellus proposes φῇς for the textual reading φησί" ("as you say") |
+| VI.31 | "For καταλυθέν Boherellus conjectures καταγλυφθέν, which has been adopted" ("sculptured") |
+| VI.33 | "Guietus thinks that some word has been omitted here, as ξίφος" |
+| VI.36 | "Cf., however, Mark vi. 3", with the 1885 addition that some manuscripts read "the carpenter's son" |
+| VI.38 | Gelenius's emendation, "which has been followed in the translation" ("and another composed of two circles") |
+
+Two of the editors' notes compare Origen's Ophites with Irenaeus's chapter on them (VI.24, "[Vol. i. p. 354, this series.]"; VI.28, "cf. Irenæus"). The archive records them as modern cross-references, not as evidence that either writer used the other.
+
+### Units
+
+- **`gnostic.origen.6`** (`book`) holds no text. It carries the Greek as a cited layer (`grc`, no content), the dates, and notes on what is not imported.
+- Under it come 17 **`chapter`** units, `gnostic.origen.6.22` to `gnostic.origen.6.38`, each with layer `eng-1885`, kind `translation`. The edition prints each chapter as one paragraph, with a number and no title.
+
+That makes 17 units and 18 passages. `expectedUnits` is 17, the edition's own chapters in the brief's range, read on the page images. `inventoryVerified` stays false: only seventeen chapters of an eight-book work are in scope, the range is the brief's and not a division Origen makes, and the chapter numbers are the editors'.
+
+**Listed, not imported:**
+- the rest of *Against Celsus*;
+- the edition's introductory matter;
+- the 79 footnotes.
+
+Every summary begins "Origen says", "reports", "quotes", "describes", "sets", "gives", "offers" or "continues". Every chapter's notes begin "Voice:" or "Voices:" and say whose words are whose. The layer evidence calls the text "Origen's hostile report, in his reply to Celsus, not an Ophite text".
+
+### Dates
+
+On `gnostic.origen.6`, and as claims on the marker:
+
+- **Composition of Origen's reply:** 244–249 CE (`decade`, approximate). Eusebius (*Church History* VI.34–36, McGiffert's translation) puts it in the reign of Philip the Arab, when Origen was "as they say, over sixty years old": "He also at this time composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus" (VI.36.2). McGiffert's notes give Philip's reign as early 244 to 249, and say the time meant "must have been as late as 245". The record gives "c. 248" as the usual round figure; it was not separately sourced.
+- **Composition of Celsus's True Word,** which Origen quotes: 175–180 (`decade`, approximate, debated). Turner (1908) says Celsus's "literary activity falls between the years 175 and 180"; McGiffert reports Keim's 178 and says of Celsus "we know nothing with certainty, nor did Origen know any more". Turner also says a copy reached Origen "about the year 240", which does not square exactly with Eusebius; the record says so and leaves it.
+- **Translation and publication:** 1872 (Edinburgh, the first printing, from its title page) and 1885 (Buffalo, the printing used). The marker carries 1885.
+
+No manuscript of these chapters is dated in this import.
+
+### Links
+
+All 11 are `proposed`, all go from Origen's chapters, and all say "None shown." for transmission. Those to Irenaeus also say that the ANF editors' cross-references are a modern comparison and that Origen does not name Irenaeus here.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 32 | `gnostic.iren.1.30.5` | `close_conceptual_parallel` | the same seven names (Ialdabaoth, Iao, Sabaoth, Adonaeus/Adoneus, Eloaeus/Eloeus, Horaeus/Oreus, Astaphaeus/Astanphaeus), in two hostile reports |
+| 30 | `gnostic.iren.1.30.9` | `symbolic_similarity` | the angel's name Michael given to a hostile power ("Michael the Lion-like"; the serpent "Michael and Samael") |
+| 31 | `gnostic.ps.31` | `symbolic_similarity` | Ialdabaoth and a lion-formed ruler |
+| 22 | `herm.ch.1.25` | `broad_thematic_resemblance` | the soul's passage through seven planetary levels |
+| 22 | `herm.ch.1.26` | `symbolic_similarity` | an eighth above the seven |
+| 31 | `greek.mithras.1907.7` | `broad_thematic_resemblance` | set words to make a closed heavenly way open |
+| 30 | `greek.mithras.1907.11` | `broad_thematic_resemblance` | seven powers in order, each named |
+| 22 | `modern.hall.1.s2.p4` | `symbolic_similarity` | "a ladder of seven rungs appears in the Mithraic initiation" |
+| 22 | `modern.hall.42.p4` | `symbolic_similarity` | the rungs of a Mithraic ladder, the seven planets and a door above |
+| 28 | `modern.hall.19.s1.p3` | `symbolic_similarity` | "the Ophites (serpent worshipers) revered the Edenic snake" |
+| 25 | `modern.hpb.cosmo.5` | `speculative_connection` | figures enclosed by a ring (Leviathan's circle; the ring "Pass Not") |
+
+Hall and Blavatsky name no ancient source in the passages linked, and the links say so.
+
+### Images
+
+All are from Commons file pages, and each was looked at (as a thumbnail; the image server rate-limited full-size downloads); all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive. No manuscript page of VI.22–38 was found, and no ancient copy of the diagram survives.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| A page of the Tura papyrus, "page 29 of papyrus Cairo, Egyptian Museum, JE 88747", "the earliest text witness of the treatise", late 6th or early 7th century (all the file page's; source "2d copy"), PD-Art | `gnostic.origen.6` | `UNVERIFIED`: identification, page and date are the file page's; the picture looks like a photograph of a printed reproduction; the Greek was not read, so which part of the work it holds is not known. Captioned as the work, not Book VI, chapters 22–38. |
+| BnF Grec 945, f. 48r, a fifteenth-century Greek manuscript of *Against Celsus* (the file page's), PD | `gnostic.origen.6`; the marker's cover | `UNVERIFIED`: shelfmark, date and text are the file page's; "48" is on the page; the red heading seems to name Origen and a book but was not read with confidence. |
+| A floor mosaic at Ostia that the file page identifies as the Mithraeum of the Seven Gates (c. 160–170, the file page's), photographed by MumblerJamie, CC BY-SA 2.0 | `gnostic.origen.6.22` | `UNVERIFIED`, captioned "Related evidence, not the ladder Celsus describes". The file page reads its gates as the planetary spheres; only part of the row is in the picture; no ancient writer connects the floor with Celsus's ladder. |
+| Jacques Matter's reconstruction of the diagram, *Histoire critique du Gnosticisme*, "Planche I. D., Fig. 5" (1826 by the file page), PD | `gnostic.origen.6.25` | `modern_interpretation`, `shows` "reconstruction"; the caption says it is a reconstruction and "not a copy of an ancient diagram", and describes what is drawn: Gehenna as a black band, the seven rulers' names in a circle headed "Leviathan", "Formulaires de Prières", the seven animal-formed angels above "Behemoth". |
+| Bernd Witte's reconstruction (1993), uploaded by its author, CC BY 3.0 / GFDL, citing his *Das Ophitendiagramm nach Origenes Contra Celsum* (Altenberge, 1993), p. 142 | `gnostic.origen.6.38`; the marker's second picture | `modern_interpretation`, `shows` "reconstruction"; the caption begins "A modern reconstruction" and says it is "not a copy of an ancient diagram". Matter's and Witte's arrangements differ, and the captions say both are readings of Origen's words. |
+
+The marker `origen-against-celsus-ophite-diagram` has two pictures: the Grec 945 page (cover, `UNVERIFIED`) and Witte's reconstruction. No portrait of Origen or Celsus was added: any would be a later artist's imagining.
+
+### Plain words
+
+There are 17 entries, one per chapter:
+- Each begins "Origen says", "reports", "quotes" or "describes".
+- Celsus's words are given as what Origen quotes or reports of him; the prayers in VI.31 as what the sect's members "are taught to say"; the descriptions of the diagram as what Origen says he saw.
+- "Other possible readings" give the eight quoted footnotes and the three readings of the 1872 printing.
+
+### Not done
+
+- The Greek was not read. The English is checked against its own printing, not against the Greek, and the manuscripts of the work (Vat. gr. 386 and others) were not looked into.
+- Only VI.22–38 is imported. The rest of *Against Celsus* is not, nor any other ancient account of the Ophites.
+- Who signed the American edition's notes "S." was not established.
+- "c. 248" is given as the usual figure without a source of its own; only the range from Eusebius is sourced.
+- The 1872 page range of these chapters was not checked.
+- The Commons API and image server rate-limited the picture searches. Other candidates (further pages of Grec 945, the Mithraeum of Felicissimus, a 1481 Latin edition, the other Seven Gates photographs) were not examined.

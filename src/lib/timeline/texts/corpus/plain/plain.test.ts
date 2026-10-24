@@ -20,6 +20,7 @@ import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
 import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
 import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
 import { PLAIN_IRENAEUS } from "./irenaeus";
+import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./origen-contra-celsum";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -64,6 +65,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.kingsford-maitland": PLAIN_VIRGIN_OF_THE_WORLD,
   "greek.mithras-liturgy": PLAIN_MITHRAS_LITURGY,
   "gnostic.irenaeus-against-heresies": PLAIN_IRENAEUS,
+  "gnostic.origen-contra-celsum": PLAIN_ORIGEN_CONTRA_CELSUM,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -176,6 +178,24 @@ test("every section of Irenaeus, Against Heresies I.29–31 has plain words, kep
   }
   assert.match(PLAIN_IRENAEUS["gnostic.iren.1.29.1"], /the 1868 printing reads 'in the conception'/);
   assert.match(PLAIN_IRENAEUS["gnostic.iren.1.30.15"], /'hopelessly corrupt'/);
+});
+
+test("every chapter of Origen, Against Celsus VI.22–38 has plain words, with Celsus, Origen and the prayers kept apart, and only those", () => {
+  const origen = ALL_CORPORA.find((c) => c.workKey === "gnostic.origen-contra-celsum")!;
+  const withText = origen.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_ORIGEN_CONTRA_CELSUM).sort(), [...withText].sort());
+  assert.equal(withText.length, 17);
+  // A hostile report: every entry is framed as what Origen says, reports, quotes or describes.
+  for (const [key, words] of Object.entries(PLAIN_ORIGEN_CONTRA_CELSUM)) assert.match(words, /^Origen (says|reports|quotes|describes)/, key);
+  // Celsus's words are reported as his, and the prayers as what the sect is taught to say.
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.22"], /he quotes Celsus's words/);
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.31"], /what they are taught to say/);
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.31"], /In this English no prayer is given to a fourth gate/);
+  // Where the editors say the Greek is uncertain or emended, or the 1872 printing differs, the other readings say so.
+  for (const n of [22, 28, 29, 31, 33, 34, 35, 36, 38]) {
+    assert.match(PLAIN_ORIGEN_CONTRA_CELSUM[`gnostic.origen.6.${n}`], /\n\nOther possible readings:\n- /, String(n));
+  }
+  assert.match(PLAIN_ORIGEN_CONTRA_CELSUM["gnostic.origen.6.28"], /the 1872 printing reads 'or admit even that He was a wise man'/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

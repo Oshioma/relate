@@ -14,6 +14,7 @@ import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
 import { VIRGIN_UNITS } from "./corpus/virgin-of-the-world-text";
 import { MITHRIAC_UNITS } from "./corpus/mithras-liturgy-text";
 import { IRENAEUS_NOTES, IRENAEUS_UNITS } from "./corpus/irenaeus-text";
+import { ORIGEN_NOTES, ORIGEN_UNITS } from "./corpus/origen-contra-celsum-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -2174,6 +2175,214 @@ test("Irenaeus's pictures are from Commons, related evidence is labelled, the un
   // The Apocryphon keeps its own marker and its two pictures; no new marker was made.
   assert.equal(marker.length, 2);
   assert.ok(!Object.keys(MARKER_PICTURES).some((slug) => /irenaeus/i.test(slug)));
+});
+
+test("Origen, Against Celsus VI.22–38 is imported as its own work from the 1885 ANF, voted over three scans, with its own marker", () => {
+  const file = corpusFor("gnostic.origen-contra-celsum")!;
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.origen-contra-celsum")!;
+  assert.equal(work.passagePrefix, "gnostic.origen");
+  assert.equal(work.briefItem, 23);
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.corpusGroup, "gnostic");
+  assert.equal(work.unitDivisionKind, "chapter");
+  assert.equal(work.expectedUnits, 17);
+  assert.equal(work.inventoryVerified, false, "seventeen chapters of an eight-book work, on the editors' numbering");
+  assert.match(work.attributionNote!, /^A hostile report inside a refutation, not an Ophite text\./);
+  assert.match(work.attributionNote!, /Three voices are kept apart throughout/);
+  // Items 23 and 18 of the brief point here.
+  const related = INVENTORY.find((w) => w.workKey === "gnostic.related")!;
+  assert.ok(related.proposedMembers!.some((m) => /^Origen, Contra Celsum VI\.22–38 .*; imported as its own work, gnostic\.origen-contra-celsum$/.test(m)));
+  const greek = INVENTORY.find((w) => w.workKey === "greek.related")!;
+  assert.ok(greek.proposedMembers!.some((m) => /^Origen, Contra Celsum VI\.22 .*gnostic\.origen-contra-celsum$/.test(m)));
+  for (const key of ["anf-1885-origen", "ancl-1872-origen", "eusebius-he-npnf-1890", "turner-celsus-1908"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One book record (citing the Greek only) and 17 chapters.
+  const book = file.passages[0];
+  assert.equal(book.key, "gnostic.origen.6");
+  assert.equal(book.divisionKind, "book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "grc" && l.content == null && l.language === "Greek"));
+  assert.match(book.notes!, /Not imported, and listed here: the rest of Against Celsus/);
+  assert.match(book.summary!, /It is a hostile report, not an Ophite text\.$/);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  assert.deepEqual(
+    units.map((u) => u.key),
+    Array.from({ length: 17 }, (_, i) => `gnostic.origen.6.${22 + i}`)
+  );
+  assert.equal(ORIGEN_UNITS.length, 17);
+  assert.equal(file.passages.length, 18);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 17, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (n: number) => file.passages.find((p) => p.key === `gnostic.origen.6.${n}`)!.layers.find((l) => l.key === "eng-1885")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    assert.equal(unit.parentKey, "gnostic.origen.6", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1885")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "anf-1885-origen", unit.key);
+    assert.match(layer.evidence, /three independent scans of the 1885 plates/, unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/origen-contra-celsum\.py/, unit.key);
+    assert.match(layer.evidence, /Origen's hostile report, in his reply to Celsus, not an Ophite text/, unit.key);
+    assert.match(unit.reference, /^Origen, Against Celsus VI\.\d\d \(chapter [XVI]+\); The Ante-Nicene Fathers, vol\. IV \(Buffalo, 1885\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    assert.match(unit.summary!, /^Origen (says|reports|quotes|describes|sets|gives|offers|continues)/, unit.key);
+    assert.match(unit.notes!, /^Voices?: /, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /_|�|--|  |\n|⟦|¦|ORIGEN|CELSUS|— |\d/, unit.key);
+  }
+  assert.match(text(22), /^After this, Celsus, desiring to exhibit his learning/);
+  assert.match(text(22), /There is a ladder with lofty gates, and on the top of it an eighth gate\./);
+  assert.match(text(22), /of that which takes place among the planets/);
+  assert.match(text(24), /a very insignificant sect called Ophites/);
+  assert.match(text(25), /ten circles, distinct from each other, but united by one circle/);
+  assert.match(text(26), /which they never uttered, instead of/);
+  assert.match(text(28), /or omit even that He was a wise man/);
+  assert.match(text(30), /Michael the Lion-like/);
+  assert.match(text(30), /Onoel, or Thartharaoth, being somewhat asinine in appearance/);
+  assert.match(text(31), /“O governor of the fifth realm, powerful Sabaoth/);
+  assert.match(text(31), /O Horæus, who didst obtain the government of the first gate/);
+  assert.match(text(32), /such matters\./);
+  assert.match(text(32), /Iao or Jah, and Sabaoth, and Adonæus, and Eloæus/);
+  assert.match(text(34), /a carpenter by craft/);
+  assert.match(text(35), /an effluent from a heavenly church/);
+  assert.match(text(38), /strangers to our Christian faith\.$/);
+  // The footnotes are listed, not imported; the eight that say the Greek is uncertain or emended are quoted.
+  assert.equal(ORIGEN_NOTES.length, 79);
+  assert.deepEqual(
+    ["translator", "american", "both"].map((by) => ORIGEN_NOTES.filter((n) => n.by === by).length),
+    [74, 3, 2]
+  );
+  const essential = ORIGEN_NOTES.filter((n) => n.essential);
+  assert.deepEqual(essential.map((n) => n.chapter), ["22", "22", "22", "29", "31", "33", "36", "38"]);
+  for (const note of ORIGEN_NOTES) {
+    const unit = file.passages.find((p) => p.key === `gnostic.origen.6.${note.chapter}`)!;
+    assert.ok(unit.notes!.includes(`after '${note.after}'`), `${unit.key}: footnote after '${note.after}' is not listed`);
+    assert.equal(unit.notes!.includes(note.text), note.essential, `${unit.key}: only essential footnotes are quoted`);
+    assert.ok(!unit.layers.some((l) => l.content?.includes(note.text)), `${unit.key}: a footnote was imported`);
+  }
+  // The three voices: Celsus quoted, Origen's description, the prayers as taught.
+  const notes = (n: number) => file.passages.find((p) => p.key === `gnostic.origen.6.${n}`)!.notes!;
+  assert.match(notes(22), /is Celsus's, as Origen quotes him/);
+  assert.match(notes(24), /the naming of the Ophites is Origen's opinion/);
+  assert.match(notes(24), /a modern editor's cross-reference, not a statement by Origen/);
+  assert.match(notes(30), /the names are what Origen says he found in the diagram/);
+  assert.match(notes(31), /given by Origen as what 'they are taught to say'/);
+  assert.match(notes(31), /No prayer to a fourth gate/);
+  assert.match(notes(28), /1872 printing reads 'or admit even that He was a wise man'/);
+});
+
+test("Origen's reply is dated by Eusebius to Philip's reign, Celsus's True Word to 175–180 (debated), and its English to 1872 and 1885", () => {
+  const file = corpusFor("gnostic.origen-contra-celsum")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.datePrecision, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 175, 180, "decade", true, "turner-celsus-1908"],
+      ["composition", 244, 249, "decade", true, "eusebius-he-npnf-1890"],
+      ["translation_publication", 1872, 1872, "year", false, "ancl-1872-origen"],
+      ["translation_publication", 1885, 1885, "year", false, "anf-1885-origen"],
+    ]
+  );
+  const [celsus, origen] = book.dates!;
+  assert.match(celsus.evidence, /^The date of Celsus's lost True Word, which Origen quotes in these chapters, not of Origen's reply\./);
+  assert.match(celsus.evidence, /Keim fixes the date of the work at 178/);
+  assert.match(celsus.evidence, /The date is debated\./);
+  assert.match(origen.originalDateText, /Eusebius, Church History VI\.36\.2/);
+  assert.match(origen.evidence, /over sixty years old/);
+  assert.match(origen.evidence, /'c\. 248'/);
+  // Its own marker, with the same two compositions kept apart.
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.origen-contra-celsum")!;
+  assert.ok(work.anchor && "event" in work.anchor);
+  const event = work.anchor && "event" in work.anchor ? work.anchor.event : undefined;
+  assert.equal(event!.slug, "origen-against-celsus-ophite-diagram");
+  assert.deepEqual(
+    event!.claims.map((c) => [dateRoleFromWhatIsDated(c.whatIsDated!), c.startYear, c.endYear]),
+    [
+      ["composition", 244, 249],
+      ["composition", 175, 180],
+      ["translation_publication", 1885, undefined],
+    ]
+  );
+  assert.match(event!.claims[1].whatIsDated!, /Celsus's True Word, which Origen quotes/);
+});
+
+test("Origen's links are proposed resemblances, from his report, and none claims one text knew another", () => {
+  const file = corpusFor("gnostic.origen-contra-celsum")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 11);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^gnostic\.origen\.6\.\d\d$/, link.key);
+    assert.ok(
+      ["close_conceptual_parallel", "symbolic_similarity", "broad_thematic_resemblance", "speculative_connection"].includes(link.connectionClass),
+      link.key
+    );
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+    assert.match(`${link.similarities} ${link.differences}`, /Origen|Celsus/, link.key);
+  }
+  const to = (from: number) => links.filter((l) => l.from === `gnostic.origen.6.${from}`).map((l) => l.to);
+  assert.deepEqual(to(22), ["herm.ch.1.25", "herm.ch.1.26", "modern.hall.1.s2.p4", "modern.hall.42.p4"]);
+  assert.deepEqual(to(25), ["modern.hpb.cosmo.5"]);
+  assert.deepEqual(to(28), ["modern.hall.19.s1.p3"]);
+  assert.deepEqual(to(30), ["gnostic.iren.1.30.9", "greek.mithras.1907.11"]);
+  assert.deepEqual(to(31), ["gnostic.ps.31", "greek.mithras.1907.7"]);
+  assert.deepEqual(to(32), ["gnostic.iren.1.30.5"]);
+  // The ANF editors' cross-references to Irenaeus are not evidence of transmission.
+  for (const link of links.filter((l) => l.to.startsWith("gnostic.iren."))) {
+    assert.match(link.transmissionEvidence, /a modern editor's comparison; Origen does not name Irenaeus here/, link.key);
+  }
+});
+
+test("Origen's pictures are from Commons, the manuscripts and the mosaic are marked UNVERIFIED, and the diagram is shown only in modern reconstructions", () => {
+  const file = corpusFor("gnostic.origen-contra-celsum")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, 5);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "gnostic.origen-contra-celsum").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+  }
+  for (const key of ["origen-tura-papyrus-cairo-je-88747-p29", "origen-bnf-grec-945-f48r"]) {
+    const image = seen.get(key)!;
+    assert.equal(image.identificationStatus, "unverified", key);
+    assert.equal(image.shows, "manuscript", key);
+    assert.match(image.caption, /not Book VI, chapters 22–38\.$/, key);
+  }
+  const gates = seen.get("origen-ostia-mithraeum-seven-gates-mosaic")!;
+  assert.equal(gates.identificationStatus, "unverified");
+  assert.match(gates.caption, /^UNVERIFIED — Related evidence, not the ladder Celsus describes: /);
+  assert.match(gates.caption, /a modern comparison, not something either writer says\.$/);
+  // No ancient copy of the diagram survives: the drawings are Matter's and Witte's reconstructions and say so.
+  const matter = seen.get("origen-matter-ophite-diagram-reconstruction")!;
+  assert.equal(matter.shows, "reconstruction");
+  assert.equal(matter.identificationStatus, "modern_interpretation");
+  assert.match(matter.caption, /not a copy of an ancient diagram/);
+  const witte = seen.get("origen-witte-ophite-diagram-reconstruction")!;
+  assert.equal(witte.shows, "reconstruction");
+  assert.equal(witte.identificationStatus, "modern_interpretation");
+  assert.match(witte.caption, /^A modern reconstruction/);
+  assert.match(witte.caption, /not a copy of an ancient diagram/);
+  assert.match(witte.licence!, /CC BY 3\.0/);
+  // The marker's cover is the manuscript page, marked UNVERIFIED; the reconstruction follows it.
+  const marker = MARKER_PICTURES["origen-against-celsus-ophite-diagram"];
+  assert.equal(marker.length, 2);
+  assert.equal(marker[0].url, seen.get("origen-bnf-grec-945-f48r")!.url);
+  assert.equal(marker[0].identificationStatus, "unverified");
+  assert.equal(marker[1].url, witte.url);
+  assert.equal(marker[1].shows, "reconstruction");
+  assert.match(marker[1].caption ?? "", /reconstruction/);
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {
