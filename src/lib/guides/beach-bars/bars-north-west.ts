@@ -37,7 +37,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Mercury's, Mizingani Road, Stone Town"),
     coords: { lat: -6.1584, lng: 39.1920 },
     photos: BAR_PHOTOS["mercurys"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mercurys" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -74,7 +74,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Livingstone Beach Restaurant, Shangani, Stone Town"),
     coords: { lat: -6.1616, lng: 39.1875 },
     photos: BAR_PHOTOS["livingstones"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "livingstones" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -112,7 +112,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Tatu, Shangani Street, Stone Town"),
     coords: { lat: -6.1641, lng: 39.1868 },
     photos: BAR_PHOTOS["tatu"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "tatu" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -187,7 +187,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Kibanda Beach Club, Nungwi"),
     coords: { lat: -5.7238, lng: 39.2958 },
     photos: BAR_PHOTOS["kibanda"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kibanda-beach-club" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -224,7 +224,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Mama Mia, Nungwi"),
     coords: { lat: -5.7281, lng: 39.2916 },
     photos: BAR_PHOTOS["mama-mia"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mama-mia" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -262,7 +262,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Bobo Beach, Nungwi"),
     coords: { lat: -5.7268, lng: 39.2922 },
     photos: BAR_PHOTOS["bobo-beach"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "bobo-beach" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -299,7 +299,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("The Z Hotel, Nungwi"),
     coords: { lat: -5.7305, lng: 39.2914 },
     photos: BAR_PHOTOS["z-rooftops"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "rooftops-at-the-z-hotel" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -337,7 +337,7 @@ export const NORTH_WEST_BARS: Place[] = [
     mapsUrl: maps("Kendwa Rocks Beach Hotel, Kendwa"),
     coords: { lat: -5.7522, lng: 39.2880 },
     photos: BAR_PHOTOS["kendwa-rocks"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kendwa-rocks-beach-hotel" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,

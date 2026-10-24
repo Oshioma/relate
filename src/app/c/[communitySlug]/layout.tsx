@@ -347,9 +347,12 @@ export default async function CommunityLayout({
       <LiveSessionWatcher communityId={community.id} />
 
       {/* Sticky at full window height, so the nav stays in view while a long
-          page (a directory, a timeline) scrolls past it; the link list inside
-          already scrolls on its own when it is taller than the window. */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:sticky md:top-0 md:flex md:h-screen">
+          page (a directory, a timeline) scrolls past it. Only the link list in
+          the middle scrolls: the logo stays at the top and the signed-in
+          name / Log out at the foot. dvh rather than vh, because on Safari and
+          tablets 100vh is taller than the visible window and pushed the foot
+          off the bottom of the screen. */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:sticky md:top-0 md:flex md:h-dvh">
         {/* Sidebar header: the logo on the plain card background. The cover
             photo was tried here and pulled back out — a tinted crop behind a
             logo made the sidebar compete with the hero rather than support it,
@@ -358,7 +361,7 @@ export default async function CommunityLayout({
             photograph it is. */}
         {/* pt-[49px]: the 48px main header plus the logo ring's 1px, so the top
             of the ring sits level with the top of the cover photo beside it. */}
-        <div className="border-b border-border px-5 pb-5 pt-[49px]">
+        <div className="shrink-0 border-b border-border px-5 pb-5 pt-[49px]">
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
@@ -377,7 +380,7 @@ export default async function CommunityLayout({
           </Link>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
           {usedGroups.length === 0 ? (
             // Nothing grouped in this community: the nav it has always had.
             <div className="space-y-1">
@@ -474,7 +477,7 @@ export default async function CommunityLayout({
           </div>
         </div>
 
-        <div className="border-t border-border p-3">
+        <div className="shrink-0 border-t border-border p-3">
           {user ? (
             <>
               <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">

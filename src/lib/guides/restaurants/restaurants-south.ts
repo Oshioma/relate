@@ -41,7 +41,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Kae Funk, Michamvi Kae"),
     coords: { lat: -6.1442, lng: 39.4896 },
     photos: RESTAURANT_PHOTOS["kae-funk"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kae-funk-sunset-beach-bar" },
     seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "kae-funk" }],
     verification: {
       status: "partial",
@@ -80,7 +80,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Upendo Beach, Michamvi Pingwe"),
     coords: { lat: -6.1529, lng: 39.5187 },
     photos: RESTAURANT_PHOTOS["boho-social"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "boho-social-at-upendo-beach" },
     seeAlso: [{ label: "Boho Lounge in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "boho-lounge" }],
     verification: {
       status: "verified",
@@ -122,7 +122,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("The Rock Restaurant, Michamvi Pingwe"),
     coords: { lat: -6.1521, lng: 39.5194 },
     photos: RESTAURANT_PHOTOS["the-rock"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "the-rock" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -160,7 +160,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Mr Kahawa, Paje"),
     coords: { lat: -6.2692, lng: 39.5363 },
     photos: RESTAURANT_PHOTOS["mr-kahawa"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mr-kahawa" },
     seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "mr-kahawa" }],
     verification: {
       status: "verified",
@@ -202,7 +202,7 @@ export const SOUTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Chez Hassan, Jambiani"),
     coords: { lat: -6.3369, lng: 39.5540 },
     photos: RESTAURANT_PHOTOS["chez-hassan"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "chez-hassan" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
