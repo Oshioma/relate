@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // Why a confirmation link can land back here, and what actually helps:
 //   • link-expired         — the token was spent or timed out. Almost always a
@@ -27,7 +28,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = safeReturnPath(params.next, "/dashboard");
   const notice = confirmationNotice(params.error);
 
   return (

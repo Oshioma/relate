@@ -1,4 +1,4 @@
-import { normalizeCustomDomain, platformSubdomainSlug } from "@/lib/custom-domain";
+import { normalizeCustomDomain, platformSubdomainSlug, wwwCounterpart } from "@/lib/custom-domain";
 import { createClient } from "@/lib/supabase/server";
 
 // Resolves a host (optionally with a port) to a host this app is allowed to
@@ -24,5 +24,17 @@ export async function verifiedCommunityHost(rawHost: string | null): Promise<str
 
   const supabase = await createClient();
   const { data: slug } = await supabase.rpc("community_slug_for_domain", { p_domain: hostname });
-  return slug ? `${hostname}${port}` : null;
+  if (slug) return `${hostname}${port}`;
+
+  // The www / bare twin of a verified domain is the same community: the owner
+  // verified one, but the domain's host may redirect visitors to the other
+  // (Vercel's default is apex -> www), so that's where they actually browse
+  // and sign in — the proxy serves the community there too. Without this the
+  // bridge refused www.<domain> and dropped the visitor on the platform's own
+  // sign-in, which then landed them on /dashboard instead of the community.
+  // Whoever controls a domain's DNS controls its www, so this trusts nothing new.
+  const counterpart = wwwCounterpart(hostname);
+  if (!counterpart) return null;
+  const { data: twinSlug } = await supabase.rpc("community_slug_for_domain", { p_domain: counterpart });
+  return twinSlug ? `${hostname}${port}` : null;
 }
