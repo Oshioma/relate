@@ -38,8 +38,9 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: "https://www.thezhotel.com/facilities/restaurants",
     mapsUrl: maps("The Z Hotel, Nungwi"),
+    coords: { lat: -5.7305, lng: 39.2914 },
     photos: RESTAURANT_PHOTOS["sexy-fish"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "sexy-fish" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -79,6 +80,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     website: "https://www.instagram.com/fishermans_seafoodgrill/",
     websiteLabel: "Instagram",
     mapsUrl: maps("Fisherman's Seafood & Grill, Turaco Nungwi"),
+    coords: { lat: -5.7242, lng: 39.2951 },
     photos: RESTAURANT_PHOTOS["fishermans-seafood-grill"] ?? [],
     listing: { kind: "business", slug: "fisherman-s-seafood-grill" },
     verification: {
@@ -120,8 +122,9 @@ export const NORTH_RESTAURANTS: Place[] = [
     website: "https://www.facebook.com/p/Fish-Market-Local-Restaurant-100091960764143/",
     websiteLabel: "Facebook",
     mapsUrl: maps("Fish Market Local Restaurant, Nungwi"),
+    coords: { lat: -5.7232, lng: 39.2981 },
     photos: RESTAURANT_PHOTOS["fish-market-nungwi"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "fish-market-local-restaurant" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -157,6 +160,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Kajibange Bar, Nungwi"),
+    coords: { lat: -5.7236, lng: 39.2964 },
     photos: RESTAURANT_PHOTOS["kajibange"] ?? [],
     listing: { kind: "business", slug: "kajibange" },
     seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "kajibange" }],
@@ -198,6 +202,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: "https://makofizanzibar.com/food-and-drink/",
     mapsUrl: maps("Makofi Guest House, Nungwi"),
+    coords: { lat: -5.7314, lng: 39.2930 },
     photos: RESTAURANT_PHOTOS["makofi"] ?? [],
     listing: { kind: "business", slug: "makofi" },
     verification: {
@@ -234,6 +239,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: "https://kimdiningconcept.com/hanoi-house-cafe-nungwi/",
     mapsUrl: maps("Hanoi House, Nungwi"),
+    coords: { lat: -5.7299, lng: 39.2981 },
     photos: RESTAURANT_PHOTOS["hanoi-house-nungwi"] ?? [],
     listing: { kind: "business", slug: "hanoi-house-nungwi" },
     verification: {
@@ -270,6 +276,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Passion & Thyme, Nungwi"),
+    coords: { lat: -5.7272, lng: 39.2936 },
     photos: RESTAURANT_PHOTOS["passion-thyme"] ?? [],
     listing: { kind: "business", slug: "passion-thyme" },
     verification: {
@@ -312,6 +319,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     ],
     website: "https://www.organzibar.com/",
     mapsUrl: maps("Organzibar, Kendwa"),
+    coords: { lat: -5.7555, lng: 39.2957 },
     photos: RESTAURANT_PHOTOS["organzibar"] ?? [],
     listing: { kind: "business", slug: "organzibar" },
     verification: {

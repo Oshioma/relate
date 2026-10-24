@@ -38,6 +38,9 @@ export type Place = {
   websiteLabel?: string;
   // A search link, so it can never point at a made-up pin.
   mapsUrl: string;
+  // Approximate position (from its Google listing), for "near me" sorting.
+  // Never shown as a pin.
+  coords?: { lat: number; lng: number };
   photos: GuidePhoto[];
   verification: HotelVerification;
   // Restaurant guides: a relative price band (never a price), checked facts
@@ -61,6 +64,10 @@ export type PlaceSectionLabels = {
   considerations: string;
   fromStoneTown: string;
 };
+
+// A group of places close together ("Nungwi & Kendwa"), offered as a card
+// at the top of the guide that shows only those places.
+export type PlaceArea = { id: string; label: string; placeKeys: string[] };
 
 // A suggested day: an ordered list of places with what to do there.
 export type PlaceRoute = {
@@ -99,6 +106,11 @@ export type PlaceGuideDefinition = {
   directorySection?: { title: string; navLabel: string; blurb: string; category: string } | null;
   // The hero's call-to-action button into the entries.
   heroCta?: string;
+  // Area cards at the top (in place of the photo row) and a "near me" card,
+  // for readers who want to see what's around them. `noun` names the places
+  // ("bars"). Every place should be in exactly one area and have coords.
+  // `nearPhoto` is the picture behind the "near me" card (default: none).
+  areaFinder?: { noun: string; areas: PlaceArea[]; nearPhoto?: { placeKey: string; photo?: number } } | null;
 };
 
 // Stored overrides use the hotel guides' shape, with `hotelPhotos` keyed by
