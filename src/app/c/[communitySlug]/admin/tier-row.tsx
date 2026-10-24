@@ -151,7 +151,9 @@ export function TierRow({
             </div>
             <div>
               <Label htmlFor={`tier-currency-${tier.id}`}>Currency</Label>
-              <Input id={`tier-currency-${tier.id}`} name="currency" defaultValue={tier.currency} maxLength={3} />
+              <p id={`tier-currency-${tier.id}`} className="py-2 text-sm text-foreground">
+                {tier.currency.toUpperCase()}
+              </p>
             </div>
           </div>
           <div>

@@ -300,6 +300,9 @@ export type Community = {
   // 20260729185900_space_paywall.sql.
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
+  // The one currency every price in the community is charged in (Stripe's
+  // lowercase ISO code). See 20261024205624_community_currency.sql.
+  currency: string;
   // Platform plan (the platform charging the owner). plan_status 'none' = free.
   // All plan_* columns are written only by the Stripe webhook — a DB trigger
   // rejects anon/authenticated writes. See 20260729233000_platform_plans.sql.

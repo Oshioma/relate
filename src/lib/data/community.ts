@@ -113,6 +113,13 @@ export async function getAllCommunities(supabase: Client): Promise<Community[]> 
 // communities and unknown slugs still return null, staying a non-revealing 404.
 // The members-only surfaces (the feed) are gated in the page layer, and space
 // content is gated per-space by RLS.
+// The one currency every price in the community is charged in (Admin ->
+// Payments -> Currency). Price writes take it from here, never from the form.
+export async function getCommunityCurrency(supabase: Client, communityId: string): Promise<string> {
+  const { data } = await supabase.from("communities").select("currency").eq("id", communityId).maybeSingle();
+  return data?.currency || "usd";
+}
+
 export async function getCommunityBySlug(supabase: Client, slug: string): Promise<Community | null> {
   const { data, error } = await supabase.from("communities").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
