@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowLeft, Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions, businessCategoryLabel } from "@/lib/business-categories";
@@ -131,6 +131,7 @@ export function BusinessDirectoryView({
   const [renameLabel, setRenameLabel] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
 
   // Built-in categories (with staff relabellings applied) + this space's customs.
   const categoryOptions = useMemo(
@@ -325,55 +326,100 @@ export function BusinessDirectoryView({
 
       {/* Categories are the page's main navigation, not another filter chip: a
           directory is browsed by kind first — restaurants, fundis, taxis — so
-          the kinds are the biggest thing on it and each carries its own count. */}
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        <CategoryTile
-          Icon={LayoutGrid}
-          label="Everything"
-          detail={countLabel(businesses.length)}
-          active={category === "all"}
-          onClick={() => setCategory("all")}
-        />
-        {chipOptions.map((c) => {
-          const count = countByCategory.get(c.value) ?? 0;
-          const isCustom = customCategories.some((cc) => cc.slug === c.value);
-          const isActive = category === c.value;
-          // An empty category is a dead end for a visitor, so it isn't shown at
-          // all. Staff keep seeing their own empty categories and anything
-          // pinned to the nav, dimmed — otherwise a category could never be
-          // reached again to be renamed, deleted or unpinned.
-          const staffOnly = isCustom || featured.includes(c.value);
-          if (count === 0 && !isActive && !(isStaff && staffOnly)) return null;
-          return (
-            <CategoryTile
-              key={c.value}
-              Icon={BUSINESS_CATEGORY_ICONS[c.value] ?? DEFAULT_CATEGORY_ICON}
-              label={c.label}
-              detail={count > 0 ? countLabel(count) : "Nothing listed yet"}
-              active={isActive}
-              dimmed={count === 0 && !isActive}
-              pinned={featured.includes(c.value)}
-              onClick={() => setCategory(isActive ? "all" : c.value)}
-            />
-          );
-        })}
-        {isStaff && (
+          the kinds are the biggest thing on it and each carries its own count.
+
+          Once a kind is chosen (usually from its link in the side nav) the
+          tiles give way to a heading for it: the side nav already lists the
+          same categories, so repeating them all above the listings only pushed
+          the restaurants down the page. "All categories" brings the tiles back,
+          which keeps a category that isn't pinned to the nav reachable. */}
+      {category !== "all" ? (
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
             onClick={() => {
-              setChipError(null);
-              setShowCategoryTools((v) => !v);
+              setCategory("all");
+              // Drop the ?category= the nav link put there, so the side nav
+              // stops marking this category as the current page.
+              router.replace(pathname, { scroll: false });
             }}
-            className={`flex flex-col justify-center gap-1.5 rounded-lg border border-dashed p-4 text-left text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            <span className="inline-flex items-center gap-2">
-              <Pencil className="h-4 w-4" />
-              {showCategoryTools ? "Done editing" : "Edit categories"}
-            </span>
-            <span className="text-xs font-normal text-muted-foreground">Add, rename, pin to the nav</span>
+            <ArrowLeft className="h-4 w-4" />
+            All categories
           </button>
-        )}
-      </div>
+          <h2 className="flex min-w-0 items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+            {(() => {
+              const Icon = BUSINESS_CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+              return <Icon className="h-5 w-5 shrink-0 text-accent" />;
+            })()}
+            <span className="truncate">{chipOptions.find((o) => o.value === category)?.label ?? category}</span>
+            <span className="text-base font-medium text-muted-foreground">({countByCategory.get(category) ?? 0})</span>
+          </h2>
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                setChipError(null);
+                setShowCategoryTools((v) => !v);
+              }}
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-md border border-dashed px-3 py-1.5 text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {showCategoryTools ? "Done editing" : "Edit category"}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <CategoryTile
+            Icon={LayoutGrid}
+            label="Everything"
+            detail={countLabel(businesses.length)}
+            active={category === "all"}
+            onClick={() => setCategory("all")}
+          />
+          {chipOptions.map((c) => {
+            const count = countByCategory.get(c.value) ?? 0;
+            const isCustom = customCategories.some((cc) => cc.slug === c.value);
+            const isActive = category === c.value;
+            // An empty category is a dead end for a visitor, so it isn't shown at
+            // all. Staff keep seeing their own empty categories and anything
+            // pinned to the nav, dimmed — otherwise a category could never be
+            // reached again to be renamed, deleted or unpinned.
+            const staffOnly = isCustom || featured.includes(c.value);
+            if (count === 0 && !isActive && !(isStaff && staffOnly)) return null;
+            return (
+              <CategoryTile
+                key={c.value}
+                Icon={BUSINESS_CATEGORY_ICONS[c.value] ?? DEFAULT_CATEGORY_ICON}
+                label={c.label}
+                detail={count > 0 ? countLabel(count) : "Nothing listed yet"}
+                active={isActive}
+                dimmed={count === 0 && !isActive}
+                pinned={featured.includes(c.value)}
+                onClick={() => setCategory(isActive ? "all" : c.value)}
+              />
+            );
+          })}
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                setChipError(null);
+                setShowCategoryTools((v) => !v);
+              }}
+              className={`flex flex-col justify-center gap-1.5 rounded-lg border border-dashed p-4 text-left text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Pencil className="h-4 w-4" />
+                {showCategoryTools ? "Done editing" : "Edit categories"}
+              </span>
+              <span className="text-xs font-normal text-muted-foreground">Add, rename, pin to the nav</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* The staff controls themselves, once asked for. They act on whichever
           category is selected, which is why picking one comes first. */}
