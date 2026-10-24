@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getCourseDetail } from "@/lib/data/courses";
@@ -10,10 +10,13 @@ import { CoursePlayer } from "../../course-player";
 
 export default async function CoursePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string; courseId: string }>;
+  searchParams: Promise<{ purchased?: string }>;
 }) {
   const { communitySlug, spaceSlug, courseId } = await params;
+  const { purchased } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -29,7 +32,9 @@ export default async function CoursePage({
   // another space — so this doubles as the access + not-found gate.
   if (!detail || detail.course.space_id !== space.id) notFound();
 
-  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+  const [membership, profile] = user
+    ? await Promise.all([getMembership(supabase, community.id, user.id), getProfile(supabase, user.id)])
+    : [null, null];
   const isMember = membership?.status === "active";
   const isStaff = isMember && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
 
@@ -62,6 +67,9 @@ export default async function CoursePage({
         canComment={Boolean(isMember)}
         isStaff={Boolean(isStaff)}
         lockedModuleIds={lockedModuleIds}
+        nowMs={nowMs}
+        justPurchased={purchased === "1"}
+        viewerName={profile?.full_name || profile?.username || null}
       />
     </div>
   );

@@ -31,8 +31,14 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
+      // A bank-debit course payment completes the checkout first and is paid
+      // later; that later event carries the same session, now "paid".
+      case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object as {
+          id?: string;
+          mode?: string;
+          payment_status?: string;
           subscription?: string;
           customer?: string;
           customer_details?: { email?: string };
@@ -64,6 +70,20 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "community_id,pack_id" }
           );
+        } else if (meta.course_id && meta.user_id && session.mode === "payment") {
+          // A one-off course purchase. Card payments arrive already "paid";
+          // anything still pending is left for Stripe to retry or fail.
+          if (session.payment_status === "paid" || session.payment_status === "no_payment_required") {
+            await admin.from("course_enrollments").upsert(
+              {
+                course_id: meta.course_id,
+                user_id: meta.user_id,
+                paid: true,
+                stripe_checkout_session_id: session.id ?? null,
+              },
+              { onConflict: "course_id,user_id" }
+            );
+          }
         } else if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
           await admin.from("space_subscriptions").upsert(
             {

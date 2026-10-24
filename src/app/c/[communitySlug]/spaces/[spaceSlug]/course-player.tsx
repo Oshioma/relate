@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,6 +17,8 @@ import {
   Trash2,
   ListChecks,
   CircleCheck,
+  FileText,
+  Radio,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,6 +27,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Linkify } from "@/components/ui/linkify";
 import { cn, formatDateTime, formatRelativeTime } from "@/lib/utils";
 import { ProgressBar } from "./course-progress";
+import { CourseLessonVideo, CourseLiveLesson } from "./course-lesson-media";
+import { courseAccess, liveLessonState } from "@/lib/courses/lesson-kinds";
 import {
   enrollInCourse,
   unenrollFromCourse,
@@ -56,6 +60,9 @@ export function CoursePlayer({
   canComment,
   isStaff,
   lockedModuleIds: lockedModuleIdsProp,
+  nowMs: initialNowMs,
+  justPurchased,
+  viewerName,
 }: {
   detail: CourseDetail;
   communityId: string;
@@ -67,6 +74,12 @@ export function CoursePlayer({
   isStaff: boolean;
   // Modules locked by drip scheduling, computed server-side at request time.
   lockedModuleIds: string[];
+  // The server's clock at render; the player moves it on every 30 seconds so a
+  // live lesson's room opens without a reload.
+  nowMs: number;
+  // Back from Stripe Checkout; the webhook may not have unlocked it yet.
+  justPurchased: boolean;
+  viewerName: string | null;
 }) {
   const { course, instructor, modules, announcements } = detail;
   const router = useRouter();
@@ -74,6 +87,11 @@ export function CoursePlayer({
   const [error, setError] = useState<string | null>(null);
 
   const [enrolled, setEnrolled] = useState(detail.viewerEnrolled);
+  const [nowMs, setNowMs] = useState(initialNowMs);
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
   const [completed, setCompleted] = useState<Set<string>>(new Set(detail.completedLessonIds));
 
   const flatLessons = useMemo(() => modules.flatMap((m) => m.lessons), [modules]);
@@ -94,8 +112,27 @@ export function CoursePlayer({
     return map;
   }, [detail.comments]);
 
-  // Staff can preview content in a draft without enrolling; members must enrol.
-  const canAccess = enrolled || isStaff;
+  // Who sees what. Free courses open on enrolling. A paid course opens to the
+  // team, to buyers (and people granted it), and to members of a tier that
+  // includes it; buyers join the live lessons only if the price includes them.
+  const isPaid = course.price_cents > 0;
+  const access = courseAccess({
+    isPaid,
+    isStaff,
+    enrolled,
+    paidEnrolment: detail.viewerPaid,
+    hasTier: detail.viewerHasTier,
+    liveIncludedWithPurchase: course.live_included_with_purchase,
+  });
+  const canAccess = access.canWatch;
+  const tierNames = detail.includedInTiers.map((t) => t.name);
+  const membershipHref = `/c/${communitySlug}/membership`;
+  const tierLink =
+    tierNames.length > 0 ? (
+      <Link href={membershipHref} className="font-medium text-accent hover:underline">
+        {tierNames.join(" or ")}
+      </Link>
+    ) : null;
 
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(() => {
     const firstIncompleteUnlocked = flatLessons.find((l) => !completed.has(l.id) && !lockedModuleIds.has(l.module_id));
@@ -152,10 +189,10 @@ export function CoursePlayer({
   }
 
   const completedCount = flatLessons.filter((l) => completed.has(l.id)).length;
+  const liveCount = flatLessons.filter((l) => l.lesson_type === "live").length;
   const allDone = total > 0 && completedCount >= total;
   const certificateReady = enrolled && allDone && course.certificate_enabled;
 
-  const isPaid = course.price_cents > 0;
   const { prerequisites, prerequisitesMet } = detail;
   const showPrereqGate = !enrolled && !isStaff && prerequisites.length > 0;
   const blockedByPrereqs = showPrereqGate && !prerequisitesMet;
@@ -164,15 +201,23 @@ export function CoursePlayer({
     setError(null);
     startTransition(async () => {
       const result = await purchaseCourse(course.id, communitySlug, spaceSlug);
-      if (result?.error) setError(result.error);
-      else router.refresh();
+      if ("error" in result) setError(result.error);
+      else window.location.assign(result.url);
     });
   }
 
   // A single enrol/buy control reused in the header and the locked-content box.
-  const enrollControl = !canEnroll ? null : enrolled ? (
+  // A bought course can't be left (that would throw the purchase away); tier
+  // members enrol for free just to track their progress.
+  const enrollControl = !canEnroll ? null : enrolled && isPaid && detail.viewerPaid ? (
+    <Badge tone="accent">Yours</Badge>
+  ) : enrolled && canAccess ? (
     <Button type="button" variant="secondary" disabled={isPending} onClick={toggleEnroll} className="w-auto">
       Leave course
+    </Button>
+  ) : isPaid && detail.viewerHasTier && !enrolled ? (
+    <Button type="button" disabled={isPending} onClick={toggleEnroll} className="w-auto">
+      Start (included in your membership)
     </Button>
   ) : isPaid ? (
     <Button type="button" disabled={isPending} onClick={handlePurchase} className="w-auto">
@@ -237,6 +282,19 @@ export function CoursePlayer({
             <Award className="h-4 w-4" />
             View your certificate
           </Link>
+        )}
+
+        {isPaid && !canAccess && tierLink && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Or get it included with {tierLink}
+            {course.live_included_with_purchase ? "" : ", which also lets you join the live sessions"}.
+          </p>
+        )}
+
+        {justPurchased && !detail.viewerPaid && !isStaff && (
+          <p className="mt-3 rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+            Thank you! Your payment went through. The course unlocks in a moment; refresh the page if it hasn&apos;t yet.
+          </p>
         )}
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
@@ -325,6 +383,7 @@ export function CoursePlayer({
                               ) : (
                                 <Circle className="h-3.5 w-3.5 shrink-0" />
                               )}
+                              <LessonKindIcon lesson={lesson} nowMs={nowMs} />
                               <span className="min-w-0 flex-1 truncate">{lesson.title}</span>
                               {lesson.duration_minutes != null && (
                                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{lesson.duration_minutes}m</span>
@@ -346,12 +405,21 @@ export function CoursePlayer({
             {!canAccess ? (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium text-foreground">Enrol to start learning</p>
+                <p className="mt-3 text-sm font-medium text-foreground">{isPaid ? "Get this course" : "Enrol to start learning"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {total} {total === 1 ? "lesson" : "lessons"} across {modules.length} {modules.length === 1 ? "module" : "modules"}.
+                  {total} {total === 1 ? "lesson" : "lessons"} across {modules.length} {modules.length === 1 ? "module" : "modules"}
+                  {liveCount > 0 ? `, ${liveCount} of them live` : ""}.
                 </p>
-                {isPaid && <p className="mt-2 text-sm font-medium text-foreground">{formatPrice(course.price_cents, course.currency)}</p>}
+                {isPaid && (
+                  <p className="mt-2 text-sm font-medium text-foreground">
+                    {formatPrice(course.price_cents, course.currency)} once
+                    {liveCount > 0 && !course.live_included_with_purchase ? ", for every playback" : ""}
+                  </p>
+                )}
                 <div className="mt-4 flex justify-center">{enrollControl}</div>
+                {isPaid && tierLink && (
+                  <p className="mt-3 text-sm text-muted-foreground">Included with {tierLink}.</p>
+                )}
               </div>
             ) : selected ? (
               <article className="rounded-xl border border-border bg-card p-6">
@@ -384,22 +452,24 @@ export function CoursePlayer({
                   </div>
                 ) : (
                   <>
-                    {selected.video_url && (
-                      <a
-                        href={selected.video_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-4 inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-accent hover:bg-muted"
-                      >
-                        <PlayCircle className="h-4 w-4" />
-                        Watch video
-                      </a>
+                    {selected.lesson_type === "live" ? (
+                      <CourseLiveLesson
+                        lesson={selected}
+                        nowMs={nowMs}
+                        canJoinLive={access.canJoinLive}
+                        isStaff={isStaff}
+                        displayName={viewerName}
+                        liveUpsell={tierLink ? <>Joining live comes with {tierLink}.</> : null}
+                      />
+                    ) : (
+                      selected.video_url && <CourseLessonVideo url={selected.video_url} title={selected.title} />
                     )}
 
                     {selected.body ? (
                       <Linkify text={selected.body} className="mt-4 text-sm leading-relaxed text-foreground" />
                     ) : (
-                      !selected.video_url && <p className="mt-4 text-sm text-muted-foreground">This lesson has no content yet.</p>
+                      !selected.video_url &&
+                      selected.lesson_type !== "live" && <p className="mt-4 text-sm text-muted-foreground">This lesson has no content yet.</p>
                     )}
 
                     {selectedQuiz && (
@@ -455,6 +525,17 @@ export function CoursePlayer({
       )}
     </div>
   );
+}
+
+// A small marker for the lesson kind in the outline; a live lesson that's on
+// right now is shown in red.
+function LessonKindIcon({ lesson, nowMs }: { lesson: CourseLesson; nowMs: number }) {
+  if (lesson.lesson_type === "live") {
+    const on = liveLessonState(lesson, nowMs) === "open";
+    return <Radio className={cn("h-3.5 w-3.5 shrink-0", on ? "text-rose-500" : "text-muted-foreground/70")} aria-label={on ? "Live now" : "Live lesson"} />;
+  }
+  if (lesson.lesson_type === "video") return <PlayCircle className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" aria-label="Video lesson" />;
+  return <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" aria-label="Text lesson" />;
 }
 
 function LessonComments({

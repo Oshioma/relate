@@ -410,6 +410,16 @@ export type TierSpace = {
   created_at: string;
 };
 
+// Join row: which paid courses a tier includes for free. Kept apart from
+// TierSpace because a tier'd space is closed to everyone else, and one-off
+// buyers still need to open the course.
+export type TierCourse = {
+  tier_id: string;
+  course_id: string;
+  community_id: string;
+  created_at: string;
+};
+
 // One row per (tier, member). Written only by the Stripe webhook (service role);
 // mirrors SpaceSubscription.
 export type TierSubscription = {
@@ -1655,6 +1665,9 @@ export type Course = {
   // staff grant or a payment flow.
   price_cents: number;
   currency: string;
+  // Whether a one-off purchase also lets the buyer join the live lessons, or
+  // only watch their playbacks. Tier members always get both.
+  live_included_with_purchase: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -1679,20 +1692,30 @@ export type CourseLesson = {
   community_id: string;
   title: string;
   body: string | null;
+  // 'video' plays video_url; 'live' runs a live room at live_starts_at and
+  // afterwards plays its recording from video_url.
+  lesson_type: CourseLessonType;
   video_url: string | null;
+  live_starts_at: string | null;
+  live_ends_at: string | null;
   duration_minutes: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
 };
 
+export type CourseLessonType = "text" | "video" | "live";
+
 export type CourseEnrollment = {
   id: string;
   course_id: string;
   user_id: string;
   enrolled_at: string;
-  // v3: whether this enrolment was paid for (vs a free/granted enrolment).
+  // v3: whether this enrolment was paid for (bought, or granted by the team)
+  // vs a free or tier-included enrolment. Only paid ones open a paid course.
   paid: boolean;
+  // The Stripe Checkout that bought it, when it was bought.
+  stripe_checkout_session_id: string | null;
 };
 
 // One learner has finished one lesson. course_id/community_id are denormalised
@@ -3288,6 +3311,12 @@ export type Database = {
         Update: Partial<CommunityTier>;
         Relationships: [FKey<"community_id", "communities">];
       };
+      tier_courses: {
+        Row: TierCourse;
+        Insert: Partial<TierCourse> & { tier_id: string; course_id: string; community_id: string };
+        Update: Partial<TierCourse>;
+        Relationships: [FKey<"tier_id", "community_tiers">, FKey<"course_id", "courses">];
+      };
       tier_spaces: {
         Row: TierSpace;
         Insert: Partial<TierSpace> & { tier_id: string; space_id: string };
@@ -4437,6 +4466,10 @@ export type Database = {
         Args: { p_community_id: string };
         Returns: string | null;
       };
+      has_active_tier_for_course: {
+        Args: { p_course_id: string; p_user_id: string };
+        Returns: boolean;
+      };
       community_can_charge: {
         Args: { p_community_id: string };
         Returns: boolean;
@@ -4569,6 +4602,9 @@ export type Database = {
           sort_order: number;
           created_at: string;
           updated_at: string;
+          lesson_type: CourseLessonType;
+          live_starts_at: string | null;
+          live_ends_at: string | null;
         }[];
       };
       course_quiz_data: {
