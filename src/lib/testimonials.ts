@@ -5,6 +5,14 @@ export const MAX_TESTIMONIALS = 12;
 export const MAX_TESTIMONIAL_QUOTE = 1000;
 export const MAX_TESTIMONIAL_NAME = 120;
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// The photo to show: a linked member's own profile photo first, then the
+// uploaded one; null means show initials.
+export function testimonialPhoto(t: CommunityTestimonial, memberPhotos: Map<string, string>): string | null {
+  return (t.memberId ? memberPhotos.get(t.memberId) : undefined) ?? t.avatarUrl ?? null;
+}
+
 // The stored list, whatever shape the column came back in: only entries with
 // some words survive, trimmed. Never throws, so a bad row can't break the page.
 export function readTestimonials(value: unknown): CommunityTestimonial[] {
@@ -13,11 +21,13 @@ export function readTestimonials(value: unknown): CommunityTestimonial[] {
     .filter((t): t is Record<string, unknown> => Boolean(t) && typeof t === "object")
     .map((t) => {
       const avatarUrl = typeof t.avatarUrl === "string" ? t.avatarUrl.trim() : "";
+      const memberId = typeof t.memberId === "string" ? t.memberId.trim() : "";
       return {
         quote: typeof t.quote === "string" ? t.quote.trim() : "",
         name: typeof t.name === "string" ? t.name.trim() : "",
         // Only a web address; anything else (a data: URL, a script) is dropped.
         avatarUrl: /^https?:\/\/\S+$/i.test(avatarUrl) ? avatarUrl : null,
+        memberId: UUID.test(memberId) ? memberId : null,
       };
     })
     .filter((t) => t.quote.length > 0);
