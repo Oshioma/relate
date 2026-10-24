@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import { BEACH_BARS_GUIDE } from "../beach-bars/content";
 import { RESTAURANTS_GUIDE } from "../restaurants/content";
 import { ADVENTURE_GUIDE } from "../adventure/content";
+import { GETTING_AROUND_GUIDE } from "../getting-around/content";
 import { byDistance, distanceKm, formatDistance } from "./distance";
 
-const GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE, ADVENTURE_GUIDE];
-// Guides whose cards are places (the adventure guide's are kinds of activity).
+const GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE, ADVENTURE_GUIDE, GETTING_AROUND_GUIDE];
+// Guides whose cards are places (the adventure and transport guides' are kinds
+// of activity or transport).
 const AREA_GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE];
 
 test("every entry is in exactly one area card", () => {
