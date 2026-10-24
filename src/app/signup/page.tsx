@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { SignupForm } from "./signup-form";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // When the signup came from an email invite (/invite/<code>), the invite row
 // already knows the recipient's address — we emailed it to them. Resolve it
@@ -23,7 +24,7 @@ export default async function SignupPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = safeReturnPath(params.next, "/dashboard");
   const prefilledEmail = await invitedEmail(next);
 
   return (

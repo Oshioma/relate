@@ -8,6 +8,7 @@ import { isPlatformHost } from "@/lib/custom-domain";
 import { isResendConfigured, sendCommunityConfirmationEmail, sendPasswordResetEmail } from "@/lib/email";
 import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 import { authEventContext, recordAuthEvent, signupContextMetadata } from "@/lib/auth-events";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // `unconfirmed` marks the one error a member can fix themselves from the
 // sign-in form: the account exists but its email was never confirmed. The
@@ -48,8 +49,7 @@ function hostOf(origin: string): string | null {
 }
 
 function safeNextPath(value: FormDataEntryValue | null, fallback: string) {
-  const path = typeof value === "string" ? value : "";
-  return path.startsWith("/") ? path : fallback;
+  return safeReturnPath(value, fallback);
 }
 
 export async function login(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {

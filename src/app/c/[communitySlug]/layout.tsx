@@ -45,6 +45,7 @@ import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
 import { getPlanLapseNotice } from "@/lib/data/plan-limits";
 import { joinPolicyOf } from "@/lib/join-policy";
+import { ReturnHereLink } from "@/components/layout/return-here-link";
 
 // The snippet a search engine shows under the result, and the text on a
 // social-share card, both come from the page's meta description. Without one,
@@ -496,18 +497,20 @@ export default async function CommunityLayout({
               <p className="px-2 text-xs text-muted-foreground">
                 Browsing {community.name} as a guest.
               </p>
-              <Link
-                href={`/login?next=${encodeURIComponent(base)}`}
+              <ReturnHereLink
+                to="/login"
+                fallback={base}
                 className="flex w-full items-center justify-center rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
               >
                 Log in
-              </Link>
-              <Link
-                href={`/signup?next=${encodeURIComponent(base)}`}
+              </ReturnHereLink>
+              <ReturnHereLink
+                to="/signup"
+                fallback={base}
                 className="flex w-full items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
               >
                 Sign up
-              </Link>
+              </ReturnHereLink>
             </div>
           )}
         </div>
@@ -624,12 +627,13 @@ export default async function CommunityLayout({
                 </Link>
               </>
             ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(base)}`}
+              <ReturnHereLink
+                to="/login"
+                fallback={base}
                 className="text-sm font-medium text-accent hover:underline"
               >
                 Log in
-              </Link>
+              </ReturnHereLink>
             )}
           </div>
         </header>
@@ -657,13 +661,13 @@ export default async function CommunityLayout({
           {!user ? (
             <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               You&apos;re viewing the public parts of {community.name}.{" "}
-              <Link href={`/login?next=${encodeURIComponent(base)}`} className="font-medium underline">
+              <ReturnHereLink to="/login" fallback={base} className="font-medium underline">
                 Log in
-              </Link>{" "}
+              </ReturnHereLink>{" "}
               or{" "}
-              <Link href={`/signup?next=${encodeURIComponent(base)}`} className="font-medium underline">
+              <ReturnHereLink to="/signup" fallback={base} className="font-medium underline">
                 sign up
-              </Link>{" "}
+              </ReturnHereLink>{" "}
               to post, review and join.
             </div>
           ) : !isMember ? (
@@ -738,8 +742,7 @@ export default async function CommunityLayout({
               }
             : {
                 kind: "guest",
-                loginHref: `/login?next=${encodeURIComponent(base)}`,
-                signupHref: `/signup?next=${encodeURIComponent(base)}`,
+                returnFallback: base,
               }
         }
       />
