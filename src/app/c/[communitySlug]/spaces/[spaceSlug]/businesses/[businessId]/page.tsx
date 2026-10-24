@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -5,14 +6,68 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getBusinessDetail, resolveBusinessRef, getCommunityBusinessCustomCategories, getCommunityBusinessCategoryLabelOverrides } from "@/lib/data/businesses";
-import { offersStayBridge } from "@/lib/business-categories";
+import { businessCategoryLabel, offersStayBridge } from "@/lib/business-categories";
+import { absoluteUrl, businessJsonLd, canonicalUrl, jsonLd, metaDescription } from "@/lib/seo";
+import { pageCanonical } from "@/lib/seo-site";
 import { getCommunityAccommodationSpace, getStayLinkForBusiness } from "@/lib/data/accommodation";
 import { BusinessDetailView } from "../../business-detail-view";
+
+type Params = Promise<{ communitySlug: string; spaceSlug: string; businessId: string }>;
+
+// Each listing is its own search result — "Kendwa Rocks – Restaurant in
+// Kendwa" — rather than one of a hundred pages all titled after the
+// community. The description is the owner's own text when there is one.
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { communitySlug, spaceSlug, businessId: businessRef } = await params;
+  const supabase = await createClient();
+  const community = await getCommunityBySlug(supabase, communitySlug);
+  if (!community) return {};
+  const space = await getSpaceBySlug(supabase, community.id, spaceSlug);
+  if (!space) return {};
+  const ref = await resolveBusinessRef(supabase, space.id, businessRef);
+  if (!ref) return {};
+  const { data: business } = await supabase.from("businesses").select("*").eq("id", ref.id).maybeSingle();
+  if (!business || business.space_id !== space.id) return {};
+  const [customCategories, labelOverrides, { url, origin }] = await Promise.all([
+    getCommunityBusinessCustomCategories(supabase, community.id),
+    getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
+    pageCanonical(community),
+  ]);
+  const label =
+    business.category === "other"
+      ? null
+      : businessCategoryLabel(
+          business.category,
+          customCategories.filter((c) => c.space_id === space.id),
+          labelOverrides.filter((o) => o.space_id === space.id)
+        );
+  const place = business.location_label?.trim() || null;
+  const kind = label && place ? `${label} in ${place}` : label ?? place;
+  const title = kind ? `${business.name} – ${kind}` : business.name;
+  const description =
+    metaDescription(business.description) ??
+    `${business.name}${place ? ` in ${place}` : ""}: ${label ? `${label.toLowerCase()} details, ` : ""}location, opening hours, photos and reviews on ${community.name}.`;
+  const image = absoluteUrl(business.image_url, origin);
+  return {
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: community.name,
+      locale: "en_GB",
+      title,
+      description,
+      ...(url ? { url } : {}),
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: { card: image ? "summary_large_image" : "summary", title, description, ...(image ? { images: [image] } : {}) },
+  };
+}
 
 export default async function BusinessDetailPage({
   params,
 }: {
-  params: Promise<{ communitySlug: string; spaceSlug: string; businessId: string }>;
+  params: Params;
 }) {
   // The [businessId] segment is really an "id or slug" — old links carry the
   // UUID, new ones the human slug.
@@ -87,8 +142,31 @@ export default async function BusinessDetailPage({
     canManage ? getCommunityAccommodationSpace(supabase, community.id) : Promise.resolve(null),
   ]);
 
+  // Structured data a search engine can show as a rich result: the place,
+  // where it is, and its rating from this community's own reviews.
+  const { origin, url } = await pageCanonical(community);
+  const structured =
+    origin && url
+      ? businessJsonLd({
+          business: detail.business,
+          url,
+          images: [detail.business.image_url, ...detail.images.map((image) => image.url)]
+            .map((src) => absoluteUrl(src, origin))
+            .filter((src, index, all): src is string => Boolean(src) && all.indexOf(src) === index),
+          rating: { avgRating: detail.avgRating, ratingCount: detail.ratingCount },
+          breadcrumbs: [
+            { name: community.name, url: canonicalUrl(origin, "/") },
+            { name: space.name, url: canonicalUrl(origin, `/spaces/${space.slug}`) },
+            { name: detail.business.name, url },
+          ],
+        })
+      : [];
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+      {structured.map((data, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={jsonLd(data)} />
+      ))}
       <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <Link href={`/c/${community.slug}/spaces/${space.slug}`} className="hover:underline">
           {space.name}
