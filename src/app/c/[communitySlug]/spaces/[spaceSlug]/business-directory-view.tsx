@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowLeft, Plus, Search, X, Building2, Pin, PinOff, Trash2, Pencil, Heart, MapPin, LayoutGrid, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { businessCategoryOptions, businessCategoryLabel } from "@/lib/business-categories";
@@ -14,6 +14,10 @@ import type { BusinessWithStats } from "@/lib/data/businesses";
 import type { BusinessCategory, BusinessCustomCategory, BusinessCategoryLabelOverride } from "@/types/database";
 
 type SortKey = "featured" | "rating" | "newest" | "name";
+
+// Location chips shown before "More places": a directory's labels are
+// free text, and a category can carry dozens of them.
+const MAX_LOCATION_CHIPS = 8;
 
 function countLabel(count: number): string {
   return `${count} ${count === 1 ? "listing" : "listings"}`;
@@ -114,6 +118,8 @@ export function BusinessDirectoryView({
 }) {
   const [category, setCategory] = useState<BusinessCategory | "all">(initialCategory ?? "all");
   const [location, setLocation] = useState<string | "all">("all");
+  // Long location lists fold away after the busiest few; see MAX_LOCATION_CHIPS.
+  const [showAllLocations, setShowAllLocations] = useState(false);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("featured");
   const [savedOnly, setSavedOnly] = useState(false);
@@ -131,6 +137,7 @@ export function BusinessDirectoryView({
   const [renameLabel, setRenameLabel] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
 
   // Built-in categories (with staff relabellings applied) + this space's customs.
   const categoryOptions = useMemo(
@@ -218,8 +225,40 @@ export function BusinessDirectoryView({
     });
   }
 
-  const savedCount = useMemo(() => businesses.filter((b) => b.saved).length, [businesses]);
-  const localCount = useMemo(() => businesses.filter(({ business: b }) => b.is_local).length, [businesses]);
+  // Counts within the chosen category: "Locally owned 17" on a category with
+  // three local listings promised more than the chip delivers.
+  const inCategory = useMemo(
+    () => (category === "all" ? businesses : businesses.filter(({ business: b }) => b.category === category)),
+    [businesses, category]
+  );
+  const savedCount = useMemo(() => inCategory.filter((b) => b.saved).length, [inCategory]);
+  const localCount = useMemo(() => inCategory.filter(({ business: b }) => b.is_local).length, [inCategory]);
+
+  // Locations among the listings the other filters leave (category, search,
+  // saved, local) — counting the whole directory offered "Fumba 1" on a
+  // category with nothing in Fumba. Busiest first, so the places people are
+  // most likely to be come first, then by name.
+  const locations = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const counts = new Map<string, number>();
+    for (const { business: b, saved } of businesses) {
+      if (!b.location_label) continue;
+      if (savedOnly && !saved) continue;
+      if (localOnly && !b.is_local) continue;
+      if (category !== "all" && b.category !== category) continue;
+      if (q && !b.name.toLowerCase().includes(q) && !(b.description ?? "").toLowerCase().includes(q)) continue;
+      counts.set(b.location_label, (counts.get(b.location_label) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort(([a, x], [b, y]) => y - x || a.localeCompare(b));
+  }, [businesses, category, query, savedOnly, localOnly]);
+  // The selected location stays visible even when it falls below the fold.
+  const visibleLocations =
+    showAllLocations || locations.length <= MAX_LOCATION_CHIPS
+      ? locations
+      : locations.filter(([label], i) => i < MAX_LOCATION_CHIPS || label === location);
+  // A place picked under another category may have nothing in this one;
+  // then the chip is gone and the listing shows everywhere again.
+  const activeLocation = location !== "all" && locations.some(([label]) => label === location) ? location : "all";
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -229,11 +268,11 @@ export function BusinessDirectoryView({
       // rather than replacing it, so "Restaurant" + "Local" = local restaurants.
       if (localOnly && !b.is_local) return false;
       if (category !== "all" && b.category !== category) return false;
-      if (location !== "all" && b.location_label !== location) return false;
+      if (activeLocation !== "all" && b.location_label !== activeLocation) return false;
       if (q && !b.name.toLowerCase().includes(q) && !(b.description ?? "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [businesses, category, location, query, savedOnly, localOnly]);
+  }, [businesses, category, activeLocation, query, savedOnly, localOnly]);
 
   // Order within each location group by the chosen sort. "Featured" keeps the
   // server's featured-first, name order; the rest re-sort the whole group.
@@ -260,14 +299,7 @@ export function BusinessDirectoryView({
     return counts;
   }, [businesses]);
 
-  const locations = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const { business: b } of businesses) {
-      if (!b.location_label) continue;
-      counts.set(b.location_label, (counts.get(b.location_label) ?? 0) + 1);
-    }
-    return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [businesses]);
+
 
   const groups = useMemo(() => {
     const byLocation = new Map<string, BusinessWithStats[]>();
@@ -281,8 +313,16 @@ export function BusinessDirectoryView({
       list.push(item);
       byLocation.set(item.business.location_label, list);
     }
-    const sorted = [...byLocation.entries()].sort(([a], [b]) => a.localeCompare(b));
-    if (unlabeled.length > 0) sorted.push(["Other", unlabeled]);
+    // Busiest places first, so the page opens on Kendwa's ten listings rather
+    // than an alphabetical run of one-listing places. Places with a single
+    // listing share one closing group — each card names its own place — so
+    // they fill a grid instead of a row each.
+    const entries = [...byLocation.entries()].sort(([a, x], [b, y]) => y.length - x.length || a.localeCompare(b));
+    const singles = entries.filter(([, items]) => items.length === 1);
+    const pooled = entries.length > 1 && singles.length > 1;
+    const sorted: [string, BusinessWithStats[]][] = pooled ? entries.filter(([, items]) => items.length > 1) : entries;
+    const elsewhere = [...(pooled ? singles.flatMap(([, items]) => items) : []), ...unlabeled];
+    if (elsewhere.length > 0) sorted.push([sorted.length > 0 ? "Other places" : "Other", elsewhere]);
     return sorted.map(([label, items]) => [label, sortItems(items)] as [string, BusinessWithStats[]]);
   }, [filtered, sortItems]);
 
@@ -325,55 +365,100 @@ export function BusinessDirectoryView({
 
       {/* Categories are the page's main navigation, not another filter chip: a
           directory is browsed by kind first — restaurants, fundis, taxis — so
-          the kinds are the biggest thing on it and each carries its own count. */}
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        <CategoryTile
-          Icon={LayoutGrid}
-          label="Everything"
-          detail={countLabel(businesses.length)}
-          active={category === "all"}
-          onClick={() => setCategory("all")}
-        />
-        {chipOptions.map((c) => {
-          const count = countByCategory.get(c.value) ?? 0;
-          const isCustom = customCategories.some((cc) => cc.slug === c.value);
-          const isActive = category === c.value;
-          // An empty category is a dead end for a visitor, so it isn't shown at
-          // all. Staff keep seeing their own empty categories and anything
-          // pinned to the nav, dimmed — otherwise a category could never be
-          // reached again to be renamed, deleted or unpinned.
-          const staffOnly = isCustom || featured.includes(c.value);
-          if (count === 0 && !isActive && !(isStaff && staffOnly)) return null;
-          return (
-            <CategoryTile
-              key={c.value}
-              Icon={BUSINESS_CATEGORY_ICONS[c.value] ?? DEFAULT_CATEGORY_ICON}
-              label={c.label}
-              detail={count > 0 ? countLabel(count) : "Nothing listed yet"}
-              active={isActive}
-              dimmed={count === 0 && !isActive}
-              pinned={featured.includes(c.value)}
-              onClick={() => setCategory(isActive ? "all" : c.value)}
-            />
-          );
-        })}
-        {isStaff && (
+          the kinds are the biggest thing on it and each carries its own count.
+
+          Once a kind is chosen (usually from its link in the side nav) the
+          tiles give way to a heading for it: the side nav already lists the
+          same categories, so repeating them all above the listings only pushed
+          the restaurants down the page. "All categories" brings the tiles back,
+          which keeps a category that isn't pinned to the nav reachable. */}
+      {category !== "all" ? (
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
             onClick={() => {
-              setChipError(null);
-              setShowCategoryTools((v) => !v);
+              setCategory("all");
+              // Drop the ?category= the nav link put there, so the side nav
+              // stops marking this category as the current page.
+              router.replace(pathname, { scroll: false });
             }}
-            className={`flex flex-col justify-center gap-1.5 rounded-lg border border-dashed p-4 text-left text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            <span className="inline-flex items-center gap-2">
-              <Pencil className="h-4 w-4" />
-              {showCategoryTools ? "Done editing" : "Edit categories"}
-            </span>
-            <span className="text-xs font-normal text-muted-foreground">Add, rename, pin to the nav</span>
+            <ArrowLeft className="h-4 w-4" />
+            All categories
           </button>
-        )}
-      </div>
+          <h2 className="flex min-w-0 items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
+            {(() => {
+              const Icon = BUSINESS_CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON;
+              return <Icon className="h-5 w-5 shrink-0 text-accent" />;
+            })()}
+            <span className="truncate">{chipOptions.find((o) => o.value === category)?.label ?? category}</span>
+            <span className="text-base font-medium text-muted-foreground">({countByCategory.get(category) ?? 0})</span>
+          </h2>
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                setChipError(null);
+                setShowCategoryTools((v) => !v);
+              }}
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-md border border-dashed px-3 py-1.5 text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {showCategoryTools ? "Done editing" : "Edit category"}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <CategoryTile
+            Icon={LayoutGrid}
+            label="Everything"
+            detail={countLabel(businesses.length)}
+            active={category === "all"}
+            onClick={() => setCategory("all")}
+          />
+          {chipOptions.map((c) => {
+            const count = countByCategory.get(c.value) ?? 0;
+            const isCustom = customCategories.some((cc) => cc.slug === c.value);
+            const isActive = category === c.value;
+            // An empty category is a dead end for a visitor, so it isn't shown at
+            // all. Staff keep seeing their own empty categories and anything
+            // pinned to the nav, dimmed — otherwise a category could never be
+            // reached again to be renamed, deleted or unpinned.
+            const staffOnly = isCustom || featured.includes(c.value);
+            if (count === 0 && !isActive && !(isStaff && staffOnly)) return null;
+            return (
+              <CategoryTile
+                key={c.value}
+                Icon={BUSINESS_CATEGORY_ICONS[c.value] ?? DEFAULT_CATEGORY_ICON}
+                label={c.label}
+                detail={count > 0 ? countLabel(count) : "Nothing listed yet"}
+                active={isActive}
+                dimmed={count === 0 && !isActive}
+                pinned={featured.includes(c.value)}
+                onClick={() => setCategory(isActive ? "all" : c.value)}
+              />
+            );
+          })}
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                setChipError(null);
+                setShowCategoryTools((v) => !v);
+              }}
+              className={`flex flex-col justify-center gap-1.5 rounded-lg border border-dashed p-4 text-left text-sm font-medium ${showCategoryTools ? "border-accent text-accent" : "border-border text-muted-foreground hover:border-accent hover:text-accent"}`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Pencil className="h-4 w-4" />
+                {showCategoryTools ? "Done editing" : "Edit categories"}
+              </span>
+              <span className="text-xs font-normal text-muted-foreground">Add, rename, pin to the nav</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* The staff controls themselves, once asked for. They act on whichever
           category is selected, which is why picking one comes first. */}
@@ -537,7 +622,7 @@ export function BusinessDirectoryView({
             </button>
           )}
           <span className="ml-auto text-sm text-muted-foreground">
-            {filtered.length === businesses.length ? countLabel(businesses.length) : `${filtered.length} of ${businesses.length} shown`}
+            {filtered.length === inCategory.length ? countLabel(inCategory.length) : `${filtered.length} of ${inCategory.length} shown`}
           </span>
         </div>
       ) : null}
@@ -551,12 +636,12 @@ export function BusinessDirectoryView({
           <button
             type="button"
             onClick={() => setLocation("all")}
-            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium ${location === "all" ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
+            className={`rounded-full border px-3.5 py-1.5 text-sm font-medium ${activeLocation === "all" ? "border-accent bg-accent-soft text-accent" : "border-border bg-card text-muted-foreground hover:border-muted-foreground/40"}`}
           >
             Anywhere
           </button>
-          {locations.map(([label, count]) => {
-            const isActive = location === label;
+          {visibleLocations.map(([label, count]) => {
+            const isActive = activeLocation === label;
             return (
               <button
                 key={label}
@@ -568,6 +653,16 @@ export function BusinessDirectoryView({
               </button>
             );
           })}
+          {locations.length > MAX_LOCATION_CHIPS && (
+            <button
+              type="button"
+              onClick={() => setShowAllLocations((v) => !v)}
+              aria-expanded={showAllLocations}
+              className="rounded-full px-3 py-1.5 text-sm font-medium text-accent hover:underline"
+            >
+              {showAllLocations ? "Fewer places" : `More places (${locations.length - MAX_LOCATION_CHIPS})`}
+            </button>
+          )}
         </div>
       )}
 
@@ -600,7 +695,7 @@ export function BusinessDirectoryView({
                   </h3>
                 </div>
               )}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {group.map((item) => (
                   <BusinessCard
                     key={item.business.id}
@@ -610,6 +705,8 @@ export function BusinessDirectoryView({
                     canSave={canPost}
                     customCategories={customCategories}
                     labelOverrides={labelOverrides}
+                    // Inside one category every card would say the same thing.
+                    showCategory={category === "all"}
                   />
                 ))}
               </div>

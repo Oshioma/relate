@@ -20,6 +20,7 @@ export const PLAN_FEATURE_LABELS: Record<string, string> = {
   advanced_permissions: "Advanced permissions",
   multiple_communities: "Multiple communities",
   multiple_admins: "Multiple admins",
+  session_recording: "Record live lessons",
 };
 
 export function planFeatureLabel(key: string): string {
@@ -42,6 +43,9 @@ export const PLAN_FEATURE_ENFORCEMENT: Record<string, string> = {
   multiple_admins: "Enforced: leave the plan's `admins` limit unset.",
   // community_has_feature(…, 'white_label') in setCustomDomain.
   white_label: "Enforced: connecting a custom domain.",
+  // community_has_feature(…, 'session_recording') when a live lesson's room
+  // token is minted (the Record button) and in the JaaS recording webhook.
+  session_recording: "Enforced: the Record button in live course lessons, and saving the recording.",
 };
 
 export function planFeatureEnforcement(key: string): string | null {

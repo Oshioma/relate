@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import { CalendarClock, Lightbulb, MessageCircleQuestion, BedDouble, UtensilsCrossed, Info } from "lucide-react";
-import type { Destination, GuidePhoto } from "@/lib/guides/where-to-stay/types";
+import type { Destination } from "@/lib/guides/where-to-stay/types";
 import {
   ACCOMMODATION_LABELS,
   ATMOSPHERE_LABELS,
@@ -14,8 +15,13 @@ import { listingKey, listingsInArea, type GuideDirectory, type GuideListing } fr
 import type { EditorialGuideUpdate } from "@/types/database";
 import { ShareMenu } from "@/components/ui/share-menu";
 import { GuideImage } from "./guide-image";
+import { PhotoCredit } from "./photo-credit";
+import { PhotoGallery, PhotoOpener } from "./photo-viewer";
+
+export { PhotoCredit };
 import { PANEL_ICONS, TAG_ICONS } from "./guide-icons";
 import { RestaurantCard, StayCard, DirectoryChips } from "./recommendation-cards";
+import { ZanzibarRoomsStays } from "./zanzibar-rooms-stays";
 
 export type CommunityLinks = {
   tip: string;
@@ -40,28 +46,6 @@ export function formatDate(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-export function PhotoCredit({ photo }: { photo: GuidePhoto }) {
-  return (
-    <>
-      {photo.caption}{" "}
-      <span className="whitespace-nowrap">
-        Photo:{" "}
-        <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
-          {photo.credit}
-        </a>
-        ,{" "}
-        {photo.licenceUrl ? (
-          <a href={photo.licenceUrl} target="_blank" rel="noopener noreferrer license" className="underline-offset-2 hover:underline">
-            {photo.licence}
-          </a>
-        ) : (
-          photo.licence
-        )}
-      </span>
-    </>
-  );
-}
-
 function Gallery({ destination }: { destination: Destination }) {
   const [hero, ...rest] = destination.photos;
   if (!hero) {
@@ -71,27 +55,36 @@ function Gallery({ destination }: { destination: Destination }) {
       </div>
     );
   }
+  // Clicking any photo opens the viewer on all of the destination's photos.
   return (
-    <div className="space-y-3">
-      <figure>
-        <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 1024px) 960px, 100vw" className="aspect-[16/9] rounded-lg sm:aspect-[21/9]" />
-        <figcaption className="mt-1.5 text-xs text-muted-foreground">
-          <PhotoCredit photo={hero} />
-        </figcaption>
-      </figure>
-      {rest.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {rest.slice(0, 4).map((photo) => (
-            <figure key={photo.src}>
-              <GuideImage src={photo.src} alt={photo.alt} width={photo.width} sizes="(min-width: 768px) 240px, 50vw" className="aspect-[4/3] rounded-md" />
-              <figcaption className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted-foreground">
-                <PhotoCredit photo={photo} />
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      )}
-    </div>
+    <PhotoGallery photos={destination.photos} title={destination.name}>
+      <div className="space-y-3">
+        <figure>
+          <div className="relative">
+            <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 1024px) 960px, 100vw" className="aspect-[16/9] rounded-lg sm:aspect-[21/9]" />
+            <PhotoOpener index={0} alt={hero.alt} />
+          </div>
+          <figcaption className="mt-1.5 text-xs text-muted-foreground">
+            <PhotoCredit photo={hero} />
+          </figcaption>
+        </figure>
+        {rest.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {rest.slice(0, 4).map((photo, i) => (
+              <figure key={photo.src}>
+                <div className="relative">
+                  <GuideImage src={photo.src} alt={photo.alt} width={photo.width} sizes="(min-width: 768px) 240px, 50vw" className="aspect-[4/3] rounded-md" />
+                  <PhotoOpener index={i + 1} alt={photo.alt} />
+                </div>
+                <figcaption className="mt-1 line-clamp-3 text-[11px] leading-snug text-muted-foreground">
+                  <PhotoCredit photo={photo} />
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
+      </div>
+    </PhotoGallery>
   );
 }
 
@@ -267,6 +260,9 @@ export function DestinationSection({
         <p className="mt-3 text-xs text-muted-foreground">
           Price categories are relative ($ budget-friendly, $$ mid-range, $$$ upper range); we do not quote nightly rates, which change constantly.
         </p>
+        <Suspense fallback={null}>
+          <ZanzibarRoomsStays place={d} />
+        </Suspense>
       </div>
 
       <div className="mt-10 rounded-xl border border-accent/30 bg-accent-soft p-5">

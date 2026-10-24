@@ -2,17 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCommunityCurrency } from "@/lib/data/community";
 
-export type TierFormState = { error: string } | undefined;
+// `saved` carries the tier's name back so the form can say what it just saved.
+export type TierFormState = { error: string } | { saved: string } | undefined;
 
 // Whole currency units from the form → integer cents. Non-positive/blank = 0.
 function parsePriceCents(raw: FormDataEntryValue | null): number {
   const amount = Number(String(raw ?? "").trim());
   return Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
-}
-
-function parseCurrency(raw: FormDataEntryValue | null): string {
-  return (String(raw ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
 }
 
 // Charging members is a paid-plan capability — the same gate the per-space price
@@ -28,7 +26,6 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const priceCents = parsePriceCents(formData.get("price"));
-  const currency = parseCurrency(formData.get("currency"));
 
   if (!name) return { error: "Give the tier a name." };
   if (priceCents <= 0) return { error: "Set a monthly price above zero." };
@@ -37,6 +34,8 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
   if (!(await planAllowsCharging(supabase, communityId))) {
     return { error: "Charging members is a paid-plan feature. Upgrade your plan first." };
   }
+  // Tiers are charged in the community's currency (Admin -> Payments).
+  const currency = await getCommunityCurrency(supabase, communityId);
 
   const { data: maxSort } = await supabase
     .from("community_tiers")
@@ -46,18 +45,30 @@ export async function createTier(_prevState: TierFormState, formData: FormData):
     .limit(1)
     .maybeSingle();
 
-  const { error } = await supabase.from("community_tiers").insert({
-    community_id: communityId,
-    name,
-    description: description || null,
-    price_cents: priceCents,
-    currency,
-    sort_order: (maxSort?.sort_order ?? -1) + 1,
-  });
+  const { data: created, error } = await supabase
+    .from("community_tiers")
+    .insert({
+      community_id: communityId,
+      name,
+      description: description || null,
+      price_cents: priceCents,
+      currency,
+      sort_order: (maxSort?.sort_order ?? -1) + 1,
+    })
+    .select("id")
+    .single();
   if (error) return { error: error.message };
 
+  // Spaces ticked on the new-tier form are linked straight away, so the tier
+  // is ready to sell as soon as it's saved.
+  const spaceIds = formData.getAll("space_ids").map(String).filter(Boolean);
+  if (spaceIds.length > 0) {
+    const res = await setTierSpaces(created.id, spaceIds, communitySlug);
+    if (res.error) return { error: `The tier was saved, but its spaces weren't: ${res.error}` };
+  }
+
   revalidatePath(`/c/${communitySlug}/admin`);
-  return undefined;
+  return { saved: name };
 }
 
 export async function updateTier(_prevState: TierFormState, formData: FormData): Promise<TierFormState> {
@@ -66,7 +77,6 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const priceCents = parsePriceCents(formData.get("price"));
-  const currency = parseCurrency(formData.get("currency"));
 
   if (!name) return { error: "Give the tier a name." };
   if (priceCents <= 0) return { error: "Set a monthly price above zero." };
@@ -77,6 +87,7 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   if (!(await planAllowsCharging(supabase, tier.community_id))) {
     return { error: "Charging members is a paid-plan feature. Upgrade your plan first." };
   }
+  const currency = await getCommunityCurrency(supabase, tier.community_id);
 
   const { error } = await supabase
     .from("community_tiers")
@@ -85,7 +96,7 @@ export async function updateTier(_prevState: TierFormState, formData: FormData):
   if (error) return { error: error.message };
 
   revalidatePath(`/c/${communitySlug}/admin`);
-  return undefined;
+  return { saved: name };
 }
 
 // Archive/unarchive: archived tiers stop accepting new subscribers but keep

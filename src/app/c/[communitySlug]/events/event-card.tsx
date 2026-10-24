@@ -88,6 +88,10 @@ export function EventCard({
             alt={event.title}
             className="h-full w-full object-cover"
             onError={() => setImageBroken(true)}
+            // A tracking pixel "loads" fine; treat anything that tiny as broken.
+            onLoad={(e) => {
+              if (e.currentTarget.naturalWidth <= 2 || e.currentTarget.naturalHeight <= 2) setImageBroken(true);
+            }}
           />
         ) : !defaultImageBroken ? (
           // eslint-disable-next-line @next/next/no-img-element

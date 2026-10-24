@@ -1,17 +1,17 @@
 import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 import { guideCardImage, parseOverrides, resolveGuideContent, WHERE_TO_STAY_SLUG } from "@/lib/guides/where-to-stay/content";
-import {
-  BOUTIQUE_HOTELS_SLUG,
-  boutiqueCardImage,
-  parseBoutiqueOverrides,
-  resolveBoutiqueContent,
-} from "@/lib/guides/boutique-hotels/content";
+import { hotelGuideCardImage, loadHotelGuide } from "@/lib/guides/hotel-guide/content";
+import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { loadPlaceGuide, placeGuideCardImage } from "@/lib/guides/place-guide/content";
+import { placeGuideFor } from "@/lib/guides/place-guide/registry";
 
 // The editorial guides the app knows how to render, keyed by slug. The
 // guides index, the community feed and the Guides space all describe a guide
 // from here, so adding a guide is one entry rather than a slug check in each.
 
 type GuideEntry = {
+  // A short name for the guide cards (guides index, Guides space).
+  cardTitle: string;
   // One line for cards (guides index, feed, Guides space).
   blurb: string;
   hero: (content: unknown) => GuidePhoto | null;
@@ -19,19 +19,30 @@ type GuideEntry = {
   cardImage: (content: unknown) => string | null;
 };
 
-const GUIDES: Record<string, GuideEntry> = {
-  [WHERE_TO_STAY_SLUG]: {
-    blurb: "Compare Zanzibar's 14 best beach destinations and find the right one for your holiday.",
-    hero: (content) => resolveGuideContent(parseOverrides(content)).heroPhoto,
-    cardImage: guideCardImage,
-  },
-  [BOUTIQUE_HOTELS_SLUG]: {
-    blurb: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
-    hero: (content) => resolveBoutiqueContent(parseBoutiqueOverrides(content)).heroPhoto,
-    cardImage: boutiqueCardImage,
-  },
+const WHERE_TO_STAY: GuideEntry = {
+  cardTitle: "Where to Stay",
+  blurb: "Compare Zanzibar's 14 best beach destinations and find the right one for your holiday.",
+  hero: (content) => resolveGuideContent(parseOverrides(content)).heroPhoto,
+  cardImage: guideCardImage,
 };
 
 export function editorialGuideEntry(slug: string): GuideEntry | null {
-  return GUIDES[slug] ?? null;
+  if (slug === WHERE_TO_STAY_SLUG) return WHERE_TO_STAY;
+  const places = placeGuideFor(slug);
+  if (places) {
+    return {
+      cardTitle: places.cardTitle,
+      blurb: places.cardBlurb,
+      hero: (content) => loadPlaceGuide(places, content).heroPhoto,
+      cardImage: (content) => placeGuideCardImage(places, content),
+    };
+  }
+  const hotels = hotelGuideFor(slug);
+  if (!hotels) return null;
+  return {
+    cardTitle: hotels.cardTitle,
+    blurb: hotels.cardBlurb,
+    hero: (content) => loadHotelGuide(hotels, content).heroPhoto,
+    cardImage: (content) => hotelGuideCardImage(hotels, content),
+  };
 }

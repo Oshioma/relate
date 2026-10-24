@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isResendConfigured, sendNotificationEmail } from "@/lib/email";
+import { isResendConfigured, sendCommunityTemplateEmail, sendNotificationEmail } from "@/lib/email";
+import { firstNameOf, isOwnJoinNotificationTitle, renderCommunityEmail } from "@/lib/email-templates";
 
 // Webhook target for the notifications-table trigger (see
 // 20260728095459_email_on_notification_insert.sql). The DB posts the id of a
@@ -72,18 +73,57 @@ export async function POST(request: NextRequest) {
   if (!to) return NextResponse.json({ ok: true, skipped: "no-email" });
 
   let communityName: string | null = null;
+  let communityLogoUrl: string | null = null;
   if (notification.community_id) {
     const { data: community } = await admin
       .from("communities")
-      .select("name")
+      .select("name, logo_url")
       .eq("id", notification.community_id)
       .maybeSingle();
     communityName = community?.name ?? null;
+    communityLogoUrl = community?.logo_url ?? null;
   }
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const link = notification.link ?? "/notifications";
   const ctaUrl = link.startsWith("http") ? link : `${base}${link}`;
+
+  // A member's own "You joined …" row: when the community has written a
+  // welcome email (Admin → Emails) and left it switched on, that goes out in
+  // place of the plain notification email.
+  if (
+    notification.type === "membership" &&
+    notification.community_id &&
+    communityName &&
+    isOwnJoinNotificationTitle(notification.title)
+  ) {
+    const { data: welcome } = await admin
+      .from("community_email_templates")
+      .select("*")
+      .eq("community_id", notification.community_id)
+      .eq("kind", "welcome")
+      .maybeSingle();
+    if (welcome?.enabled) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("full_name, username")
+        .eq("id", notification.user_id)
+        .maybeSingle();
+      const email = renderCommunityEmail({
+        template: welcome,
+        communityName,
+        communityLogoUrl,
+        values: { firstName: firstNameOf(profile?.full_name) ?? profile?.username ?? null },
+        buttonUrl: ctaUrl,
+      });
+      const sentWelcome = await sendCommunityTemplateEmail({ to, communityName, subject: email.subject, html: email.html });
+      if (!sentWelcome.ok) {
+        console.warn("[notifications/email] welcome send failed:", sentWelcome.reason);
+        return NextResponse.json({ ok: false, reason: sentWelcome.reason }, { status: 502 });
+      }
+      return NextResponse.json({ ok: true, sent: "welcome" });
+    }
+  }
 
   const sent = await sendNotificationEmail({
     to,

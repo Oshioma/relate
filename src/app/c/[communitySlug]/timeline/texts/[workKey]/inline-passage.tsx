@@ -4,15 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { readPassageInline, type InlinePassage } from "../actions";
+import { readPassageInline, type InlinePassage, type InlinePassageLayer } from "../actions";
+import { ImageFigure } from "../archive-ui";
 
 // A PASSAGE OPENS WHERE IT IS LISTED.
 //
 // Most passages bring nothing to their own page but the words: the pictures
 // there are the whole text's, the same ones beside the contents. So the
 // contents list opens a passage underneath itself, and the reader stays on one
-// page. The full page is still a link away, and is pointed at when the passage
-// has pictures, dates or connections of its own.
+// page. A passage with pictures of its own shows them here too, beside its
+// words, as its own page does. The full page is still a link away, and is
+// pointed at when the passage has dates or connections of its own.
 
 export function InlinePassageRow({
   communitySlug,
@@ -70,64 +72,89 @@ export function InlinePassageRow({
             </button>
           </p>
         )}
-        {state.kind === "ready" && (
-          <>
-            {state.passage.layers.length === 0 && (
-              <p className="text-sm italic text-muted-foreground">No words are recorded for this passage yet.</p>
-            )}
-            {state.passage.layers.map((layer) => (
-              <article
-                key={layer.id}
-                className={cn("rounded-xl border bg-card p-4", layer.original ? "border-accent/40" : "border-border")}
-              >
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{layer.heading}</h3>
-                {layer.content ? (
-                  <p
-                    lang={
-                      layer.language === "Ancient Greek"
-                        ? "grc"
-                        : layer.language === "Arabic"
-                          ? "ar"
-                          : layer.language === "Latin"
-                            ? "la"
-                            : undefined
-                    }
-                    dir={layer.language === "Arabic" ? "rtl" : undefined}
-                    className={cn(
-                      "mt-2 whitespace-pre-line leading-relaxed text-foreground",
-                      layer.original ? "text-lg" : "text-base"
-                    )}
-                  >
-                    {layer.content}
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm italic text-muted-foreground">{layer.absentReason}</p>
-                )}
-                {layer.source && (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {layer.source.author ? `${layer.source.author}, ` : ""}
-                    {layer.source.url ? (
-                      <a href={layer.source.url} target="_blank" rel="noreferrer" className="hover:underline">
-                        {layer.source.title}
-                      </a>
-                    ) : (
-                      layer.source.title
-                    )}
-                    {layer.source.year ? ` (${layer.source.year})` : ""}
-                  </p>
-                )}
-              </article>
-            ))}
-            <Link href={href} className="inline-block text-sm text-accent hover:underline">
-              {state.passage.imageCount > 0
-                ? `Open the full page, with ${state.passage.imageCount === 1 ? "its own picture" : `its ${state.passage.imageCount} pictures`}`
-                : state.passage.moreOnFullPage
-                  ? "Open the full page for its dates and connections"
-                  : "Open on its own page"}
-            </Link>
-          </>
-        )}
+        {state.kind === "ready" && <Opened passage={state.passage} href={href} />}
       </div>
     </details>
+  );
+}
+
+function Opened({ passage, href }: { passage: InlinePassage; href: string }) {
+  const firstTranslation = passage.layers.find((layer) => !layer.original && layer.content);
+  const words = (
+    <div className="min-w-0 space-y-3">
+      {passage.layers.length === 0 && (
+        <p className="text-sm italic text-muted-foreground">No words are recorded for this passage yet.</p>
+      )}
+      {passage.layers.map((layer) => (
+        <LayerCard key={layer.id} layer={layer} />
+      ))}
+      <Link href={href} className="inline-block text-sm text-accent hover:underline">
+        {passage.moreOnFullPage ? "Open the full page for its dates and connections" : "Open on its own page"}
+      </Link>
+    </div>
+  );
+  if (passage.images.length === 0) return words;
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div className="space-y-4">
+        {passage.images.map((image) => (
+          <ImageFigure
+            key={image.id}
+            image={image}
+            aside={
+              firstTranslation ? (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {firstTranslation.heading}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-foreground">{firstTranslation.content}</p>
+                </div>
+              ) : undefined
+            }
+          />
+        ))}
+      </div>
+      {words}
+    </div>
+  );
+}
+
+function LayerCard({ layer }: { layer: InlinePassageLayer }) {
+  return (
+    <article className={cn("rounded-xl border bg-card p-4", layer.original ? "border-accent/40" : "border-border")}>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{layer.heading}</h3>
+      {layer.content ? (
+        <p
+          lang={
+            layer.language === "Ancient Greek"
+              ? "grc"
+              : layer.language === "Arabic"
+                ? "ar"
+                : layer.language === "Latin"
+                  ? "la"
+                  : undefined
+          }
+          dir={layer.language === "Arabic" ? "rtl" : undefined}
+          className={cn("mt-2 whitespace-pre-line leading-relaxed text-foreground", layer.original ? "text-lg" : "text-base")}
+        >
+          {layer.content}
+        </p>
+      ) : (
+        <p className="mt-2 text-sm italic text-muted-foreground">{layer.absentReason}</p>
+      )}
+      {layer.source && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          {layer.source.author ? `${layer.source.author}, ` : ""}
+          {layer.source.url ? (
+            <a href={layer.source.url} target="_blank" rel="noreferrer" className="hover:underline">
+              {layer.source.title}
+            </a>
+          ) : (
+            layer.source.title
+          )}
+          {layer.source.year ? ` (${layer.source.year})` : ""}
+        </p>
+      )}
+    </article>
   );
 }

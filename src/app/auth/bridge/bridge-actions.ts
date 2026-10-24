@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifiedCommunityHost } from "@/lib/verified-community-host";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // The "Continue" press on the bridge interstitial. Being a Server Action
 // (origin-checked POST) rather than a GET is part of the security model: a
@@ -12,8 +13,7 @@ import { verifiedCommunityHost } from "@/lib/verified-community-host";
 // press this button for them, so a token is only ever minted after a person
 // has read which community — and which domain — they're continuing to.
 export async function continueToCommunityHost(formData: FormData): Promise<void> {
-  const nextRaw = String(formData.get("next") ?? "");
-  const next = nextRaw.startsWith("/") ? nextRaw : "/";
+  const next = safeReturnPath(formData.get("next"), "/");
 
   // Re-validate the host on the POST — the hidden field is as forgeable as
   // the query param was. Only another face of this app can ever receive the

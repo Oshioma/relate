@@ -8,6 +8,7 @@ import {
   wwwCounterpart,
 } from "@/lib/custom-domain";
 import { resolveCommunitySlugForHost, resolveCustomDomainForSlug } from "@/lib/tenant-domains";
+import { isCommunityIconPath } from "@/lib/community-icon-path";
 
 // Routes that keep their platform meaning even when served on a community's
 // host: auth has to work wherever the visitor is (auth cookies span the apex
@@ -116,6 +117,13 @@ export async function proxy(request: NextRequest) {
   if (slug) {
     const { pathname } = request.nextUrl;
     const base = `/c/${slug}`;
+
+    // This community's tab icon, as the page head links it. Served in place:
+    // left to the rules below, the welcome page's icon was rewritten onto
+    // /c/<slug>/welcome/… (404) and every other page's icon on the custom
+    // domain was redirected to the subdomain's bare /icon, the platform
+    // default, so the tab lost the community's icon.
+    if (isCommunityIconPath(pathname, slug)) return NextResponse.next();
 
     // On the automatic subdomain, a signed-out visitor to a community page
     // moves to the community's own domain, so the links people copy and pass

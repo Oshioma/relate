@@ -244,6 +244,8 @@ export function createTierCheckoutSession(params: {
   priceCents: number;
   currency: string;
   productName: string;
+  // Shown under the name on the Checkout page (what the membership includes).
+  productDescription?: string;
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
@@ -263,12 +265,51 @@ export function createTierCheckoutSession(params: {
             currency: params.currency,
             unit_amount: params.priceCents,
             recurring: { interval: "month" },
-            product_data: { name: params.productName },
+            product_data: {
+              name: params.productName,
+              ...(params.productDescription ? { description: params.productDescription } : {}),
+            },
           },
         },
       ],
       metadata: params.metadata,
       subscription_data: { metadata: params.metadata },
+    },
+  });
+}
+
+// --- Course purchase (one-off payment, direct charge on the connected account)
+// A single payment, not a subscription: the course is the buyer's for good.
+// Metadata carries course_id so the webhook records a paid enrolment.
+export function createCourseCheckoutSession(params: {
+  stripeAccount: string;
+  priceCents: number;
+  currency: string;
+  productName: string;
+  successUrl: string;
+  cancelUrl: string;
+  customerEmail?: string;
+  metadata: { course_id: string; user_id: string; community_id: string };
+}): Promise<{ id: string; url: string }> {
+  return stripeFetch<{ id: string; url: string }>("/checkout/sessions", {
+    stripeAccount: params.stripeAccount,
+    body: {
+      mode: "payment",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.priceCents,
+            product_data: { name: params.productName },
+          },
+        },
+      ],
+      metadata: params.metadata,
+      payment_intent_data: { metadata: params.metadata },
     },
   });
 }

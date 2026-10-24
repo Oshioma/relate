@@ -5,7 +5,7 @@ import { ArrowRight, CalendarDays, Lock, MapPin, MessageSquare, Store, UsersRoun
 import { createClient } from "@/lib/supabase/server";
 import { getCommunityBySlug, getCommunityStats } from "@/lib/data/community";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
-import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
 import { getCommunityEvents, getEventRsvpCounts, splitUpcomingPast } from "@/lib/data/events";
 import {
   getCommunityBusinessCategoryLabelOverrides,
@@ -29,6 +29,10 @@ import { getPublicTiers } from "@/lib/data/public-tiers";
 import { getPublicCrops } from "@/lib/data/public-crops";
 import { getCommunityPosts } from "@/lib/data/posts";
 import { NaturesGardenersLanding } from "./natures-gardeners-landing";
+import { joinPolicyOf } from "@/lib/join-policy";
+import { readTestimonials } from "@/lib/testimonials";
+import { getTestimonialMemberPhotos } from "@/lib/data/testimonial-photos";
+import { TestimonialsSection } from "./testimonials-section";
 
 // Communities with their own designed front page instead of the generic one.
 const BESPOKE_LANDINGS = new Set(["naturesgardeners"]);
@@ -95,7 +99,8 @@ export default async function CommunityWelcomePage({
   const loginHref = `/login?next=${encodeURIComponent(base)}`;
   const guestsMayRead = community.is_public || (community.feed_public && community.privacy !== "invite_only");
   const lookAroundHref = guestsMayRead ? `${base}?view=feed` : `${base}/spaces`;
-  const joinLabel = community.privacy === "public" ? `Join ${community.name}` : "Request to join";
+  const joinPolicy = joinPolicyOf(community);
+  const joinLabel = joinPolicy === "open" ? `Join ${community.name}` : "Request to join";
 
   const upcoming = features.events ? splitUpcomingPast(events).upcoming.slice(0, 4) : [];
   if (BESPOKE_LANDINGS.has(community.slug)) {
@@ -127,11 +132,17 @@ export default async function CommunityWelcomePage({
   // directory slideshow), the upcoming-events card — so a visitor sees what
   // members see, with Join / Log in in place of the composer.
   const cardSpaces = spaces.filter((space) => space.show_as_card);
-  const [customCategories, labelOverrides, featuredCategories, eventGoing] = await Promise.all([
+  // Members spaces the community shows, locked, to people who haven't joined.
+  const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
+    .filter((t) => t.show_as_card)
+    .map(teaserAsSpace);
+  const testimonials = readTestimonials(community.testimonials);
+  const [customCategories, labelOverrides, featuredCategories, eventGoing, testimonialPhotos] = await Promise.all([
     getCommunityBusinessCustomCategories(supabase, community.id),
     getCommunityBusinessCategoryLabelOverrides(supabase, community.id),
     getCommunityFeaturedBusinessCategories(supabase, community.id),
     getEventRsvpCounts(supabase, upcoming.filter((e) => e.capacity !== null).map((e) => e.id)),
+    getTestimonialMemberPhotos(community.id, testimonials.flatMap((t) => (t.memberId ? [t.memberId] : []))),
   ]);
   const categoryPreviews = await getFeaturedCategoryPreviews(
     supabase,
@@ -236,7 +247,7 @@ export default async function CommunityWelcomePage({
                 <ArrowRight className="h-4 w-4" />
               </HeroLink>
             )}
-            {community.privacy !== "public" && (
+            {joinPolicy !== "open" && (
               <p className={`flex w-full items-center gap-1.5 text-sm ${onPhoto ? "text-white/85" : "text-muted-foreground"}`}>
                 <Lock className="h-4 w-4" />
                 Members-only community — an admin reviews each request.
@@ -247,7 +258,9 @@ export default async function CommunityWelcomePage({
       />
 
       <main className="mx-auto max-w-7xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} showOnMobile />
+        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} showOnMobile />
+
+        <TestimonialsSection communityName={community.name} testimonials={testimonials} memberPhotos={testimonialPhotos} />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="flex flex-col justify-center gap-5 bg-accent-soft p-6 sm:p-8">
@@ -276,7 +289,7 @@ export default async function CommunityWelcomePage({
           </Card>
 
           {features.events && community.events_public && (
-            <UpcomingEventsCard events={upcoming} href={`${base}/events`} going={eventGoing} />
+            <UpcomingEventsCard events={upcoming} href={`${base}/events`} communityBase={base} going={eventGoing} />
           )}
         </div>
       </main>

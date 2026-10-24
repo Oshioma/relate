@@ -1,4 +1,4 @@
-import type { AdviceBlock, AreaGuide, StayCategory } from "./types";
+import type { AdviceBlock, AreaGuide, StayCategory } from "@/lib/guides/hotel-guide/types";
 
 // Editorial copy for the boutique hotels guide that isn't about one hotel:
 // the introduction, the "Find your perfect stay" categories, booking advice,

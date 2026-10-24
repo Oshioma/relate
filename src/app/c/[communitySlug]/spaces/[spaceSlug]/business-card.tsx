@@ -25,6 +25,7 @@ export function BusinessCard({
   canSave,
   customCategories,
   labelOverrides,
+  showCategory = true,
 }: {
   data: BusinessWithStats;
   communitySlug: string;
@@ -32,6 +33,7 @@ export function BusinessCard({
   canSave: boolean;
   customCategories: BusinessCustomCategory[];
   labelOverrides?: BusinessCategoryLabelOverride[];
+  showCategory?: boolean;
 }) {
   const { business, avgRating, ratingCount, imageCount } = data;
   // The listing's own shareable URL. On the community's host the current path is
@@ -88,10 +90,12 @@ export function BusinessCard({
           )}
           {/* The category chip leads the card so listings read as distinct
               *kinds* at a glance — a frosted pill stays legible over any photo. */}
-          <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border backdrop-blur">
-            <CategoryIcon className="h-3.5 w-3.5 text-accent" />
-            {categoryLabel}
-          </span>
+          {showCategory && (
+            <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-sm ring-1 ring-border backdrop-blur">
+              <CategoryIcon className="h-3.5 w-3.5 text-accent" />
+              {categoryLabel}
+            </span>
+          )}
           {imageCount > 1 && (
             <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white">
               <Images className="h-3 w-3" />

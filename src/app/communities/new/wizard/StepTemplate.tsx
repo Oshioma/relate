@@ -33,7 +33,17 @@ function toWizardSpaces(spaces: TemplateSpace[], allowedTypes: SpaceType[]): Wiz
   const allowed = new Set(allowedTypes);
   return spaces
     .filter((s) => allowed.has(s.space_type ?? "discussion"))
-    .map((s) => ({ id: nextId("space"), name: s.name, description: s.description, show_in_nav: true, space_type: s.space_type ?? "discussion", staff_post_only: s.staff_post_only ?? false, visibility: s.visibility ?? "members" }));
+    .map((s): WizardSpace => ({
+      id: nextId("space"),
+      name: s.name,
+      description: s.description,
+      show_in_nav: true,
+      space_type: s.space_type ?? "discussion",
+      staff_post_only: s.staff_post_only ?? false,
+      // Re-seeded by the access preset as soon as the wizard receives these.
+      access: s.visibility === "private" ? "team" : s.visibility === "public" ? "everyone" : "members",
+      templateVisibility: s.visibility,
+    }));
 }
 
 // The suggested rituals for the chosen kind, with the one that gets seeded for
@@ -244,7 +254,7 @@ export function StepTemplate({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">What do you want your community to do?</h1>
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">What do you want your community to do?</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Pick one or two and we&apos;ll narrow the list below — or skip this and browse all {COMMUNITY_TEMPLATES.length} types.
         </p>
@@ -284,7 +294,7 @@ export function StepTemplate({
           )}
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Each type suggests a starting set of spaces — you can change everything in the next step.
+          Each type suggests a starting set of spaces. You can change all of them in the next step.
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">

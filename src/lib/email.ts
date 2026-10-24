@@ -121,6 +121,52 @@ export async function sendCommunityInviteEmail(
 }
 
 // -----------------------------------------------------------------------------
+// A community's own email, written in Admin → Emails and already put together
+// by renderCommunityEmail (src/lib/email-templates.ts): its invites and its
+// welcome. Sent from the invites mailbox under the community's name, like the
+// built-in invite above.
+export type CommunityTemplateEmailInput = {
+  to: string;
+  communityName: string;
+  subject: string;
+  html: string;
+};
+
+export async function sendCommunityTemplateEmail(
+  input: CommunityTemplateEmailInput
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, reason: "RESEND_API_KEY is not configured" };
+  const fromAddress = defaultFromAddress();
+  if (!fromAddress) return { ok: false, reason: "no sender address — set INVITE_EMAIL_FROM or NEXT_PUBLIC_SITE_URL" };
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `${input.communityName.replace(/[<>@"]/g, "") || "Relate"} <${fromAddress}>`,
+        to: [input.to],
+        subject: input.subject,
+        html: input.html,
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      return { ok: false, reason: body?.message ?? `Resend responded ${res.status}` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "couldn't reach the Resend API" };
+  }
+}
+
+// -----------------------------------------------------------------------------
 export type ConfirmationEmailInput = {
   to: string;
   // Branding is optional, exactly like the password-reset email below. A

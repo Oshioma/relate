@@ -5,11 +5,14 @@ import { Camera, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { IMAGE_ACCEPTED_TYPES, IMAGE_MAX_BYTES } from "@/lib/upload-image";
 import { cn } from "@/lib/utils";
+import { SPACE_FILES_BUCKET, spaceFilePath, spaceFileUrl } from "@/lib/space-files";
+import { useUploadTarget } from "@/components/ui/upload-target";
 
 // Photo picker for guided-journey forms. Uploads straight to the shared
 // 'uploads' bucket under the member's own folder (the bucket's RLS only lets a
 // user write to `<their id>/…`), then carries the URLs into the form as a
-// hidden JSON field. The hidden field is marked data-draft so a refresh keeps
+// hidden JSON field. Inside a space visitors can't open, the photos go to that
+// space's private folder instead (see upload-target.tsx). The hidden field is marked data-draft so a refresh keeps
 // already-uploaded photos (see useFormDraft) — the URLs aren't sensitive.
 export function PhotoPicker({
   name,
@@ -31,6 +34,7 @@ export function PhotoPicker({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const target = useUploadTarget();
 
   async function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -56,13 +60,15 @@ export function PhotoPicker({
           continue;
         }
         const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const path = `${userId}/journeys/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("uploads").upload(path, file, { contentType: file.type });
+        const id = crypto.randomUUID();
+        const bucket = target ? SPACE_FILES_BUCKET : "uploads";
+        const path = target ? spaceFilePath(target.spaceId, userId, `photo.${ext}`, id) : `${userId}/journeys/${id}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type });
         if (uploadError) {
           setError(uploadError.message);
           continue;
         }
-        added.push(supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl);
+        added.push(target ? spaceFileUrl(path) : supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl);
       }
     } finally {
       setBusy(false);

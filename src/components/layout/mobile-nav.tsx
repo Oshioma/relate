@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { returnHereHref } from "@/lib/auth-return";
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Menu, X, ExternalLink, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -43,8 +44,9 @@ export type MobileNavAccount =
     }
   | {
       kind: "guest";
-      loginHref: string;
-      signupHref: string;
+      // Where sign-in returns to when the current page can't be (see
+      // returnHereHref); normally the community's home.
+      returnFallback: string;
     };
 
 interface MobileNavProps {
@@ -286,14 +288,14 @@ export function MobileNav({ tabs, communityName, communityLogoUrl, communityInit
               <div className="space-y-2 px-1 py-1">
                 <p className="px-2 text-xs text-muted-foreground">Browsing {communityName} as a guest.</p>
                 <Link
-                  href={account.loginHref}
+                  href={returnHereHref("/login", pathname, account.returnFallback)}
                   onClick={close}
                   className="flex w-full items-center justify-center rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
                 >
                   Log in
                 </Link>
                 <Link
-                  href={account.signupHref}
+                  href={returnHereHref("/signup", pathname, account.returnFallback)}
                   onClick={close}
                   className="flex w-full items-center justify-center rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 >

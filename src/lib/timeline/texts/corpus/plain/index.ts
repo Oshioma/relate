@@ -32,7 +32,7 @@ const EVIDENCE = {
   ours:
     "Our own translation, written for this archive, in plain modern English. No published English translation of this version has been found, so this is not one, and it has not been checked by a specialist.",
   oursCited:
-    "Our own translation, written for this archive, in plain modern English, of the original-language text cited above, which is not reproduced here. No openly licensed English translation of this version has been found, so this is not a published translation, and it has not been checked by a specialist.",
+    "Our own translation, written for this archive, in plain modern English, of the original-language text cited on this passage, which is not reproduced here. No openly licensed English translation of this version has been found, so this is not a published translation, and it has not been checked by a specialist.",
 };
 
 type Basis = keyof typeof EVIDENCE;

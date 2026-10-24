@@ -5,7 +5,7 @@ import { ArrowDown, CalendarCheck, Columns3, Compass, Map as MapIcon, Pencil, Sp
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership, isCommunityAdmin, isCommunityMember } from "@/lib/data/community";
-import { getEditorialGuide, getEditorialGuideUpdates, getGuideDirectory } from "@/lib/data/editorial-guides";
+import { getEditorialGuide, getEditorialGuideUpdates, getEditorialGuideViewStats, getGuideDirectory, type GuideViewStats } from "@/lib/data/editorial-guides";
 import { communityShareOrigin } from "@/lib/custom-domain";
 import { WHERE_TO_STAY_SLUG, WHERE_TO_STAY_TITLE, parseOverrides, resolveGuideContent } from "@/lib/guides/where-to-stay/content";
 import { communityLinksFor, guideUrl, loadGuide } from "@/lib/guides/where-to-stay/page-data";
@@ -29,15 +29,17 @@ import { DestinationSection, PhotoCredit } from "@/components/editorial-guide/de
 import { LinkedText, plainText } from "@/components/editorial-guide/linked-text";
 import { TAG_ICONS } from "@/components/editorial-guide/guide-icons";
 import { summarise } from "@/components/editorial-guide/types";
+import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
+import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
 import { feedInteractionFor, getFeedInteractions } from "@/lib/data/feed-interactions";
-import {
-  BOUTIQUE_HOTELS_DESCRIPTION,
-  BOUTIQUE_HOTELS_SEO_TITLE,
-  BOUTIQUE_HOTELS_SLUG,
-  parseBoutiqueOverrides,
-  resolveBoutiqueContent,
-} from "@/lib/guides/boutique-hotels/content";
-import { BoutiqueHotelsGuide } from "./boutique-hotels-guide";
+import { hotelGuideFor } from "@/lib/guides/hotel-guide/registry";
+import { loadHotelGuide } from "@/lib/guides/hotel-guide/content";
+import type { HotelGuideDefinition } from "@/lib/guides/hotel-guide/types";
+import { HotelGuide } from "./hotel-guide";
+import { placeGuideFor } from "@/lib/guides/place-guide/registry";
+import { loadPlaceGuide } from "@/lib/guides/place-guide/content";
+import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
+import { PlaceGuide } from "./place-guide";
 
 // /guides/where-to-stay-in-zanzibar on the community's host.
 //
@@ -54,7 +56,10 @@ const DESCRIPTION =
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { communitySlug, guideSlug } = await params;
-  if (guideSlug === BOUTIQUE_HOTELS_SLUG) return boutiqueMetadata(communitySlug);
+  const hotelGuide = hotelGuideFor(guideSlug);
+  if (hotelGuide) return hotelGuideMetadata(communitySlug, hotelGuide, (content) => loadHotelGuide(hotelGuide, content).heroPhoto);
+  const placeGuide = placeGuideFor(guideSlug);
+  if (placeGuide) return hotelGuideMetadata(communitySlug, placeGuide, (content) => loadPlaceGuide(placeGuide, content).heroPhoto);
   if (guideSlug !== WHERE_TO_STAY_SLUG) return {};
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
@@ -88,17 +93,27 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-async function boutiqueMetadata(communitySlug: string): Promise<Metadata> {
+// Metadata for a guide defined in code (hotel and place guides), from its own
+// SEO title, description and (possibly overridden) hero.
+async function hotelGuideMetadata(
+  communitySlug: string,
+  def: Pick<HotelGuideDefinition, "slug" | "seoTitle" | "description">,
+  heroFor: (content: unknown) => GuidePhoto | null
+): Promise<Metadata> {
   const supabase = await createClient();
   const community = await getCommunityBySlug(supabase, communitySlug);
   if (!community) return {};
-  const guide = await getEditorialGuide(supabase, community.id, BOUTIQUE_HOTELS_SLUG);
+  const guide = await getEditorialGuide(supabase, community.id, def.slug);
   if (!guide) return {};
-  const { heroPhoto } = resolveBoutiqueContent(parseBoutiqueOverrides(guide.content));
+  const heroPhoto = heroFor(guide.content);
   const host = (await headers()).get("host");
-  const { absolute } = guideUrl(host, community.slug, BOUTIQUE_HOTELS_SLUG, communityShareOrigin(community));
-  const title = BOUTIQUE_HOTELS_SEO_TITLE;
-  const description = BOUTIQUE_HOTELS_DESCRIPTION;
+  const { absolute } = guideUrl(host, community.slug, def.slug, communityShareOrigin(community));
+  const title = def.seoTitle;
+  const description = def.description;
+  // A relative image path with no metadataBase breaks the build, so a local
+  // hero (/guides/…) is made absolute from the page's own URL, or dropped.
+  const ogSrc = heroPhoto && !/^https?:\/\//i.test(heroPhoto.src) ? (absolute ? new URL(heroPhoto.src, absolute).toString() : null) : heroPhoto?.src ?? null;
+  const ogPhoto = heroPhoto && ogSrc ? { url: ogSrc, alt: heroPhoto.alt } : null;
   return {
     // absolute: the SEO title is complete on its own, without the site suffix.
     title: { absolute: title },
@@ -112,9 +127,9 @@ async function boutiqueMetadata(communitySlug: string): Promise<Metadata> {
       url: absolute ?? undefined,
       siteName: community.name,
       locale: "en_GB",
-      ...(heroPhoto ? { images: [{ url: heroPhoto.src, alt: heroPhoto.alt }] } : {}),
+      ...(ogPhoto ? { images: [ogPhoto] } : {}),
     },
-    twitter: { card: "summary_large_image", title, description, ...(heroPhoto ? { images: [heroPhoto.src] } : {}) },
+    twitter: { card: "summary_large_image", title, description, ...(ogPhoto ? { images: [ogPhoto.url] } : {}) },
   };
 }
 
@@ -129,7 +144,9 @@ function jsonLd(value: unknown) {
 
 export default async function EditorialGuidePage({ params }: { params: Params }) {
   const { communitySlug, guideSlug } = await params;
-  if (guideSlug !== WHERE_TO_STAY_SLUG && guideSlug !== BOUTIQUE_HOTELS_SLUG) notFound();
+  const hotelGuide = hotelGuideFor(guideSlug);
+  const placeGuide = placeGuideFor(guideSlug);
+  if (guideSlug !== WHERE_TO_STAY_SLUG && !hotelGuide && !placeGuide) notFound();
 
   const supabase = await createClient();
   const user = await getCurrentUser(supabase);
@@ -139,47 +156,62 @@ export default async function EditorialGuidePage({ params }: { params: Params })
   const guide = await getEditorialGuide(supabase, community.id, guideSlug);
   if (!guide) notFound();
 
-  if (guide.slug === BOUTIQUE_HOTELS_SLUG) {
-    const [membership, updates, { links }, interactions, viewerProfile] = await Promise.all([
+  if (hotelGuide || placeGuide) {
+    const [membership, updates, { links }, interactions, viewerProfile, viewStats] = await Promise.all([
       user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
       getEditorialGuideUpdates(supabase, guide.id),
       communityLinksFor(supabase, community, Boolean(user)),
       getFeedInteractions(supabase, community.id, [{ type: "editorial_guide", id: guide.id }], user?.id),
       user ? getProfile(supabase, user.id) : Promise.resolve(null),
+      // Guests are never staff, so only signed-in visitors ask for the stats.
+      user ? getEditorialGuideViewStats(supabase, community.id) : Promise.resolve(new Map<string, GuideViewStats>()),
     ]);
     const host = (await headers()).get("host");
     const { absolute } = guideUrl(host, community.slug, guide.slug, communityShareOrigin(community));
     const today = new Date().toISOString().slice(0, 10);
+    const shared = {
+      community,
+      guide,
+      updates: updates.filter((u) => !u.expires_on || u.expires_on >= today),
+      pageUrl: absolute,
+      canEdit: isCommunityAdmin(community, membership, user?.id),
+      viewStats: viewStats.get(guide.id) ?? null,
+      signedIn: Boolean(user),
+      comments: {
+        communitySlug: community.slug,
+        communityId: community.id,
+        itemType: "editorial_guide" as const,
+        itemId: guide.id,
+        canInteract: isCommunityMember(community, membership, user?.id),
+        viewerId: user?.id ?? null,
+        viewer: viewerProfile ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url } : null,
+        isStaff: isCommunityAdmin(community, membership, user?.id),
+        ...feedInteractionFor(interactions, "editorial_guide", guide.id),
+      },
+    };
+    if (placeGuide) {
+      // Only guides that link to the community directory pay for reading it.
+      const linksDirectory = Boolean(placeGuide.directorySection) || placeGuide.places.some((p) => p.listing);
+      const directory = linksDirectory ? await getGuideDirectory(supabase, community.id, community.slug) : null;
+      return <PlaceGuide def={placeGuide} content={loadPlaceGuide(placeGuide, guide.content)} links={{ recommend: links.restaurant, ask: links.ask }} directory={directory} {...shared} />;
+    }
+    if (!hotelGuide) notFound();
     return (
-      <BoutiqueHotelsGuide
-        community={community}
-        guide={guide}
-        content={resolveBoutiqueContent(parseBoutiqueOverrides(guide.content))}
-        updates={updates.filter((u) => !u.expires_on || u.expires_on >= today)}
-        pageUrl={absolute}
-        canEdit={isCommunityAdmin(community, membership, user?.id)}
-        signedIn={Boolean(user)}
+      <HotelGuide
+        def={hotelGuide}
+        content={loadHotelGuide(hotelGuide, guide.content)}
         links={{ recommend: links.restaurant, stay: links.stay, ask: links.ask }}
-        comments={{
-          communitySlug: community.slug,
-          communityId: community.id,
-          itemType: "editorial_guide",
-          itemId: guide.id,
-          canInteract: isCommunityMember(community, membership, user?.id),
-          viewerId: user?.id ?? null,
-          viewer: viewerProfile ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url } : null,
-          isStaff: isCommunityAdmin(community, membership, user?.id),
-          ...feedInteractionFor(interactions, "editorial_guide", guide.id),
-        }}
+        {...shared}
       />
     );
   }
 
-  const [membership, { content, updates }, directory, community_links] = await Promise.all([
+  const [membership, { content, updates }, directory, community_links, viewStats] = await Promise.all([
     user ? getMembership(supabase, community.id, user.id) : Promise.resolve(null),
     loadGuide(supabase, guide),
     getGuideDirectory(supabase, community.id, community.slug),
     communityLinksFor(supabase, community, Boolean(user)),
+    user ? getEditorialGuideViewStats(supabase, community.id) : Promise.resolve(new Map<string, GuideViewStats>()),
   ]);
   const { links, tidesHref, accommodationHref } = community_links;
   const canEdit = isCommunityAdmin(community, membership, user?.id);
@@ -233,6 +265,7 @@ export default async function EditorialGuidePage({ params }: { params: Params })
 
   return (
     <article className="pb-16">
+      <GuideViewBeacon guideId={guide.id} />
       {structuredData.map((data, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={jsonLd(data)} />
       ))}
@@ -283,7 +316,8 @@ export default async function EditorialGuidePage({ params }: { params: Params })
             <CalendarCheck className="h-4 w-4" aria-hidden />
             {reviewed ? <>Last reviewed by our editors on {reviewed}</> : <>Written by the {community.name} editors</>}
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {canEdit && <GuideViewStatsBadge stats={viewStats.get(guide.id)} />}
             {guide.status === "draft" && <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">Draft — only staff can see this</span>}
             {canEdit && (
               <a href={`/c/${community.slug}/guides/${guide.slug}/edit`} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted">

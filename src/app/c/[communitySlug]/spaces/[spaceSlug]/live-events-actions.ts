@@ -7,6 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getMembership } from "@/lib/data/community";
 import { getProfile } from "@/lib/data/profile";
 import { isJaasConfigured, getJaasAppId, mintJaasToken } from "@/lib/jitsi";
+import { decodeSnapshot, publicSnapshotPath } from "@/lib/live-snapshot";
+import { SPACE_FILES_BUCKET, spaceFilePath, spaceFileUrl, uploadTargetFor } from "@/lib/space-files";
 
 export type LiveActionResult = { error: string } | { error: null };
 
@@ -34,6 +36,31 @@ function newRoomName(communityId: string): string {
   return `relate-${communityId.slice(0, 8)}-${randomUUID()}`;
 }
 
+// The optional details a session carries, like a community Event: what it's
+// about and a cover image. Blank means none.
+type SessionDetails = { description?: string; imageUrl?: string };
+
+function cleanDetails(input: SessionDetails): { description: string | null; image_url: string | null } {
+  const description = input.description?.trim().slice(0, 2000) || null;
+  const imageUrl = input.imageUrl?.trim() || null;
+  return { description, image_url: imageUrl && /^https?:\/\//i.test(imageUrl) ? imageUrl : null };
+}
+
+// Parses a scheduled start and optional end (datetime strings from the form).
+// The end, when given, must come after the start — the database checks it too.
+function parseSchedule(
+  scheduledStart: string,
+  scheduledEnd: string | undefined
+): { error: string } | { start: string; end: string | null } {
+  const startMs = Date.parse(scheduledStart);
+  if (Number.isNaN(startMs)) return { error: "Pick a date and time for the event." };
+  if (!scheduledEnd) return { start: new Date(startMs).toISOString(), end: null };
+  const endMs = Date.parse(scheduledEnd);
+  if (Number.isNaN(endMs)) return { error: "Pick a valid end time, or leave it blank." };
+  if (endMs <= startMs) return { error: "The end time needs to be after the start." };
+  return { start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() };
+}
+
 // Staff-only (enforced by RLS live_sessions_manage_staff): start a live video
 // session. The room name is generated here, never taken from input — it's the
 // join secret at the meet.jit.si layer, so it must be long and unguessable.
@@ -43,7 +70,7 @@ export async function startLiveSession(input: {
   communitySlug: string;
   spaceSlug: string;
   title: string;
-}): Promise<LiveActionResult> {
+} & SessionDetails): Promise<LiveActionResult> {
   const title = input.title.trim() || "Live session";
 
   const supabase = await createClient();
@@ -59,6 +86,7 @@ export async function startLiveSession(input: {
     title: title.slice(0, 200),
     room_name: newRoomName(input.communityId),
     status: "live",
+    ...cleanDetails(input),
   });
 
   if (error) {
@@ -83,10 +111,11 @@ export async function scheduleLiveSession(input: {
   spaceSlug: string;
   title: string;
   scheduledStart: string;
-}): Promise<LiveActionResult> {
+  scheduledEnd?: string;
+} & SessionDetails): Promise<LiveActionResult> {
   const title = input.title.trim() || "Live session";
-  const startMs = Date.parse(input.scheduledStart);
-  if (Number.isNaN(startMs)) return { error: "Pick a date and time for the event." };
+  const when = parseSchedule(input.scheduledStart, input.scheduledEnd);
+  if ("error" in when) return { error: when.error };
 
   const supabase = await createClient();
   const {
@@ -101,10 +130,58 @@ export async function scheduleLiveSession(input: {
     title: title.slice(0, 200),
     room_name: newRoomName(input.communityId),
     status: "scheduled",
-    scheduled_start: new Date(startMs).toISOString(),
+    scheduled_start: when.start,
+    scheduled_end: when.end,
+    ...cleanDetails(input),
   });
 
   if (error) return { error: error.message };
+
+  revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}
+
+// Staff-only (RLS live_sessions_manage_staff): change a scheduled session's
+// title, time, description or image. Moving the start re-arms the 10-minute
+// reminder so it fires for the new time. Members aren't re-notified.
+export async function updateLiveSession(input: {
+  sessionId: string;
+  communitySlug: string;
+  spaceSlug: string;
+  title: string;
+  scheduledStart: string;
+  scheduledEnd?: string;
+} & SessionDetails): Promise<LiveActionResult> {
+  const title = input.title.trim() || "Live session";
+  const when = parseSchedule(input.scheduledStart, input.scheduledEnd);
+  if ("error" in when) return { error: when.error };
+
+  const supabase = await createClient();
+  const { data: current, error: readError } = await supabase
+    .from("live_sessions")
+    .select("scheduled_start")
+    .eq("id", input.sessionId)
+    .eq("status", "scheduled")
+    .maybeSingle();
+  if (readError) return { error: readError.message };
+  if (!current) return { error: "That event has already started or was cancelled." };
+
+  const moved = current.scheduled_start !== null && Date.parse(current.scheduled_start) !== Date.parse(when.start);
+  const { data, error } = await supabase
+    .from("live_sessions")
+    .update({
+      title: title.slice(0, 200),
+      scheduled_start: when.start,
+      scheduled_end: when.end,
+      ...cleanDetails(input),
+      ...(moved ? { reminder_sent_at: null } : {}),
+    })
+    .eq("id", input.sessionId)
+    .eq("status", "scheduled")
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!data || data.length === 0) return { error: "You can't edit this event." };
 
   revalidateSpace(input.communitySlug, input.spaceSlug);
   return { error: null };
@@ -197,6 +274,70 @@ export async function endLiveSession(input: {
   if (error) return { error: error.message };
 
   revalidateSpace(input.communitySlug, input.spaceSlug);
+  return { error: null };
+}
+
+// Staff-only: keep a still from the running meeting as the session's picture
+// for the Past sessions card. The host's browser sends a small JPEG a few
+// times during the call (see JitsiRoom's onSnapshot); each replaces the last.
+// The still goes where the space's own uploads go: the public 'uploads' bucket
+// when anyone can open the space, otherwise its private 'space-files' folder.
+export async function saveLiveSessionSnapshot(input: {
+  sessionId: string;
+  communitySlug: string;
+  spaceSlug: string;
+  image: string;
+}): Promise<LiveActionResult> {
+  const bytes = decodeSnapshot(input.image);
+  if (!bytes) return { error: "That picture couldn't be read." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You need to be signed in." };
+
+  const { data: session } = await supabase
+    .from("live_sessions")
+    .select("id, status, community_id, space:space_id (id, visibility), community:community_id (privacy)")
+    .eq("id", input.sessionId)
+    .maybeSingle();
+  if (!session) return { error: "That session no longer exists." };
+  const row = session as unknown as {
+    id: string;
+    status: string;
+    community_id: string;
+    space: { id: string; visibility: string } | null;
+    community: { privacy: string } | null;
+  };
+  if (row.status !== "live" || !row.space || !row.community) return { error: "The session isn't live." };
+
+  const membership = await getMembership(supabase, row.community_id, user.id);
+  if (!(membership?.status === "active" && isStaffRole(membership.role))) {
+    return { error: "Only hosts can set the session's picture." };
+  }
+
+  // Checks are done; the service client writes so a repeat still can
+  // overwrite the earlier file without needing an update rule on Storage.
+  const admin = createAdminClient();
+  const target = uploadTargetFor(row.space, row.community);
+  const bucket = target ? SPACE_FILES_BUCKET : "uploads";
+  const path = target
+    ? spaceFilePath(target.spaceId, user.id, "session.jpg", row.id)
+    : publicSnapshotPath(user.id, row.id);
+  const { error: uploadError } = await admin.storage
+    .from(bucket)
+    .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
+  if (uploadError) return { error: uploadError.message };
+
+  // The ?v= makes browsers fetch the newer still instead of a cached one.
+  const base = target ? spaceFileUrl(path) : admin.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  const { error } = await admin
+    .from("live_sessions")
+    .update({ thumbnail_url: `${base}?v=${Date.now()}` })
+    .eq("id", row.id);
+  if (error) return { error: error.message };
+
   return { error: null };
 }
 

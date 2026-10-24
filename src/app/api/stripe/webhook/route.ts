@@ -31,8 +31,14 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
+      // A bank-debit course payment completes the checkout first and is paid
+      // later; that later event carries the same session, now "paid".
+      case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object as {
+          id?: string;
+          mode?: string;
+          payment_status?: string;
           subscription?: string;
           customer?: string;
           customer_details?: { email?: string };
@@ -64,6 +70,20 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "community_id,pack_id" }
           );
+        } else if (meta.course_id && meta.user_id && session.mode === "payment") {
+          // A one-off course purchase. Card payments arrive already "paid";
+          // anything still pending is left for Stripe to retry or fail.
+          if (session.payment_status === "paid" || session.payment_status === "no_payment_required") {
+            await admin.from("course_enrollments").upsert(
+              {
+                course_id: meta.course_id,
+                user_id: meta.user_id,
+                paid: true,
+                stripe_checkout_session_id: session.id ?? null,
+              },
+              { onConflict: "course_id,user_id" }
+            );
+          }
         } else if (meta.space_id && meta.user_id && meta.community_id && session.subscription) {
           await admin.from("space_subscriptions").upsert(
             {
@@ -91,6 +111,9 @@ export async function POST(request: NextRequest) {
             },
             { onConflict: "tier_id,user_id" }
           );
+          // Buying a plan makes you a member: the Membership page sells plans to
+          // people who haven't joined yet (signed out, or from another website).
+          await ensureActiveMembership(admin, meta.community_id, meta.user_id);
         }
         break;
       }
@@ -279,5 +302,32 @@ async function notifyPlanLapsed(
     }
   } catch (err) {
     console.error("[stripe/webhook] plan-lapsed notification failed:", (err as Error).message);
+  }
+}
+
+// Make a paying buyer an active member of the community. No row → a new
+// member; a pending request or invite → approved by the payment. An existing
+// active row (any role) is left alone, and so is a ban. Best effort: a failure
+// here (say, a plan's member limit) must not fail the webhook, which would make
+// Stripe retry a payment that has already been recorded.
+async function ensureActiveMembership(admin: ReturnType<typeof createAdminClient>, communityId: string, userId: string): Promise<void> {
+  try {
+    const { data: existing } = await admin
+      .from("community_memberships")
+      .select("id, status")
+      .eq("community_id", communityId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!existing) {
+      const { error } = await admin
+        .from("community_memberships")
+        .insert({ community_id: communityId, user_id: userId, role: "member", status: "active" });
+      if (error) console.error("[stripe webhook] couldn't add paying member", error.message);
+    } else if (existing.status === "requested" || existing.status === "invited") {
+      const { error } = await admin.from("community_memberships").update({ status: "active" }).eq("id", existing.id);
+      if (error) console.error("[stripe webhook] couldn't activate paying member", error.message);
+    }
+  } catch (err) {
+    console.error("[stripe webhook] membership upsert failed", err);
   }
 }
