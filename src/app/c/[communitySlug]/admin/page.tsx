@@ -55,6 +55,7 @@ import { BillingSection } from "./billing-section";
 import { PlanSection } from "./plan-section";
 import { MarketplaceSection } from "./marketplace-section";
 import { TiersSection } from "./tiers-section";
+import { CurrencySection } from "./currency-section";
 import { getActivePlatformPlans } from "@/lib/data/platform-plans";
 import { communityHasFeature } from "@/lib/data/plan-limits";
 import { getActiveFeaturePacks, getCommunityAddons } from "@/lib/data/feature-packs";
@@ -593,6 +594,7 @@ export default async function AdminPage({
               <p className="mb-3 text-sm text-muted-foreground">
                 Connect Stripe to charge members a monthly fee for individual spaces. Once payments are connected, set a
                 price on a space in the <a href="#spaces" className="text-accent underline-offset-2 hover:underline">Spaces</a> section.
+                Every price is charged in the currency you pick below.
               </p>
               <div className="mb-8">
                 <BillingSection
@@ -603,6 +605,9 @@ export default async function AdminPage({
                   platformConfigured={isStripeConfigured()}
                   justReturned={stripeReturn === "return"}
                 />
+              </div>
+              <div className="mb-8">
+                <CurrencySection communityId={community.id} communitySlug={community.slug} currency={community.currency} />
               </div>
             </>
           ) : (
@@ -627,6 +632,7 @@ export default async function AdminPage({
                   tiers={tiers}
                   sales={tierSales}
                   spaces={tierAssignableSpaces}
+                  currency={community.currency}
                 />
               </div>
             </>

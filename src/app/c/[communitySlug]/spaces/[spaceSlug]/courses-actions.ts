@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { arePrerequisitesMet } from "@/lib/data/courses";
-import { getMembership } from "@/lib/data/community";
+import { getCommunityCurrency, getMembership } from "@/lib/data/community";
 import { getProfile, getProfileByUsername } from "@/lib/data/profile";
 import { communityCanCharge } from "@/lib/data/plan-limits";
 import { isStripeConfigured, createCourseCheckoutSession } from "@/lib/stripe";
@@ -489,10 +489,14 @@ export async function deleteAnnouncement(announcementId: string, communitySlug: 
 // -----------------------------------------------------------------------------
 // v3 — Pricing & access (staff)
 // -----------------------------------------------------------------------------
-export async function setCoursePrice(courseId: string, priceCents: number, currency: string, communitySlug: string, spaceSlug: string) {
+// Charged in the community's currency (Admin -> Payments), never a per-course one.
+export async function setCoursePrice(courseId: string, priceCents: number, communitySlug: string, spaceSlug: string) {
   const price = Number.isFinite(priceCents) && priceCents >= 0 ? Math.round(priceCents) : 0;
   const supabase = await createClient();
-  const { error } = await supabase.from("courses").update({ price_cents: price, currency: currency || "usd" }).eq("id", courseId);
+  const { data: course } = await supabase.from("courses").select("community_id").eq("id", courseId).maybeSingle();
+  if (!course) return { error: "That course no longer exists." };
+  const currency = await getCommunityCurrency(supabase, course.community_id);
+  const { error } = await supabase.from("courses").update({ price_cents: price, currency }).eq("id", courseId);
   if (error) return { error: error.message };
   revalidateSpace(communitySlug, spaceSlug);
   return { error: null };

@@ -934,7 +934,6 @@ function PricingSection({
 }) {
   const { course } = detail;
   const [amount, setAmount] = useState((course.price_cents / 100).toFixed(2));
-  const [currency, setCurrency] = useState(course.currency);
   const [priceSaved, setPriceSaved] = useState(false);
   const [grantUser, setGrantUser] = useState("");
   const includedIds = new Set(detail.includedInTiers.map((t) => t.id));
@@ -944,7 +943,7 @@ function PricingSection({
     setError(null);
     setPriceSaved(false);
     const cents = Math.round(Number(amount) * 100);
-    run(() => setCoursePrice(course.id, Number.isFinite(cents) ? cents : 0, currency, communitySlug, spaceSlug).then((r) => (r?.error ? r : (setPriceSaved(true), r))));
+    run(() => setCoursePrice(course.id, Number.isFinite(cents) ? cents : 0, communitySlug, spaceSlug).then((r) => (r?.error ? r : (setPriceSaved(true), r))));
   }
 
   function toggleTier(tierId: string, on: boolean) {
@@ -968,15 +967,19 @@ function PricingSection({
           <Label htmlFor="course_price">One-off price</Label>
           <Input id="course_price" type="number" min={0} step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-32" />
         </div>
-        <div>
-          <Label htmlFor="course_currency">Currency</Label>
-          <Input id="course_currency" value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-24 uppercase" />
-        </div>
+        <p className="pb-2 text-sm font-medium text-foreground">{course.currency.toUpperCase()}</p>
         <Button type="button" disabled={isPending} onClick={savePrice} className="w-auto">
           Save price
         </Button>
         {priceSaved && <span className="text-xs text-emerald-600">Saved</span>}
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Charged in your community&apos;s currency. The owner changes it in{" "}
+        <a href={`/c/${communitySlug}/admin#payments`} className="text-accent underline-offset-2 hover:underline">
+          Admin → Payments
+        </a>
+        .
+      </p>
 
       {course.price_cents > 0 && (
         <>
