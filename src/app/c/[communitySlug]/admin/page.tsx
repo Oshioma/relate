@@ -40,6 +40,7 @@ import { SpacesManager, type NavManagerItem, type NavSubItem } from "./spaces-ma
 import { CommunityBrandingForm } from "./community-branding-form";
 import { CommunityDetailsForm } from "./community-details-form";
 import { CommunityHeroForm } from "./community-hero-form";
+import { CommunityTestimonialsForm } from "./community-testimonials-form";
 import { CommunityGuidelinesForm } from "./community-guidelines-form";
 import { CommunityContactInfoForm } from "./community-contact-info-form";
 import { countUnhandledCommunityContactMessages } from "@/lib/data/contact-messages";
@@ -274,6 +275,7 @@ export default async function AdminPage({
     { id: "spaces", label: "Spaces & Content", group: "Access" },
     { id: "details", label: "Details", group: "Profile & pages" },
     { id: "landing", label: "Landing page", group: "Profile & pages" },
+    { id: "testimonials", label: "Testimonials", group: "Profile & pages" },
     { id: "guidelines", label: "Guidelines", group: "Profile & pages" },
     { id: "contact", label: "Contact", group: "Profile & pages" },
     { id: "emails", label: "Emails", group: "Profile & pages" },
@@ -393,6 +395,11 @@ export default async function AdminPage({
       <h2 id="landing" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Feed landing page</h2>
       <div className="mb-8">
         <CommunityHeroForm community={community} spaces={spaces} />
+      </div>
+
+      <h2 id="testimonials" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Testimonials</h2>
+      <div className="mb-8">
+        <CommunityTestimonialsForm community={community} />
       </div>
 
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
