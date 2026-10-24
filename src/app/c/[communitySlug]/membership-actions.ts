@@ -46,7 +46,7 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
   const admin = createAdminClient();
   const { data: tier } = await admin
     .from("community_tiers")
-    .select("id, name, description, price_cents, currency, community_id, archived_at")
+    .select("id, name, price_cents, currency, community_id, archived_at")
     .eq("id", tierId)
     .maybeSingle();
   if (!tier) return { error: "Membership tier not found." };
@@ -78,10 +78,10 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
     };
   }
 
-  // What the tier includes, for the Checkout page: its description and the
-  // spaces it unlocks. Read with the service role: the buyer can't see inside
-  // the private spaces they're about to pay for, but their names are what's on
-  // offer (the tier itself was read above under RLS).
+  // What the tier includes, for the Checkout page: the spaces it unlocks (the
+  // full description is on the Membership page). Read with the service role:
+  // the buyer can't see inside the private spaces they're about to pay for,
+  // but their names are what's on offer.
   const { data: tierSpaces } = await admin.from("tier_spaces").select("spaces(name)").eq("tier_id", tier.id);
   const spaceNames = (tierSpaces ?? []).flatMap((row) => {
     const s = row.spaces as { name: string } | { name: string }[] | null;
@@ -97,7 +97,7 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
       priceCents: tier.price_cents,
       currency: tier.currency,
       productName: `${tier.name} — ${community.name}`,
-      productDescription: tierCheckoutDescription(tier.description, spaceNames),
+      productDescription: tierCheckoutDescription(spaceNames),
       successUrl: `${communityUrl}?subscribed=1`,
       cancelUrl: communityUrl,
       customerEmail: user.email ?? undefined,
