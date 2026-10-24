@@ -1,4 +1,4 @@
-import { createSign } from "node:crypto";
+import { createHmac, createSign } from "node:crypto";
 
 // JaaS (Jitsi as a Service, by 8x8) config — the production video backend for
 // Live Events. Unlike the free public meet.jit.si server (demo-only: 5-minute
@@ -114,4 +114,14 @@ export function mintJaasToken(input: JaasTokenInput): string {
   signer.end();
   const signature = signer.sign(privateKeyPem()).toString("base64url");
   return `${signingInput}.${signature}`;
+}
+
+// The room for a course's live lesson. Tokens authorise every room in the
+// tenant, so the name itself is what keeps people out: derived from the lesson
+// with a server secret, it can't be guessed from the lesson id, and it's only
+// handed to people allowed to join (see joinCourseLiveLesson).
+export function courseLessonRoomName(lessonId: string): string {
+  const secret = RAW_PRIVATE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "relate-dev-rooms";
+  const digest = createHmac("sha256", secret).update(`course-lesson:${lessonId}`).digest("hex").slice(0, 24);
+  return `course-${digest}`;
 }
