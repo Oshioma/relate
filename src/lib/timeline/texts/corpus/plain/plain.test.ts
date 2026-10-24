@@ -17,6 +17,7 @@ import { PLAIN_STEINER } from "./steiner";
 import { PLAIN_KYBALION } from "./kybalion";
 import { PLAIN_DONNELLY } from "./donnelly";
 import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
+import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -58,6 +59,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.kybalion": PLAIN_KYBALION,
   "modern.donnelly": PLAIN_DONNELLY,
   "modern.scott-elliot": PLAIN_SCOTT_ELLIOT,
+  "modern.kingsford-maitland": PLAIN_VIRGIN_OF_THE_WORLD,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -124,6 +126,24 @@ test("the Introduction and every chapter of the Kybalion have plain words, and o
   assert.match(PLAIN_KYBALION["modern.kyb.1908.3"], /Other possible readings:\n- 'If the Universal is Mental in its nature': a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.9"], /'Principle', a 1908 misprint/);
   assert.match(PLAIN_KYBALION["modern.kyb.1908.14"], /'stream', a 1908 misprint/);
+});
+
+test("the Introduction's first section and every part of The Virgin of the World have plain words, and only those", () => {
+  const vow = ALL_CORPORA.find((c) => c.workKey === "modern.kingsford-maitland")!;
+  const withText = vow.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_VIRGIN_OF_THE_WORLD).sort(), [...withText].sort());
+  assert.equal(withText.length, 45);
+  // Kingsford's esoteric reading is reported as hers, not as the ancient text's.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.intro"], /translator's own esoteric reading/);
+  // Where the 1885 English and Mead's differ in meaning, the plain words say so.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.def.2"], /disagree over who is speaking/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.tat.4"], /'a very mighty Daimon'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.tat.6"], /'the vase of genesis'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.ammon.2"], /'the Self-perfect Reason'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.frag.2"], /'regulates the breaths'/);
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.frag.7"], /share out the gifts differently/);
+  // The kept misprint is shown as another reading.
+  assert.match(PLAIN_VIRGIN_OF_THE_WORLD["modern.vow.1885.def.2"], /Other possible readings:\n- 'Incorporeal corporealites' \(p\. 107\) is a misprint of 1885/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {

@@ -1415,3 +1415,155 @@ There are 24 entries for Scott-Elliot, each beginning "The book says" or "Sinnet
 - Scott-Elliot's maps 1 and 2 were not found in any 1896 copy; their titles are from the later printing.
 - The identification of Scott-Elliot's Plato as Taylor's translation rests on the wording, not on a statement in the book.
 - Donnelly's other chapters that quote Plato in passing are listed, not imported.
+
+## 25. Stage 19: Kingsford and Maitland's Virgin of the World (1885)
+
+The last full-text member of `modern.other-authors` (brief item 33), listed there as "Kingsford & Maitland 1885", is imported as its own work. It is *The Virgin of the World of Hermes Mercurius Trismegistus*, translated by Anna Kingsford and Edward Maitland (London: George Redway, 1885). That entry's proposed member now says "imported as its own work, modern.kingsford-maitland", and its full-text editions are now empty.
+
+- **`modern.kingsford-maitland`** (prefix `modern.vow`). Tradition class `modern`, corpus group `modern_esoteric`. Marker `virgin-of-the-world-published`.
+
+The inventory gained two sources:
+- `kingsford-maitland-1885`, the book, which describes the witnesses;
+- `menard-hermes-1866`, Louis Ménard's *Hermès Trismégiste*, the French version the translators "used, but not entirely followed" (p. ii). It is cited only and was not read.
+
+Files:
+- `corpus/virgin-of-the-world.ts`;
+- the generated `corpus/virgin-of-the-world-text.ts`, made by `scripts/texts/virgin-of-the-world.py`. The script records the method, the one reading the vote took, the wrong majorities rejected, and every correction by hand with the page it was read on;
+- `corpus/virgin-of-the-world-related-images.ts`;
+- plain words in `corpus/plain/virgin-of-the-world.ts`;
+- the marker's pictures in `marker-pictures.ts`.
+
+Copyright: public domain (1885; Kingsford died 1888, Maitland 1897, Ménard 1901). The text layers are `public_domain`.
+
+### What the book is
+
+A Victorian translation, not an ancient witness. It renders Greek and Latin texts through Ménard's French, so the English is at one remove from the originals.
+
+The translators wrote *The Perfect Way* (1882) and founded the Hermetic Society in London in 1884. The book was published "under the auspices of the Hermetic Society" (p. 154), for Robert H. Fryar's Bath Occult Reprint Series. Its essays and Kingsford's Introduction read the Hermetic writings as an esoteric wisdom one with "the creed of catholic Christendom". The archive records this aim as context in the work entry, the book record and the Introduction's notes and plain words. It is not given as the meaning of the ancient texts.
+
+### Source and checking
+
+No proofread transcription of an 1885 copy, and no Gutenberg or Wikisource text, could be reached (sacred-texts.com refused the requests).
+
+| Siglum | Witness |
+|---|---|
+| E | archive.org's OCR of the Global Grey e-book (2018), a typeset reissue of an e-text of the 1885 book. The base: the only e-text with the Introduction. |
+| T | archive.org's OCR of another PDF of the same e-text. It has no Introduction and no Tatios V. |
+| V | archive.org's OCR of Google's scan of an 1885 copy (`1885-kingsford-maitland-virgin-of-the-world`), read from its djvu.xml, with its page images. |
+
+E and T share the e-text's page markers and errors, so they are one transcription. **V is the only independent witness, and the only one of the 1885 printing.** In effect, then, two independent copies were compared word by word. The Introduction and Tatios V were compared on E and V alone.
+
+- **Taken by the vote:** one reading, '"I' for E's '"T]' (p. 9).
+- **Rejected majorities:** "Hyle" (the book prints "Hylé", p. 61, seen) and "Stobzus" (an OCR misreading of "Stobæus").
+- **Corrected by hand, on V's page images:**
+  - the one-letter words lost before drop capitals ("O MY", "A GREAT");
+  - errors E and T share ("hast", p. 18; "But", p. 135; "cucurbite"; "Kytheræa");
+  - the closing brackets of the translators' and the book's source notes;
+  - OCR of ornaments at the ends of parts;
+  - the Greek words βασιλεύς and βαίνειν (p. 112);
+  - spacing and line-break hyphens, each checked in V's word boxes.
+- **Kept 1885 misprint:** "corporealites" (p. 107).
+
+The text has not been proofread page by page. Punctuation and capitals were not voted, only checked where seen. Italic and small capitals are not marked. The footnotes are left out; the translators' bracketed notes printed in the text are kept.
+
+### Units
+
+`modern.vow.1885` (`book`) holds no text. It carries Ménard as a cited layer, the 1885 date, and notes on what is not imported.
+
+Under it come:
+- the Introduction's first section;
+- six `treatise` records, which hold no text and carry the composition dates;
+- 44 `part` units with the English (layer `eng-1885`; `primary_text` for the Introduction, `translation` for the rest).
+
+That makes 45 units and 52 passages.
+
+| Units | The book's title | Pages | Ancient text |
+|---|---|---|---|
+| `.intro` | An Introduction to the Virgin of the World, first section | xix–xxi | Kingsford's own |
+| `.kore.1`–`.3` | The Virgin of the World, Parts I–III | 1–39 | Korē Kosmou (Stobaeus) |
+| `.ascl.1`–`.15` | A Treatise on Initiations; or, Asclepios, Parts I–XV | 45–94 | Latin Asclepius |
+| `.def.1`–`.4` | The Definitions of Asclepios, Parts I–IV | 101–113 | Corpus Hermeticum XVI, XVII, XVIII (Parts III–IV) |
+| `.tat.1`–`.8` | Fragments of the Book of Hermes to his Son Tatios | 119–140 | Stobaean excerpts |
+| `.ammon.1`–`.6` | Fragments of the Writings of Hermes to Ammon | 141–148 | Stobaean excerpts |
+| `.frag.1`–`.8` | Various Hermetic Fragments | 148–154 | Stobaeus (I, II, VII), Cyril (III–V), the Suda (VI), Lactantius (VIII) |
+
+**Why only the first section of the Introduction.** The Introduction is twelve close pages (xix–xxx) without sections, so it is not short. Only its first section is imported, as the archive divides it: up to "the curse of Eva" (p. xxi), before the turn to the soul's "apostacy".
+
+**Listed, not imported:**
+- the rest of the Introduction;
+- Maitland's essays "The Hermetic Books" (pp. i–viii) and "The Hermetic System and the Significance of its Present Revival" (pp. ix–xviii);
+- the footnotes.
+
+### Dates
+
+- **Publication:** 1885, on `modern.vow.1885`, from the title page ("MDCCCLXXXV") and the prefatory note ("Bath; May, 1885"), both seen.
+- **Composition:** 100–300 CE (`century`, approximate, `copenhaver-hermetica`), on the treatise records for the Korē Kosmou, the Asclepius, the Definitions, Tatios and Ammon. It is carried across from the Mead records and is not a new dating. The various fragments are not dated, since they come from mixed sources.
+- **Marker:** carries the same composition range and 1885.
+
+### Links
+
+All 73 are `proposed`. None says one translation copied the other.
+
+**Parallels with Mead's English (68).** Each is a `direct_textual_parallel`, "two translations of one ancient text", with `wordingComparable` "partly" and the common source named.
+- **Korē Kosmou:** kore.1–3 → `herm.sh.ex25`, `ex26`, `ex27`.
+- **Definitions:** def.1 → `herm.ch.16`, def.2 → `herm.ch.17`, def.3 and def.4 → `herm.ch.18`.
+- **Tatios:** tat.1–8 → ex1, ex8, ex7, ex11, ex6, ex5, ex3, ex2.
+- **Ammon:**
+  - ammon.1–4 → ex13, ex12, ex14, ex16;
+  - ammon.5 → ex17 and ex18;
+  - ammon.6 → ex19.
+- **Various fragments:** frag.1 → ex20, frag.2 → ex4, frag.7 → ex24.
+- **Asclepius:** the 15 parts → all 41 chapters of `herm.ascl.*` (43 links). The 1885 division follows Ménard and does not fall at Mead's chapters, so each part is linked to the chapters whose matter it renders.
+
+**Where the two translations differ in meaning,** `meaningComparable` is "partly", and both the link and the plain words say how:
+
+| Part | 1885 English | Mead |
+|---|---|---|
+| def.2 | the King answers "Tat" | the speaker is Asclepius |
+| tat.4 | "a great and divine power" | "a very mighty Daimon" |
+| tat.6 | "the vehicle of becoming" | "the vase of genesis" |
+| ammon.2 | Providence is "the Free Will of the Supreme God" | "the Self-perfect Reason" |
+| frag.2 | the sun "governs fluid things" | "regulates the breaths" |
+| frag.7 | the planets' gifts shared out one way | shared out differently |
+
+**Other links (5).** All but the first say "None shown." for transmission.
+- ascl.15 → `herm.ascl.prayer-coptic`, `direct_textual_parallel`, with the Papyrus Mimaut as the common source.
+- ascl.9 → `modern.hpb.isis.2.360`, `close_conceptual_parallel`: Blavatsky's paraphrase of the lament.
+- ascl.9 → `modern.kyb.1908.2` and kore.1 → `modern.kyb.1908.intro`, `broad_thematic_resemblance`.
+- intro → `arab.comm.hort.7`, `symbolic_similarity`: the image of distillation.
+
+**Not linked:** the archive's `herm.definitions`, the Armenian Definitions, which is a different work.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". The 1885 title page and frontispiece are not on Commons and are described only.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Anna Kingsford, portrait | marker `virgin-of-the-world-published` | `UNVERIFIED`: date, photographer, source |
+| Edward Maitland, portrait | marker | `UNVERIFIED`: date, photographer, source |
+| Patrizi, *Nova de universis philosophia*, title page of the second edition ("1593"), listing the Hermetic books and "Asclepii discipuli tres libelli" | `modern.vow.1885.def` | secure |
+| Patrizi, *Nova de universis philosophia*, page listing the Hermetic books, from Google Books | `modern.vow.1885` | `UNVERIFIED`: edition (the file page says 1591) and copy |
+
+### Plain words
+
+There are 45 entries, one per unit:
+- The ancient texts' teachings are reported as theirs, and Kingsford's reading as hers.
+- Each entry for a part with a meaning difference says how the two translations differ.
+- "Other possible readings" cover:
+  - "corporealites" and the King's "Tat" (def.2);
+  - "God manifest" (ascl.2), and matter's standing beside God (ascl.7);
+  - the note's etymology of βασιλεύς (def.4);
+  - "fluid things" against "breaths" (frag.2);
+  - Cyril's wording (frag.5);
+  - Kingsford's "Kosmic Virgin" and her Eve and Mary reading (intro).
+
+### Not done
+
+- The text has not been proofread page by page, and only one independent witness to the e-text, V, was reached.
+- Ménard's French was not read. Where the 1885 English departs from the Greek or Latin, it is not established whether the cause is Ménard or the translators.
+- These have no partner English in the archive:
+  - frag.3–6 (Cyril and the Suda) and frag.8 (Lactantius) are not linked;
+  - Mead's excerpt XV is not in the 1885 book.
+- The rest of Kingsford's Introduction, Maitland's essays and the footnotes are listed, not imported.
+- The 1885 title page and frontispiece could not be shown.
