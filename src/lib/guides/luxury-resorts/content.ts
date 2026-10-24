@@ -12,7 +12,7 @@ import {
   VENUE_PHOTO_NOTE,
 } from "./advice";
 
-// "Zanzibar's Best Luxury Resorts", as a hotel guide definition (see
+// "Barefoot Luxury: Zanzibar's Five-Star Escapes", as a hotel guide definition (see
 // hotel-guide/types.ts). The page, admin page and override handling are
 // shared with the other hotel guides.
 
@@ -71,12 +71,12 @@ const CATEGORIES: StayCategory[] = [
 
 export const LUXURY_GUIDE: HotelGuideDefinition = {
   slug: LUXURY_RESORTS_SLUG,
-  title: "Zanzibar's Best Luxury Resorts",
-  subtitle: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when only the best will do.",
+  title: "Barefoot Luxury: Zanzibar's Five-Star Escapes",
+  subtitle: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when you want to be spoilt.",
   seoTitle: "Best Luxury Resorts in Zanzibar | Five-Star Hotels & Private Islands",
   description:
     "Zanzibar's best luxury resorts, from a private island and villa resorts to five-star all-inclusives and Stone Town's historic hotels. Independent recommendations and practical local advice.",
-  cardBlurb: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when only the best will do.",
+  cardBlurb: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when you want to be spoilt.",
   heroPhoto: RESORT_PHOTOS["mnemba"][0],
   introduction: INTRODUCTION,
   howToRead: HOW_TO_READ,

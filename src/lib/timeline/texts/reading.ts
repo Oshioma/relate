@@ -4,6 +4,7 @@
 // tests all agree on what "next" means and how far apart two passages stand.
 
 import { formatDuration, formatYear } from "../time";
+import { OUR_TRANSLATION_LAYER_KEY } from "./corpus/plain";
 import { PASSAGE_DATE_ROLES } from "./taxonomy";
 
 export type OutlineRow = {
@@ -98,6 +99,21 @@ export function neighbours<T extends OutlineRow>(
 // ---------------------------------------------------------------------------
 
 /** Longest run-on shown, so a passage with no full stop does not pull in a whole page. */
+/**
+ * The order an opened passage shows its text layers in. Our own translation
+ * goes first, because for a passage with no open English it is the only words
+ * a reader can follow; layers that are only cited (in copyright, or not
+ * reproduced) go last, since they show no words. Otherwise the order given is
+ * kept: the original, then translations, then plain words.
+ */
+export function layerDisplayOrder<T extends { import_key: string | null; content: string | null }>(layers: T[]): T[] {
+  const rank = (l: T) => (l.import_key === OUR_TRANSLATION_LAYER_KEY ? 0 : l.content ? 1 : 2);
+  return layers
+    .map((layer, i) => ({ layer, i }))
+    .sort((a, b) => rank(a.layer) - rank(b.layer) || a.i - b.i)
+    .map(({ layer }) => layer);
+}
+
 export const RUN_ON_MAX_CHARS = 600;
 
 // A sentence ends at . ! ? (and the Greek question mark ; and raised dot ·),

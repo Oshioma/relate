@@ -2,7 +2,7 @@ import type { GuidePhoto, ListingRef } from "@/lib/guides/where-to-stay/types";
 import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory } from "@/lib/guides/hotel-guide/types";
 
 // The shape of an editorial guide to places rather than hotels ("Zanzibar's
-// Most Picturesque Places"). Each guide is one PlaceGuideDefinition; the page,
+// Picture-Perfect Places"). Each guide is one PlaceGuideDefinition; the page,
 // admin page and actions are shared, as with the hotel guides.
 //
 // Every place keeps the editors' judgement (why it's here, what you see)
@@ -46,6 +46,9 @@ export type Place = {
   price?: "$" | "$$" | "$$$" | "$$$$";
   facts?: { label: string; value: string }[];
   listing?: ListingRef | null;
+  // The same place in another of the community's guides (e.g. a beach bar
+  // that is also in the restaurant guide), linked from the at-a-glance panel.
+  seeAlso?: { label: string; guideSlug: string; placeKey: string }[];
 };
 
 // Section headings on each entry. Defaults suit places; a restaurant guide

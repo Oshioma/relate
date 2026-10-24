@@ -9,7 +9,7 @@ import { UPDATE_KIND_LABELS, formatDate } from "./destination-section";
 import { PhotoCredit } from "./photo-credit";
 import { PhotoGallery, PhotoOpener } from "./photo-viewer";
 
-// One place on a place guide ("Zanzibar's Most Picturesque Places"): a
+// One place on a place guide ("Postcards from Zanzibar"): a
 // gallery that opens in the photo viewer, the editors' description, when to
 // go (light and tide), how to visit, photography tips and honest caveats,
 // with an at-a-glance panel of the checked practicalities.
@@ -134,6 +134,12 @@ function AtAGlance({ place, labels, listing }: { place: Place; labels: PlaceSect
             )}
           </a>
         )}
+        {place.seeAlso?.map((s) => (
+          // A sibling guide's URL, relative so it works on custom domains too.
+          <a key={`${s.guideSlug}#${s.placeKey}`} href={`${s.guideSlug}#${s.placeKey}`} className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
+            <Sparkles className="h-4 w-4" aria-hidden /> {s.label}
+          </a>
+        ))}
         {place.website && (
           <a href={place.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium text-accent hover:underline">
             <ExternalLink className="h-4 w-4" aria-hidden /> {place.websiteLabel ?? "Official website"}
