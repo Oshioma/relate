@@ -188,6 +188,9 @@ export function feedUrl(
     url.searchParams.set("radius_km", String(NEAR_RADIUS_KM));
   }
   if (monthly) url.searchParams.set("type", "monthly");
+  // Each room of a place as its own card (a guesthouse with three rooms shows
+  // three), each with its own price and photo. Older feeds ignore it.
+  url.searchParams.set("per", "room");
   url.searchParams.set("limit", String(limit));
   return url.href;
 }

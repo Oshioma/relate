@@ -19,6 +19,7 @@ import {
   deleteLiveSession,
   rsvpToLiveSession,
   cancelLiveRsvp,
+  saveLiveSessionSnapshot,
 } from "./live-events-actions";
 import { JitsiRoom } from "./jitsi-room";
 import { LiveSessionFields, localInputToIso } from "./live-session-fields";
@@ -281,6 +282,17 @@ export function LiveEventsView({
                   displayName={displayName}
                   subject={active.title}
                   onClose={() => setRoomOpen(false)}
+                  onSnapshot={
+                    isStaff
+                      ? (image) =>
+                          void saveLiveSessionSnapshot({
+                            sessionId: active.id,
+                            communitySlug,
+                            spaceSlug,
+                            image,
+                          })
+                      : undefined
+                  }
                 />
               </div>
             )}
@@ -488,10 +500,17 @@ function PastSessionCard({
 }) {
   const duration = formatSessionDuration(session.started_at, session.ended_at);
   const hostName = session.starter?.full_name || session.starter?.username;
+  // A still from the meeting, else the session's cover image, else the camera.
+  const picture = session.thumbnail_url || session.image_url;
   return (
     <Card className="group relative overflow-hidden">
-      <div className="relative flex h-24 items-center justify-center bg-gradient-to-br from-muted to-border">
-        <Video className="h-7 w-7 text-muted-foreground/70" />
+      <div className="relative flex h-24 items-center justify-center overflow-hidden bg-gradient-to-br from-muted to-border">
+        {picture ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={picture} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <Video className="h-7 w-7 text-muted-foreground/70" />
+        )}
         <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur">
           <History className="h-3 w-3" /> Ended
         </span>

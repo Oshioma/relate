@@ -140,8 +140,8 @@ test("page → query: known areas by name, else near the page, never off Zanziba
 
 test("feed URLs", () => {
   const base = "https://www.zanzibarrooms.com/api/public/stays";
-  assert.equal(feedUrl(base, { area: "Stone Town" }), `${base}?area=Stone+Town&limit=6`);
-  assert.equal(feedUrl(base, { lat: -5.82, lng: 39.38 }), `${base}?near=-5.8200%2C39.3800&radius_km=8&limit=6`);
+  assert.equal(feedUrl(base, { area: "Stone Town" }), `${base}?area=Stone+Town&per=room&limit=6`);
+  assert.equal(feedUrl(base, { lat: -5.82, lng: 39.38 }), `${base}?near=-5.8200%2C39.3800&radius_km=8&per=room&limit=6`);
 });
 
 test("config: on by default, kill switch, base URL override", () => {
