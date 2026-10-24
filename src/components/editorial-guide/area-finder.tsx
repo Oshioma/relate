@@ -31,13 +31,25 @@ function select(hash: string) {
 
 export type AreaCard = { id: string; label: string; count: number; photo: { src: string; alt: string; width?: number } | null };
 
-export function AreaCards({ areas, noun, nearPhoto = null }: { areas: AreaCard[]; noun: string; nearPhoto?: AreaCard["photo"] }) {
+export function AreaCards({
+  areas,
+  noun,
+  nearPhoto = null,
+  title = "Where are you?",
+  blurb,
+}: {
+  areas: AreaCard[];
+  noun: string;
+  nearPhoto?: AreaCard["photo"];
+  title?: string;
+  blurb?: string;
+}) {
   return (
     <section aria-labelledby="area-cards-title" className="mt-6">
       <h2 id="area-cards-title" className="text-base font-semibold text-foreground">
-        Where are you?
+        {title}
       </h2>
-      <p className="text-sm text-muted-foreground">Tap your area to see just the {noun} around you.</p>
+      <p className="text-sm text-muted-foreground">{blurb ?? `Tap your area to see just the ${noun} around you.`}</p>
       <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         <li>
           {nearPhoto ? (
@@ -186,7 +198,7 @@ export function AreaFilteredPlaces({
 
   return (
     <>
-      <div id="place-filter" className="mt-6 flex scroll-mt-24 flex-wrap items-center gap-2" role="group" aria-label={`Show ${noun} in`}>
+      <div id="place-filter" className="mt-6 flex scroll-mt-24 flex-wrap items-center gap-2" role="group" aria-label={`Show ${noun}`}>
         <Chip active={!filtered} onClick={() => select("")}>
           All
         </Chip>
@@ -207,7 +219,7 @@ export function AreaFilteredPlaces({
         {farAway && <>You seem to be away from Zanzibar, so these are sorted by distance from where you are now.</>}
         {area && (
           <>
-            {shown.length} {noun} in {area.label}.
+            {area.label}: {shown.length} {noun}.
           </>
         )}
         {filtered && (

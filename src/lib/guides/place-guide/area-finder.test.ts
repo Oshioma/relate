@@ -2,9 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { BEACH_BARS_GUIDE } from "../beach-bars/content";
 import { RESTAURANTS_GUIDE } from "../restaurants/content";
+import { ADVENTURE_GUIDE } from "../adventure/content";
 import { byDistance, distanceKm, formatDistance } from "./distance";
 
-const GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE];
+const GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE, ADVENTURE_GUIDE];
+// Guides whose cards are places (the adventure guide's are kinds of activity).
+const AREA_GUIDES = [BEACH_BARS_GUIDE, RESTAURANTS_GUIDE];
 
 test("every entry is in exactly one area card", () => {
   for (const g of GUIDES) {
@@ -23,6 +26,8 @@ test("every entry has coordinates on Zanzibar (Unguja), inside its area", () => 
       assert.ok(p.coords, `${g.slug}: ${p.key} has no coords`);
       assert.ok(p.coords.lat > -6.5 && p.coords.lat < -5.7 && p.coords.lng > 39.15 && p.coords.lng < 39.6, `${p.key} is off the island: ${JSON.stringify(p.coords)}`);
     }
+  }
+  for (const g of AREA_GUIDES) {
     // Places in one area are within a short drive of each other.
     for (const a of g.areaFinder!.areas) {
       const pts = a.placeKeys.map((k) => g.places.find((p) => p.key === k)!.coords!);
