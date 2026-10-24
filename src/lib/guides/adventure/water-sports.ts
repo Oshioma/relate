@@ -239,7 +239,7 @@ export const WATER_SPORTS_ACTIVITIES: Place[] = [
       status: "verified",
       checkedOn: CHECKED,
       gaps: [],
-      sources: ["https://paddlesportszanzibar.com/", "https://wanderlog.com/"],
+      sources: ["https://paddlesportszanzibar.com/"],
     },
   },
   {
@@ -277,7 +277,7 @@ export const WATER_SPORTS_ACTIVITIES: Place[] = [
       status: "partial",
       checkedOn: CHECKED,
       gaps: ["Uzi Island operators"],
-      sources: ["https://www.instagram.com/allykayak_michamvi/", "https://wanderlog.com/"],
+      sources: ["https://www.instagram.com/allykayak_michamvi/"],
     },
   },
   {
@@ -315,7 +315,7 @@ export const WATER_SPORTS_ACTIVITIES: Place[] = [
       status: "verified",
       checkedOn: CHECKED,
       gaps: ["multi-day dhow operators"],
-      sources: ["https://zanzibarwatersports.com/", "https://dreamdhow.com/", "https://wanderlog.com/"],
+      sources: ["https://zanzibarwatersports.com/", "https://dreamdhow.com/"],
     },
   },
   {
