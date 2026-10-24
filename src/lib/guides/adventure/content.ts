@@ -83,6 +83,8 @@ export const ADVENTURE_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Best Adventure Activities in Zanzibar | Diving, Kitesurfing, Skydiving, Horse Riding & More",
   description:
     "The best adventures in Zanzibar: scuba diving and snorkelling at Mnemba, kitesurfing in Paje, skydiving over Kendwa, horse riding, quad biking, caves and Jozani forest — with operators, seasons, safety checks and honest caveats.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Adventure",
   cardBlurb: "Skydiving onto the beach, kitesurfing the lagoons, diving Mnemba, galloping across sandbanks and swimming in a cave — Zanzibar's adventures, and who to do them with.",
   // A parachute over the turquoise north coast.
   heroPhoto: (byKey.get("skydiving")?.photos ?? [])[0] ?? ACTIVITIES.flatMap((p) => p.photos)[0],

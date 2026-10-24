@@ -76,6 +76,8 @@ export const GETTING_AROUND_GUIDE: PlaceGuideDefinition = {
   seoTitle: "How to Get Around Zanzibar | Taxis, Dala Dala, Zanzibus Shuttle, Car Hire, Ferries & Flights",
   description:
     "How to get around Zanzibar: airport transfers, taxis and private drivers, the Zanzibus shuttle, dala dalas, Bolt, bajaji, car and scooter hire with the Zanzibar driving permit, bikes, ferries to Dar es Salaam and Pemba, and flights — checked and honest.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Transport",
   cardBlurb: "Dala dalas, the Zanzibus shuttle, drivers on WhatsApp, tuk-tuks, scooters, bikes, wooden boats and the ferry to Dar — every way around the island, and how to use it.",
   // A dala dala in Stone Town, roof piled high.
   heroPhoto: (byKey.get("dala-dala")?.photos ?? [])[0] ?? WAYS.flatMap((p) => p.photos)[0],
