@@ -88,3 +88,17 @@ and `destination-section.tsx` for examples). The viewer takes the whole set,
 including photos the page doesn't show as thumbnails, so readers can see them all.
 Keep any labels such as "The area, not the hotel" on the photo in the viewer.
 A single image on its own (a hero, a card that links elsewhere) doesn't need it.
+
+# Links to other sites open in a new window
+
+Always open links to external sites in new windows. Any link that goes to a
+different site (another domain, including a community's own custom domain such
+as mzunguzanzibar.com when seen from relate.click, or zanzibarrooms.com) must
+open in a new tab/window with `rel="noopener noreferrer"`. Links within the same
+site, `#anchors`, `mailto:` and `tel:` stay in the same window.
+
+This is handled for every page by `ExternalLinksInNewWindow` in the root layout
+(`src/components/layout/external-links-new-window.tsx`, logic and tests in
+`src/lib/external-links.ts`), which also covers links inside posts and rich
+text. Don't remove it. When you write an external link by hand, still give it
+`target="_blank" rel="noopener noreferrer"` so it is right without JavaScript.
