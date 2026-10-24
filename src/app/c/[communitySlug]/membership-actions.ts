@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStripeConfigured, createTierCheckoutSession, setSubscriptionCancellation } from "@/lib/stripe";
 import { communityCanCharge } from "@/lib/data/plan-limits";
+import { tierCheckoutDescription } from "@/lib/checkout-description";
 
 export type CheckoutResult = { error: string } | { url: string };
 export type CancelResult = { error: string | null };
@@ -42,7 +43,7 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
   // this resolves to null — they need to join the (free) community first.
   const { data: tier } = await supabase
     .from("community_tiers")
-    .select("id, name, price_cents, currency, community_id, archived_at")
+    .select("id, name, description, price_cents, currency, community_id, archived_at")
     .eq("id", tierId)
     .maybeSingle();
   if (!tier) return { error: "Membership tier not found." };
@@ -66,6 +67,16 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
     };
   }
 
+  // What the tier includes, for the Checkout page: its description and the
+  // spaces it unlocks. Read with the service role: the buyer can't see inside
+  // the private spaces they're about to pay for, but their names are what's on
+  // offer (the tier itself was read above under RLS).
+  const { data: tierSpaces } = await createAdminClient().from("tier_spaces").select("spaces(name)").eq("tier_id", tier.id);
+  const spaceNames = (tierSpaces ?? []).flatMap((row) => {
+    const s = row.spaces as { name: string } | { name: string }[] | null;
+    return Array.isArray(s) ? s.map((x) => x.name) : s ? [s.name] : [];
+  });
+
   const base = await requestBaseUrl();
   const communityUrl = `${base}/c/${communitySlug}`;
 
@@ -75,6 +86,7 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
       priceCents: tier.price_cents,
       currency: tier.currency,
       productName: `${tier.name} — ${community.name}`,
+      productDescription: tierCheckoutDescription(tier.description, spaceNames),
       successUrl: `${communityUrl}?subscribed=1`,
       cancelUrl: communityUrl,
       customerEmail: user.email ?? undefined,
