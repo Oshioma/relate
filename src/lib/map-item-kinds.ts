@@ -43,6 +43,8 @@ export type MapItemLink = {
   href: string;
   // Which guide it comes from, used as the group heading in the popup.
   group: string;
+  // That guide's own page.
+  groupHref: string;
   // The entry's own area wording ("Off Stone Town"), so a pin at a village
   // centre never implies the place is exactly there.
   note: string | null;
