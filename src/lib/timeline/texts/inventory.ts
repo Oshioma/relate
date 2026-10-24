@@ -1086,6 +1086,66 @@ export const INVENTORY_SOURCES: SeedSource[] = [
       "Gives Eleutherius's episcopate at Rome as 'c. 174-189', succeeding Soter 'about 174'. Cited for the range within which Irenaeus wrote Against Heresies III, which names Eleutherius as the bishop of Rome 'now' (III.3.3). Read in New Advent's transcription.",
   },
   {
+    key: "anf-1885-origen",
+    title: "The Ante-Nicene Fathers, vol. IV: Tertullian, Part Fourth; Minucius Felix; Commodian; Origen, Parts First and Second",
+    author: "Frederick Crombie (trans. of Origen, Against Celsus I–VI); Alexander Roberts and James Donaldson (eds.); A. Cleveland Coxe (American edition)",
+    publisher: "The Christian Literature Publishing Company, Buffalo",
+    publishedYear: 1885,
+    reference:
+      "Origen, Against Celsus, Book VI, chapters 22–38, pp. 583–590, cited by the edition's chapter numbers and printed page. Read in the CCEL transcription (ccel.org/ccel/schaff/anf04, anf04.vi.ix.vi.xxii–xxxviii, whose page anchors run one page ahead of the printed pages) and in three scans of the 1885 plates on archive.org: the University of Toronto copy (antenicenefather04robeuoft, page images n594–n601), antenicenefather0004reva_q8u8 and bwb_S0-AWY-298_4",
+    url: "https://archive.org/details/antenicenefather04robeuoft",
+    sourceType: "primary",
+    notes:
+      "The American reprint of Crombie's translation, first printed in Edinburgh in 1872; the bracketed notes are the American edition's, three of them signed 'S.' (not identified for this import). The text of VI.22–38 is the CCEL transcription voted against the archive.org OCR of the three scans and read column by column against the Toronto page images; every correction made by hand is listed in scripts/texts/origen-contra-celsum.py. New Advent's text of the same translation modernises it and was compared, not used. Later printings found on archive.org (New York, 1890; Scribner's, 1913) were not used. The editors' footnotes are listed, not imported. Public domain: published in 1885, and the translation first in 1872.",
+  },
+  {
+    key: "ancl-1872-origen",
+    title: "Ante-Nicene Christian Library, vol. XXIII: The Writings of Origen, vol. II: Origen contra Celsum, Books II.–VIII.",
+    author: "Frederick Crombie (trans.; Books VII and VIII by W. H. Cairns); Alexander Roberts and James Donaldson (eds.)",
+    publisher: "T. and T. Clark, Edinburgh",
+    publishedYear: 1872,
+    reference: "Book VI, chapters 22–38 (the full page range was not checked); read in the archive.org OCR of the University of Toronto copy (writingsoforigen02origuoft), with pp. 367 and 373 seen as page images",
+    url: "https://archive.org/details/writingsoforigen02origuoft",
+    sourceType: "primary",
+    notes:
+      "The translator's own first printing, compared word by word (on its OCR) with the 1885 text. In these chapters the two differ in three places, all confirmed on the 1872 page images: VI.28, 1872 'or admit even that He was a wise man', 1885 'or omit even' (the 1885 reading looks like a misprint, but it is the text of the printing imported and is kept); VI.34, 1872 'a carpenter by trade', 1885 'by craft'; VI.35, 1872 'show from the prophetic writings that the events', 1885 without 'that'. The 1872 printing puts the translator's supplements in square brackets, the 1885 in round. A note in the front matter says Books VII and VIII were translated by W. H. Cairns 'and the rest by Professor Crombie'. Public domain.",
+  },
+  {
+    key: "eusebius-he-npnf-1890",
+    title: "The Church History of Eusebius, translated with prolegomena and notes",
+    author: "Arthur Cushman McGiffert (trans. and notes)",
+    publisher: "Nicene and Post-Nicene Fathers, Second Series, vol. 1 (The Christian Literature Company, New York)",
+    publishedYear: 1890,
+    reference: "Book VI, chapters 34 and 36, with McGiffert's notes; read in the CCEL transcription (ccel.org/ccel/schaff/npnf201, npnf201.iii.xi.xxxiv and npnf201.iii.xi.xxxvi)",
+    url: "https://ccel.org/ccel/schaff/npnf201/npnf201.iii.xi.xxxvi.html",
+    sourceType: "primary",
+    notes:
+      "Eusebius's account of when Origen wrote against Celsus. VI.34 begins the reign of Philip ('Gordianus had been Roman emperor for six years when Philip, with his son Philip, succeeded him'); VI.36.1–2 says that 'at this time', Origen 'being, as they say, over sixty years old', 'composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus'. McGiffert's notes give Philip's reign as early 244 to 249; say that since Origen was born in 185 or 186 the time 'must have been as late as 245'; and on Celsus, that 'we know nothing with certainty, nor did Origen know any more', that he wrote 'probably in the reign of Marcus Aurelius (Keim fixes the date of the work at 178 a.d.)'. Public domain.",
+  },
+  {
+    key: "witte-ophitendiagramm-1993",
+    title: "Das Ophitendiagramm nach Origenes Contra Celsum",
+    author: "Bernd Witte",
+    publisher: "Altenberge (title, place and year as the Commons file page gives them)",
+    publishedYear: 1993,
+    reference: "p. 142, as the Commons file page of its reconstruction drawing (File:Ophitendiagramm2.jpg) cites it; the book itself was not read for this import",
+    url: "https://commons.wikimedia.org/wiki/File:Ophitendiagramm2.jpg",
+    sourceType: "academic_book",
+    notes:
+      "A monograph on the diagram Origen describes in Against Celsus VI.22–38. Cited only as the source of the modern reconstruction drawing shown with this work, which its author uploaded to Wikimedia Commons in his own name under GFDL and CC BY 3.0, asking that the book be quoted as its source. The reconstruction is Witte's reading of Origen's description, not a copy of an ancient diagram, none of which survives; its arguments were not read or checked.",
+  },
+  {
+    key: "turner-celsus-1908",
+    title: "Celsus the Platonist",
+    author: "William Turner",
+    publisher: "The Catholic Encyclopedia, vol. 3 (Robert Appleton Company, New York)",
+    publishedYear: 1908,
+    url: "https://www.newadvent.org/cathen/03490a.htm",
+    sourceType: "encyclopedia",
+    notes:
+      "Says that 'very little is known about his personal history except that he lived during the reign of Marcus Aurelius, that his literary activity falls between the years 175 and 180', and that he wrote the True Word against the Christians, which survives only in Origen's reply; also that 'about the year 240 a copy of the work was sent to Origen by his friend Ambrosius', which does not square exactly with Eusebius's placing of the reply under Philip (244–249). Cited for the date of Celsus's work, which is debated. Read in New Advent's transcription.",
+  },
+  {
     key: "hall-secret-teachings",
     title: "The Secret Teachings of All Ages",
     author: "Manly P. Hall",
@@ -2429,7 +2489,7 @@ export const INVENTORY: InventoryWork[] = [
       "Chaldean Oracles",
       "Ptolemy, Tetrabiblos — planetary rulers",
       "Macrobius, Commentary on the Dream of Scipio I.12 — descent of the soul through the seven spheres",
-      "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates",
+      "Origen, Contra Celsum VI.22 — the Mithraic ladder of seven gates; imported with VI.23–38 as its own work, gnostic.origen-contra-celsum",
     ],
   },
   {
@@ -2623,6 +2683,92 @@ export const INVENTORY: InventoryWork[] = [
         }),
       ],
     },
+  },
+  {
+    // Origen's chapters on the Ophite diagram are a report inside a reply, so
+    // they are a work of their own, listed under item 23 (and item 18 for the
+    // Mithraic ladder of VI.22). No marker existed for Origen, Celsus or the
+    // Ophites, so the work has its own.
+    workKey: "gnostic.origen-contra-celsum",
+    passagePrefix: "gnostic.origen",
+    briefItem: 23,
+    title: "Origen, Against Celsus VI.22–38: the Mithraic ladder, the Ophite diagram and the prayers at the gates",
+    alternativeTitles: ["Contra Celsum VI.22–38", "Κατὰ Κέλσου"],
+    corpusGroup: "gnostic",
+    traditionClass: "ancient_late_transmission",
+    civilisation: "Roman Empire",
+    originalLanguage: "Greek",
+    attribution: "Origen of Alexandria, answering Celsus",
+    attributionNote:
+      "A hostile report inside a refutation, not an Ophite text. Origen wrote his eight books against Celsus's True Word about 248 CE, in the reign of Philip the Arab (Eusebius, Church History VI.36). Celsus's book (c. 175–180, debated) is lost and survives only in Origen's quotations. In VI.22–38 Origen quotes Celsus on a Mithraic ladder of seven gates and on a diagram of circles and seven animal-faced rulers; says the diagram belongs to 'a very insignificant sect called Ophites'; describes the copy he says he saw himself; and gives the prayers its followers are taught to say at the gates of the rulers. Three voices are kept apart throughout: Celsus's claims, Origen's description and judgements, and the quoted prayers. The English is Frederick Crombie's, as reprinted in The Ante-Nicene Fathers, vol. IV (1885).",
+    summary:
+      "Origen's reply (c. 248 CE) to Celsus's lost True Word, in the English of The Ante-Nicene Fathers (1885): Celsus's Mithraic ladder of seven metal gates and an eighth; the Ophite diagram of circles, Leviathan and Gehenna, with its seven animal-formed rulers named Michael, Suriel, Raphael, Gabriel, Thauthabaoth, Erataoth and Onoel; and the prayers to Ialdabaoth, Iao, Sabaoth, Astaphaeus, Aloaeus and Horaeus.",
+    referenceEdition: "The Ante-Nicene Fathers, vol. IV (Buffalo, 1885), Book VI, chapters 22–38, by the edition's chapter numbers",
+    expectedUnits: 17,
+    unitLabel: "chapters (VI.22–38)",
+    unitDivisionKind: "chapter",
+    inventoryBasis:
+      "The edition's own chapters, read on the page images of the 1885 printing (pp. 583–590): chapters XXII to XXXVIII of Book VI, one paragraph each, 17 in all, all imported. The range is the brief's (the Ophite diagram and the seven archons, with the Mithraic ladder that leads into it), not a division Origen makes; the rest of Against Celsus (eight books) is outside this import and is not inventoried, and the chapter numbers are the editors', so the count is not marked verified. Listed, not imported: the editors' 79 footnotes.",
+    inventoryConfidence: "high",
+    inventoryVerified: false,
+    copyrightSummary:
+      "Public domain: Crombie's translation was printed in 1872 and reprinted in 1885; McGiffert's Eusebius (1890) and Turner's article (1908) are cited. The pictures carry the licences their Commons file pages state.",
+    fullTextEditions: ["Crombie's English, The Ante-Nicene Fathers, vol. IV (Buffalo, 1885): Book VI, chapters 22–38"],
+    referenceOnlyEditions: [
+      "The Greek text, in the editions the translator's notes cite (with conjectures of Boherellus, Spencer, Guietus and Gelenius), not read",
+      "Ante-Nicene Christian Library, vol. XXIII (Edinburgh, 1872), the first printing, compared only",
+    ],
+    imageCollections: [
+      "Wikimedia Commons: a page of the Tura papyrus (Cairo JE 88747) and of BnF Grec 945, both as the file pages identify them; a floor mosaic of the Mithraeum of the Seven Gates, Ostia; reconstructions of the Ophite diagram by Jacques Matter (19th century) and Bernd Witte (1993)",
+    ],
+    anchor: {
+      event: {
+        slug: "origen-against-celsus-ophite-diagram",
+        title: "Origen describes the Ophite diagram in his reply to Celsus",
+        summary: "Answering Celsus's lost attack on the Christians, Origen quotes his account of a Mithraic ladder of seven gates and describes a diagram of the seven rulers that he says he saw.",
+        description:
+          "Origen of Alexandria wrote his eight books Against Celsus in the reign of Philip the Arab (244–249), when, Eusebius says, he was over sixty; c. 248 CE is the usual figure. Celsus's True Word, written c. 175–180 (the date is debated), survives only in Origen's quotations. In Book VI, chapters 22–38, Origen quotes Celsus on the mysteries of Mithras and on a diagram of circles and seven animal-faced rulers, says the diagram belongs to a small sect called the Ophites, describes the copy he says he saw, and gives the prayers its followers were taught to say at each ruler's gate. It is a hostile report: what is known of the diagram and the prayers comes only through Origen.",
+        category: "religion",
+        eventType: "historical",
+        tags: ["ancient texts", "gnostic", "ophites", "archons", "mithras", "ascent"],
+        civilisations: ["Roman Empire"],
+        people: ["Origen", "Celsus"],
+        claims: [
+          dated("composition", {
+            qualifier: "Origen's Against Celsus",
+            sourceKey: "eusebius-he-npnf-1890",
+            startYear: 244,
+            endYear: 249,
+            datePrecision: "decade",
+            originalDateText:
+              "'He also at this time composed a work of eight books in answer to that entitled True Discourse, which had been written against us by Celsus' (Eusebius, Church History VI.36.2)",
+            evidence:
+              "Eusebius puts the work in the reign of Philip the Arab, when Origen was 'as they say, over sixty years old' (VI.34–36); McGiffert's notes (1890) give Philip's reign as early 244 to 249, and the time meant as 'as late as 245' at the earliest. 'c. 248' is the usual round figure; the range is approximate.",
+          }),
+          dated("composition", {
+            qualifier: "Celsus's True Word, which Origen quotes",
+            sourceKey: "turner-celsus-1908",
+            startYear: 175,
+            endYear: 180,
+            datePrecision: "decade",
+            originalDateText: "'his literary activity falls between the years 175 and 180' (Turner, Catholic Encyclopedia, 1908)",
+            evidence:
+              "Turner (1908) puts Celsus's literary activity between 175 and 180, under Marcus Aurelius; McGiffert (1890) reports Keim's date of 178 and says that of Celsus 'we know nothing with certainty, nor did Origen know any more'. The date is debated. Celsus's book is lost; it survives only in Origen's quotations.",
+          }),
+          dated("translation_publication", {
+            qualifier: "Crombie's English, in The Ante-Nicene Fathers, vol. IV",
+            sourceKey: "anf-1885-origen",
+            startYear: 1885,
+            datePrecision: "year",
+            isApproximate: false,
+            originalDateText: "The Ante-Nicene Fathers, vol. IV (Buffalo: The Christian Literature Publishing Company, 1885)",
+            datingMethod: "historical_record",
+            evidence: "The printing imported, read in three scans; the translation was first printed in Edinburgh in 1872 (Ante-Nicene Christian Library, vol. XXIII).",
+          }),
+        ],
+      },
+    },
+    prominence: 2,
   },
   {
     workKey: "gnostic.pistis-sophia",
@@ -2926,7 +3072,7 @@ export const INVENTORY: InventoryWork[] = [
     anchor: null,
     proposedMembers: [
       "Irenaeus, Against Heresies I (c. 180) — Gnostic systems and their archons",
-      "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons",
+      "Origen, Contra Celsum VI.22–38 — the Ophite diagram and the seven archons; imported as its own work, gnostic.origen-contra-celsum",
       "Ascension of Isaiah 6–11 — ascent through seven heavens",
       "2 Enoch — the seven heavens",
     ],

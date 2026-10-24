@@ -945,6 +945,36 @@ export const MARKER_PICTURES: Record<string, SeedPicture[]> = {
       depictsActualRemains: false,
     },
   ],
+  "origen-against-celsus-ophite-diagram": [
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Grec_945_48r.jpg",
+      kind: "image",
+      shows: "manuscript",
+      caption:
+        "UNVERIFIED — A page of a Greek manuscript in a cursive hand, numbered 48, opening with a red heading and a tall red decorated initial. The file page identifies it as the Bibliothèque nationale de France's Grec 945, a fifteenth-century copy of Origen's eight books Against Celsus; the shelfmark, the date and which book begins here were not checked. It shows the work, not the chapters on the Ophite diagram.",
+      credit: "Bibliothèque nationale de France, Public domain, via Wikimedia Commons",
+      licence: "Public domain, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Grec_945_48r.jpg",
+      institution: "Bibliothèque nationale de France (as the file page says)",
+      accessionNumber: "Grec 945, f. 48r (as the file page says)",
+      identificationStatus: "unverified",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+    {
+      url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Ophitendiagramm2.jpg",
+      kind: "image",
+      shows: "reconstruction",
+      caption:
+        "A modern reconstruction of the Ophite diagram Origen describes in Against Celsus VI.25–38, drawn by Bernd Witte for his book of 1993: circles inside a serpent labelled 'Leviathan', the seven rulers' names down the left, Paradise with the tree of knowledge and of life at the centre, a dark band labelled Tartarus (Gehenna), and below, seven winged animals named Michael to Thaphabaoth (Onoel). It is Witte's reading of Origen's words, not a copy of an ancient diagram, none of which survives.",
+      credit: "Bernd Witte, Das Ophitendiagramm nach Origenes Contra Celsum (Altenberge, 1993), p. 142, CC BY 3.0, via Wikimedia Commons",
+      licence: "CC BY 3.0 or GFDL, as the file page states",
+      sourcePageUrl: "https://commons.wikimedia.org/wiki/File:Ophitendiagramm2.jpg",
+      identificationStatus: "modern_interpretation",
+      verifiedIdentity: false,
+      depictsActualRemains: false,
+    },
+  ],
   "story-of-atlantis-published": [
     {
       url: "https://upload.wikimedia.org/wikipedia/commons/d/d3/ELLIOT%281896%29_Atlantis%2C_Map4.jpg",
