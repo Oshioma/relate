@@ -64,6 +64,17 @@ import type { CourseLesson, CourseLessonType } from "@/types/database";
 type SiblingCourse = { id: string; title: string };
 type TierOption = { id: string; name: string };
 
+// Live-lesson recording: whether the plan records, and how each lesson's
+// latest recording went.
+export type LessonRecordingStatus = {
+  status: "copying" | "saved" | "failed";
+  error: string | null;
+  // The 8x8 download link, kept when copying failed (works 24 hours).
+  sourceUrl: string | null;
+  createdAt: string;
+};
+export type RecordingInfo = { canRecord: boolean; byLesson: Record<string, LessonRecordingStatus> };
+
 const LESSON_TYPES: { value: CourseLessonType; label: string; hint: string; icon: typeof FileText }[] = [
   { value: "text", label: "Text", hint: "A written lesson", icon: FileText },
   { value: "video", label: "Prerecorded video", hint: "A video people watch any time", icon: PlayCircle },
@@ -86,6 +97,7 @@ export function CourseManageView({
   siblingCourses,
   staffQuizzes,
   tiers,
+  recordings,
 }: {
   detail: CourseDetail;
   communityId: string;
@@ -95,6 +107,7 @@ export function CourseManageView({
   staffQuizzes: Record<string, StaffQuiz>;
   // The community's membership tiers, any of which can include this course.
   tiers: TierOption[];
+  recordings: RecordingInfo;
 }) {
   const { course, modules } = detail;
   const router = useRouter();
@@ -249,6 +262,7 @@ export function CourseManageView({
               spaceSlug={spaceSlug}
               courseId={course.id}
               staffQuizzes={staffQuizzes}
+              recordings={recordings}
               isPending={isPending}
               run={run}
               setError={setError}
@@ -324,6 +338,7 @@ function ModuleEditor({
   spaceSlug,
   courseId,
   staffQuizzes,
+  recordings,
   isPending,
   run,
   setError,
@@ -336,6 +351,7 @@ function ModuleEditor({
   spaceSlug: string;
   courseId: string;
   staffQuizzes: Record<string, StaffQuiz>;
+  recordings: RecordingInfo;
   isPending: boolean;
   run: (action: () => Promise<{ error: string | null }>) => void;
   setError: (message: string | null) => void;
@@ -467,6 +483,7 @@ function ModuleEditor({
                 spaceSlug={spaceSlug}
                 courseId={courseId}
                 moduleId={module.id}
+                canRecord={recordings.canRecord}
                 onDone={() => setEditingLessonId(null)}
                 onError={setError}
               />
@@ -517,6 +534,10 @@ function ModuleEditor({
               </div>
             )}
 
+            {editingLessonId !== lesson.id && lesson.lesson_type === "live" && recordings.byLesson[lesson.id] && (
+              <RecordingNote info={recordings.byLesson[lesson.id]} />
+            )}
+
             {editingLessonId !== lesson.id && (
               <QuizEditor
                 lesson={lesson}
@@ -542,6 +563,7 @@ function ModuleEditor({
             spaceSlug={spaceSlug}
             courseId={courseId}
             moduleId={module.id}
+            canRecord={recordings.canRecord}
             onDone={() => setAddingLesson(false)}
             onError={setError}
           />
@@ -557,6 +579,26 @@ function ModuleEditor({
         )}
       </div>
     </div>
+  );
+}
+
+function RecordingNote({ info }: { info: LessonRecordingStatus }) {
+  if (info.status === "saved") {
+    return <p className="mt-1 pl-8 text-xs text-emerald-600">Recording saved {formatDateTime(info.createdAt)}: it plays as this lesson&apos;s playback.</p>;
+  }
+  if (info.status === "copying") {
+    return <p className="mt-1 pl-8 text-xs text-muted-foreground">Saving the recording from {formatDateTime(info.createdAt)}…</p>;
+  }
+  return (
+    <p className="mt-1 pl-8 text-xs text-danger">
+      The recording from {formatDateTime(info.createdAt)} couldn&apos;t be saved{info.error ? ` (${info.error})` : ""}.{" "}
+      {info.sourceUrl && (
+        <a href={info.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-medium underline">
+          Download it from 8x8
+        </a>
+      )}
+      {info.sourceUrl && " within 24 hours of the session, then add it as a link."}
+    </p>
   );
 }
 
@@ -578,6 +620,7 @@ function LessonForm({
   spaceSlug,
   courseId,
   moduleId,
+  canRecord,
   onDone,
   onError,
 }: {
@@ -588,6 +631,7 @@ function LessonForm({
   spaceSlug: string;
   courseId: string;
   moduleId: string;
+  canRecord: boolean;
   onDone: () => void;
   onError: (message: string | null) => void;
 }) {
@@ -693,8 +737,10 @@ function LessonForm({
             <Input id={idFor("ends")} name="live_ends_local" type="datetime-local" defaultValue={toLocalInput(lesson?.live_ends_at ?? null)} />
           </div>
           <p className="text-xs text-muted-foreground sm:col-span-2">
-            The video room opens inside the lesson 15 minutes before the start. Recording isn&apos;t automatic: after the session, come back
-            here and paste the recording link below so everyone can watch it back.
+            The video room opens inside the lesson 15 minutes before the start.{" "}
+            {canRecord
+              ? "Press Start recording in the call and the recording becomes this lesson's playback by itself once the session ends. You can also paste a recording link below instead."
+              : "After the session, paste the recording link below so everyone can watch it back. (Recording straight from the call comes with the Growth and Pro plans.)"}
           </p>
         </div>
       )}

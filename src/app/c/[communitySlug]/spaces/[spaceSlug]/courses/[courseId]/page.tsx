@@ -6,6 +6,8 @@ import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getCourseDetail } from "@/lib/data/courses";
+import { communityHasFeature } from "@/lib/data/plan-limits";
+import { getLessonPlaybackUrls } from "@/lib/courses/lesson-recordings";
 import { CoursePlayer } from "../../course-player";
 
 export default async function CoursePage({
@@ -37,6 +39,13 @@ export default async function CoursePage({
     : [null, null];
   const isMember = membership?.status === "active";
   const isStaff = isMember && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+
+  // Recordings of live lessons, for exactly the lessons this viewer can open.
+  const liveIds = new Set(detail.modules.flatMap((m) => m.lessons.filter((l) => l.lesson_type === "live").map((l) => l.id)));
+  const [playbackUrls, canRecord] = await Promise.all([
+    getLessonPlaybackUrls(detail.readableLessonIds.filter((id) => liveIds.has(id))),
+    isStaff && liveIds.size > 0 ? communityHasFeature(supabase, community.id, "session_recording") : Promise.resolve(false),
+  ]);
 
   // Drip lock is evaluated at request time on the server (staff preview past
   // it), so the client player never has to call an impure clock during render.
@@ -70,6 +79,8 @@ export default async function CoursePage({
         nowMs={nowMs}
         justPurchased={purchased === "1"}
         viewerName={profile?.full_name || profile?.username || null}
+        playbackUrls={playbackUrls}
+        canRecord={canRecord}
       />
     </div>
   );

@@ -1717,6 +1717,31 @@ export type CourseLesson = {
 
 export type CourseLessonType = "text" | "video" | "live";
 
+// Which lesson a JaaS room belongs to (service role only).
+export type CourseLiveRoom = {
+  room_name: string;
+  lesson_id: string;
+  created_at: string;
+};
+
+// A recording of a live lesson, as JaaS reported it and the app copied it.
+export type CourseLessonRecording = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  idempotency_key: string;
+  jaas_session_id: string | null;
+  status: "copying" | "saved" | "failed";
+  storage_path: string | null;
+  source_url: string | null;
+  error: string | null;
+  duration_seconds: number | null;
+  recorded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CourseEnrollment = {
   id: string;
   course_id: string;
@@ -3321,6 +3346,23 @@ export type Database = {
         Insert: Partial<CommunityTier> & { community_id: string; name: string };
         Update: Partial<CommunityTier>;
         Relationships: [FKey<"community_id", "communities">];
+      };
+      course_live_rooms: {
+        Row: CourseLiveRoom;
+        Insert: Partial<CourseLiveRoom> & { room_name: string; lesson_id: string };
+        Update: Partial<CourseLiveRoom>;
+        Relationships: [FKey<"lesson_id", "course_lessons">];
+      };
+      course_lesson_recordings: {
+        Row: CourseLessonRecording;
+        Insert: Partial<CourseLessonRecording> & {
+          lesson_id: string;
+          course_id: string;
+          community_id: string;
+          idempotency_key: string;
+        };
+        Update: Partial<CourseLessonRecording>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">];
       };
       tier_courses: {
         Row: TierCourse;
