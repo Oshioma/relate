@@ -65,12 +65,12 @@ export default async function MembershipPage({
   const spaceSubs = mySpaceSubs.filter((s) => spaceById.has(s.spaceId));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground">
-        <Gem className="h-5 w-5 text-accent" />
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <Gem className="h-6 w-6 text-accent" />
         Membership
       </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p className="mt-2 text-base text-muted-foreground sm:text-lg">
         Join a membership to unlock premium spaces in {community.name}. Cancel anytime — you keep access until the end of
         the paid period.
       </p>
@@ -97,7 +97,7 @@ export default async function MembershipPage({
             }
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
             {tiers.map((tier) => (
               <MembershipTierCard
                 key={tier.id}
