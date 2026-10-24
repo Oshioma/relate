@@ -35,6 +35,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.tripadvisor.com/Restaurant_Review-g488129-d1218647",
     websiteLabel: "Tripadvisor",
     mapsUrl: maps("Mercury's, Mizingani Road, Stone Town"),
+    coords: { lat: -6.1584, lng: 39.1920 },
     photos: BAR_PHOTOS["mercurys"] ?? [],
     listing: null,
     verification: {
@@ -71,6 +72,7 @@ export const NORTH_WEST_BARS: Place[] = [
     ],
     website: "https://www.livingstoneszanzibar.com/",
     mapsUrl: maps("Livingstone Beach Restaurant, Shangani, Stone Town"),
+    coords: { lat: -6.1616, lng: 39.1875 },
     photos: BAR_PHOTOS["livingstones"] ?? [],
     listing: null,
     verification: {
@@ -108,6 +110,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.tripadvisor.com/Restaurant_Review-g488129-d1937616",
     websiteLabel: "Tripadvisor",
     mapsUrl: maps("Tatu, Shangani Street, Stone Town"),
+    coords: { lat: -6.1641, lng: 39.1868 },
     photos: BAR_PHOTOS["tatu"] ?? [],
     listing: null,
     verification: {
@@ -144,6 +147,7 @@ export const NORTH_WEST_BARS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Kajibange Bar, Nungwi"),
+    coords: { lat: -5.7236, lng: 39.2964 },
     photos: BAR_PHOTOS["kajibange"] ?? [],
     listing: { kind: "business", slug: "kajibange" },
     seeAlso: [{ label: "Also in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "kajibange" }],
@@ -181,6 +185,7 @@ export const NORTH_WEST_BARS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Kibanda Beach Club, Nungwi"),
+    coords: { lat: -5.7238, lng: 39.2958 },
     photos: BAR_PHOTOS["kibanda"] ?? [],
     listing: null,
     verification: {
@@ -217,6 +222,7 @@ export const NORTH_WEST_BARS: Place[] = [
     ],
     website: "https://www.mamamiarestaurantzanzibar.com/",
     mapsUrl: maps("Mama Mia, Nungwi"),
+    coords: { lat: -5.7281, lng: 39.2916 },
     photos: BAR_PHOTOS["mama-mia"] ?? [],
     listing: null,
     verification: {
@@ -254,6 +260,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.instagram.com/bobo.beachclub/",
     websiteLabel: "Instagram",
     mapsUrl: maps("Bobo Beach, Nungwi"),
+    coords: { lat: -5.7268, lng: 39.2922 },
     photos: BAR_PHOTOS["bobo-beach"] ?? [],
     listing: null,
     verification: {
@@ -290,6 +297,7 @@ export const NORTH_WEST_BARS: Place[] = [
     ],
     website: "https://www.thezhotel.com/facilities/restaurants#Rooftops",
     mapsUrl: maps("The Z Hotel, Nungwi"),
+    coords: { lat: -5.7305, lng: 39.2914 },
     photos: BAR_PHOTOS["z-rooftops"] ?? [],
     listing: null,
     verification: {
@@ -327,6 +335,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://kendwarocks.com/full-moon-party",
     websiteLabel: "Full moon party dates",
     mapsUrl: maps("Kendwa Rocks Beach Hotel, Kendwa"),
+    coords: { lat: -5.7522, lng: 39.2880 },
     photos: BAR_PHOTOS["kendwa-rocks"] ?? [],
     listing: null,
     verification: {
