@@ -213,6 +213,8 @@ export function PlaceGuide({
           {def.areaFinder ? (
             <AreaCards
               noun={def.areaFinder.noun}
+              title={def.areaFinder.title}
+              blurb={def.areaFinder.blurb}
               nearPhoto={(() => {
                 const n = def.areaFinder.nearPhoto;
                 const pic = n ? byKey.get(n.placeKey)?.photos[n.photo ?? 0] : undefined;

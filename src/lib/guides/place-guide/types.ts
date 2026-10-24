@@ -10,7 +10,7 @@ import type { AdviceBlock, HotelGuideOverrides, HotelVerification, StayCategory 
 // verified against current sources on the date in `verification`. Nothing
 // here claims the editors visited, and there are never prices or fees.
 
-export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar";
+export type PlaceKind = "beach" | "sandbank" | "island" | "reef" | "town" | "historic" | "nature" | "cave" | "viewpoint" | "restaurant" | "street-food" | "bar" | "activity";
 
 export type Place = {
   key: string;
@@ -110,7 +110,9 @@ export type PlaceGuideDefinition = {
   // for readers who want to see what's around them. `noun` names the places
   // ("bars"). Every place should be in exactly one area and have coords.
   // `nearPhoto` is the picture behind the "near me" card (default: none).
-  areaFinder?: { noun: string; areas: PlaceArea[]; nearPhoto?: { placeKey: string; photo?: number } } | null;
+  // `title`/`blurb` replace the default "Where are you?" heading, for guides
+  // whose cards group by something other than area (e.g. type of activity).
+  areaFinder?: { noun: string; areas: PlaceArea[]; nearPhoto?: { placeKey: string; photo?: number }; title?: string; blurb?: string } | null;
 };
 
 // Stored overrides use the hotel guides' shape, with `hotelPhotos` keyed by
