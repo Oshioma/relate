@@ -14,7 +14,16 @@ import type { Community, CommunityTestimonial } from "@/types/database";
 // The quotes from members on the signed-out landing page. The rows live in
 // React state and travel as one JSON hidden input, which is also what the
 // draft saves — so added, removed and reordered rows survive a refresh too.
-export function CommunityTestimonialsForm({ community }: { community: Community }) {
+// A member a testimonial can be linked to, for their own profile photo.
+export type TestimonialMemberOption = { id: string; name: string; avatarUrl: string | null };
+
+export function CommunityTestimonialsForm({
+  community,
+  members,
+}: {
+  community: Community;
+  members: TestimonialMemberOption[];
+}) {
   const [state, formAction] = useActionState<CommunityTestimonialsState, FormData>(updateCommunityTestimonials, undefined);
   const [rows, setRows] = useState<CommunityTestimonial[]>(() => readTestimonials(community.testimonials));
   const formRef = useRef<HTMLFormElement>(null);
@@ -33,6 +42,7 @@ export function CommunityTestimonialsForm({ community }: { community: Community 
           quote: typeof t?.quote === "string" ? t.quote : "",
           name: typeof t?.name === "string" ? t.name : "",
           avatarUrl: typeof t?.avatarUrl === "string" ? t.avatarUrl : null,
+          memberId: typeof t?.memberId === "string" && t.memberId ? t.memberId : null,
         }))
       );
     } catch {
@@ -101,10 +111,34 @@ export function CommunityTestimonialsForm({ community }: { community: Community 
               placeholder="Tanya"
             />
           </div>
+          <div>
+            <Label htmlFor={`testimonial_member_${i}`}>Member</Label>
+            <select
+              id={`testimonial_member_${i}`}
+              value={row.memberId ?? ""}
+              onChange={(e) => {
+                const member = members.find((m) => m.id === e.target.value);
+                // Picking a member fills an empty name with theirs.
+                update(i, { memberId: member?.id ?? null, name: row.name || member?.name || "" });
+              }}
+              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Not linked</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Link the person if they’ve joined: their own profile photo shows, and changes when they change it.
+            </p>
+          </div>
           <TestimonialPhoto
             communityId={community.id}
             name={row.name}
             avatarUrl={row.avatarUrl ?? null}
+            memberPhoto={members.find((m) => m.id === row.memberId)?.avatarUrl ?? null}
             onChange={(avatarUrl) => update(i, { avatarUrl })}
           />
           <div className="flex flex-wrap gap-1">
@@ -167,11 +201,14 @@ function TestimonialPhoto({
   communityId,
   name,
   avatarUrl,
+  memberPhoto,
   onChange,
 }: {
   communityId: string;
   name: string;
   avatarUrl: string | null;
+  // The linked member's profile photo, which the landing page shows first.
+  memberPhoto: string | null;
   onChange: (avatarUrl: string | null) => void;
 }) {
   const [status, setStatus] = useState<{ kind: "idle" | "uploading" | "done" | "error"; message?: string }>({ kind: "idle" });
@@ -195,7 +232,7 @@ function TestimonialPhoto({
     <div>
       <Label>Photo</Label>
       <div className="flex flex-wrap items-center gap-3">
-        <Avatar src={avatarUrl} name={name || "?"} size={48} />
+        <Avatar src={memberPhoto ?? avatarUrl} name={name || "?"} size={48} />
         <label className="inline-flex cursor-pointer items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
           {status.kind === "uploading" ? "Uploading…" : avatarUrl ? "Change photo" : "Upload photo"}
           <input
@@ -225,7 +262,11 @@ function TestimonialPhoto({
       </div>
       {status.kind === "done" && <p className="mt-1 text-xs text-accent">Uploaded — press Save testimonials to use it.</p>}
       {status.kind === "error" && <p className="mt-1 text-xs text-danger">{status.message}</p>}
-      <p className="mt-1 text-xs text-muted-foreground">Optional. Without one, their initials show instead.</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {memberPhoto
+          ? "Showing their profile photo. An uploaded one is only used if they remove theirs."
+          : "Optional. Without one, their initials show instead."}
+      </p>
     </div>
   );
 }
