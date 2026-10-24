@@ -11,10 +11,15 @@ export function readTestimonials(value: unknown): CommunityTestimonial[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((t): t is Record<string, unknown> => Boolean(t) && typeof t === "object")
-    .map((t) => ({
-      quote: typeof t.quote === "string" ? t.quote.trim() : "",
-      name: typeof t.name === "string" ? t.name.trim() : "",
-    }))
+    .map((t) => {
+      const avatarUrl = typeof t.avatarUrl === "string" ? t.avatarUrl.trim() : "";
+      return {
+        quote: typeof t.quote === "string" ? t.quote.trim() : "",
+        name: typeof t.name === "string" ? t.name.trim() : "",
+        // Only a web address; anything else (a data: URL, a script) is dropped.
+        avatarUrl: /^https?:\/\/\S+$/i.test(avatarUrl) ? avatarUrl : null,
+      };
+    })
     .filter((t) => t.quote.length > 0);
 }
 
