@@ -176,6 +176,8 @@ export type MemberActivityDay = {
 // against PLACE_LOCATION_TYPES at the application layer, which keeps adding
 // new place kinds a code-only change. Both stay null for every non-place
 // template.
+export type CommunityTestimonial = { quote: string; name: string };
+
 export type Community = {
   id: string;
   name: string;
@@ -221,6 +223,9 @@ export type Community = {
   hero_background_video_url: string | null;
   // The same, for the signed-out landing page (/welcome/<slug>).
   landing_background_video_url: string | null;
+  // Quotes from members shown on the signed-out landing page, in order
+  // (migration community_testimonials). Empty = no testimonials section.
+  testimonials: CommunityTestimonial[];
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
