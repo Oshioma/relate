@@ -118,7 +118,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Zanzibar Quad Adventure, Kiwengwa"),
     coords: { lat: -5.9722, lng: 39.37 },
     photos: ADVENTURE_PHOTOS["quad-biking"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "quad-biking" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -158,7 +158,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Old Fort, Stone Town"),
     coords: { lat: -6.1622, lng: 39.1886 },
     photos: ADVENTURE_PHOTOS["cycling"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "cycling" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -195,7 +195,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Jozani Forest"),
     coords: { lat: -6.2416, lng: 39.414 },
     photos: ADVENTURE_PHOTOS["jozani-forest"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "jozani-forest" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -232,7 +232,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Kuza Cave, Jambiani"),
     coords: { lat: -6.3034, lng: 39.534 },
     photos: ADVENTURE_PHOTOS["kuza-cave"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kuza-cave" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -269,7 +269,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Mangapwani Coral Cave"),
     coords: { lat: -6.0018, lng: 39.1912 },
     photos: ADVENTURE_PHOTOS["mangapwani-caves"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mangapwani-caves" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -306,7 +306,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Masingini Forest Reserve"),
     coords: { lat: -6.13, lng: 39.26 },
     photos: ADVENTURE_PHOTOS["masingini-zipline"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "masingini-zipline" },
     verification: {
       status: "unverified",
       checkedOn: CHECKED,
@@ -344,7 +344,7 @@ export const LAND_AIR_ACTIVITIES: Place[] = [
     mapsUrl: maps("Abeid Amani Karume International Airport"),
     coords: { lat: -6.222, lng: 39.225 },
     photos: ADVENTURE_PHOTOS["helicopter-flight"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "helicopter-flight" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,

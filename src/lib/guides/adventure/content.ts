@@ -13,12 +13,13 @@ export const ADVENTURE_SLUG = "zanzibar-adventures";
 
 const byKey = new Map([...SEA_ACTIVITIES, ...WATER_SPORTS_ACTIVITIES, ...LAND_AIR_ACTIVITIES].map((p) => [p.key, p]));
 
-const UNDER_THE_SEA = ["mnemba-diving", "north-coast-diving", "stone-town-reefs", "mnemba-snorkelling", "chumbe-snorkelling", "safari-blue-menai", "kizimkazi-dolphins", "nungwi-turtles", "nungwi-sea-walk", "deep-sea-fishing"];
-const ON_THE_WATER = ["paje-kitesurfing", "jambiani-kitesurfing", "kiwengwa-kitesurfing", "wing-foiling", "reef-surfing", "sup-mangroves-chukwani", "kayak-michamvi-mangroves", "dhow-sailing-kendwa", "motor-watersports-kendwa"];
+const UNDER_THE_SEA = ["mnemba-diving", "north-coast-diving", "stone-town-reefs", "mnemba-snorkelling", "tumbatu-snorkelling", "chumbe-snorkelling", "safari-blue-menai", "kizimkazi-dolphins", "nungwi-turtles", "nungwi-sea-walk", "deep-sea-fishing"];
+const ON_THE_WATER = ["paje-kitesurfing", "jambiani-kitesurfing", "kiwengwa-kitesurfing", "wing-foiling", "reef-surfing", "sup-mangroves-chukwani", "kayak-michamvi-mangroves", "dhow-sailing-kendwa", "catamaran-kendwa", "motor-watersports-kendwa"];
 const ON_LAND = ["horse-riding", "quad-biking", "cycling", "jozani-forest", "kuza-cave", "mangapwani-caves", "masingini-zipline"];
 const IN_THE_AIR = ["skydiving", "helicopter-flight"];
 
-const ACTIVITIES: Place[] = [...UNDER_THE_SEA, ...ON_THE_WATER, ...ON_LAND, ...IN_THE_AIR].map((key) => {
+// Skydiving leads: it's the adventure most readers come looking for.
+const ACTIVITIES: Place[] = [...IN_THE_AIR, ...UNDER_THE_SEA, ...ON_THE_WATER, ...ON_LAND].map((key) => {
   const place = byKey.get(key);
   if (!place) throw new Error(`Unknown activity ${key}`);
   return place;
@@ -41,19 +42,19 @@ const CATEGORIES: StayCategory[] = [
     id: "families",
     title: "With children",
     blurb: "Adventures that work for younger travellers.",
-    hotelKeys: ["safari-blue-menai", "sup-mangroves-chukwani", "kayak-michamvi-mangroves", "jozani-forest", "mnemba-snorkelling", "dhow-sailing-kendwa", "horse-riding"],
+    hotelKeys: ["safari-blue-menai", "tumbatu-snorkelling", "catamaran-kendwa", "sup-mangroves-chukwani", "kayak-michamvi-mangroves", "jozani-forest", "mnemba-snorkelling", "dhow-sailing-kendwa", "horse-riding"],
   },
   {
     id: "non-swimmers",
     title: "For non-swimmers",
     blurb: "Get close to the sea without needing to swim.",
-    hotelKeys: ["nungwi-sea-walk", "dhow-sailing-kendwa", "kayak-michamvi-mangroves", "helicopter-flight", "motor-watersports-kendwa"],
+    hotelKeys: ["nungwi-sea-walk", "dhow-sailing-kendwa", "catamaran-kendwa", "kayak-michamvi-mangroves", "helicopter-flight", "motor-watersports-kendwa"],
   },
   {
     id: "wildlife",
     title: "Wildlife",
     blurb: "Reef fish, turtles, monkeys and, gently, dolphins.",
-    hotelKeys: ["mnemba-diving", "chumbe-snorkelling", "jozani-forest", "stone-town-reefs", "kizimkazi-dolphins"],
+    hotelKeys: ["mnemba-diving", "chumbe-snorkelling", "tumbatu-snorkelling", "jozani-forest", "stone-town-reefs", "kizimkazi-dolphins"],
   },
   {
     id: "near-stone-town",
@@ -71,7 +72,7 @@ const CATEGORIES: StayCategory[] = [
     id: "splurge",
     title: "Once in a lifetime",
     blurb: "Worth saving for.",
-    hotelKeys: ["skydiving", "helicopter-flight", "deep-sea-fishing", "mnemba-diving"],
+    hotelKeys: ["skydiving", "helicopter-flight", "catamaran-kendwa", "deep-sea-fishing", "mnemba-diving"],
   },
 ];
 
@@ -91,7 +92,7 @@ export const ADVENTURE_GUIDE: PlaceGuideDefinition = {
   categoryCaveat: CATEGORY_CAVEAT,
   placesSection: {
     title: "The adventures",
-    blurb: "Twenty-eight adventures, by type: under the sea, on the water, on land and in the air. Tap any photo to see them all.",
+    blurb: "Thirty adventures, by type: in the air, under the sea, on the water and on land. Tap any photo to see them all.",
     navGroup: "The adventures",
   },
   mosaic: [],
@@ -155,16 +156,22 @@ export const ADVENTURE_GUIDE: PlaceGuideDefinition = {
     considerations: "Worth knowing",
   },
   heroCta: "The adventures",
+  directorySection: {
+    title: "Every activity in our directory",
+    navLabel: "From our directory",
+    blurb: "All the activities and operators listed in the Mzungu Zanzibar directory — with members' reviews, opening hours and maps. The list updates as new ones are added.",
+    category: "activity",
+  },
   areaFinder: {
     noun: "adventures",
     title: "What do you fancy?",
     blurb: "Pick a kind of adventure, or tap Near me to see what's closest to you.",
     nearPhoto: { placeKey: "chumbe-snorkelling", photo: 4 },
     areas: [
+      { id: "in-the-air", label: "In the air", placeKeys: IN_THE_AIR },
       { id: "under-the-sea", label: "Under the sea", placeKeys: UNDER_THE_SEA },
       { id: "on-the-water", label: "On the water", placeKeys: ON_THE_WATER },
       { id: "on-land", label: "On land", placeKeys: ON_LAND },
-      { id: "in-the-air", label: "In the air", placeKeys: IN_THE_AIR },
     ],
   },
 };

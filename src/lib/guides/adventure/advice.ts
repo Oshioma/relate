@@ -20,7 +20,7 @@ export const HOW_TO_READ: { label: string; body: string }[] = [
   },
 ];
 
-export const CATEGORY_CAVEAT = "Groupings are our suggestions to help you choose, not a ranking — the adventures are listed by type: under the sea, on the water, on land and in the air.";
+export const CATEGORY_CAVEAT = "Groupings are our suggestions to help you choose, not a ranking — the adventures are listed by type: in the air, under the sea, on the water and on land.";
 
 // Followed on the page by a "contact us" link, so it ends with the ask.
 export const PHOTO_NOTE =
