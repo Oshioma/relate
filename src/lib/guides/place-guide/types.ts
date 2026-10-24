@@ -109,7 +109,8 @@ export type PlaceGuideDefinition = {
   // Area cards at the top (in place of the photo row) and a "near me" card,
   // for readers who want to see what's around them. `noun` names the places
   // ("bars"). Every place should be in exactly one area and have coords.
-  areaFinder?: { noun: string; areas: PlaceArea[] } | null;
+  // `nearPhoto` is the picture behind the "near me" card (default: none).
+  areaFinder?: { noun: string; areas: PlaceArea[]; nearPhoto?: { placeKey: string; photo?: number } } | null;
 };
 
 // Stored overrides use the hotel guides' shape, with `hotelPhotos` keyed by

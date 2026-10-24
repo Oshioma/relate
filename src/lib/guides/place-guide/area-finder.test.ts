@@ -52,3 +52,11 @@ test("near me: nearest first, places without coordinates last in guide order", (
   );
   assert.equal(fromPaje[3].km, null);
 });
+
+test("the near-me card's picture exists", () => {
+  for (const g of GUIDES) {
+    const n = g.areaFinder?.nearPhoto;
+    assert.ok(n, `${g.slug} has no near-me picture`);
+    assert.ok(g.places.find((p) => p.key === n.placeKey)?.photos[n.photo ?? 0], `${g.slug}: ${n.placeKey} photo ${n.photo}`);
+  }
+});

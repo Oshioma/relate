@@ -31,7 +31,7 @@ function select(hash: string) {
 
 export type AreaCard = { id: string; label: string; count: number; photo: { src: string; alt: string; width?: number } | null };
 
-export function AreaCards({ areas, noun }: { areas: AreaCard[]; noun: string }) {
+export function AreaCards({ areas, noun, nearPhoto = null }: { areas: AreaCard[]; noun: string; nearPhoto?: AreaCard["photo"] }) {
   return (
     <section aria-labelledby="area-cards-title" className="mt-6">
       <h2 id="area-cards-title" className="text-base font-semibold text-foreground">
@@ -40,15 +40,27 @@ export function AreaCards({ areas, noun }: { areas: AreaCard[]; noun: string }) 
       <p className="text-sm text-muted-foreground">Tap your area to see just the {noun} around you.</p>
       <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         <li>
-          <button
-            type="button"
-            onClick={() => select("near-me")}
-            className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-md border border-accent/40 bg-accent-soft p-3 text-center text-accent hover:bg-accent/15"
-          >
-            <LocateFixed className="h-7 w-7" aria-hidden />
-            <span className="text-sm font-semibold">Near me</span>
-            <span className="text-xs text-muted-foreground">Closest {noun} first</span>
-          </button>
+          {nearPhoto ? (
+            <button type="button" onClick={() => select("near-me")} className="group relative block w-full overflow-hidden rounded-md text-center">
+              <GuideImage src={nearPhoto.src} alt="" width={nearPhoto.width} sizes="(min-width: 1024px) 230px, (min-width: 640px) 25vw, 50vw" className="aspect-[4/3] transition-transform group-hover:scale-105" />
+              <span className="absolute inset-0 bg-black/35" aria-hidden />
+              <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-3 text-white">
+                <LocateFixed className="h-8 w-8 drop-shadow" aria-hidden />
+                <span className="text-sm font-semibold drop-shadow">Near me</span>
+                <span className="text-xs text-white/90 drop-shadow">Closest {noun} first</span>
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => select("near-me")}
+              className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-md border border-accent/40 bg-accent-soft p-3 text-center text-accent hover:bg-accent/15"
+            >
+              <LocateFixed className="h-7 w-7" aria-hidden />
+              <span className="text-sm font-semibold">Near me</span>
+              <span className="text-xs text-muted-foreground">Closest {noun} first</span>
+            </button>
+          )}
         </li>
         {areas.map((a) => (
           <li key={a.id} className="min-w-0">
