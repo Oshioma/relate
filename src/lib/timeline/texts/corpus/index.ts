@@ -34,6 +34,7 @@ import { VIRGIN_OF_THE_WORLD_CORPUS } from "./virgin-of-the-world";
 import { MITHRAS_LITURGY_CORPUS } from "./mithras-liturgy";
 import { IRENAEUS_CORPUS } from "./irenaeus";
 import { ORIGEN_CONTRA_CELSUM_CORPUS } from "./origen-contra-celsum";
+import { ASCENSION_OF_ISAIAH_CORPUS } from "./ascension-of-isaiah";
 import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
@@ -65,6 +66,7 @@ import { PLAIN_VIRGIN_OF_THE_WORLD } from "./plain/virgin-of-the-world";
 import { PLAIN_MITHRAS_LITURGY } from "./plain/mithras-liturgy";
 import { PLAIN_IRENAEUS } from "./plain/irenaeus";
 import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./plain/origen-contra-celsum";
+import { PLAIN_ASCENSION_OF_ISAIAH } from "./plain/ascension-of-isaiah";
 import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
@@ -100,6 +102,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(MITHRAS_LITURGY_CORPUS, PLAIN_MITHRAS_LITURGY),
   withPlainWords(IRENAEUS_CORPUS, PLAIN_IRENAEUS),
   withPlainWords(ORIGEN_CONTRA_CELSUM_CORPUS, PLAIN_ORIGEN_CONTRA_CELSUM),
+  withPlainWords(ASCENSION_OF_ISAIAH_CORPUS, PLAIN_ASCENSION_OF_ISAIAH),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {
