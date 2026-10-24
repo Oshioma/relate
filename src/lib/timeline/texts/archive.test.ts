@@ -11,6 +11,8 @@ import { breadcrumb, historicalGap, layerDisplayOrder, neighbours, readingOrder,
 import { KYBALION_CHAPTERS, KYBALION_SAYINGS } from "./corpus/kybalion-text";
 import { SCOTT_ELLIOT_MAPS, SCOTT_ELLIOT_SECTIONS } from "./corpus/scott-elliot-text";
 import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
+import { VIRGIN_UNITS } from "./corpus/virgin-of-the-world-text";
+import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
 
@@ -1685,6 +1687,173 @@ test("Donnelly's pictures are pages of the Duke copy, his map and a portrait fro
   assert.deepEqual(pages.map((i) => i.key), ["donnelly-1882-title-page", "donnelly-1882-copyright-page", "donnelly-1882-page-1", "donnelly-1882-page-5", "donnelly-1882-page-29"]);
   assert.match(images.find((i) => i.key === "donnelly-1882-copyright-page")!.caption, /in the year 1882, by Harper & Brothers/);
   assert.match(images.find((i) => i.key === "donnelly-1882-empire-map")!.caption, /modern geology and archaeology reject/);
+});
+
+test("The Virgin of the World is imported from the 1885 first edition, the treatises whole and the Introduction's first section, with the vote and the fixes by hand", () => {
+  const file = corpusFor("modern.kingsford-maitland")!;
+  const work = INVENTORY.find((w) => w.workKey === "modern.kingsford-maitland")!;
+  assert.equal(work.passagePrefix, "modern.vow");
+  assert.equal(work.traditionClass, "modern");
+  assert.equal(work.unitDivisionKind, "part");
+  assert.equal(work.expectedUnits, 45);
+  assert.equal(work.inventoryVerified, false, "the selection from the front matter is the archive's");
+  assert.equal(work.anchor && "event" in work.anchor && work.anchor.event.slug, "virgin-of-the-world-published");
+  assert.match(work.attributionNote!, /founded the Hermetic Society in London in 1884/);
+  assert.match(work.attributionNote!, /Louis Ménard's French version \(1866\) 'used, but not entirely followed'/);
+  assert.match(work.attributionNote!, /the creed of catholic Christendom/);
+  const others = INVENTORY.find((w) => w.workKey === "modern.other-authors")!;
+  assert.ok(others.proposedMembers!.some((m) => /Kingsford.*imported as its own work, modern\.kingsford-maitland/.test(m)));
+  assert.ok(!others.fullTextEditions.some((e) => /Kingsford|Virgin/.test(e)));
+  assert.ok(INVENTORY_SOURCES.some((s) => s.key === "kingsford-maitland-1885"));
+  assert.ok(INVENTORY_SOURCES.some((s) => s.key === "menard-hermes-1866"));
+  // One book record (citing Ménard only), six treatise records without text, and 45 units with the 1885 English.
+  const book = file.passages[0];
+  assert.equal(book.key, "modern.vow.1885");
+  assert.equal(book.divisionKind, "book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "fra-menard-1866"));
+  const treatises = file.passages.filter((p) => p.divisionKind === "treatise");
+  assert.deepEqual(treatises.map((t) => t.key), ["kore", "ascl", "def", "tat", "ammon", "frag"].map((t) => `modern.vow.1885.${t}`));
+  for (const t of treatises) assert.equal(t.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0, t.key);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  const counts: [string, number][] = [["kore", 3], ["ascl", 15], ["def", 4], ["tat", 8], ["ammon", 6], ["frag", 8]];
+  assert.deepEqual(
+    units.map((u) => u.key),
+    ["modern.vow.1885.intro", ...counts.flatMap(([t, n]) => Array.from({ length: n }, (_, i) => `modern.vow.1885.${t}.${i + 1}`))],
+  );
+  assert.equal(VIRGIN_UNITS.length, 45);
+  assert.equal(file.passages.length, 52);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 45, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (id: string) => file.passages.find((p) => p.key === `modern.vow.1885.${id}`)!.layers.find((l) => l.key === "eng-1885")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1885")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, unit.key.endsWith(".intro") ? "primary_text" : "translation", unit.key);
+    assert.match(layer.evidence, /compared word by word with a second OCR of the same e-text/, unit.key);
+    assert.match(layer.evidence, /the 1885 scan is the only independent witness/, unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/virgin-of-the-world\.py/, unit.key);
+    assert.match(unit.reference, /^The Virgin of the World \(London, 1885\), (An Introduction to the Virgin of the World \(first section\), pp\. xix–xxi|.+, Part [IVX]+, (p\. \d+|pp\. \d+–\d+))$/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /\[\d+\]|_|�|--|  |(?<!\n)\n(?!\n)|[a-z,;]\n\n[a-z]|Stobzus|stobzus/, unit.key);
+  }
+  assert.equal(file.passages.find((p) => p.key === "modern.vow.1885.ascl.13")!.reference, "The Virgin of the World (London, 1885), A Treatise on Initiations; or, Asclepios, Part XIII, pp. 87–90");
+  assert.match(text("intro"), /^THE mystic title of the celebrated Hermetic fragment/);
+  assert.match(text("intro"), /curse of Eva\.$/);
+  assert.match(text("kore.1"), /^HAVING thus spoken, Isis first pours out for Horos the sweet draught of immortality/);
+  assert.match(text("ascl.7"), /In the beginning were God and Hylé/);
+  assert.match(text("def.1"), /^Asclepios to the King Ammon\.\n\n/);
+  assert.match(text("frag.7"), /^SEVEN Planets revolve in the ways of Olympos/);
+  // The drop-capital openings restored by hand, and the Greek words.
+  assert.match(text("kore.2"), /^O MY illustrious son/);
+  assert.match(text("tat.4"), /^A GREAT and divine power/);
+  assert.match(text("tat.6"), /^O MY son, matter becomes/);
+  assert.match(text("def.4"), /βασιλεύς/);
+  assert.match(text("def.4"), /βαίνειν/);
+  // The 1885 misprint is kept, not silently corrected.
+  assert.match(text("def.2"), /incorporeal corporealites/);
+  assert.match(file.passages.find((p) => p.key === "modern.vow.1885.def.2")!.notes!, /1885 spelling/);
+  // Kingsford's esoteric reading is recorded as hers.
+  assert.match(file.passages.find((p) => p.key === "modern.vow.1885.intro")!.notes!, /translator's own esoteric interpretation/);
+  assert.match(book.notes!, /A nineteenth-century translation, not an ancient witness/);
+});
+
+test("The Virgin of the World is dated to 1885, with the ancient composition dates carried across from the Mead records", () => {
+  const file = corpusFor("modern.kingsford-maitland")!;
+  const book = file.passages[0];
+  assert.deepEqual(book.dates!.map((d) => d.role), ["translation_publication"]);
+  const [published] = book.dates!;
+  assert.deepEqual([published.startYear, published.endYear, published.isApproximate], [1885, 1885, false]);
+  assert.match(published.originalDateText, /MDCCCLXXXV/);
+  assert.match(published.evidence, /not of the ancient writings it renders/);
+  for (const t of ["kore", "ascl", "def", "tat", "ammon"]) {
+    const dates = file.passages.find((p) => p.key === `modern.vow.1885.${t}`)!.dates!;
+    assert.equal(dates.length, 1, t);
+    assert.deepEqual([dates[0].role, dates[0].startYear, dates[0].endYear, dates[0].datePrecision, dates[0].isApproximate], ["composition", 100, 300, "century", true], t);
+    assert.equal(dates[0].sourceKey, "copenhaver-hermetica", t);
+    assert.match(dates[0].evidence, /not a new dating/, t);
+  }
+  assert.equal(file.passages.find((p) => p.key === "modern.vow.1885.frag")!.dates, undefined, "the fragments from Cyril, the Suda and Lactantius are not dated");
+  const work = INVENTORY.find((w) => w.workKey === "modern.kingsford-maitland")!;
+  const claims = work.anchor && "event" in work.anchor ? work.anchor.event.claims : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["composition", "translation_publication"]);
+  assert.deepEqual([claims[0].startYear, claims[0].endYear], [100, 300]);
+  assert.equal(claims[1].startYear, 1885);
+});
+
+test("The Virgin of the World is linked to Mead's English of the same texts as two translations, and none says one copied the other", () => {
+  const file = corpusFor("modern.kingsford-maitland")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 73);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^modern\.vow\.1885\./, link.key);
+    assert.notEqual(link.connectionClass, "documented_transmission", link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcopied\b/, link.key);
+    if (/^herm\.(sh|ascl\.\d|ch)/.test(link.to)) {
+      assert.equal(link.connectionClass, "direct_textual_parallel", link.key);
+      assert.equal(link.wordingComparable, "partly", link.key);
+      assert.match(link.differences, /Neither is said to copy the other/, link.key);
+      assert.ok(link.commonSourceNote, link.key);
+    } else if (link.to !== "herm.ascl.prayer-coptic") {
+      assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    }
+  }
+  const to = (from: string) => links.filter((l) => l.from === `modern.vow.1885.${from}`).map((l) => l.to);
+  assert.deepEqual(to("kore.1").filter((t) => t.startsWith("herm.")), ["herm.sh.ex25"]);
+  assert.deepEqual(to("kore.2"), ["herm.sh.ex26"]);
+  assert.deepEqual(to("kore.3"), ["herm.sh.ex27"]);
+  assert.deepEqual(to("def.1"), ["herm.ch.16"]);
+  assert.deepEqual(to("def.2"), ["herm.ch.17"]);
+  assert.deepEqual(to("ammon.5"), ["herm.sh.ex17", "herm.sh.ex18"]);
+  // Every part of the Asclepius is linked to Mead's chapters, and all 41 chapters are covered.
+  for (let part = 1; part <= 15; part++) assert.ok(to(`ascl.${part}`).some((t) => /^herm\.ascl\.\d+$/.test(t)), `ascl.${part}`);
+  const chapters = new Set(links.filter((l) => /^herm\.ascl\.\d+$/.test(l.to)).map((l) => l.to));
+  assert.equal(chapters.size, 41);
+  // Where the translations differ in meaning, the link says so.
+  for (const from of ["def.2", "tat.4", "tat.6", "ammon.2", "frag.2", "frag.7"]) {
+    const link = links.find((l) => l.from === `modern.vow.1885.${from}` && l.connectionClass === "direct_textual_parallel")!;
+    assert.equal(link.meaningComparable, "partly", from);
+  }
+  assert.match(links.find((l) => l.from === "modern.vow.1885.ammon.2")!.differences, /the Free Will of the Supreme God/);
+  // The other links: the Coptic prayer, Blavatsky, the Kybalion and Hortulanus.
+  assert.equal(links.find((l) => l.to === "herm.ascl.prayer-coptic")!.connectionClass, "direct_textual_parallel");
+  assert.equal(links.find((l) => l.to === "modern.hpb.isis.2.360")!.connectionClass, "close_conceptual_parallel");
+  assert.equal(links.find((l) => l.to === "modern.kyb.1908.2")!.connectionClass, "broad_thematic_resemblance");
+  assert.equal(links.find((l) => l.to === "modern.kyb.1908.intro")!.connectionClass, "broad_thematic_resemblance");
+  assert.equal(links.find((l) => l.to === "arab.comm.hort.7")!.connectionClass, "symbolic_similarity");
+  // The Armenian Definitions are a different work and are not linked.
+  assert.ok(!links.some((l) => l.to.startsWith("herm.definitions") || l.to.startsWith("herm.def.")));
+});
+
+test("The Virgin of the World's pictures are Patrizi pages from Commons and the marker's portraits, and the unverified ones say so first", () => {
+  const file = corpusFor("modern.kingsford-maitland")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, 2);
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+    // The portraits are the marker's and are not repeated.
+    assert.doesNotMatch(image.url, /Kingsford|Maitland/, image.key);
+  }
+  assert.equal(seen.get("vow-patrizi-1593-title-page")!.identificationStatus, "secure");
+  assert.equal(seen.get("vow-patrizi-contents-hermetica")!.identificationStatus, "unverified");
+  const marker = MARKER_PICTURES["virgin-of-the-world-published"];
+  assert.equal(marker.length, 2);
+  for (const picture of marker) {
+    assert.match(picture.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/.+\/(Anna_Kingsford_2|Edward_Maitland)\.JPG$/);
+    assert.equal(picture.identificationStatus, "unverified");
+    assert.match(picture.caption ?? "", /^UNVERIFIED — /);
+  }
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

@@ -30,6 +30,7 @@ import { STEINER_CORPUS } from "./steiner";
 import { KYBALION_CORPUS } from "./kybalion";
 import { DONNELLY_CORPUS } from "./donnelly";
 import { SCOTT_ELLIOT_CORPUS } from "./scott-elliot";
+import { VIRGIN_OF_THE_WORLD_CORPUS } from "./virgin-of-the-world";
 import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
@@ -57,6 +58,7 @@ import { PLAIN_STEINER } from "./plain/steiner";
 import { PLAIN_KYBALION } from "./plain/kybalion";
 import { PLAIN_DONNELLY } from "./plain/donnelly";
 import { PLAIN_SCOTT_ELLIOT } from "./plain/scott-elliot";
+import { PLAIN_VIRGIN_OF_THE_WORLD } from "./plain/virgin-of-the-world";
 import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
@@ -88,6 +90,7 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(KYBALION_CORPUS, PLAIN_KYBALION),
   withPlainWords(DONNELLY_CORPUS, PLAIN_DONNELLY),
   withPlainWords(SCOTT_ELLIOT_CORPUS, PLAIN_SCOTT_ELLIOT),
+  withPlainWords(VIRGIN_OF_THE_WORLD_CORPUS, PLAIN_VIRGIN_OF_THE_WORLD),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {
