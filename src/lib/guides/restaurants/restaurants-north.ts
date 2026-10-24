@@ -39,7 +39,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     website: "https://www.thezhotel.com/facilities/restaurants",
     mapsUrl: maps("The Z Hotel, Nungwi"),
     photos: RESTAURANT_PHOTOS["sexy-fish"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "sexy-fish" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -121,7 +121,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     websiteLabel: "Facebook",
     mapsUrl: maps("Fish Market Local Restaurant, Nungwi"),
     photos: RESTAURANT_PHOTOS["fish-market-nungwi"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "fish-market-local-restaurant" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,

@@ -39,7 +39,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     website: "https://emersonspice.com/dining/",
     mapsUrl: maps("Emerson Spice, Tharia Street, Stone Town"),
     photos: RESTAURANT_PHOTOS["emerson-spice-tea-house"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "the-tea-house-at-emerson-spice" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -198,7 +198,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     website: null,
     mapsUrl: maps("Lukmaan Restaurant, Stone Town"),
     photos: RESTAURANT_PHOTOS["lukmaan"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "lukmaan" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -233,7 +233,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     website: "https://abyssinianmaritim1.wixsite.com/amer",
     mapsUrl: maps("Abyssinian Maritim, Stone Town"),
     photos: RESTAURANT_PHOTOS["abyssinian-maritim"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "abyssinian-maritim" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -273,7 +273,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     website: null,
     mapsUrl: maps("Forodhani Gardens, Stone Town"),
     photos: RESTAURANT_PHOTOS["forodhani-night-market"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "forodhani-night-market" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,

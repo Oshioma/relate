@@ -36,7 +36,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://mrkahawa.com/cafe-restaurant",
     mapsUrl: maps("Mr Kahawa, Paje"),
     photos: BAR_PHOTOS["mr-kahawa"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mr-kahawa" },
     seeAlso: [{ label: "Also in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "mr-kahawa" }],
     verification: {
       status: "verified",
@@ -73,7 +73,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://www.mahalizanzibar.com/",
     mapsUrl: maps("Mahali Beachbar, Paje"),
     photos: BAR_PHOTOS["mahali-beachbar"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mahali-beachbar" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -110,7 +110,7 @@ export const SOUTH_BARS: Place[] = [
     websiteLabel: "Instagram",
     mapsUrl: maps("B4 Beach Club, Paje"),
     photos: BAR_PHOTOS["b4-beach-club"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "b4-beach-club" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -146,7 +146,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://www.pajebynight.net/",
     mapsUrl: maps("Paje by Night, Paje"),
     photos: BAR_PHOTOS["paje-by-night"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "paje-by-night" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -182,7 +182,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://lostsoleslodge.com/",
     mapsUrl: maps("Lost Soles Bar & Lodge, Jambiani"),
     photos: BAR_PHOTOS["lost-soles"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "lost-soles" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -218,7 +218,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://newteddysonthebeach.com/",
     mapsUrl: maps("New Teddy's on the Beach, Jambiani"),
     photos: BAR_PHOTOS["new-teddys"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "new-teddys-on-the-beach" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,

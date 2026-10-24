@@ -36,7 +36,7 @@ export const NORTH_WEST_BARS: Place[] = [
     websiteLabel: "Tripadvisor",
     mapsUrl: maps("Mercury's, Mizingani Road, Stone Town"),
     photos: BAR_PHOTOS["mercurys"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mercurys" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -72,7 +72,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.livingstoneszanzibar.com/",
     mapsUrl: maps("Livingstone Beach Restaurant, Shangani, Stone Town"),
     photos: BAR_PHOTOS["livingstones"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "livingstones" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -109,7 +109,7 @@ export const NORTH_WEST_BARS: Place[] = [
     websiteLabel: "Tripadvisor",
     mapsUrl: maps("Tatu, Shangani Street, Stone Town"),
     photos: BAR_PHOTOS["tatu"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "tatu" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -182,7 +182,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: null,
     mapsUrl: maps("Kibanda Beach Club, Nungwi"),
     photos: BAR_PHOTOS["kibanda"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kibanda-beach-club" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -218,7 +218,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.mamamiarestaurantzanzibar.com/",
     mapsUrl: maps("Mama Mia, Nungwi"),
     photos: BAR_PHOTOS["mama-mia"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "mama-mia" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -255,7 +255,7 @@ export const NORTH_WEST_BARS: Place[] = [
     websiteLabel: "Instagram",
     mapsUrl: maps("Bobo Beach, Nungwi"),
     photos: BAR_PHOTOS["bobo-beach"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "bobo-beach" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -291,7 +291,7 @@ export const NORTH_WEST_BARS: Place[] = [
     website: "https://www.thezhotel.com/facilities/restaurants#Rooftops",
     mapsUrl: maps("The Z Hotel, Nungwi"),
     photos: BAR_PHOTOS["z-rooftops"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "rooftops-at-the-z-hotel" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -328,7 +328,7 @@ export const NORTH_WEST_BARS: Place[] = [
     websiteLabel: "Full moon party dates",
     mapsUrl: maps("Kendwa Rocks Beach Hotel, Kendwa"),
     photos: BAR_PHOTOS["kendwa-rocks"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kendwa-rocks-beach-hotel" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,

@@ -35,7 +35,7 @@ export const EAST_BARS: Place[] = [
     website: null,
     mapsUrl: maps("Marafiki Beach Bar, Matemwe"),
     photos: BAR_PHOTOS["marafiki-beach-bar"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "marafiki-beach-bar" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -71,7 +71,7 @@ export const EAST_BARS: Place[] = [
     website: "https://www.dpc-zanzibar.com/beach-lounge",
     mapsUrl: maps("The Beach Lounge, Kiwengwa"),
     photos: BAR_PHOTOS["the-beach-lounge"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "the-beach-lounge" },
     verification: {
       status: "verified",
       checkedOn: CHECKED,
@@ -108,7 +108,7 @@ export const EAST_BARS: Place[] = [
     websiteLabel: "Instagram",
     mapsUrl: maps("Il Pontile, Kiwengwa"),
     photos: BAR_PHOTOS["il-pontile"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "il-pontile" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
@@ -144,7 +144,7 @@ export const EAST_BARS: Place[] = [
     website: "https://upendozanzibar.com/boho-lounge/",
     mapsUrl: maps("Upendo Beach, Michamvi Pingwe"),
     photos: BAR_PHOTOS["boho-lounge"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "boho-lounge-at-upendo-beach" },
     seeAlso: [{ label: "Boho Social in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "boho-social" }],
     verification: {
       status: "verified",
@@ -182,7 +182,7 @@ export const EAST_BARS: Place[] = [
     websiteLabel: "Instagram",
     mapsUrl: maps("Kae Funk Beach Bar, Michamvi Kae"),
     photos: BAR_PHOTOS["kae-funk"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "kae-funk-sunset-beach-bar" },
     seeAlso: [{ label: "Also in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "kae-funk" }],
     verification: {
       status: "partial",
@@ -219,7 +219,7 @@ export const EAST_BARS: Place[] = [
     website: "https://michamvi.com/food-drink/",
     mapsUrl: maps("Michamvi Sunset Bay Resort"),
     photos: BAR_PHOTOS["michamvi-sunset-bay"] ?? [],
-    listing: null,
+    listing: { kind: "business", slug: "sunset-bar-at-michamvi-sunset-bay" },
     verification: {
       status: "partial",
       checkedOn: CHECKED,
