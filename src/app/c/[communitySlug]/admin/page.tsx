@@ -400,7 +400,14 @@ export default async function AdminPage({
 
       <h2 id="testimonials" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Testimonials</h2>
       <div className="mb-8">
-        <CommunityTestimonialsForm community={community} />
+        <CommunityTestimonialsForm
+          community={community}
+          members={members.map((m) => ({
+            id: m.user_id,
+            name: m.profile?.full_name || "Unnamed member",
+            avatarUrl: m.profile?.avatar_url ?? null,
+          }))}
+        />
       </div>
 
       <h2 id="guidelines" className="mb-3 scroll-mt-20 text-sm font-medium uppercase tracking-wide text-muted-foreground">Community guidelines</h2>
