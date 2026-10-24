@@ -1,10 +1,23 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users, Layers, CalendarDays, BookOpen, MessageCircle } from "lucide-react";
+import {
+  Users,
+  Layers,
+  CalendarDays,
+  BookOpen,
+  MessageCircle,
+  ArrowRight,
+  Heart,
+  GraduationCap,
+  Store,
+  MapPin,
+  Crown,
+  BarChart3,
+  Check,
+  Sparkles,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { LinkButton } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import type { Community } from "@/types/database";
 import { SHOWCASE_COUNT } from "@/lib/homepage-showcase";
@@ -24,6 +37,25 @@ const SHOWCASE_POOL = 12;
 function showcaseRank(community: Community): number {
   return (community.description?.trim() ? 2 : 0) + (community.logo_url ? 1 : 0);
 }
+
+const FEATURES: { icon: ReactNode; title: string; description: string }[] = [
+  { icon: <MessageCircle />, title: "Discussions", description: "Bring people together with thoughtful conversations." },
+  { icon: <Layers />, title: "Spaces", description: "Organize public, private and premium spaces." },
+  { icon: <GraduationCap />, title: "Courses", description: "Share knowledge, lessons and resources." },
+  { icon: <CalendarDays />, title: "Events", description: "Bring members together online or in person." },
+  { icon: <Store />, title: "Marketplace", description: "Give your community a place to exchange." },
+  { icon: <MapPin />, title: "Directories", description: "Help people discover members, places and resources." },
+  { icon: <Crown />, title: "Memberships", description: "Offer free access, paid membership or premium spaces." },
+  { icon: <BarChart3 />, title: "Community tools", description: "Manage members, roles and community activity." },
+];
+
+const ACCESS_PRESETS: [title: string, description: string][] = [
+  ["Open", "A welcoming space anyone can explore."],
+  ["Private", "A quieter home for invited members."],
+  ["Paid membership", "Build a community around your expertise."],
+  ["Free + premium", "Let everyone in, with extras for supporters."],
+  ["Custom", "Make your own rules for every space."],
+];
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -72,141 +104,300 @@ export default async function LandingPage() {
       .slice(0, SHOWCASE_COUNT);
   }
 
+  // The "Explore communities" buttons and nav link jump to the showcase, so
+  // they only appear when there's a showcase to jump to.
+  const hasShowcase = featuredCommunities.length > 0;
+
+  // The page's own footer is the app-wide SiteFooter from the root layout.
   return (
-    <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <span className="text-lg font-semibold tracking-tight">Relate</span>
-        <nav className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-            Sign in
+    <div className="min-h-screen bg-[#F7F4EC] text-[#222A25]">
+      <header className="sticky top-0 z-30 border-b border-[#326B42]/10 bg-[#F7F4EC]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+          <Link href="/" className="flex items-center gap-2 text-xl font-extrabold tracking-tight" aria-label="Relate home">
+            <Heart className="h-7 w-7 text-[#326B42]" strokeWidth={2.5} />
+            relate<span className="text-[#326B42]">.click</span>
           </Link>
-          <LinkButton href="/signup" size="sm">
-            Create account
-          </LinkButton>
-        </nav>
+          <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm font-medium md:flex">
+            <a href="#features" className="hover:text-[#326B42]">
+              Features
+            </a>
+            {hasShowcase && (
+              <a href="#communities" className="hover:text-[#326B42]">
+                Communities
+              </a>
+            )}
+            <a href="#how-it-works" className="hover:text-[#326B42]">
+              How it works
+            </a>
+            <Link href="/pricing" className="hover:text-[#326B42]">
+              Pricing
+            </Link>
+            <Link href="/contact" className="hover:text-[#326B42]">
+              Support
+            </Link>
+          </nav>
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <Link href="/login" className="hover:text-[#326B42]">
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-full bg-[#326B42] px-4 py-2.5 text-white transition hover:bg-[#255333]"
+            >
+              Get started <ArrowRight className="ml-1 inline h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </header>
 
       <main>
-        <section className="mx-auto max-w-3xl px-6 pb-16 pt-16 text-center sm:pt-24">
-          <span className="inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            Built for community hosts
-          </span>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            A calm, private home for your community.
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Whether you run a networking group, mastermind, co-working space,
-            membership, or local community, Relate helps your audience connect
-            like never before — creating stronger relationships that keep
-            people coming back.
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <LinkButton href="/signup" size="lg">
-              Get started
-            </LinkButton>
-            <LinkButton href="/login" size="lg" variant="secondary">
-              Sign in
-            </LinkButton>
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#F7F4EC] via-[#F3F4E9] to-[#DCE8D9]">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 sm:px-8 lg:grid-cols-2 lg:py-28">
+            <div>
+              <span className="inline-flex rounded-full bg-[#DCE8D9] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#326B42]">
+                Communities for real people
+              </span>
+              <h1 className="mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
+                Build your community.
+                <br />
+                <span className="text-[#326B42]">Bring your people together.</span>
+              </h1>
+              <p className="mt-6 text-lg font-medium">A calm, private home for your community.</p>
+              <p className="mt-3 max-w-xl text-base leading-7 text-[#4D5A50]">
+                Whether you run a networking group, mastermind, co-working space, membership, or local community, Relate
+                helps your audience connect like never before — creating stronger relationships that keep people coming
+                back.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#326B42] px-6 py-3.5 font-semibold text-white shadow-sm hover:bg-[#255333]"
+                >
+                  Create your community <ArrowRight className="h-4 w-4" />
+                </Link>
+                {hasShowcase && (
+                  <a
+                    href="#communities"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#326B42] px-6 py-3.5 font-semibold text-[#326B42] hover:bg-white"
+                  >
+                    Explore communities
+                  </a>
+                )}
+              </div>
+              <p className="mt-6 text-sm text-[#526452]">
+                <Check className="mr-1 inline h-4 w-4 text-[#326B42]" /> Simple to set up
+                <Check className="ml-3 mr-1 inline h-4 w-4 text-[#326B42]" /> Flexible access
+                <Check className="ml-3 mr-1 inline h-4 w-4 text-[#326B42]" /> Built to grow
+              </p>
+              <p className="mt-4 text-sm text-[#526452]">
+                Spend less time managing your community and more time growing it.
+              </p>
+            </div>
+            <CommunityMockup />
           </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Spend less time managing your community and more time growing it.
+        </section>
+
+        <section id="features" className="mx-auto max-w-7xl scroll-mt-24 px-6 py-20 sm:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Everything in one place</p>
+            <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Turn members into a thriving community.</h2>
+            <p className="mt-4 text-[#526452]">
+              Communities grow because people build relationships. Relate helps community hosts make those connections
+              happen.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map((feature) => (
+              <Feature key={feature.title} {...feature} />
+            ))}
+          </div>
+          <p className="mt-6 text-center text-sm text-[#526452]">
+            And all the essentials: announcements, member permissions, resources, links, files and guides.
           </p>
         </section>
 
-        <section className="mx-auto max-w-5xl px-6 pb-16">
-          <div className="rounded-2xl bg-accent px-6 py-12 text-center text-accent-foreground sm:px-12 sm:py-16">
-            <p className="text-sm font-semibold uppercase tracking-widest opacity-80">
-              We are for the budget crowd
-            </p>
-            <h2 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl">
-              24 hour support.
-            </h2>
-            <p className="mt-4 text-2xl font-bold tracking-tight sm:text-4xl">
-              Call me for improvements. Let&apos;s make this work together!
-            </p>
-            <p className="mx-auto mt-6 max-w-xl text-base font-medium opacity-90 sm:text-lg">
-              You want everything, but you don&apos;t want to pay the world.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        {hasShowcase && (
+          <section id="communities" className="scroll-mt-24 bg-white py-20">
+            <div className="mx-auto max-w-7xl px-6 sm:px-8">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Real communities</p>
+              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Already at home on Relate.</h2>
+              <p className="mt-3 text-[#526452]">
+                Discover the people, places and ideas bringing communities together.
+              </p>
+              <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {featuredCommunities.map((community) => (
+                  <CommunityPreview key={community.id} community={community} />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section id="how-it-works" className="scroll-mt-24 bg-[#E9EEE4] py-20">
+          <div className="mx-auto max-w-7xl px-6 sm:px-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#326B42]">Your community, your rules</p>
+              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Powerful tools. Without the complexity.</h2>
+              <p className="mt-4 text-[#526452]">
+                Start with a simple community setup and choose the access model that fits your people.
+              </p>
+            </div>
+            <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {ACCESS_PRESETS.map(([title, description], i) => (
+                <div key={title} className="rounded-2xl bg-white p-5 shadow-sm">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#DCE8D9] text-sm font-bold text-[#326B42]">
+                    {i + 1}
+                  </span>
+                  <h3 className="mt-4 font-bold">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#637067]">{description}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-9 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#326B42] px-7 py-7 text-white">
+              <div>
+                <h3 className="text-xl font-bold">Free, private or paid — make it yours.</h3>
+                <p className="mt-1 text-sm text-white/85">
+                  Bring together discussions, resources and memberships as your community grows.
+                </p>
+              </div>
+              <Link href="/signup" className="rounded-xl bg-white px-5 py-3 font-bold text-[#326B42]">
+                Get started <ArrowRight className="ml-1 inline h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#326B42] py-16 text-white">
+          <div className="mx-auto grid max-w-7xl gap-8 px-6 sm:px-8 lg:grid-cols-2 lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#DCE8D9]">We are for the budget crowd</p>
+              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">24 hour support.</h2>
+              <p className="mt-4 text-xl font-semibold">Call me for improvements. Let&apos;s make this work together!</p>
+              <p className="mt-3 text-white/85">You want everything, but you don&apos;t want to pay the world.</p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
               <a
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-background px-6 py-3 text-base font-semibold text-foreground shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-[#326B42]"
               >
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp {WHATSAPP_DISPLAY}
               </a>
-              <Link href="/contact" className="text-base font-semibold underline underline-offset-4 hover:opacity-90">
+              <Link
+                href="/contact"
+                className="inline-flex items-center rounded-xl border border-white/70 px-6 py-3 font-bold text-white"
+              >
                 Or send a message
               </Link>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-2xl px-6 pb-16 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Turn members into a thriving community.
+        <section className="bg-gradient-to-r from-[#F6E6D6] to-[#DCE8D9] px-6 py-20 text-center">
+          <Sparkles className="mx-auto h-8 w-8 text-[#C96745]" />
+          <h2 className="mt-4 text-4xl font-extrabold">
+            Your people are out there.
+            <br />
+            Bring them together.
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-base text-muted-foreground">
-            Communities grow because people build relationships. Relate helps
-            community hosts make those connections happen.
+          <p className="mx-auto mt-4 max-w-xl text-[#526452]">
+            A calm, private home for your community, with the tools to help it grow.
           </p>
-        </section>
-
-        <section className="mx-auto max-w-5xl px-6 pb-24">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Feature
-              icon={<Layers className="h-5 w-5" />}
-              title="Spaces"
-              description="Organize discussions, announcements, and resources into focused spaces."
-            />
-            <Feature
-              icon={<Users className="h-5 w-5" />}
-              title="Members"
-              description="Every community keeps its own members, roles, and permissions."
-            />
-            <Feature
-              icon={<CalendarDays className="h-5 w-5" />}
-              title="Events"
-              description="Plan calls, meetups, and gatherings your members won't miss."
-            />
-            <Feature
-              icon={<BookOpen className="h-5 w-5" />}
-              title="Resources"
-              description="Keep the links, files, and guides your community relies on close at hand."
-            />
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <Link href="/signup" className="rounded-xl bg-[#326B42] px-6 py-3 font-bold text-white">
+              Create your community <ArrowRight className="ml-1 inline h-4 w-4" />
+            </Link>
+            {hasShowcase && (
+              <a href="#communities" className="rounded-xl border border-[#326B42] px-6 py-3 font-bold text-[#326B42]">
+                Explore communities
+              </a>
+            )}
           </div>
         </section>
-
-        {featuredCommunities.length > 0 && (
-          <section className="mx-auto max-w-5xl px-6 pb-24">
-            <h2 className="text-center text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              A few communities already at home here
-            </h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {featuredCommunities.map((community) => (
-                <CommunityPreview key={community.id} community={community} />
-              ))}
-            </div>
-          </section>
-        )}
       </main>
+    </div>
+  );
+}
+
+// The illustrative community beside the hero copy — a static picture of what a
+// host gets, not a real community.
+function CommunityMockup() {
+  return (
+    <div className="relative rounded-[2rem] bg-white p-4 shadow-2xl ring-1 ring-[#326B42]/10 sm:p-6">
+      <div className="overflow-hidden rounded-2xl border border-[#DCE8D9]">
+        <div className="flex items-center justify-between bg-[#326B42] px-5 py-4 text-white">
+          <span className="font-bold">Your community</span>
+          <span className="rounded-full bg-white/20 px-3 py-1 text-xs">Community preview</span>
+        </div>
+        <div className="bg-gradient-to-r from-[#DCE8D9] to-[#F6E6D6] px-5 py-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#326B42]">
+              <Heart />
+            </div>
+            <div>
+              <p className="text-xl font-bold">A place to belong</p>
+              <p className="text-sm text-[#526452]">Connect · Share · Grow</p>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 border-b p-3 text-center text-xs font-semibold sm:grid-cols-6">
+          {["Feed", "Spaces", "Events", "Courses", "Guides", "Members"].map((item) => (
+            <span key={item} className="rounded-lg bg-[#F7F4EC] px-1 py-2">
+              {item}
+            </span>
+          ))}
+        </div>
+        <div className="grid gap-3 bg-[#FBFAF7] p-4 sm:grid-cols-2">
+          <MockupCard
+            icon={<MessageCircle className="mb-3 text-[#326B42]" />}
+            title="Start a conversation"
+            description="A welcoming place for your members to share ideas."
+          />
+          <MockupCard
+            icon={<CalendarDays className="mb-3 text-[#C96745]" />}
+            title="Upcoming gatherings"
+            description="Make it easy to connect beyond the feed."
+          />
+          <MockupCard
+            icon={<BookOpen className="mb-3 text-[#326B42]" />}
+            title="Resources & guides"
+            description="Keep useful knowledge in one place."
+          />
+          <MockupCard
+            icon={<Users className="mb-3 text-[#C96745]" />}
+            title="Your people"
+            description="Build lasting relationships in your community."
+          />
+        </div>
+      </div>
+      <span className="absolute -bottom-4 -right-3 rounded-2xl bg-[#F6E6D6] px-5 py-3 text-sm font-bold text-[#9C492E] shadow-lg">
+        Your people. Your way.
+      </span>
+    </div>
+  );
+}
+
+function MockupCard({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
+  return (
+    <div className="rounded-xl border bg-white p-4">
+      {icon}
+      <h3 className="font-semibold">{title}</h3>
+      <p className="mt-2 text-sm text-[#637067]">{description}</p>
     </div>
   );
 }
 
 function Feature({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
-          {icon}
-        </div>
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
+    <div className="rounded-2xl border border-[#E7E7DC] bg-white p-6 shadow-sm">
+      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#DCE8D9] text-[#326B42]">
+        {icon}
+      </div>
+      <h3 className="font-bold">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-[#637067]">{description}</p>
+    </div>
   );
 }
 
@@ -224,15 +415,21 @@ function CommunityPreview({ community }: { community: Community }) {
       href={communityFrontDoor(community)}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group rounded-2xl border border-[#E7E7DC] bg-[#FBFAF7] p-6 transition hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#326B42]"
     >
-      <Card className="h-full text-left transition-shadow group-hover:shadow-md">
-        <CardContent className="pt-6">
-          <Avatar src={community.logo_url} name={community.name} initials={community.logo_initials} size={56} className="mb-3" />
-          <h3 className="text-sm font-semibold text-foreground group-hover:text-accent">{community.name}</h3>
-          {community.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{community.description}</p>}
-        </CardContent>
-      </Card>
+      <Avatar
+        src={community.logo_url}
+        name={community.name}
+        initials={community.logo_initials}
+        size={56}
+        className="mb-4"
+      />
+      <h3 className="text-lg font-bold group-hover:text-[#326B42]">
+        {community.name} <ArrowRight className="inline h-4 w-4" />
+      </h3>
+      {community.description && (
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#637067]">{community.description}</p>
+      )}
     </a>
   );
 }
