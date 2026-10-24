@@ -176,7 +176,8 @@ export type MemberActivityDay = {
 // against PLACE_LOCATION_TYPES at the application layer, which keeps adding
 // new place kinds a code-only change. Both stay null for every non-place
 // template.
-export type CommunityTestimonial = { quote: string; name: string };
+// avatarUrl: optional photo of the person; initials from the name show when absent.
+export type CommunityTestimonial = { quote: string; name: string; avatarUrl?: string | null };
 
 export type Community = {
   id: string;

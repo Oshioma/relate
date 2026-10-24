@@ -2,6 +2,8 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
+import { IMAGE_ACCEPTED_TYPES, uploadImage, validateImageFile } from "@/lib/upload-image";
 import { updateCommunityTestimonials, type CommunityTestimonialsState } from "./actions";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -30,6 +32,7 @@ export function CommunityTestimonialsForm({ community }: { community: Community 
         parsed.map((t) => ({
           quote: typeof t?.quote === "string" ? t.quote : "",
           name: typeof t?.name === "string" ? t.name : "",
+          avatarUrl: typeof t?.avatarUrl === "string" ? t.avatarUrl : null,
         }))
       );
     } catch {
@@ -98,6 +101,12 @@ export function CommunityTestimonialsForm({ community }: { community: Community 
               placeholder="Tanya"
             />
           </div>
+          <TestimonialPhoto
+            communityId={community.id}
+            name={row.name}
+            avatarUrl={row.avatarUrl ?? null}
+            onChange={(avatarUrl) => update(i, { avatarUrl })}
+          />
           <div className="flex flex-wrap gap-1">
             <button
               type="button"
@@ -147,5 +156,76 @@ export function CommunityTestimonialsForm({ community }: { community: Community 
         Save testimonials
       </SubmitButton>
     </form>
+  );
+}
+
+// The person's photo beside their quote. Uploading puts it with the community's
+// other images (admins only, per the community-assets policy) under a new name
+// each time, so two testimonials never share a file; Save stores the link.
+// With no photo the page shows their initials instead.
+function TestimonialPhoto({
+  communityId,
+  name,
+  avatarUrl,
+  onChange,
+}: {
+  communityId: string;
+  name: string;
+  avatarUrl: string | null;
+  onChange: (avatarUrl: string | null) => void;
+}) {
+  const [status, setStatus] = useState<{ kind: "idle" | "uploading" | "done" | "error"; message?: string }>({ kind: "idle" });
+
+  async function upload(file: File) {
+    const problem = validateImageFile(file);
+    if (problem) {
+      setStatus({ kind: "error", message: problem });
+      return;
+    }
+    setStatus({ kind: "uploading" });
+    try {
+      onChange(await uploadImage(file, "community-assets", `${communityId}/testimonial-${crypto.randomUUID()}`));
+      setStatus({ kind: "done" });
+    } catch (e) {
+      setStatus({ kind: "error", message: e instanceof Error ? e.message : "Upload failed. Try again." });
+    }
+  }
+
+  return (
+    <div>
+      <Label>Photo</Label>
+      <div className="flex flex-wrap items-center gap-3">
+        <Avatar src={avatarUrl} name={name || "?"} size={48} />
+        <label className="inline-flex cursor-pointer items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
+          {status.kind === "uploading" ? "Uploading…" : avatarUrl ? "Change photo" : "Upload photo"}
+          <input
+            type="file"
+            accept={IMAGE_ACCEPTED_TYPES.join(",")}
+            className="sr-only"
+            disabled={status.kind === "uploading"}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void upload(file);
+            }}
+          />
+        </label>
+        {avatarUrl && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange(null);
+              setStatus({ kind: "idle" });
+            }}
+            className="px-2 py-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            Remove photo
+          </button>
+        )}
+      </div>
+      {status.kind === "done" && <p className="mt-1 text-xs text-accent">Uploaded — press Save testimonials to use it.</p>}
+      {status.kind === "error" && <p className="mt-1 text-xs text-danger">{status.message}</p>}
+      <p className="mt-1 text-xs text-muted-foreground">Optional. Without one, their initials show instead.</p>
+    </div>
   );
 }
