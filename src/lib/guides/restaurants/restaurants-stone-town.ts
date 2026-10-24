@@ -38,6 +38,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: "https://emersonspice.com/dining/",
     mapsUrl: maps("Emerson Spice, Tharia Street, Stone Town"),
+    coords: { lat: -6.1612, lng: 39.1921 },
     photos: RESTAURANT_PHOTOS["emerson-spice-tea-house"] ?? [],
     listing: { kind: "business", slug: "the-tea-house-at-emerson-spice" },
     verification: {
@@ -78,6 +79,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: "https://6degreessouth.co.tz/home/",
     mapsUrl: maps("6 Degrees South, Shangani, Stone Town"),
+    coords: { lat: -6.1643, lng: 39.1868 },
     photos: RESTAURANT_PHOTOS["6-degrees-south"] ?? [],
     listing: { kind: "business", slug: "6-degrees-south" },
     verification: {
@@ -119,6 +121,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: "https://ctfmzanzibar.co.tz/",
     mapsUrl: maps("Cape Town Fish Market, Forodhani, Stone Town"),
+    coords: { lat: -6.1604, lng: 39.1885 },
     photos: RESTAURANT_PHOTOS["cape-town-fish-market"] ?? [],
     listing: { kind: "business", slug: "cape-town-fish-market" },
     verification: {
@@ -157,6 +160,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: "https://upendozanzibar.com/thefifth/",
     mapsUrl: maps("Upendo House, Stone Town"),
+    coords: { lat: -6.1612, lng: 39.1905 },
     photos: RESTAURANT_PHOTOS["the-fifth"] ?? [],
     listing: { kind: "business", slug: "the-fifth" },
     verification: {
@@ -197,6 +201,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Lukmaan Restaurant, Stone Town"),
+    coords: { lat: -6.1634, lng: 39.1916 },
     photos: RESTAURANT_PHOTOS["lukmaan"] ?? [],
     listing: { kind: "business", slug: "lukmaan" },
     verification: {
@@ -232,6 +237,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: "https://abyssinianmaritim1.wixsite.com/amer",
     mapsUrl: maps("Abyssinian Maritim, Stone Town"),
+    coords: { lat: -6.1653, lng: 39.1882 },
     photos: RESTAURANT_PHOTOS["abyssinian-maritim"] ?? [],
     listing: { kind: "business", slug: "abyssinian-maritim" },
     verification: {
@@ -272,6 +278,7 @@ export const STONE_TOWN_RESTAURANTS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Forodhani Gardens, Stone Town"),
+    coords: { lat: -6.1606, lng: 39.1888 },
     photos: RESTAURANT_PHOTOS["forodhani-night-market"] ?? [],
     listing: { kind: "business", slug: "forodhani-night-market" },
     verification: {

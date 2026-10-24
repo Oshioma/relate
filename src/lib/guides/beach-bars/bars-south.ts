@@ -35,6 +35,7 @@ export const SOUTH_BARS: Place[] = [
     ],
     website: "https://mrkahawa.com/cafe-restaurant",
     mapsUrl: maps("Mr Kahawa, Paje"),
+    coords: { lat: -6.2692, lng: 39.5363 },
     photos: BAR_PHOTOS["mr-kahawa"] ?? [],
     listing: { kind: "business", slug: "mr-kahawa" },
     seeAlso: [{ label: "Also in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "mr-kahawa" }],
@@ -72,6 +73,7 @@ export const SOUTH_BARS: Place[] = [
     ],
     website: "https://www.mahalizanzibar.com/",
     mapsUrl: maps("Mahali Beachbar, Paje"),
+    coords: { lat: -6.2690, lng: 39.5364 },
     photos: BAR_PHOTOS["mahali-beachbar"] ?? [],
     listing: { kind: "business", slug: "mahali-beachbar" },
     verification: {
@@ -109,6 +111,7 @@ export const SOUTH_BARS: Place[] = [
     website: "https://www.instagram.com/b4beachclub/",
     websiteLabel: "Instagram",
     mapsUrl: maps("B4 Beach Club, Paje"),
+    coords: { lat: -6.2739, lng: 39.5367 },
     photos: BAR_PHOTOS["b4-beach-club"] ?? [],
     listing: { kind: "business", slug: "b4-beach-club" },
     verification: {
@@ -145,6 +148,7 @@ export const SOUTH_BARS: Place[] = [
     ],
     website: "https://www.pajebynight.net/",
     mapsUrl: maps("Paje by Night, Paje"),
+    coords: { lat: -6.2686, lng: 39.5350 },
     photos: BAR_PHOTOS["paje-by-night"] ?? [],
     listing: { kind: "business", slug: "paje-by-night" },
     verification: {
@@ -181,6 +185,7 @@ export const SOUTH_BARS: Place[] = [
     ],
     website: "https://lostsoleslodge.com/",
     mapsUrl: maps("Lost Soles Bar & Lodge, Jambiani"),
+    coords: { lat: -6.3233, lng: 39.5497 },
     photos: BAR_PHOTOS["lost-soles"] ?? [],
     listing: { kind: "business", slug: "lost-soles" },
     verification: {
@@ -217,6 +222,7 @@ export const SOUTH_BARS: Place[] = [
     ],
     website: "https://newteddysonthebeach.com/",
     mapsUrl: maps("New Teddy's on the Beach, Jambiani"),
+    coords: { lat: -6.3277, lng: 39.5512 },
     photos: BAR_PHOTOS["new-teddys"] ?? [],
     listing: { kind: "business", slug: "new-teddys-on-the-beach" },
     verification: {

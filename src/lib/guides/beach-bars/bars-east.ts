@@ -34,6 +34,7 @@ export const EAST_BARS: Place[] = [
     ],
     website: null,
     mapsUrl: maps("Marafiki Beach Bar, Matemwe"),
+    coords: { lat: -5.8811, lng: 39.3532 },
     photos: BAR_PHOTOS["marafiki-beach-bar"] ?? [],
     listing: { kind: "business", slug: "marafiki-beach-bar" },
     verification: {
@@ -70,6 +71,7 @@ export const EAST_BARS: Place[] = [
     ],
     website: "https://www.dpc-zanzibar.com/beach-lounge",
     mapsUrl: maps("The Beach Lounge, Kiwengwa"),
+    coords: { lat: -5.9939, lng: 39.3803 },
     photos: BAR_PHOTOS["the-beach-lounge"] ?? [],
     listing: { kind: "business", slug: "the-beach-lounge" },
     verification: {
@@ -107,6 +109,7 @@ export const EAST_BARS: Place[] = [
     website: "https://www.instagram.com/ilpontile_restaurant_kiwengwa/",
     websiteLabel: "Instagram",
     mapsUrl: maps("Il Pontile, Kiwengwa"),
+    coords: { lat: -5.9926, lng: 39.3821 },
     photos: BAR_PHOTOS["il-pontile"] ?? [],
     listing: { kind: "business", slug: "il-pontile" },
     verification: {
@@ -143,6 +146,7 @@ export const EAST_BARS: Place[] = [
     ],
     website: "https://upendozanzibar.com/boho-lounge/",
     mapsUrl: maps("Upendo Beach, Michamvi Pingwe"),
+    coords: { lat: -6.1529, lng: 39.5187 },
     photos: BAR_PHOTOS["boho-lounge"] ?? [],
     listing: { kind: "business", slug: "boho-lounge-at-upendo-beach" },
     seeAlso: [{ label: "Boho Social in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "boho-social" }],
@@ -181,6 +185,7 @@ export const EAST_BARS: Place[] = [
     website: "https://www.instagram.com/kaefunkbeachbar/",
     websiteLabel: "Instagram",
     mapsUrl: maps("Kae Funk Beach Bar, Michamvi Kae"),
+    coords: { lat: -6.1497, lng: 39.4909 },
     photos: BAR_PHOTOS["kae-funk"] ?? [],
     listing: { kind: "business", slug: "kae-funk-sunset-beach-bar" },
     seeAlso: [{ label: "Also in our restaurant guide", guideSlug: RESTAURANTS_SLUG, placeKey: "kae-funk" }],
@@ -218,6 +223,7 @@ export const EAST_BARS: Place[] = [
     ],
     website: "https://michamvi.com/food-drink/",
     mapsUrl: maps("Michamvi Sunset Bay Resort"),
+    coords: { lat: -6.1393, lng: 39.4912 },
     photos: BAR_PHOTOS["michamvi-sunset-bay"] ?? [],
     listing: { kind: "business", slug: "sunset-bar-at-michamvi-sunset-bay" },
     verification: {
