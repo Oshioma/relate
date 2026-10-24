@@ -29,7 +29,7 @@ export const BOUTIQUE_GUIDE: HotelGuideDefinition = {
   description:
     "Discover Zanzibar's best boutique hotels, romantic beachfront hideaways, private villas and hidden gems. Independent recommendations and practical local advice.",
   // The short name on guide cards (Guides page and Guides space).
-  cardTitle: "Boutique Villas",
+  cardTitle: "Boutique Hotels",
   cardBlurb: "Beautiful places to stay, from romantic beachfront hideaways to extraordinary private villas.",
   heroPhoto: BOUTIQUE_HERO_PHOTO,
   introduction: INTRODUCTION,
