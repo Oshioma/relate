@@ -592,9 +592,26 @@ export default function ExploreMap({
     sheetStartY.current = null;
   }
 
-  function focusPin(pin: PinDef) {
+  // The popup always opens above its pin, so on desktop the pin is moved
+  // near the bottom of the map first and the popup is capped to the room
+  // left above it. Otherwise a pin near the bottom edge opens a popup that
+  // runs off the map, cut off behind the attribution line.
+  const [popupMaxHeight, setPopupMaxHeight] = useState(380);
+  const PIN_FROM_BOTTOM = 0.12;
+
+  function openPin(pin: PinDef, zoomTo?: number) {
     selectPin(pin.key);
-    mapRef.current?.flyTo({ center: [pin.lng, pin.lat], zoom: Math.max(zoom, 14.5), duration: 650 });
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const height = map.getContainer().clientHeight;
+    const offset: [number, number] = isMobile ? [0, 0] : [0, height * (0.5 - PIN_FROM_BOTTOM)];
+    if (!isMobile) setPopupMaxHeight(Math.max(160, Math.min(380, height * (1 - PIN_FROM_BOTTOM) - 64)));
+    if (zoomTo !== undefined) map.flyTo({ center: [pin.lng, pin.lat], zoom: zoomTo, offset, duration: 650 });
+    else if (!isMobile) map.easeTo({ center: [pin.lng, pin.lat], offset, duration: 450 });
+  }
+
+  function focusPin(pin: PinDef) {
+    openPin(pin, Math.max(zoom, 14.5));
   }
 
   // Selecting a location chip filters to it and flies the map to fit every
@@ -807,7 +824,7 @@ export default function ExploreMap({
                     e.originalEvent.stopPropagation();
                     if (addMode) return;
                     if (pin.href) router.push(pin.href);
-                    else selectPin(pin.key);
+                    else openPin(pin);
                   }}
                 >
                   <Pin color={pin.color} inner={pin.inner} pulseColor={pin.pulseColor} delay={Math.min(i * 25, 500)} highlight={active} />
@@ -834,12 +851,15 @@ export default function ExploreMap({
             <Popup
               longitude={selected.lng}
               latitude={selected.lat}
+              anchor="bottom"
               offset={POPUP_OFFSET}
               maxWidth="300px"
               closeOnClick
               onClose={() => selectPin(null)}
             >
-              <div className="max-h-[380px] overflow-y-auto">{selected.popup}</div>
+              <div className="overflow-y-auto" style={{ maxHeight: popupMaxHeight }}>
+                {selected.popup}
+              </div>
             </Popup>
           )}
         </MapGL>

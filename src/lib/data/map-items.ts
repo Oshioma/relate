@@ -85,7 +85,8 @@ export async function getCommunityMapItems(supabase: Client, communityId: string
       lat,
       lng,
       locationLabel: event.location_label ?? event.location,
-      href: `/c/${communitySlug}/events`,
+      // The events page has no per-event page; each card carries this anchor.
+      href: `/c/${communitySlug}/events#event-${event.id}`,
       startTime: event.start_time,
       endTime: event.end_time,
       locationPrecision: "approximate",

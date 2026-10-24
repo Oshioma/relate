@@ -37,7 +37,8 @@ function shortTitle(title: string): string {
 }
 
 export function guideMapItems(rows: GuideRow[], communitySlug: string): MapItem[] {
-  const guideHref = (slug: string, anchor: string) => `/c/${communitySlug}/guides/${slug}#${anchor}`;
+  const guidePage = (slug: string) => `/c/${communitySlug}/guides/${slug}`;
+  const guideHref = (slug: string, anchor: string) => `${guidePage(slug)}#${anchor}`;
   const areas = new Map<string, Area>();
 
   // The Where to Stay guide describes the areas themselves — its 14
@@ -51,6 +52,7 @@ export function guideMapItems(rows: GuideRow[], communitySlug: string): MapItem[
           label: `Where to stay in ${d.name} (${d.stays.length} ${d.stays.length === 1 ? "pick" : "picks"})`,
           href: guideHref(WHERE_TO_STAY_SLUG, `${d.key}-stay`),
           group: "Where to Stay in Zanzibar",
+          groupHref: guidePage(WHERE_TO_STAY_SLUG),
           note: null,
         });
       }
@@ -75,6 +77,7 @@ export function guideMapItems(rows: GuideRow[], communitySlug: string): MapItem[
       label: entry.name,
       href: guideHref(guideSlug, entry.key),
       group,
+      groupHref: guidePage(guideSlug),
       note: entry.area.toLowerCase() === place.name.toLowerCase() ? null : entry.area,
     };
     const existing = areas.get(place.key);
