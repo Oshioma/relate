@@ -113,6 +113,8 @@ export type HotelGuideDefinition = {
   seoTitle: string;
   description: string;
   // One line for the guides index, feed card and Guides space.
+  // The short name on guide cards ("Transport"); the full title heads the guide.
+  cardTitle: string;
   cardBlurb: string;
   heroPhoto: GuidePhoto;
   introduction: string[];

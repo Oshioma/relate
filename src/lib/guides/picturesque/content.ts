@@ -103,6 +103,8 @@ export const PICTURESQUE_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Most Picturesque Places in Zanzibar | Beaches, Sandbanks & Photo Spots",
   description:
     "The most picturesque places in Zanzibar: The Rock, Nakupenda sandbank, Stone Town's carved doors, Kendwa sunsets, Mnemba, Jozani forest and more — with the best time of day, tide advice and how to visit.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Picturesque",
   cardBlurb: "Sandbanks and sunsets, carved doors and coral caves — the island's most beautiful places, and when to be there.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? PLACES.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,

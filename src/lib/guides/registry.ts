@@ -10,6 +10,8 @@ import { placeGuideFor } from "@/lib/guides/place-guide/registry";
 // from here, so adding a guide is one entry rather than a slug check in each.
 
 type GuideEntry = {
+  // A short name for the guide cards (guides index, Guides space).
+  cardTitle: string;
   // One line for cards (guides index, feed, Guides space).
   blurb: string;
   hero: (content: unknown) => GuidePhoto | null;
@@ -18,6 +20,7 @@ type GuideEntry = {
 };
 
 const WHERE_TO_STAY: GuideEntry = {
+  cardTitle: "Where to Stay",
   blurb: "Compare Zanzibar's 14 best beach destinations and find the right one for your holiday.",
   hero: (content) => resolveGuideContent(parseOverrides(content)).heroPhoto,
   cardImage: guideCardImage,
@@ -28,6 +31,7 @@ export function editorialGuideEntry(slug: string): GuideEntry | null {
   const places = placeGuideFor(slug);
   if (places) {
     return {
+      cardTitle: places.cardTitle,
       blurb: places.cardBlurb,
       hero: (content) => loadPlaceGuide(places, content).heroPhoto,
       cardImage: (content) => placeGuideCardImage(places, content),
@@ -36,6 +40,7 @@ export function editorialGuideEntry(slug: string): GuideEntry | null {
   const hotels = hotelGuideFor(slug);
   if (!hotels) return null;
   return {
+    cardTitle: hotels.cardTitle,
     blurb: hotels.cardBlurb,
     hero: (content) => loadHotelGuide(hotels, content).heroPhoto,
     cardImage: (content) => hotelGuideCardImage(hotels, content),

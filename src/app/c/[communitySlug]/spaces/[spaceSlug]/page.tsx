@@ -328,7 +328,7 @@ export default async function SpaceDetailPage({
   ]);
   const editorialGuides = editorialGuideRows.map((g) => {
     const entry = editorialGuideEntry(g.slug);
-    return { slug: g.slug, title: g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
+    return { slug: g.slug, title: entry?.cardTitle ?? g.title, blurb: entry?.blurb ?? null, imageUrl: entry?.cardImage(g.content) ?? null, isDraft: g.status === "draft" };
   });
 
   const { active: activeLiveSession, scheduled: scheduledLiveSessions, past: pastLiveSessions } = splitLiveSessions(liveSessions);

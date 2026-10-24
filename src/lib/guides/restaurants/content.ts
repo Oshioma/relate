@@ -108,6 +108,8 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Best Restaurants in Zanzibar | Where to Eat in Stone Town, Nungwi & Paje",
   description:
     "The best restaurants in Zanzibar: The Rock, Stone Town rooftops, Forodhani night market, Nungwi seafood and local Swahili kitchens — with what to order, price bands and booking tips.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Restaurants",
   cardBlurb: "From a restaurant on a rock in the sea to Stone Town's night market — where to eat on the island, and what to order.",
   heroPhoto: (byKey.get("the-rock")?.photos ?? [])[0] ?? RESTAURANTS.flatMap((p) => p.photos)[0],
   introduction: INTRODUCTION,
