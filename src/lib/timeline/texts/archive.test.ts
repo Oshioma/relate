@@ -13,6 +13,7 @@ import { SCOTT_ELLIOT_MAPS, SCOTT_ELLIOT_SECTIONS } from "./corpus/scott-elliot-
 import { DONNELLY_CHAPTERS } from "./corpus/donnelly-text";
 import { VIRGIN_UNITS } from "./corpus/virgin-of-the-world-text";
 import { MITHRIAC_UNITS } from "./corpus/mithras-liturgy-text";
+import { IRENAEUS_NOTES, IRENAEUS_UNITS } from "./corpus/irenaeus-text";
 import { MARKER_PICTURES } from "./marker-pictures";
 import { COPYRIGHT_EXCERPT_MAX_CHARS, dateRoleFromWhatIsDated, whatIsDatedFor } from "./taxonomy";
 import { formatProblems, validateCorpus, validateInventory } from "./validate";
@@ -1988,6 +1989,191 @@ test("The Mithras Liturgy's pictures are the BnF papyrus and Mithraic reliefs fr
   assert.match(marker[0].url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/.+\/George_Robert_Stow_Mead\.001\.jpg$/);
   assert.equal(marker[0].identificationStatus, "unverified");
   assert.match(marker[0].caption ?? "", /^UNVERIFIED — /);
+});
+
+test("Irenaeus, Against Heresies I.29–31 is imported as its own work from the 1885 ANF, voted over three scans, and hangs off the Apocryphon's marker", () => {
+  const file = corpusFor("gnostic.irenaeus-against-heresies")!;
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.irenaeus-against-heresies")!;
+  assert.equal(work.passagePrefix, "gnostic.iren");
+  assert.equal(work.traditionClass, "ancient_late_transmission");
+  assert.equal(work.corpusGroup, "gnostic");
+  assert.equal(work.unitDivisionKind, "section");
+  assert.equal(work.expectedUnits, 23);
+  assert.equal(work.inventoryVerified, false, "only three chapters of a five-book work, on the editors' numbering");
+  // No second marker: it hangs off the Apocryphon of John's.
+  assert.equal(work.anchor && "existingSlug" in work.anchor && work.anchor.existingSlug, "apocryphon-of-john");
+  assert.ok(!INVENTORY.some((w) => w.anchor && "event" in w.anchor && /irenaeus/i.test(w.anchor.event.slug)));
+  assert.match(work.attributionNote!, /^A hostile report, not a Gnostic text\./);
+  assert.match(work.attributionNote!, /scholarly-standard parallel to the Apocryphon of John/);
+  // The Apocryphon entry points here, and says the report is not the Apocryphon.
+  const apocryphon = INVENTORY.find((w) => w.workKey === "gnostic.apocryphon-of-john")!;
+  assert.ok(apocryphon.fullTextEditions.some((e) => /not the Apocryphon; imported as its own work, gnostic\.irenaeus-against-heresies$/.test(e)));
+  assert.ok(INVENTORY.indexOf(work) > INVENTORY.indexOf(apocryphon), "the Apocryphon's marker must exist first");
+  for (const key of ["anf-1885-irenaeus", "ancl-1868-irenaeus", "schmidt-irenaeus-quelle-1907", "mead-fragments-1906", "kirsch-eleutherius-1909"]) {
+    assert.ok(INVENTORY_SOURCES.some((s) => s.key === key), key);
+  }
+  // One book record (citing the Latin only), three chapter records without text, and 23 sections.
+  const book = file.passages[0];
+  assert.equal(book.key, "gnostic.iren.1");
+  assert.equal(book.divisionKind, "book");
+  assert.equal(book.layers.filter((l) => l.content && l.key !== PLAIN_LAYER_KEY).length, 0);
+  assert.ok(book.layers.some((l) => l.key === "lat-vetus" && l.content == null && l.language === "Latin"));
+  assert.match(book.notes!, /Not imported, and listed here: the rest of Against Heresies/);
+  assert.match(book.summary!, /It is a report by an opponent, not a Gnostic text\./);
+  const chapters = file.passages.filter((p) => p.divisionKind === "chapter");
+  assert.deepEqual(chapters.map((c) => c.key), ["gnostic.iren.1.29", "gnostic.iren.1.30", "gnostic.iren.1.31"]);
+  for (const chapter of chapters) assert.equal(chapter.layers.length, 0, chapter.key);
+  const units = file.passages.filter((p) => p.divisionKind === work.unitDivisionKind);
+  const expected = [
+    ...[1, 2, 3, 4].map((n) => `29.${n}`),
+    ...Array.from({ length: 15 }, (_, i) => `30.${i + 1}`),
+    ...[1, 2, 3, 4].map((n) => `31.${n}`),
+  ].map((ref) => `gnostic.iren.1.${ref}`);
+  assert.deepEqual(units.map((u) => u.key), expected);
+  assert.equal(IRENAEUS_UNITS.length, 23);
+  assert.equal(file.passages.length, 27);
+  assert.notEqual(deriveCompleteness(work, { importedUnits: 23, verifiedUnits: 0 }), "verified_against_edition");
+  const text = (ref: string) => file.passages.find((p) => p.key === `gnostic.iren.1.${ref}`)!.layers.find((l) => l.key === "eng-1885")!.content!;
+  for (const unit of units) {
+    assert.equal(unit.verificationStatus, "unverified", unit.key);
+    assert.equal(unit.parentKey, unit.key.replace(/\.\d+$/, ""), unit.key);
+    const layer = unit.layers.find((l) => l.key === "eng-1885")!;
+    assert.equal(layer.licence, "public_domain", unit.key);
+    assert.equal(layer.layer, "translation", unit.key);
+    assert.equal(layer.sourceKey, "anf-1885-irenaeus", unit.key);
+    assert.match(layer.evidence, /three independent scans of the 1885 plates/, unit.key);
+    assert.match(layer.evidence, /scripts\/texts\/irenaeus-against-heresies\.py/, unit.key);
+    assert.match(layer.evidence, /Irenaeus's hostile report of what others taught/, unit.key);
+    assert.match(unit.reference, /^Irenaeus, Against Heresies I\.\d\d\.\d+; The Ante-Nicene Fathers, vol\. I \(Buffalo, 1885\), (p\. \d+|pp\. \d+–\d+)$/, unit.key);
+    assert.match(unit.summary!, /^Irenaeus (says|reports|calls|gives)/, unit.key);
+    assert.ok(unit.layers.some((l) => l.key === PLAIN_LAYER_KEY), `${unit.key} has no plain words`);
+    assert.doesNotMatch(layer.content!, /_|�|--|  |\n|⟦|¦|IREN|HERESIES|— /, unit.key);
+  }
+  assert.match(text("29.1"), /^Besides those, however, among these heretics who are Simonians/);
+  assert.match(text("29.1"), /and in conception \[thus formed\], rejoicing/);
+  assert.match(text("29.4"), /to the uttermost, and looked down/);
+  assert.match(text("29.4"), /“I am a jealous God, and besides me there is no one\.” Such are the falsehoods which these people invent\.$/);
+  assert.match(text("30.3"), /and begirt it all round/);
+  assert.match(text("30.5"), /Ialdabaoth; he, again, descended from him, is named Iao/);
+  assert.match(text("30.5"), /Astanphæus/);
+  assert.match(text("30.11"), /Joel, and Zechariah, to Sabaoth/);
+  assert.match(text("30.11"), /maintain that Sophia herself has also spoken/);
+  assert.match(text("31.1"), /which they style the Gospel of Judas\.$/);
+  assert.match(text("31.4"), /may inflict wounds upon it from every side\.$/);
+  // The footnotes are listed, not imported; the eight that warn of a doubtful text are quoted.
+  assert.equal(IRENAEUS_NOTES.length, 23);
+  assert.deepEqual(
+    ["translators", "coxe", "both"].map((by) => IRENAEUS_NOTES.filter((n) => n.by === by).length),
+    [19, 2, 2]
+  );
+  const essential = IRENAEUS_NOTES.filter((n) => n.essential);
+  assert.deepEqual(essential.map((n) => `${n.chapter}.${n.section}`), ["29.1", "30.2", "30.5", "30.9", "30.10", "30.11", "30.15", "31.2"]);
+  for (const note of IRENAEUS_NOTES) {
+    const unit = file.passages.find((p) => p.key === `gnostic.iren.1.${note.chapter}.${note.section}`)!;
+    assert.ok(unit.notes!.includes(`after '${note.after}'`), `${unit.key}: footnote after '${note.after}' is not listed`);
+    assert.equal(unit.notes!.includes(note.text), note.essential, `${unit.key}: only essential footnotes are quoted`);
+    assert.ok(!unit.layers.some((l) => l.content?.includes(note.text)), `${unit.key}: a footnote was imported`);
+  }
+  // The I.29 parallel with the Apocryphon is stated as Schmidt's, and the report is never called the Apocryphon.
+  const ch29 = chapters[0];
+  assert.match(ch29.notes!, /scholarly-standard parallel/);
+  assert.match(ch29.notes!, /keinem Zweifel \[unterliegt\], daß die von Irenäus exzerpierte gnostische Schrift mit unserm Apokryphon Johannis identisch ist' \(Philotesia, Berlin, 1907, p\. 335\)/);
+  assert.match(ch29.notes!, /Mead's summary .*'The Gospel of Mary'/);
+  assert.match(chapters[1].notes!, /never names its teachers/);
+});
+
+test("Irenaeus's Against Heresies is dated by Eleutherius's episcopate, named in III.3.3, and its English to 1868 and 1885", () => {
+  const file = corpusFor("gnostic.irenaeus-against-heresies")!;
+  const book = file.passages[0];
+  assert.deepEqual(
+    book.dates!.map((d) => [d.role, d.startYear, d.endYear, d.isApproximate, d.sourceKey]),
+    [
+      ["composition", 174, 189, true, "anf-1885-irenaeus"],
+      ["translation_publication", 1868, 1868, false, "ancl-1868-irenaeus"],
+      ["translation_publication", 1885, 1885, false, "anf-1885-irenaeus"],
+    ]
+  );
+  const [composition] = book.dates!;
+  assert.match(composition.originalDateText, /Eleutherius does now, in the twelfth place from the apostles/);
+  assert.match(composition.originalDateText, /III\.3\.3/);
+  assert.match(composition.evidence, /'c\. 174-189' by Kirsch/);
+  assert.match(composition.evidence, /between A\.D\. 182 and A\.D\. 188/);
+  assert.match(composition.evidence, /'c\. 180'/);
+  assert.equal(file.manuscripts, undefined, "no manuscript of these chapters is dated in this import");
+  const work = INVENTORY.find((w) => w.workKey === "gnostic.irenaeus-against-heresies")!;
+  const claims = work.anchor && "existingSlug" in work.anchor ? (work.anchor.extraClaims ?? []) : [];
+  assert.deepEqual(claims.map((c) => dateRoleFromWhatIsDated(c.whatIsDated!)), ["earliest_evidence"]);
+  assert.deepEqual(claims.map((c) => [c.startYear, c.endYear]), [[174, 189]]);
+  assert.match(claims[0].whatIsDated!, /Irenaeus's report of a closely related system/);
+  assert.match(claims[0].evidence, /his report is not the Apocryphon itself/);
+  // The Apocryphon's own dates (its Coptic copies) stay on its marker and are not repeated.
+  const apocryphon = INVENTORY.find((w) => w.workKey === "gnostic.apocryphon-of-john")!;
+  const own = apocryphon.anchor && "event" in apocryphon.anchor ? apocryphon.anchor.event.claims : [];
+  assert.ok(own.some((c) => c.startYear === 300 && c.endYear === 400));
+  assert.ok(!(book.dates ?? []).some((d) => d.startYear === 300));
+});
+
+test("Irenaeus's links are proposed resemblances, all from his report, and none claims one text knew another", () => {
+  const file = corpusFor("gnostic.irenaeus-against-heresies")!;
+  const links = file.links ?? [];
+  assert.equal(links.length, 11);
+  const keys = new Set(ALL_CORPORA.flatMap((f) => f.passages.map((p) => p.key)));
+  assert.equal(new Set(links.map((l) => l.key)).size, links.length, "duplicate link key");
+  for (const link of links) {
+    assert.ok(keys.has(link.from) && keys.has(link.to), link.key);
+    assert.equal(link.reviewStatus, "proposed", link.key);
+    assert.match(link.from, /^gnostic\.iren\.1\.\d\d\.\d+$/, link.key);
+    assert.ok(["close_conceptual_parallel", "symbolic_similarity", "broad_thematic_resemblance"].includes(link.connectionClass), link.key);
+    assert.match(link.transmissionEvidence, /^None shown\./, link.key);
+    assert.doesNotMatch(`${link.similarities} ${link.differences} ${link.transmissionEvidence}`, /\bcop(ied|y)\b/, link.key);
+    assert.match(`${link.similarities} ${link.differences}`, /Irenaeus('s)? (report|reports)/, link.key);
+    // No link to the Apocryphon: it has no passages here, and its parallel is in the notes.
+    assert.doesNotMatch(link.to, /apjohn/, link.key);
+  }
+  const to = (from: string) => links.filter((l) => l.from === `gnostic.iren.1.${from}`).map((l) => l.to);
+  assert.deepEqual(to("29.1"), ["gnostic.ps.8"]);
+  assert.deepEqual(to("29.4"), ["gnostic.ps.31"]);
+  assert.deepEqual(to("30.4"), ["herm.ch.1.26", "modern.hpb.cosmo.4"]);
+  assert.deepEqual(to("30.5"), ["gnostic.ps.31", "greek.mithras.1907.11"]);
+  assert.deepEqual(to("30.7"), ["modern.hall.17.s2.p1"]);
+  assert.deepEqual(to("30.9"), ["herm.ch.1.9"]);
+  assert.deepEqual(to("30.12"), ["gnostic.ps.15", "herm.ch.1.25"]);
+  assert.deepEqual(to("30.15"), ["modern.hall.19.s1.p3"]);
+  // The name 'Ophites' is the editors', and the Hall link says so.
+  assert.match(links.find((l) => l.to === "modern.hall.19.s1.p3")!.differences, /never uses the name 'Ophites'/);
+});
+
+test("Irenaeus's pictures are from Commons, related evidence is labelled, the unverified say so first, and the Apocryphon's marker is not duplicated", () => {
+  const file = corpusFor("gnostic.irenaeus-against-heresies")!;
+  const images = [...(file.images ?? []), ...file.passages.flatMap((p) => p.images ?? [])];
+  const seen = new Map(images.map((i) => [i.key, i]));
+  assert.equal(seen.size, 4);
+  const elsewhere = new Set(ALL_CORPORA.filter((f) => f.workKey !== "gnostic.irenaeus-against-heresies").flatMap((f) => [...(f.images ?? []), ...f.passages.flatMap((p) => p.images ?? [])].map((i) => i.url)));
+  const marker = MARKER_PICTURES["apocryphon-of-john"];
+  for (const image of seen.values()) {
+    assert.match(image.url, /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\//, image.key);
+    assert.match(image.sourcePageUrl, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, image.key);
+    assert.equal(image.licenceStatus, "open", image.key);
+    assert.ok(image.licence, image.key);
+    assert.ok(!elsewhere.has(image.url), `${image.key} repeats a picture shown elsewhere`);
+    assert.ok(!marker.some((m) => m.url === image.url), `${image.key} repeats the marker's picture`);
+    if (image.identificationStatus === "unverified") {
+      assert.match(image.caption, /^UNVERIFIED — /, image.key);
+      assert.ok(image.whatIsUnverified, image.key);
+    } else assert.doesNotMatch(image.caption, /UNVERIFIED/, image.key);
+  }
+  assert.equal(seen.get("iren-erasmus-1526-title-page")!.identificationStatus, "secure");
+  assert.equal(seen.get("iren-p-oxy-405")!.identificationStatus, "secure");
+  assert.match(seen.get("iren-p-oxy-405")!.caption, /^Related evidence, not the chapters imported here: /);
+  assert.equal(seen.get("iren-latin-manuscript-book-iv-opening")!.identificationStatus, "unverified");
+  assert.match(seen.get("iren-latin-manuscript-book-iv-opening")!.whatIsUnverified!, /names no shelfmark/);
+  const berlin = seen.get("iren-berlin-8502-pages-22-127")!;
+  assert.equal(berlin.identificationStatus, "unverified");
+  assert.match(berlin.caption, /^UNVERIFIED — Related evidence, not Irenaeus: /);
+  assert.match(berlin.licence!, /CC BY-SA 4\.0/);
+  // The Apocryphon keeps its own marker and its two pictures; no new marker was made.
+  assert.equal(marker.length, 2);
+  assert.ok(!Object.keys(MARKER_PICTURES).some((slug) => /irenaeus/i.test(slug)));
 });
 
 test("the Emerald Tablet keeps its versions apart and says how they connect", () => {

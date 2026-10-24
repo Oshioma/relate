@@ -1706,3 +1706,158 @@ There are 15 entries, one per unit:
 - The identification of the papyrus leaf with the Ritual's opening is the archive's own reading, so it is marked `UNVERIFIED`.
 - Mead's Comments (pp. 34–77) are listed, not imported.
 - Gallica and the BnF catalogue record could not be reached; the digitisation was seen through Commons.
+
+## 27. Stage 21: Irenaeus, Against Heresies I.29–31, in the Ante-Nicene Fathers (1885)
+
+The Apocryphon of John entry (brief item 19) listed "Irenaeus, Against Heresies I.29 (ANF 1885)" as its only full-text edition. Book I, chapters 29, 30 and 31 are now imported, whole, in the English of Alexander Roberts and W. H. Rambaut as reprinted in *The Ante-Nicene Fathers*, vol. I (Buffalo: The Christian Literature Publishing Company, 1885), pp. 353–358. The Apocryphon entry's full-text edition now reads "... a hostile report of a closely related system, not the Apocryphon; imported as its own work, gnostic.irenaeus-against-heresies", and its copyright summary says the same.
+
+- **`gnostic.irenaeus-against-heresies`** (prefix `gnostic.iren`). Tradition class `ancient_late_transmission` (Irenaeus wrote in Greek; these chapters survive in the old Latin version), corpus group `gnostic`. No marker of its own: it hangs off the existing `apocryphon-of-john` marker, as the Critias hangs off the Timaeus's.
+
+**Why a work of its own, and not the Apocryphon's own text.** Irenaeus's chapters are an opponent's summary of what others taught, in his words and with his judgements ("Such are the falsehoods which these people invent"). They are not the Apocryphon of John, and chapter 30 is not even about the same system. The archive's practice for a text that is related to an inventory item but is not that item is to import it as its own work and have the item point to it (the Mithras Liturgy for `greek.related`, Kingsford and Maitland for `modern.other-authors`). Putting Irenaeus's English under `gnostic.apocryphon-of-john` would present it as the Apocryphon's own wording. Hanging the work off the Apocryphon's marker, not a new one, keeps the timeline honest the other way: Irenaeus's report is the earliest evidence for the system the Apocryphon sets out, and it is dated there as such.
+
+The inventory gained five sources:
+- `anf-1885-irenaeus`, the 1885 volume, which describes the witnesses;
+- `ancl-1868-irenaeus`, the Edinburgh first printing (Ante-Nicene Christian Library, vol. V, 1868), compared only;
+- `schmidt-irenaeus-quelle-1907`, Carl Schmidt, "Irenäus und seine Quelle in adv. haer. I, 29", in *Philotesia: Paul Kleinert zum LXX. Geburtstag* (Berlin, 1907), pp. 315–336, read on archive.org;
+- `mead-fragments-1906`, G. R. S. Mead, *Fragments of a Faith Forgotten* (London, 1906), "The Akhmîm Codex", pp. 579–586, Mead's English summary of Schmidt's report of 1896;
+- `kirsch-eleutherius-1909`, J. P. Kirsch, "Pope St. Eleutherius", *Catholic Encyclopedia* vol. 5 (1909), for the dates of Eleutherius's episcopate.
+
+Files:
+- `corpus/irenaeus.ts`;
+- the generated `corpus/irenaeus-text.ts`, made by `scripts/texts/irenaeus-against-heresies.py`. The script records the method, the reading the vote took, the one it rejected, every correction by hand with its page, and the footnotes;
+- `corpus/irenaeus-related-images.ts`;
+- plain words in `corpus/plain/irenaeus.ts`.
+
+`marker-pictures.ts` is unchanged: the `apocryphon-of-john` marker keeps its two pictures (NHC II p. 32 and BG 8502 p. 19), and no new marker or marker picture was made.
+
+Copyright: public domain (the translation was printed in 1868 and reprinted in 1885). Schmidt (d. 1938) and Mead (d. 1933) are public domain too, and are cited and briefly quoted. The text layers are `public_domain`.
+
+### What the text is
+
+The last three chapters of Book I of *Against Heresies*, which Irenaeus, bishop of Lyons, wrote in Greek about 180 CE. Having refuted the Valentinians at length, he summarises further sects "from whom", he says (I.31.3), the Valentinians descend:
+
+- **Chapter 29** (4 sections): a system of "a multitude of Gnostics" built on Barbelos, the unnameable Father, Autogenes and the four luminaries, Adamas, and Sophia, whose unconsented work, the Protarchon, makes the lower world and says "I am a jealous God".
+- **Chapter 30** (15 sections): a different, related system: the first and second Man, the Holy Spirit as first woman, Christ, Sophia-Prunicus and her son Ialdabaoth, who begets six more rulers (Iao, Sabaoth, Adoneus, Eloeus, Oreus, Astanphaeus); the making of Adam, Eve and the serpent; the flood, Abraham and the prophets shared out among the seven; and Christ's descent through the seven heavens into Jesus.
+- **Chapter 31** (4 sections): the "Cainites", with their "Gospel of Judas", and Irenaeus's close to Book I.
+
+The chapter headings ("Barbeliotes or Borborians", "Ophites and Sethians", "Cainites") are the edition's. The text itself never names the teachers of chapters 29 and 30. The name "Ophites" comes from the heading and the translators' footnote at I.30.5. The archive says so in the chapter notes and in the Hall link.
+
+**The parallel with the Apocryphon of John** is the scholarly-standard one, and it is stated as Schmidt's:
+- Schmidt announced in 1896 that Irenaeus had excerpted a work in the Coptic Berlin codex (P. Berol. 8502);
+- in 1907 he set the Latin of I.29 beside his German of the Coptic, and concluded that the writing Irenaeus excerpts "mit unserm Apokryphon Johannis identisch ist" (p. 335);
+- he also lists the differences: Irenaeus "paraphrasiert mehr, als daß er exzerpiert" (p. 331); the Protarchon's offspring (Kakia, Zelos, Phthonos, Erinnys, Epithymia) have no parallel in the manuscript, while Irenaeus leaves out the seven planetary powers (p. 333); Irenaeus breaks off chapter 29, Schmidt thinks, to avoid repeating chapter 30, which excerpts a different writing of a related sect, the Sethians to whom Theodoret ascribes it (p. 334).
+
+Mead's 1906 summary of Schmidt's first report compares the two point by point but calls the Coptic work "The Gospel of Mary", which Schmidt corrected in 1907; it is cited for the history of the identification only. Because the Apocryphon has no passages in the archive, the parallel is in the notes of the work, of chapter 29 and of I.29.1 and I.29.4, and in the claim on the Apocryphon's marker. It is not a passage link.
+
+### Source and checking
+
+| Siglum | Witness |
+|---|---|
+| C | The CCEL transcription of ANF vol. I (`anf01.ix.ii.xxx`–`xxxii`). The base: it keeps the edition's page breaks, footnotes apart from the text, and its Æ and œ, and it carries Coxe's bracketed notes, so it is of the 1885 American printing. |
+| T | archive.org's OCR of the University of Toronto copy (`antenicenefather01buff`, title page 1885). Its page images (leaves n370–n375 = pp. 353–358) were read. |
+| R | archive.org's OCR of the UCLA copy (`antenicenefathers01robe`, title page 1887, "Copyright, 1885"), the same plates. |
+| S | archive.org's OCR of a third copy (`antenicenefather0001unse_s4g9`, title page 1885), with a later OCR engine. |
+| E | archive.org's OCR of the Edinburgh first printing (`AnteNiceneChristianLibraryV05`, 1868). Compared, not voted. |
+| N | New Advent's text (newadvent.org/fathers/0103129–0103131), "revised and edited" by Kevin Knight. Compared, not used. |
+
+- **Normalised before the vote:** the OCRs' systematic misreadings of Æ ("^", "/E", "JE"), œ ("c") and the capital I of Ialdabaoth and Iao ("l"), each seen on the page images and counted by the script.
+- **The vote.** C, T, R and S were aligned word by word. Where two or three scans agreed against C, their reading was taken: once, "begirt" for C's misprint "begin" (I.30.3, p. 355), confirmed on the page image. One majority was rejected: "conceptions" (I.29.1, p. 353), where the scans read the footnote mark 5 as an "s".
+- **Stops.** Where all three scans agree on a stop that C lacks, the script reports the place but does not apply it. Each place was looked up on the page image; three were real and are corrected by hand: "uttermost, and" (I.29.4, p. 354), "Zechariah, to Sabaoth" and "Sophia herself" without a comma (I.30.11, p. 357). All three agree with the 1868 printing.
+- **Proofreading.** Every column of pp. 353–358 was read against T's page images. There is no italic in these chapters' text. The dashes are closed up. The translators' square brackets, their supplements, are kept.
+- **Which printing.** Compared word by word, the 1868 and 1885 printings differ in these chapters in one place: I.29.1, 1868 "in the conception", 1885 "in conception". The text follows 1885. "Ill-conditioned" (I.31.4) is in both.
+- **New Advent** silently modernises the translation: "begot" for "begat" four times, "you"/"your" for "thou"/"thy", "carcass" for "carcase", "Son of Nun". It drops some quotation marks and sets scripture references into the text. It keeps C's misprint "begin" and C's three wrong stops: 39 places differ in all. It is not a witness of the printing.
+
+**The footnotes** are the editors', not Irenaeus's. There are 23:
+- 19 by the translators (citing the Latin and the editions of Grabe and Harvey);
+- 2 by Coxe alone, in square brackets ("[Cant. ii. 15; St. Luke xiii. 32.]" and "[Let the reader bear in mind ...]");
+- 2 by the translators with a bracketed addition by Coxe (I.30.7, "Philastr."; I.31.2, "Note the 'Americanism'").
+
+Every unbracketed note was found in the 1868 OCR. They are listed, not imported: each section's notes give each footnote's place (the words its mark follows), page and author. The eight that warn the reader that the Latin or the translation is doubtful are quoted there:
+
+| Section | The translators' warning |
+|---|---|
+| I.29.1 | "Both the text and meaning are here altogether doubtful" ("in conception [thus formed]") |
+| I.30.2 | "The punctuation is here difficult and doubtful" |
+| I.30.5 | the Latin *evertisse* implies Nous "was more degraded" ("imparted") |
+| I.30.9 | "We here follow the emendation of Grabe" |
+| I.30.10 | *ex quibus* is "exceedingly obscure"; the next sentence "seems unintelligible" |
+| I.30.11 | the common text's "et incorruptibili Æone" is left out as a gloss |
+| I.30.15 | "The text of this sentence is hopelessly corrupt" |
+| I.31.2 | "The text is here imperfect, and the translation only conjectural" |
+
+### Units
+
+- **`gnostic.iren.1`** (`book`) holds no text. It carries the old Latin version as a cited layer (`lat-vetus`, no content), the dates, and notes on what is not imported.
+- Under it come three **`chapter`** records, `gnostic.iren.1.29`, `.30` and `.31`. They hold no text and carry the edition's headings, summaries, and the notes on the Apocryphon parallel and the names.
+- Under these come 23 **`section`** units, `gnostic.iren.1.29.1` to `gnostic.iren.1.31.4`, each with layer `eng-1885`, kind `translation`.
+
+That makes 23 units and 27 passages. `expectedUnits` is 23: the edition's own sections of the three chapters, read on the page images. `inventoryVerified` stays false, because only three chapters of a five-book work are in scope and the section numbers are the editors'.
+
+**Listed, not imported:**
+- the rest of *Against Heresies*;
+- the ANF's Introductory Note;
+- the 23 footnotes.
+
+Every summary begins "Irenaeus reports", "says", "calls" or "gives". The layer evidence calls the text "Irenaeus's hostile report of what others taught".
+
+### Dates
+
+- **Composition:** 174–189 CE (`decade`, approximate), on `gnostic.iren.1`. The basis is documented:
+  - Irenaeus names Eleutherius as bishop of Rome "now" in III.3.3 (ANF p. 416: "Eleutherius does now, in the twelfth place from the apostles, hold the inheritance of the episcopate");
+  - Kirsch (*Catholic Encyclopedia*, 1909) gives Eleutherius's episcopate as "c. 174-189";
+  - the ANF's Introductory Note (p. 312) narrows the writing to "between A.D. 182 and A.D. 188".
+
+  Book I comes before Book III, since it ends by promising a refutation "in the following book" (I.31.4), so it may be a little earlier. The record says so, and gives "c. 180" as the usual round figure.
+- **Translation and publication:** 1868 (Edinburgh, the first printing) and 1885 (Buffalo, the printing used, from the title page seen in the Toronto scan).
+- **On the Apocryphon's marker:** one claim is added, `earliest_evidence`, "Irenaeus's report of a closely related system, Against Heresies I.29", 174–189. Its evidence says the report is not the Apocryphon itself. The Coptic copies (fourth and fifth centuries) are already dated on that marker and are not repeated.
+
+No manuscript of these chapters is dated in this import.
+
+### Links
+
+All 11 are `proposed`, all go from Irenaeus's sections, and all say "None shown." for transmission. Each link's similarities or differences say that Irenaeus's side is his report.
+
+| From | To | Class | What it rests on |
+|---|---|---|---|
+| 29.1 | `gnostic.ps.8` | `symbolic_similarity` | the name Barbelo(s) |
+| 29.4 | `gnostic.ps.31` | `close_conceptual_parallel` | Sophia goes below without her consort; a lower ruler comes from what she brings forth |
+| 30.5 | `gnostic.ps.31` | `symbolic_similarity` | the name Ialdabaoth / Yaldabaoth for the ruler born of Sophia |
+| 30.12 | `gnostic.ps.15` | `close_conceptual_parallel` | the saviour passes the rulers and takes away their power |
+| 30.9 | `herm.ch.1.9` | `symbolic_similarity` | seven rulers as the planets |
+| 30.4 | `herm.ch.1.26` | `symbolic_similarity` | an eighth above the seven |
+| 30.12 | `herm.ch.1.25` | `broad_thematic_resemblance` | passage through seven heavens (descent / ascent) |
+| 30.5 | `greek.mithras.1907.11` | `broad_thematic_resemblance` | seven powers in order in heaven |
+| 30.7 | `modern.hall.17.s2.p1` | `close_conceptual_parallel` | the serpent leads to knowledge against the Demiurge |
+| 30.15 | `modern.hall.19.s1.p3` | `symbolic_similarity` | "the Ophites (serpent worshipers) revered the Edenic snake" |
+| 30.4 | `modern.hpb.cosmo.4` | `broad_thematic_resemblance` | "the seven fighters, the one, the eighth left out" |
+
+**Not linked:** the Apocryphon of John, which has no passages in the archive. The parallel is stated in the notes, with Schmidt cited. Hall cites Irenaeus elsewhere but not in the two passages linked; the links say Hall gives no source there.
+
+### Images
+
+All are from Commons file pages, and each was looked at; all have `licenceStatus` "open". None repeats a picture shown elsewhere in the archive, and none repeats the Apocryphon marker's two pictures. No manuscript page of chapters 29–31 was found.
+
+| Image | Placed on | Identification |
+|---|---|---|
+| Title page of Erasmus's first edition (Basel: Froben, 1526), Biblioteca Nazionale Centrale di Roma 14.18.P.9, PD | `gnostic.iren.1` | secure: the title and date read on the page, the library's stamp and shelfmark on it |
+| A Latin manuscript page with the opening of Book IV ("Incipit liber quartus"), said to be British Library, twelfth century, PD-Art | `gnostic.iren.1` | `UNVERIFIED`: no shelfmark on the file page; its catalogue link could not be reached; the text was identified by reading the image |
+| P. Oxy. 405 (Cambridge University Library Add. 4413), fragments of the Greek of Book III, chapter 9, PD-Art | `gnostic.iren.1` | secure: the frame's labels read "Ox. 405" and "Add 4413"; the identification as Irenaeus is Armitage Robinson's, as Grenfell and Hunt report (*Oxyrhynchus Papyri* IV, 1904, App. II). Captioned "Related evidence, not the chapters imported here". Its date was not checked. |
+| P. Berol. 8502, pages 22 and 127 (Staatliche Museen zu Berlin / Sandra Steiß, CC BY-SA 4.0) | `gnostic.iren.1.29.1` | `UNVERIFIED`: Mead (1906, p. 583) cites the codex's "p. 22" for the Father passage he sets beside I.29.1. Whether his numbering is the museum's was not established, and the Coptic was not read. Page 127's closing title, "The Sophia of Jesus Christ", was read on the image. Captioned "Related evidence, not Irenaeus". |
+
+No portrait of Irenaeus was added: any would be a later artist's imagining, and none was examined.
+
+### Plain words
+
+There are 23 entries, one per section:
+- Each begins "Irenaeus reports", "says" or "turns", and keeps the doctrines as what "they say" and the judgements as his.
+- None mentions the Apocryphon.
+- "Other possible readings" give the eight warnings of the translators' notes, and for I.29.1 the 1868 reading "in the conception".
+
+### Not done
+
+- The Latin version, the Greek fragments and the modern editions (Rousseau and Doutreleau) were not read. The English is checked against its own printing, not against the Latin.
+- No English of the Apocryphon of John is in the archive, so the I.29 parallel cannot be shown passage to passage. Schmidt's German of the Coptic is cited and quoted, not imported.
+- Only chapters 29–31 of Book I are imported. The rest of *Against Heresies*, including the earlier chapters on the Valentinians and on Simon, is not.
+- The 1868 page numbers (about pp. 101–115) come from the OCR's running heads and were not checked on the page images.
+- The Latin manuscript picture's shelfmark and date, P. Oxy. 405's date, and whether Mead's "p. 22" is the museum's page 22 were not established.
+- The Commons API rate-limited the image searches. Other candidate files (further Berlin codex pages, portraits) were not examined.

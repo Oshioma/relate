@@ -19,6 +19,7 @@ import { PLAIN_DONNELLY } from "./donnelly";
 import { PLAIN_SCOTT_ELLIOT } from "./scott-elliot";
 import { PLAIN_VIRGIN_OF_THE_WORLD } from "./virgin-of-the-world";
 import { PLAIN_MITHRAS_LITURGY } from "./mithras-liturgy";
+import { PLAIN_IRENAEUS } from "./irenaeus";
 import { PLAIN_STOBAEUS } from "./stobaeus";
 import { PLAIN_HERMETICA } from "./hermetica";
 import { PLAIN_KAGEMNI } from "./kagemni";
@@ -62,6 +63,7 @@ const PLAIN: Record<string, Record<string, string>> = {
   "modern.scott-elliot": PLAIN_SCOTT_ELLIOT,
   "modern.kingsford-maitland": PLAIN_VIRGIN_OF_THE_WORLD,
   "greek.mithras-liturgy": PLAIN_MITHRAS_LITURGY,
+  "gnostic.irenaeus-against-heresies": PLAIN_IRENAEUS,
 };
 
 test("every passage of the Book of the Heavenly Cow with Budge's English has plain words, and only those", () => {
@@ -158,6 +160,22 @@ test("the Preamble and every section of the Mithras Liturgy have plain words, an
   // The instructions are reported as instructions, and Mead's bracketed words as his.
   assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.3"], /^The instructions say/);
   assert.match(PLAIN_MITHRAS_LITURGY["greek.mithras.1907.2"], /Other possible readings:\n- 'the Deep of the \[New\] Dawn': the word 'New' is Mead's addition/);
+});
+
+test("every section of Irenaeus, Against Heresies I.29–31 has plain words, kept as his report, and only those", () => {
+  const iren = ALL_CORPORA.find((c) => c.workKey === "gnostic.irenaeus-against-heresies")!;
+  const withText = iren.passages.filter((p) => p.layers.some((l) => l.key === "eng-1885")).map((p) => p.key);
+  assert.deepEqual(Object.keys(PLAIN_IRENAEUS).sort(), [...withText].sort());
+  assert.equal(withText.length, 23);
+  // A hostile report: every entry says it is Irenaeus's report or his own words, never the Gnostics' own.
+  for (const [key, words] of Object.entries(PLAIN_IRENAEUS)) assert.match(words, /^Irenaeus (says|reports|turns)/, key);
+  for (const words of Object.values(PLAIN_IRENAEUS)) assert.doesNotMatch(words, /Apocryphon/);
+  // Where the translators warn that the text is doubtful, the other readings say so.
+  for (const ref of ["29.1", "30.2", "30.5", "30.9", "30.10", "30.11", "30.15", "31.2"]) {
+    assert.match(PLAIN_IRENAEUS[`gnostic.iren.1.${ref}`], /\n\nOther possible readings:\n- /, ref);
+  }
+  assert.match(PLAIN_IRENAEUS["gnostic.iren.1.29.1"], /the 1868 printing reads 'in the conception'/);
+  assert.match(PLAIN_IRENAEUS["gnostic.iren.1.30.15"], /'hopelessly corrupt'/);
 });
 
 test("the Preface and every section of Scott-Elliot's Story of Atlantis have plain words, and only those", () => {
