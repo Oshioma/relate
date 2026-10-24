@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResendConfirmationForm } from "./resend-form";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // The way out for anyone stuck between "created an account" and "confirmed
 // it": the email never arrived, or the link had been spent by a mail scanner
@@ -12,7 +13,7 @@ export default async function ResendConfirmationPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = safeReturnPath(params.next, "/dashboard");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">

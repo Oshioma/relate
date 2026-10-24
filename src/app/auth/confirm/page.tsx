@@ -6,6 +6,7 @@ import { verifiedCommunityHost } from "@/lib/verified-community-host";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { confirmOtp } from "./confirm-actions";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // Human-facing copy for the confirm button, by the kind of email link that led
 // here. The point of the interstitial is that a *person* presses this, so the
@@ -85,7 +86,7 @@ export default async function ConfirmPage({
   const tokenHash = params.token_hash ?? "";
   const type = (params.type ?? null) as EmailOtpType | null;
   const code = params.code ?? "";
-  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = safeReturnPath(params.next, "/dashboard");
 
   // A link that went through GoTrue's own /verify endpoint (Supabase's default
   // email template — see src/lib/email.ts for why we no longer mint those)

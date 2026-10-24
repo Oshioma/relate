@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authEventContext, recordAuthEvent } from "@/lib/auth-events";
 import { BRIDGE_CHECKED_COOKIE, BRIDGE_CHECKED_MAX_AGE_SECONDS } from "@/lib/auth-bridge";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // The community-host half of the cross-host auth bridge (see
 // src/lib/auth-bridge.ts). Arrives via redirect from the platform's
@@ -23,8 +24,7 @@ import { BRIDGE_CHECKED_COOKIE, BRIDGE_CHECKED_MAX_AGE_SECONDS } from "@/lib/aut
 // link scanner can pre-spend the token.
 export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get("token_hash") ?? "";
-  const nextRaw = request.nextUrl.searchParams.get("next") ?? "";
-  const next = nextRaw.startsWith("/") ? nextRaw : "/";
+  const next = safeReturnPath(request.nextUrl.searchParams.get("next"), "/");
 
   const supabase = await createClient();
   const {
