@@ -1,5 +1,6 @@
 import { Quote } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
 import type { CommunityTestimonial } from "@/types/database";
 
 // What members say, on the signed-out landing page. The quotes are the
@@ -24,7 +25,12 @@ export function TestimonialsSection({
             <blockquote className="flex-1 whitespace-pre-line text-base leading-relaxed text-foreground">
               “{t.quote}”
             </blockquote>
-            {t.name && <p className="text-sm font-medium text-muted-foreground">– {t.name}</p>}
+            {(t.name || t.avatarUrl) && (
+              <div className="flex items-center gap-3">
+                <Avatar src={t.avatarUrl} name={t.name || communityName} size={44} />
+                {t.name && <p className="text-sm font-medium text-muted-foreground">– {t.name}</p>}
+              </div>
+            )}
           </Card>
         ))}
       </div>
