@@ -102,6 +102,8 @@ export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
   seoTitle: "Best Beach Bars in Zanzibar | Sunset Bars, Full Moon Party, Nungwi, Kendwa & Paje",
   description:
     "The best beach bars in Zanzibar: sunset bars in Nungwi and Stone Town, the Kendwa Rocks full moon party, Kae Funk, Paje's beach clubs and chilled Jambiani bars — with party nights, entry rules and tide tips.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Beach Bars",
   cardBlurb: "Sunsets over the sea, the full moon party, reggae by the fishing boats and hammocks on the lagoon — where to drink on the island, and when.",
   // Sunset from the rooftop of The Z Hotel, Nungwi.
   heroPhoto: (byKey.get("z-rooftops")?.photos ?? [])[1] ?? BARS.flatMap((p) => p.photos)[0],

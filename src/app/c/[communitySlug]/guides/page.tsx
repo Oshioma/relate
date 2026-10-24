@@ -54,7 +54,7 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ co
                 <Link href={`/c/${community.slug}/guides/${guide.slug}`} className="group block overflow-hidden rounded-xl border border-border bg-card hover:shadow-md">
                   {hero ? <GuideImage src={hero.src} alt={hero.alt} width={hero.width} sizes="(min-width: 640px) 440px, 100vw" className="aspect-[16/9]" /> : <div className="aspect-[16/9] bg-muted" />}
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{guide.title}</h2>
+                    <h2 className="text-lg font-semibold text-foreground group-hover:text-accent">{entry?.cardTitle ?? guide.title}</h2>
                     {entry && <p className="mt-1 text-sm text-muted-foreground">{entry.blurb}</p>}
                     {guide.status === "draft" && <p className="mt-2 text-xs font-medium text-muted-foreground">Draft — visible to staff only</p>}
                     {isStaff && (

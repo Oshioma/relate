@@ -83,6 +83,8 @@ export type PlaceGuideDefinition = {
   subtitle: string;
   seoTitle: string;
   description: string;
+  // The short name on guide cards ("Transport"); the full title heads the guide.
+  cardTitle: string;
   cardBlurb: string;
   heroPhoto: GuidePhoto;
   introduction: string[];

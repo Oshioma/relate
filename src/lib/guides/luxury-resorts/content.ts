@@ -76,6 +76,8 @@ export const LUXURY_GUIDE: HotelGuideDefinition = {
   seoTitle: "Best Luxury Resorts in Zanzibar | Five-Star Hotels & Private Islands",
   description:
     "Zanzibar's best luxury resorts, from a private island and villa resorts to five-star all-inclusives and Stone Town's historic hotels. Independent recommendations and practical local advice.",
+  // The short name on guide cards (Guides page and Guides space).
+  cardTitle: "Luxury Hotels",
   cardBlurb: "Private islands, five-star beach resorts and historic seafront hotels — where to stay when you want to be spoilt.",
   heroPhoto: RESORT_PHOTOS["mnemba"][0],
   introduction: INTRODUCTION,
