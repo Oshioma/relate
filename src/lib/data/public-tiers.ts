@@ -7,6 +7,8 @@ export type PublicTier = {
   description: string | null;
   priceCents: number;
   currency: string;
+  // Names of the spaces the tier unlocks, in no particular order.
+  spaceNames: string[];
 };
 
 // A community's open membership tiers (name, description, monthly price) for
@@ -18,7 +20,7 @@ export async function getPublicTiers(communityId: string): Promise<PublicTier[]>
   try {
     const { data, error } = await createAdminClient()
       .from("community_tiers")
-      .select("id, name, description, price_cents, currency")
+      .select("id, name, description, price_cents, currency, tier_spaces(spaces(name))")
       .eq("community_id", communityId)
       .is("archived_at", null)
       .order("sort_order", { ascending: true })
@@ -30,6 +32,9 @@ export async function getPublicTiers(communityId: string): Promise<PublicTier[]>
       description: tier.description,
       priceCents: tier.price_cents,
       currency: tier.currency,
+      spaceNames: ((tier.tier_spaces ?? []) as { spaces: { name: string } | { name: string }[] | null }[]).flatMap((row) =>
+        Array.isArray(row.spaces) ? row.spaces.map((s) => s.name) : row.spaces ? [row.spaces.name] : []
+      ),
     }));
   } catch {
     return [];
