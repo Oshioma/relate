@@ -40,6 +40,7 @@ import { NotificationsPopover } from "@/components/layout/notifications-popover"
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
+import { LiveNowPopup } from "@/components/layout/live-now-popup";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
@@ -346,6 +347,9 @@ export default async function CommunityLayout({
           badge instantly. Outside the signed-in gate so guests on a public
           live space see it too. */}
       <LiveSessionWatcher communityId={community.id} />
+      {/* The "We're live" card (with a chime and, when allowed, a desktop
+          notification) whenever a session is live and the viewer isn't in it. */}
+      <LiveNowPopup session={liveSession} base={base} viewerId={user?.id ?? null} />
 
       {/* Sticky at full window height, so the nav stays in view while a long
           page (a directory, a timeline) scrolls past it. Only the link list in
