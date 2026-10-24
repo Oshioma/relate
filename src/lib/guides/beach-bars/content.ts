@@ -183,4 +183,15 @@ export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
     considerations: "Worth knowing",
   },
   heroCta: "The bars",
+  areaFinder: {
+    noun: "bars",
+    areas: [
+      { id: "stone-town", label: "Stone Town", placeKeys: ["mercurys", "livingstones", "tatu"] },
+      { id: "nungwi-kendwa", label: "Nungwi & Kendwa", placeKeys: ["kajibange", "kibanda", "mama-mia", "bobo-beach", "z-rooftops", "kendwa-rocks"] },
+      { id: "matemwe-kiwengwa", label: "Matemwe & Kiwengwa", placeKeys: ["marafiki-beach-bar", "the-beach-lounge", "il-pontile"] },
+      { id: "michamvi", label: "Michamvi", placeKeys: ["boho-lounge", "kae-funk", "michamvi-sunset-bay"] },
+      { id: "paje", label: "Paje", placeKeys: ["mr-kahawa", "mahali-beachbar", "b4-beach-club", "paje-by-night"] },
+      { id: "jambiani", label: "Jambiani", placeKeys: ["lost-soles", "new-teddys"] },
+    ],
+  },
 };

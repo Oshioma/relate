@@ -11,6 +11,7 @@ import { PlaceSection, KIND_LABELS, DEFAULT_PLACE_LABELS } from "@/components/ed
 import { PhotoGallery, PhotoOpener, type ViewerPhoto } from "@/components/editorial-guide/photo-viewer";
 import { GuideViewBeacon } from "@/components/editorial-guide/guide-view-beacon";
 import { GuideViewStatsBadge } from "@/components/editorial-guide/guide-view-stats";
+import { AreaCards, AreaFilteredPlaces } from "@/components/editorial-guide/area-finder";
 import { listingKey, type GuideDirectory, type GuideViewStats } from "@/lib/data/editorial-guides";
 
 // A place guide page (/guides/most-picturesque-places-zanzibar): the same
@@ -118,6 +119,30 @@ export function PlaceGuide({
       : [];
   const directoryHref = directory?.directorySpaceSlug ? `/c/${community.slug}/spaces/${directory.directorySpaceSlug}` : null;
 
+  const placeIndex = (
+    <ol className="mt-6 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3" aria-label="All places">
+      {places.map((p, i) => (
+        <li key={p.key}>
+          <a href={`#${p.key}`} className="text-accent hover:underline">
+            {i + 1}. {p.name}
+          </a>
+          <span className="text-xs text-muted-foreground"> · {KIND_LABELS[p.kind]}</span>
+        </li>
+      ))}
+    </ol>
+  );
+  const placeSection = (p: (typeof places)[number], i: number) => (
+    <PlaceSection
+      key={p.key}
+      place={p}
+      number={i + 1}
+      updates={updates.filter((u) => u.destination_key === p.key)}
+      shareUrl={pageUrl ? `${pageUrl}#${p.key}` : null}
+      labels={labels}
+      listing={listingFor(p.listing)}
+    />
+  );
+
   const sections: NavSection[] = [
     { id: "introduction", label: "Introduction", group: "Start here" },
     { id: "find-your-spot", label: "Find your spot", group: "Start here" },
@@ -184,8 +209,16 @@ export function PlaceGuide({
             </div>
           </div>
 
-          {/* Photo row */}
-          {mosaic.length > 0 && (
+          {/* Area cards ("what's around me?"), or the photo row */}
+          {def.areaFinder ? (
+            <AreaCards
+              noun={def.areaFinder.noun}
+              areas={def.areaFinder.areas.map((a) => {
+                const first = byKey.get(a.placeKeys[0])?.photos[0];
+                return { id: a.id, label: a.label, count: a.placeKeys.length, photo: first ? { src: first.src, alt: first.alt, width: first.width } : null };
+              })}
+            />
+          ) : mosaic.length > 0 && (
             <PhotoGallery photos={mosaicPhotos} title={def.title}>
               <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3" aria-label="A taste of the places in this guide">
                 {mosaic.map(({ place, picture }, i) => (
@@ -279,31 +312,21 @@ export function PlaceGuide({
               {def.placesSection.title}
             </SectionTitle>
             <p className="mt-2 max-w-3xl text-muted-foreground">{def.placesSection.blurb}</p>
-            <ol className="mt-6 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3" aria-label="All places">
-              {places.map((p, i) => (
-                <li key={p.key}>
-                  <a href={`#${p.key}`} className="text-accent hover:underline">
-                    {i + 1}. {p.name}
-                  </a>
-                  <span className="text-xs text-muted-foreground"> · {KIND_LABELS[p.kind]}</span>
-                </li>
-              ))}
-            </ol>
-            <div className="mt-10 space-y-16">
-              {places.map((p, i) => (
-                <PlaceSection
-                  key={p.key}
-                  place={p}
-                  number={i + 1}
-                  updates={updates.filter((u) => u.destination_key === p.key)}
-                  shareUrl={pageUrl ? `${pageUrl}#${p.key}` : null}
-                  labels={labels}
-                  listing={listingFor(p.listing)}
-                />
-              ))}
-            </div>
+            {def.areaFinder ? (
+              <AreaFilteredPlaces
+                noun={def.areaFinder.noun}
+                areas={def.areaFinder.areas}
+                coords={Object.fromEntries(places.map((p) => [p.key, p.coords]))}
+                index={placeIndex}
+                items={places.map((p, i) => ({ key: p.key, node: placeSection(p, i) }))}
+              />
+            ) : (
+              <>
+                {placeIndex}
+                <div className="mt-10 space-y-16">{places.map(placeSection)}</div>
+              </>
+            )}
           </section>
-
           {/* Everything in the community directory */}
           {def.directorySection && directoryListings.length > 0 && (
             <section id="directory" aria-labelledby="directory-title" className="mt-20 scroll-mt-24 border-t border-border pt-12">
