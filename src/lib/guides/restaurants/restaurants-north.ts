@@ -1,6 +1,6 @@
 import type { Place } from "@/lib/guides/place-guide/types";
 import { RESTAURANT_PHOTOS } from "./photos";
-import { CHECKED, maps } from "./shared";
+import { BEACH_BARS_SLUG, CHECKED, maps } from "./shared";
 
 // The north: Nungwi and Kendwa. Seafood on the sand, sunset decks and some
 // of the island's best casual cafés.
@@ -159,6 +159,7 @@ export const NORTH_RESTAURANTS: Place[] = [
     mapsUrl: maps("Kajibange Bar, Nungwi"),
     photos: RESTAURANT_PHOTOS["kajibange"] ?? [],
     listing: { kind: "business", slug: "kajibange" },
+    seeAlso: [{ label: "Also in our beach bars guide", guideSlug: BEACH_BARS_SLUG, placeKey: "kajibange" }],
     verification: {
       status: "partial",
       checkedOn: CHECKED,
