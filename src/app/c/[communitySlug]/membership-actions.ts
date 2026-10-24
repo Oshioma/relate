@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isStripeConfigured, createTierCheckoutSession, setSubscriptionCancellation } from "@/lib/stripe";
 import { communityCanCharge } from "@/lib/data/plan-limits";
+import { tierCheckoutDescription } from "@/lib/checkout-description";
 
 export type CheckoutResult = { error: string } | { url: string };
 export type CancelResult = { error: string | null };
@@ -38,16 +39,27 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to join this membership." };
 
-  // RLS only returns tiers to members of the community, so a non-member reading
-  // this resolves to null — they need to join the (free) community first.
-  const { data: tier } = await supabase
+  // Anyone signed in may buy a plan, member or not: the Membership page is the
+  // community's public price list, and paying makes them a member (the Stripe
+  // webhook adds the membership). RLS only shows tiers to members, so read it
+  // with the service role; only this one unarchived tier's price is used.
+  const admin = createAdminClient();
+  const { data: tier } = await admin
     .from("community_tiers")
-    .select("id, name, price_cents, currency, community_id, archived_at")
+    .select("id, name, description, price_cents, currency, community_id, archived_at")
     .eq("id", tierId)
     .maybeSingle();
   if (!tier) return { error: "Membership tier not found." };
   if (tier.archived_at) return { error: "This membership is no longer available." };
   if (tier.price_cents <= 0) return { error: "This membership is free — no subscription needed." };
+
+  const { data: existing } = await supabase
+    .from("community_memberships")
+    .select("status")
+    .eq("community_id", tier.community_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (existing?.status === "banned") return { error: "You can't join this community." };
 
   const { data: community } = await supabase
     .from("communities")
@@ -66,6 +78,16 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
     };
   }
 
+  // What the tier includes, for the Checkout page: its description and the
+  // spaces it unlocks. Read with the service role: the buyer can't see inside
+  // the private spaces they're about to pay for, but their names are what's on
+  // offer (the tier itself was read above under RLS).
+  const { data: tierSpaces } = await admin.from("tier_spaces").select("spaces(name)").eq("tier_id", tier.id);
+  const spaceNames = (tierSpaces ?? []).flatMap((row) => {
+    const s = row.spaces as { name: string } | { name: string }[] | null;
+    return Array.isArray(s) ? s.map((x) => x.name) : s ? [s.name] : [];
+  });
+
   const base = await requestBaseUrl();
   const communityUrl = `${base}/c/${communitySlug}`;
 
@@ -75,6 +97,7 @@ export async function subscribeToTier(tierId: string, communitySlug: string): Pr
       priceCents: tier.price_cents,
       currency: tier.currency,
       productName: `${tier.name} — ${community.name}`,
+      productDescription: tierCheckoutDescription(tier.description, spaceNames),
       successUrl: `${communityUrl}?subscribed=1`,
       cancelUrl: communityUrl,
       customerEmail: user.email ?? undefined,

@@ -244,6 +244,8 @@ export function createTierCheckoutSession(params: {
   priceCents: number;
   currency: string;
   productName: string;
+  // Shown under the name on the Checkout page (what the membership includes).
+  productDescription?: string;
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
@@ -263,7 +265,10 @@ export function createTierCheckoutSession(params: {
             currency: params.currency,
             unit_amount: params.priceCents,
             recurring: { interval: "month" },
-            product_data: { name: params.productName },
+            product_data: {
+              name: params.productName,
+              ...(params.productDescription ? { description: params.productDescription } : {}),
+            },
           },
         },
       ],
