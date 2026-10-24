@@ -413,6 +413,17 @@ export default async function SpaceDetailPage({
   // admin-facing setup hint when the community has no usable location yet.
   const showLiveConditions = isResourceSpace && /tide|weather/i.test(space.name);
 
+  // A directory category page leads with one of the category's own photos —
+  // a featured listing's if there is one, else the best-illustrated listing —
+  // rather than a cover that suits the directory as a whole (a restaurant
+  // terrace over "Experiences").
+  const categoryCoverUrl =
+    isBusinessDirectorySpace && initialCategory
+      ? ([...businesses]
+          .filter(({ business: b }) => b.category === initialCategory && b.image_url)
+          .sort((a, b) => Number(b.business.featured) - Number(a.business.featured) || b.imageCount - a.imageCount)[0]?.business.image_url ?? null)
+      : null;
+
   const canPost = membership?.status === "active";
   // The composer offers the author's own photo as a one-tap image source, so
   // fetch their profile only when they can actually post in a discussion space.
@@ -462,7 +473,7 @@ export default async function SpaceDetailPage({
     {/* Every space opens with a full-width cover, the same size as the feed
         page's hero (its own upload, or its type's default photo), above
         whatever masthead (or none) the type renders. */}
-    <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} />
+    <SpaceCover spaceId={space.id} communityId={community.id} spaceType={space.space_type} imageUrl={space.image_url} canEdit={Boolean(isAdmin)} categoryImageUrl={categoryCoverUrl} />
     {/* A directory opens straight onto its own controls, so it also gives back
         the page's top padding — every line above the first listing is a line of
         the directory nobody can see.
@@ -475,7 +486,7 @@ export default async function SpaceDetailPage({
         // A Lessons space widens again past 1700px, where the shell has
         // 400px+ of empty margin doing nothing, so the side rail can appear
         // without taking a column off the library. See lessons-view.
-        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : "max-w-3xl",
+        isLessonsSpace ? "max-w-6xl rail:max-w-[103rem]" : isGuidedJourneySpace || isBooksMediaSpace || isArtsBoardSpace ? "max-w-6xl" : isBusinessDirectorySpace ? "max-w-5xl" : "max-w-3xl",
         isBusinessDirectorySpace ? "pt-4 sm:pt-5" : isGuidedJourneySpace ? "pt-4 sm:pt-6" : "pt-8 sm:pt-10"
       )}
     >
