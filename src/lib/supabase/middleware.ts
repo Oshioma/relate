@@ -20,7 +20,9 @@ const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/co
 // them to /login first, or a public community could never be browsed.
 // Everything else under /c/<slug> (admin, members, …) stays login-gated.
 // Editorial guides are public too; their /edit page checks staff itself.
-const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact", "guides"];
+// Membership is the community's price list: visitors (say, from a link on the
+// owner's own website) see the plans and are asked to sign up to buy one.
+const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact", "guides", "membership"];
 
 // Matches the community feed (/c/<slug>) and its guest-visible sections
 // (/c/<slug>/spaces, /events, /concierge, /guides and anything nested under them).

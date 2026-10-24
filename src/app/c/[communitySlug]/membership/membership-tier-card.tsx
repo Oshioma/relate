@@ -107,7 +107,7 @@ export function MembershipTierCard({
           )}
         </div>
 
-        {description && <p className="mt-3 text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{description.trim()}</p>}
 
         {spaceNames.length > 0 && (
           <div className="mt-4">
@@ -146,12 +146,20 @@ export function MembershipTierCard({
           ) : isStaff ? (
             <p className="text-sm text-muted-foreground">Staff already have access to every space.</p>
           ) : !isSignedIn ? (
-            <Link
-              href={`/login?next=${encodeURIComponent(returnTo)}`}
-              className="inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
-            >
-              Sign in to join
-            </Link>
+            <div>
+              <Link
+                href={`/signup?next=${encodeURIComponent(returnTo)}`}
+                className="inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+              >
+                Join for {price}/mo
+              </Link>
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                You&apos;ll make a free account first, then pay.{" "}
+                <Link href={`/login?next=${encodeURIComponent(returnTo)}`} className="text-accent underline-offset-2 hover:underline">
+                  Already have one? Sign in
+                </Link>
+              </p>
+            </div>
           ) : !paymentsReady ? (
             <p className="text-sm text-muted-foreground">This community hasn&apos;t finished setting up payments yet.</p>
           ) : (
