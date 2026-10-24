@@ -120,6 +120,8 @@ export function LiveNowPopup({
   const permission = useSyncExternalStore(subscribe, permissionNow, () => "unsupported" as const);
 
   const spacePath = session ? `${base}/spaces/${session.spaceSlug}` : "";
+  // ?join=1 opens the room on arrival, so there's no second Join click.
+  const joinHref = `${spacePath}?join=1`;
   const visible =
     session !== null &&
     dismissedRaw !== SERVER &&
@@ -158,11 +160,11 @@ export function LiveNowPopup({
       });
       note.onclick = () => {
         window.focus();
-        router.push(spacePath);
+        router.push(joinHref);
         note.close();
       };
     });
-  }, [visible, session, spacePath, router]);
+  }, [visible, session, joinHref, router]);
 
   if (!visible || !session) return null;
 
@@ -216,7 +218,7 @@ export function LiveNowPopup({
           </div>
           <div className="mt-4 flex gap-2">
             <Link
-              href={spacePath}
+              href={joinHref}
               className="inline-flex flex-1 items-center justify-center rounded-md bg-danger px-4 py-2 text-sm font-medium text-danger-foreground hover:opacity-90"
             >
               Join now

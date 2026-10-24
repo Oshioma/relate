@@ -115,10 +115,10 @@ export default async function SpaceDetailPage({
   searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string }>;
-  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string }>;
+  searchParams: Promise<{ category?: string | string[]; subscribed?: string; import?: string | string[]; ended?: string; join?: string }>;
 }) {
   const { communitySlug, spaceSlug } = await params;
-  const { category: rawCategory, subscribed, import: rawImport, ended } = await searchParams;
+  const { category: rawCategory, subscribed, import: rawImport, ended, join } = await searchParams;
   // A link handed over from the directory's add form when what was pasted turned
   // out to be a place to stay — see the `handoff` on an import result.
   const importUrl = Array.isArray(rawImport) ? rawImport[0] : rawImport;
@@ -984,6 +984,9 @@ export default async function SpaceDetailPage({
           canJoin={canPost}
           displayName={liveDisplayName}
           jaasConfigured={isJaasConfigured()}
+          // "Join now" on the live pop-up and the header "Live now!" badge link
+          // here with ?join=1, so the viewer lands straight in the call.
+          autoJoin={join === "1"}
         />
       ) : (
         <>
