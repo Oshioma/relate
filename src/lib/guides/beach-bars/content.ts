@@ -185,6 +185,7 @@ export const BEACH_BARS_GUIDE: PlaceGuideDefinition = {
   heroCta: "The bars",
   areaFinder: {
     noun: "bars",
+    nearPhoto: { placeKey: "bobo-beach", photo: 4 },
     areas: [
       { id: "stone-town", label: "Stone Town", placeKeys: ["mercurys", "livingstones", "tatu"] },
       { id: "nungwi-kendwa", label: "Nungwi & Kendwa", placeKeys: ["kajibange", "kibanda", "mama-mia", "bobo-beach", "z-rooftops", "kendwa-rocks"] },

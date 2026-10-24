@@ -197,6 +197,7 @@ export const RESTAURANTS_GUIDE: PlaceGuideDefinition = {
   heroCta: "The restaurants",
   areaFinder: {
     noun: "restaurants",
+    nearPhoto: { placeKey: "6-degrees-south", photo: 2 },
     areas: [
       { id: "stone-town", label: "Stone Town", placeKeys: ["emerson-spice-tea-house", "6-degrees-south", "cape-town-fish-market", "the-fifth", "lukmaan", "abyssinian-maritim", "forodhani-night-market"] },
       { id: "nungwi-kendwa", label: "Nungwi & Kendwa", placeKeys: ["sexy-fish", "fishermans-seafood-grill", "fish-market-nungwi", "kajibange", "makofi", "hanoi-house-nungwi", "passion-thyme", "organzibar"] },

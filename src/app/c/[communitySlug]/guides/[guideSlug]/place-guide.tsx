@@ -213,6 +213,11 @@ export function PlaceGuide({
           {def.areaFinder ? (
             <AreaCards
               noun={def.areaFinder.noun}
+              nearPhoto={(() => {
+                const n = def.areaFinder.nearPhoto;
+                const pic = n ? byKey.get(n.placeKey)?.photos[n.photo ?? 0] : undefined;
+                return pic ? { src: pic.src, alt: pic.alt, width: pic.width } : null;
+              })()}
               areas={def.areaFinder.areas.map((a) => {
                 const first = byKey.get(a.placeKeys[0])?.photos[0];
                 return { id: a.id, label: a.label, count: a.placeKeys.length, photo: first ? { src: first.src, alt: first.alt, width: first.width } : null };
