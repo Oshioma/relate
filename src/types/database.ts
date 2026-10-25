@@ -15,6 +15,9 @@ export type MembershipRole = "owner" | "admin" | "moderator" | "member";
 // into 'active' or decline it, which deletes the row.
 export type MembershipStatus = "active" | "invited" | "banned" | "requested";
 export type CommunityPrivacy = "public" | "private" | "invite_only";
+// How people join, separate from whether the community is listed. Null on a
+// community means "follow privacy". See src/lib/join-policy.ts.
+export type JoinPolicy = "open" | "approval" | "invite";
 export type SpaceVisibility = "public" | "members" | "private";
 export type SpaceType =
   | "discussion"
@@ -173,6 +176,11 @@ export type MemberActivityDay = {
 // against PLACE_LOCATION_TYPES at the application layer, which keeps adding
 // new place kinds a code-only change. Both stay null for every non-place
 // template.
+// avatarUrl: optional uploaded photo of the person. memberId: optional linked
+// member, whose own profile photo shows instead (and follows their changes).
+// Initials from the name show when neither gives a photo.
+export type CommunityTestimonial = { quote: string; name: string; avatarUrl?: string | null; memberId?: string | null };
+
 export type Community = {
   id: string;
   name: string;
@@ -221,9 +229,16 @@ export type Community = {
   hero_background_video_url: string | null;
   // The same, for the signed-out landing page (/welcome/<slug>).
   landing_background_video_url: string | null;
+  // Quotes from members shown on the signed-out landing page, in order
+  // (migration community_testimonials). Empty = no testimonials section.
+  testimonials: CommunityTestimonial[];
   featured_space_id: string | null;
   owner_id: string;
   privacy: CommunityPrivacy;
+  // How people join: null = follow privacy (public open, private approval,
+  // invite_only invite). Ignored for invite_only. See the
+  // community_join_policy migration and src/lib/join-policy.ts.
+  join_policy: JoinPolicy | null;
   // Who can see the Members list/page — independent of `privacy` above.
   // The page always requires a signed-in user regardless of this setting.
   // 'public' = any signed-in visitor (incl. guests who haven't joined),
@@ -288,6 +303,9 @@ export type Community = {
   // 20260729185900_space_paywall.sql.
   stripe_account_id: string | null;
   stripe_charges_enabled: boolean;
+  // The one currency every price in the community is charged in (Stripe's
+  // lowercase ISO code). See 20261024205624_community_currency.sql.
+  currency: string;
   // Platform plan (the platform charging the owner). plan_status 'none' = free.
   // All plan_* columns are written only by the Stripe webhook — a DB trigger
   // rejects anon/authenticated writes. See 20260729233000_platform_plans.sql.
@@ -406,6 +424,16 @@ export type TierSpace = {
   created_at: string;
 };
 
+// Join row: which paid courses a tier includes for free. Kept apart from
+// TierSpace because a tier'd space is closed to everyone else, and one-off
+// buyers still need to open the course.
+export type TierCourse = {
+  tier_id: string;
+  course_id: string;
+  community_id: string;
+  created_at: string;
+};
+
 // One row per (tier, member). Written only by the Stripe webhook (service role);
 // mirrors SpaceSubscription.
 export type TierSubscription = {
@@ -472,8 +500,16 @@ export type Space = {
   // code. See 20260729185900_space_paywall.sql.
   price_cents: number;
   currency: string;
+  // What someone who can't open the space sees of it. null = today's rule
+  // (members see it locked, visitors don't see it); 'teaser' = visitors also
+  // see its name, description and cover, locked. Read by visitors through
+  // space_teasers(), never through the spaces table. See
+  // 20261022090133_space_locked_teaser.sql.
+  when_locked: SpaceWhenLocked | null;
   created_at: string;
 };
+
+export type SpaceWhenLocked = "teaser";
 
 // A post can optionally be pinned to a place on the community's Explore Map
 // (a beach, a landmark, a neighbourhood) — the start of the "Living Map":
@@ -587,6 +623,24 @@ export type CommunityInvite = {
   created_by: string;
   created_at: string;
   email: string | null;
+};
+
+// A community's own wording for one of its emails. No row = the built-in
+// email. See 20261020221900_community_email_templates.sql and
+// src/lib/email-templates.ts.
+export type CommunityEmailTemplateKind = "invite_new" | "invite_existing" | "welcome";
+export type CommunityEmailTemplate = {
+  community_id: string;
+  kind: CommunityEmailTemplateKind;
+  enabled: boolean;
+  subject: string;
+  body_html: string;
+  footer_html: string;
+  button_label: string;
+  logo_url: string | null;
+  banner_url: string | null;
+  updated_at: string;
+  updated_by: string | null;
 };
 
 // A sidebar section in one community. spaces.nav_group holds its key. See
@@ -1564,6 +1618,15 @@ export type LiveSession = {
   // Set when the session was scheduled ahead of time; null for ad-hoc
   // "go live now" sessions.
   scheduled_start: string | null;
+  // When a scheduled session is planned to finish (after scheduled_start), or
+  // null. The real started_at / ended_at are stamped by Go live / End.
+  scheduled_end: string | null;
+  // What the session is about, and a cover image — both optional.
+  description: string | null;
+  image_url: string | null;
+  // A still taken from the meeting while it ran (see saveLiveSessionSnapshot),
+  // shown on the Past sessions card; null when none was captured.
+  thumbnail_url: string | null;
   // Stamped by the reminder job once a scheduled session's pre-start reminder
   // has been sent, so it fires at most once.
   reminder_sent_at: string | null;
@@ -1616,6 +1679,9 @@ export type Course = {
   // staff grant or a payment flow.
   price_cents: number;
   currency: string;
+  // Whether a one-off purchase also lets the buyer join the live lessons, or
+  // only watch their playbacks. Tier members always get both.
+  live_included_with_purchase: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -1640,9 +1706,41 @@ export type CourseLesson = {
   community_id: string;
   title: string;
   body: string | null;
+  // 'video' plays video_url; 'live' runs a live room at live_starts_at and
+  // afterwards plays its recording from video_url.
+  lesson_type: CourseLessonType;
   video_url: string | null;
+  live_starts_at: string | null;
+  live_ends_at: string | null;
   duration_minutes: number | null;
   sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CourseLessonType = "text" | "video" | "live";
+
+// Which lesson a JaaS room belongs to (service role only).
+export type CourseLiveRoom = {
+  room_name: string;
+  lesson_id: string;
+  created_at: string;
+};
+
+// A recording of a live lesson, as JaaS reported it and the app copied it.
+export type CourseLessonRecording = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  community_id: string;
+  idempotency_key: string;
+  jaas_session_id: string | null;
+  status: "copying" | "saved" | "failed";
+  storage_path: string | null;
+  source_url: string | null;
+  error: string | null;
+  duration_seconds: number | null;
+  recorded_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -1652,8 +1750,11 @@ export type CourseEnrollment = {
   course_id: string;
   user_id: string;
   enrolled_at: string;
-  // v3: whether this enrolment was paid for (vs a free/granted enrolment).
+  // v3: whether this enrolment was paid for (bought, or granted by the team)
+  // vs a free or tier-included enrolment. Only paid ones open a paid course.
   paid: boolean;
+  // The Stripe Checkout that bought it, when it was bought.
+  stripe_checkout_session_id: string | null;
 };
 
 // One learner has finished one lesson. course_id/community_id are denormalised
@@ -3249,6 +3350,29 @@ export type Database = {
         Update: Partial<CommunityTier>;
         Relationships: [FKey<"community_id", "communities">];
       };
+      course_live_rooms: {
+        Row: CourseLiveRoom;
+        Insert: Partial<CourseLiveRoom> & { room_name: string; lesson_id: string };
+        Update: Partial<CourseLiveRoom>;
+        Relationships: [FKey<"lesson_id", "course_lessons">];
+      };
+      course_lesson_recordings: {
+        Row: CourseLessonRecording;
+        Insert: Partial<CourseLessonRecording> & {
+          lesson_id: string;
+          course_id: string;
+          community_id: string;
+          idempotency_key: string;
+        };
+        Update: Partial<CourseLessonRecording>;
+        Relationships: [FKey<"lesson_id", "course_lessons">, FKey<"course_id", "courses">];
+      };
+      tier_courses: {
+        Row: TierCourse;
+        Insert: Partial<TierCourse> & { tier_id: string; course_id: string; community_id: string };
+        Update: Partial<TierCourse>;
+        Relationships: [FKey<"tier_id", "community_tiers">, FKey<"course_id", "courses">];
+      };
       tier_spaces: {
         Row: TierSpace;
         Insert: Partial<TierSpace> & { tier_id: string; space_id: string };
@@ -3330,6 +3454,11 @@ export type Database = {
         Row: CommunityInvite;
         Insert: Partial<CommunityInvite> & { community_id: string; code: string; created_by: string };
         Update: Partial<CommunityInvite>;
+      } & NoRel;
+      community_email_templates: {
+        Row: CommunityEmailTemplate;
+        Insert: Partial<CommunityEmailTemplate> & { community_id: string; kind: CommunityEmailTemplateKind };
+        Update: Partial<CommunityEmailTemplate>;
       } & NoRel;
       community_nav_groups: {
         Row: CommunityNavGroup;
@@ -4393,6 +4522,10 @@ export type Database = {
         Args: { p_community_id: string };
         Returns: string | null;
       };
+      has_active_tier_for_course: {
+        Args: { p_course_id: string; p_user_id: string };
+        Returns: boolean;
+      };
       community_can_charge: {
         Args: { p_community_id: string };
         Returns: boolean;
@@ -4488,6 +4621,47 @@ export type Database = {
       community_slug_for_domain: {
         Args: { p_domain: string };
         Returns: string | null;
+      };
+      // Admin-only yes/no facts about one person and one space; see
+      // src/lib/access/check.ts for the shape and how it's explained.
+      access_check: {
+        Args: { p_space_id: string; p_user_id: string | null };
+        Returns: unknown;
+      };
+      // A members space marked as a teaser, as a visitor may see it: name,
+      // short description, cover and where it sits. Nothing inside it.
+      space_teasers: {
+        Args: { p_community_id: string };
+        Returns: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          image_url: string | null;
+          space_type: string;
+          sort_order: number;
+          show_in_nav: boolean;
+          show_as_card: boolean;
+          nav_group: string | null;
+          gated: boolean;
+        }[];
+      };
+      course_lesson_outline: {
+        Args: { p_course_ids: string[] };
+        Returns: {
+          id: string;
+          module_id: string;
+          course_id: string;
+          community_id: string;
+          title: string;
+          duration_minutes: number | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+          lesson_type: CourseLessonType;
+          live_starts_at: string | null;
+          live_ends_at: string | null;
+        }[];
       };
       course_quiz_data: {
         Args: { p_course_id: string };

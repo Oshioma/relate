@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { after, NextResponse, type NextRequest } from "next/server";
 import { isPlatformHost, sharedCookieDomain } from "@/lib/custom-domain";
 import { BRIDGE_CHECKED_COOKIE, platformBridgeUrl } from "@/lib/auth-bridge";
+import { safeReturnPath } from "@/lib/auth-return";
 import {
   ACTIVITY_COOKIE,
   activityCommunitySlug,
@@ -19,7 +20,9 @@ const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/auth/co
 // them to /login first, or a public community could never be browsed.
 // Everything else under /c/<slug> (admin, members, …) stays login-gated.
 // Editorial guides are public too; their /edit page checks staff itself.
-const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact", "guides"];
+// Membership is the community's price list: visitors (say, from a link on the
+// owner's own website) see the plans and are asked to sign up to buy one.
+const PUBLIC_COMMUNITY_SECTIONS = ["spaces", "events", "concierge", "guidelines", "contact", "guides", "membership"];
 
 // Matches the community feed (/c/<slug>) and its guest-visible sections
 // (/c/<slug>/spaces, /events, /concierge, /guides and anything nested under them).
@@ -135,15 +138,19 @@ export async function updateSession(request: NextRequest, rewriteTo?: URL) {
   if (!user && pathname === "/login" && request.method === "GET") {
     const host = request.headers.get("host") ?? "";
     if (!isPlatformHost(host) && !request.cookies.has(BRIDGE_CHECKED_COOKIE)) {
-      const requested = request.nextUrl.searchParams.get("next");
-      const next = requested && requested.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+      const next = safeReturnPath(request.nextUrl.searchParams.get("next"), "/");
       const bridge = platformBridgeUrl(host, next);
       if (bridge) return NextResponse.redirect(bridge);
     }
   }
 
+  // Already signed in: skip the form and go where it would have sent them —
+  // the page they asked to come back to, else this host's home (the
+  // community's feed on its own domain, the dashboard on the platform).
   if (user && (pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const fallback = isPlatformHost(request.headers.get("host") ?? "") ? "/dashboard" : "/";
+    const next = safeReturnPath(request.nextUrl.searchParams.get("next"), fallback);
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   if (user) {

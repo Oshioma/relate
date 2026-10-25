@@ -2,18 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/data/profile";
+import { getCurrentUser, getProfile } from "@/lib/data/profile";
 import { getCommunityBySlug, getMembership } from "@/lib/data/community";
 import { getSpaceBySlug } from "@/lib/data/spaces";
 import { getCourseDetail } from "@/lib/data/courses";
+import { communityHasFeature } from "@/lib/data/plan-limits";
+import { getLessonPlaybackUrls } from "@/lib/courses/lesson-recordings";
 import { CoursePlayer } from "../../course-player";
 
 export default async function CoursePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ communitySlug: string; spaceSlug: string; courseId: string }>;
+  searchParams: Promise<{ purchased?: string }>;
 }) {
   const { communitySlug, spaceSlug, courseId } = await params;
+  const { purchased } = await searchParams;
   const supabase = await createClient();
 
   const user = await getCurrentUser(supabase);
@@ -29,9 +34,18 @@ export default async function CoursePage({
   // another space — so this doubles as the access + not-found gate.
   if (!detail || detail.course.space_id !== space.id) notFound();
 
-  const membership = user ? await getMembership(supabase, community.id, user.id) : null;
+  const [membership, profile] = user
+    ? await Promise.all([getMembership(supabase, community.id, user.id), getProfile(supabase, user.id)])
+    : [null, null];
   const isMember = membership?.status === "active";
   const isStaff = isMember && (membership.role === "owner" || membership.role === "admin" || membership.role === "moderator");
+
+  // Recordings of live lessons, for exactly the lessons this viewer can open.
+  const liveIds = new Set(detail.modules.flatMap((m) => m.lessons.filter((l) => l.lesson_type === "live").map((l) => l.id)));
+  const [playbackUrls, canRecord] = await Promise.all([
+    getLessonPlaybackUrls(detail.readableLessonIds.filter((id) => liveIds.has(id))),
+    isStaff && liveIds.size > 0 ? communityHasFeature(supabase, community.id, "session_recording") : Promise.resolve(false),
+  ]);
 
   // Drip lock is evaluated at request time on the server (staff preview past
   // it), so the client player never has to call an impure clock during render.
@@ -62,6 +76,11 @@ export default async function CoursePage({
         canComment={Boolean(isMember)}
         isStaff={Boolean(isStaff)}
         lockedModuleIds={lockedModuleIds}
+        nowMs={nowMs}
+        justPurchased={purchased === "1"}
+        viewerName={profile?.full_name || profile?.username || null}
+        playbackUrls={playbackUrls}
+        canRecord={canRecord}
       />
     </div>
   );

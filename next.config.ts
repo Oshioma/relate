@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // Partner stay photos from Zanzibar Rooms (its own host and its Supabase
+    // storage). src/lib/zanzibar-rooms/stays.ts drops photos from any other host
+    // before they reach next/image.
+    remotePatterns: [
+      { protocol: "https", hostname: "www.zanzibarrooms.com", pathname: "/**" },
+      { protocol: "https", hostname: "qkjojurwzkanrwfgaefv.supabase.co", pathname: "/storage/v1/**" },
+    ],
+  },
   experimental: {
     serverActions: {
       // Plant ID posts the photo bytes straight through a Server Action (the

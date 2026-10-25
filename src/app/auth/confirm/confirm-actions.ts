@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { authEventContext, recordAuthEvent } from "@/lib/auth-events";
+import { safeReturnPath } from "@/lib/auth-return";
 
 // The email OTP types that can legitimately reach /auth/confirm — signup and
 // invite confirmations, password recovery, email-change, and magic links.
@@ -34,7 +35,7 @@ export async function confirmOtp(formData: FormData): Promise<void> {
   const type = String(formData.get("type") ?? "");
   const code = String(formData.get("code") ?? "");
   const nextRaw = String(formData.get("next") ?? "");
-  const next = nextRaw.startsWith("/") ? nextRaw : "/dashboard";
+  const next = safeReturnPath(nextRaw, "/dashboard");
 
   const supabase = await createClient();
 

@@ -58,7 +58,7 @@ export function PlantScannerPanel({
             </div>
           )}
           <div className="mt-2 flex items-center gap-2">
-            <UploadButton kind="image" label={shownImage ? "Change photo" : "Upload photo"} onUploaded={(url) => setImageUrl(url)} />
+            <UploadButton kind="image" publicFile label={shownImage ? "Change photo" : "Upload photo"} onUploaded={(url) => setImageUrl(url)} />
           </div>
         </div>
 

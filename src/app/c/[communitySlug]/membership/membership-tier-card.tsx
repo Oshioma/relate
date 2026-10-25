@@ -7,6 +7,7 @@ import { Check, Gem } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { subscribeToTier, cancelTierSubscription, resumeTierSubscription } from "../membership-actions";
+import { planDescriptionBlocks } from "@/lib/plan-description";
 
 function formatPrice(cents: number, currency: string): string {
   try {
@@ -83,6 +84,7 @@ export function MembershipTierCard({
   }
 
   const price = formatPrice(priceCents, currency);
+  const blocks = planDescriptionBlocks(description);
   const returnTo = `/c/${communitySlug}/membership`;
   const periodEndLabel = currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : null;
 
@@ -92,12 +94,12 @@ export function MembershipTierCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <Gem className="h-4 w-4 text-accent" />
-              <h3 className="text-base font-semibold text-foreground">{name}</h3>
+              <Gem className="h-5 w-5 text-accent" />
+              <h3 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{name}</h3>
             </div>
-            <p className="mt-1 text-lg font-semibold text-foreground">
+            <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">
               {price}
-              <span className="text-sm font-normal text-muted-foreground"> / month</span>
+              <span className="text-base font-normal text-muted-foreground"> / month</span>
             </p>
           </div>
           {isSubscribed && (
@@ -107,15 +109,36 @@ export function MembershipTierCard({
           )}
         </div>
 
-        {description && <p className="mt-3 text-sm text-muted-foreground">{description}</p>}
+        {blocks.length > 0 && (
+          <div className="mt-5 space-y-3 text-base leading-relaxed text-foreground sm:text-lg">
+            {blocks.map((block, i) =>
+              block.kind === "heading" ? (
+                <h4 key={i} className="pt-1 text-sm font-semibold uppercase tracking-wide text-accent">
+                  {block.text}
+                </h4>
+              ) : block.kind === "list" ? (
+                <ul key={i} className="space-y-1.5">
+                  {block.items.map((item, j) => (
+                    <li key={j} className="flex gap-2">
+                      <Check className="mt-1.5 h-4 w-4 shrink-0 text-accent" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p key={i}>{block.text}</p>
+              )
+            )}
+          </div>
+        )}
 
         {spaceNames.length > 0 && (
-          <div className="mt-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Unlocks</p>
-            <ul className="mt-1.5 space-y-1">
+          <div className="mt-6 rounded-lg bg-muted/60 p-4">
+            <p className="text-sm font-semibold uppercase tracking-wide text-accent">Unlocks</p>
+            <ul className="mt-2 space-y-2">
               {spaceNames.map((n) => (
-                <li key={n} className="flex items-center gap-2 text-sm text-foreground">
-                  <Check className="h-3.5 w-3.5 shrink-0 text-accent" />
+                <li key={n} className="flex items-start gap-2 text-base text-foreground">
+                  <Check className="mt-1 h-4 w-4 shrink-0 text-accent" />
                   {n}
                 </li>
               ))}
@@ -123,7 +146,7 @@ export function MembershipTierCard({
           </div>
         )}
 
-        <div className="mt-5">
+        <div className="mt-6">
           {isSubscribed ? (
             cancelAtPeriodEnd ? (
               <div>
@@ -146,12 +169,20 @@ export function MembershipTierCard({
           ) : isStaff ? (
             <p className="text-sm text-muted-foreground">Staff already have access to every space.</p>
           ) : !isSignedIn ? (
-            <Link
-              href={`/login?next=${encodeURIComponent(returnTo)}`}
-              className="inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
-            >
-              Sign in to join
-            </Link>
+            <div>
+              <Link
+                href={`/signup?next=${encodeURIComponent(returnTo)}`}
+                className="inline-flex w-full items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90"
+              >
+                Join for {price}/mo
+              </Link>
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                You&apos;ll make a free account first, then pay.{" "}
+                <Link href={`/login?next=${encodeURIComponent(returnTo)}`} className="text-accent underline-offset-2 hover:underline">
+                  Already have one? Sign in
+                </Link>
+              </p>
+            </div>
           ) : !paymentsReady ? (
             <p className="text-sm text-muted-foreground">This community hasn&apos;t finished setting up payments yet.</p>
           ) : (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "./event-card";
 import type { Event } from "@/types/database";
 import type { EventRsvpWithAttendee } from "@/lib/data/events";
+import { visibleCountForHash } from "@/lib/events/hash-target";
 
 const PAGE_SIZE = 10;
 
@@ -28,6 +29,33 @@ export function EventList({
   featureFirst?: boolean;
 }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const scrollTarget = useRef<string | null>(null);
+  const eventIdsKey = items.map(({ event }) => event.id).join(",");
+
+  // A link to `#event-<id>` for an event past the first page: show enough
+  // pages to render it, then scroll to it once it's in the DOM.
+  useEffect(() => {
+    const ids = eventIdsKey.split(",");
+    const reveal = () => {
+      const hash = window.location.hash;
+      const needed = visibleCountForHash(ids, hash, PAGE_SIZE, PAGE_SIZE);
+      if (needed === PAGE_SIZE) return;
+      setVisibleCount((current) => Math.max(current, needed));
+      scrollTarget.current = hash.slice(1);
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, [eventIdsKey]);
+
+  useEffect(() => {
+    if (!scrollTarget.current) return;
+    const el = document.getElementById(scrollTarget.current);
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    scrollTarget.current = null;
+  }, [visibleCount]);
+
   const visible = items.slice(0, visibleCount);
   const remaining = items.length - visible.length;
   const [heroItem, ...restItems] = visible;

@@ -7,6 +7,7 @@
 import type { TextCorpusFile } from "../corpus-types";
 import { AMENEMOPE_CORPUS } from "./amenemope";
 import { ASCLEPIUS_CORPUS } from "./asclepius";
+import { BLAVATSKY_CORPUS } from "./blavatsky";
 import { BOOK_OF_THE_DEAD_CORPUS } from "./book-of-the-dead";
 import { COFFIN_TEXTS_CORPUS } from "./coffin-texts";
 import { DOREAL_CORPUS } from "./doreal";
@@ -19,14 +20,25 @@ import { MEMPHITE_THEOLOGY_CORPUS } from "./memphite-theology";
 import { AMDUAT_CORPUS } from "./amduat";
 import { BOOK_OF_GATES_CORPUS } from "./book-of-gates";
 import { HEAVENLY_COW_CORPUS } from "./heavenly-cow";
+import { HORTULANUS_CORPUS } from "./hortulanus";
 import { CRITIAS_CORPUS, TIMAEUS_CORPUS } from "./plato";
 import { PTAHHOTEP_CORPUS } from "./ptahhotep";
 import { PISTIS_SOPHIA_CORPUS } from "./pistis-sophia";
 import { PYRAMID_TEXTS_CORPUS } from "./pyramid-texts";
+import { SECRETUM_CORPUS } from "./secretum";
+import { STEINER_CORPUS } from "./steiner";
+import { KYBALION_CORPUS } from "./kybalion";
+import { DONNELLY_CORPUS } from "./donnelly";
+import { SCOTT_ELLIOT_CORPUS } from "./scott-elliot";
+import { VIRGIN_OF_THE_WORLD_CORPUS } from "./virgin-of-the-world";
+import { MITHRAS_LITURGY_CORPUS } from "./mithras-liturgy";
+import { IRENAEUS_CORPUS } from "./irenaeus";
+import { ORIGEN_CONTRA_CELSUM_CORPUS } from "./origen-contra-celsum";
 import { STOBAEUS_CORPUS } from "./stobaeus";
 import { withPlainWords } from "./plain";
 import { PLAIN_AMENEMOPE } from "./plain/amenemope";
 import { PLAIN_ASCLEPIUS } from "./plain/asclepius";
+import { PLAIN_BLAVATSKY } from "./plain/blavatsky";
 import { PLAIN_BOOK_OF_THE_DEAD } from "./plain/book-of-the-dead";
 import { PLAIN_COFFIN_TEXTS } from "./plain/coffin-texts";
 import { PLAIN_CRITIAS } from "./plain/critias";
@@ -40,9 +52,19 @@ import { PLAIN_MEMPHITE_THEOLOGY } from "./plain/memphite-theology";
 import { PLAIN_AMDUAT } from "./plain/amduat";
 import { PLAIN_BOOK_OF_GATES } from "./plain/book-of-gates";
 import { PLAIN_HEAVENLY_COW } from "./plain/heavenly-cow";
+import { PLAIN_HORTULANUS } from "./plain/hortulanus";
 import { PLAIN_PISTIS_SOPHIA } from "./plain/pistis-sophia";
 import { PLAIN_PTAHHOTEP } from "./plain/ptahhotep";
 import { PLAIN_PYRAMID_TEXTS } from "./plain/pyramid-texts";
+import { PLAIN_SECRETUM } from "./plain/secretum";
+import { PLAIN_STEINER } from "./plain/steiner";
+import { PLAIN_KYBALION } from "./plain/kybalion";
+import { PLAIN_DONNELLY } from "./plain/donnelly";
+import { PLAIN_SCOTT_ELLIOT } from "./plain/scott-elliot";
+import { PLAIN_VIRGIN_OF_THE_WORLD } from "./plain/virgin-of-the-world";
+import { PLAIN_MITHRAS_LITURGY } from "./plain/mithras-liturgy";
+import { PLAIN_IRENAEUS } from "./plain/irenaeus";
+import { PLAIN_ORIGEN_CONTRA_CELSUM } from "./plain/origen-contra-celsum";
 import { PLAIN_STOBAEUS } from "./plain/stobaeus";
 import { PLAIN_TIMAEUS } from "./plain/timaeus";
 
@@ -65,8 +87,19 @@ export const ALL_CORPORA: TextCorpusFile[] = [
   withPlainWords(GOSPEL_OF_THOMAS_CORPUS, PLAIN_GOSPEL_OF_THOMAS),
   withPlainWords(PISTIS_SOPHIA_CORPUS, PLAIN_PISTIS_SOPHIA),
   withPlainWords(EMERALD_TABLET_CORPUS, PLAIN_EMERALD_TABLET),
+  withPlainWords(SECRETUM_CORPUS, PLAIN_SECRETUM),
+  withPlainWords(HORTULANUS_CORPUS, PLAIN_HORTULANUS),
   withPlainWords(DOREAL_CORPUS, PLAIN_DOREAL),
   withPlainWords(HALL_CORPUS, PLAIN_HALL),
+  withPlainWords(BLAVATSKY_CORPUS, PLAIN_BLAVATSKY),
+  withPlainWords(STEINER_CORPUS, PLAIN_STEINER),
+  withPlainWords(KYBALION_CORPUS, PLAIN_KYBALION),
+  withPlainWords(DONNELLY_CORPUS, PLAIN_DONNELLY),
+  withPlainWords(SCOTT_ELLIOT_CORPUS, PLAIN_SCOTT_ELLIOT),
+  withPlainWords(VIRGIN_OF_THE_WORLD_CORPUS, PLAIN_VIRGIN_OF_THE_WORLD),
+  withPlainWords(MITHRAS_LITURGY_CORPUS, PLAIN_MITHRAS_LITURGY),
+  withPlainWords(IRENAEUS_CORPUS, PLAIN_IRENAEUS),
+  withPlainWords(ORIGEN_CONTRA_CELSUM_CORPUS, PLAIN_ORIGEN_CONTRA_CELSUM),
 ];
 
 export function corpusFor(workKey: string): TextCorpusFile | undefined {

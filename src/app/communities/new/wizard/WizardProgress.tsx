@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Basics", "Template", "Customize", "Launch"];
+const STEPS = ["Choose", "Preview", "Launch"];
 
 export function WizardProgress({ step }: { step: number }) {
   return (

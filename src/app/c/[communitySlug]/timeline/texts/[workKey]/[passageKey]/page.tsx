@@ -19,7 +19,7 @@ import { chronologyLabel, evidenceLayerLabel } from "@/lib/timeline/taxonomy";
 import { OUR_TRANSLATION_LAYER_KEY } from "@/lib/timeline/texts/corpus/plain";
 import { workForPassageKey } from "@/lib/timeline/texts/inventory";
 import { comparePath, passagePath, themePath, workPath } from "@/lib/timeline/texts/paths";
-import { breadcrumb, neighbours, sentenceRunsInFrom, sentenceRunsOnInto } from "@/lib/timeline/texts/reading";
+import { breadcrumb, layerDisplayOrder, neighbours, sentenceRunsInFrom, sentenceRunsOnInto } from "@/lib/timeline/texts/reading";
 import {
   comparabilityLabel,
   connectionClassHint,
@@ -196,14 +196,14 @@ export default async function PassagePage({ params }: { params: Promise<Params> 
         </section>
 
         <section aria-label="Text" className="min-w-0 space-y-4">
-          {primary.map((layer) => (
-            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} original {...runOn(layer)} />
-          ))}
-          {translations.map((layer) => (
-            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} {...runOn(layer)} />
-          ))}
-          {plainWords.map((layer) => (
-            <Layer key={layer.id} layer={layer} source={sourcesById.get(layer.source_id ?? "")} />
+          {layerDisplayOrder([...primary, ...translations, ...plainWords]).map((layer) => (
+            <Layer
+              key={layer.id}
+              layer={layer}
+              source={sourcesById.get(layer.source_id ?? "")}
+              original={primary.includes(layer)}
+              {...(plainWords.includes(layer) ? {} : runOn(layer))}
+            />
           ))}
           {passage.layers.length === 0 && children.length > 0 && (
             <div className="rounded-xl border border-border bg-card p-4">

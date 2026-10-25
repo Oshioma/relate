@@ -9,6 +9,7 @@ import { SPACE_TYPE_LIST, SPACE_TYPES as SPACE_TYPE_META } from "@/lib/space-typ
 import { getCommunitySpaceTypePool } from "@/lib/data/space-type-pool";
 import { seedGuidedJourneySpace, copyGuidedJourneySpace } from "@/lib/data/guided-journey-seed";
 import { communityHasFeature } from "@/lib/data/plan-limits";
+import { getCommunityCurrency } from "@/lib/data/community";
 import { getPlaceLocationType } from "@/lib/community-templates";
 import { defaultNavItemSort } from "@/lib/nav-items";
 import { normalizeCustomDomain, isPlatformHost, isUnderPlatformApex, verificationRecordName, communitySubdomainUrl, wwwCounterpart } from "@/lib/custom-domain";
@@ -16,7 +17,9 @@ import { addDomainToVercelProject, removeDomainFromVercelProject } from "@/lib/v
 import { reorderFeaturedCategories } from "../spaces/[spaceSlug]/business-directory-actions";
 import type { PostgrestError } from "@supabase/supabase-js";
 import type { NavSubItemKind } from "./spaces-manager";
-import type { SpaceVisibility, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory } from "@/types/database";
+import type { SpaceVisibility, SpaceWhenLocked, SpaceType, Community, CommunityPrivacy, FeatureKey, BusinessCategory, JoinPolicy } from "@/types/database";
+import { JOIN_POLICIES, defaultJoinPolicy, storedJoinPolicy } from "@/lib/join-policy";
+import { parseTestimonialsInput } from "@/lib/testimonials";
 
 export type SpaceFormState = { error: string } | undefined;
 
@@ -209,9 +212,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
     priceUpdate = { price_cents: 0 };
   } else if (rawPrice !== null) {
     const amount = Number(String(rawPrice).trim());
-    const priceCents = Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0;
-    const currency = (String(formData.get("currency") ?? "usd").trim().toLowerCase() || "usd").slice(0, 3);
-    priceUpdate = { price_cents: priceCents, currency };
+    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0 };
   }
 
   if (!name) {
@@ -244,6 +245,10 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
       return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
     }
   }
+  // A space's own price is charged in the community's currency (Admin -> Payments).
+  if (current && priceUpdate && priceUpdate.price_cents > 0) {
+    priceUpdate.currency = await getCommunityCurrency(supabase, current.community_id);
+  }
 
   const failure = requireWrite(
     await supabase
@@ -258,6 +263,7 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
         ...(locationName !== undefined && { location_name: locationName }),
         ...(imageUrl !== undefined && { image_url: imageUrl }),
         ...(priceUpdate ?? {}),
+        ...whenLockedUpdate(formData, visibility),
       })
       .eq("id", spaceId)
       .select("id"),
@@ -265,9 +271,114 @@ export async function updateSpace(_prevState: SpaceFormState, formData: FormData
   );
   if (failure) return failure;
 
+  // A public space is always free, and that includes tiers: take it out of any
+  // it was in, so the tier stops advertising a space it no longer unlocks.
+  // Tiers only ever list non-public spaces (see tier-actions), so this is the
+  // one way a public space could end up in one.
+  if (visibility === "public") {
+    const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
+    if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  } else if (formData.has("access_choice") && current) {
+    // The access picker (src/components/community/access-selector.tsx) sends
+    // the full set of memberships that should unlock this space. Absent field ≠
+    // empty set: forms without the picker never touch tier links.
+    const failure = await syncSpaceTiers(supabase, spaceId, current.community_id, formData.getAll("tier_ids").map(String));
+    if (failure) return failure;
+  }
+
   revalidatePath(`/c/${communitySlug}/spaces`);
   revalidatePath(`/c/${communitySlug}/admin`);
   revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// Who can open a space, and nothing else: the access overview's in-place
+// editor. Same fields and checks as the access picker inside updateSpace
+// (visibility, the space's own price, its tier links), without touching the
+// space's name, type or posting rules.
+export async function updateSpaceAccess(_prevState: SpaceFormState, formData: FormData): Promise<SpaceFormState> {
+  const spaceId = String(formData.get("space_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const visibility = parseVisibility(formData.get("visibility"));
+  if (!formData.has("access_choice")) return { error: "Pick who can open this space." };
+
+  // Public spaces are always free (spaces_public_is_free).
+  let priceUpdate: { price_cents: number; currency?: string } = { price_cents: 0 };
+  if (visibility !== "public") {
+    const amount = Number(String(formData.get("price") ?? "").trim());
+    priceUpdate = { price_cents: Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) : 0 };
+  }
+
+  const supabase = await createClient();
+  const { data: current } = await supabase.from("spaces").select("community_id, price_cents").eq("id", spaceId).maybeSingle();
+  if (!current) return { error: "That space no longer exists." };
+
+  // Same plan gate as updateSpace: turning a price ON needs a plan that can
+  // charge; an already-paid space can still be edited after a downgrade.
+  if (priceUpdate.price_cents > 0 && current.price_cents === 0) {
+    const { data: canCharge } = await supabase.rpc("community_can_charge", { p_community_id: current.community_id });
+    if (!canCharge) return { error: "Charging for a space is a paid-plan feature. Upgrade your community's plan to set a price." };
+  }
+
+  if (priceUpdate.price_cents > 0) priceUpdate.currency = await getCommunityCurrency(supabase, current.community_id);
+
+  const failure = requireWrite(
+    await supabase.from("spaces").update({ visibility, ...priceUpdate, ...whenLockedUpdate(formData, visibility) }).eq("id", spaceId).select("id"),
+    "this space"
+  );
+  if (failure) return failure;
+
+  if (visibility === "public") {
+    const { error: tierError } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId);
+    if (tierError) return { error: `Saved, but couldn't remove this space from its memberships: ${tierError.message}` };
+  } else {
+    const tierFailure = await syncSpaceTiers(supabase, spaceId, current.community_id, formData.getAll("tier_ids").map(String));
+    if (tierFailure) return tierFailure;
+  }
+
+  revalidatePath(`/c/${communitySlug}/spaces`);
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/c/${communitySlug}/admin/access`);
+  revalidatePath(`/c/${communitySlug}`, "layout");
+  return undefined;
+}
+
+// The access picker's "Show it locked to visitors". Absent field = leave it
+// alone (forms without the picker). Only a members space can be a teaser;
+// anything else clears it, so a space made public or Admins-only never keeps a
+// stale flag.
+function whenLockedUpdate(formData: FormData, visibility: SpaceVisibility): { when_locked?: SpaceWhenLocked | null } {
+  if (!formData.has("when_locked")) return {};
+  return { when_locked: visibility === "members" && formData.get("when_locked") === "teaser" ? "teaser" : null };
+}
+
+// Make a space's tier links exactly `wanted`, keeping only tiers of the space's
+// own community. RLS (tier_spaces_write_admin) is the real check; this keeps a
+// tampered form from linking another community's tier.
+async function syncSpaceTiers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  spaceId: string,
+  communityId: string,
+  wanted: string[]
+): Promise<{ error: string } | undefined> {
+  const [{ data: tiers }, { data: links }] = await Promise.all([
+    supabase.from("community_tiers").select("id").eq("community_id", communityId),
+    supabase.from("tier_spaces").select("tier_id").eq("space_id", spaceId),
+  ]);
+  const known = new Set((tiers ?? []).map((t) => t.id));
+  const want = new Set(wanted.filter((id) => known.has(id)));
+  const have = new Set((links ?? []).map((l) => l.tier_id));
+
+  const remove = [...have].filter((id) => !want.has(id));
+  const add = [...want].filter((id) => !have.has(id));
+  if (remove.length) {
+    const { error } = await supabase.from("tier_spaces").delete().eq("space_id", spaceId).in("tier_id", remove);
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
+  if (add.length) {
+    const { error } = await supabase.from("tier_spaces").insert(add.map((tier_id) => ({ tier_id, space_id: spaceId })));
+    if (error) return { error: `Saved, but couldn't update which memberships unlock this space: ${error.message}` };
+  }
   return undefined;
 }
 
@@ -566,6 +677,35 @@ export async function updateCommunityHero(
   return { ok: true };
 }
 
+export type CommunityTestimonialsState = { error: string } | { ok: true } | undefined;
+
+// Save the landing page testimonials: the whole ordered list at once, as JSON
+// from the admin form. Empty rows are dropped; an empty list hides the section.
+export async function updateCommunityTestimonials(
+  _prevState: CommunityTestimonialsState,
+  formData: FormData
+): Promise<CommunityTestimonialsState> {
+  const communityId = String(formData.get("community_id") ?? "");
+  const communitySlug = String(formData.get("community_slug") ?? "");
+  const parsed = parseTestimonialsInput(String(formData.get("testimonials") ?? ""));
+  if (!parsed.ok) return { error: parsed.error };
+
+  const supabase = await createClient();
+  const failure = requireWrite(
+    await supabase
+      .from("communities")
+      .update({ testimonials: parsed.testimonials })
+      .eq("id", communityId)
+      .select("id"),
+    "the testimonials"
+  );
+  if (failure) return failure;
+
+  revalidatePath(`/c/${communitySlug}/admin`);
+  revalidatePath(`/welcome/${communitySlug}`);
+  return { ok: true };
+}
+
 export type CommunityGuidelinesState = { error: string } | { ok: true } | undefined;
 
 // Save a community's guidelines (house rules / code of conduct). Stored as the
@@ -651,6 +791,13 @@ export async function updatePublicAccess(
   const eventsPublic = formData.get("events_public") === "on";
   const feedPublic = formData.get("feed_public") === "on";
   const membersVisibility = parseVisibility(formData.get("members_visibility"));
+  // Who can join, separate from listing. Absent field ≠ reset: a form without
+  // the control leaves join_policy alone. What's stored is null whenever the
+  // choice is what privacy implies anyway (storedJoinPolicy), so a community
+  // only ever carries an override it actually has.
+  const rawJoin = formData.get("join_policy");
+  const joinUpdate =
+    rawJoin === null ? {} : { join_policy: storedJoinPolicy(privacy, (JOIN_POLICIES as string[]).includes(String(rawJoin)) ? (String(rawJoin) as JoinPolicy) : defaultJoinPolicy(privacy)) };
 
   const supabase = await createClient();
   const failure = requireWrite(
@@ -658,6 +805,7 @@ export async function updatePublicAccess(
       .from("communities")
       .update({
         privacy,
+        ...joinUpdate,
         events_public: eventsPublic,
         feed_public: feedPublic,
         members_visibility: membersVisibility,

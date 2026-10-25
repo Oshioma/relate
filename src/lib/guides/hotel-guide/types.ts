@@ -1,7 +1,7 @@
 import type { GuidePhoto, ListingRef } from "@/lib/guides/where-to-stay/types";
 
-// The shape of an editorial hotel guide ("Zanzibar's Best Boutique Hotels &
-// Hidden Gems", "Zanzibar's Best Luxury Resorts"). Each guide is one
+// The shape of an editorial hotel guide ("Hidden Gems: Zanzibar's Boutique
+// Hotels", "Barefoot Luxury: Zanzibar's Five-Star Escapes"). Each guide is one
 // HotelGuideDefinition; the page, admin page and actions are shared.
 //
 // Every hotel separates three kinds of statement so the page can never blur
@@ -113,6 +113,8 @@ export type HotelGuideDefinition = {
   seoTitle: string;
   description: string;
   // One line for the guides index, feed card and Guides space.
+  // The short name on guide cards ("Transport"); the full title heads the guide.
+  cardTitle: string;
   cardBlurb: string;
   heroPhoto: GuidePhoto;
   introduction: string[];

@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AutoSaveCheckbox } from "@/components/ui/auto-save-checkbox";
 
-export function SpaceNavToggle({ spaceId, defaultChecked }: { spaceId: string; defaultChecked: boolean }) {
+export function SpaceNavToggle({ spaceId, defaultChecked, variant }: { spaceId: string; defaultChecked: boolean; variant?: "checkbox" | "switch" }) {
   const router = useRouter();
 
   return (
     <AutoSaveCheckbox
       label="Show in navigation"
+      variant={variant}
       defaultChecked={defaultChecked}
       onSave={async (showInNav) => {
         const supabase = createClient();
@@ -22,12 +23,13 @@ export function SpaceNavToggle({ spaceId, defaultChecked }: { spaceId: string; d
 }
 
 // The feed's photo card for the space, independent of the sidebar link.
-export function SpaceCardToggle({ spaceId, defaultChecked }: { spaceId: string; defaultChecked: boolean }) {
+export function SpaceCardToggle({ spaceId, defaultChecked, variant }: { spaceId: string; defaultChecked: boolean; variant?: "checkbox" | "switch" }) {
   const router = useRouter();
 
   return (
     <AutoSaveCheckbox
       label="Show as card on feed"
+      variant={variant}
       defaultChecked={defaultChecked}
       onSave={async (showAsCard) => {
         const supabase = createClient();

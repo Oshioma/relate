@@ -34,7 +34,7 @@ import {
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
-import { getGrowingJourneySpace, getCommunitySpaces } from "@/lib/data/spaces";
+import { getGrowingJourneySpace, getCommunitySpaces, getSpaceTeasers, teaserAsSpace } from "@/lib/data/spaces";
 import { getCommunityFeatures } from "@/lib/data/features";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
 import { SPACE_TYPES } from "@/lib/space-types";
@@ -75,6 +75,7 @@ import { FeedHero, HeroLink, type HeroStat } from "./feed-hero";
 import { SpaceCards } from "./space-cards";
 import type { CategorySlide } from "./category-carousel-card";
 import { FeedComposer } from "./feed-composer";
+import { getUpcomingCommunityLiveSessions } from "@/lib/data/live-events";
 import { UpcomingEventsCard } from "./upcoming-events-card";
 import { NewMembersCard } from "./new-members-card";
 import { CommunityActivityCard, type ActivityStat } from "./community-activity-card";
@@ -83,6 +84,7 @@ import { ExampleFeed } from "./example-feed";
 import { exampleFeedPosts } from "@/lib/feed-examples";
 import { formatDateTime, isImageUrl, isVideoUrl } from "@/lib/utils";
 import { postGallery } from "@/lib/post-media";
+import { joinPolicyOf } from "@/lib/join-policy";
 
 export default async function CommunityFeedPage({
   params,
@@ -185,6 +187,10 @@ export default async function CommunityFeedPage({
   // The feed's photo cards are chosen separately from the sidebar (Admin →
   // Spaces → "Show as card on feed"), so tidying one doesn't empty the other.
   const cardSpaces = spaces.filter((s) => s.show_as_card);
+  // Members spaces the community shows, locked, to people who haven't joined.
+  const teaserCards = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id)))
+    .filter((t) => t.show_as_card)
+    .map(teaserAsSpace);
   const discoverShortcuts: DiscoverShortcut[] = navSpaces.flatMap((space) => {
     const SpaceIcon = SPACE_TYPES[space.space_type].icon;
     const spaceLabelOverrides = labelOverrides.filter((o) => o.space_id === space.id);
@@ -528,7 +534,7 @@ export default async function CommunityFeedPage({
   // one per card. Guests get the tallies but no controls.
   const sidebarEvents = upcoming.slice(0, 4);
   const postAuthorIds = new Map(posts.map((p) => [`post-${p.id}`, p.author_id]));
-  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount, categoryPreviews] = await Promise.all([
+  const [feedInteractions, viewerProfile, weekly, locations, eventGoing, journeyCount, categoryPreviews, upcomingLive] = await Promise.all([
     getFeedInteractions(
       supabase,
       community.id,
@@ -552,6 +558,9 @@ export default async function CommunityFeedPage({
     getEventRsvpCounts(supabase, sidebarEvents.filter((e) => e.capacity !== null).map((e) => e.id)),
     community.show_stats && growingJourney ? getGrowingJourneyCount(supabase, growingJourney.id) : Promise.resolve(0),
     getFeaturedCategoryPreviews(supabase, featuredCategories.filter((f) => cardSpaces.some((sp) => sp.id === f.space_id))),
+    // Scheduled live sessions join the "Upcoming events" card, in the spaces
+    // the viewer can see (RLS).
+    getUpcomingCommunityLiveSessions(supabase, community.id),
   ]);
   const viewer = viewerProfile
     ? { id: viewerProfile.id, name: viewerProfile.full_name || viewerProfile.username, avatarUrl: viewerProfile.avatar_url }
@@ -627,7 +636,7 @@ export default async function CommunityFeedPage({
 
   // The hero's calls to action change with who's looking: a stranger is asked
   // to join (via signup), a signed-in non-member gets the join/request button
-  // their community's privacy allows, and a member is pointed at posting.
+  // their community's join policy allows, and a member is pointed at posting.
   const heroActions = !user ? (
     <>
       <HeroLink href={`/signup?next=${encodeURIComponent(base)}`} onPhoto={onPhoto}>
@@ -640,7 +649,7 @@ export default async function CommunityFeedPage({
   ) : !isMember ? (
     <CommunityJoinCta
       communityId={community.id}
-      privacy={community.privacy}
+      joinPolicy={joinPolicyOf(community)}
       membershipStatus={membership?.status ?? null}
       size="lg"
     />
@@ -708,7 +717,7 @@ export default async function CommunityFeedPage({
       <DiscoverStrip title={`Explore ${community.name}`} shortcuts={discoverShortcuts} allHref={`${base}/spaces`} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <SpaceCards spaces={cardSpaces} base={base} carousels={categoryCarousels} />
+        <SpaceCards spaces={[...cardSpaces, ...teaserCards]} base={base} carousels={categoryCarousels} />
 
         {/* `min-w-0` on every column is load-bearing, not decoration. A grid
             item defaults to `min-width: auto`, so its track can't shrink below
@@ -789,7 +798,13 @@ export default async function CommunityFeedPage({
 
           <div className="grid min-w-0 content-start gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
             <div className="min-w-0 space-y-6">
-              <UpcomingEventsCard events={sidebarEvents} href={`${base}/events`} going={eventGoing} />
+              <UpcomingEventsCard
+                events={sidebarEvents}
+                liveSessions={upcomingLive}
+                href={`${base}/events`}
+                communityBase={base}
+                going={eventGoing}
+              />
               <NewMembersCard
                 members={recentMembers}
                 href={`${base}/members`}

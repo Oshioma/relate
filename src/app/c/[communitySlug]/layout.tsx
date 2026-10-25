@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass } from "lucide-react";
+import { LayoutGrid, Layers, CalendarDays, Users, Shield, BadgeCheck, ArrowLeft, Settings, ExternalLink, Search, Tag, Gem, BookOpen, Mail, Inbox, History, Eye, Compass, Lock } from "lucide-react";
 import { exitViewAsMember, startViewAsMember } from "./view-as-member-actions";
 import { ShareOriginProvider } from "@/components/ui/share-origin";
 import { communityShareOrigin } from "@/lib/custom-domain";
@@ -14,7 +14,7 @@ import {
   isCommunityAdmin,
   isCommunityMember,
 } from "@/lib/data/community";
-import { getCommunitySpaces } from "@/lib/data/spaces";
+import { getCommunitySpaces, getSpaceTeasers } from "@/lib/data/spaces";
 import { getCommunityNavLinks } from "@/lib/data/nav-links";
 import { getCommunityEditorialGuides } from "@/lib/data/editorial-guides";
 import { getCommunityNavItemOrder } from "@/lib/data/nav-order";
@@ -40,10 +40,13 @@ import { NotificationsPopover } from "@/components/layout/notifications-popover"
 import { MessagesPopover } from "@/components/layout/messages-popover";
 import { TimezoneSync } from "@/components/layout/timezone-sync";
 import { LiveSessionWatcher } from "@/components/layout/live-session-watcher";
+import { LiveNowPopup } from "@/components/layout/live-now-popup";
 import { communityAccentStyle } from "@/lib/accent-color";
 import { CommunityJoinCta } from "./community-join-cta";
 import { PlanLapseBanner } from "@/components/community/plan-lapse-banner";
 import { getPlanLapseNotice } from "@/lib/data/plan-limits";
+import { joinPolicyOf } from "@/lib/join-policy";
+import { ReturnHereLink } from "@/components/layout/return-here-link";
 
 // The snippet a search engine shows under the result, and the text on a
 // social-share card, both come from the page's meta description. Without one,
@@ -200,6 +203,8 @@ export default async function CommunityLayout({
   const showMembersLink = Boolean(user) && canViewMembers(community, membership, user?.id);
   const base = `/c/${community.slug}`;
   const navSpaces = spaces.filter((space) => space.show_in_nav);
+  // Members spaces shown, locked, to people who haven't joined (teasers).
+  const navTeasers = (await getSpaceTeasers(supabase, community.id, spaces.map((s) => s.id))).filter((t) => t.show_in_nav);
   // Guests only get the Events link when the community has opted its events
   // into public view; signed-in visitors always do.
   const canSeeEvents = Boolean(user) || community.events_public;
@@ -247,6 +252,11 @@ export default async function CommunityLayout({
             sub: true,
           })),
       ],
+    })),
+    ...navTeasers.map((teaser) => ({
+      sort: teaser.sort_order,
+      group: sectionFor(teaser.nav_group),
+      items: [{ href: `${base}/spaces/${teaser.slug}`, label: teaser.name, icon: <Lock className="h-4 w-4" /> }],
     })),
     // The built-in links have no group column of their own — there is no row to
     // put one on — so they take the section their purpose implies. Events is
@@ -337,8 +347,17 @@ export default async function CommunityLayout({
           badge instantly. Outside the signed-in gate so guests on a public
           live space see it too. */}
       <LiveSessionWatcher communityId={community.id} />
+      {/* The "We're live" card (with a chime and, when allowed, a desktop
+          notification) whenever a session is live and the viewer isn't in it. */}
+      <LiveNowPopup session={liveSession} base={base} viewerId={user?.id ?? null} />
 
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
+      {/* Sticky at full window height, so the nav stays in view while a long
+          page (a directory, a timeline) scrolls past it. Only the link list in
+          the middle scrolls: the logo stays at the top and the signed-in
+          name / Log out at the foot. dvh rather than vh, because on Safari and
+          tablets 100vh is taller than the visible window and pushed the foot
+          off the bottom of the screen. */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:sticky md:top-0 md:flex md:h-dvh">
         {/* Sidebar header: the logo on the plain card background. The cover
             photo was tried here and pulled back out — a tinted crop behind a
             logo made the sidebar compete with the hero rather than support it,
@@ -347,7 +366,7 @@ export default async function CommunityLayout({
             photograph it is. */}
         {/* pt-[49px]: the 48px main header plus the logo ring's 1px, so the top
             of the ring sits level with the top of the cover photo beside it. */}
-        <div className="border-b border-border px-5 pb-5 pt-[49px]">
+        <div className="shrink-0 border-b border-border px-5 pb-5 pt-[49px]">
           {/* The logo is the way home, the way every site's masthead works —
               it goes to the community feed from anywhere inside the community. */}
           <Link href={base} className="flex flex-col items-center text-center">
@@ -366,7 +385,7 @@ export default async function CommunityLayout({
           </Link>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
           {usedGroups.length === 0 ? (
             // Nothing grouped in this community: the nav it has always had.
             <div className="space-y-1">
@@ -463,7 +482,7 @@ export default async function CommunityLayout({
           </div>
         </div>
 
-        <div className="border-t border-border p-3">
+        <div className="shrink-0 border-t border-border p-3">
           {user ? (
             <>
               <Link href="/settings" className="flex items-center gap-2.5 rounded-md px-3 py-2 hover:bg-muted">
@@ -482,18 +501,20 @@ export default async function CommunityLayout({
               <p className="px-2 text-xs text-muted-foreground">
                 Browsing {community.name} as a guest.
               </p>
-              <Link
-                href={`/login?next=${encodeURIComponent(base)}`}
+              <ReturnHereLink
+                to="/login"
+                fallback={base}
                 className="flex w-full items-center justify-center rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
               >
                 Log in
-              </Link>
-              <Link
-                href={`/signup?next=${encodeURIComponent(base)}`}
+              </ReturnHereLink>
+              <ReturnHereLink
+                to="/signup"
+                fallback={base}
                 className="flex w-full items-center justify-center rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
               >
                 Sign up
-              </Link>
+              </ReturnHereLink>
             </div>
           )}
         </div>
@@ -540,7 +561,7 @@ export default async function CommunityLayout({
                 the room. Shown to anyone who can see the session (RLS-scoped). */}
             {liveSession && (
               <Link
-                href={`${base}/spaces/${liveSession.spaceSlug}`}
+                href={`${base}/spaces/${liveSession.spaceSlug}?join=1`}
                 title={`${liveSession.title} is live now — join`}
                 className="inline-flex items-center gap-1.5 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-danger-foreground shadow-sm transition-opacity hover:opacity-90"
               >
@@ -610,12 +631,13 @@ export default async function CommunityLayout({
                 </Link>
               </>
             ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(base)}`}
+              <ReturnHereLink
+                to="/login"
+                fallback={base}
                 className="text-sm font-medium text-accent hover:underline"
               >
                 Log in
-              </Link>
+              </ReturnHereLink>
             )}
           </div>
         </header>
@@ -643,22 +665,22 @@ export default async function CommunityLayout({
           {!user ? (
             <div className="border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               You&apos;re viewing the public parts of {community.name}.{" "}
-              <Link href={`/login?next=${encodeURIComponent(base)}`} className="font-medium underline">
+              <ReturnHereLink to="/login" fallback={base} className="font-medium underline">
                 Log in
-              </Link>{" "}
+              </ReturnHereLink>{" "}
               or{" "}
-              <Link href={`/signup?next=${encodeURIComponent(base)}`} className="font-medium underline">
+              <ReturnHereLink to="/signup" fallback={base} className="font-medium underline">
                 sign up
-              </Link>{" "}
+              </ReturnHereLink>{" "}
               to post, review and join.
             </div>
           ) : !isMember ? (
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-border bg-accent-soft px-4 py-2.5 text-center text-sm text-accent">
               <span>
                 You&apos;re viewing {community.name} as a guest.{" "}
-                {community.privacy === "public"
+                {joinPolicyOf(community) === "open"
                   ? "Join to post and see member-only spaces."
-                  : community.privacy === "private"
+                  : joinPolicyOf(community) === "approval"
                     ? membership?.status === "requested"
                       ? "An admin is reviewing your request to join."
                       : "Ask to join to post and see member-only spaces."
@@ -666,7 +688,7 @@ export default async function CommunityLayout({
               </span>
               <CommunityJoinCta
                 communityId={community.id}
-                privacy={community.privacy}
+                joinPolicy={joinPolicyOf(community)}
                 membershipStatus={membership?.status ?? null}
                 size="sm"
               />
@@ -724,8 +746,7 @@ export default async function CommunityLayout({
               }
             : {
                 kind: "guest",
-                loginHref: `/login?next=${encodeURIComponent(base)}`,
-                signupHref: `/signup?next=${encodeURIComponent(base)}`,
+                returnFallback: base,
               }
         }
       />

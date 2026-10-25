@@ -36,6 +36,8 @@ export function slugifyCommunity(input: string) {
 export function normalizeUrl(input: string): string {
   const trimmed = input.trim();
   if (!trimmed) return trimmed;
+  // A file in a space's private folder is served by this site (src/lib/space-files.ts).
+  if (trimmed.startsWith("/api/files/")) return trimmed;
   return /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }
 

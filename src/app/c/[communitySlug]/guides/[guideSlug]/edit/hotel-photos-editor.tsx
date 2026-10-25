@@ -104,7 +104,7 @@ export function HotelPhotosEditor({
         </p>
       )}
       <p className="text-sm text-muted-foreground">
-        Only add photos you have the right to publish: a free licence (credit it exactly) or the hotel&apos;s written permission (say so in the licence field). The first photo is the hotel&apos;s main image.
+        Only add photos you have the right to publish: a free licence (credit it exactly) or the owner&apos;s written permission (say so in the licence field). The first photo is the main image.
       </p>
       <ListEditor
         title={`${hotelName} — photographs`}

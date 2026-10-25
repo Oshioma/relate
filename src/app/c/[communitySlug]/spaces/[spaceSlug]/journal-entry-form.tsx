@@ -152,14 +152,15 @@ function JournalFieldInput({ field }: { field: SpaceJournalField }) {
 }
 
 // URL fields double as image fields: paste a link, or upload a file and the
-// input is filled with its public URL. The input stays uncontrolled so the
+// input is filled with its link (a site path like /api/files/… in a private
+// space, which type="url" would refuse). The input stays uncontrolled so the
 // form's reset() clears it like every other field.
 function UrlOrUploadInput({ id, name, required }: { id: string; name: string; required: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="flex items-start gap-2">
-      <Input ref={inputRef} id={id} name={name} type="url" required={required} placeholder="https://… or upload an image" className="flex-1" />
+      <Input ref={inputRef} id={id} name={name} type="text" inputMode="url" required={required} placeholder="https://… or upload an image" className="flex-1" />
       <UploadButton
         label="Upload"
         className="shrink-0"

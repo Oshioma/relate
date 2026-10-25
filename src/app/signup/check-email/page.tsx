@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MailCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { safeReturnPath } from "@/lib/auth-return";
 
 export default async function CheckEmailPage({
   searchParams,
@@ -8,7 +9,7 @@ export default async function CheckEmailPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const next = params.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = safeReturnPath(params.next, "/dashboard");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">

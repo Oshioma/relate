@@ -6,8 +6,10 @@ import type { GuidePhoto } from "@/lib/guides/where-to-stay/types";
 export function PhotoCredit({ photo }: { photo: GuidePhoto }) {
   return (
     <>
-      {photo.caption}{" "}
-      <span className="whitespace-nowrap">
+      {/[.!?)”"]$/.test(photo.caption.trim()) || !photo.caption.trim() ? photo.caption : `${photo.caption.trim()}.`}{" "}
+      {/* Wraps like any text: long credits ("… (official website)") would
+          otherwise push a phone-width page sideways. */}
+      <span className="[overflow-wrap:anywhere]">
         Photo:{" "}
         <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
           {photo.credit}
